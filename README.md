@@ -42,7 +42,7 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 | | |
 |---|---|
 | Finder | files and folders, list/icon view, Trash, import from your computer |
-| Patoogle | tabbed web browser with bookmarks, site icons and history; YouTube links open in the YouTube app |
+| Patoogle | tabbed web browser with bookmarks, site icons and history. Real Google results with your free Programmable Search ID (Bing until you add one); YouTube links open in the YouTube app |
 | Notes, TextEdit, Reminders, Calendar | saved automatically |
 | Calculator (basic and scientific), Clock (world clock, alarms, stopwatch, timer), Weather (live forecast) | |
 | Music | songs composed live by your computer, a 3D visualizer, and your own MP3s |

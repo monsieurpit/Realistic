@@ -13,7 +13,7 @@
     { t: 'Internet Archive', u: 'https://archive.org' }
   ];
   const SHORTCUTS = [
-    { t: 'Bing', u: 'https://www.bing.com/', i: 'search' },
+    { t: 'Google', u: 'patos://google', i: 'search' },
     { t: 'Wikipedia', u: 'https://en.wikipedia.org/wiki/Main_Page', i: 'W' },
     { t: 'YouTube', app: 'youtube', i: 'youtube' },
     { t: 'Docs', app: 'docs', i: 'docs' },
@@ -42,15 +42,32 @@
     if (/^[\w-]+(\.[\w-]+)+(:\d+)?(\/.*)?$/.test(q) && !q.includes(' ')) return 'https://' + q;
     return searchURL(q);
   }
-  /* Patoogle searches with Bing: Google refuses to show its results inside other apps (that's the 403 page),
-     while Bing allows it. Google search addresses are sent to Bing automatically. */
-  function searchURL(q) { return 'https://www.bing.com/search?q=' + encodeURIComponent(q) + '&setlang=' + (PatOS.lang || 'en'); }
+  /* Searching. google.com refuses to load inside other apps (you get a 403 or an old stripped-down page),
+     so Patoogle shows real Google results through Google Programmable Search, which Google made for exactly
+     this. It needs a free Search engine ID from the user. Until one is added, searches go to Bing. */
+  const googleCx = () => (PatOS.store.get('googleCx', '') || '').trim();
+  function searchURL(q) { return googleCx() ? 'patos://google?q=' + encodeURIComponent(q) : bingURL(q); }
+  function bingURL(q) { return 'https://www.bing.com/search?q=' + encodeURIComponent(q) + '&setlang=' + (PatOS.lang || 'en'); }
+  let cseState = null; // { cx, ready: Promise }
+  function loadCSE(cx) {
+    if (cseState && cseState.cx === cx) return cseState.ready;
+    if (cseState && cseState.cx !== cx) return Promise.reject(new Error('restart'));
+    const ready = new Promise((resolve, reject) => {
+      window.__gcse = { parsetags: 'explicit', callback: () => resolve(window.google.search.cse.element) };
+      const sc = document.createElement('script'); sc.async = true; sc.src = 'https://cse.google.com/cse.js?cx=' + encodeURIComponent(cx);
+      sc.onerror = () => { cseState = null; reject(new Error('offline')); };
+      document.head.appendChild(sc);
+      setTimeout(() => reject(new Error('timeout')), 15000);
+    });
+    cseState = { cx, ready };
+    return ready;
+  }
   function fixGoogle(url) {
     try {
       const u = new URL(url);
       if (!/(^|\.)google\.[a-z.]+$/.test(u.hostname) || !/^www\.|^google\./.test(u.hostname)) return url;
       if (u.pathname === '/search' && u.searchParams.get('q')) return searchURL(u.searchParams.get('q'));
-      if (u.pathname === '/' || u.pathname === '/webhp') return 'https://www.bing.com/';
+      if (u.pathname === '/' || u.pathname === '/webhp') return googleCx() ? 'patos://newtab' : 'patos://google-setup';
     } catch (e) {}
     return url;
   }
@@ -136,6 +153,8 @@
         t.url = url;
         t.pane.innerHTML = '';
         if (url === 'patos://newtab') { t.title = 'New Tab'; t.pane.appendChild(newTabPage()); }
+        else if (url.startsWith('patos://google-setup')) { t.title = 'Google'; t.pane.appendChild(googleSetup(new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || '')); }
+        else if (url.startsWith('patos://google')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Google'; t.pane.appendChild(googleCx() ? googlePage(t, q) : googleSetup(q)); }
         else if (isBlocked(url)) { t.title = host(url); t.pane.appendChild(blockedPage(url)); }
         else {
           t.title = /bing\.com\/search/.test(url) ? new URL(url).searchParams.get('q') : host(url);
@@ -143,9 +162,61 @@
           const frame = h('iframe', { src: url, allow: 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write', referrerpolicy: 'no-referrer-when-downgrade', allowfullscreen: true });
           frame.addEventListener('load', () => { loader.remove(); try { const d = frame.contentDocument; if (d && d.title) { t.title = d.title; syncUI(); } } catch (e) {} });
           t.pane.append(loader, frame);
+          if (/bing\.com\/search/.test(url) && !googleCx()) {
+            const q = new URL(url).searchParams.get('q') || '';
+            t.pane.insertBefore(h('div', { class: 'pg-banner' }, h('span', {}, 'These results are from Bing.'), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup?q=' + encodeURIComponent(q)) }, 'Get real Google results')), frame);
+          }
           setTimeout(() => loader.remove(), 8000);
         }
         if (t === cur) syncUI(); else t.tabEl.querySelector('.br-tt').textContent = t.title;
+      }
+      function googlePage(t, q) {
+        const box = h('input', { class: 'pg-q', value: q, spellcheck: 'false', placeholder: 'Search Google' });
+        box.addEventListener('keydown', (e) => { if (e.key === 'Enter' && box.value.trim()) navigate('patos://google?q=' + encodeURIComponent(box.value.trim())); });
+        const results = h('div', { class: 'pg-results', id: 'pg-' + t.id });
+        const status = h('div', { class: 'pg-status' }, PatOS.t('Searching…'));
+        const page = h('div', { class: 'pg-page' }, h('div', { class: 'pg-head' }, h('div', { class: 'pg-logo' }, 'Patoogle'), h('div', { class: 'pg-qwrap', html: PatOS.sym('search') }, box)), status, results,
+          h('div', { class: 'pg-foot' }, h('span', {}, 'Results by Google'), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup') }, 'Search settings')));
+        // open results inside Patoogle instead of a new browser tab
+        results.addEventListener('click', (e) => {
+          const a = e.target.closest('a[href]'); if (!a) return;
+          const href = a.getAttribute('data-ctorig') || a.href;
+          if (!/^https?:/.test(href) || /google\.com\/(url|aclk)|googleadservices/.test(href) && !a.getAttribute('data-ctorig')) return;
+          e.preventDefault(); e.stopPropagation(); navigate(href);
+        }, true);
+        results.addEventListener('mousedown', (e) => { if (e.target.closest('a[href]')) e.stopPropagation(); }, true);
+        if (q) loadCSE(googleCx()).then((el) => {
+          status.remove();
+          const gname = 'pg' + t.id + Date.now();
+          el.render({ div: results.id, tag: 'searchresults-only', gname, attributes: { linkTarget: '_self', enableHistory: false } });
+          el.getElement(gname).execute(q);
+        }).catch((err) => {
+          status.textContent = err.message === 'restart' ? PatOS.t('Close and reopen PatOS to use your new Search engine ID.') : PatOS.sandboxed ? PatOS.t('Google search can’t run inside a Claude Artifact. Open PatOS from its website.') : PatOS.t('Google search didn’t load. Check your internet connection, or the Search engine ID in Search settings.');
+        });
+        else status.textContent = '';
+        setTimeout(() => { if (!q) box.focus(); }, 50);
+        return page;
+      }
+      function googleSetup(q) {
+        const inp = h('input', { class: 'field pg-cx', placeholder: 'Search engine ID (looks like a1b2c3d4e5f6g7h8i)', value: googleCx(), spellcheck: 'false' });
+        const save = () => {
+          let v = inp.value.trim(); const m = v.match(/cx=([\w:-]+)/); if (m) v = m[1];
+          PatOS.store.set('googleCx', v);
+          if (cseState && v && cseState.cx !== v) { PatOS.alertBox(PatOS.t('Saved'), PatOS.t('Close and reopen PatOS to use your new Search engine ID.'), { icon: 'browser' }); return; }
+          navigate(v ? (q ? 'patos://google?q=' + encodeURIComponent(q) : 'patos://newtab') : (q ? bingURL(q) : 'patos://newtab'));
+        };
+        inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(); });
+        return h('div', { class: 'pg-setup' },
+          h('div', { class: 'pg-logo big' }, 'Patoogle'),
+          h('h2', {}, 'Get real Google results'),
+          h('p', {}, 'google.com doesn’t let other apps show it, which is why you saw an error or an old-looking Google page. Google does offer an official search box that apps can use. It gives the same up-to-date results. You just need a free ID for it:'),
+          h('ol', {},
+            h('li', {}, 'On any device, go to programmablesearchengine.google.com and sign in.'),
+            h('li', {}, 'Click Add. Give it any name, and pick “Search the entire web”.'),
+            h('li', {}, 'Click Create, then copy the Search engine ID it shows you.'),
+            h('li', {}, 'Paste it here. It only stays on this device.')),
+          h('div', { class: 'pg-row' }, inp, h('button', { class: 'btn primary', onclick: save }, 'Use Google')),
+          googleCx() ? h('button', { class: 'pg-link', onclick: () => { inp.value = ''; save(); } }, 'Stop using Google and search with Bing') : h('button', { class: 'pg-link', onclick: () => navigate(q ? bingURL(q) : 'patos://newtab') }, 'Not now, keep using Bing'));
       }
       function loadHTML(t, html, title) {
         t.url = 'patos://file'; t.title = title || 'Document'; t.hist = [t.url]; t.idx = 0;
@@ -154,6 +225,7 @@
       function newTabPage() {
         const q = h('input', { class: 'nt-search', placeholder: 'Search Patoogle or type a web address', spellcheck: 'false' });
         q.addEventListener('keydown', (e) => { if (e.key === 'Enter') navigate(q.value); });
+        const engine = h('div', { class: 'nt-engine' }, h('span', {}, googleCx() ? 'Searching with Google' : 'Searching with Bing'), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup') }, googleCx() ? 'Change' : 'Use Google instead'));
         const grid = h('div', { class: 'nt-grid' });
         SHORTCUTS.forEach((s) => {
           const tile = h('button', { class: 'nt-tile' }, h('div', { class: 'nt-ic', html: PatOS.iconDefs[s.i] ? PatOS.iconHTML(s.i) : `<div class="nt-letter">${esc(s.i)}</div>` }), h('span', {}, s.t));
@@ -165,7 +237,7 @@
         return h('div', { class: 'nt-page' },
           h('div', { class: 'nt-logo' }, 'Patoogle'),
           h('div', { class: 'nt-greet' }, greet + ', ' + PatOS.settings.userName),
-          q, grid,
+          q, engine, grid,
           h('div', { class: 'nt-tip' }, 'Most sites open right here. A few big ones, like Gmail, won’t load inside other apps, so use the PatOS app for those.'));
       }
       function blockedPage(url) {
