@@ -323,3 +323,4 @@
 .mobile .yt-card.row .yt-thumb { width: 44%; } .mobile .yt-grid { grid-template-columns: 1fr; } .mobile .yt-main { padding: 10px 12px 30px; }
 .br-alts { margin: 6px 0; } .br-ext { color: var(--text3); font-size: 12px; text-decoration: underline; }
 .am-gpu { margin-left: 6px; font-size: 10px; padding: 1px 6px; border-radius: 6px; background: var(--accent); color: #fff; }
+.nt-logo { font-size: 66px; font-weight: 900; letter-spacing: -2px; background: linear-gradient(100deg, #7d5cff, #ff4fa0 55%, #ffb347); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 4px 18px rgba(255,79,160,.25)); }

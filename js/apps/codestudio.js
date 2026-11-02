@@ -21,7 +21,7 @@
       tpl.onchange = () => { if (!tpl.value) return; proj = Object.assign({}, TEMPLATES[tpl.value]); tpl.value = ''; sync(); run(); save(); };
       const bRun = h('button', { class: 'btn primary' }, '▶ Run');
       const bSave = h('button', { class: 'tbtn', title: 'Save as .html in Documents' }, '💾');
-      const bOpen = h('button', { class: 'tbtn', title: 'Open the page in Surf' }, '↗');
+      const bOpen = h('button', { class: 'tbtn', title: 'Open the page in Patoogle' }, '↗');
       const auto = h('label', { class: 'cs-auto' }, h('input', { type: 'checkbox', checked: true }), ' Live');
       win.toolbar.append(seg, tpl, h('div', { style: { flex: 1 } }), auto, bOpen, bSave, bRun);
       win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
@@ -53,7 +53,7 @@
         if ((e.ctrlKey || e.altKey) && e.key === 'Enter') { e.preventDefault(); run(); }
       });
       bRun.onclick = run;
-      bSave.onclick = async () => { const nm = await PatOS.ask('Save project as', 'my-page.html', { icon: 'code', ok: 'Save', text: 'Saved in Documents. Double-click it to open it in Surf.' }); if (!nm) return; PatOS.fs.write('/Documents/' + (nm.endsWith('.html') ? nm : nm + '.html'), doc()); PatOS.notify({ title: 'Project saved', body: nm, icon: 'code' }); };
+      bSave.onclick = async () => { const nm = await PatOS.ask('Save project as', 'my-page.html', { icon: 'code', ok: 'Save', text: 'Saved in Documents. Double-click it to open it in Patoogle.' }); if (!nm) return; PatOS.fs.write('/Documents/' + (nm.endsWith('.html') ? nm : nm + '.html'), doc()); PatOS.notify({ title: 'Project saved', body: nm, icon: 'code' }); };
       bOpen.onclick = () => PatOS.launch('browser', { html: doc(), title: 'Code Studio preview' });
       win.on('closed', () => window.removeEventListener('message', onMsg));
       sync(); run();

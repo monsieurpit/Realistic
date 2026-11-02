@@ -51,7 +51,7 @@
       const pres = h('div', { class: 'g3d-pres' }, ...Object.keys(presets).map((k) => h('button', { class: 'btn', onclick: () => { Object.assign(P, presets[k]); build(); render(); } }, k)));
       function render() {
         panel.innerHTML = '';
-        panel.append(h('b', {}, 'Galaxy Generator'), pres, ctl('Stars', 'stars', 5000, 150000, 1000), ctl('Arms', 'arms', 1, 12, 1), ctl('Radius', 'radius', 2, 20, 0.5), ctl('Spin', 'spin', -4, 4, 0.05), ctl('Randomness', 'randomness', 0, 2, 0.01), ctl('Star size', 'size', 0.005, 0.08, 0.001), ctl('Rotation speed', 'speed', 0, 1, 0.01), h('div', { class: 'g3d-cs' }, color('Core', 'inside'), color('Edge', 'outside')));
+        panel.append(h('b', {}, 'Galaxy Generator'), pres, ctl('Stars', 'stars', 5000, 150000, 1000), ctl('Arms', 'arms', 1, 12, 1), ctl('Radius', 'radius', 2, 20, 0.5), ctl('Spin', 'spin', -4, 4, 0.05), ctl('Spread', 'randomness', 0, 2, 0.01), ctl('Star size', 'size', 0.005, 0.08, 0.001), ctl('Rotation speed', 'speed', 0, 1, 0.01), h('div', { class: 'g3d-cs' }, color('Core', 'inside'), color('Edge', 'outside')));
       }
       const bPanel = h('button', { class: 'tbtn', title: 'Toggle controls' }, '⚙ Controls');
       const bShot = h('button', { class: 'tbtn', title: 'Save picture to Photos' }, '📸');

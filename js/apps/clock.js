@@ -6,11 +6,25 @@
   const inTZ = (tz) => tz ? new Date(new Date().toLocaleString('en-US', { timeZone: tz })) : new Date();
   const fmt = (ms, cs) => { const m = Math.floor(ms / 60000), s = Math.floor(ms / 1000) % 60, c = Math.floor(ms / 10) % 100; return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + (cs ? '.' + String(c).padStart(2, '0') : ''); };
 
+  /* alarms ring while PatOS is open, even when Clock is closed */
+  let lastMin = '';
+  setInterval(() => {
+    if (!PatOS.loggedIn) return;
+    const d = new Date(); const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    if (hm === lastMin) return; lastMin = hm;
+    (PatOS.store.get('alarms', []) || []).forEach((a) => {
+      if (!a.on || a.time !== hm) return;
+      PatOS.notify({ title: '⏰ ' + (a.label || PatOS.t('Alarm')), body: d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }), icon: 'clock', duration: 15000 });
+      for (let i = 0; i < 8; i++) { PatOS.sound.tone(880, 0.18, { delay: i * 0.5, vol: 0.25, type: 'square' }); PatOS.sound.tone(1100, 0.18, { delay: i * 0.5 + 0.22, vol: 0.2, type: 'square' }); }
+      if (PatOS.mobile && PatOS.mobile.islandAlert) PatOS.mobile.islandAlert(a.label || PatOS.t('Alarm'), 'clock');
+    });
+  }, 5000);
+
   PatOS.registerApp({
     id: 'clock', name: 'Clock', icon: 'clock', width: 720, height: 500, dark: true, category: 'Utilities', keywords: 'time stopwatch timer alarm world',
     launch(win) {
       win.el.classList.add('has-toolbar');
-      const tabs = ['World Clock', 'Stopwatch', 'Timer'];
+      const tabs = ['World Clock', 'Alarms', 'Stopwatch', 'Timer'];
       let tab = 0;
       const seg = h('div', { class: 'seg' });
       tabs.forEach((t, i) => seg.appendChild(h('button', { class: 'tab', onclick: () => { tab = i; render(); } }, t)));
@@ -26,7 +40,7 @@
       function render() {
         clearTimers(); body.innerHTML = '';
         [...seg.children].forEach((b, i) => b.classList.toggle('on', i === tab));
-        if (tab === 0) world(); else if (tab === 1) stopwatch(); else timer();
+        if (tab === 0) world(); else if (tab === 1) alarms(); else if (tab === 2) stopwatch(); else timer();
       }
       function world() {
         const g = h('div', { class: 'clk-world' });
@@ -44,6 +58,25 @@
         });
         tick(); timers.push(setInterval(tick, 1000));
         body.appendChild(g);
+      }
+      function alarms() {
+        const list = PatOS.store.get('alarms', []);
+        const save = () => PatOS.store.set('alarms', list);
+        const wrap = h('div', { class: 'clk-alarms' });
+        const draw = () => {
+          wrap.innerHTML = '';
+          if (!list.length) wrap.appendChild(h('div', { class: 'clk-sub', style: { padding: '30px', textAlign: 'center' } }, PatOS.t('No alarms yet. Alarms ring while PatOS is open.')));
+          list.sort((a, b) => a.time.localeCompare(b.time)).forEach((a) => {
+            const sw = h('button', { class: 'switch' + (a.on ? ' on' : '') }); sw.onclick = () => { a.on = !a.on; save(); draw(); };
+            const [hh, mm] = a.time.split(':').map(Number); const d = new Date(); d.setHours(hh, mm, 0, 0);
+            wrap.appendChild(h('div', { class: 'clk-alarm' + (a.on ? '' : ' off') }, h('div', {}, h('div', { class: 'clk-at' }, d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })), h('small', {}, a.label || PatOS.t('Alarm'))), h('div', { style: { flex: 1 } }), h('button', { class: 'tbtn', title: 'Delete', onclick: () => { list.splice(list.indexOf(a), 1); save(); draw(); } }, '🗑'), sw));
+          });
+        };
+        const tIn = h('input', { type: 'time', class: 'field', value: '07:00' });
+        const lIn = h('input', { class: 'field', placeholder: 'Label', style: { width: '140px' } });
+        const add = h('button', { class: 'btn primary', onclick: () => { if (!tIn.value) return; list.push({ id: PatOS.uid(), time: tIn.value, label: lIn.value.trim(), on: true }); lIn.value = ''; save(); draw(); } }, 'Add Alarm');
+        body.append(h('div', { class: 'clk-addalarm' }, tIn, lIn, add), wrap);
+        draw();
       }
       function stopwatch() {
         const disp = h('div', { class: 'clk-big' });

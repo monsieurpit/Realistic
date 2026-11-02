@@ -332,6 +332,7 @@
     if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) return 'audio';
     if (['html', 'htm'].includes(ext)) return 'html';
     if (ext === 'url') return 'link';
+    if (ext === 'pdf') return 'pdf';
     if (['js', 'css', 'json', 'py', 'md', 'txt', 'csv', ''].includes(ext)) return 'text';
     return 'text';
   };
@@ -399,7 +400,7 @@
     const kind = PatOS.fileKind(path, n);
     if (kind === 'folder') return PatOS.launch('finder', { path });
     const ext = PatOS.fs.ext(path);
-    const byExt = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms' };
+    const byExt = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms', pdf: 'preview' };
     if (byExt[ext]) return PatOS.launch(byExt[ext], { path });
     if (kind === 'image') return PatOS.launch('photos', { path });
     if (kind === 'audio') return PatOS.launch('music', { path });

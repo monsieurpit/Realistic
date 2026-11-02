@@ -39,7 +39,7 @@
     clearInterval(lockTimer);
     const lock = $('#lock'); lock.classList.add('unlocking');
     $('#desktop').classList.remove('hidden');
-    if (!shellReady) { PatOS.shell.init(); PatOS.mobile && PatOS.mobile.init(); shellReady = true; firstRun(); }
+    if (!shellReady) { PatOS.shell.init(); PatOS.mobile && PatOS.mobile.init(); shellReady = true; if (!(PatOS.setup && PatOS.setup.maybeShow())) firstRun(); else setTimeout(() => PatOS.emit('wm:ready'), 1200); }
     setTimeout(() => lock.classList.add('hidden'), 500);
     PatOS.loggedIn = true;
     PatOS.sound.startup();

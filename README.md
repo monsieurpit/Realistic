@@ -6,6 +6,9 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 
 ## What's inside
 
+**First start**
+- A Setup Assistant asks for your language, name, look and wallpaper
+
 **The desktop**
 - Boot screen, lock screen with an optional password, Sleep, Restart and Shut Down
 - Menu bar with app menus, battery (real Chromebook battery level), Wi-Fi, clock
@@ -39,9 +42,9 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 | | |
 |---|---|
 | Finder | files and folders, list/icon view, Trash, import from your computer |
-| Surf | tabbed web browser with bookmarks; plays YouTube links |
+| Patoogle | tabbed web browser with bookmarks, site icons and history; YouTube links open in the YouTube app |
 | Notes, TextEdit, Reminders, Calendar | saved automatically |
-| Calculator, Clock (world clock, stopwatch, timer), Weather (live forecast) | |
+| Calculator (basic and scientific), Clock (world clock, alarms, stopwatch, timer), Weather (live forecast) | |
 | Music | songs composed live by your computer, a 3D visualizer, and your own MP3s |
 | Photos, Paint, Photo Booth | |
 | Terminal | `ls`, `cd`, `cat`, `mkdir`, `open`, `neofetch`, `matrix`, `cowsay` and more |
@@ -52,7 +55,12 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 | App Store | browse every app, open it, add it to the Dock, hide or show it |
 | Code Studio | HTML/CSS/JS editor with live preview and a console |
 | Piano, Flashcards, Typing Trainer, Voice Memos, Stickies, Dictionary | |
-| Tic-Tac-Toe, Maps, YouTube, System Settings, Activity Monitor | |
+| Contacts | address book with photos, favorites, birthdays and vCard import/export |
+| Freeform | endless whiteboard: drawing, sticky notes, text, shapes, pictures, several boards |
+| Preview | opens PDFs and pictures |
+| Chess | full rules against the computer (3 levels) or a friend |
+| Screenshot | real screen pictures and screen recordings (on computers) |
+| Tic-Tac-Toe, Maps, System Settings, Activity Monitor | |
 | Docs | word processor: styles, fonts, colors, lists, tables, images, find & replace, print, export |
 | Sheets | spreadsheet with real formulas (SUM, AVERAGE, IF, COUNTIF, SUMIF…), sorting, charts, CSV import/export |
 | Slides | slide decks with themes, text, images, shapes, speaker notes and full-screen presenting with transitions |
@@ -73,7 +81,7 @@ Chromebooks reserve most Ctrl shortcuts, so PatOS uses **Alt**:
 | Alt+↑ or F3 | Mission Control |
 | Alt+W / Alt+Q / Alt+M | Close window / Quit app / Minimize |
 | Alt+← / Alt+→ | Tile window left / right |
-| Alt+T / Alt+E / Alt+B / Alt+, | Terminal / Finder / Surf / Settings |
+| Alt+T / Alt+E / Alt+B / Alt+, | Terminal / Finder / Patoogle / Settings |
 
 ## Running it
 

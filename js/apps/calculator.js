@@ -1,58 +1,98 @@
-/* Calculator */
+/* Calculator — basic and scientific modes */
 (function () {
   'use strict';
   const { h } = PatOS;
   PatOS.registerApp({
-    id: 'calculator', name: 'Calculator', icon: 'calculator', width: 260, height: 410, resizable: false, titlebar: 'hidden', dark: true, category: 'Utilities', keywords: 'math calc',
+    id: 'calculator', name: 'Calculator', icon: 'calculator', width: 260, height: 410, resizable: false, titlebar: 'hidden', dark: true, category: 'Utilities', keywords: 'math calc scientific',
     launch(win) {
-      let cur = '0', prev = null, op = null, fresh = true;
+      let sci = PatOS.store.get('calcSci', false);
+      let cur = '0', prev = null, op = null, fresh = true;   // basic mode state
+      let expr = '', lastAns = 0, deg = true, justEval = false; // scientific mode state
+      const modeBtn = h('button', { class: 'calc-mode', title: 'Switch mode' });
+      const sub = h('div', { class: 'calc-sub' });
       const disp = h('div', { class: 'calc-disp' }, '0');
       const keys = h('div', { class: 'calc-keys' });
       win.body.classList.add('calc');
-      win.body.append(disp, keys);
-      const layout = [['AC', 'fn'], ['±', 'fn'], ['%', 'fn'], ['÷', 'op'], ['7'], ['8'], ['9'], ['×', 'op'], ['4'], ['5'], ['6'], ['−', 'op'], ['1'], ['2'], ['3'], ['+', 'op'], ['0', 'zero'], ['.'], ['=', 'op']];
-      const btns = {};
-      layout.forEach(([k, cls]) => { const b = h('button', { class: 'ck ' + (cls || 'num') }, k); b.onclick = () => press(k); keys.appendChild(b); btns[k] = b; });
-      function fmt(n) {
-        if (n === 'Error') return n;
-        const v = parseFloat(n); if (!isFinite(v)) return 'Error';
+      win.body.append(modeBtn, sub, disp, keys);
+      const fmt = (n) => {
+        if (n === 'Error') return n; const v = parseFloat(n); if (!isFinite(v)) return PatOS.t('Error');
         if (String(n).endsWith('.')) return n;
-        if (Math.abs(v) >= 1e9 || (Math.abs(v) < 1e-6 && v !== 0)) return v.toExponential(4);
-        const [i, d] = String(n).split('.');
-        return Number(i).toLocaleString('en-US') + (d !== undefined ? '.' + d.slice(0, 8) : '');
+        if (Math.abs(v) >= 1e12 || (Math.abs(v) < 1e-7 && v !== 0)) return v.toExponential(5);
+        const [i, d] = String(n).split('.'); return Number(i).toLocaleString('en-US') + (d !== undefined ? '.' + d.slice(0, 10) : '');
+      };
+      function size() {
+        const s = disp.textContent; const max = sci ? 22 : 9;
+        disp.style.fontSize = s.length > max ? Math.max(sci ? 22 : 26, (sci ? 48 : 64) - (s.length - max) * (sci ? 2 : 5)) + 'px' : (sci ? 48 : 64) + 'px';
       }
-      function show() {
-        const s = fmt(cur); disp.textContent = s;
-        disp.style.fontSize = s.length > 9 ? Math.max(26, 64 - (s.length - 9) * 5) + 'px' : '64px';
-        btns.AC.textContent = cur !== '0' && !fresh ? 'C' : 'AC';
-        Object.entries(btns).forEach(([k, b]) => b.classList.toggle('active', k === op && fresh));
-      }
-      function calc(a, b, o) {
-        a = parseFloat(a); b = parseFloat(b);
-        const r = o === '+' ? a + b : o === '−' ? a - b : o === '×' ? a * b : o === '÷' ? (b === 0 ? NaN : a / b) : b;
-        return isFinite(r) ? String(+r.toPrecision(12)) : 'Error';
-      }
-      function press(k) {
-        PatOS.sound.click();
+      /* ---------- basic ---------- */
+      const BASIC = [['AC', 'fn'], ['±', 'fn'], ['%', 'fn'], ['÷', 'op'], ['7'], ['8'], ['9'], ['×', 'op'], ['4'], ['5'], ['6'], ['−', 'op'], ['1'], ['2'], ['3'], ['+', 'op'], ['0', 'zero'], ['.'], ['=', 'op']];
+      function calc(a, b, o) { a = parseFloat(a); b = parseFloat(b); const r = o === '+' ? a + b : o === '−' ? a - b : o === '×' ? a * b : o === '÷' ? (b === 0 ? NaN : a / b) : b; return isFinite(r) ? String(+r.toPrecision(12)) : 'Error'; }
+      function pressBasic(k) {
         if (/^\d$/.test(k)) { if (fresh || cur === '0' || cur === 'Error') { cur = k; fresh = false; } else if (cur.replace(/[-.]/g, '').length < 12) cur += k; }
         else if (k === '.') { if (fresh) { cur = '0.'; fresh = false; } else if (!cur.includes('.')) cur += '.'; }
-        else if (k === 'AC' || k === 'C') { if (btns.AC.textContent === 'C') { cur = '0'; fresh = true; } else { cur = '0'; prev = null; op = null; fresh = true; } }
+        else if (k === 'AC' || k === 'C') { if (k === 'C') { cur = '0'; fresh = true; } else { cur = '0'; prev = null; op = null; fresh = true; } }
         else if (k === '±') cur = cur.startsWith('-') ? cur.slice(1) : cur === '0' ? '0' : '-' + cur;
         else if (k === '%') cur = String(parseFloat(cur) / 100);
         else if (['+', '−', '×', '÷'].includes(k)) { if (op && !fresh && prev !== null) cur = calc(prev, cur, op); prev = cur; op = k; fresh = true; }
         else if (k === '=') { if (op !== null && prev !== null) { cur = calc(prev, cur, op); prev = null; op = null; fresh = true; } }
-        show();
+        disp.textContent = fmt(cur); sub.textContent = prev !== null && op ? fmt(prev) + ' ' + op : '';
+        const ac = keys.querySelector('[data-k="AC"],[data-k="C"]'); if (ac) { const c = cur !== '0' && !fresh; ac.textContent = c ? 'C' : 'AC'; ac.dataset.k = c ? 'C' : 'AC'; }
+        keys.querySelectorAll('.ck.op').forEach((b) => b.classList.toggle('active', b.dataset.k === op && fresh));
+        size();
       }
-      const keymap = { '/': '÷', '*': '×', '-': '−', '+': '+', Enter: '=', '=': '=', Escape: 'AC', '%': '%', '.': '.', ',': '.' };
+      /* ---------- scientific ---------- */
+      const SCI = [['(', 'fn'], [')', 'fn'], ['AC', 'fn'], ['⌫', 'fn'], ['÷', 'op'], ['sin', 'fx'], ['cos', 'fx'], ['tan', 'fx'], ['x²', 'fx'], ['×', 'op'], ['ln', 'fx'], ['log', 'fx'], ['√', 'fx'], ['xʸ', 'fx'], ['−', 'op'], ['7'], ['8'], ['9'], ['π', 'fx'], ['+', 'op'], ['4'], ['5'], ['6'], ['e', 'fx'], ['=', 'op eq'], ['1'], ['2'], ['3'], ['n!', 'fx'], ['Ans', 'fx'], ['0'], ['.'], ['%', 'fx'], ['Rad', 'fx']];
+      const TOK = { '÷': '/', '×': '*', '−': '-', '+': '+', '(': '(', ')': ')', '.': '.', 'π': 'π', 'e': 'e', 'sin': 'sin(', 'cos': 'cos(', 'tan': 'tan(', 'ln': 'ln(', 'log': 'log(', '√': '√(', 'x²': '^2', 'xʸ': '^', '%': '%', 'n!': '!', 'Ans': 'Ans', '1/x': '^(-1)' };
+      function evaluate(src) {
+        let s = src.replace(/π/g, '(PI)').replace(/Ans/g, '(' + lastAns + ')').replace(/\be\b/g, '(E)').replace(/√\(/g, 'sqrt(').replace(/ln\(/g, 'LN(').replace(/log\(/g, 'LOG(')
+          .replace(/(\d+(?:\.\d+)?|\))!/g, 'fact($1)').replace(/(\d+(?:\.\d+)?)%/g, '($1/100)').replace(/\^/g, '**');
+        s = s.replace(/(\d|\))\s*(\(|[A-Za-z])/g, '$1*$2'); // 2π, 3(4)
+        if (/[^0-9+\-*/().\sA-Za-z]/.test(s.replace(/\*\*/g, ''))) throw new Error('bad');
+        if (/[A-Za-z]+/.test(s.replace(/\b(PI|E|sqrt|LN|LOG|sin|cos|tan|fact)\b/g, ''))) throw new Error('bad');
+        const open = (s.match(/\(/g) || []).length - (s.match(/\)/g) || []).length; s += ')'.repeat(Math.max(0, open));
+        const k = deg ? Math.PI / 180 : 1;
+        const fact = (n) => { if (n < 0 || n > 170 || n % 1) return NaN; let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; };
+        const r = Function('PI', 'E', 'sqrt', 'LN', 'LOG', 'sin', 'cos', 'tan', 'fact', '"use strict";return (' + s + ');')(Math.PI, Math.E, Math.sqrt, Math.log, Math.log10, (x) => Math.sin(x * k), (x) => Math.cos(x * k), (x) => Math.tan(x * k), fact);
+        return Math.abs(r) < 1e-12 ? 0 : +r.toPrecision(12);
+      }
+      function pressSci(k) {
+        if (k === 'AC') { expr = ''; sub.textContent = ''; }
+        else if (k === '⌫') expr = expr.replace(/(sin\(|cos\(|tan\(|ln\(|log\(|√\(|Ans|\^\(-1\)|.)$/, '');
+        else if (k === 'Rad' || k === 'Deg') { deg = !deg; }
+        else if (k === '=') { if (!expr) return; try { const r = evaluate(expr); sub.textContent = expr + ' ='; lastAns = r; expr = String(r); justEval = true; disp.textContent = fmt(r); size(); return; } catch (e) { sub.textContent = expr; disp.textContent = PatOS.t('Error'); expr = ''; size(); return; } }
+        else {
+          if (justEval && /^[\d.(πe]|sin|cos|tan|ln|log|√|Ans/.test(TOK[k] || k)) expr = '';
+          expr += TOK[k] !== undefined ? TOK[k] : k;
+        }
+        justEval = false;
+        disp.textContent = expr || '0';
+        const rd = keys.querySelector('[data-k="Rad"],[data-k="Deg"]'); if (rd) { rd.textContent = deg ? 'Rad' : 'Deg'; rd.dataset.k = deg ? 'Rad' : 'Deg'; }
+        sub.textContent = sub.textContent && expr ? sub.textContent : (deg ? 'DEG' : 'RAD');
+        size();
+      }
+      function build() {
+        keys.innerHTML = ''; win.body.classList.toggle('sci', sci);
+        modeBtn.textContent = sci ? '123' : 'ƒ(x)';
+        (sci ? SCI : BASIC).forEach(([k, cls]) => { const b = h('button', { class: 'ck ' + (cls || 'num'), 'data-k': k }, k); b.onclick = () => { PatOS.sound.click(); sci ? pressSci(b.dataset.k) : pressBasic(b.dataset.k); }; keys.appendChild(b); });
+        if (!PatOS.isMobile) { win.el.style.width = (sci ? 440 : 260) + 'px'; win.el.style.height = (sci ? 480 : 410) + 'px'; }
+        if (sci) { disp.textContent = expr || '0'; sub.textContent = deg ? 'DEG' : 'RAD'; } else { disp.textContent = fmt(cur); sub.textContent = ''; }
+        size();
+      }
+      modeBtn.onclick = () => { sci = !sci; PatOS.store.set('calcSci', sci); build(); };
+      const keymap = { '/': '÷', '*': '×', '-': '−', '+': '+', Enter: '=', '=': '=', '%': '%', '.': '.', ',': '.', '(': '(', ')': ')', '^': 'xʸ' };
       const onKey = (e) => {
-        if (PatOS.wm.active !== win) return;
-        if (/^\d$/.test(e.key)) press(e.key);
-        else if (keymap[e.key]) { e.preventDefault(); press(keymap[e.key] === 'AC' ? (btns.AC.textContent) : keymap[e.key]); }
-        else if (e.key === 'Backspace') { cur = cur.length > 1 ? cur.slice(0, -1) : '0'; show(); }
+        if (PatOS.wm.active !== win || e.ctrlKey || e.altKey) return;
+        let k = /^\d$/.test(e.key) ? e.key : keymap[e.key];
+        if (e.key === 'Escape') k = 'AC';
+        if (e.key === 'Backspace') { e.preventDefault(); if (sci) pressSci('⌫'); else { cur = cur.length > 1 ? cur.slice(0, -1) : '0'; disp.textContent = fmt(cur); size(); } return; }
+        if (!k) return; e.preventDefault();
+        if (sci) pressSci(k); else if (!['(', ')', 'xʸ'].includes(k)) pressBasic(k === 'AC' ? (keys.querySelector('[data-k="C"]') ? 'C' : 'AC') : k);
+        const b = keys.querySelector(`[data-k="${k}"]`); if (b) { b.classList.add('press'); setTimeout(() => b.classList.remove('press'), 120); }
       };
       document.addEventListener('keydown', onKey);
       win.on('closed', () => document.removeEventListener('keydown', onKey));
-      show();
+      PatOS.calcEval = (s) => evaluate(s);
+      build();
     }
   });
 })();

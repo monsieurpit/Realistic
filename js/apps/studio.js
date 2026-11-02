@@ -49,7 +49,7 @@
         const m = sel.material;
         const col = h('input', { type: 'color', value: '#' + m.color.getHexString() }); col.oninput = () => m.color.set(col.value);
         const spin = h('button', { class: 'btn' + (sel.userData.spin ? ' primary' : ''), onclick: () => { sel.userData.spin = !sel.userData.spin; renderPanel(); } }, sel.userData.spin ? 'Spinning' : 'Spin');
-        const wire = h('button', { class: 'btn' + (m.wireframe ? ' primary' : ''), onclick: () => { m.wireframe = !m.wireframe; renderPanel(); } }, 'Wireframe');
+        const wire = h('button', { class: 'btn' + (m.wireframe ? ' primary' : ''), onclick: () => { m.wireframe = !m.wireframe; renderPanel(); } }, 'Outline');
         panel.append(h('b', {}, 'Selected: ' + sel.userData.kind),
           h('label', { class: 'g3d-c' }, 'Color', col),
           slider('Size', () => sel.scale.x, (v) => sel.scale.setScalar(v), 0.2, 3, 0.05),
@@ -57,7 +57,7 @@
           slider('Left / Right', () => sel.position.x, (v) => (sel.position.x = v), -8, 8, 0.05),
           slider('Front / Back', () => sel.position.z, (v) => (sel.position.z = v), -8, 8, 0.05),
           slider('Metal', () => m.metalness, (v) => (m.metalness = v), 0, 1, 0.01),
-          slider('Roughness', () => m.roughness, (v) => (m.roughness = v), 0, 1, 0.01),
+          slider('Matte', () => m.roughness, (v) => (m.roughness = v), 0, 1, 0.01),
           h('div', { class: 'g3d-pres' }, spin, wire, h('button', { class: 'btn', onclick: () => add(sel.userData.kind, { color: '#' + m.color.getHexString(), x: sel.position.x + 1.5, z: sel.position.z }) }, 'Duplicate'), h('button', { class: 'btn danger', onclick: () => { scene.remove(sel); sel.geometry.dispose(); objects.splice(objects.indexOf(sel), 1); select(null); } }, 'Delete')));
       }
       const bAuto = h('button', { class: 'tbtn' }, '⟳ Auto-rotate');

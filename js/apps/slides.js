@@ -52,7 +52,7 @@
         btn('🗑', 'Delete selected', delSel), h('span', { class: 'ob-sep' }), themeSel, transSel);
       const thumbs = h('div', { class: 'sl-thumbs' });
       const stage = h('div', { class: 'sl-stage' });
-      const notes = h('textarea', { class: 'sl-notes', placeholder: 'Speaker notes' });
+      const notes = h('textarea', { class: 'sl-notes', placeholder: 'Your notes (only you see them)' });
       win.body.append(bar, h('div', { class: 'sl-wrap' }, thumbs, h('div', { class: 'sl-main' }, stage, notes)));
       const persist = PatOS.debounce(() => { try { PatOS.fs.write(path, JSON.stringify(deck)); saved.textContent = 'Saved'; } catch (e) { saved.textContent = 'Not saved'; } }, 500);
       function save() { saved.textContent = 'Saving…'; persist(); }

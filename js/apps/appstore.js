@@ -21,7 +21,14 @@
     drive: 'Every document, spreadsheet, presentation and form you make, in one place.',
     forms: 'Make a survey or a graded quiz, answer it, and see the results as charts.',
     translate: 'Translate between 20 languages and hear the result read aloud.',
-    youtube: 'Search and watch YouTube with the real YouTube player, without leaving PatOS.'
+    youtube: 'Search and watch YouTube with the real YouTube player, without leaving PatOS.',
+    contacts: 'Keep your friends’ phone numbers, emails and birthdays. PatOS reminds you on their birthday.',
+    freeform: 'An endless whiteboard: draw, drop sticky notes, text, shapes and pictures.',
+    preview: 'Open PDF files and pictures, zoom in and rotate them.',
+    chess: 'Real chess with every rule, against the computer (3 levels) or a friend.',
+    screenshot: 'Take a picture of your screen or record it as a video.',
+    calculator: 'A basic calculator and a scientific one with sin, cos, logs, powers and more.',
+    clock: 'World clocks, alarms, a stopwatch and a timer.'
   };
   const FEATURED = ['docs', 'galaxy', 'orbrunner', 'code'];
   const GRADS = ['linear-gradient(135deg,#3a1c71,#d76d77,#ffaf7b)', 'linear-gradient(135deg,#0b0130,#ff2fa3)', 'linear-gradient(135deg,#1e1e2e,#5b5bd6)', 'linear-gradient(135deg,#0bbf3a,#00a6fb)'];
@@ -78,7 +85,7 @@
             card.onclick = () => detail(id); hero.appendChild(card);
           });
           main.append(h('h1', { class: 'as-h1' }, 'Discover'), hero, h('h2', {}, 'Essentials'));
-          const g = h('div', { class: 'as-list' }); ['browser', 'notes', 'music', 'messages', 'terminal', 'typing', 'flashcards', 'piano'].filter((id) => PatOS.apps[id]).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
+          const g = h('div', { class: 'as-list' }); ['browser', 'docs', 'contacts', 'freeform', 'chess', 'messages', 'flashcards', 'typing'].filter((id) => PatOS.apps[id]).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
           const hidden = PatOS.settings.hiddenApps || [];
           if (hidden.length) { main.appendChild(h('h2', {}, 'Hidden Apps')); const g2 = h('div', { class: 'as-list' }); hidden.filter((id) => PatOS.apps[id]).forEach((id) => g2.appendChild(row(id))); main.appendChild(g2); }
           return;

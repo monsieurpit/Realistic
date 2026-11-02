@@ -15,13 +15,13 @@
       function render() {
         const mem = performance.memory ? PatOS.fmtBytes(performance.memory.usedJSHeapSize) : 'n/a';
         stats.innerHTML = '';
-        [['FPS', fps], ['JS Memory', mem], ['Windows', PatOS.wm.windows.length], ['Page Elements', document.getElementsByTagName('*').length.toLocaleString()], ['Storage', PatOS.fmtBytes(PatOS.store.usage())], ['Uptime', Math.round(performance.now() / 60000) + ' min']]
+        [['FPS', fps], ['Memory used', mem], ['Windows', PatOS.wm.windows.length], ['Items on screen', document.getElementsByTagName('*').length.toLocaleString()], ['Storage', PatOS.fmtBytes(PatOS.store.usage())], ['Time on', Math.round(performance.now() / 60000) + ' min']]
           .forEach(([k, v]) => stats.appendChild(h('div', { class: 'am-stat' }, h('small', {}, k), h('b', {}, String(v)))));
         const x = graph.getContext('2d'); graph.width = graph.clientWidth || 600; x.clearRect(0, 0, graph.width, 80);
         x.strokeStyle = '#32d74b'; x.lineWidth = 2; x.beginPath();
         hist.forEach((v, i) => { const px = i / 59 * graph.width, py = 78 - Math.min(v, 75); i ? x.lineTo(px, py) : x.moveTo(px, py); }); x.stroke();
         table.innerHTML = '';
-        table.appendChild(h('div', { class: 'am-row am-h' }, h('span', {}, 'App'), h('span', {}, 'Windows'), h('span', {}, 'Elements'), h('span', {}, '')));
+        table.appendChild(h('div', { class: 'am-row am-h' }, h('span', {}, 'App'), h('span', {}, 'Windows'), h('span', {}, 'Items'), h('span', {}, '')));
         const apps = [...new Set(PatOS.wm.windows.map((w) => w.app.id))];
         if (!apps.length) table.appendChild(h('div', { class: 'am-row' }, h('span', { class: 'am-p' }, 'No apps are open'), h('span'), h('span'), h('span')));
         apps.forEach((id) => {

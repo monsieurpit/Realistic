@@ -96,7 +96,7 @@
     const cal = h('div', { class: 'mw mw-cal' },
       h('div', { class: 'mw-day' }, d.toLocaleDateString(undefined, { weekday: 'long' }).toUpperCase()),
       h('div', { class: 'mw-num' }, d.getDate()),
-      h('div', { class: 'mw-ev' }, events[0] ? (events[0].time ? events[0].time + ' ' : '') + events[0].title : rem[0] ? '○ ' + rem[0].text : 'No events today'));
+      h('div', { class: 'mw-ev' }, events[0] ? (events[0].time ? events[0].time + ' ' : '') + events[0].title : rem[0] ? '○ ' + rem[0].text : PatOS.t('No events today')));
     cal.onclick = () => PatOS.launch(events[0] ? 'calendar' : 'reminders');
     return [clock, cal];
   }

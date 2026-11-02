@@ -16,7 +16,11 @@
       let g = ''; c.forEach((col, i) => { g += `<rect x="${12 + (i % 3) * 15}" y="${12 + Math.floor(i / 3) * 15}" width="11" height="11" rx="3.5" fill="${col}"/>`; });
       return S(g);
     } },
-    browser: { bg: 'linear-gradient(160deg,#ffffff,#d9e4f2)', svg: () => S(`
+    browser: { bg: 'linear-gradient(150deg,#7d5cff,#ff4fa0 70%,#ffb347)', svg: () => S(`
+      <circle cx="28" cy="28" r="14" fill="none" stroke="#fff" stroke-width="6"/>
+      <path d="M38 38l12 12" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+      <text x="28" y="34" font-size="16" font-family="system-ui,sans-serif" font-weight="900" fill="#fff" text-anchor="middle">P</text>`) },
+    oldbrowser: { bg: 'linear-gradient(160deg,#ffffff,#d9e4f2)', svg: () => S(`
       <defs><linearGradient id="bw" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34c3ff"/><stop offset="1" stop-color="#1f5bff"/></linearGradient></defs>
       <circle cx="32" cy="32" r="22" fill="url(#bw)"/>
       <g stroke="#fff" stroke-opacity=".55" stroke-width="1.6" fill="none"><ellipse cx="32" cy="32" rx="9" ry="22"/><path d="M10 32h44M13 21h38M13 43h38"/></g>
@@ -143,6 +147,11 @@
     stickies: { bg: 'linear-gradient(160deg,#fff27a,#ffd60a)', svg: () => S(`<path d="M14 12h36v28L38 52H14z" fill="#fffbe0"/><path d="M50 40H38v12z" fill="#e6c200"/><path d="M20 22h24M20 29h24M20 36h14" stroke="#c9a800" stroke-width="2.5" stroke-linecap="round"/>`) },
     typing: { bg: 'linear-gradient(160deg,#64d2ff,#0a84ff)', svg: () => { let g = '<rect x="8" y="20" width="48" height="26" rx="5" fill="#fff"/>'; for (let r = 0; r < 2; r++) for (let c = 0; c < 6; c++) g += `<rect x="${12 + c * 7}" y="${24 + r * 7}" width="5" height="5" rx="1" fill="#0a84ff" opacity=".7"/>`; return S(g + '<rect x="18" y="38" width="28" height="4" rx="1" fill="#0a84ff"/>'); } },
     dictionary: { bg: 'linear-gradient(160deg,#8e2de2,#4a00e0)', svg: () => S(`<path d="M16 12h28a4 4 0 0 1 4 4v36H20a4 4 0 0 1-4-4z" fill="#fff"/><path d="M16 48a4 4 0 0 1 4-4h28" stroke="#c9b6ff" stroke-width="2" fill="none"/><text x="32" y="36" font-size="18" font-family="Georgia,serif" font-weight="700" fill="#6a1fd0" text-anchor="middle">Aa</text>`) },
+    contacts: { bg: 'linear-gradient(160deg,#c7c7cc,#8e8e93)', svg: () => S(`<rect x="12" y="10" width="40" height="44" rx="5" fill="#f2f2f7"/><circle cx="32" cy="27" r="8" fill="#8e8e93"/><path d="M18 48c2-9 8-12 14-12s12 3 14 12z" fill="#8e8e93"/><rect x="9" y="18" width="5" height="6" rx="1.5" fill="#636366"/><rect x="9" y="30" width="5" height="6" rx="1.5" fill="#636366"/>`) },
+    freeform: { bg: '#fff', svg: () => S(`<path d="M12 44c8-20 16 6 24-10s12-14 16-8" stroke="#0a84ff" stroke-width="4" fill="none" stroke-linecap="round"/><rect x="34" y="34" width="18" height="16" rx="3" fill="#ffd60a"/><circle cx="20" cy="20" r="7" fill="#ff375f"/>`) },
+    preview: { bg: 'linear-gradient(160deg,#f5f5f7,#d1d1d6)', svg: () => S(`<rect x="10" y="16" width="34" height="38" rx="3" fill="#fff" stroke="#c7c7cc"/><rect x="14" y="20" width="26" height="18" fill="#64d2ff"/><path d="M14 38l8-8 6 6 4-4 8 6z" fill="#34c759"/><circle cx="44" cy="22" r="10" fill="none" stroke="#3a3a3c" stroke-width="4"/><path d="M51 29l6 6" stroke="#3a3a3c" stroke-width="5" stroke-linecap="round"/>`) },
+    chess: { bg: 'linear-gradient(160deg,#a67c52,#5d3a1a)', svg: () => S(`<g fill="#fff"><path d="M26 50h18l-2-6H28z"/><path d="M29 44c0-8-6-10-6-18 0-6 5-10 11-10 7 0 10 6 9 10l-5 2 2 4-4 2c1 4 3 6 3 10z"/></g><rect x="22" y="50" width="26" height="4" rx="2" fill="#fff"/>`) },
+    screenshot: { bg: 'linear-gradient(160deg,#636366,#2c2c2e)', svg: () => S(`<path d="M14 24v-8h8M42 16h8v8M50 40v8h-8M22 48h-8v-8" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="32" cy="32" r="8" fill="#ff453a"/>`) },
   };
 
   /* generic letter-tile icon */
@@ -170,7 +179,7 @@
       return PatOS.iconHTML('imagefile');
     }
     if (kind === 'audio') return PatOS.iconHTML('audiofile');
-    const docIc = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms' }[PatOS.fs.ext(name)];
+    const docIc = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms', pdf: 'preview' }[PatOS.fs.ext(name)];
     if (docIc) return PatOS.iconHTML(docIc);
     if (kind === 'link') return PatOS.iconHTML('linkfile');
     return PatOS.iconHTML('file', PatOS.fs.ext(name) || 'txt');

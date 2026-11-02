@@ -1011,6 +1011,7 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .mobile .yt-card.row .yt-thumb { width: 44%; } .mobile .yt-grid { grid-template-columns: 1fr; } .mobile .yt-main { padding: 10px 12px 30px; }
 .br-alts { margin: 6px 0; } .br-ext { color: var(--text3); font-size: 12px; text-decoration: underline; }
 .am-gpu { margin-left: 6px; font-size: 10px; padding: 1px 6px; border-radius: 6px; background: var(--accent); color: #fff; }
+.nt-logo { font-size: 66px; font-weight: 900; letter-spacing: -2px; background: linear-gradient(100deg, #7d5cff, #ff4fa0 55%, #ffb347); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 4px 18px rgba(255,79,160,.25)); }
 
 </style>
   <style>
@@ -1179,6 +1180,133 @@ html.mobile, html.mobile body { overscroll-behavior: none; touch-action: manipul
 .mobile .ttt-grid { grid-template-columns: repeat(3, 28vw); grid-template-rows: repeat(3, 28vw); }
 .mobile .rm { padding: 14px 16px; }
 .mobile.m-in-app.m-dark-app #m-indicator span { background: #fff; }
+
+</style>
+  <style>
+/* ================= PatOS apps, part 3 ================= */
+/* Calculator modes */
+.calc-mode { position: absolute; top: 9px; right: 10px; z-index: 4; height: 22px; padding: 0 9px; border-radius: 11px; background: rgba(255,255,255,.12); color: #fff; font-size: 11px; font-weight: 600; }
+.calc-mode:hover { background: rgba(255,255,255,.22); }
+.calc-sub { color: rgba(255,255,255,.45); text-align: right; font-size: 14px; min-height: 18px; padding: 0 10px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.calc.sci .calc-keys { grid-template-columns: repeat(5, 1fr); gap: 7px; }
+.calc.sci .ck { height: 44px; border-radius: 22px; font-size: 18px; }
+.calc.sci .ck.fx { background: #333336; font-size: 15px; }
+.calc.sci .ck.eq { grid-row: span 2; height: auto; }
+.ck.press { filter: brightness(1.6); transform: scale(.96); }
+.mobile .calc.sci .ck { aspect-ratio: auto; height: 52px; font-size: 18px; border-radius: 26px; }
+.mobile .calc-mode { top: calc(var(--mtop) + 30px); }
+
+/* Clock alarms */
+.clk-addalarm { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; justify-content: center; }
+.clk-addalarm .field { background: #1c1c1e; color: #fff; }
+.clk-alarms { width: 100%; max-width: 480px; }
+.clk-alarm { display: flex; align-items: center; gap: 10px; padding: 12px 4px; border-bottom: 1px solid #222; }
+.clk-alarm.off { opacity: .45; }
+.clk-at { font-size: 38px; font-weight: 200; font-variant-numeric: tabular-nums; }
+.clk-alarm small { color: #8e8e93; }
+
+/* Setup Assistant */
+#setup { position: absolute; inset: 0; z-index: 9900; display: grid; place-items: center; background: rgba(0,0,0,.35); backdrop-filter: blur(18px) saturate(1.3); -webkit-backdrop-filter: blur(18px) saturate(1.3); opacity: 0; transition: opacity .5s ease; padding: 16px; }
+#setup.in { opacity: 1; }
+.su-card { position: relative; width: min(520px, 100%); min-height: 420px; border-radius: 30px; padding: 40px 34px 30px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 14px; color: #fff; background: rgba(30,30,40,.55); box-shadow: inset 0 1px 1px rgba(255,255,255,.4), 0 30px 90px rgba(0,0,0,.5); }
+:root[data-theme="light"] .su-card { color: #1d1d1f; background: rgba(255,255,255,.6); }
+.su-card h1 { margin: 6px 0 0; font-size: 30px; letter-spacing: -.5px; }
+.su-sub { margin: 0; opacity: .75; font-size: 14.5px; line-height: 1.45; max-width: 380px; }
+.su-hello { font-size: 64px; font-weight: 800; letter-spacing: -1.5px; margin-top: 50px; background: linear-gradient(100deg, #9b8cff, #ff6fb5 60%, #ffc06b); -webkit-background-clip: text; background-clip: text; color: transparent; min-height: 80px; }
+.su-next { margin-top: auto; height: 42px; min-width: 200px; font-size: 15px; border-radius: 21px !important; }
+.su-dots { display: flex; gap: 6px; } .su-dots span { width: 6px; height: 6px; border-radius: 3px; background: currentColor; opacity: .25; transition: width .3s, opacity .3s; } .su-dots span.on { width: 18px; opacity: .8; }
+.su-opts { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; margin-top: 10px; }
+.su-opt { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 14px 18px; border-radius: 18px; background: rgba(255,255,255,.1); box-shadow: inset 0 0 0 1px rgba(255,255,255,.15); font-size: 14px; font-weight: 600; min-width: 120px; transition: transform .25s var(--spring); }
+.su-opt:hover { transform: translateY(-2px); } .su-opt.on { box-shadow: inset 0 0 0 2px var(--accent), 0 6px 20px color-mix(in srgb, var(--accent) 35%, transparent); }
+.su-flag { width: 46px; height: 46px; border-radius: 50%; display: grid; place-items: center; font-size: 15px; font-weight: 800; background: linear-gradient(135deg, #7d5cff, #ff4fa0); color: #fff; }
+.su-in { width: min(300px, 100%); height: 44px; font-size: 18px !important; text-align: center; margin-top: 16px; }
+.su-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 14px; }
+.su-wps { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; width: 100%; }
+.su-wp { display: flex; flex-direction: column; gap: 5px; font-size: 12px; } .su-wp img { width: 100%; aspect-ratio: 16/10; object-fit: cover; border-radius: 12px; box-shadow: 0 0 0 1px rgba(255,255,255,.2); transition: transform .2s var(--spring); }
+.su-wp:hover img { transform: scale(1.04); } .su-wp.on img { box-shadow: 0 0 0 3px var(--accent); }
+.su-check { width: 76px; height: 76px; border-radius: 50%; display: grid; place-items: center; font-size: 40px; color: #fff; background: linear-gradient(135deg, #34c759, #0a84ff); margin-top: 20px; animation: msgPop .6s var(--spring); }
+.su-tips { display: flex; flex-direction: column; gap: 10px; margin-top: 6px; text-align: left; } .su-tips div { display: flex; gap: 12px; align-items: center; font-size: 14.5px; } .su-tips span { font-size: 20px; }
+
+/* Contacts */
+.ct-wrap { flex: 1; display: flex; min-height: 0; }
+.ct-side { width: 250px; flex: 0 0 auto; display: flex; flex-direction: column; background: var(--sidebar); border-right: 1px solid var(--border); }
+.ct-search { padding: 10px; } .ct-list { flex: 1; overflow-y: auto; padding: 0 8px 10px; }
+.ct-letter { font-size: 11px; font-weight: 700; color: var(--text2); padding: 10px 8px 4px; }
+.ct-row { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 8px; font-size: 13.5px; } .ct-row:hover { background: var(--hover); } .ct-row.on { background: var(--accent); color: #fff; }
+.ct-av { width: 32px; height: 32px; border-radius: 50%; flex: 0 0 auto; display: grid; place-items: center; color: #fff; font-weight: 700; font-size: 13px; background-size: cover; background-position: center; }
+.ct-av.big { width: 96px; height: 96px; font-size: 36px; box-shadow: 0 6px 20px rgba(0,0,0,.2); }
+.ct-card { flex: 1; overflow-y: auto; padding: 24px 28px; background: var(--win-solid); }
+.ct-head { display: flex; gap: 18px; align-items: center; } .ct-head.center { flex-direction: column; text-align: center; } .ct-head h1 { margin: 4px 0 0; font-size: 26px; }
+.ct-actions { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
+.ct-info { margin-top: 20px; border-radius: 12px; background: var(--card); box-shadow: inset 0 0 0 .5px var(--border2); }
+.ct-field { display: flex; align-items: center; gap: 10px; padding: 10px 14px; border-bottom: 1px solid var(--border); } .ct-field:last-child { border-bottom: 0; }
+.ct-field small { width: 80px; color: var(--text2); flex: 0 0 auto; } .ct-val { flex: 1; user-select: text; word-break: break-word; }
+.ct-names { display: flex; flex-direction: column; gap: 8px; flex: 1; } .ct-names .field { font-size: 16px; height: 34px; }
+.ct-form { display: flex; flex-direction: column; gap: 8px; margin-top: 18px; } .ct-form label { display: grid; grid-template-columns: 80px 1fr; align-items: center; gap: 10px; font-size: 13px; color: var(--text2); }
+.ct-edit-photo { cursor: pointer; position: relative; } .ct-edit-photo::after { content: "✎"; position: absolute; right: 0; bottom: 0; width: 26px; height: 26px; border-radius: 50%; background: var(--accent); color: #fff; display: grid; place-items: center; font-size: 13px; }
+.ct-btns { display: flex; gap: 8px; margin-top: 18px; }
+.ct-none, .ct-empty { color: var(--text2); text-align: center; padding: 30px 10px; } .ct-big { width: 72px; height: 72px; margin: 40px auto 10px; }
+.mobile .ct-wrap { flex-direction: column; } .mobile .ct-side { width: auto; max-height: 38%; border-right: 0; border-bottom: 1px solid var(--border); }
+
+/* Freeform */
+.ff-stage { flex: 1; position: relative; overflow: hidden; background-color: var(--win-solid); background-image: radial-gradient(circle, var(--border2) 1.2px, transparent 1.3px); touch-action: none; cursor: grab; }
+.ff-stage[data-tool="pen"] { cursor: crosshair; } .ff-stage[data-tool="erase"] { cursor: cell; } .ff-stage[data-tool="note"], .ff-stage[data-tool="text"], .ff-stage[data-tool="rect"], .ff-stage[data-tool="circle"] { cursor: copy; }
+.ff-world { position: absolute; left: 0; top: 0; transform-origin: 0 0; }
+.ff-svg { position: absolute; left: -5000px; top: -5000px; width: 10000px; height: 10000px; overflow: visible; pointer-events: none; }
+.ff-svg path { transform: translate(5000px, 5000px); }
+.ff-item { position: absolute; }
+.ff-item.on { outline: 2px solid var(--accent); outline-offset: 2px; }
+.ff-t-note { border-radius: 4px; box-shadow: 0 6px 18px rgba(0,0,0,.18); color: #2b2400; padding: 12px; }
+.ff-text { width: 100%; height: 100%; outline: 0; overflow: auto; font: 16px/1.35 var(--font); }
+.ff-t-text .ff-text { font-size: 22px; font-weight: 600; }
+.ff-t-rect { border: 3px solid; border-radius: 10px; } .ff-t-circle { border: 3px solid; border-radius: 50%; }
+.ff-t-img img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; box-shadow: 0 6px 18px rgba(0,0,0,.2); pointer-events: none; }
+.ff-handle { position: absolute; right: -6px; bottom: -6px; width: 12px; height: 12px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px var(--accent); cursor: nwse-resize; display: none; } .ff-item.on .ff-handle { display: block; }
+.ff-col { width: 30px; height: 28px; border: 0; padding: 0; background: none; }
+.ff-zoom { position: absolute; right: 12px; bottom: 10px; font-size: 11px; color: var(--text2); background: var(--card); padding: 3px 8px; border-radius: 8px; pointer-events: none; }
+.mobile .ff-zoom { bottom: calc(var(--sab) + 30px); }
+
+/* Preview */
+.pv-view { flex: 1; overflow: auto; background: color-mix(in srgb, var(--win-solid) 80%, #888 20%); display: flex; }
+.pv-pdf { flex: 1; border: 0; width: 100%; min-height: 100%; background: #fff; }
+.pv-canvas { flex: 1; display: grid; place-items: center; padding: 20px; min-width: 100%; min-height: 100%; }
+.pv-img { max-width: 100%; max-height: 100%; box-shadow: 0 8px 30px rgba(0,0,0,.3); transition: transform .25s var(--ease); } .pv-img.free { max-width: none; max-height: none; }
+.pv-empty { margin: auto; text-align: center; color: var(--text2); padding: 20px; display: flex; flex-direction: column; align-items: center; gap: 8px; } .pv-empty h2 { color: var(--text); margin: 6px 0 0; }
+.pv-big { width: 76px; height: 76px; }
+.pv-recent { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 14px; max-width: 560px; }
+.pv-file { display: flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 8px; background: var(--card); font-size: 12px; color: var(--text); max-width: 220px; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.pv-fic { width: 18px; height: 18px; flex: 0 0 auto; }
+
+/* Chess */
+.ch-wrap { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; padding: 12px; background: linear-gradient(160deg, #3b2a1a, #1a120b); color: #f5e9d8; min-height: 0; }
+.ch-status { font-weight: 600; font-size: 15px; min-height: 20px; }
+.ch-board { width: min(100%, calc(100% - 0px), 560px); aspect-ratio: 1; max-height: calc(100% - 70px); display: grid; grid-template-columns: repeat(8, 1fr); border-radius: 6px; overflow: hidden; box-shadow: 0 14px 40px rgba(0,0,0,.5), 0 0 0 6px #5d3a1a; }
+.ch-sq { position: relative; display: grid; place-items: center; cursor: pointer; user-select: none; }
+.ch-sq.l { background: #f0d9b5; } .ch-sq.d { background: #b58863; }
+.ch-sq.last { box-shadow: inset 0 0 0 100px rgba(255,214,10,.32); } .ch-sq.sel { box-shadow: inset 0 0 0 100px rgba(10,132,255,.4); }
+.ch-sq.check { background: radial-gradient(circle, #ff453a 0%, #ff453a55 50%, transparent 75%), #b58863; }
+.ch-pc { font-size: min(7.2vmin, 54px); line-height: 1; transition: transform .15s; } .ch-pc.w { color: #fff; -webkit-text-stroke: 1.2px #2b1d10; text-shadow: 0 2px 3px rgba(0,0,0,.45); } .ch-pc.b { color: #111; text-shadow: 0 1px 2px rgba(255,255,255,.4); }
+.ch-sq:hover .ch-pc { transform: scale(1.08); }
+.ch-dot { position: absolute; width: 28%; height: 28%; border-radius: 50%; background: rgba(0,0,0,.22); }
+.ch-cap { position: absolute; inset: 6%; border-radius: 50%; border: 5px solid rgba(0,0,0,.22); }
+.ch-f, .ch-r { position: absolute; font-size: 10px; font-weight: 700; opacity: .6; color: #4a3220; } .ch-f { right: 3px; bottom: 1px; } .ch-r { left: 3px; top: 1px; }
+.ch-caps { font-size: 20px; letter-spacing: 1px; min-height: 26px; }
+.mobile .ch-pc { font-size: 9.5vw; }
+
+/* Screenshot */
+.ss { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 12px; padding: 20px; overflow-y: auto; background: var(--win-solid); }
+.ss-row { display: flex; gap: 14px; flex-wrap: wrap; justify-content: center; }
+.ss-big { width: 190px; height: 130px; border-radius: 18px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px; background: var(--card); box-shadow: inset 0 0 0 .5px var(--border2), 0 4px 14px rgba(0,0,0,.1); transition: transform .25s var(--spring); font-size: 14px; }
+.ss-big:hover:not(:disabled) { transform: translateY(-3px); } .ss-big:disabled { opacity: .45; }
+.ss-big > span:first-child:not(.ss-dot) { width: 48px; height: 48px; }
+.ss-dot { width: 40px; height: 40px; border-radius: 50%; background: #ff453a; box-shadow: 0 0 0 5px color-mix(in srgb, #ff453a 25%, transparent); transition: border-radius .3s; }
+.ss-big.on .ss-dot { border-radius: 8px; animation: hintPulse 1.2s infinite; }
+.ss-delay { font-size: 13px; color: var(--text2); display: flex; align-items: center; gap: 6px; }
+.ss-msg { color: var(--text2); font-size: 13px; text-align: center; min-height: 18px; }
+.ss-out { width: 100%; display: flex; flex-direction: column; align-items: center; gap: 8px; } .ss-out img, .ss-out video { max-width: 100%; max-height: 220px; border-radius: 10px; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+.ss-btns { display: flex; gap: 8px; }
+.br-tic { width: 16px; height: 16px; border-radius: 4px; flex: 0 0 auto; background: center/contain no-repeat; } .br-tic.none { display: none; }
+.br-fav.img { background: none; object-fit: contain; }
 
 </style>
   <style>
@@ -1703,6 +1831,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) return 'audio';
     if (['html', 'htm'].includes(ext)) return 'html';
     if (ext === 'url') return 'link';
+    if (ext === 'pdf') return 'pdf';
     if (['js', 'css', 'json', 'py', 'md', 'txt', 'csv', ''].includes(ext)) return 'text';
     return 'text';
   };
@@ -1770,7 +1899,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const kind = PatOS.fileKind(path, n);
     if (kind === 'folder') return PatOS.launch('finder', { path });
     const ext = PatOS.fs.ext(path);
-    const byExt = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms' };
+    const byExt = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms', pdf: 'preview' };
     if (byExt[ext]) return PatOS.launch(byExt[ext], { path });
     if (kind === 'image') return PatOS.launch('photos', { path });
     if (kind === 'audio') return PatOS.launch('music', { path });
@@ -1910,7 +2039,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     // launchpad categories
     'Apps': 'Apps', 'Office': 'Bureautique', '3D & Games': '3D et jeux', 'Utilities': 'Utilitaires',
     // app names
-    'Surf': 'Surf', 'TextEdit': 'TextEdit', 'Terminal': 'Terminal', 'Calendar': 'Calendrier', 'Clock': 'Horloge', 'Weather': 'Météo', 'Photos': 'Photos', 'Paint': 'Dessin', 'Photo Booth': 'Photo Booth',
+    'Patoogle': 'Patoogle', 'TextEdit': 'TextEdit', 'Terminal': 'Terminal', 'Calendar': 'Calendrier', 'Clock': 'Horloge', 'Weather': 'Météo', 'Photos': 'Photos', 'Paint': 'Dessin', 'Photo Booth': 'Photo Booth',
     'System Settings': 'Réglages Système', 'Activity Monitor': 'Moniteur d’activité', 'Galaxy': 'Galaxie', 'Orb Runner': 'Orb Runner', '3D Studio': 'Studio 3D', 'Tic-Tac-Toe': 'Tic-tac-toe', 'Maps': 'Plans',
     'Messages': 'Messages', 'App Store': 'App Store', 'Code Studio': 'Code Studio', 'Piano': 'Piano', 'Flashcards': 'Cartes mémoire', 'Typing Trainer': 'Dactylo', 'Typing': 'Dactylo', 'Voice Memos': 'Dictaphone',
     'Stickies': 'Post-it', 'Dictionary': 'Dictionnaire', 'Docs': 'Docs', 'Sheets': 'Tableurs', 'Slides': 'Présentations', 'Drive': 'Drive', 'Forms': 'Formulaires', 'Translate': 'Traduire', 'YouTube': 'YouTube',
@@ -1926,15 +2055,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Delete Immediately': 'Supprimer immédiatement', 'Import from Computer…': 'Importer de l’ordinateur…', 'View as List': 'Présenter en liste', 'View as Icons': 'Présenter par icônes', 'Application': 'Application',
     'Empty the Trash?': 'Vider la corbeille?', 'The items will be erased for good.': 'Les éléments seront effacés pour de bon.',
     // browser
-    'New Tab': 'Nouvel onglet', 'New tab': 'Nouvel onglet', 'Close tab': 'Fermer l’onglet', 'Reload': 'Actualiser', 'Search Google or type a URL': 'Rechercher sur Google ou saisir une URL', 'Bookmark this page': 'Ajouter cette page aux favoris',
+    'New Tab': 'Nouvel onglet', 'New tab': 'Nouvel onglet', 'Close tab': 'Fermer l’onglet', 'Reload': 'Actualiser', 'Search Google or type a URL': 'Rechercher sur Google ou saisir une URL', 'Search Patoogle or type a web address': 'Rechercher sur Patoogle ou taper une adresse Web', 'Bookmark this page': 'Ajouter cette page aux favoris',
     'Open in a real browser tab': 'Ouvrir hors de PatOS', 'Open outside PatOS': 'Ouvrir hors de PatOS', 'Open in New Tab': 'Ouvrir dans un nouvel onglet', 'Delete Bookmark': 'Supprimer le favori',
     'Good morning': 'Bonjour', 'Good afternoon': 'Bon après-midi', 'Good evening': 'Bonsoir',
     'Websites load right inside PatOS. Some sites refuse to be shown inside other apps; for those, use the PatOS apps above.': 'Les sites Web s’ouvrent directement dans PatOS. Certains sites refusent d’être affichés dans d’autres apps; pour ceux-là, utilisez les apps PatOS ci-dessus.',
-    'This website blocks being shown inside other apps, so it can’t load in Surf. Try searching for it with Google above, or use the matching PatOS app (YouTube, Docs, Drive, Maps, Translate).': 'Ce site refuse d’être affiché dans d’autres apps, alors il ne peut pas s’ouvrir dans Surf. Cherchez-le avec Google ci-dessus, ou utilisez l’app PatOS correspondante (YouTube, Docs, Drive, Plans, Traduire).',
+    'This website blocks being shown inside other apps, so it can’t load in Patoogle. Try searching for it with Google above, or use the matching PatOS app (YouTube, Docs, Drive, Maps, Translate).': 'Ce site refuse d’être affiché dans d’autres apps, alors il ne peut pas s’ouvrir dans Patoogle. Cherchez-le avec Google ci-dessus, ou utilisez l’app PatOS correspondante (YouTube, Docs, Drive, Plans, Traduire).',
     // notes / textedit
     'New note': 'Nouvelle note', 'Delete note': 'Supprimer la note', 'Bold': 'Gras', 'Italic': 'Italique', 'Underline': 'Souligné', 'Heading': 'Titre', 'Bulleted list': 'Liste à puces', 'Checkbox': 'Case à cocher',
     'Pin to top': 'Épingler en haut', 'Unpin': 'Désépingler', 'Export as .txt to Documents': 'Exporter en .txt dans Documents', 'Delete': 'Supprimer', 'No additional text': 'Aucun texte supplémentaire', 'New Note': 'Nouvelle note',
-    'Save': 'Enregistrer', 'Save As': 'Enregistrer sous', 'Save As…': 'Enregistrer sous…', 'Smaller': 'Plus petit', 'Bigger': 'Plus grand', 'Monospace': 'Chasse fixe', 'Preview HTML in Surf': 'Aperçu HTML dans Surf',
+    'Save': 'Enregistrer', 'Save As': 'Enregistrer sous', 'Save As…': 'Enregistrer sous…', 'Smaller': 'Plus petit', 'Bigger': 'Plus grand', 'Code font': 'Police de code', 'Preview HTML in Patoogle': 'Aperçu HTML dans Patoogle',
     'Download to computer': 'Télécharger sur l’ordinateur', 'Start typing…': 'Commencez à écrire…', 'Untitled': 'Sans titre', 'New Document': 'Nouveau document', 'Open…': 'Ouvrir…', 'Close': 'Fermer',
     'The file is saved in Documents.': 'Le fichier est enregistré dans Documents.', 'Close without saving?': 'Fermer sans enregistrer?', 'Your text will be lost.': 'Votre texte sera perdu.',
     // calendar / clock / weather
@@ -1960,16 +2089,16 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     // reminders / settings
     'To Do': 'À faire', 'Completed': 'Terminés', 'All': 'Tout', '+ New Reminder (press Enter)': '+ Nouveau rappel (appuyez sur Entrée)',
     'General': 'Général', 'Wallpaper': 'Fond d’écran', 'Home Screen & Dock': 'Écran d’accueil et Dock', 'Displays & 3D': 'Écrans et 3D', 'Network': 'Réseau', 'Keyboard': 'Clavier', 'PatOS Account': 'Compte PatOS',
-    'Your name': 'Votre nom', 'Device style': 'Style d’appareil', 'Automatic (phone or computer)': 'Automatique (téléphone ou ordinateur)', 'Computer': 'Ordinateur', 'Phone': 'Téléphone',
-    'Automatic switches to the phone layout on small touch screens': 'Le mode automatique passe à la disposition téléphone sur les petits écrans tactiles',
+    'Your name': 'Votre nom', 'Layout': 'Disposition', 'Automatic (phone or computer)': 'Automatique (téléphone ou ordinateur)', 'Computer': 'Ordinateur', 'Phone': 'Téléphone',
+    'Automatic uses the phone layout on small touch screens': 'Le mode automatique utilise la disposition téléphone sur les petits écrans tactiles',
     'Language': 'Langue', 'Automatic (device language)': 'Automatique (langue de l’appareil)', 'English': 'Anglais', 'French': 'Français', 'PatOS restarts to change the language.': 'PatOS redémarre pour changer de langue.',
     'Ask for full screen at login': 'Demander le plein écran à l’ouverture', 'Makes PatOS feel like a real OS': 'PatOS ressemble encore plus à un vrai système', '24-hour clock': 'Horloge sur 24 heures',
-    'Show seconds in menu bar': 'Afficher les secondes dans la barre des menus', 'About this computer': 'À propos de cet ordinateur', 'Accent color': 'Couleur d’accentuation', 'Liquid Glass': 'Liquid Glass',
-    'See-through glass for the dock, menus, panels and widgets': 'Verre transparent pour le Dock, les menus, les panneaux et les widgets', 'Glass refraction': 'Réfraction du verre',
-    'The glass bends what is behind it (Chrome only, uses more power)': 'Le verre déforme ce qui est derrière lui (Chrome seulement, consomme plus)', 'Reduce transparency': 'Réduire la transparence',
-    'Solid windows — faster on older Chromebooks': 'Fenêtres opaques, plus rapide sur les vieux Chromebooks', 'Reduce motion': 'Réduire les animations', 'Live 3D Wallpapers': 'Fonds d’écran 3D animés',
+    'Show seconds in menu bar': 'Afficher les secondes dans la barre des menus', 'About this computer': 'À propos de cet ordinateur', 'Highlight color': 'Couleur de mise en valeur', 'Liquid Glass': 'Liquid Glass',
+    'See-through glass for the dock, menus, panels and widgets': 'Verre transparent pour le Dock, les menus, les panneaux et les widgets', 'Glass bends the background': 'Le verre déforme l’arrière-plan',
+    'Works in Chrome. Uses more battery.': 'Fonctionne dans Chrome. Consomme plus de batterie.', 'Reduce transparency': 'Réduire la transparence',
+    'Solid windows — faster on older Chromebooks': 'Fenêtres opaques, plus rapide sur les vieux Chromebooks', 'Fewer animations': 'Moins d’animations', 'Live 3D Wallpapers': 'Fonds d’écran 3D animés',
     'Animated with three.js. They react to your mouse!': 'Animés avec three.js. Ils réagissent à votre souris!', 'Animate 3D wallpaper': 'Animer le fond d’écran 3D', 'Turn off to save battery': 'Désactivez pour économiser la batterie',
-    'Your own picture': 'Votre propre image', 'Choose a Photo…': 'Choisir une photo…', 'Size': 'Taille', 'Magnification': 'Agrandissement', 'Magnification amount': 'Niveau d’agrandissement',
+    'Your own picture': 'Votre propre image', 'Choose a Photo…': 'Choisir une photo…', 'Size': 'Taille', 'Grow icons under the pointer': 'Agrandir les icônes sous le pointeur', 'How much icons grow': 'Taille de l’agrandissement',
     'Automatically hide the Dock': 'Masquer automatiquement le Dock', 'Show desktop widgets': 'Afficher les widgets sur le bureau', 'Apps in the Dock': 'Apps dans le Dock', 'Desktop icons': 'Icônes du bureau', 'Clean Up': 'Ranger',
     'Dock (up to 4 apps)': 'Dock (jusqu’à 4 apps)', 'Apps on the Home Screen': 'Apps sur l’écran d’accueil', 'Brightness': 'Luminosité', '3D Graphics': 'Graphismes 3D', '3D quality': 'Qualité 3D',
     'Low (best for older Chromebooks)': 'Basse (idéal pour les vieux Chromebooks)', 'Balanced': 'Équilibrée', 'High (sharpest)': 'Haute (la plus nette)', 'Output volume': 'Volume de sortie',
@@ -1978,18 +2107,18 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Status': 'État', 'Connection type': 'Type de connexion', 'Speed estimate': 'Vitesse estimée', 'Unknown': 'Inconnu', '🟢 Connected': '🟢 Connecté', '🔴 Offline': '🔴 Hors ligne',
     'PatOS uses Alt because Chromebooks reserve most Ctrl shortcuts.': 'PatOS utilise Alt parce que les Chromebooks réservent la plupart des raccourcis Ctrl.',
     'Spotlight search': 'Recherche Spotlight', 'Close window': 'Fermer la fenêtre', 'Quit app': 'Quitter l’app', 'Zoom window': 'Agrandir la fenêtre', 'Tile window left / right': 'Placer la fenêtre à gauche / à droite',
-    'New window': 'Nouvelle fenêtre', 'Cycle windows': 'Changer d’app', 'Surf browser': 'Navigateur Surf', 'Close menus & overlays': 'Fermer les menus',
+    'New window': 'Nouvelle fenêtre', 'Cycle windows': 'Changer d’app', 'Patoogle browser': 'Navigateur Patoogle', 'Close menus & overlays': 'Fermer les menus',
     'Empty Trash': 'Vider la corbeille', 'Back up everything': 'Tout sauvegarder', 'Download Backup': 'Télécharger la sauvegarde', 'Restore backup': 'Restaurer une sauvegarde', 'Restore…': 'Restaurer…',
     'Erase all content and settings': 'Effacer contenu et réglages', 'Erase PatOS…': 'Effacer PatOS…', 'Erase PatOS?': 'Effacer PatOS?', 'Erase': 'Effacer',
     'Everything in PatOS will be erased and it will start fresh. This cannot be undone.': 'Tout PatOS sera effacé et repartira à zéro. Cette action est irréversible.',
     // activity
-    'Windows': 'Fenêtres', 'JS Memory': 'Mémoire JS', 'Page Elements': 'Éléments de la page', 'Uptime': 'Temps d’activité', 'App': 'App', 'Elements': 'Éléments', 'No apps are open': 'Aucune app ouverte',
+    'Windows': 'Fenêtres', 'Memory used': 'Mémoire utilisée', 'Items on screen': 'Éléments à l’écran', 'Time on': 'Allumé depuis', 'App': 'App', 'Items': 'Éléments', 'No apps are open': 'Aucune app ouverte',
     // 3d apps
-    'Galaxy Generator': 'Générateur de galaxie', 'Stars': 'Étoiles', 'Arms': 'Bras', 'Radius': 'Rayon', 'Spin': 'Rotation', 'Randomness': 'Hasard', 'Star size': 'Taille des étoiles', 'Rotation speed': 'Vitesse de rotation',
+    'Galaxy Generator': 'Générateur de galaxie', 'Stars': 'Étoiles', 'Arms': 'Bras', 'Radius': 'Rayon', 'Spin': 'Rotation', 'Spread': 'Dispersion', 'Star size': 'Taille des étoiles', 'Rotation speed': 'Vitesse de rotation',
     'Core': 'Cœur', 'Edge': 'Bord', 'Spiral': 'Spirale', 'Nebula': 'Nébuleuse', 'Ring': 'Anneau', 'Vortex': 'Vortex', '⚙ Controls': '⚙ Réglages', 'Toggle controls': 'Afficher les réglages', 'Save picture to Photos': 'Enregistrer l’image dans Photos',
     'Drag to orbit · scroll to zoom · click to make a supernova': 'Glissez pour tourner · défilez pour zoomer · cliquez pour une supernova', 'Galaxy saved': 'Galaxie enregistrée',
     'Add Shape': 'Ajouter une forme', 'Cube': 'Cube', 'Sphere': 'Sphère', 'Torus': 'Tore', 'Knot': 'Nœud', 'Cone': 'Cône', 'Cylinder': 'Cylindre', 'Gem': 'Gemme', 'Select a shape to edit it.': 'Sélectionnez une forme pour la modifier.',
-    'Color': 'Couleur', 'Height': 'Hauteur', 'Left / Right': 'Gauche / Droite', 'Front / Back': 'Avant / Arrière', 'Metal': 'Métal', 'Roughness': 'Rugosité', 'Spinning': 'Tourne', 'Wireframe': 'Fil de fer',
+    'Color': 'Couleur', 'Height': 'Hauteur', 'Left / Right': 'Gauche / Droite', 'Front / Back': 'Avant / Arrière', 'Metal': 'Métal', 'Matte': 'Mat', 'Spinning': 'Tourne', 'Outline': 'Contour',
     '⟳ Auto-rotate': '⟳ Rotation auto', 'Save to Photos': 'Enregistrer dans Photos', 'Scene saved': 'Scène enregistrée', 'Click a shape to select · drag empty space to orbit · scroll to zoom': 'Cliquez une forme pour la choisir · glissez le vide pour tourner · défilez pour zoomer',
     '▶  PLAY': '▶  JOUER', '↻  PLAY AGAIN': '↻  REJOUER', 'GAME OVER': 'PARTIE TERMINÉE', 'PAUSED': 'PAUSE', 'RESUME': 'REPRENDRE', '🏆 New best!': '🏆 Nouveau record!',
     '← → or A / D to switch lanes · Space / ↑ to jump': '← → ou A / D pour changer de voie · Espace / ↑ pour sauter', 'Dodge the blocks, grab the gems. It gets faster!': 'Évitez les blocs, attrapez les gemmes. Ça accélère!',
@@ -2000,8 +2129,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'PatOS Assistant': 'Assistant PatOS', 'help': 'aide', 'tell me a joke': 'raconte une blague', 'open galaxy': 'ouvre galaxie', 'what time is it?': 'quelle heure est-il?', 'remind me to study': 'rappelle-moi d’étudier',
     'Discover': 'Découvrir', 'All Apps': 'Toutes les apps', 'Search apps': 'Rechercher des apps', 'Results': 'Résultats', 'Essentials': 'Essentiels', 'Hidden Apps': 'Apps masquées', 'APP OF THE DAY': 'APP DU JOUR', 'FEATURED': 'EN VEDETTE',
     'OPEN': 'OUVRIR', 'GET': 'OBTENIR', 'Hide App': 'Masquer l’app', 'Show App': 'Afficher l’app', '‹ Back': '‹ Retour', 'Open in New Tab': 'Ouvrir dans un nouvel onglet',
-    'Templates…': 'Modèles…', '▶ Run': '▶ Exécuter', 'Save as .html in Documents': 'Enregistrer en .html dans Documents', 'Open the page in Surf': 'Ouvrir la page dans Surf', 'Save project as': 'Enregistrer le projet sous', 'Project saved': 'Projet enregistré',
-    'Saved in Documents. Double-click it to open it in Surf.': 'Enregistré dans Documents. Double-cliquez pour l’ouvrir dans Surf.', 'Live': 'En direct',
+    'Templates…': 'Modèles…', '▶ Run': '▶ Exécuter', 'Save as .html in Documents': 'Enregistrer en .html dans Documents', 'Open the page in Patoogle': 'Ouvrir la page dans Patoogle', 'Save project as': 'Enregistrer le projet sous', 'Project saved': 'Projet enregistré',
+    'Saved in Documents. Double-click it to open it in Patoogle.': 'Enregistré dans Documents. Double-cliquez pour l’ouvrir dans Patoogle.', 'Live': 'En direct',
     '● Record': '● Enregistrer', '■ Stop': '■ Arrêter', '▶ Play': '▶ Lire', 'Organ': 'Orgue', 'Synth': 'Synthé', 'Bell': 'Cloche',
     'Use your keyboard: A S D F G H J K L for white keys, W E T Y U O P for black keys, or tap the keys.': 'Utilisez le clavier : A S D F G H J K L pour les touches blanches, W E T Y U O P pour les noires, ou touchez les touches.',
     'Your Decks': 'Vos paquets', '+ New Deck': '+ Nouveau paquet', 'Study': 'Étudier', 'Delete Deck': 'Supprimer le paquet', '+ Add Card': '+ Ajouter une carte', 'Front': 'Recto', 'Show Answer': 'Voir la réponse',
@@ -2024,7 +2153,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Item': 'Article', 'Cost': 'Coût', 'Notebook': 'Cahier', 'Pens': 'Stylos', 'Total': 'Total', 'filled': 'remplies',
     '▶ Present': '▶ Présenter', '＋ Slide': '＋ Diapo', 'New slide': 'Nouvelle diapo', 'Title slide': 'Diapo de titre', 'Title and content': 'Titre et contenu', 'Blank': 'Vide', 'Duplicate this slide': 'Dupliquer cette diapo',
     'Text box': 'Zone de texte', 'Image': 'Image', 'Circle': 'Cercle', 'Bring to front': 'Mettre au premier plan', 'Delete selected': 'Supprimer la sélection', 'Theme': 'Thème', 'Transition': 'Transition', 'Text size': 'Taille du texte',
-    'Fade': 'Fondu', 'Slide': 'Glisser', 'Flip': 'Retourner', 'None': 'Aucune', 'Speaker notes': 'Notes de l’orateur', 'Move up': 'Monter', 'Move down': 'Descendre', 'Delete slide': 'Supprimer la diapo',
+    'Fade': 'Fondu', 'Slide': 'Glisser', 'Flip': 'Retourner', 'None': 'Aucune', 'Your notes (only you see them)': 'Vos notes (vous seul les voyez)', 'Move up': 'Monter', 'Move down': 'Descendre', 'Delete slide': 'Supprimer la diapo',
     'Presentation title': 'Titre de la présentation', 'Subtitle': 'Sous-titre', 'Slide title': 'Titre de la diapo', 'New text': 'Nouveau texte', 'My Presentation': 'Ma présentation', 'Made in PatOS Slides': 'Fait avec Présentations PatOS',
     '＋ New': '＋ Nouveau', 'Document': 'Document', 'Spreadsheet': 'Feuille de calcul', 'Presentation': 'Présentation', 'Form': 'Formulaire', 'Upload a file…': 'Téléverser un fichier…', 'Search in Drive': 'Rechercher dans Drive',
     'My Drive': 'Mon Drive', 'Spreadsheets': 'Feuilles de calcul', 'Presentations': 'Présentations', 'Start something new': 'Commencer quelque chose', 'Recent files': 'Fichiers récents', 'Blank document': 'Document vide',
@@ -2057,7 +2186,31 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'No recent apps': 'Aucune app récente', 'Close App': 'Fermer l’app', 'Hide App': 'Masquer l’app', 'Edit Home Screen in Settings': 'Modifier l’écran d’accueil dans Réglages',
     'Press Enter to log in ': 'Appuyez sur Entrée ',
     'Your own desktop that runs in any browser — even a school Chromebook.': 'Votre propre bureau qui fonctionne dans n’importe quel navigateur, même sur un Chromebook d’école.',
-    'Ask Pat': 'Demander à Pat', 'Clear Sky': 'Ciel dégagé'
+    'Ask Pat': 'Demander à Pat', 'History': 'Historique', 'No history yet': 'Aucun historique', 'Clear History': 'Effacer l’historique',
+    // newer apps
+    'Contacts': 'Contacts', 'Freeform': 'Freeform', 'Preview': 'Aperçu', 'Chess': 'Échecs', 'Screenshot': 'Capture d’écran', 'Patoogle': 'Patoogle',
+    'No Name': 'Sans nom', 'New contact': 'Nouveau contact', 'Import or export': 'Importer ou exporter', 'No contacts yet. Press + to add one.': 'Aucun contact. Appuyez sur + pour en ajouter un.',
+    'Select a contact or add a new one.': 'Choisissez un contact ou ajoutez-en un.', 'First name': 'Prénom', 'Last name': 'Nom', 'Phone': 'Téléphone', 'Email': 'Courriel', 'Birthday': 'Anniversaire', 'Address': 'Adresse',
+    'Delete Contact': 'Supprimer le contact', 'Delete this contact?': 'Supprimer ce contact?', '★ Favorite': '★ Favori', '☆ Favorite': '☆ Favori', 'Message': 'Message', 'Change photo': 'Changer la photo',
+    'Press Edit to add a phone number, email or birthday.': 'Appuyez sur Édition pour ajouter un numéro, un courriel ou un anniversaire.', 'Import a vCard (.vcf)…': 'Importer une vCard (.vcf)…', 'Export all as vCard': 'Tout exporter en vCard',
+    'contacts imported': 'contacts importés', 'Birthday today': 'Anniversaire aujourd’hui',
+    'Select and move': 'Sélectionner et déplacer', 'Draw': 'Dessiner', 'Sticky note': 'Note autocollante', 'Text': 'Texte', 'Box': 'Boîte', 'Add a picture': 'Ajouter une image', 'Fit everything': 'Tout afficher', 'Boards': 'Tableaux',
+    'New Board': 'Nouveau tableau', 'Rename Board…': 'Renommer le tableau…', 'Clear Board': 'Effacer le tableau', 'Delete Board': 'Supprimer le tableau', 'Board': 'Tableau', 'My Board': 'Mon tableau', 'Name the new board': 'Nommez le nouveau tableau',
+    'Rename board': 'Renommer le tableau', 'Clear this board?': 'Effacer ce tableau?', 'Everything on it will be removed.': 'Tout ce qu’il contient sera supprimé.', 'Clear': 'Effacer',
+    'Open a PDF or a picture': 'Ouvrir un PDF ou une image', 'Choose a file from your computer, or one already in PatOS.': 'Choisissez un fichier de votre ordinateur ou un fichier déjà dans PatOS.', 'Choose a File…': 'Choisir un fichier…',
+    'Zoom out': 'Zoom arrière', 'Zoom in': 'Zoom avant', 'Rotate': 'Pivoter', 'Actual size': 'Taille réelle', 'This PDF can’t be opened': 'Ce PDF ne peut pas être ouvert',
+    'Medium': 'Moyen', 'Hard': 'Difficile', 'Flip board': 'Retourner l’échiquier', 'White': 'Les blancs', 'Black': 'Les noirs', 'to move': 'jouent', 'Check!': 'Échec!', 'Checkmate!': 'Échec et mat!',
+    'Black wins': 'Les noirs gagnent', 'White wins': 'Les blancs gagnent', 'Stalemate. It’s a draw.': 'Pat. Match nul.', 'Draw (50-move rule)': 'Nul (règle des 50 coups)',
+    'Take Screenshot': 'Prendre une capture', 'Record Screen': 'Enregistrer l’écran', 'No delay': 'Sans délai', '3 seconds': '3 secondes', '5 seconds': '5 secondes', 'Delay ': 'Délai ', 'Open in Photos': 'Ouvrir dans Photos',
+    'Save Video to Computer': 'Enregistrer la vidéo sur l’ordinateur', 'Screen capture was cancelled.': 'La capture d’écran a été annulée.', 'This device doesn’t allow screen capture (iPhones and iPads don’t).': 'Cet appareil ne permet pas la capture d’écran (les iPhone et iPad ne le permettent pas).',
+    'Switch mode': 'Changer de mode', 'Alarms': 'Alarmes', 'Alarm': 'Alarme', 'Add Alarm': 'Ajouter', 'Label': 'Étiquette', 'No alarms yet. Alarms ring while PatOS is open.': 'Aucune alarme. Les alarmes sonnent quand PatOS est ouvert.',
+    'Continue': 'Continuer', 'Get Started': 'Commencer', 'Welcome to PatOS. Let’s set things up. It takes less than a minute.': 'Bienvenue dans PatOS. Préparons tout. Ça prend moins d’une minute.',
+    'Choose your language': 'Choisissez votre langue', 'You can change it later in System Settings.': 'Vous pourrez la changer plus tard dans Réglages Système.', 'What’s your name?': 'Comment vous appelez-vous?',
+    'PatOS shows it on the lock screen and greets you with it.': 'PatOS l’affiche sur l’écran verrouillé et vous salue avec.', 'Choose your look': 'Choisissez votre style', 'Pick a wallpaper': 'Choisissez un fond d’écran',
+    'The first three move in 3D.': 'Les trois premiers bougent en 3D.', 'You’re all set, ': 'Tout est prêt, ', 'Start Using PatOS': 'Commencer à utiliser PatOS',
+    'Swipe up from the bottom to go home': 'Balayez vers le haut depuis le bas pour revenir à l’accueil', 'Swipe up and pause to switch apps': 'Balayez vers le haut et attendez pour changer d’app',
+    'Pull down from the top right for Control Center': 'Tirez vers le bas en haut à droite pour le centre de contrôle', 'Ctrl+Space searches everything': 'Ctrl+Espace cherche partout',
+    'Alt+L shows all your apps': 'Alt+L affiche toutes vos apps', 'Drag a window to the edge to snap it': 'Glissez une fenêtre vers le bord pour la placer', 'Waves': 'Vagues', 'Dot Waves': 'Vagues de points', 'Crystals': 'Cristaux', 'Warp': 'Hyperespace', 'Clear Sky': 'Ciel dégagé'
   };
   const PATTERNS = [
     [/^About (.+)$/, (m) => 'À propos de ' + t(m[1])], [/^Hide (.+)$/, (m) => 'Masquer ' + t(m[1])], [/^Quit (.+)$/, (m) => 'Quitter ' + t(m[1])], [/^Log Out (.+)…$/, (m) => 'Fermer la session de ' + m[1] + '…'],
@@ -2153,7 +2306,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       let g = ''; c.forEach((col, i) => { g += `<rect x="${12 + (i % 3) * 15}" y="${12 + Math.floor(i / 3) * 15}" width="11" height="11" rx="3.5" fill="${col}"/>`; });
       return S(g);
     } },
-    browser: { bg: 'linear-gradient(160deg,#ffffff,#d9e4f2)', svg: () => S(`
+    browser: { bg: 'linear-gradient(150deg,#7d5cff,#ff4fa0 70%,#ffb347)', svg: () => S(`
+      <circle cx="28" cy="28" r="14" fill="none" stroke="#fff" stroke-width="6"/>
+      <path d="M38 38l12 12" stroke="#fff" stroke-width="7" stroke-linecap="round"/>
+      <text x="28" y="34" font-size="16" font-family="system-ui,sans-serif" font-weight="900" fill="#fff" text-anchor="middle">P</text>`) },
+    oldbrowser: { bg: 'linear-gradient(160deg,#ffffff,#d9e4f2)', svg: () => S(`
       <defs><linearGradient id="bw" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#34c3ff"/><stop offset="1" stop-color="#1f5bff"/></linearGradient></defs>
       <circle cx="32" cy="32" r="22" fill="url(#bw)"/>
       <g stroke="#fff" stroke-opacity=".55" stroke-width="1.6" fill="none"><ellipse cx="32" cy="32" rx="9" ry="22"/><path d="M10 32h44M13 21h38M13 43h38"/></g>
@@ -2280,6 +2437,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     stickies: { bg: 'linear-gradient(160deg,#fff27a,#ffd60a)', svg: () => S(`<path d="M14 12h36v28L38 52H14z" fill="#fffbe0"/><path d="M50 40H38v12z" fill="#e6c200"/><path d="M20 22h24M20 29h24M20 36h14" stroke="#c9a800" stroke-width="2.5" stroke-linecap="round"/>`) },
     typing: { bg: 'linear-gradient(160deg,#64d2ff,#0a84ff)', svg: () => { let g = '<rect x="8" y="20" width="48" height="26" rx="5" fill="#fff"/>'; for (let r = 0; r < 2; r++) for (let c = 0; c < 6; c++) g += `<rect x="${12 + c * 7}" y="${24 + r * 7}" width="5" height="5" rx="1" fill="#0a84ff" opacity=".7"/>`; return S(g + '<rect x="18" y="38" width="28" height="4" rx="1" fill="#0a84ff"/>'); } },
     dictionary: { bg: 'linear-gradient(160deg,#8e2de2,#4a00e0)', svg: () => S(`<path d="M16 12h28a4 4 0 0 1 4 4v36H20a4 4 0 0 1-4-4z" fill="#fff"/><path d="M16 48a4 4 0 0 1 4-4h28" stroke="#c9b6ff" stroke-width="2" fill="none"/><text x="32" y="36" font-size="18" font-family="Georgia,serif" font-weight="700" fill="#6a1fd0" text-anchor="middle">Aa</text>`) },
+    contacts: { bg: 'linear-gradient(160deg,#c7c7cc,#8e8e93)', svg: () => S(`<rect x="12" y="10" width="40" height="44" rx="5" fill="#f2f2f7"/><circle cx="32" cy="27" r="8" fill="#8e8e93"/><path d="M18 48c2-9 8-12 14-12s12 3 14 12z" fill="#8e8e93"/><rect x="9" y="18" width="5" height="6" rx="1.5" fill="#636366"/><rect x="9" y="30" width="5" height="6" rx="1.5" fill="#636366"/>`) },
+    freeform: { bg: '#fff', svg: () => S(`<path d="M12 44c8-20 16 6 24-10s12-14 16-8" stroke="#0a84ff" stroke-width="4" fill="none" stroke-linecap="round"/><rect x="34" y="34" width="18" height="16" rx="3" fill="#ffd60a"/><circle cx="20" cy="20" r="7" fill="#ff375f"/>`) },
+    preview: { bg: 'linear-gradient(160deg,#f5f5f7,#d1d1d6)', svg: () => S(`<rect x="10" y="16" width="34" height="38" rx="3" fill="#fff" stroke="#c7c7cc"/><rect x="14" y="20" width="26" height="18" fill="#64d2ff"/><path d="M14 38l8-8 6 6 4-4 8 6z" fill="#34c759"/><circle cx="44" cy="22" r="10" fill="none" stroke="#3a3a3c" stroke-width="4"/><path d="M51 29l6 6" stroke="#3a3a3c" stroke-width="5" stroke-linecap="round"/>`) },
+    chess: { bg: 'linear-gradient(160deg,#a67c52,#5d3a1a)', svg: () => S(`<g fill="#fff"><path d="M26 50h18l-2-6H28z"/><path d="M29 44c0-8-6-10-6-18 0-6 5-10 11-10 7 0 10 6 9 10l-5 2 2 4-4 2c1 4 3 6 3 10z"/></g><rect x="22" y="50" width="26" height="4" rx="2" fill="#fff"/>`) },
+    screenshot: { bg: 'linear-gradient(160deg,#636366,#2c2c2e)', svg: () => S(`<path d="M14 24v-8h8M42 16h8v8M50 40v8h-8M22 48h-8v-8" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="32" cy="32" r="8" fill="#ff453a"/>`) },
   };
 
   /* generic letter-tile icon */
@@ -2307,7 +2469,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       return PatOS.iconHTML('imagefile');
     }
     if (kind === 'audio') return PatOS.iconHTML('audiofile');
-    const docIc = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms' }[PatOS.fs.ext(name)];
+    const docIc = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms', pdf: 'preview' }[PatOS.fs.ext(name)];
     if (docIc) return PatOS.iconHTML(docIc);
     if (kind === 'link') return PatOS.iconHTML('linkfile');
     return PatOS.iconHTML('file', PatOS.fs.ext(name) || 'txt');
@@ -3887,7 +4049,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const cal = h('div', { class: 'mw mw-cal' },
       h('div', { class: 'mw-day' }, d.toLocaleDateString(undefined, { weekday: 'long' }).toUpperCase()),
       h('div', { class: 'mw-num' }, d.getDate()),
-      h('div', { class: 'mw-ev' }, events[0] ? (events[0].time ? events[0].time + ' ' : '') + events[0].title : rem[0] ? '○ ' + rem[0].text : 'No events today'));
+      h('div', { class: 'mw-ev' }, events[0] ? (events[0].time ? events[0].time + ' ' : '') + events[0].title : rem[0] ? '○ ' + rem[0].text : PatOS.t('No events today')));
     cal.onclick = () => PatOS.launch(events[0] ? 'calendar' : 'reminders');
     return [clock, cal];
   }
@@ -4152,6 +4314,77 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 </script>
   <script>
+/* Setup Assistant — runs the first time PatOS starts */
+(function () {
+  'use strict';
+  const { h, $ } = PatOS;
+  const HELLOS = ['Hello', 'Bonjour', 'Hola', 'Ciao', 'Hallo', 'Olá', 'こんにちは', '안녕하세요', 'Привет', 'مرحبا', '你好'];
+  let step = 0, el = null, helloTimer = 0;
+  function show(startStep) {
+    step = startStep || 0;
+    el = h('div', { id: 'setup' }, h('div', { class: 'su-card lg' }));
+    $('#desktop').appendChild(el);
+    requestAnimationFrame(() => el.classList.add('in'));
+    render();
+  }
+  function finish() {
+    PatOS.store.set('setupDone', true); PatOS.store.remove('setupStep');
+    clearInterval(helloTimer);
+    el.classList.remove('in'); setTimeout(() => el.remove(), 500);
+    PatOS.sound.startup();
+  }
+  function go(n) { step = n; const c = el.querySelector('.su-card'); c.animate([{ opacity: 0, transform: 'translateX(30px)' }, { opacity: 1, transform: 'none' }], { duration: 350, easing: 'cubic-bezier(.2,.9,.3,1)' }); render(); }
+  function render() {
+    clearInterval(helloTimer);
+    const c = el.querySelector('.su-card'); c.innerHTML = '';
+    const T = PatOS.t;
+    const next = (label, fn) => h('button', { class: 'btn primary su-next', onclick: fn }, T(label || 'Continue'));
+    const dots = h('div', { class: 'su-dots' }, ...[0, 1, 2, 3, 4, 5].map((i) => h('span', { class: i === step ? 'on' : '' })));
+    if (step === 0) {
+      const hello = h('div', { class: 'su-hello' }, 'Hello');
+      let i = 0; helloTimer = setInterval(() => { i = (i + 1) % HELLOS.length; hello.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(-8px)' }], { duration: 300 }).onfinish = () => { hello.textContent = HELLOS[i]; hello.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 400 }); }; }, 1800);
+      c.append(hello, h('p', { class: 'su-sub' }, T('Welcome to PatOS. Let’s set things up. It takes less than a minute.')), next('Get Started', () => go(1)), dots);
+    } else if (step === 1) {
+      const pick = (code, label, flag) => { const b = h('button', { class: 'su-opt' + (PatOS.lang === code ? ' on' : '') }, h('span', { class: 'su-flag' }, flag), label); b.onclick = () => { if (PatOS.lang === code) return go(2); PatOS.setSetting('language', code); PatOS.store.set('setupStep', 2); location.reload(); }; return b; };
+      c.append(h('h1', {}, T('Choose your language')), h('p', { class: 'su-sub' }, T('You can change it later in System Settings.')), h('div', { class: 'su-opts' }, pick('en', 'English', 'EN'), pick('fr', 'Français', 'FR')), next(null, () => go(2)), dots);
+    } else if (step === 2) {
+      const inp = h('input', { class: 'field su-in', value: PatOS.settings.userName, maxlength: '24', spellcheck: 'false' });
+      inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(); });
+      const save = () => { PatOS.setSetting('userName', inp.value.trim() || 'Pat'); go(3); };
+      c.append(h('h1', {}, T('What’s your name?')), h('p', { class: 'su-sub' }, T('PatOS shows it on the lock screen and greets you with it.')), inp, next(null, save), dots);
+      setTimeout(() => { inp.focus(); inp.select(); }, 50);
+    } else if (step === 3) {
+      const modes = h('div', { class: 'su-opts' });
+      [['light', 'Light'], ['dark', 'Dark'], ['auto', 'Auto']].forEach(([k, l]) => { const b = h('button', { class: 'su-opt' + (PatOS.settings.theme === k ? ' on' : '') }, h('div', { class: 'st-mode-pv ' + k }), T(l)); b.onclick = () => { PatOS.setSetting('theme', k); render(); }; modes.appendChild(b); });
+      const glass = h('button', { class: 'switch' + (PatOS.settings.liquidGlass ? ' on' : '') }); glass.onclick = () => { PatOS.setSetting('liquidGlass', !PatOS.settings.liquidGlass); render(); };
+      c.append(h('h1', {}, T('Choose your look')), modes, h('label', { class: 'su-row' }, glass, h('span', {}, T('Liquid Glass'))), next(null, () => go(4)), dots);
+    } else if (step === 4) {
+      const grid = h('div', { class: 'su-wps' });
+      ['nebula', 'waves', 'crystals', 'sonora', 'aurora', 'sunrise'].forEach((id) => {
+        const src = PatOS.wallpaper.live[id] || PatOS.wallpaper.palettes[id];
+        const b = h('button', { class: 'su-wp' + (PatOS.settings.wallpaper === id ? ' on' : '') }, h('img', { src: PatOS.wallpaper.thumb(id), alt: '' }), h('span', {}, T(src.name)));
+        b.onclick = () => { PatOS.setSetting('wallpaper', id); if (src.live) PatOS.setSetting('live3d', true); render(); };
+        grid.appendChild(b);
+      });
+      c.append(h('h1', {}, T('Pick a wallpaper')), h('p', { class: 'su-sub' }, T('The first three move in 3D.')), grid, next(null, () => go(5)), dots);
+    } else {
+      const tips = PatOS.isMobile
+        ? [['⬆️', T('Swipe up from the bottom to go home')], ['⏸', T('Swipe up and pause to switch apps')], ['⬇️', T('Pull down from the top right for Control Center')]]
+        : [['🔍', T('Ctrl+Space searches everything')], ['🚀', T('Alt+L shows all your apps')], ['🪟', T('Drag a window to the edge to snap it')]];
+      c.append(h('div', { class: 'su-check' }, '✓'), h('h1', {}, T('You’re all set, ') + PatOS.settings.userName + '!'), h('div', { class: 'su-tips' }, ...tips.map(([i, t]) => h('div', {}, h('span', {}, i), t))), next('Start Using PatOS', finish), dots);
+    }
+  }
+  PatOS.setup = {
+    maybeShow() {
+      if (PatOS.store.get('setupDone', false)) return false;
+      show(PatOS.store.get('setupStep', 0)); return true;
+    },
+    show
+  };
+})();
+
+</script>
+  <script>
 /* Finder — file manager */
 (function () {
   'use strict';
@@ -4315,7 +4548,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 </script>
   <script>
-/* Surf — tabbed web browser */
+/* Patoogle — tabbed web browser */
 (function () {
   'use strict';
   const { h, esc } = PatOS;
@@ -4360,14 +4593,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     return 'https://www.google.com/search?igu=1&q=' + encodeURIComponent(q);
   }
   function host(url) { try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return url; } }
+  const favicon = (url) => { try { const u = new URL(url); return /^https?:/.test(u.protocol) ? 'https://www.google.com/s2/favicons?sz=32&domain=' + u.hostname : null; } catch (e) { return null; } };
   PatOS.openExternal = (url) => {
     const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
     document.body.appendChild(a); a.click(); a.remove();
   };
 
   PatOS.registerApp({
-    id: 'browser', name: 'Surf', icon: 'browser', single: true, width: 1040, height: 680, keywords: 'chrome safari web internet browser google',
-    about: 'A tabbed web browser. Some sites (like Gmail or YouTube) refuse to load inside other pages — Surf opens those in a real browser tab.',
+    id: 'browser', name: 'Patoogle', icon: 'browser', single: true, width: 1040, height: 680, keywords: 'chrome safari web internet browser google',
+    about: 'A tabbed web browser. Some sites (like Gmail or YouTube) refuse to load inside other pages — Patoogle opens those in a real browser tab.',
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'browser-win');
       const tabs = []; let cur = null;
@@ -4382,11 +4616,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       const bFwd = h('button', { class: 'tbtn', title: 'Forward' }, '›');
       const bReload = h('button', { class: 'tbtn', title: 'Reload' }, '↻');
       const bHome = h('button', { class: 'tbtn', title: 'Home' }, '⌂');
-      const omni = h('input', { class: 'br-omni', placeholder: 'Search Google or type a URL', spellcheck: 'false' });
+      const omni = h('input', { class: 'br-omni', placeholder: 'Search Patoogle or type a web address', spellcheck: 'false' });
       const lockIc = h('span', { class: 'br-lock' }, '🔒');
       const bStar = h('button', { class: 'tbtn', title: 'Bookmark this page' }, '☆');
       const bExt = h('button', { class: 'tbtn', title: 'Open in a real browser tab' }, '↗');
-      const nav = h('div', { class: 'br-nav' }, bBack, bFwd, bReload, bHome, h('div', { class: 'br-omniwrap' }, lockIc, omni), bStar, bExt);
+      const bHist = h('button', { class: 'tbtn', title: 'History' }, '🕘');
+      const nav = h('div', { class: 'br-nav' }, bBack, bFwd, bReload, bHome, h('div', { class: 'br-omniwrap' }, lockIc, omni), bStar, bHist, bExt);
       const bmBar = h('div', { class: 'br-bm' });
       const view = h('div', { class: 'br-view' });
       win.body.append(nav, bmBar, view);
@@ -4394,7 +4629,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       function renderBM() {
         bmBar.innerHTML = '';
         bookmarks.forEach((b, i) => {
-          const el = h('button', { class: 'br-bmi', title: b.u }, h('span', { class: 'br-fav' }, (b.t[0] || '?').toUpperCase()), b.t);
+          const el = h('button', { class: 'br-bmi', title: b.u }, favicon(b.u) ? h('img', { class: 'br-fav img', src: favicon(b.u), alt: '', onerror: (e) => { e.target.replaceWith(h('span', { class: 'br-fav' }, (b.t[0] || '?').toUpperCase())); } }) : h('span', { class: 'br-fav' }, (b.t[0] || '?').toUpperCase()), b.t);
           el.onclick = () => navigate(b.u);
           el.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); PatOS.menu([{ label: 'Open in New Tab', action: () => newTab(b.u) }, { label: 'Delete Bookmark', action: () => { bookmarks.splice(i, 1); PatOS.store.set('bookmarks', bookmarks); renderBM(); } }], e.clientX, e.clientY); };
           bmBar.appendChild(el);
@@ -4402,7 +4637,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       }
       function newTab(url, html, title) {
         const t = { id: PatOS.uid(), url: 'patos://newtab', title: 'New Tab', hist: [], idx: -1, pane: h('div', { class: 'br-pane' }), tabEl: null };
-        t.tabEl = h('div', { class: 'tab br-tab' }, h('span', { class: 'br-tt' }, 'New Tab'), h('button', { class: 'br-tx', title: 'Close tab' }, '×'));
+        t.tabEl = h('div', { class: 'tab br-tab' }, h('span', { class: 'br-tic none' }), h('span', { class: 'br-tt' }, 'New Tab'), h('button', { class: 'br-tx', title: 'Close tab' }, '×'));
         t.tabEl.addEventListener('click', (e) => { if (e.target.classList.contains('br-tx')) closeTab(t); else select(t); });
         t.tabEl.addEventListener('auxclick', (e) => { if (e.button === 1) closeTab(t); });
         tabStrip.appendChild(t.tabEl); view.appendChild(t.pane); tabs.push(t);
@@ -4426,6 +4661,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         bBack.disabled = cur.idx <= 0; bFwd.disabled = cur.idx >= cur.hist.length - 1;
         bStar.textContent = bookmarks.some((b) => b.u === cur.url) ? '★' : '☆';
         cur.tabEl.querySelector('.br-tt').textContent = cur.title;
+        const ic = cur.tabEl.querySelector('.br-tic'); const f = favicon(cur.url); if (ic) { ic.style.backgroundImage = f ? `url(${f})` : ''; ic.classList.toggle('none', !f); }
         win.setTitle(cur.title);
       }
       function navigate(input, t, noHist) {
@@ -4434,6 +4670,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         const yt = ytEmbed(url);
         if (yt || /(^|\.)youtube\.com$/.test(host(url).replace(/^m\./, ''))) { const vid = yt && yt.match(/embed\/([\w-]{11})/); PatOS.launch('youtube', vid ? { id: vid[1] } : (new URL(url).searchParams.get('search_query') ? { q: new URL(url).searchParams.get('search_query') } : {})); if (t.url === 'patos://newtab' || !t.hist.length) { t.hist = []; t.idx = -1; } return; }
         if (!noHist) { t.hist = t.hist.slice(0, t.idx + 1); t.hist.push(url); t.idx = t.hist.length - 1; }
+        if (/^https?:/.test(url)) { const H = PatOS.store.get('browserHistory', []); if (!H[0] || H[0].u !== url) { H.unshift({ u: url, t: Date.now() }); PatOS.store.set('browserHistory', H.slice(0, 100)); } }
         t.url = url;
         t.pane.innerHTML = '';
         if (url === 'patos://newtab') { t.title = 'New Tab'; t.pane.appendChild(newTabPage()); }
@@ -4453,7 +4690,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         t.pane.innerHTML = ''; t.pane.appendChild(h('iframe', { srcdoc: html, sandbox: 'allow-scripts allow-forms allow-modals' })); syncUI();
       }
       function newTabPage() {
-        const q = h('input', { class: 'nt-search', placeholder: 'Search Google or type a URL', spellcheck: 'false' });
+        const q = h('input', { class: 'nt-search', placeholder: 'Search Patoogle or type a web address', spellcheck: 'false' });
         q.addEventListener('keydown', (e) => { if (e.key === 'Enter') navigate(q.value); });
         const grid = h('div', { class: 'nt-grid' });
         SHORTCUTS.forEach((s) => {
@@ -4464,7 +4701,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
         setTimeout(() => q.focus(), 50);
         return h('div', { class: 'nt-page' },
-          h('div', { class: 'nt-logo' }, h('span', { style: { color: '#4285f4' } }, 'S'), h('span', { style: { color: '#ea4335' } }, 'u'), h('span', { style: { color: '#fbbc05' } }, 'r'), h('span', { style: { color: '#34a853' } }, 'f')),
+          h('div', { class: 'nt-logo' }, 'Patoogle'),
           h('div', { class: 'nt-greet' }, greet + ', ' + PatOS.settings.userName),
           q, grid,
           h('div', { class: 'nt-tip' }, 'Websites load right inside PatOS. Some sites refuse to be shown inside other apps; for those, use the PatOS apps above.'));
@@ -4473,7 +4710,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         return h('div', { class: 'br-blocked' },
           h('div', { class: 'bb-ic' }, '🧱'),
           h('h2', {}, host(url) + ' can’t be shown inside PatOS'),
-          h('p', {}, PatOS.sandboxed ? 'PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead. PatOS stays open in this one.' : 'This website blocks being shown inside other apps, so it can’t load in Surf. Try searching for it with Google above, or use the matching PatOS app (YouTube, Docs, Drive, Maps, Translate).'),
+          h('p', {}, PatOS.sandboxed ? 'PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead. PatOS stays open in this one.' : 'This website blocks being shown inside other apps, so it can’t load in Patoogle. Try searching for it with Google above, or use the matching PatOS app (YouTube, Docs, Drive, Maps, Translate).'),
           h('div', { class: 'br-alts' }, h('button', { class: 'btn primary', onclick: () => navigate('https://www.google.com/search?igu=1&q=' + encodeURIComponent(host(url))) }, 'Search Google for ' + host(url))), h('a', { class: 'br-ext', href: url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '').replace('?igu=1', ''), target: '_blank', rel: 'noopener noreferrer' }, 'Open outside PatOS'));
       }
       omni.addEventListener('keydown', (e) => { if (e.key === 'Enter') { navigate(omni.value); omni.blur(); } });
@@ -4482,6 +4719,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       bFwd.onclick = () => { if (cur.idx < cur.hist.length - 1) { cur.idx++; navigate(cur.hist[cur.idx], cur, true); } };
       bReload.onclick = () => navigate(cur.url, cur, true);
       bHome.onclick = () => navigate('patos://newtab');
+      bHist.onclick = () => {
+        const H = PatOS.store.get('browserHistory', []); const r = bHist.getBoundingClientRect();
+        PatOS.menu([{ header: PatOS.t('History') }, ...(H.length ? H.slice(0, 15).map((x) => ({ label: host(x.u) + ' · ' + new Date(x.t).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }), action: () => navigate(x.u) })) : [{ label: PatOS.t('No history yet'), disabled: true }]), { divider: true }, { label: PatOS.t('Clear History'), disabled: !H.length, action: () => PatOS.store.set('browserHistory', []) }], r.left - 200, r.bottom + 4);
+      };
       bExt.onclick = () => { if (!cur.url.startsWith('patos')) PatOS.openExternal(cur.url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '')); };
       bStar.onclick = () => {
         if (cur.url.startsWith('patos')) return;
@@ -4777,8 +5018,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       const bSave = h('button', { class: 'tbtn', title: 'Save' }, '💾');
       const bSmall = h('button', { class: 'tbtn', title: 'Smaller' }, 'A−');
       const bBig = h('button', { class: 'tbtn', title: 'Bigger' }, 'A+');
-      const bMono = h('button', { class: 'tbtn', title: 'Monospace' }, '{ }');
-      const bPrev = h('button', { class: 'tbtn', title: 'Preview HTML in Surf' }, '▶');
+      const bMono = h('button', { class: 'tbtn', title: 'Code font' }, '{ }');
+      const bPrev = h('button', { class: 'tbtn', title: 'Preview HTML in Patoogle' }, '▶');
       const bDl = h('button', { class: 'tbtn', title: 'Download to computer' }, '⬇');
       win.toolbar.append(nameEl, h('div', { style: { flex: 1 } }), bSmall, bBig, bMono, bPrev, bDl, bSave);
       win.toolbar.style.paddingLeft = '70px';
@@ -4839,61 +5080,101 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 </script>
   <script>
-/* Calculator */
+/* Calculator — basic and scientific modes */
 (function () {
   'use strict';
   const { h } = PatOS;
   PatOS.registerApp({
-    id: 'calculator', name: 'Calculator', icon: 'calculator', width: 260, height: 410, resizable: false, titlebar: 'hidden', dark: true, category: 'Utilities', keywords: 'math calc',
+    id: 'calculator', name: 'Calculator', icon: 'calculator', width: 260, height: 410, resizable: false, titlebar: 'hidden', dark: true, category: 'Utilities', keywords: 'math calc scientific',
     launch(win) {
-      let cur = '0', prev = null, op = null, fresh = true;
+      let sci = PatOS.store.get('calcSci', false);
+      let cur = '0', prev = null, op = null, fresh = true;   // basic mode state
+      let expr = '', lastAns = 0, deg = true, justEval = false; // scientific mode state
+      const modeBtn = h('button', { class: 'calc-mode', title: 'Switch mode' });
+      const sub = h('div', { class: 'calc-sub' });
       const disp = h('div', { class: 'calc-disp' }, '0');
       const keys = h('div', { class: 'calc-keys' });
       win.body.classList.add('calc');
-      win.body.append(disp, keys);
-      const layout = [['AC', 'fn'], ['±', 'fn'], ['%', 'fn'], ['÷', 'op'], ['7'], ['8'], ['9'], ['×', 'op'], ['4'], ['5'], ['6'], ['−', 'op'], ['1'], ['2'], ['3'], ['+', 'op'], ['0', 'zero'], ['.'], ['=', 'op']];
-      const btns = {};
-      layout.forEach(([k, cls]) => { const b = h('button', { class: 'ck ' + (cls || 'num') }, k); b.onclick = () => press(k); keys.appendChild(b); btns[k] = b; });
-      function fmt(n) {
-        if (n === 'Error') return n;
-        const v = parseFloat(n); if (!isFinite(v)) return 'Error';
+      win.body.append(modeBtn, sub, disp, keys);
+      const fmt = (n) => {
+        if (n === 'Error') return n; const v = parseFloat(n); if (!isFinite(v)) return PatOS.t('Error');
         if (String(n).endsWith('.')) return n;
-        if (Math.abs(v) >= 1e9 || (Math.abs(v) < 1e-6 && v !== 0)) return v.toExponential(4);
-        const [i, d] = String(n).split('.');
-        return Number(i).toLocaleString('en-US') + (d !== undefined ? '.' + d.slice(0, 8) : '');
+        if (Math.abs(v) >= 1e12 || (Math.abs(v) < 1e-7 && v !== 0)) return v.toExponential(5);
+        const [i, d] = String(n).split('.'); return Number(i).toLocaleString('en-US') + (d !== undefined ? '.' + d.slice(0, 10) : '');
+      };
+      function size() {
+        const s = disp.textContent; const max = sci ? 22 : 9;
+        disp.style.fontSize = s.length > max ? Math.max(sci ? 22 : 26, (sci ? 48 : 64) - (s.length - max) * (sci ? 2 : 5)) + 'px' : (sci ? 48 : 64) + 'px';
       }
-      function show() {
-        const s = fmt(cur); disp.textContent = s;
-        disp.style.fontSize = s.length > 9 ? Math.max(26, 64 - (s.length - 9) * 5) + 'px' : '64px';
-        btns.AC.textContent = cur !== '0' && !fresh ? 'C' : 'AC';
-        Object.entries(btns).forEach(([k, b]) => b.classList.toggle('active', k === op && fresh));
-      }
-      function calc(a, b, o) {
-        a = parseFloat(a); b = parseFloat(b);
-        const r = o === '+' ? a + b : o === '−' ? a - b : o === '×' ? a * b : o === '÷' ? (b === 0 ? NaN : a / b) : b;
-        return isFinite(r) ? String(+r.toPrecision(12)) : 'Error';
-      }
-      function press(k) {
-        PatOS.sound.click();
+      /* ---------- basic ---------- */
+      const BASIC = [['AC', 'fn'], ['±', 'fn'], ['%', 'fn'], ['÷', 'op'], ['7'], ['8'], ['9'], ['×', 'op'], ['4'], ['5'], ['6'], ['−', 'op'], ['1'], ['2'], ['3'], ['+', 'op'], ['0', 'zero'], ['.'], ['=', 'op']];
+      function calc(a, b, o) { a = parseFloat(a); b = parseFloat(b); const r = o === '+' ? a + b : o === '−' ? a - b : o === '×' ? a * b : o === '÷' ? (b === 0 ? NaN : a / b) : b; return isFinite(r) ? String(+r.toPrecision(12)) : 'Error'; }
+      function pressBasic(k) {
         if (/^\d$/.test(k)) { if (fresh || cur === '0' || cur === 'Error') { cur = k; fresh = false; } else if (cur.replace(/[-.]/g, '').length < 12) cur += k; }
         else if (k === '.') { if (fresh) { cur = '0.'; fresh = false; } else if (!cur.includes('.')) cur += '.'; }
-        else if (k === 'AC' || k === 'C') { if (btns.AC.textContent === 'C') { cur = '0'; fresh = true; } else { cur = '0'; prev = null; op = null; fresh = true; } }
+        else if (k === 'AC' || k === 'C') { if (k === 'C') { cur = '0'; fresh = true; } else { cur = '0'; prev = null; op = null; fresh = true; } }
         else if (k === '±') cur = cur.startsWith('-') ? cur.slice(1) : cur === '0' ? '0' : '-' + cur;
         else if (k === '%') cur = String(parseFloat(cur) / 100);
         else if (['+', '−', '×', '÷'].includes(k)) { if (op && !fresh && prev !== null) cur = calc(prev, cur, op); prev = cur; op = k; fresh = true; }
         else if (k === '=') { if (op !== null && prev !== null) { cur = calc(prev, cur, op); prev = null; op = null; fresh = true; } }
-        show();
+        disp.textContent = fmt(cur); sub.textContent = prev !== null && op ? fmt(prev) + ' ' + op : '';
+        const ac = keys.querySelector('[data-k="AC"],[data-k="C"]'); if (ac) { const c = cur !== '0' && !fresh; ac.textContent = c ? 'C' : 'AC'; ac.dataset.k = c ? 'C' : 'AC'; }
+        keys.querySelectorAll('.ck.op').forEach((b) => b.classList.toggle('active', b.dataset.k === op && fresh));
+        size();
       }
-      const keymap = { '/': '÷', '*': '×', '-': '−', '+': '+', Enter: '=', '=': '=', Escape: 'AC', '%': '%', '.': '.', ',': '.' };
+      /* ---------- scientific ---------- */
+      const SCI = [['(', 'fn'], [')', 'fn'], ['AC', 'fn'], ['⌫', 'fn'], ['÷', 'op'], ['sin', 'fx'], ['cos', 'fx'], ['tan', 'fx'], ['x²', 'fx'], ['×', 'op'], ['ln', 'fx'], ['log', 'fx'], ['√', 'fx'], ['xʸ', 'fx'], ['−', 'op'], ['7'], ['8'], ['9'], ['π', 'fx'], ['+', 'op'], ['4'], ['5'], ['6'], ['e', 'fx'], ['=', 'op eq'], ['1'], ['2'], ['3'], ['n!', 'fx'], ['Ans', 'fx'], ['0'], ['.'], ['%', 'fx'], ['Rad', 'fx']];
+      const TOK = { '÷': '/', '×': '*', '−': '-', '+': '+', '(': '(', ')': ')', '.': '.', 'π': 'π', 'e': 'e', 'sin': 'sin(', 'cos': 'cos(', 'tan': 'tan(', 'ln': 'ln(', 'log': 'log(', '√': '√(', 'x²': '^2', 'xʸ': '^', '%': '%', 'n!': '!', 'Ans': 'Ans', '1/x': '^(-1)' };
+      function evaluate(src) {
+        let s = src.replace(/π/g, '(PI)').replace(/Ans/g, '(' + lastAns + ')').replace(/\be\b/g, '(E)').replace(/√\(/g, 'sqrt(').replace(/ln\(/g, 'LN(').replace(/log\(/g, 'LOG(')
+          .replace(/(\d+(?:\.\d+)?|\))!/g, 'fact($1)').replace(/(\d+(?:\.\d+)?)%/g, '($1/100)').replace(/\^/g, '**');
+        s = s.replace(/(\d|\))\s*(\(|[A-Za-z])/g, '$1*$2'); // 2π, 3(4)
+        if (/[^0-9+\-*/().\sA-Za-z]/.test(s.replace(/\*\*/g, ''))) throw new Error('bad');
+        if (/[A-Za-z]+/.test(s.replace(/\b(PI|E|sqrt|LN|LOG|sin|cos|tan|fact)\b/g, ''))) throw new Error('bad');
+        const open = (s.match(/\(/g) || []).length - (s.match(/\)/g) || []).length; s += ')'.repeat(Math.max(0, open));
+        const k = deg ? Math.PI / 180 : 1;
+        const fact = (n) => { if (n < 0 || n > 170 || n % 1) return NaN; let r = 1; for (let i = 2; i <= n; i++) r *= i; return r; };
+        const r = Function('PI', 'E', 'sqrt', 'LN', 'LOG', 'sin', 'cos', 'tan', 'fact', '"use strict";return (' + s + ');')(Math.PI, Math.E, Math.sqrt, Math.log, Math.log10, (x) => Math.sin(x * k), (x) => Math.cos(x * k), (x) => Math.tan(x * k), fact);
+        return Math.abs(r) < 1e-12 ? 0 : +r.toPrecision(12);
+      }
+      function pressSci(k) {
+        if (k === 'AC') { expr = ''; sub.textContent = ''; }
+        else if (k === '⌫') expr = expr.replace(/(sin\(|cos\(|tan\(|ln\(|log\(|√\(|Ans|\^\(-1\)|.)$/, '');
+        else if (k === 'Rad' || k === 'Deg') { deg = !deg; }
+        else if (k === '=') { if (!expr) return; try { const r = evaluate(expr); sub.textContent = expr + ' ='; lastAns = r; expr = String(r); justEval = true; disp.textContent = fmt(r); size(); return; } catch (e) { sub.textContent = expr; disp.textContent = PatOS.t('Error'); expr = ''; size(); return; } }
+        else {
+          if (justEval && /^[\d.(πe]|sin|cos|tan|ln|log|√|Ans/.test(TOK[k] || k)) expr = '';
+          expr += TOK[k] !== undefined ? TOK[k] : k;
+        }
+        justEval = false;
+        disp.textContent = expr || '0';
+        const rd = keys.querySelector('[data-k="Rad"],[data-k="Deg"]'); if (rd) { rd.textContent = deg ? 'Rad' : 'Deg'; rd.dataset.k = deg ? 'Rad' : 'Deg'; }
+        sub.textContent = sub.textContent && expr ? sub.textContent : (deg ? 'DEG' : 'RAD');
+        size();
+      }
+      function build() {
+        keys.innerHTML = ''; win.body.classList.toggle('sci', sci);
+        modeBtn.textContent = sci ? '123' : 'ƒ(x)';
+        (sci ? SCI : BASIC).forEach(([k, cls]) => { const b = h('button', { class: 'ck ' + (cls || 'num'), 'data-k': k }, k); b.onclick = () => { PatOS.sound.click(); sci ? pressSci(b.dataset.k) : pressBasic(b.dataset.k); }; keys.appendChild(b); });
+        if (!PatOS.isMobile) { win.el.style.width = (sci ? 440 : 260) + 'px'; win.el.style.height = (sci ? 480 : 410) + 'px'; }
+        if (sci) { disp.textContent = expr || '0'; sub.textContent = deg ? 'DEG' : 'RAD'; } else { disp.textContent = fmt(cur); sub.textContent = ''; }
+        size();
+      }
+      modeBtn.onclick = () => { sci = !sci; PatOS.store.set('calcSci', sci); build(); };
+      const keymap = { '/': '÷', '*': '×', '-': '−', '+': '+', Enter: '=', '=': '=', '%': '%', '.': '.', ',': '.', '(': '(', ')': ')', '^': 'xʸ' };
       const onKey = (e) => {
-        if (PatOS.wm.active !== win) return;
-        if (/^\d$/.test(e.key)) press(e.key);
-        else if (keymap[e.key]) { e.preventDefault(); press(keymap[e.key] === 'AC' ? (btns.AC.textContent) : keymap[e.key]); }
-        else if (e.key === 'Backspace') { cur = cur.length > 1 ? cur.slice(0, -1) : '0'; show(); }
+        if (PatOS.wm.active !== win || e.ctrlKey || e.altKey) return;
+        let k = /^\d$/.test(e.key) ? e.key : keymap[e.key];
+        if (e.key === 'Escape') k = 'AC';
+        if (e.key === 'Backspace') { e.preventDefault(); if (sci) pressSci('⌫'); else { cur = cur.length > 1 ? cur.slice(0, -1) : '0'; disp.textContent = fmt(cur); size(); } return; }
+        if (!k) return; e.preventDefault();
+        if (sci) pressSci(k); else if (!['(', ')', 'xʸ'].includes(k)) pressBasic(k === 'AC' ? (keys.querySelector('[data-k="C"]') ? 'C' : 'AC') : k);
+        const b = keys.querySelector(`[data-k="${k}"]`); if (b) { b.classList.add('press'); setTimeout(() => b.classList.remove('press'), 120); }
       };
       document.addEventListener('keydown', onKey);
       win.on('closed', () => document.removeEventListener('keydown', onKey));
-      show();
+      PatOS.calcEval = (s) => evaluate(s);
+      build();
     }
   });
 })();
@@ -5175,11 +5456,25 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   const inTZ = (tz) => tz ? new Date(new Date().toLocaleString('en-US', { timeZone: tz })) : new Date();
   const fmt = (ms, cs) => { const m = Math.floor(ms / 60000), s = Math.floor(ms / 1000) % 60, c = Math.floor(ms / 10) % 100; return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + (cs ? '.' + String(c).padStart(2, '0') : ''); };
 
+  /* alarms ring while PatOS is open, even when Clock is closed */
+  let lastMin = '';
+  setInterval(() => {
+    if (!PatOS.loggedIn) return;
+    const d = new Date(); const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+    if (hm === lastMin) return; lastMin = hm;
+    (PatOS.store.get('alarms', []) || []).forEach((a) => {
+      if (!a.on || a.time !== hm) return;
+      PatOS.notify({ title: '⏰ ' + (a.label || PatOS.t('Alarm')), body: d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }), icon: 'clock', duration: 15000 });
+      for (let i = 0; i < 8; i++) { PatOS.sound.tone(880, 0.18, { delay: i * 0.5, vol: 0.25, type: 'square' }); PatOS.sound.tone(1100, 0.18, { delay: i * 0.5 + 0.22, vol: 0.2, type: 'square' }); }
+      if (PatOS.mobile && PatOS.mobile.islandAlert) PatOS.mobile.islandAlert(a.label || PatOS.t('Alarm'), 'clock');
+    });
+  }, 5000);
+
   PatOS.registerApp({
     id: 'clock', name: 'Clock', icon: 'clock', width: 720, height: 500, dark: true, category: 'Utilities', keywords: 'time stopwatch timer alarm world',
     launch(win) {
       win.el.classList.add('has-toolbar');
-      const tabs = ['World Clock', 'Stopwatch', 'Timer'];
+      const tabs = ['World Clock', 'Alarms', 'Stopwatch', 'Timer'];
       let tab = 0;
       const seg = h('div', { class: 'seg' });
       tabs.forEach((t, i) => seg.appendChild(h('button', { class: 'tab', onclick: () => { tab = i; render(); } }, t)));
@@ -5195,7 +5490,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       function render() {
         clearTimers(); body.innerHTML = '';
         [...seg.children].forEach((b, i) => b.classList.toggle('on', i === tab));
-        if (tab === 0) world(); else if (tab === 1) stopwatch(); else timer();
+        if (tab === 0) world(); else if (tab === 1) alarms(); else if (tab === 2) stopwatch(); else timer();
       }
       function world() {
         const g = h('div', { class: 'clk-world' });
@@ -5213,6 +5508,25 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         });
         tick(); timers.push(setInterval(tick, 1000));
         body.appendChild(g);
+      }
+      function alarms() {
+        const list = PatOS.store.get('alarms', []);
+        const save = () => PatOS.store.set('alarms', list);
+        const wrap = h('div', { class: 'clk-alarms' });
+        const draw = () => {
+          wrap.innerHTML = '';
+          if (!list.length) wrap.appendChild(h('div', { class: 'clk-sub', style: { padding: '30px', textAlign: 'center' } }, PatOS.t('No alarms yet. Alarms ring while PatOS is open.')));
+          list.sort((a, b) => a.time.localeCompare(b.time)).forEach((a) => {
+            const sw = h('button', { class: 'switch' + (a.on ? ' on' : '') }); sw.onclick = () => { a.on = !a.on; save(); draw(); };
+            const [hh, mm] = a.time.split(':').map(Number); const d = new Date(); d.setHours(hh, mm, 0, 0);
+            wrap.appendChild(h('div', { class: 'clk-alarm' + (a.on ? '' : ' off') }, h('div', {}, h('div', { class: 'clk-at' }, d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })), h('small', {}, a.label || PatOS.t('Alarm'))), h('div', { style: { flex: 1 } }), h('button', { class: 'tbtn', title: 'Delete', onclick: () => { list.splice(list.indexOf(a), 1); save(); draw(); } }, '🗑'), sw));
+          });
+        };
+        const tIn = h('input', { type: 'time', class: 'field', value: '07:00' });
+        const lIn = h('input', { class: 'field', placeholder: 'Label', style: { width: '140px' } });
+        const add = h('button', { class: 'btn primary', onclick: () => { if (!tIn.value) return; list.push({ id: PatOS.uid(), time: tIn.value, label: lIn.value.trim(), on: true }); lIn.value = ''; save(); draw(); } }, 'Add Alarm');
+        body.append(h('div', { class: 'clk-addalarm' }, tIn, lIn, add), wrap);
+        draw();
       }
       function stopwatch() {
         const disp = h('div', { class: 'clk-big' });
@@ -5932,7 +6246,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           const name = h('input', { class: 'field', value: S().userName, style: { width: '180px' } });
           name.onchange = () => PatOS.setSetting('userName', name.value.trim() || 'Pat');
           return [h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('about') }), h('div', {}, h('h2', {}, 'PatOS ' + PatOS.version), h('p', {}, 'Your own desktop that runs in any browser — even a school Chromebook.'))),
-            group(row('Your name', name), row('Language', (() => { const s2 = h('select', { class: 'field' }, ...[['auto', 'Automatic (device language)'], ['en', 'English'], ['fr', 'French']].map(([v, l]) => h('option', { value: v, selected: (S().language || 'auto') === v }, l))); s2.onchange = async () => { const v = s2.value; if (await PatOS.confirmBox(PatOS.t('Language'), PatOS.t('PatOS restarts to change the language.'), { ok: PatOS.t('Restart'), icon: 'settings' })) { PatOS.setSetting('language', v); setTimeout(() => location.reload(), 200); } else s2.value = S().language || 'auto'; }; return s2; })(), PatOS.lang === 'fr' ? 'Langue de l’appareil : ' + (PatOS.deviceLang === 'fr' ? 'français' : 'anglais') : 'Device language: ' + (PatOS.deviceLang === 'fr' ? 'French' : 'English')), row('Device style', select('deviceMode', [['auto', 'Automatic (phone or computer)'], ['desktop', 'Computer'], ['mobile', 'Phone']]), 'Automatic switches to the phone layout on small touch screens'), row('Ask for full screen at login', toggle('askFullscreen'), 'Makes PatOS feel like a real OS'), row('24-hour clock', toggle('clock24')), row('Show seconds in menu bar', toggle('showSeconds'))),
+            group(row('Your name', name), row('Language', (() => { const s2 = h('select', { class: 'field' }, ...[['auto', 'Automatic (device language)'], ['en', 'English'], ['fr', 'French']].map(([v, l]) => h('option', { value: v, selected: (S().language || 'auto') === v }, l))); s2.onchange = async () => { const v = s2.value; if (await PatOS.confirmBox(PatOS.t('Language'), PatOS.t('PatOS restarts to change the language.'), { ok: PatOS.t('Restart'), icon: 'settings' })) { PatOS.setSetting('language', v); setTimeout(() => location.reload(), 200); } else s2.value = S().language || 'auto'; }; return s2; })(), PatOS.lang === 'fr' ? 'Langue de l’appareil : ' + (PatOS.deviceLang === 'fr' ? 'français' : 'anglais') : 'Device language: ' + (PatOS.deviceLang === 'fr' ? 'French' : 'English')), row('Layout', select('deviceMode', [['auto', 'Automatic (phone or computer)'], ['desktop', 'Computer'], ['mobile', 'Phone']]), 'Automatic uses the phone layout on small touch screens'), row('Ask for full screen at login', toggle('askFullscreen'), 'Makes PatOS feel like a real OS'), row('24-hour clock', toggle('clock24')), row('Show seconds in menu bar', toggle('showSeconds'))),
             group(row('About this computer', h('button', { class: 'btn', onclick: () => PatOS.launch('about') }, 'About PatOS…')))];
         },
         appearance() {
@@ -5943,7 +6257,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           });
           const acc = h('div', { class: 'st-acc' });
           ACCENTS.forEach((c) => { const b = h('button', { class: 'st-dot' + (S().accent === c ? ' on' : ''), style: { background: c } }); b.onclick = () => { PatOS.setSetting('accent', c); render(); }; acc.appendChild(b); });
-          return [h('h3', {}, 'Appearance'), modes, group(row('Accent color', acc), row('Liquid Glass', toggle('liquidGlass'), 'See-through glass for the dock, menus, panels and widgets'), row('Glass refraction', toggle('glassRefraction'), 'The glass bends what is behind it (Chrome only, uses more power)'), row('Reduce transparency', toggle('reduceTransparency'), 'Solid windows — faster on older Chromebooks'), row('Reduce motion', toggle('reduceMotion')))];
+          return [h('h3', {}, 'Appearance'), modes, group(row('Highlight color', acc), row('Liquid Glass', toggle('liquidGlass'), 'See-through glass for the dock, menus, panels and widgets'), row('Glass bends the background', toggle('glassRefraction'), 'Works in Chrome. Uses more battery.'), row('Reduce transparency', toggle('reduceTransparency'), 'Solid windows — faster on older Chromebooks'), row('Fewer animations', toggle('reduceMotion')))];
         },
         wallpaper() {
           const grid = (ids, src) => { const g = h('div', { class: 'st-wps' }); ids.forEach((id) => { const b = h('button', { class: 'st-wp' + (S().wallpaper === id ? ' on' : '') }, h('img', { src: PatOS.wallpaper.thumb(id), alt: '' }), h('span', {}, src[id].name + (src[id].live ? ' ✦' : ''))); b.onclick = () => { PatOS.setSetting('wallpaper', id); if (src[id].live && !S().live3d) PatOS.setSetting('live3d', true); render(); }; g.appendChild(b); }); return g; };
@@ -5958,7 +6272,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
             const sec = (title, key, max) => [h('h3', {}, title), h('div', { class: 'st-dockapps' }, ...ids.map((id) => { const on = key === 'hiddenApps' ? !(S().hiddenApps || []).includes(id) : S()[key].includes(id); const b = h('button', { class: 'st-da' + (on ? ' on' : '') }, h('div', { class: 'st-da-ic', html: PatOS.iconHTML(PatOS.apps[id].icon || id) }), h('span', {}, PatOS.apps[id].name)); b.onclick = () => { let l = (S()[key] || []).slice(); const i = l.indexOf(id); if (i >= 0) l.splice(i, 1); else { if (max && l.length >= max) l.shift(); l.push(id); } PatOS.setSetting(key, l); render(); }; return b; }))];
             return [...sec('Dock (up to 4 apps)', 'mobileDock', 4), ...sec('Apps on the Home Screen', 'hiddenApps')];
           }
-          return [h('h3', {}, 'Dock'), group(row('Size', range('dockSize', 36, 84, 1, (v) => v + 'px')), row('Magnification', toggle('magnify')), row('Magnification amount', range('magnifyScale', 1.2, 2.2, 0.1, (v) => Math.round(v * 100) + '%')), row('Automatically hide the Dock', toggle('dockAutohide')), row('Show desktop widgets', toggle('showWidgets'))),
+          return [h('h3', {}, 'Dock'), group(row('Size', range('dockSize', 36, 84, 1, (v) => v + 'px')), row('Grow icons under the pointer', toggle('magnify')), row('How much icons grow', range('magnifyScale', 1.2, 2.2, 0.1, (v) => Math.round(v * 100) + '%')), row('Automatically hide the Dock', toggle('dockAutohide')), row('Show desktop widgets', toggle('showWidgets'))),
             h('h3', {}, 'Apps in the Dock'), h('div', { class: 'st-dockapps' }, ...PatOS.appOrder.filter((id) => !PatOS.apps[id].hidden || id === 'launchpad').map((id) => {
               const on = S().dockPinned.includes(id);
               const b = h('button', { class: 'st-da' + (on ? ' on' : '') }, h('div', { class: 'st-da-ic', html: PatOS.iconHTML(PatOS.apps[id].icon || id) }), h('span', {}, PatOS.apps[id].name));
@@ -5981,7 +6295,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           return [h('h3', {}, 'Network'), group(row('Status', h('span', { class: 'st-val' }, navigator.onLine ? '🟢 Connected' : '🔴 Offline')), row('Connection type', h('span', { class: 'st-val' }, c.effectiveType ? c.effectiveType.toUpperCase() : 'Unknown')), row('Speed estimate', h('span', { class: 'st-val' }, c.downlink ? c.downlink + ' Mbps' : 'Unknown')))];
         },
         keyboard() {
-          const sc = [['Ctrl+Space / Alt+Space', 'Spotlight search'], ['Alt+L or F4', 'Launchpad'], ['Alt+↑ or F3', 'Mission Control'], ['Alt+W', 'Close window'], ['Alt+Q', 'Quit app'], ['Alt+M', 'Minimize'], ['Alt+F', 'Zoom window'], ['Alt+← / Alt+→', 'Tile window left / right'], ['Alt+N', 'New window'], ['Alt+`', 'Cycle windows'], ['Alt+T', 'Terminal'], ['Alt+E', 'Finder'], ['Alt+B', 'Surf browser'], ['Alt+,', 'Settings'], ['Alt+Esc', 'Lock screen'], ['Esc', 'Close menus & overlays']];
+          const sc = [['Ctrl+Space / Alt+Space', 'Spotlight search'], ['Alt+L or F4', 'Launchpad'], ['Alt+↑ or F3', 'Mission Control'], ['Alt+W', 'Close window'], ['Alt+Q', 'Quit app'], ['Alt+M', 'Minimize'], ['Alt+F', 'Zoom window'], ['Alt+← / Alt+→', 'Tile window left / right'], ['Alt+N', 'New window'], ['Alt+`', 'Cycle windows'], ['Alt+T', 'Terminal'], ['Alt+E', 'Finder'], ['Alt+B', 'Patoogle browser'], ['Alt+,', 'Settings'], ['Alt+Esc', 'Lock screen'], ['Esc', 'Close menus & overlays']];
           return [h('h3', {}, 'Keyboard Shortcuts'), h('p', { class: 'st-note' }, 'PatOS uses Alt because Chromebooks reserve most Ctrl shortcuts.'), group(...sc.map(([k, d]) => row(d, h('kbd', {}, k))))];
         },
         storage() {
@@ -6027,13 +6341,13 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       function render() {
         const mem = performance.memory ? PatOS.fmtBytes(performance.memory.usedJSHeapSize) : 'n/a';
         stats.innerHTML = '';
-        [['FPS', fps], ['JS Memory', mem], ['Windows', PatOS.wm.windows.length], ['Page Elements', document.getElementsByTagName('*').length.toLocaleString()], ['Storage', PatOS.fmtBytes(PatOS.store.usage())], ['Uptime', Math.round(performance.now() / 60000) + ' min']]
+        [['FPS', fps], ['Memory used', mem], ['Windows', PatOS.wm.windows.length], ['Items on screen', document.getElementsByTagName('*').length.toLocaleString()], ['Storage', PatOS.fmtBytes(PatOS.store.usage())], ['Time on', Math.round(performance.now() / 60000) + ' min']]
           .forEach(([k, v]) => stats.appendChild(h('div', { class: 'am-stat' }, h('small', {}, k), h('b', {}, String(v)))));
         const x = graph.getContext('2d'); graph.width = graph.clientWidth || 600; x.clearRect(0, 0, graph.width, 80);
         x.strokeStyle = '#32d74b'; x.lineWidth = 2; x.beginPath();
         hist.forEach((v, i) => { const px = i / 59 * graph.width, py = 78 - Math.min(v, 75); i ? x.lineTo(px, py) : x.moveTo(px, py); }); x.stroke();
         table.innerHTML = '';
-        table.appendChild(h('div', { class: 'am-row am-h' }, h('span', {}, 'App'), h('span', {}, 'Windows'), h('span', {}, 'Elements'), h('span', {}, '')));
+        table.appendChild(h('div', { class: 'am-row am-h' }, h('span', {}, 'App'), h('span', {}, 'Windows'), h('span', {}, 'Items'), h('span', {}, '')));
         const apps = [...new Set(PatOS.wm.windows.map((w) => w.app.id))];
         if (!apps.length) table.appendChild(h('div', { class: 'am-row' }, h('span', { class: 'am-p' }, 'No apps are open'), h('span'), h('span'), h('span')));
         apps.forEach((id) => {
@@ -6105,7 +6419,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       const pres = h('div', { class: 'g3d-pres' }, ...Object.keys(presets).map((k) => h('button', { class: 'btn', onclick: () => { Object.assign(P, presets[k]); build(); render(); } }, k)));
       function render() {
         panel.innerHTML = '';
-        panel.append(h('b', {}, 'Galaxy Generator'), pres, ctl('Stars', 'stars', 5000, 150000, 1000), ctl('Arms', 'arms', 1, 12, 1), ctl('Radius', 'radius', 2, 20, 0.5), ctl('Spin', 'spin', -4, 4, 0.05), ctl('Randomness', 'randomness', 0, 2, 0.01), ctl('Star size', 'size', 0.005, 0.08, 0.001), ctl('Rotation speed', 'speed', 0, 1, 0.01), h('div', { class: 'g3d-cs' }, color('Core', 'inside'), color('Edge', 'outside')));
+        panel.append(h('b', {}, 'Galaxy Generator'), pres, ctl('Stars', 'stars', 5000, 150000, 1000), ctl('Arms', 'arms', 1, 12, 1), ctl('Radius', 'radius', 2, 20, 0.5), ctl('Spin', 'spin', -4, 4, 0.05), ctl('Spread', 'randomness', 0, 2, 0.01), ctl('Star size', 'size', 0.005, 0.08, 0.001), ctl('Rotation speed', 'speed', 0, 1, 0.01), h('div', { class: 'g3d-cs' }, color('Core', 'inside'), color('Edge', 'outside')));
       }
       const bPanel = h('button', { class: 'tbtn', title: 'Toggle controls' }, '⚙ Controls');
       const bShot = h('button', { class: 'tbtn', title: 'Save picture to Photos' }, '📸');
@@ -6348,7 +6662,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         const m = sel.material;
         const col = h('input', { type: 'color', value: '#' + m.color.getHexString() }); col.oninput = () => m.color.set(col.value);
         const spin = h('button', { class: 'btn' + (sel.userData.spin ? ' primary' : ''), onclick: () => { sel.userData.spin = !sel.userData.spin; renderPanel(); } }, sel.userData.spin ? 'Spinning' : 'Spin');
-        const wire = h('button', { class: 'btn' + (m.wireframe ? ' primary' : ''), onclick: () => { m.wireframe = !m.wireframe; renderPanel(); } }, 'Wireframe');
+        const wire = h('button', { class: 'btn' + (m.wireframe ? ' primary' : ''), onclick: () => { m.wireframe = !m.wireframe; renderPanel(); } }, 'Outline');
         panel.append(h('b', {}, 'Selected: ' + sel.userData.kind),
           h('label', { class: 'g3d-c' }, 'Color', col),
           slider('Size', () => sel.scale.x, (v) => sel.scale.setScalar(v), 0.2, 3, 0.05),
@@ -6356,7 +6670,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           slider('Left / Right', () => sel.position.x, (v) => (sel.position.x = v), -8, 8, 0.05),
           slider('Front / Back', () => sel.position.z, (v) => (sel.position.z = v), -8, 8, 0.05),
           slider('Metal', () => m.metalness, (v) => (m.metalness = v), 0, 1, 0.01),
-          slider('Roughness', () => m.roughness, (v) => (m.roughness = v), 0, 1, 0.01),
+          slider('Matte', () => m.roughness, (v) => (m.roughness = v), 0, 1, 0.01),
           h('div', { class: 'g3d-pres' }, spin, wire, h('button', { class: 'btn', onclick: () => add(sel.userData.kind, { color: '#' + m.color.getHexString(), x: sel.position.x + 1.5, z: sel.position.z }) }, 'Duplicate'), h('button', { class: 'btn danger', onclick: () => { scene.remove(sel); sel.geometry.dispose(); objects.splice(objects.indexOf(sel), 1); select(null); } }, 'Delete')));
       }
       const bAuto = h('button', { class: 'tbtn' }, '⟳ Auto-rotate');
@@ -6565,7 +6879,14 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     drive: 'Every document, spreadsheet, presentation and form you make, in one place.',
     forms: 'Make a survey or a graded quiz, answer it, and see the results as charts.',
     translate: 'Translate between 20 languages and hear the result read aloud.',
-    youtube: 'Search and watch YouTube with the real YouTube player, without leaving PatOS.'
+    youtube: 'Search and watch YouTube with the real YouTube player, without leaving PatOS.',
+    contacts: 'Keep your friends’ phone numbers, emails and birthdays. PatOS reminds you on their birthday.',
+    freeform: 'An endless whiteboard: draw, drop sticky notes, text, shapes and pictures.',
+    preview: 'Open PDF files and pictures, zoom in and rotate them.',
+    chess: 'Real chess with every rule, against the computer (3 levels) or a friend.',
+    screenshot: 'Take a picture of your screen or record it as a video.',
+    calculator: 'A basic calculator and a scientific one with sin, cos, logs, powers and more.',
+    clock: 'World clocks, alarms, a stopwatch and a timer.'
   };
   const FEATURED = ['docs', 'galaxy', 'orbrunner', 'code'];
   const GRADS = ['linear-gradient(135deg,#3a1c71,#d76d77,#ffaf7b)', 'linear-gradient(135deg,#0b0130,#ff2fa3)', 'linear-gradient(135deg,#1e1e2e,#5b5bd6)', 'linear-gradient(135deg,#0bbf3a,#00a6fb)'];
@@ -6622,7 +6943,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
             card.onclick = () => detail(id); hero.appendChild(card);
           });
           main.append(h('h1', { class: 'as-h1' }, 'Discover'), hero, h('h2', {}, 'Essentials'));
-          const g = h('div', { class: 'as-list' }); ['browser', 'notes', 'music', 'messages', 'terminal', 'typing', 'flashcards', 'piano'].filter((id) => PatOS.apps[id]).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
+          const g = h('div', { class: 'as-list' }); ['browser', 'docs', 'contacts', 'freeform', 'chess', 'messages', 'flashcards', 'typing'].filter((id) => PatOS.apps[id]).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
           const hidden = PatOS.settings.hiddenApps || [];
           if (hidden.length) { main.appendChild(h('h2', {}, 'Hidden Apps')); const g2 = h('div', { class: 'as-list' }); hidden.filter((id) => PatOS.apps[id]).forEach((id) => g2.appendChild(row(id))); main.appendChild(g2); }
           return;
@@ -6663,7 +6984,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       tpl.onchange = () => { if (!tpl.value) return; proj = Object.assign({}, TEMPLATES[tpl.value]); tpl.value = ''; sync(); run(); save(); };
       const bRun = h('button', { class: 'btn primary' }, '▶ Run');
       const bSave = h('button', { class: 'tbtn', title: 'Save as .html in Documents' }, '💾');
-      const bOpen = h('button', { class: 'tbtn', title: 'Open the page in Surf' }, '↗');
+      const bOpen = h('button', { class: 'tbtn', title: 'Open the page in Patoogle' }, '↗');
       const auto = h('label', { class: 'cs-auto' }, h('input', { type: 'checkbox', checked: true }), ' Live');
       win.toolbar.append(seg, tpl, h('div', { style: { flex: 1 } }), auto, bOpen, bSave, bRun);
       win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
@@ -6695,7 +7016,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         if ((e.ctrlKey || e.altKey) && e.key === 'Enter') { e.preventDefault(); run(); }
       });
       bRun.onclick = run;
-      bSave.onclick = async () => { const nm = await PatOS.ask('Save project as', 'my-page.html', { icon: 'code', ok: 'Save', text: 'Saved in Documents. Double-click it to open it in Surf.' }); if (!nm) return; PatOS.fs.write('/Documents/' + (nm.endsWith('.html') ? nm : nm + '.html'), doc()); PatOS.notify({ title: 'Project saved', body: nm, icon: 'code' }); };
+      bSave.onclick = async () => { const nm = await PatOS.ask('Save project as', 'my-page.html', { icon: 'code', ok: 'Save', text: 'Saved in Documents. Double-click it to open it in Patoogle.' }); if (!nm) return; PatOS.fs.write('/Documents/' + (nm.endsWith('.html') ? nm : nm + '.html'), doc()); PatOS.notify({ title: 'Project saved', body: nm, icon: 'code' }); };
       bOpen.onclick = () => PatOS.launch('browser', { html: doc(), title: 'Code Studio preview' });
       win.on('closed', () => window.removeEventListener('message', onMsg));
       sync(); run();
@@ -7491,7 +7812,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         btn('🗑', 'Delete selected', delSel), h('span', { class: 'ob-sep' }), themeSel, transSel);
       const thumbs = h('div', { class: 'sl-thumbs' });
       const stage = h('div', { class: 'sl-stage' });
-      const notes = h('textarea', { class: 'sl-notes', placeholder: 'Speaker notes' });
+      const notes = h('textarea', { class: 'sl-notes', placeholder: 'Your notes (only you see them)' });
       win.body.append(bar, h('div', { class: 'sl-wrap' }, thumbs, h('div', { class: 'sl-main' }, stage, notes)));
       const persist = PatOS.debounce(() => { try { PatOS.fs.write(path, JSON.stringify(deck)); saved.textContent = 'Saved'; } catch (e) { saved.textContent = 'Not saved'; } }, 500);
       function save() { saved.textContent = 'Saving…'; persist(); }
@@ -7837,6 +8158,458 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 </script>
   <script>
+/* Contacts — your address book, saved on this device */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  const FIELDS = [['phone', 'Phone'], ['email', 'Email'], ['birthday', 'Birthday'], ['address', 'Address'], ['notes', 'Notes']];
+  PatOS.registerApp({
+    id: 'contacts', name: 'Contacts', icon: 'contacts', width: 780, height: 540, keywords: 'people address book phone email friends',
+    about: 'Keep your friends’ phone numbers, emails and birthdays.',
+    launch(win) {
+      win.el.classList.add('has-toolbar');
+      let list = PatOS.store.get('contacts', []);
+      let cur = list[0] ? list[0].id : null, editing = false;
+      const save = () => PatOS.store.set('contacts', list);
+      const q = h('input', { class: 'field', placeholder: 'Search', style: { width: '100%' } });
+      const listEl = h('div', { class: 'ct-list' });
+      const card = h('div', { class: 'ct-card' });
+      const bAdd = h('button', { class: 'tbtn', title: 'New contact' }, '＋');
+      const bMore = h('button', { class: 'tbtn', title: 'Import or export' }, '⋯');
+      win.toolbar.append(bAdd, bMore);
+      win.body.appendChild(h('div', { class: 'ct-wrap' }, h('div', { class: 'ct-side' }, h('div', { class: 'ct-search' }, q), listEl), card));
+      const fullName = (c) => [c.first, c.last].filter(Boolean).join(' ') || PatOS.t('No Name');
+      const initials = (c) => ((c.first || '?')[0] + (c.last || '')[0 || 0]).toUpperCase().replace('UNDEFINED', '');
+      function avatar(c, big) { return h('div', { class: 'ct-av' + (big ? ' big' : ''), style: c.photo ? { backgroundImage: `url(${c.photo})` } : { background: `hsl(${(fullName(c).charCodeAt(0) * 37) % 360},55%,55%)` } }, c.photo ? '' : ((c.first || '?')[0] + ((c.last || '')[0] || '')).toUpperCase()); }
+      function renderList() {
+        listEl.innerHTML = '';
+        const ql = q.value.toLowerCase();
+        const items = list.filter((c) => !ql || JSON.stringify(c).toLowerCase().includes(ql)).sort((a, b) => (b.fav ? 1 : 0) - (a.fav ? 1 : 0) || fullName(a).localeCompare(fullName(b)));
+        let letter = '';
+        items.forEach((c) => {
+          const L = c.fav ? '★' : fullName(c)[0].toUpperCase();
+          if (L !== letter) { letter = L; listEl.appendChild(h('div', { class: 'ct-letter' }, L === '★' ? PatOS.t('Favorites') : L)); }
+          const row = h('div', { class: 'ct-row' + (c.id === cur ? ' on' : '') }, avatar(c), h('span', {}, fullName(c)));
+          row.onclick = () => { cur = c.id; editing = false; render(); };
+          listEl.appendChild(row);
+        });
+        if (!list.length) listEl.appendChild(h('div', { class: 'ct-empty' }, 'No contacts yet. Press + to add one.'));
+      }
+      function renderCard() {
+        card.innerHTML = '';
+        const c = list.find((x) => x.id === cur);
+        if (!c) { card.appendChild(h('div', { class: 'ct-none' }, h('div', { class: 'ct-big', html: PatOS.iconHTML('contacts') }), h('p', {}, 'Select a contact or add a new one.'))); return; }
+        if (editing) {
+          const inp = (k, ph, type) => { const i = h('input', { class: 'field', value: c[k] || '', placeholder: ph, type: type || 'text' }); i.oninput = () => { c[k] = i.value; save(); renderList(); }; return i; };
+          const photo = avatar(c, true); photo.classList.add('ct-edit-photo'); photo.title = 'Change photo';
+          photo.onclick = () => { const i = h('input', { type: 'file', accept: 'image/*' }); i.onchange = () => { const r = new FileReader(); r.onload = () => { const img = new Image(); img.onload = () => { const cv = document.createElement('canvas'); cv.width = cv.height = 160; const s = Math.max(160 / img.width, 160 / img.height); cv.getContext('2d').drawImage(img, (160 - img.width * s) / 2, (160 - img.height * s) / 2, img.width * s, img.height * s); c.photo = cv.toDataURL('image/jpeg', 0.8); save(); render(); }; img.src = r.result; }; r.readAsDataURL(i.files[0]); }; i.click(); };
+          card.append(h('div', { class: 'ct-head' }, photo, h('div', { class: 'ct-names' }, inp('first', 'First name'), inp('last', 'Last name'))),
+            h('div', { class: 'ct-form' }, h('label', {}, 'Phone', inp('phone', '514-555-0123', 'tel')), h('label', {}, 'Email', inp('email', 'name@example.com', 'email')), h('label', {}, 'Birthday', inp('birthday', '', 'date')), h('label', {}, 'Address', inp('address', '')), h('label', {}, 'Notes', inp('notes', ''))),
+            h('div', { class: 'ct-btns' }, h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox('Delete this contact?', fullName(c), { danger: true, ok: 'Delete', icon: 'contacts' })) { list = list.filter((x) => x !== c); cur = list[0] ? list[0].id : null; editing = false; save(); render(); } } }, 'Delete Contact'), h('div', { style: { flex: 1 } }), h('button', { class: 'btn primary', onclick: () => { editing = false; render(); } }, 'Done')));
+          return;
+        }
+        const copy = (v) => navigator.clipboard && navigator.clipboard.writeText(v).then(() => PatOS.notify({ title: PatOS.t('Copied'), body: v, icon: 'contacts' })).catch(() => {});
+        const age = c.birthday ? Math.floor((Date.now() - new Date(c.birthday + 'T12:00')) / 31557600000) : null;
+        card.append(h('div', { class: 'ct-head center' }, avatar(c, true), h('h1', {}, fullName(c)),
+          h('div', { class: 'ct-actions' }, h('button', { class: 'btn', onclick: () => { c.fav = !c.fav; save(); render(); } }, c.fav ? '★ Favorite' : '☆ Favorite'), h('button', { class: 'btn', onclick: () => { editing = true; render(); } }, 'Edit'), h('button', { class: 'btn', onclick: () => PatOS.launch('messages') }, 'Message'))));
+        const rows = h('div', { class: 'ct-info' });
+        FIELDS.forEach(([k, label]) => {
+          if (!c[k]) return;
+          let v = c[k]; if (k === 'birthday') v = new Date(c[k] + 'T12:00').toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' }) + (age >= 0 && age < 130 ? ' (' + age + ')' : '');
+          rows.appendChild(h('div', { class: 'ct-field' }, h('small', {}, PatOS.t(label)), h('div', { class: 'ct-val' }, v), ['phone', 'email', 'address'].includes(k) ? h('button', { class: 'tbtn', title: 'Copy', onclick: () => copy(c[k]) }, '⧉') : null));
+        });
+        if (!rows.children.length) rows.appendChild(h('div', { class: 'ct-empty' }, 'Press Edit to add a phone number, email or birthday.'));
+        card.appendChild(rows);
+      }
+      function render() { renderList(); renderCard(); }
+      bAdd.onclick = () => { const c = { id: PatOS.uid(), first: '', last: '' }; list.push(c); cur = c.id; editing = true; save(); render(); const f = card.querySelector('input'); if (f) f.focus(); };
+      bMore.onclick = () => { const r = bMore.getBoundingClientRect(); PatOS.menu([
+        { label: 'Import a vCard (.vcf)…', action: () => { const i = h('input', { type: 'file', accept: '.vcf,text/vcard' }); i.onchange = () => { const rd = new FileReader(); rd.onload = () => { let n = 0; rd.result.split(/END:VCARD/i).forEach((blk) => { const get = (k) => { const m = blk.match(new RegExp('^' + k + '[^:]*:(.*)$', 'im')); return m ? m[1].trim() : ''; }; const nm = get('N').split(';'); const fn = get('FN'); if (!fn && !nm[0]) return; list.push({ id: PatOS.uid(), first: nm[1] || fn.split(' ')[0] || '', last: nm[0] || fn.split(' ').slice(1).join(' '), phone: get('TEL'), email: get('EMAIL'), birthday: (get('BDAY').match(/\d{4}-?\d{2}-?\d{2}/) || [''])[0].replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3'), notes: get('NOTE') }); n++; }); save(); render(); PatOS.notify({ title: PatOS.t('Contacts'), body: n + ' ' + PatOS.t('contacts imported'), icon: 'contacts' }); }; rd.readAsText(i.files[0]); }; i.click(); } },
+        { label: 'Export all as vCard', disabled: !list.length, action: () => PatOS.downloadFile('contacts.vcf', list.map((c) => ['BEGIN:VCARD', 'VERSION:3.0', 'N:' + (c.last || '') + ';' + (c.first || ''), 'FN:' + fullName(c), c.phone ? 'TEL:' + c.phone : '', c.email ? 'EMAIL:' + c.email : '', c.birthday ? 'BDAY:' + c.birthday : '', c.notes ? 'NOTE:' + c.notes : '', 'END:VCARD'].filter(Boolean).join('\n')).join('\n')) }
+      ], r.left - 150, r.bottom + 4); };
+      q.addEventListener('input', renderList);
+      render();
+    }
+  });
+  /* birthday notifications */
+  setTimeout(() => {
+    const d = new Date(), md = String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+    if (PatOS.store.get('bdayChecked') === d.toDateString()) return;
+    (PatOS.store.get('contacts', []) || []).forEach((c) => { if (c.birthday && c.birthday.slice(5) === md) PatOS.notify({ title: '🎂 ' + PatOS.t('Birthday today'), body: [c.first, c.last].filter(Boolean).join(' '), icon: 'contacts' }); });
+    PatOS.store.set('bdayChecked', d.toDateString());
+  }, 15000);
+})();
+
+</script>
+  <script>
+/* Freeform — an endless whiteboard: draw, add sticky notes, text, shapes and pictures */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  const NOTE_COLORS = ['#fff59d', '#ffc1e3', '#b3e5fc', '#c8f7c5', '#e1d5ff', '#ffd8a8'];
+  PatOS.registerApp({
+    id: 'freeform', name: 'Freeform', icon: 'freeform', width: 1000, height: 640, keywords: 'whiteboard draw board brainstorm canvas sketch',
+    about: 'An endless whiteboard for ideas: draw, add notes, text, shapes and pictures.',
+    launch(win) {
+      win.el.classList.add('has-toolbar');
+      let boards = PatOS.store.get('boards', null) || [{ id: 'b1', name: 'My Board', items: [], strokes: [], view: { x: 0, y: 0, z: 1 } }];
+      let bi = 0, tool = 'select', color = '#0a84ff', sel = null;
+      const B = () => boards[bi];
+      const save = PatOS.debounce(() => PatOS.store.set('boards', boards), 400);
+      const boardSel = h('select', { class: 'field' });
+      const tools = h('div', { class: 'seg' });
+      [['select', '✋', 'Select and move'], ['pen', '✏️', 'Draw'], ['note', '🗒', 'Sticky note'], ['text', 'T', 'Text'], ['rect', '▢', 'Box'], ['circle', '◯', 'Circle'], ['erase', '🧽', 'Eraser']].forEach(([k, ic, tt]) => tools.appendChild(h('button', { class: 'tab', title: tt, 'data-k': k, onclick: () => { tool = k; syncTools(); } }, ic)));
+      const col = h('input', { type: 'color', class: 'ff-col', value: color, title: 'Color' }); col.oninput = () => { color = col.value; if (sel) { sel.color = color; save(); draw(); } };
+      const bImg = h('button', { class: 'tbtn', title: 'Add a picture' }, '🖼');
+      const bZoom = h('button', { class: 'tbtn', title: 'Fit everything' }, '⤢');
+      const bMenu = h('button', { class: 'tbtn', title: 'Boards' }, '⋯');
+      win.toolbar.append(boardSel, tools, col, bImg, bZoom, bMenu); win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
+      const stage = h('div', { class: 'ff-stage' });
+      const world = h('div', { class: 'ff-world' });
+      const svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('class', 'ff-svg');
+      world.appendChild(svg); stage.appendChild(world);
+      const zoomLbl = h('div', { class: 'ff-zoom' });
+      win.body.append(stage, zoomLbl);
+      function syncTools() { [...tools.children].forEach((b) => b.classList.toggle('on', b.dataset.k === tool)); stage.dataset.tool = tool; }
+      function syncBoards() { boardSel.innerHTML = ''; boards.forEach((b, i) => boardSel.appendChild(h('option', { value: i, selected: i === bi }, b.name))); }
+      boardSel.onchange = () => { bi = +boardSel.value; sel = null; draw(); };
+      const toWorld = (cx, cy) => { const r = stage.getBoundingClientRect(), v = B().view; return { x: (cx - r.left - v.x) / v.z, y: (cy - r.top - v.y) / v.z }; };
+      function applyView() { const v = B().view; world.style.transform = `translate(${v.x}px, ${v.y}px) scale(${v.z})`; stage.style.backgroundPosition = `${v.x}px ${v.y}px`; stage.style.backgroundSize = `${24 * v.z}px ${24 * v.z}px`; zoomLbl.textContent = Math.round(v.z * 100) + '%'; }
+      function path(pts) { return pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join(' '); }
+      function draw() {
+        [...world.querySelectorAll('.ff-item')].forEach((e) => e.remove());
+        svg.innerHTML = '';
+        B().strokes.forEach((s) => { const p = document.createElementNS('http://www.w3.org/2000/svg', 'path'); p.setAttribute('d', path(s.pts)); p.setAttribute('stroke', s.color); p.setAttribute('stroke-width', s.w || 3); p.setAttribute('fill', 'none'); p.setAttribute('stroke-linecap', 'round'); p.setAttribute('stroke-linejoin', 'round'); p.dataset.id = s.id; svg.appendChild(p); });
+        B().items.forEach((it) => world.appendChild(itemEl(it)));
+        applyView();
+      }
+      function itemEl(it) {
+        const el = h('div', { class: 'ff-item ff-t-' + it.type + (sel === it ? ' on' : ''), style: { left: it.x + 'px', top: it.y + 'px', width: it.w + 'px', height: it.h + 'px' } });
+        if (it.type === 'note') { el.style.background = it.color; el.appendChild(h('div', { class: 'ff-text', contenteditable: 'true', spellcheck: 'true' }, it.text || '')); }
+        if (it.type === 'text') { el.style.color = it.color; el.appendChild(h('div', { class: 'ff-text', contenteditable: 'true', spellcheck: 'true' }, it.text || '')); }
+        if (it.type === 'rect' || it.type === 'circle') { el.style.borderColor = it.color; el.style.background = it.color + '22'; }
+        if (it.type === 'img') el.appendChild(h('img', { src: it.src, alt: '', draggable: 'false' }));
+        const tx = el.querySelector('.ff-text'); if (tx) tx.addEventListener('input', () => { it.text = tx.innerText; save(); });
+        el.appendChild(h('div', { class: 'ff-handle' }));
+        el.addEventListener('pointerdown', (e) => {
+          if (tool === 'erase') { e.stopPropagation(); B().items = B().items.filter((x) => x !== it); save(); draw(); return; }
+          if (tool !== 'select' || (e.target.classList.contains('ff-text') && sel === it)) return;
+          e.stopPropagation(); sel = it; world.querySelectorAll('.ff-item.on').forEach((x) => x.classList.remove('on')); el.classList.add('on');
+          const s = toWorld(e.clientX, e.clientY), o = { x: it.x, y: it.y, w: it.w, h: it.h }, resize = e.target.classList.contains('ff-handle');
+          el.setPointerCapture(e.pointerId);
+          const mv = (ev) => { const p = toWorld(ev.clientX, ev.clientY); if (resize) { it.w = Math.max(40, o.w + p.x - s.x); it.h = Math.max(30, o.h + p.y - s.y); } else { it.x = o.x + p.x - s.x; it.y = o.y + p.y - s.y; } Object.assign(el.style, { left: it.x + 'px', top: it.y + 'px', width: it.w + 'px', height: it.h + 'px' }); };
+          const up = () => { el.removeEventListener('pointermove', mv); el.removeEventListener('pointerup', up); save(); };
+          el.addEventListener('pointermove', mv); el.addEventListener('pointerup', up);
+        });
+        return el;
+      }
+      let act = null;
+      stage.addEventListener('pointerdown', (e) => {
+        if (e.target.closest('.ff-item')) return;
+        const p = toWorld(e.clientX, e.clientY); stage.setPointerCapture(e.pointerId);
+        if (tool === 'pen') { const s = { id: PatOS.uid(), color, w: 3 / B().view.z + 1, pts: [[p.x, p.y]] }; B().strokes.push(s); act = { type: 'pen', s }; draw(); return; }
+        if (tool === 'erase') { act = { type: 'erase' }; return; }
+        if (['note', 'text', 'rect', 'circle'].includes(tool)) {
+          const size = tool === 'note' ? [180, 160] : tool === 'text' ? [220, 50] : [160, 120];
+          const it = { id: PatOS.uid(), type: tool, x: p.x - size[0] / 2, y: p.y - size[1] / 2, w: size[0], h: size[1], color: tool === 'note' ? NOTE_COLORS[B().items.length % NOTE_COLORS.length] : color, text: '' };
+          B().items.push(it); sel = it; save(); draw(); tool = 'select'; syncTools();
+          const tx = world.querySelector('.ff-item.on .ff-text'); if (tx) tx.focus();
+          return;
+        }
+        sel = null; world.querySelectorAll('.ff-item.on').forEach((x) => x.classList.remove('on'));
+        act = { type: 'pan', sx: e.clientX, sy: e.clientY, ox: B().view.x, oy: B().view.y };
+      });
+      stage.addEventListener('pointermove', (e) => {
+        if (!act) return;
+        if (act.type === 'pan') { B().view.x = act.ox + e.clientX - act.sx; B().view.y = act.oy + e.clientY - act.sy; applyView(); }
+        if (act.type === 'pen') { const p = toWorld(e.clientX, e.clientY); act.s.pts.push([p.x, p.y]); const el = svg.querySelector(`[data-id="${act.s.id}"]`); if (el) el.setAttribute('d', path(act.s.pts)); }
+        if (act.type === 'erase') { const p = toWorld(e.clientX, e.clientY); const before = B().strokes.length; B().strokes = B().strokes.filter((s) => !s.pts.some((q) => Math.hypot(q[0] - p.x, q[1] - p.y) < 10 / B().view.z)); if (B().strokes.length !== before) draw(); }
+      });
+      stage.addEventListener('pointerup', () => { if (act) { act = null; save(); } });
+      stage.addEventListener('wheel', (e) => {
+        e.preventDefault(); const v = B().view; const r = stage.getBoundingClientRect();
+        if (e.ctrlKey || Math.abs(e.deltaY) > 0) {
+          const nz = Math.min(4, Math.max(0.2, v.z * (e.deltaY < 0 ? 1.1 : 0.9))); const mx = e.clientX - r.left, my = e.clientY - r.top;
+          v.x = mx - (mx - v.x) * nz / v.z; v.y = my - (my - v.y) * nz / v.z; v.z = nz; applyView(); save();
+        }
+      }, { passive: false });
+      win.body.tabIndex = 0;
+      win.body.addEventListener('keydown', (e) => { if ((e.key === 'Delete' || e.key === 'Backspace') && sel && !e.target.isContentEditable) { B().items = B().items.filter((x) => x !== sel); sel = null; save(); draw(); } });
+      bImg.onclick = () => { const i = h('input', { type: 'file', accept: 'image/*' }); i.onchange = () => { const r = new FileReader(); r.onload = () => { const img = new Image(); img.onload = () => { const s = Math.min(1, 600 / img.width); const c = document.createElement('canvas'); c.width = img.width * s; c.height = img.height * s; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); const p = toWorld(stage.getBoundingClientRect().left + stage.clientWidth / 2, stage.getBoundingClientRect().top + stage.clientHeight / 2); const w = Math.min(320, c.width), hh = w * c.height / c.width; B().items.push({ id: PatOS.uid(), type: 'img', x: p.x - w / 2, y: p.y - hh / 2, w, h: hh, src: c.toDataURL('image/jpeg', 0.8) }); save(); draw(); }; img.src = r.result; }; r.readAsDataURL(i.files[0]); }; i.click(); };
+      bZoom.onclick = () => {
+        const xs = [], ys = []; B().items.forEach((it) => { xs.push(it.x, it.x + it.w); ys.push(it.y, it.y + it.h); }); B().strokes.forEach((s) => s.pts.forEach((p) => { xs.push(p[0]); ys.push(p[1]); }));
+        const v = B().view; if (!xs.length) { v.x = 0; v.y = 0; v.z = 1; applyView(); return; }
+        const x0 = Math.min(...xs), x1 = Math.max(...xs), y0 = Math.min(...ys), y1 = Math.max(...ys);
+        v.z = Math.min(2, Math.max(0.2, Math.min(stage.clientWidth / (x1 - x0 + 80), stage.clientHeight / (y1 - y0 + 80)))); v.x = stage.clientWidth / 2 - (x0 + x1) / 2 * v.z; v.y = stage.clientHeight / 2 - (y0 + y1) / 2 * v.z; applyView(); save();
+      };
+      bMenu.onclick = () => { const r = bMenu.getBoundingClientRect(); PatOS.menu([
+        { label: 'New Board', action: async () => { const n = await PatOS.ask('Name the new board', PatOS.t('Board') + ' ' + (boards.length + 1), { icon: 'freeform', ok: 'Create' }); if (!n) return; boards.push({ id: PatOS.uid(), name: n, items: [], strokes: [], view: { x: 0, y: 0, z: 1 } }); bi = boards.length - 1; save(); syncBoards(); draw(); } },
+        { label: 'Rename Board…', action: async () => { const n = await PatOS.ask('Rename board', B().name, { icon: 'freeform', ok: 'Rename' }); if (n) { B().name = n; save(); syncBoards(); } } },
+        { label: 'Clear Board', action: async () => { if (await PatOS.confirmBox('Clear this board?', 'Everything on it will be removed.', { danger: true, ok: 'Clear', icon: 'freeform' })) { B().items = []; B().strokes = []; save(); draw(); } } },
+        { label: 'Delete Board', disabled: boards.length < 2, action: () => { boards.splice(bi, 1); bi = 0; save(); syncBoards(); draw(); } }
+      ], r.left - 150, r.bottom + 4); };
+      syncTools(); syncBoards(); draw();
+    }
+  });
+})();
+
+</script>
+  <script>
+/* Preview — open PDFs and pictures */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  PatOS.registerApp({
+    id: 'preview', name: 'Preview', icon: 'preview', single: false, width: 860, height: 640, category: 'Utilities', keywords: 'pdf viewer image picture open document reader',
+    about: 'Open PDF files and pictures.',
+    launch(win, args) {
+      win.el.classList.add('has-toolbar');
+      let path = args.path || null, zoom = 1, rot = 0, blobUrl = null;
+      const bOpen = h('button', { class: 'btn' }, 'Open…');
+      const bOut = h('button', { class: 'tbtn', title: 'Zoom out' }, '−'), bIn = h('button', { class: 'tbtn', title: 'Zoom in' }, '+'), bRot = h('button', { class: 'tbtn', title: 'Rotate' }, '⟳'), bFit = h('button', { class: 'tbtn', title: 'Actual size' }, '1:1');
+      win.toolbar.append(bOpen, h('div', { style: { flex: 1 } }), bOut, bIn, bFit, bRot);
+      const view = h('div', { class: 'pv-view' }); win.body.appendChild(view);
+      function empty() {
+        view.innerHTML = '';
+        const files = []; PatOS.fs.walk('/', (p, n) => { if (n.type === 'file' && (/\.pdf$/i.test(p) || PatOS.fileKind(p, n) === 'image')) files.push(p); });
+        view.appendChild(h('div', { class: 'pv-empty' }, h('div', { class: 'pv-big', html: PatOS.iconHTML('preview') }), h('h2', {}, 'Open a PDF or a picture'), h('p', {}, 'Choose a file from your computer, or one already in PatOS.'),
+          h('button', { class: 'btn primary', onclick: importFile }, 'Choose a File…'),
+          files.length ? h('div', { class: 'pv-recent' }, ...files.slice(0, 12).map((p) => h('button', { class: 'pv-file', onclick: () => open(p) }, h('span', { class: 'pv-fic', html: PatOS.fileIconHTML(p, PatOS.fs.get(p)) }), PatOS.fs.basename(p)))) : null));
+        [bOut, bIn, bRot, bFit].forEach((b) => { b.disabled = true; });
+      }
+      function importFile() { PatOS.importFiles('/Documents', 'application/pdf,image/*').then((ps) => { if (ps[0]) open(ps[0]); }); }
+      function open(p) {
+        path = p; const data = PatOS.fs.read(p) || ''; view.innerHTML = ''; zoom = 1; rot = 0;
+        if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
+        win.setTitle(PatOS.fs.basename(p));
+        if (/\.pdf$/i.test(p) || data.startsWith('data:application/pdf')) {
+          try { const bin = atob(data.split(',')[1]); const arr = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i); blobUrl = URL.createObjectURL(new Blob([arr], { type: 'application/pdf' })); }
+          catch (e) { view.appendChild(h('div', { class: 'pv-empty' }, h('h2', {}, 'This PDF can’t be opened'))); return; }
+          view.appendChild(h('iframe', { class: 'pv-pdf', src: blobUrl, title: PatOS.fs.basename(p) }));
+          [bOut, bIn, bRot, bFit].forEach((b) => { b.disabled = true; });
+          return;
+        }
+        const img = h('img', { class: 'pv-img', src: data, alt: PatOS.fs.basename(p), draggable: 'false' });
+        view.appendChild(h('div', { class: 'pv-canvas' }, img));
+        [bOut, bIn, bRot, bFit].forEach((b) => { b.disabled = false; });
+        apply();
+      }
+      function apply() { const img = view.querySelector('.pv-img'); if (img) { img.style.transform = `rotate(${rot}deg) scale(${zoom})`; img.classList.toggle('free', zoom !== 1); } }
+      bOpen.onclick = importFile; bIn.onclick = () => { zoom = Math.min(6, zoom * 1.25); apply(); }; bOut.onclick = () => { zoom = Math.max(0.2, zoom / 1.25); apply(); }; bFit.onclick = () => { zoom = 1; apply(); }; bRot.onclick = () => { rot = (rot + 90) % 360; apply(); };
+      view.addEventListener('wheel', (e) => { if (!view.querySelector('.pv-img') || !e.ctrlKey) return; e.preventDefault(); zoom = Math.min(6, Math.max(0.2, zoom * (e.deltaY < 0 ? 1.1 : 0.9))); apply(); }, { passive: false });
+      win.on('closed', () => blobUrl && URL.revokeObjectURL(blobUrl));
+      if (path) open(path); else empty();
+    }
+  });
+})();
+
+</script>
+  <script>
+/* Chess — full rules (castling, en passant, promotion, check, checkmate, stalemate) against the computer or a friend */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  const GLYPH = { wK: '♔', wQ: '♕', wR: '♖', wB: '♗', wN: '♘', wP: '♙', bK: '♚', bQ: '♛', bR: '♜', bB: '♝', bN: '♞', bP: '♟' };
+  const VAL = { P: 100, N: 320, B: 330, R: 500, Q: 900, K: 0 };
+  const PST_P = [0, 0, 0, 0, 0, 0, 0, 0, 50, 50, 50, 50, 50, 50, 50, 50, 10, 10, 20, 30, 30, 20, 10, 10, 5, 5, 10, 25, 25, 10, 5, 5, 0, 0, 0, 20, 20, 0, 0, 0, 5, -5, -10, 0, 0, -10, -5, 5, 5, 10, 10, -20, -20, 10, 10, 5, 0, 0, 0, 0, 0, 0, 0, 0];
+  const PST_N = [-50, -40, -30, -30, -30, -30, -40, -50, -40, -20, 0, 0, 0, 0, -20, -40, -30, 0, 10, 15, 15, 10, 0, -30, -30, 5, 15, 20, 20, 15, 5, -30, -30, 0, 15, 20, 20, 15, 0, -30, -30, 5, 10, 15, 15, 10, 5, -30, -40, -20, 0, 5, 5, 0, -20, -40, -50, -40, -30, -30, -30, -30, -40, -50];
+  const CENTER = (i) => { const r = i >> 3, c = i & 7; return 14 - (Math.abs(3.5 - r) + Math.abs(3.5 - c)) * 4; };
+
+  function start() {
+    const b = Array(64).fill(null); const back = ['R', 'N', 'B', 'Q', 'K', 'B', 'N', 'R'];
+    for (let c = 0; c < 8; c++) { b[c] = 'b' + back[c]; b[8 + c] = 'bP'; b[48 + c] = 'wP'; b[56 + c] = 'w' + back[c]; }
+    return { b, turn: 'w', castle: { wK: true, wQ: true, bK: true, bQ: true }, ep: -1, half: 0 };
+  }
+  const opp = (c) => (c === 'w' ? 'b' : 'w');
+  function attacked(s, sq, by) {
+    const b = s.b, r = sq >> 3, c = sq & 7;
+    const pr = by === 'w' ? r + 1 : r - 1;
+    for (const dc of [-1, 1]) { const cc = c + dc; if (pr >= 0 && pr < 8 && cc >= 0 && cc < 8 && b[pr * 8 + cc] === by + 'P') return true; }
+    for (const [dr, dc] of [[1, 2], [2, 1], [-1, 2], [-2, 1], [1, -2], [2, -1], [-1, -2], [-2, -1]]) { const rr = r + dr, cc = c + dc; if (rr >= 0 && rr < 8 && cc >= 0 && cc < 8 && b[rr * 8 + cc] === by + 'N') return true; }
+    for (let dr = -1; dr <= 1; dr++) for (let dc = -1; dc <= 1; dc++) { if (!dr && !dc) continue; const rr = r + dr, cc = c + dc; if (rr >= 0 && rr < 8 && cc >= 0 && cc < 8 && b[rr * 8 + cc] === by + 'K') return true; }
+    const rays = (dirs, kinds) => { for (const [dr, dc] of dirs) { let rr = r + dr, cc = c + dc; while (rr >= 0 && rr < 8 && cc >= 0 && cc < 8) { const p = b[rr * 8 + cc]; if (p) { if (p[0] === by && kinds.includes(p[1])) return true; break; } rr += dr; cc += dc; } } return false; };
+    return rays([[1, 0], [-1, 0], [0, 1], [0, -1]], 'RQ') || rays([[1, 1], [1, -1], [-1, 1], [-1, -1]], 'BQ');
+  }
+  function pseudo(s) {
+    const out = [], b = s.b, me = s.turn;
+    for (let i = 0; i < 64; i++) {
+      const p = b[i]; if (!p || p[0] !== me) continue;
+      const r = i >> 3, c = i & 7, k = p[1];
+      const add = (to, extra) => out.push(Object.assign({ from: i, to }, extra || {}));
+      if (k === 'P') {
+        const d = me === 'w' ? -1 : 1, r1 = r + d;
+        if (r1 >= 0 && r1 < 8 && !b[r1 * 8 + c]) { add(r1 * 8 + c, r1 === 0 || r1 === 7 ? { promo: 'Q' } : null); const sr = me === 'w' ? 6 : 1; if (r === sr && !b[(r + 2 * d) * 8 + c]) add((r + 2 * d) * 8 + c, { double: true }); }
+        for (const dc of [-1, 1]) { const cc = c + dc; if (cc < 0 || cc > 7 || r1 < 0 || r1 > 7) continue; const t = r1 * 8 + cc; if (b[t] && b[t][0] !== me) add(t, r1 === 0 || r1 === 7 ? { promo: 'Q' } : null); else if (t === s.ep) add(t, { epCap: true }); }
+      } else if (k === 'N' || k === 'K') {
+        const ds = k === 'N' ? [[1, 2], [2, 1], [-1, 2], [-2, 1], [1, -2], [2, -1], [-1, -2], [-2, -1]] : [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+        for (const [dr, dc] of ds) { const rr = r + dr, cc = c + dc; if (rr < 0 || rr > 7 || cc < 0 || cc > 7) continue; const t = rr * 8 + cc; if (!b[t] || b[t][0] !== me) add(t); }
+        if (k === 'K') {
+          const row = me === 'w' ? 56 : 0;
+          if (i === row + 4 && !attacked(s, i, opp(me))) {
+            if (s.castle[me + 'K'] && !b[row + 5] && !b[row + 6] && b[row + 7] === me + 'R' && !attacked(s, row + 5, opp(me)) && !attacked(s, row + 6, opp(me))) add(row + 6, { castle: 'K' });
+            if (s.castle[me + 'Q'] && !b[row + 3] && !b[row + 2] && !b[row + 1] && b[row] === me + 'R' && !attacked(s, row + 3, opp(me)) && !attacked(s, row + 2, opp(me))) add(row + 2, { castle: 'Q' });
+          }
+        }
+      } else {
+        const ds = k === 'R' ? [[1, 0], [-1, 0], [0, 1], [0, -1]] : k === 'B' ? [[1, 1], [1, -1], [-1, 1], [-1, -1]] : [[1, 0], [-1, 0], [0, 1], [0, -1], [1, 1], [1, -1], [-1, 1], [-1, -1]];
+        for (const [dr, dc] of ds) { let rr = r + dr, cc = c + dc; while (rr >= 0 && rr < 8 && cc >= 0 && cc < 8) { const t = rr * 8 + cc; if (b[t]) { if (b[t][0] !== me) add(t); break; } add(t); rr += dr; cc += dc; } }
+      }
+    }
+    return out;
+  }
+  function make(s, m) {
+    const b = s.b.slice(), p = b[m.from], me = s.turn;
+    const cap = b[m.to] || (m.epCap ? b[m.to + (me === 'w' ? 8 : -8)] : null);
+    b[m.to] = m.promo ? me + m.promo : p; b[m.from] = null;
+    if (m.epCap) b[m.to + (me === 'w' ? 8 : -8)] = null;
+    if (m.castle) { const row = me === 'w' ? 56 : 0; if (m.castle === 'K') { b[row + 5] = b[row + 7]; b[row + 7] = null; } else { b[row + 3] = b[row]; b[row] = null; } }
+    const castle = Object.assign({}, s.castle);
+    if (p[1] === 'K') { castle[me + 'K'] = false; castle[me + 'Q'] = false; }
+    [[56, 'wQ'], [63, 'wK'], [0, 'bQ'], [7, 'bK']].forEach(([sq, k]) => { if (m.from === sq || m.to === sq) castle[k] = false; });
+    return { b, turn: opp(me), castle, ep: m.double ? (m.from + m.to) / 2 : -1, half: p[1] === 'P' || cap ? 0 : s.half + 1, cap };
+  }
+  function legal(s) { return pseudo(s).filter((m) => { const n = make(s, m); const k = n.b.indexOf(s.turn + 'K'); return !attacked(n, k, n.turn); }); }
+  function inCheck(s) { return attacked(s, s.b.indexOf(s.turn + 'K'), opp(s.turn)); }
+  function evaluate(s) {
+    let v = 0;
+    for (let i = 0; i < 64; i++) { const p = s.b[i]; if (!p) continue; const idx = p[0] === 'w' ? i : (7 - (i >> 3)) * 8 + (i & 7); let x = VAL[p[1]] + (p[1] === 'P' ? PST_P[idx] : p[1] === 'N' ? PST_N[idx] : p[1] === 'K' ? 0 : CENTER(i) * (p[1] === 'Q' ? 0.5 : 1)); v += p[0] === 'w' ? x : -x; }
+    return v;
+  }
+  function search(s, depth, a, bt) {
+    const ms = legal(s);
+    if (!ms.length) return inCheck(s) ? -100000 - depth : 0;
+    if (depth === 0) return (s.turn === 'w' ? 1 : -1) * evaluate(s);
+    ms.sort((x, y) => (s.b[y.to] ? VAL[s.b[y.to][1]] : 0) - (s.b[x.to] ? VAL[s.b[x.to][1]] : 0));
+    let best = -Infinity;
+    for (const m of ms) { const v = -search(make(s, m), depth - 1, -bt, -a); if (v > best) best = v; if (v > a) a = v; if (a >= bt) break; }
+    return best;
+  }
+  function bestMove(s, depth) {
+    const ms = legal(s); let best = null, bv = -Infinity;
+    ms.sort(() => Math.random() - 0.5);
+    for (const m of ms) { const v = -search(make(s, m), depth - 1, -Infinity, -bv); if (v > bv) { bv = v; best = m; } }
+    return best;
+  }
+  PatOS.chessEngine = { start, legal, make, inCheck };
+
+  PatOS.registerApp({
+    id: 'chess', name: 'Chess', icon: 'chess', width: 640, height: 720, resizable: true, category: '3D & Games', keywords: 'game board strategy play',
+    launch(win) {
+      win.el.classList.add('has-toolbar');
+      let st = start(), hist = [], selSq = -1, moves = [], mode = 'cpu', level = 2, flip = false, last = null, over = false;
+      const modeSel = h('select', { class: 'field' }, h('option', { value: 'cpu' }, 'vs Computer'), h('option', { value: 'friend' }, 'vs Friend'));
+      const lvl = h('select', { class: 'field' }, h('option', { value: '1' }, 'Easy'), h('option', { value: '2', selected: true }, 'Medium'), h('option', { value: '3' }, 'Hard'));
+      const bUndo = h('button', { class: 'tbtn', title: 'Undo' }, '↶'), bFlip = h('button', { class: 'tbtn', title: 'Flip board' }, '⇅'), bNew = h('button', { class: 'btn primary' }, 'New Game');
+      win.toolbar.append(modeSel, lvl, h('div', { style: { flex: 1 } }), bUndo, bFlip, bNew);
+      const board = h('div', { class: 'ch-board' });
+      const status = h('div', { class: 'ch-status' });
+      const caps = h('div', { class: 'ch-caps' });
+      win.body.appendChild(h('div', { class: 'ch-wrap' }, status, board, caps));
+      modeSel.onchange = () => { mode = modeSel.value; lvl.style.display = mode === 'cpu' ? '' : 'none'; reset(); };
+      lvl.onchange = () => { level = +lvl.value; };
+      function reset() { st = start(); hist = []; selSq = -1; moves = []; last = null; over = false; render(); }
+      function render() {
+        board.innerHTML = '';
+        const legalNow = legal(st);
+        const chk = inCheck(st);
+        for (let k = 0; k < 64; k++) {
+          const i = flip ? 63 - k : k; const r = i >> 3, c = i & 7;
+          const p = st.b[i];
+          const sq = h('div', { class: 'ch-sq ' + ((r + c) % 2 ? 'd' : 'l') + (i === selSq ? ' sel' : '') + (last && (i === last.from || i === last.to) ? ' last' : '') + (chk && p === st.turn + 'K' ? ' check' : '') });
+          if (p) sq.appendChild(h('span', { class: 'ch-pc ' + p[0] }, GLYPH[p]));
+          if (moves.some((m) => m.to === i)) sq.appendChild(h('i', { class: st.b[i] ? 'ch-cap' : 'ch-dot' }));
+          if ((flip ? r === 0 : r === 7)) sq.appendChild(h('small', { class: 'ch-f' }, 'abcdefgh'[c]));
+          if ((flip ? c === 7 : c === 0)) sq.appendChild(h('small', { class: 'ch-r' }, 8 - r));
+          sq.onclick = () => click(i);
+          board.appendChild(sq);
+        }
+        const who = st.turn === 'w' ? PatOS.t('White') : PatOS.t('Black');
+        if (!legalNow.length) { over = true; status.textContent = chk ? (PatOS.t('Checkmate!') + ' ' + (st.turn === 'w' ? PatOS.t('Black wins') : PatOS.t('White wins'))) : PatOS.t('Stalemate. It’s a draw.'); }
+        else if (st.half >= 100) { over = true; status.textContent = PatOS.t('Draw (50-move rule)'); }
+        else status.textContent = (mode === 'cpu' && st.turn === 'b' ? PatOS.t('Computer is thinking…') : who + ' ' + PatOS.t('to move')) + (chk ? ' · ' + PatOS.t('Check!') : '');
+        const taken = { w: [], b: [] }; hist.forEach((x) => { if (x.cap) taken[x.cap[0]].push(GLYPH[x.cap]); });
+        caps.textContent = taken.b.join('') + '   ' + taken.w.join('');
+      }
+      function click(i) {
+        if (over || (mode === 'cpu' && st.turn === 'b')) return;
+        const m = moves.find((x) => x.to === i);
+        if (m) { play(m); return; }
+        if (st.b[i] && st.b[i][0] === st.turn) { selSq = i; moves = legal(st).filter((x) => x.from === i); } else { selSq = -1; moves = []; }
+        render();
+      }
+      function play(m) {
+        const n = make(st, m); hist.push({ s: st, cap: n.cap }); st = n; last = m; selSq = -1; moves = [];
+        PatOS.sound.tone(n.cap ? 300 : 520, 0.06, { vol: 0.08, type: 'triangle' });
+        render();
+        if (!over && mode === 'cpu' && st.turn === 'b') setTimeout(() => { const bm = bestMove(st, level); if (bm) play(bm); }, 250);
+      }
+      bUndo.onclick = () => { if (!hist.length) return; let x = hist.pop(); if (mode === 'cpu' && x.s.turn === 'b' && hist.length) x = hist.pop(); st = x.s; over = false; last = null; selSq = -1; moves = []; render(); };
+      bFlip.onclick = () => { flip = !flip; render(); };
+      bNew.onclick = reset;
+      render();
+    }
+  });
+})();
+
+</script>
+  <script>
+/* Screenshot — capture your screen as a picture or record it as a video (real screen capture) */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  PatOS.registerApp({
+    id: 'screenshot', name: 'Screenshot', icon: 'screenshot', width: 560, height: 470, category: 'Utilities', keywords: 'screen capture record video picture snap',
+    about: 'Take a picture of your screen or record it as a video.',
+    launch(win) {
+      let rec = null, stream = null, chunks = [], t0 = 0, timer = 0;
+      const canCapture = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+      const delaySel = h('select', { class: 'field' }, h('option', { value: '0' }, 'No delay'), h('option', { value: '3' }, '3 seconds'), h('option', { value: '5' }, '5 seconds'));
+      const bShot = h('button', { class: 'ss-big' }, h('span', { html: PatOS.iconHTML('screenshot') }), h('b', {}, 'Take Screenshot'));
+      const bRec = h('button', { class: 'ss-big rec' }, h('span', { class: 'ss-dot' }), h('b', {}, 'Record Screen'));
+      const msg = h('div', { class: 'ss-msg' });
+      const out = h('div', { class: 'ss-out' });
+      win.body.appendChild(h('div', { class: 'ss' }, h('div', { class: 'ss-row' }, bShot, bRec), h('label', { class: 'ss-delay' }, 'Delay ', delaySel), msg, out));
+      if (!canCapture) { msg.textContent = PatOS.t('This device doesn’t allow screen capture (iPhones and iPads don’t).'); bShot.disabled = bRec.disabled = true; }
+      async function getStream(video) {
+        try { return await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: video ? 30 : 5 }, audio: video }); }
+        catch (e) { msg.textContent = e.name === 'NotAllowedError' ? PatOS.t('Screen capture was cancelled.') : e.message; return null; }
+      }
+      bShot.onclick = async () => {
+        const d = +delaySel.value;
+        const s = await getStream(false); if (!s) return;
+        for (let i = d; i > 0; i--) { msg.textContent = i + '…'; await new Promise((r) => setTimeout(r, 1000)); }
+        const v = h('video', { muted: true, playsinline: true }); v.srcObject = s; await v.play();
+        await new Promise((r) => setTimeout(r, 250));
+        const c = document.createElement('canvas'); const sc = Math.min(1, 1600 / v.videoWidth); c.width = v.videoWidth * sc; c.height = v.videoHeight * sc;
+        c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); s.getTracks().forEach((t) => t.stop());
+        const url = c.toDataURL('image/jpeg', 0.85);
+        const nm = PatOS.fs.uniqueName('/Pictures', PatOS.t('Screenshot') + ' ' + new Date().toLocaleString().replace(/[\/:]/g, '-') + '.jpg');
+        PatOS.fs.write('/Pictures/' + nm, url); PatOS.sound.tone(1800, 0.08, { vol: 0.12, type: 'square' });
+        msg.textContent = ''; out.innerHTML = ''; out.append(h('img', { src: url, alt: '' }), h('div', { class: 'ss-btns' }, h('button', { class: 'btn', onclick: () => PatOS.launch('photos', { path: '/Pictures/' + nm }) }, 'Open in Photos'), h('button', { class: 'btn', onclick: () => PatOS.downloadFile(nm, url) }, 'Download')));
+      };
+      bRec.onclick = async () => {
+        if (rec) { rec.stop(); return; }
+        stream = await getStream(true); if (!stream) return;
+        chunks = []; rec = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm' });
+        rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
+        rec.onstop = () => {
+          clearInterval(timer); stream.getTracks().forEach((t) => t.stop());
+          const blob = new Blob(chunks, { type: 'video/webm' }); const url = URL.createObjectURL(blob);
+          bRec.classList.remove('on'); bRec.querySelector('b').textContent = PatOS.t('Record Screen'); msg.textContent = PatOS.fmtBytes(blob.size);
+          out.innerHTML = ''; out.append(h('video', { src: url, controls: true }), h('div', { class: 'ss-btns' }, h('button', { class: 'btn primary', onclick: () => { const a = document.createElement('a'); a.href = url; a.download = 'Screen recording.webm'; document.body.appendChild(a); a.click(); a.remove(); } }, 'Save Video to Computer')));
+          rec = null;
+        };
+        stream.getVideoTracks()[0].addEventListener('ended', () => rec && rec.stop());
+        rec.start(500); t0 = Date.now(); bRec.classList.add('on');
+        timer = setInterval(() => { const s = Math.floor((Date.now() - t0) / 1000); bRec.querySelector('b').textContent = PatOS.t('Stop') + '  ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }, 250);
+      };
+      win.on('closed', () => { if (rec) rec.stop(); clearInterval(timer); });
+    }
+  });
+})();
+
+</script>
+  <script>
 /* About PatOS — with a spinning 3D logo */
 (function () {
   'use strict';
@@ -7912,7 +8685,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     clearInterval(lockTimer);
     const lock = $('#lock'); lock.classList.add('unlocking');
     $('#desktop').classList.remove('hidden');
-    if (!shellReady) { PatOS.shell.init(); PatOS.mobile && PatOS.mobile.init(); shellReady = true; firstRun(); }
+    if (!shellReady) { PatOS.shell.init(); PatOS.mobile && PatOS.mobile.init(); shellReady = true; if (!(PatOS.setup && PatOS.setup.maybeShow())) firstRun(); else setTimeout(() => PatOS.emit('wm:ready'), 1200); }
     setTimeout(() => lock.classList.add('hidden'), 500);
     PatOS.loggedIn = true;
     PatOS.sound.startup();

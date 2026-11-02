@@ -1,4 +1,4 @@
-/* Surf — tabbed web browser */
+/* Patoogle — tabbed web browser */
 (function () {
   'use strict';
   const { h, esc } = PatOS;
@@ -43,14 +43,15 @@
     return 'https://www.google.com/search?igu=1&q=' + encodeURIComponent(q);
   }
   function host(url) { try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return url; } }
+  const favicon = (url) => { try { const u = new URL(url); return /^https?:/.test(u.protocol) ? 'https://www.google.com/s2/favicons?sz=32&domain=' + u.hostname : null; } catch (e) { return null; } };
   PatOS.openExternal = (url) => {
     const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
     document.body.appendChild(a); a.click(); a.remove();
   };
 
   PatOS.registerApp({
-    id: 'browser', name: 'Surf', icon: 'browser', single: true, width: 1040, height: 680, keywords: 'chrome safari web internet browser google',
-    about: 'A tabbed web browser. Some sites (like Gmail or YouTube) refuse to load inside other pages — Surf opens those in a real browser tab.',
+    id: 'browser', name: 'Patoogle', icon: 'browser', single: true, width: 1040, height: 680, keywords: 'chrome safari web internet browser google',
+    about: 'A tabbed web browser. Some sites (like Gmail or YouTube) refuse to load inside other pages — Patoogle opens those in a real browser tab.',
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'browser-win');
       const tabs = []; let cur = null;
@@ -65,11 +66,12 @@
       const bFwd = h('button', { class: 'tbtn', title: 'Forward' }, '›');
       const bReload = h('button', { class: 'tbtn', title: 'Reload' }, '↻');
       const bHome = h('button', { class: 'tbtn', title: 'Home' }, '⌂');
-      const omni = h('input', { class: 'br-omni', placeholder: 'Search Google or type a URL', spellcheck: 'false' });
+      const omni = h('input', { class: 'br-omni', placeholder: 'Search Patoogle or type a web address', spellcheck: 'false' });
       const lockIc = h('span', { class: 'br-lock' }, '🔒');
       const bStar = h('button', { class: 'tbtn', title: 'Bookmark this page' }, '☆');
       const bExt = h('button', { class: 'tbtn', title: 'Open in a real browser tab' }, '↗');
-      const nav = h('div', { class: 'br-nav' }, bBack, bFwd, bReload, bHome, h('div', { class: 'br-omniwrap' }, lockIc, omni), bStar, bExt);
+      const bHist = h('button', { class: 'tbtn', title: 'History' }, '🕘');
+      const nav = h('div', { class: 'br-nav' }, bBack, bFwd, bReload, bHome, h('div', { class: 'br-omniwrap' }, lockIc, omni), bStar, bHist, bExt);
       const bmBar = h('div', { class: 'br-bm' });
       const view = h('div', { class: 'br-view' });
       win.body.append(nav, bmBar, view);
@@ -77,7 +79,7 @@
       function renderBM() {
         bmBar.innerHTML = '';
         bookmarks.forEach((b, i) => {
-          const el = h('button', { class: 'br-bmi', title: b.u }, h('span', { class: 'br-fav' }, (b.t[0] || '?').toUpperCase()), b.t);
+          const el = h('button', { class: 'br-bmi', title: b.u }, favicon(b.u) ? h('img', { class: 'br-fav img', src: favicon(b.u), alt: '', onerror: (e) => { e.target.replaceWith(h('span', { class: 'br-fav' }, (b.t[0] || '?').toUpperCase())); } }) : h('span', { class: 'br-fav' }, (b.t[0] || '?').toUpperCase()), b.t);
           el.onclick = () => navigate(b.u);
           el.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); PatOS.menu([{ label: 'Open in New Tab', action: () => newTab(b.u) }, { label: 'Delete Bookmark', action: () => { bookmarks.splice(i, 1); PatOS.store.set('bookmarks', bookmarks); renderBM(); } }], e.clientX, e.clientY); };
           bmBar.appendChild(el);
@@ -85,7 +87,7 @@
       }
       function newTab(url, html, title) {
         const t = { id: PatOS.uid(), url: 'patos://newtab', title: 'New Tab', hist: [], idx: -1, pane: h('div', { class: 'br-pane' }), tabEl: null };
-        t.tabEl = h('div', { class: 'tab br-tab' }, h('span', { class: 'br-tt' }, 'New Tab'), h('button', { class: 'br-tx', title: 'Close tab' }, '×'));
+        t.tabEl = h('div', { class: 'tab br-tab' }, h('span', { class: 'br-tic none' }), h('span', { class: 'br-tt' }, 'New Tab'), h('button', { class: 'br-tx', title: 'Close tab' }, '×'));
         t.tabEl.addEventListener('click', (e) => { if (e.target.classList.contains('br-tx')) closeTab(t); else select(t); });
         t.tabEl.addEventListener('auxclick', (e) => { if (e.button === 1) closeTab(t); });
         tabStrip.appendChild(t.tabEl); view.appendChild(t.pane); tabs.push(t);
@@ -109,6 +111,7 @@
         bBack.disabled = cur.idx <= 0; bFwd.disabled = cur.idx >= cur.hist.length - 1;
         bStar.textContent = bookmarks.some((b) => b.u === cur.url) ? '★' : '☆';
         cur.tabEl.querySelector('.br-tt').textContent = cur.title;
+        const ic = cur.tabEl.querySelector('.br-tic'); const f = favicon(cur.url); if (ic) { ic.style.backgroundImage = f ? `url(${f})` : ''; ic.classList.toggle('none', !f); }
         win.setTitle(cur.title);
       }
       function navigate(input, t, noHist) {
@@ -117,6 +120,7 @@
         const yt = ytEmbed(url);
         if (yt || /(^|\.)youtube\.com$/.test(host(url).replace(/^m\./, ''))) { const vid = yt && yt.match(/embed\/([\w-]{11})/); PatOS.launch('youtube', vid ? { id: vid[1] } : (new URL(url).searchParams.get('search_query') ? { q: new URL(url).searchParams.get('search_query') } : {})); if (t.url === 'patos://newtab' || !t.hist.length) { t.hist = []; t.idx = -1; } return; }
         if (!noHist) { t.hist = t.hist.slice(0, t.idx + 1); t.hist.push(url); t.idx = t.hist.length - 1; }
+        if (/^https?:/.test(url)) { const H = PatOS.store.get('browserHistory', []); if (!H[0] || H[0].u !== url) { H.unshift({ u: url, t: Date.now() }); PatOS.store.set('browserHistory', H.slice(0, 100)); } }
         t.url = url;
         t.pane.innerHTML = '';
         if (url === 'patos://newtab') { t.title = 'New Tab'; t.pane.appendChild(newTabPage()); }
@@ -136,7 +140,7 @@
         t.pane.innerHTML = ''; t.pane.appendChild(h('iframe', { srcdoc: html, sandbox: 'allow-scripts allow-forms allow-modals' })); syncUI();
       }
       function newTabPage() {
-        const q = h('input', { class: 'nt-search', placeholder: 'Search Google or type a URL', spellcheck: 'false' });
+        const q = h('input', { class: 'nt-search', placeholder: 'Search Patoogle or type a web address', spellcheck: 'false' });
         q.addEventListener('keydown', (e) => { if (e.key === 'Enter') navigate(q.value); });
         const grid = h('div', { class: 'nt-grid' });
         SHORTCUTS.forEach((s) => {
@@ -147,7 +151,7 @@
         const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
         setTimeout(() => q.focus(), 50);
         return h('div', { class: 'nt-page' },
-          h('div', { class: 'nt-logo' }, h('span', { style: { color: '#4285f4' } }, 'S'), h('span', { style: { color: '#ea4335' } }, 'u'), h('span', { style: { color: '#fbbc05' } }, 'r'), h('span', { style: { color: '#34a853' } }, 'f')),
+          h('div', { class: 'nt-logo' }, 'Patoogle'),
           h('div', { class: 'nt-greet' }, greet + ', ' + PatOS.settings.userName),
           q, grid,
           h('div', { class: 'nt-tip' }, 'Websites load right inside PatOS. Some sites refuse to be shown inside other apps; for those, use the PatOS apps above.'));
@@ -156,7 +160,7 @@
         return h('div', { class: 'br-blocked' },
           h('div', { class: 'bb-ic' }, '🧱'),
           h('h2', {}, host(url) + ' can’t be shown inside PatOS'),
-          h('p', {}, PatOS.sandboxed ? 'PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead. PatOS stays open in this one.' : 'This website blocks being shown inside other apps, so it can’t load in Surf. Try searching for it with Google above, or use the matching PatOS app (YouTube, Docs, Drive, Maps, Translate).'),
+          h('p', {}, PatOS.sandboxed ? 'PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead. PatOS stays open in this one.' : 'This website blocks being shown inside other apps, so it can’t load in Patoogle. Try searching for it with Google above, or use the matching PatOS app (YouTube, Docs, Drive, Maps, Translate).'),
           h('div', { class: 'br-alts' }, h('button', { class: 'btn primary', onclick: () => navigate('https://www.google.com/search?igu=1&q=' + encodeURIComponent(host(url))) }, 'Search Google for ' + host(url))), h('a', { class: 'br-ext', href: url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '').replace('?igu=1', ''), target: '_blank', rel: 'noopener noreferrer' }, 'Open outside PatOS'));
       }
       omni.addEventListener('keydown', (e) => { if (e.key === 'Enter') { navigate(omni.value); omni.blur(); } });
@@ -165,6 +169,10 @@
       bFwd.onclick = () => { if (cur.idx < cur.hist.length - 1) { cur.idx++; navigate(cur.hist[cur.idx], cur, true); } };
       bReload.onclick = () => navigate(cur.url, cur, true);
       bHome.onclick = () => navigate('patos://newtab');
+      bHist.onclick = () => {
+        const H = PatOS.store.get('browserHistory', []); const r = bHist.getBoundingClientRect();
+        PatOS.menu([{ header: PatOS.t('History') }, ...(H.length ? H.slice(0, 15).map((x) => ({ label: host(x.u) + ' · ' + new Date(x.t).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }), action: () => navigate(x.u) })) : [{ label: PatOS.t('No history yet'), disabled: true }]), { divider: true }, { label: PatOS.t('Clear History'), disabled: !H.length, action: () => PatOS.store.set('browserHistory', []) }], r.left - 200, r.bottom + 4);
+      };
       bExt.onclick = () => { if (!cur.url.startsWith('patos')) PatOS.openExternal(cur.url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '')); };
       bStar.onclick = () => {
         if (cur.url.startsWith('patos')) return;

@@ -15,8 +15,8 @@
       const bSave = h('button', { class: 'tbtn', title: 'Save' }, '💾');
       const bSmall = h('button', { class: 'tbtn', title: 'Smaller' }, 'A−');
       const bBig = h('button', { class: 'tbtn', title: 'Bigger' }, 'A+');
-      const bMono = h('button', { class: 'tbtn', title: 'Monospace' }, '{ }');
-      const bPrev = h('button', { class: 'tbtn', title: 'Preview HTML in Surf' }, '▶');
+      const bMono = h('button', { class: 'tbtn', title: 'Code font' }, '{ }');
+      const bPrev = h('button', { class: 'tbtn', title: 'Preview HTML in Patoogle' }, '▶');
       const bDl = h('button', { class: 'tbtn', title: 'Download to computer' }, '⬇');
       win.toolbar.append(nameEl, h('div', { style: { flex: 1 } }), bSmall, bBig, bMono, bPrev, bDl, bSave);
       win.toolbar.style.paddingLeft = '70px';
