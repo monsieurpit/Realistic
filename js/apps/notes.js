@@ -39,8 +39,8 @@
           .filter((n) => !ql || plain(n.body).toLowerCase().includes(ql))
           .forEach((n) => {
             const text = plain(n.body).trim().split('\n');
-            const el = h('div', { class: 'nt-item' + (cur && cur.id === n.id ? ' on' : '') },
-              h('b', {}, (n.pinned ? '📌 ' : '') + titleOf(n)),
+            const el = h('div', { class: 'nt-item' + (cur && cur.id === n.id ? ' on' : '') + (n.pinned ? ' pinned' : '') },
+              h('b', {}, titleOf(n)),
               h('div', {}, h('span', {}, new Date(n.mtime).toLocaleDateString()), ' ', (text[1] || 'No additional text').slice(0, 40)));
             el.onclick = () => open(n);
             el.oncontextmenu = (e) => { e.preventDefault(); PatOS.menu([{ label: n.pinned ? 'Unpin' : 'Pin to top', action: () => { n.pinned = !n.pinned; save(); renderList(); } }, { label: 'Export as .txt to Documents', action: () => { const nm = PatOS.fs.uniqueName('/Documents', titleOf(n).replace(/[\/]/g, '-') + '.txt'); PatOS.fs.write('/Documents/' + nm, plain(n.body)); PatOS.notify({ title: 'Exported', body: nm + ' saved in Documents', icon: 'notes' }); } }, { divider: true }, { label: 'Delete', action: () => del(n) }], e.clientX, e.clientY); };

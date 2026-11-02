@@ -51,7 +51,7 @@
         if (v === target) {
           done = true; clearInterval(timer); input.disabled = true;
           const wpm = live();
-          if (wpm > best) { best = wpm; PatOS.store.set('typingBest', best); PatOS.notify({ title: 'New best: ' + wpm + ' WPM! 🎉', body: 'Your fastest typing yet.', icon: 'typing' }); }
+          if (wpm > best) { best = wpm; PatOS.store.set('typingBest', best); PatOS.notify({ title: 'New best: ' + wpm + ' WPM', body: 'That’s the fastest you’ve typed so far.', icon: 'typing' }); }
           live(); PatOS.sound.pop();
         }
       });

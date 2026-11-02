@@ -26,6 +26,7 @@
     }
     for (const kid of kids.flat()) {
       if (kid == null || kid === false) continue;
+      if (typeof kid === 'string' && PatOS.symFor && /[^\x00-\x7F]/.test(kid.slice(0, 3))) { const sym = PatOS.symFor(kid); if (sym) { el.appendChild(sym); continue; } }
       el.appendChild(typeof kid === 'string' || typeof kid === 'number' ? document.createTextNode(String(kid)) : kid);
     }
     return el;

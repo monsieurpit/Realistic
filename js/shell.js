@@ -253,31 +253,31 @@
   function renderCC() {
     const s = PatOS.settings; const cc = $('#control-center'); cc.innerHTML = '';
     const tog = (label, sub, on, icon, fn) => {
-      const b = h('button', { class: 'cc-toggle' + (on ? ' on' : '') }, h('span', { class: 'cc-dot', html: icon }), h('span', { class: 'cc-tl' }, h('b', {}, label), h('small', {}, sub)));
+      const b = h('button', { class: 'cc-toggle' + (on ? ' on' : '') }, h('span', { class: 'cc-dot', html: PatOS.symPaths[icon] ? PatOS.sym(icon) : icon }), h('span', { class: 'cc-tl' }, h('b', {}, label), h('small', {}, sub)));
       b.addEventListener('click', () => { fn(); renderCC(); }); return b;
     };
     const conn = h('div', { class: 'cc-tile cc-conn' },
-      tog('Wi-Fi', navigator.onLine ? ((navigator.connection && navigator.connection.effectiveType) ? 'Connected · ' + navigator.connection.effectiveType.toUpperCase() : 'Connected') : 'No Internet', navigator.onLine, '📶', () => PatOS.launch('settings', { pane: 'network' })),
-      tog('Keep Screen On', wakeLock ? 'On' : 'Off', !!wakeLock, '☀︎', toggleWake),
-      tog('Mute', muted ? 'Sound off' : 'Sound on', muted, '🔇', () => { if (muted) { PatOS.setSetting('volume', preMute || 0.7); muted = false; } else { preMute = s.volume; PatOS.setSetting('volume', 0); muted = true; } }));
+      tog('Wi-Fi', navigator.onLine ? ((navigator.connection && navigator.connection.effectiveType) ? 'Connected · ' + navigator.connection.effectiveType.toUpperCase() : 'Connected') : 'No Internet', navigator.onLine, 'wifi', () => PatOS.launch('settings', { pane: 'network' })),
+      tog('Keep Screen On', wakeLock ? 'On' : 'Off', !!wakeLock, 'sun', toggleWake),
+      tog('Mute', muted ? 'Sound off' : 'Sound on', muted, 'mute', () => { if (muted) { PatOS.setSetting('volume', preMute || 0.7); muted = false; } else { preMute = s.volume; PatOS.setSetting('volume', 0); muted = true; } }));
     const side = h('div', { class: 'cc-side' },
-      h('div', { class: 'cc-tile' }, tog('Focus', PatOS.focusMode ? 'Do Not Disturb' : 'Off', PatOS.focusMode, '🌙', () => { PatOS.focusMode = !PatOS.focusMode; })),
+      h('div', { class: 'cc-tile' }, tog('Focus', PatOS.focusMode ? 'Do Not Disturb' : 'Off', PatOS.focusMode, 'moon', () => { PatOS.focusMode = !PatOS.focusMode; })),
       h('div', { class: 'cc-tile cc-row2' },
-        tog(s.theme === 'dark' ? 'Dark' : 'Light', 'Appearance', s.theme === 'dark', '◐', () => PatOS.setSetting('theme', s.theme === 'dark' ? 'light' : 'dark')),
-        tog('Full Screen', document.fullscreenElement ? 'On' : 'Off', !!document.fullscreenElement, '⛶', toggleFullscreen)));
+        tog(s.theme === 'dark' ? 'Dark' : 'Light', 'Appearance', s.theme === 'dark', 'contrast', () => PatOS.setSetting('theme', s.theme === 'dark' ? 'light' : 'dark')),
+        tog('Full Screen', document.fullscreenElement ? 'On' : 'Off', !!document.fullscreenElement, 'fullscreen', toggleFullscreen)));
     const slider = (label, val, icon, fn, min) => {
       const input = h('input', { type: 'range', min: min || 0, max: 100, value: Math.round(val * 100) });
       input.addEventListener('input', () => fn(input.value / 100));
-      return h('div', { class: 'cc-tile cc-slider' }, h('b', {}, label), h('div', { class: 'cc-range' }, h('span', {}, icon), input));
+      return h('div', { class: 'cc-tile cc-slider' }, h('b', {}, label), h('div', { class: 'cc-range' }, h('span', { class: 'symw', html: PatOS.sym(icon) }), input));
     };
     const live = PatOS.wallpaper.live[s.wallpaper];
     cc.append(...[
       h('div', { class: 'cc-grid' }, conn, side),
-      slider('Display', s.brightness, '☀', (v) => PatOS.setSetting('brightness', v), 20),
-      slider('Sound', s.volume, '🔊', (v) => PatOS.setSetting('volume', v)),
+      slider('Display', s.brightness, 'sun', (v) => PatOS.setSetting('brightness', v), 20),
+      slider('Sound', s.volume, 'speaker', (v) => PatOS.setSetting('volume', v)),
       h('div', { class: 'cc-tile cc-row2' },
-        tog('3D Wallpaper', live ? (s.live3d ? 'Animating' : 'Paused') : 'Pick in Settings', live && s.live3d, '✦', () => { if (live) PatOS.setSetting('live3d', !s.live3d); else PatOS.launch('settings', { pane: 'wallpaper' }); }),
-        tog('UI Sounds', s.uiSounds ? 'On' : 'Off', s.uiSounds, '♪', () => PatOS.setSetting('uiSounds', !s.uiSounds))),
+        tog('3D Wallpaper', live ? (s.live3d ? 'Animating' : 'Paused') : 'Pick in Settings', live && s.live3d, 'sparkle', () => { if (live) PatOS.setSetting('live3d', !s.live3d); else PatOS.launch('settings', { pane: 'wallpaper' }); }),
+        tog('UI Sounds', s.uiSounds ? 'On' : 'Off', s.uiSounds, 'note', () => PatOS.setSetting('uiSounds', !s.uiSounds))),
       PatOS.music && PatOS.music.nowPlaying ? nowPlayingTile() : null
     ].filter(Boolean));
   }

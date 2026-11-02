@@ -64,7 +64,7 @@
         function showBtns() {
           btns.innerHTML = '';
           if (!card.classList.contains('flipped')) { btns.appendChild(h('button', { class: 'btn primary', onclick: flip }, 'Show Answer')); return; }
-          btns.append(h('button', { class: 'btn fc-wrong', onclick: () => next(false) }, '✗ Didn’t know'), h('button', { class: 'btn fc-right', onclick: () => next(true) }, '✓ Got it'));
+          btns.append(h('button', { class: 'btn fc-wrong', onclick: () => next(false) }, 'Didn’t know'), h('button', { class: 'btn fc-right', onclick: () => next(true) }, 'Knew it'));
         }
         function show() {
           const c = d.cards[order[i]];
@@ -86,7 +86,7 @@
           const pct = Math.round(right / order.length * 100);
           if (d.best == null || pct > d.best) d.best = pct; save();
           main.innerHTML = '';
-          main.append(h('div', { class: 'fc-done' }, h('div', { class: 'fc-score' }, pct + '%'), h('h2', {}, pct === 100 ? 'Perfect! 🎉' : pct >= 70 ? 'Great job! 💪' : 'Keep practicing! 📚'), h('p', {}, right + ' of ' + order.length + ' correct'), h('div', { class: 'fc-dbtns' }, h('button', { class: 'btn primary', onclick: () => study(d) }, 'Study Again'), h('button', { class: 'btn', onclick: home }, 'All Decks'))));
+          main.append(h('div', { class: 'fc-done' }, h('div', { class: 'fc-score' }, pct + '%'), h('h2', {}, pct === 100 ? 'Every single one. Nice.' : pct >= 70 ? 'Solid work.' : 'Give it another go.'), h('p', {}, right + ' of ' + order.length + ' correct'), h('div', { class: 'fc-dbtns' }, h('button', { class: 'btn primary', onclick: () => study(d) }, 'Study Again'), h('button', { class: 'btn', onclick: home }, 'All Decks'))));
         }
         const onKey = (e) => { if (PatOS.wm.active !== win || !main.contains(card)) return; if (e.key === ' ') { e.preventDefault(); flip(); } if (card.classList.contains('flipped')) { if (e.key === 'ArrowRight' || e.key === '1') next(true); if (e.key === 'ArrowLeft' || e.key === '2') next(false); } };
         document.addEventListener('keydown', onKey); win.on('closed', () => document.removeEventListener('keydown', onKey));

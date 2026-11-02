@@ -6,14 +6,14 @@
     'facebook.com', 'instagram.com', 'twitter.com', 'x.com', 'github.com', 'reddit.com', 'amazon.', 'netflix.com', 'tiktok.com', 'discord.com', 'chatgpt.com', 'openai.com', 'claude.ai',
     'microsoft.com', 'office.com', 'live.com', 'outlook.', 'linkedin.com', 'spotify.com', 'twitch.tv', 'apple.com', 'stackoverflow.com', 'canva.com', 'quizlet.com', 'kahoot', 'khanacademy.org', 'duckduckgo.com', 'roblox.com', 'scratch.mit.edu', 'pinterest.', 'translate.google.com', 'photos.google.com', 'keep.google.com', 'forms.google.com'];
   const DEFAULT_BM = [
-    { t: 'Google', u: 'https://www.google.com/webhp?igu=1' },
+    { t: 'Bing', u: 'https://www.bing.com/' },
     { t: 'Wikipedia', u: 'https://en.wikipedia.org/wiki/Main_Page' },
     { t: 'three.js', u: 'https://threejs.org/examples/' },
     { t: 'Maps', u: 'https://www.openstreetmap.org/export/embed.html?bbox=-74.2%2C45.3%2C-73.3%2C45.8&layer=mapnik' },
     { t: 'Internet Archive', u: 'https://archive.org' }
   ];
   const SHORTCUTS = [
-    { t: 'Google', u: 'https://www.google.com/webhp?igu=1', i: 'search' },
+    { t: 'Bing', u: 'https://www.bing.com/', i: 'search' },
     { t: 'Wikipedia', u: 'https://en.wikipedia.org/wiki/Main_Page', i: 'W' },
     { t: 'YouTube', app: 'youtube', i: 'youtube' },
     { t: 'Docs', app: 'docs', i: 'docs' },
@@ -40,7 +40,19 @@
     if (/^patos:\/\//.test(q)) return q;
     if (/^https?:\/\//i.test(q)) return q;
     if (/^[\w-]+(\.[\w-]+)+(:\d+)?(\/.*)?$/.test(q) && !q.includes(' ')) return 'https://' + q;
-    return 'https://www.google.com/search?igu=1&q=' + encodeURIComponent(q);
+    return searchURL(q);
+  }
+  /* Patoogle searches with Bing: Google refuses to show its results inside other apps (that's the 403 page),
+     while Bing allows it. Google search addresses are sent to Bing automatically. */
+  function searchURL(q) { return 'https://www.bing.com/search?q=' + encodeURIComponent(q) + '&setlang=' + (PatOS.lang || 'en'); }
+  function fixGoogle(url) {
+    try {
+      const u = new URL(url);
+      if (!/(^|\.)google\.[a-z.]+$/.test(u.hostname) || !/^www\.|^google\./.test(u.hostname)) return url;
+      if (u.pathname === '/search' && u.searchParams.get('q')) return searchURL(u.searchParams.get('q'));
+      if (u.pathname === '/' || u.pathname === '/webhp') return 'https://www.bing.com/';
+    } catch (e) {}
+    return url;
   }
   function host(url) { try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return url; } }
   const favicon = (url) => { try { const u = new URL(url); return /^https?:/.test(u.protocol) ? 'https://www.google.com/s2/favicons?sz=32&domain=' + u.hostname : null; } catch (e) { return null; } };
@@ -51,11 +63,11 @@
 
   PatOS.registerApp({
     id: 'browser', name: 'Patoogle', icon: 'browser', single: true, width: 1040, height: 680, keywords: 'chrome safari web internet browser google',
-    about: 'A tabbed web browser. Some sites (like Gmail or YouTube) refuse to load inside other pages — Patoogle opens those in a real browser tab.',
+    about: 'A web browser with tabs. Searches go through Bing, since Google won’t show its results inside other apps.',
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'browser-win');
       const tabs = []; let cur = null;
-      let bookmarks = PatOS.store.get('bookmarks', DEFAULT_BM);
+      let bookmarks = PatOS.store.get('bookmarks', DEFAULT_BM).map((b) => (/google\.com\/webhp/.test(b.u) ? { t: 'Bing', u: 'https://www.bing.com/' } : b));
       const tabStrip = h('div', { class: 'br-tabs' });
       const addTab = h('button', { class: 'br-newtab', title: 'New tab' }, '+');
       win.toolbar.append(tabStrip, addTab);
@@ -67,7 +79,7 @@
       const bReload = h('button', { class: 'tbtn', title: 'Reload' }, '↻');
       const bHome = h('button', { class: 'tbtn', title: 'Home' }, '⌂');
       const omni = h('input', { class: 'br-omni', placeholder: 'Search Patoogle or type a web address', spellcheck: 'false' });
-      const lockIc = h('span', { class: 'br-lock' }, '🔒');
+      const lockIc = h('span', { class: 'br-lock', html: PatOS.sym('lock') });
       const bStar = h('button', { class: 'tbtn', title: 'Bookmark this page' }, '☆');
       const bExt = h('button', { class: 'tbtn', title: 'Open in a real browser tab' }, '↗');
       const bHist = h('button', { class: 'tbtn', title: 'History' }, '🕘');
@@ -107,7 +119,7 @@
       function syncUI() {
         if (!cur) return;
         omni.value = cur.url === 'patos://newtab' ? '' : cur.url;
-        lockIc.textContent = cur.url.startsWith('https') ? '🔒' : cur.url.startsWith('patos') ? '🔍' : 'ⓘ';
+        lockIc.innerHTML = PatOS.sym(cur.url.startsWith('https') ? 'lock' : cur.url.startsWith('patos') ? 'search' : 'warn');
         bBack.disabled = cur.idx <= 0; bFwd.disabled = cur.idx >= cur.hist.length - 1;
         bStar.textContent = bookmarks.some((b) => b.u === cur.url) ? '★' : '☆';
         cur.tabEl.querySelector('.br-tt').textContent = cur.title;
@@ -116,7 +128,7 @@
       }
       function navigate(input, t, noHist) {
         t = t || cur;
-        let url = toURL(input);
+        let url = fixGoogle(toURL(input));
         const yt = ytEmbed(url);
         if (yt || /(^|\.)youtube\.com$/.test(host(url).replace(/^m\./, ''))) { const vid = yt && yt.match(/embed\/([\w-]{11})/); PatOS.launch('youtube', vid ? { id: vid[1] } : (new URL(url).searchParams.get('search_query') ? { q: new URL(url).searchParams.get('search_query') } : {})); if (t.url === 'patos://newtab' || !t.hist.length) { t.hist = []; t.idx = -1; } return; }
         if (!noHist) { t.hist = t.hist.slice(0, t.idx + 1); t.hist.push(url); t.idx = t.hist.length - 1; }
@@ -126,7 +138,7 @@
         if (url === 'patos://newtab') { t.title = 'New Tab'; t.pane.appendChild(newTabPage()); }
         else if (isBlocked(url)) { t.title = host(url); t.pane.appendChild(blockedPage(url)); }
         else {
-          t.title = url.includes('google.com/search') ? (new URL(url).searchParams.get('q') + ' - Search') : host(url);
+          t.title = /bing\.com\/search/.test(url) ? new URL(url).searchParams.get('q') : host(url);
           const loader = h('div', { class: 'br-loading' });
           const frame = h('iframe', { src: url, allow: 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write', referrerpolicy: 'no-referrer-when-downgrade', allowfullscreen: true });
           frame.addEventListener('load', () => { loader.remove(); try { const d = frame.contentDocument; if (d && d.title) { t.title = d.title; syncUI(); } } catch (e) {} });
@@ -154,14 +166,14 @@
           h('div', { class: 'nt-logo' }, 'Patoogle'),
           h('div', { class: 'nt-greet' }, greet + ', ' + PatOS.settings.userName),
           q, grid,
-          h('div', { class: 'nt-tip' }, 'Websites load right inside PatOS. Some sites refuse to be shown inside other apps; for those, use the PatOS apps above.'));
+          h('div', { class: 'nt-tip' }, 'Most sites open right here. A few big ones, like Gmail, won’t load inside other apps, so use the PatOS app for those.'));
       }
       function blockedPage(url) {
         return h('div', { class: 'br-blocked' },
           h('div', { class: 'bb-ic' }, '🧱'),
           h('h2', {}, host(url) + ' can’t be shown inside PatOS'),
-          h('p', {}, PatOS.sandboxed ? 'PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead. PatOS stays open in this one.' : 'This website blocks being shown inside other apps, so it can’t load in Patoogle. Try searching for it with Google above, or use the matching PatOS app (YouTube, Docs, Drive, Maps, Translate).'),
-          h('div', { class: 'br-alts' }, h('button', { class: 'btn primary', onclick: () => navigate('https://www.google.com/search?igu=1&q=' + encodeURIComponent(host(url))) }, 'Search Google for ' + host(url))), h('a', { class: 'br-ext', href: url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '').replace('?igu=1', ''), target: '_blank', rel: 'noopener noreferrer' }, 'Open outside PatOS'));
+          h('p', {}, PatOS.sandboxed ? 'PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead. PatOS stays open in this one.' : 'This site doesn’t let other apps show it, so it won’t open in Patoogle. You can search for it instead, or use the PatOS app that does the same thing (YouTube, Docs, Drive, Maps or Translate).'),
+          h('div', { class: 'br-alts' }, h('button', { class: 'btn primary', onclick: () => navigate(searchURL(host(url))) }, 'Search the web for ' + host(url))), h('a', { class: 'br-ext', href: url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '').replace('?igu=1', ''), target: '_blank', rel: 'noopener noreferrer' }, 'Open outside PatOS'));
       }
       omni.addEventListener('keydown', (e) => { if (e.key === 'Enter') { navigate(omni.value); omni.blur(); } });
       omni.addEventListener('focus', () => omni.select());

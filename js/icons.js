@@ -185,3 +185,111 @@
     return PatOS.iconHTML('file', PatOS.fs.ext(name) || 'txt');
   };
 })();
+
+/* ---------- interface symbols: simple line icons used instead of emoji ---------- */
+(function () {
+  'use strict';
+  const P = {
+    desktop: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+    doc: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>',
+    download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+    upload: '<path d="M12 20V9M7 14l5-5 5 5M5 4h14"/>',
+    image: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-9 8"/>',
+    music: '<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>',
+    home: '<path d="M4 11l8-7 8 7v9H5z"/><path d="M10 20v-6h4v6"/>',
+    apps: '<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>',
+    trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+    palette: '<path d="M12 3a9 9 0 0 0 0 18c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7" r="1.2"/>',
+    dock: '<rect x="3" y="4" width="18" height="16" rx="2"/><rect x="6" y="15" width="12" height="3" rx="1.5"/>',
+    display: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M9 20h6"/>',
+    speaker: '<path d="M4 10v4h4l5 4V6L8 10z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>',
+    mute: '<path d="M4 10v4h4l5 4V6L8 10z"/><path d="M17 9l5 6M22 9l-5 6"/>',
+    lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    wifi: '<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1" fill="currentColor"/>',
+    keyboard: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>',
+    storage: '<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+    folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    sheet: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/>',
+    slides: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M12 16v4M8 20h8"/>',
+    form: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+    moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    contrast: '<circle cx="12" cy="12" r="9"/><path d="M12 3v18a9 9 0 0 0 0-18z" fill="currentColor"/>',
+    fullscreen: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+    sparkle: '<path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/>',
+    note: '<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/>',
+    history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>',
+    camera: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+    search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/>',
+    save: '<path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/>',
+    print: '<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>',
+    link: '<path d="M10 14a4 4 0 0 0 6 0l3-3a4 4 0 0 0-6-6l-1 1M14 10a4 4 0 0 0-6 0l-3 3a4 4 0 0 0 6 6l1-1"/>',
+    chart: '<path d="M4 20V4M4 20h16"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/>',
+    broom: '<path d="M14 4l6 6M12 6l6 6-7 7H6l-1-5z"/>',
+    bucket: '<path d="M5 10l7-7 7 7-7 7z"/><path d="M19 14s2 2.5 2 4a2 2 0 0 1-4 0c0-1.5 2-4 2-4z"/>',
+    marker: '<path d="M15 4l5 5-9 9H6v-5z"/><path d="M4 20h7"/>',
+    brush: '<path d="M18 3l3 3-9 9-3-3z"/><path d="M9 12c-3 0-5 2-5 5 0 2-1 3-2 3 5 1 9-1 9-5"/>',
+    pencil: '<path d="M16 3l5 5L8 21H3v-5z"/><path d="M13 6l5 5"/>',
+    eraser: '<path d="M8 20l-5-5 10-10 7 7-8 8z"/><path d="M8 20h12M10 9l6 6"/>',
+    spray: '<rect x="7" y="9" width="8" height="12" rx="2"/><path d="M9 9V6h4v3M17 5h.01M19 7h.01M19 3h.01M21 5h.01"/>',
+    drop: '<path d="M12 3s7 7 7 12a7 7 0 0 1-14 0c0-5 7-12 7-12z"/>',
+    rainbow: '<path d="M3 18a9 9 0 0 1 18 0M7 18a5 5 0 0 1 10 0"/>',
+    hand: '<path d="M8 13V5a1.5 1.5 0 0 1 3 0v6M11 11V3.5a1.5 1.5 0 0 1 3 0V11M14 11V5a1.5 1.5 0 0 1 3 0v8c0 4-2 8-7 8-3 0-5-2-6-4l-2-4a1.5 1.5 0 0 1 2.6-1.5L8 14"/>',
+    sticky: '<path d="M4 4h16v10l-6 6H4z"/><path d="M14 20v-6h6"/>',
+    play: '<path d="M7 4l13 8-13 8z" fill="currentColor"/>',
+    pause: '<rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/>',
+    prev: '<path d="M6 5v14"/><path d="M20 5L9 12l11 7z" fill="currentColor"/>',
+    next: '<path d="M18 5v14"/><path d="M4 5l11 7-11 7z" fill="currentColor"/>',
+    pin: '<path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',
+    gem: '<path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M12 21L8 9l4-6 4 6z"/>',
+    bolt: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+    cake: '<path d="M4 21h16v-8H4zM4 16c2 1 4 1 5.3 0s4.4-1 5.4 0 3.3 1 5.3 0M12 13V9M12 6a1 1 0 0 1 0-2c0 1 1 1 0 2z"/>',
+    alarm: '<circle cx="12" cy="13" r="7"/><path d="M12 9v4l2 2M5 3L2 6M19 3l3 3"/>',
+    window: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/>',
+    wall: '<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M3 14h18M9 4v5M15 9v5M9 14v6"/>',
+    thermo: '<path d="M14 14V5a2 2 0 0 0-4 0v9a4 4 0 1 0 4 0z"/>',
+    wind: '<path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8"/>',
+    sunrise: '<path d="M4 18h16M7 18a5 5 0 0 1 10 0M12 4v5M9 7l3-3 3 3M3 13l2 1M21 13l-2 1"/>',
+    sunset: '<path d="M4 18h16M7 18a5 5 0 0 1 10 0M12 9V4M9 6l3 3 3-3M3 13l2 1M21 13l-2 1"/>',
+    calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    thumb: '<path d="M7 11v9H4v-9zM7 11l4-8c2 0 3 1 3 3v3h5a2 2 0 0 1 2 2l-2 7a2 2 0 0 1-2 2H7"/>',
+    flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+    warn: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
+    check: '<path d="M4 12l5 5L20 6"/>',
+    star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+    cloud: '<path d="M7 18a5 5 0 0 1-.7-9.9A6 6 0 0 1 18 8a4.5 4.5 0 0 1-.5 10z"/>',
+    sunny: '<circle cx="12" cy="12" r="4.5" fill="#ffd60a" stroke="#ffb300"/><path stroke="#ffb300" d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/>',
+    partly: '<circle cx="9" cy="9" r="3.5" fill="#ffd60a" stroke="#ffb300"/><path d="M9 20a4 4 0 0 1-.5-8 5 5 0 0 1 9.6.7A3.7 3.7 0 0 1 18 20z" fill="#fff" stroke="#d1d5db"/>',
+    cloudy: '<path d="M7 19a5 5 0 0 1-.7-9.9A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 10z" fill="#e5e7eb" stroke="#9ca3af"/>',
+    fog: '<path d="M4 9h16M3 13h18M5 17h14" stroke="#cbd5e1"/>',
+    rain: '<path d="M7 14a4.5 4.5 0 0 1-.6-8.9A5.5 5.5 0 0 1 17 6a4 4 0 0 1-.5 8z" fill="#e5e7eb" stroke="#9ca3af"/><path d="M8 17l-1 3M12 17l-1 3M16 17l-1 3" stroke="#60a5fa"/>',
+    snow: '<path d="M7 13a4.5 4.5 0 0 1-.6-8.9A5.5 5.5 0 0 1 17 5a4 4 0 0 1-.5 8z" fill="#e5e7eb" stroke="#9ca3af"/><path d="M8 17h.01M12 19h.01M16 17h.01M10 21h.01M14 21h.01" stroke="#fff" stroke-width="3"/>',
+    storm: '<path d="M7 13a4.5 4.5 0 0 1-.6-8.9A5.5 5.5 0 0 1 17 5a4 4 0 0 1-.5 8z" fill="#9ca3af" stroke="#6b7280"/><path d="M13 13l-3 4h3l-2 4" stroke="#ffd60a"/>'
+  };
+  PatOS.symPaths = P;
+  PatOS.sym = (name, cls) => `<svg class="sym${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name] || ''}</svg>`;
+  // emoji that the interface used to use as icons, and the drawn symbol that replaces each one
+  const MAP = {
+    '🖥': 'desktop', '📄': 'doc', '⬇': 'download', '⬆': 'upload', '🖼': 'image', '🎵': 'music', '🏠': 'home', '🚀': 'apps', '🗑': 'trash', '⚙': 'gear', '🎨': 'palette', '🧭': 'dock',
+    '🔊': 'speaker', '🔇': 'mute', '🔒': 'lock', '📶': 'wifi', '⌨': 'keyboard', '💾': 'save', '🗂': 'folder', '📊': 'chart', '📽': 'slides', '📋': 'form', '🌙': 'moon', '☀': 'sun', '◐': 'contrast',
+    '⛶': 'fullscreen', '✦': 'sparkle', '♪': 'note', '🕘': 'history', '📸': 'camera', '📷': 'camera', '🔍': 'search', '🖨': 'print', '🔗': 'link', '🧹': 'broom', '🪣': 'bucket', '🖍': 'marker',
+    '🖌': 'brush', '✏': 'pencil', '🧽': 'eraser', '💨': 'spray', '💧': 'drop', '🌈': 'rainbow', '✋': 'hand', '🗒': 'sticky', '⏮': 'prev', '⏭': 'next', '⏸': 'pause', '▶': 'play', '📍': 'pin',
+    '💎': 'gem', '⚡': 'bolt', '🎂': 'cake', '⏰': 'alarm', '🪟': 'window', '🧱': 'wall', '🌡': 'thermo', '🌅': 'sunrise', '🌇': 'sunset', '📅': 'calendar', '🕒': 'clock', '👍': 'thumb',
+    '⚠': 'warn', '☁': 'cloudy', '⛅': 'partly', '🌤': 'partly', '🌫': 'fog', '🌦': 'rain', '🌧': 'rain', '🌨': 'snow', '❄': 'snow', '⛈': 'storm', '📂': 'folder', '☀️': 'sunny'
+  };
+  const WEATHER = { '☀': 'sunny', '🌤': 'partly', '⛅': 'partly', '☁': 'cloudy', '🌫': 'fog', '🌦': 'rain', '🌧': 'rain', '🌨': 'snow', '❄': 'snow', '⛈': 'storm' };
+  /* used by PatOS.h: turns an emoji icon (alone, or at the start of a label) into a drawn symbol */
+  PatOS.symFor = function (str) {
+    if (!str || str.length > 60) return null;
+    const s = str.replace(/️/g, '');
+    const m = /^(\S{1,2}?)(?:\s+(.*))?$/u.exec(s); if (!m) return null;
+    const icon = m[1], rest = m[2];
+    const name = MAP[icon]; if (!name) return null;
+    const wrap = document.createElement('span'); wrap.className = 'symw';
+    wrap.innerHTML = PatOS.sym(WEATHER[icon] && !rest ? WEATHER[icon] : name, WEATHER[icon] && !rest ? 'wx' : '');
+    if (rest === undefined) return wrap;
+    const frag = document.createDocumentFragment(); frag.appendChild(wrap); frag.appendChild(document.createTextNode(' ' + rest)); return frag;
+  };
+})();

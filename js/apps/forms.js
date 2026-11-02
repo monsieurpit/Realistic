@@ -69,7 +69,7 @@
           main.innerHTML = '';
           let score = '';
           if (form.quiz) { const g = grade(answers); score = 'You scored ' + g.right + ' / ' + g.total; }
-          main.appendChild(h('div', { class: 'fm-card fm-head fm-thanks' }, h('h1', {}, '✅ Response recorded'), score ? h('p', { class: 'fm-score' }, score) : null, h('button', { class: 'btn', onclick: render }, 'Submit another response')));
+          main.appendChild(h('div', { class: 'fm-card fm-head fm-thanks' }, h('h1', {}, 'Thanks, your answers were sent'), score ? h('p', { class: 'fm-score' }, score) : null, h('button', { class: 'btn', onclick: render }, 'Submit another response')));
         };
         main.appendChild(submit);
       }

@@ -31,7 +31,7 @@
 
       const cmds = {
         help() {
-          text('PatOS Terminal — available commands:');
+          text('Commands you can use:');
           [['ls [dir]', 'list files'], ['cd <dir>', 'change folder'], ['pwd', 'print current folder'], ['cat <file>', 'show a file'], ['touch <file>', 'create an empty file'],
            ['mkdir <dir>', 'make a folder'], ['rm <path>', 'move to Trash'], ['mv <src> <dir>', 'move'], ['cp <src> <dir>', 'copy'], ['echo <text> [> file]', 'print or write text'],
            ['tree', 'show folder tree'], ['open <app|file>', 'open an app or file'], ['apps', 'list apps'], ['calc <expr>', 'calculator'], ['date', 'current date'], ['whoami', 'your name'],
@@ -97,7 +97,7 @@
             `<span class="ty">Shell</span>: patsh 1.0`,
             `<span class="ty">Resolution</span>: ${screen.width}x${screen.height}`,
             `<span class="ty">Theme</span>: ${PatOS.settings.theme}`,
-            `<span class="ty">GPU</span>: ${PatOS.has3D ? 'WebGL ✓ (three.js r' + THREE.REVISION + ')' : 'none'}`,
+            `<span class="ty">GPU</span>: ${PatOS.has3D ? 'WebGL (three.js r' + THREE.REVISION + ')' : 'none'}`,
             `<span class="ty">CPU</span>: ${navigator.hardwareConcurrency || '?'} cores`,
             `<span class="ty">Memory</span>: ${navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'unknown'}`,
             `<span class="ty">Apps</span>: ${PatOS.appOrder.length}`,
@@ -116,7 +116,7 @@
         history() { text(hist.map((c, i) => String(i + 1).padStart(4) + '  ' + c).join('\n')); },
         clear() { out.innerHTML = ''; },
         exit() { win.close(); },
-        sudo() { text('Nice try 😎  ' + user + ' is not in the sudoers file. This incident will be reported.', 'err'); },
+        sudo() { text('Nice try. ' + user + ' is not in the sudoers file. This incident will be reported.', 'err'); },
         cowsay(a) {
           const msg = a.join(' ') || 'Moo! Welcome to PatOS.';
           text(' ' + '_'.repeat(msg.length + 2) + '\n< ' + msg + ' >\n ' + '-'.repeat(msg.length + 2) + '\n        \\   ^__^\n         \\  (oo)\\_______\n            (__)\\       )\\/\\\n                ||----w |\n                ||     ||');

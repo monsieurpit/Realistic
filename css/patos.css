@@ -342,3 +342,13 @@ body.mission-on #windows { z-index: 11; }
 .cc-toggle .cc-dot { transition: background .2s, transform .2s var(--spring); }
 .cc-toggle:active .cc-dot { transform: scale(.88); }
 .switch::after { transition: transform .28s var(--spring); }
+
+/* drawn interface symbols */
+.symw { display: inline-flex; align-items: center; justify-content: center; vertical-align: -3px; }
+.sym { width: 1.15em; height: 1.15em; flex: 0 0 auto; }
+.tbtn .sym, .ob .sym { width: 17px; height: 17px; }
+.cc-dot .sym { width: 16px; height: 16px; }
+.sym.wx { width: 1.6em; height: 1.6em; stroke-width: 1.5; }
+.fd-si .sym, .st-ic .sym, .dv-si .sym { width: 16px; height: 16px; }
+.st-ic { background: var(--accent) !important; color: #fff; }
+.st-si.on .st-ic { background: rgba(255,255,255,.25) !important; }

@@ -79,7 +79,7 @@
       function showOverlay(kind) {
         overlay.classList.remove('hidden'); overlay.innerHTML = '';
         if (kind === 'menu') overlay.append(h('h1', {}, 'ORB RUNNER'), h('p', {}, '← → or A / D to switch lanes · Space / ↑ to jump'), h('p', {}, 'Dodge the blocks, grab the gems. It gets faster!'), h('button', { class: 'or-btn', onclick: start }, '▶  PLAY'), h('small', {}, 'Best: ' + S.best));
-        else overlay.append(h('h1', {}, 'GAME OVER'), h('p', {}, 'Score ' + S.score + ' · Gems ' + S.gems), h('p', {}, S.score >= S.best ? '🏆 New best!' : 'Best: ' + S.best), h('button', { class: 'or-btn', onclick: start }, '↻  PLAY AGAIN'));
+        else overlay.append(h('h1', {}, 'GAME OVER'), h('p', {}, 'Score ' + S.score + ' · Gems ' + S.gems), h('p', {}, S.score >= S.best ? 'New personal best' : 'Best: ' + S.best), h('button', { class: 'or-btn', onclick: start }, '↻  PLAY AGAIN'));
       }
       function start() { overlay.classList.add('hidden'); reset(); S.state = 'play'; stage.focus(); }
       const moveLane = (d) => { if (S.state !== 'play') return; const n = Math.max(0, Math.min(2, S.lane + d)); if (n !== S.lane) { S.lane = n; PatOS.sound.tone(500 + n * 120, 0.06, { vol: 0.06 }); } };
@@ -134,7 +134,7 @@
         cam.position.set(S.x * 0.5 + (Math.random() - 0.5) * S.shake, 4 + (Math.random() - 0.5) * S.shake, 8);
         cam.lookAt(S.x * 0.3, 1, -10);
         cam.fov = 65 + (S.speed - 18) * 0.4; cam.updateProjectionMatrix();
-        hud.innerHTML = playing || S.state === 'pause' ? `<b>${S.score}</b><span>💎 ${S.gems}</span><span>⚡ ${Math.round(S.speed * 3.6)} km/h</span>` : '';
+        hud.innerHTML = playing || S.state === 'pause' ? `<b>${S.score}</b><span>${PatOS.sym('gem')} ${S.gems}</span><span>${PatOS.sym('bolt')} ${Math.round(S.speed * 3.6)} km/h</span>` : '';
         renderer.render(scene, cam);
       };
       resize(); showOverlay('menu'); loop();

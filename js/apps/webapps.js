@@ -24,7 +24,7 @@
       function show(z) {
         const d = z || 0.06;
         frame.src = `https://www.openstreetmap.org/export/embed.html?bbox=${lon - d * 1.6}%2C${lat - d}%2C${lon + d * 1.6}%2C${lat + d}&layer=mapnik&marker=${lat}%2C${lon}`;
-        info.textContent = '📍 ' + label; info.classList.remove('hidden');
+        info.textContent = label; info.classList.remove('hidden');
       }
       q.addEventListener('keydown', async (e) => {
         if (e.key !== 'Enter' || !q.value.trim()) return;

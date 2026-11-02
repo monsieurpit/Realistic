@@ -12,7 +12,7 @@
       win.body.appendChild(h('div', { class: 'ab' }, canvas, h('div', { class: 'ab-info' }, h('h1', {}, 'PatOS'), h('div', { class: 'ab-ver' }, 'Version ' + PatOS.version),
         ...info.map(([k, v]) => h('div', { class: 'ab-row' }, h('span', {}, k), h('b', {}, v))),
         h('div', { class: 'ab-btns' }, h('button', { class: 'btn', onclick: () => PatOS.launch('settings') }, 'System Settings…'), h('button', { class: 'btn', onclick: () => PatOS.launch('activity') }, 'Activity…')),
-        h('small', { class: 'ab-cr' }, 'Made for Pat · Runs in your browser'))));
+        h('small', { class: 'ab-cr' }, 'Made by Pat'))));
       if (!PatOS.has3D) return;
       const r = PatOS.makeRenderer(canvas); r.setSize(200, 200, false);
       const scene = new THREE.Scene(); const cam = new THREE.PerspectiveCamera(40, 1, 0.1, 50); cam.position.z = 7;

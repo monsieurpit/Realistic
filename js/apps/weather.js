@@ -24,7 +24,7 @@
       win.body.append(fx, content);
       let raf = 0, mode = 'clear';
 
-      const search = h('input', { class: 'wx-search', placeholder: '🔍 Search city', spellcheck: 'false' });
+      const search = h('input', { class: 'wx-search', placeholder: 'Search for a city', spellcheck: 'false' });
       const bUnit = h('button', { class: 'wx-unit' });
       const bLoc = h('button', { class: 'wx-unit', title: 'Use my location' }, '➤');
       const top = h('div', { class: 'wx-top' }, search, bLoc, bUnit);
@@ -40,7 +40,7 @@
           draw(await r.json());
         } catch (e) {
           main.innerHTML = '';
-          main.appendChild(h('div', { class: 'wx-loading' }, '⚠️ Can’t reach the weather service.', h('br'), h('small', {}, PatOS.sandboxed ? 'Claude Artifacts block live data. Open PatOS from its own website to see the weather.' : 'Check your internet connection (some school networks block it).'), h('br'), h('button', { class: 'btn', onclick: load, style: { marginTop: '12px' } }, 'Try again')));
+          main.appendChild(h('div', { class: 'wx-loading' }, 'Can’t get the weather right now.', h('br'), h('small', {}, PatOS.sandboxed ? 'Claude Artifacts block live data. Open PatOS from its own website to see the weather.' : 'Check your internet connection (some school networks block it).'), h('br'), h('button', { class: 'btn', onclick: load, style: { marginTop: '12px' } }, 'Try again')));
           setMode('cloud');
         }
       }

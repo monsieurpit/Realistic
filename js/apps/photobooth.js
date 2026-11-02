@@ -23,7 +23,7 @@
         try {
           stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
           video.srcObject = stream; msg.remove();
-        } catch (e) { msg.innerHTML = '📷<br>Camera not available.<br><small>Allow camera access in your browser (or ask your school admin).</small>'; }
+        } catch (e) { msg.innerHTML = PatOS.sym('camera', 'big') + '<br>' + PatOS.t('The camera isn’t available.') + '<br><small>' + PatOS.t('Allow camera access in your browser settings. On a school Chromebook it may be turned off.') + '</small>'; }
       }
       shoot.onclick = async () => {
         if (!stream) return;

@@ -14,7 +14,7 @@
     if (hm === lastMin) return; lastMin = hm;
     (PatOS.store.get('alarms', []) || []).forEach((a) => {
       if (!a.on || a.time !== hm) return;
-      PatOS.notify({ title: '⏰ ' + (a.label || PatOS.t('Alarm')), body: d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }), icon: 'clock', duration: 15000 });
+      PatOS.notify({ title: a.label || PatOS.t('Alarm'), body: d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }), icon: 'clock', duration: 15000 });
       for (let i = 0; i < 8; i++) { PatOS.sound.tone(880, 0.18, { delay: i * 0.5, vol: 0.25, type: 'square' }); PatOS.sound.tone(1100, 0.18, { delay: i * 0.5 + 0.22, vol: 0.2, type: 'square' }); }
       if (PatOS.mobile && PatOS.mobile.islandAlert) PatOS.mobile.islandAlert(a.label || PatOS.t('Alarm'), 'clock');
     });

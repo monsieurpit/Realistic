@@ -38,7 +38,7 @@
       function render() {
         grid.innerHTML = '';
         board.forEach((v, i) => { const c = h('button', { class: 'ttt-cell ' + (v || '') + (over && over.line && over.line.includes(i) ? ' win' : '') }, v || ''); c.onclick = () => { if (mode === 'cpu' && turn === 'O') return; play(i); }; grid.appendChild(c); });
-        status.textContent = over ? (over.p === 'draw' ? "It's a draw!" : (mode === 'cpu' ? (over.p === 'X' ? 'You win! 🎉' : 'Computer wins 🤖') : over.p + ' wins! 🎉')) : (mode === 'cpu' ? (turn === 'X' ? 'Your turn (X)' : 'Computer is thinking…') : turn + "'s turn");
+        status.textContent = over ? (over.p === 'draw' ? "It's a draw." : (mode === 'cpu' ? (over.p === 'X' ? 'You win.' : 'The computer wins.') : over.p + ' wins.')) : (mode === 'cpu' ? (turn === 'X' ? 'Your turn (X)' : 'Computer is thinking…') : turn + "'s turn");
         sc.innerHTML = `<span class="X">X ${score.X}</span><span>Draws ${score.D}</span><span class="O">O ${score.O}</span>`;
       }
       reset();

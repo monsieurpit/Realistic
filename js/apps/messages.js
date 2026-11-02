@@ -24,43 +24,43 @@
     let t = text.trim(); if (FR()) t = fromFrench(t);
     const l = t.toLowerCase(); let m;
     const name = PatOS.settings.userName;
-    if (/^(hi|hey|hello|yo|sup)\b/.test(l)) return L(`Hey ${name}! 👋 I can open apps, do math, tell the time, save notes and reminders, or tell you a joke. Type "help" to see everything.`, `Salut ${name}! 👋 Je peux ouvrir des apps, faire des calculs, donner l’heure, prendre des notes et des rappels, ou raconter une blague. Écris « aide » pour tout voir.`);
-    if (/\bhelp\b|what can you do/.test(l)) return L('Try:\n• open galaxy\n• what time is it?\n• 24 * 17 + 3\n• remind me to study for math\n• note: buy pencils\n• tell me a joke / a fact\n• flip a coin / roll a die\n• dark mode / light mode\n• change wallpaper\n• play music', 'Essaie :\n• ouvre galaxie\n• quelle heure est-il?\n• 24 * 17 + 3\n• rappelle-moi d’étudier les maths\n• note : acheter des crayons\n• raconte une blague / une anecdote\n• pile ou face / lance un dé\n• mode sombre / mode clair\n• change le fond d’écran\n• joue de la musique');
+    if (/^(hi|hey|hello|yo|sup)\b/.test(l)) return L(`Hey ${name}. What do you need? I can open an app, do a quick calculation, add a reminder, or just tell you a bad joke. Type "help" for the full list.`, `Salut ${name}. Qu’est-ce qu’il te faut? Je peux ouvrir une app, faire un calcul, ajouter un rappel ou te raconter une mauvaise blague. Écris « aide » pour la liste complète.`);
+    if (/\bhelp\b|what can you do/.test(l)) return L('Here’s what you can ask me:\n• open galaxy\n• what time is it?\n• 24 * 17 + 3\n• remind me to study for math\n• note: buy pencils\n• tell me a joke / a fact\n• flip a coin / roll a die\n• dark mode / light mode\n• change wallpaper\n• play music', 'Voici ce que tu peux me demander :\n• ouvre galaxie\n• quelle heure est-il?\n• 24 * 17 + 3\n• rappelle-moi d’étudier les maths\n• note : acheter des crayons\n• raconte une blague / une anecdote\n• pile ou face / lance un dé\n• mode sombre / mode clair\n• change le fond d’écran\n• joue de la musique');
     if ((m = l.match(/^(open|launch|start)\s+(.+)/))) {
       const q = m[2].replace(/[.!?]$/, '').trim();
       const nm = (k) => [PatOS.apps[k].name.toLowerCase(), PatOS.t(PatOS.apps[k].name).toLowerCase()];
       const id = PatOS.appOrder.find((k) => nm(k).includes(q) || k === q) || PatOS.appOrder.find((k) => nm(k).some((n) => n.includes(q)));
-      if (id) { setTimeout(() => PatOS.launch(id), 500); return L(`Opening ${PatOS.apps[id].name} 🚀`, `J’ouvre ${PatOS.t(PatOS.apps[id].name)} 🚀`); }
-      return L(`I couldn't find an app called "${q}". Say "list apps" to see them all.`, `Je ne trouve pas d’app appelée « ${q} ». Écris « liste des apps » pour toutes les voir.`);
+      if (id) { setTimeout(() => PatOS.launch(id), 500); return L(`Sure, opening ${PatOS.apps[id].name}.`, `D’accord, j’ouvre ${PatOS.t(PatOS.apps[id].name)}.`); }
+      return L(`Hmm, I don’t have an app called "${q}". Say "list apps" and I’ll show you what’s there.`, `Hmm, je n’ai pas d’app appelée « ${q} ». Écris « liste des apps » et je te montre ce qu’il y a.`);
     }
-    if (/list (all )?apps|what apps/.test(l)) return L('Your apps: ', 'Tes apps : ') + PatOS.appOrder.filter((k) => !PatOS.apps[k].hidden).map((k) => PatOS.t(PatOS.apps[k].name)).join(', ') + '.';
-    if (/\btime\b/.test(l)) return L('It’s ', 'Il est ') + new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) + ' ⏰';
-    if (/\b(date|day is it|today)\b/.test(l)) return L('Today is ', 'Nous sommes le ') + new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + ' 📅';
+    if (/list (all )?apps|what apps/.test(l)) return L('Here’s everything you’ve got: ', 'Voici tout ce que tu as : ') + PatOS.appOrder.filter((k) => !PatOS.apps[k].hidden).map((k) => PatOS.t(PatOS.apps[k].name)).join(', ') + '.';
+    if (/\btime\b/.test(l)) return L('It’s ', 'Il est ') + new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) + '.';
+    if (/\b(date|day is it|today)\b/.test(l)) return L('Today is ', 'On est le ') + new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + '.';
     if ((m = t.match(/^(?:remind me to|reminder:?|add reminder:?)\s+(.+)/i))) {
       const items = PatOS.store.get('reminders', []); items.push({ id: Date.now(), text: m[1], done: false }); PatOS.store.set('reminders', items);
-      return L(`✅ Added to Reminders: “${m[1]}”`, `✅ Ajouté aux Rappels : « ${m[1]} »`);
+      return L(`Got it. I added “${m[1]}” to your reminders.`, `C’est noté. J’ai ajouté « ${m[1]} » à tes rappels.`);
     }
     if ((m = t.match(/^(?:note:?|take a note:?|write down:?)\s+(.+)/i))) {
       const notes = PatOS.store.get('notes', []) || []; notes.unshift({ id: PatOS.uid(), title: m[1].slice(0, 40), body: '<div>' + PatOS.esc(m[1]) + '</div>', mtime: Date.now() }); PatOS.store.set('notes', notes);
-      return L('📝 Saved a new note. Open Notes to see it.', '📝 Nouvelle note enregistrée. Ouvre Notes pour la voir.');
+      return L('Saved. You’ll find it at the top of Notes.', 'C’est enregistré. Tu la trouveras en haut de Notes.');
     }
-    if (/joke/.test(l)) return pick(FR() ? JOKES_FR : JOKES) + ' 😄';
-    if (/fact/.test(l)) return '🤓 ' + pick(FR() ? FACTS_FR : FACTS);
-    if (/flip a coin|coin flip/.test(l)) return Math.random() < 0.5 ? L('🪙 Heads!', '🪙 Pile!') : L('🪙 Tails!', '🪙 Face!');
-    if ((m = l.match(/roll (?:a )?(?:die|dice|d(\d+))/))) { const n = +(m[1] || 6); return L('🎲 You rolled a ', '🎲 Tu as obtenu ') + (1 + Math.floor(Math.random() * n)); }
-    if (/dark mode/.test(l)) { PatOS.setSetting('theme', 'dark'); return L('🌙 Dark mode on.', '🌙 Mode sombre activé.'); }
-    if (/light mode/.test(l)) { PatOS.setSetting('theme', 'light'); return L('☀️ Light mode on.', '☀️ Mode clair activé.'); }
-    if (/wallpaper/.test(l)) { const all = [...Object.keys(PatOS.wallpaper.live), ...Object.keys(PatOS.wallpaper.palettes)]; const next = all[(all.indexOf(PatOS.settings.wallpaper) + 1) % all.length]; PatOS.setSetting('wallpaper', next); return L('🖼 Switched the wallpaper to ', '🖼 Nouveau fond d’écran : ') + PatOS.t((PatOS.wallpaper.live[next] || PatOS.wallpaper.palettes[next]).name) + '.'; }
-    if (/play (some )?music|play a song/.test(l)) { PatOS.launch('music'); setTimeout(() => PatOS.music && !PatOS.music.nowPlaying() && PatOS.music.toggle(), 600); return L('🎵 Here comes a song.', '🎵 Voici une chanson.'); }
-    if (/weather/.test(l)) { setTimeout(() => PatOS.launch('weather'), 400); return L('🌤 Opening Weather for you.', '🌤 J’ouvre la Météo.'); }
-    if (/who are you|your name/.test(l)) return L('I’m Pat, the assistant built into PatOS. I live on your computer, so I don’t need the internet.', 'Je suis Pat, l’assistant intégré à PatOS. Je vis sur ton appareil, alors je n’ai pas besoin d’Internet.');
-    if (/thank/.test(l)) return L('Anytime! 😊', 'Avec plaisir! 😊');
-    if (/how are you/.test(l)) return L('Running at 60 frames per second and feeling great. You?', 'Je roule à 60 images par seconde et je me sens super bien. Et toi?');
+    if (/joke/.test(l)) return pick(FR() ? JOKES_FR : JOKES);
+    if (/fact/.test(l)) return L('Fun fact: ', 'Le savais-tu? ') + pick(FR() ? FACTS_FR : FACTS);
+    if (/flip a coin|coin flip/.test(l)) return Math.random() < 0.5 ? L('Heads.', 'Pile.') : L('Tails.', 'Face.');
+    if ((m = l.match(/roll (?:a )?(?:die|dice|d(\d+))/))) { const n = +(m[1] || 6); return L('You rolled a ', 'Tu as fait ') + (1 + Math.floor(Math.random() * n)) + '.'; }
+    if (/dark mode/.test(l)) { PatOS.setSetting('theme', 'dark'); return L('Done, dark mode is on.', 'C’est fait, le mode sombre est activé.'); }
+    if (/light mode/.test(l)) { PatOS.setSetting('theme', 'light'); return L('Done, light mode is on.', 'C’est fait, le mode clair est activé.'); }
+    if (/wallpaper/.test(l)) { const all = [...Object.keys(PatOS.wallpaper.live), ...Object.keys(PatOS.wallpaper.palettes)]; const next = all[(all.indexOf(PatOS.settings.wallpaper) + 1) % all.length]; PatOS.setSetting('wallpaper', next); return L('New wallpaper: ', 'Nouveau fond d’écran : ') + PatOS.t((PatOS.wallpaper.live[next] || PatOS.wallpaper.palettes[next]).name) + '.'; }
+    if (/play (some )?music|play a song/.test(l)) { PatOS.launch('music'); setTimeout(() => PatOS.music && !PatOS.music.nowPlaying() && PatOS.music.toggle(), 600); return L('Putting on a song.', 'Je mets une chanson.'); }
+    if (/weather/.test(l)) { setTimeout(() => PatOS.launch('weather'), 400); return L('Here’s the weather.', 'Voici la météo.'); }
+    if (/who are you|your name/.test(l)) return L('I’m Pat. I live inside PatOS on your device, so I work even without internet.', 'Moi c’est Pat. Je vis dans PatOS sur ton appareil, alors je marche même sans Internet.');
+    if (/thank/.test(l)) return L('Anytime.', 'Avec plaisir.');
+    if (/how are you/.test(l)) return L('Pretty good, thanks. How about you?', 'Ça va bien, merci. Et toi?');
     const expr = t.replace(/[x×]/g, '*').replace(/÷/g, '/').replace(/what is|what's|calculate|=|\?/gi, '').replace(/,/g, '.').trim();
-    if (/^[\d\s+\-*/().%^]+$/.test(expr) && /\d/.test(expr)) { try { const v = Function('"use strict";return (' + expr.replace(/\^/g, '**') + ')')(); if (Number.isFinite(v)) return '🧮 ' + expr + ' = ' + (+v.toPrecision(12)); } catch (e) {} }
-    if (/^(search|google|look up)\s+/.test(l)) { const q = t.replace(/^(search|google|look up)\s+/i, ''); setTimeout(() => PatOS.launch('browser', { url: q }), 400); return L('🔎 Searching the web for “', '🔎 Je cherche « ') + q + L('”', ' » sur le Web'); }
-    if ((m = l.match(/^(?:define|meaning of|what does (.+) mean)\s*(.*)/))) { const w = (m[1] || m[2]).trim(); setTimeout(() => PatOS.launch('dictionary', { word: w }), 400); return L('📖 Looking up “' + w + '” in Dictionary.', '📖 Je cherche « ' + w + ' » dans le Dictionnaire.'); }
-    return pick(FR() ? ['Hmm, je ne suis pas sûr. Écris « aide » pour voir ce que je peux faire.', 'Je ne sais pas encore ça! Essaie « aide ».'] : ['Hmm, I’m not sure about that one. Type "help" to see what I can do.', 'I don’t know that yet! Try "help".', 'Interesting! I can’t answer that, but I can open apps, do math and keep reminders.']);
+    if (/^[\d\s+\-*/().%^]+$/.test(expr) && /\d/.test(expr)) { try { const v = Function('"use strict";return (' + expr.replace(/\^/g, '**') + ')')(); if (Number.isFinite(v)) return expr + ' = ' + (+v.toPrecision(12)); } catch (e) {} }
+    if (/^(search|google|look up)\s+/.test(l)) { const q = t.replace(/^(search|google|look up)\s+/i, ''); setTimeout(() => PatOS.launch('browser', { url: q }), 400); return L('Looking up “', 'Je cherche « ') + q + L('” on the web.', ' » sur le Web.'); }
+    if ((m = l.match(/^(?:define|meaning of|what does (.+) mean)\s*(.*)/))) { const w = (m[1] || m[2]).trim(); setTimeout(() => PatOS.launch('dictionary', { word: w }), 400); return L('Let me look up “' + w + '”.', 'Je cherche « ' + w + ' ».'); }
+    return pick(FR() ? ['Je ne suis pas sûr de comprendre. Écris « aide » pour voir ce que je sais faire.', 'Ça, je ne sais pas encore le faire. Essaie « aide ».'] : ['I’m not sure what you mean. Type "help" to see what I can do.', 'That one’s beyond me for now. Try "help".', 'I can’t answer that, sorry. I’m better at opening apps, quick math and reminders.']);
   }
   PatOS.assistantReply = reply;
 
@@ -68,7 +68,7 @@
     id: 'messages', name: 'Messages', icon: 'messages', width: 760, height: 560, keywords: 'chat assistant bot pat siri ai text',
     about: 'Chat with Pat, the assistant built into PatOS.',
     launch(win) {
-      let log = PatOS.store.get('chatLog', null) || [{ from: 'pat', text: PatOS.lang === 'fr' ? `Salut ${PatOS.settings.userName}! Je suis Pat, ton assistant PatOS. Demande-moi d’ouvrir une app, de faire un calcul, d’ajouter un rappel ou de raconter une blague. Écris « aide » pour en voir plus.` : `Hi ${PatOS.settings.userName}! I’m Pat, your PatOS assistant. Ask me to open an app, do math, add a reminder or tell a joke. Type "help" to see more.`, t: Date.now() }];
+      let log = PatOS.store.get('chatLog', null) || [{ from: 'pat', text: PatOS.lang === 'fr' ? `Salut ${PatOS.settings.userName}, moi c’est Pat. Demande-moi d’ouvrir une app, de faire un calcul ou d’ajouter un rappel. Écris « aide » si tu veux la liste.` : `Hi ${PatOS.settings.userName}, I’m Pat. Ask me to open an app, do some math or add a reminder. Type "help" if you want the list.`, t: Date.now() }];
       const side = h('div', { class: 'msg-side' }, h('div', { class: 'msg-conv on' }, h('div', { class: 'msg-av' }, 'P'), h('div', {}, h('b', {}, 'Pat'), h('small', {}, 'PatOS Assistant'))));
       const list = h('div', { class: 'msg-list' });
       const input = h('input', { class: 'msg-in', placeholder: 'iMessage', spellcheck: 'true' });

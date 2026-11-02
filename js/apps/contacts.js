@@ -51,7 +51,7 @@
         const copy = (v) => navigator.clipboard && navigator.clipboard.writeText(v).then(() => PatOS.notify({ title: PatOS.t('Copied'), body: v, icon: 'contacts' })).catch(() => {});
         const age = c.birthday ? Math.floor((Date.now() - new Date(c.birthday + 'T12:00')) / 31557600000) : null;
         card.append(h('div', { class: 'ct-head center' }, avatar(c, true), h('h1', {}, fullName(c)),
-          h('div', { class: 'ct-actions' }, h('button', { class: 'btn', onclick: () => { c.fav = !c.fav; save(); render(); } }, c.fav ? '★ Favorite' : '☆ Favorite'), h('button', { class: 'btn', onclick: () => { editing = true; render(); } }, 'Edit'), h('button', { class: 'btn', onclick: () => PatOS.launch('messages') }, 'Message'))));
+          h('div', { class: 'ct-actions' }, h('button', { class: 'btn', onclick: () => { c.fav = !c.fav; save(); render(); } }, c.fav ? 'Favorite' : 'Add to Favorites'), h('button', { class: 'btn', onclick: () => { editing = true; render(); } }, 'Edit'), h('button', { class: 'btn', onclick: () => PatOS.launch('messages') }, 'Message'))));
         const rows = h('div', { class: 'ct-info' });
         FIELDS.forEach(([k, label]) => {
           if (!c[k]) return;
@@ -75,7 +75,7 @@
   setTimeout(() => {
     const d = new Date(), md = String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     if (PatOS.store.get('bdayChecked') === d.toDateString()) return;
-    (PatOS.store.get('contacts', []) || []).forEach((c) => { if (c.birthday && c.birthday.slice(5) === md) PatOS.notify({ title: '🎂 ' + PatOS.t('Birthday today'), body: [c.first, c.last].filter(Boolean).join(' '), icon: 'contacts' }); });
+    (PatOS.store.get('contacts', []) || []).forEach((c) => { if (c.birthday && c.birthday.slice(5) === md) PatOS.notify({ title: PatOS.t('Birthday today'), body: [c.first, c.last].filter(Boolean).join(' '), icon: 'contacts' }); });
     PatOS.store.set('bdayChecked', d.toDateString());
   }, 15000);
 })();

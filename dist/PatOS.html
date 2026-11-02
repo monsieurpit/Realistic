@@ -358,6 +358,16 @@ body.mission-on #windows { z-index: 11; }
 .cc-toggle:active .cc-dot { transform: scale(.88); }
 .switch::after { transition: transform .28s var(--spring); }
 
+/* drawn interface symbols */
+.symw { display: inline-flex; align-items: center; justify-content: center; vertical-align: -3px; }
+.sym { width: 1.15em; height: 1.15em; flex: 0 0 auto; }
+.tbtn .sym, .ob .sym { width: 17px; height: 17px; }
+.cc-dot .sym { width: 16px; height: 16px; }
+.sym.wx { width: 1.6em; height: 1.6em; stroke-width: 1.5; }
+.fd-si .sym, .st-ic .sym, .dv-si .sym { width: 16px; height: 16px; }
+.st-ic { background: var(--accent) !important; color: #fff; }
+.st-si.on .st-ic { background: rgba(255,255,255,.25) !important; }
+
 </style>
   <style>
 /* ================= PatOS app styles ================= */
@@ -1312,6 +1322,10 @@ html.mobile, html.mobile body { overscroll-behavior: none; touch-action: manipul
 .ss-btns { display: flex; gap: 8px; }
 .br-tic { width: 16px; height: 16px; border-radius: 4px; flex: 0 0 auto; background: center/contain no-repeat; } .br-tic.none { display: none; }
 .br-fav.img { background: none; object-fit: contain; }
+.nt-item.pinned b::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: #ff9f0a; margin-right: 6px; vertical-align: 2px; }
+.sym.big { width: 44px; height: 44px; opacity: .6; }
+.or-hud .sym { width: 16px; height: 16px; vertical-align: -2px; }
+.br-lock .sym { width: 13px; height: 13px; }
 
 </style>
   <style>
@@ -1531,6 +1545,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
     for (const kid of kids.flat()) {
       if (kid == null || kid === false) continue;
+      if (typeof kid === 'string' && PatOS.symFor && /[^\x00-\x7F]/.test(kid.slice(0, 3))) { const sym = PatOS.symFor(kid); if (sym) { el.appendChild(sym); continue; } }
       el.appendChild(typeof kid === 'string' || typeof kid === 'number' ? document.createTextNode(String(kid)) : kid);
     }
     return el;
@@ -2064,8 +2079,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'New Tab': 'Nouvel onglet', 'New tab': 'Nouvel onglet', 'Close tab': 'Fermer l’onglet', 'Reload': 'Actualiser', 'Search Google or type a URL': 'Rechercher sur Google ou saisir une URL', 'Search Patoogle or type a web address': 'Rechercher sur Patoogle ou taper une adresse Web', 'Bookmark this page': 'Ajouter cette page aux favoris',
     'Open in a real browser tab': 'Ouvrir hors de PatOS', 'Open outside PatOS': 'Ouvrir hors de PatOS', 'Open in New Tab': 'Ouvrir dans un nouvel onglet', 'Delete Bookmark': 'Supprimer le favori',
     'Good morning': 'Bonjour', 'Good afternoon': 'Bon après-midi', 'Good evening': 'Bonsoir',
-    'Websites load right inside PatOS. Some sites refuse to be shown inside other apps; for those, use the PatOS apps above.': 'Les sites Web s’ouvrent directement dans PatOS. Certains sites refusent d’être affichés dans d’autres apps; pour ceux-là, utilisez les apps PatOS ci-dessus.',
-    'This website blocks being shown inside other apps, so it can’t load in Patoogle. Try searching for it with Google above, or use the matching PatOS app (YouTube, Docs, Drive, Maps, Translate).': 'Ce site refuse d’être affiché dans d’autres apps, alors il ne peut pas s’ouvrir dans Patoogle. Cherchez-le avec Google ci-dessus, ou utilisez l’app PatOS correspondante (YouTube, Docs, Drive, Plans, Traduire).',
+    'Most sites open right here. A few big ones, like Gmail, won’t load inside other apps, so use the PatOS app for those.': 'La plupart des sites s’ouvrent ici. Quelques gros sites, comme Gmail, refusent de s’ouvrir dans d’autres apps; utilisez l’app PatOS pour ceux-là.',
+    'This site doesn’t let other apps show it, so it won’t open in Patoogle. You can search for it instead, or use the PatOS app that does the same thing (YouTube, Docs, Drive, Maps or Translate).': 'Ce site refuse d’être affiché dans d’autres apps, alors il ne peut pas s’ouvrir dans Patoogle. Cherchez-le avec Google ci-dessus, ou utilisez l’app PatOS correspondante (YouTube, Docs, Drive, Plans, Traduire).',
     // notes / textedit
     'New note': 'Nouvelle note', 'Delete note': 'Supprimer la note', 'Bold': 'Gras', 'Italic': 'Italique', 'Underline': 'Souligné', 'Heading': 'Titre', 'Bulleted list': 'Liste à puces', 'Checkbox': 'Case à cocher',
     'Pin to top': 'Épingler en haut', 'Unpin': 'Désépingler', 'Export as .txt to Documents': 'Exporter en .txt dans Documents', 'Delete': 'Supprimer', 'No additional text': 'Aucun texte supplémentaire', 'New Note': 'Nouvelle note',
@@ -2082,9 +2097,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Light Rain': 'Pluie légère', 'Rain': 'Pluie', 'Heavy Rain': 'Forte pluie', 'Freezing Rain': 'Pluie verglaçante', 'Light Snow': 'Neige légère', 'Snow': 'Neige', 'Heavy Snow': 'Forte neige', 'Snow Grains': 'Grésil',
     'Showers': 'Averses', 'Heavy Showers': 'Fortes averses', 'Snow Showers': 'Averses de neige', 'Thunderstorm': 'Orage', 'Now': 'Maintenant', 'Try again': 'Réessayer', 'City not found': 'Ville introuvable',
     'Use my location': 'Utiliser ma position', 'My Location': 'Ma position', 'Location blocked': 'Position bloquée', 'Search for your city instead.': 'Recherchez plutôt votre ville.', 'Search failed': 'La recherche a échoué',
-    '⚠️ Can’t reach the weather service.': '⚠️ Impossible de joindre le service météo.', 'Check your internet connection (some school networks block it).': 'Vérifiez votre connexion Internet (certains réseaux scolaires la bloquent).',
+    'Can’t reach the weather service.': 'Impossible de joindre le service météo.', 'Check your internet connection (some school networks block it).': 'Vérifiez votre connexion Internet (certains réseaux scolaires la bloquent).',
     // music / photos / paint / booth
-    'PatOS Originals': 'Originaux PatOS', 'Your Files': 'Vos fichiers', 'Play an audio file from your computer': 'Jouer un fichier audio de l’ordinateur', '⬆ Import': '⬆ Importer',
+    'PatOS Originals': 'Originaux PatOS', 'Your Files': 'Vos fichiers', 'Play an audio file from your computer': 'Jouer un fichier audio de l’ordinateur', 'Import': 'Importer',
     'Library': 'Bibliothèque', 'Art': 'Art', 'Import photos': 'Importer des photos', 'Import Photos': 'Importer des photos', 'No photos yet': 'Aucune photo pour l’instant', '‹ All Photos': '‹ Toutes les photos',
     'Take pictures in Photo Booth, draw in Paint, or import images from your computer.': 'Prenez des photos dans Photo Booth, dessinez dans Dessin ou importez des images de l’ordinateur.',
     'Set as Wallpaper': 'Utiliser comme fond d’écran', 'Download': 'Télécharger', 'Wallpaper set': 'Fond d’écran modifié',
@@ -2102,7 +2117,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Show seconds in menu bar': 'Afficher les secondes dans la barre des menus', 'About this computer': 'À propos de cet ordinateur', 'Highlight color': 'Couleur de mise en valeur', 'Liquid Glass': 'Liquid Glass',
     'See-through glass for the dock, menus, panels and widgets': 'Verre transparent pour le Dock, les menus, les panneaux et les widgets', 'Glass bends the background': 'Le verre déforme l’arrière-plan',
     'Works in Chrome. Uses more battery.': 'Fonctionne dans Chrome. Consomme plus de batterie.', 'Reduce transparency': 'Réduire la transparence',
-    'Solid windows — faster on older Chromebooks': 'Fenêtres opaques, plus rapide sur les vieux Chromebooks', 'Fewer animations': 'Moins d’animations', 'Live 3D Wallpapers': 'Fonds d’écran 3D animés',
+    'Solid windows. Runs faster on older Chromebooks.': 'Fenêtres opaques. Plus rapide sur les vieux Chromebooks.', 'Fewer animations': 'Moins d’animations', 'Live 3D Wallpapers': 'Fonds d’écran 3D animés',
     'Animated with three.js. They react to your mouse!': 'Animés avec three.js. Ils réagissent à votre souris!', 'Animate 3D wallpaper': 'Animer le fond d’écran 3D', 'Turn off to save battery': 'Désactivez pour économiser la batterie',
     'Your own picture': 'Votre propre image', 'Choose a Photo…': 'Choisir une photo…', 'Size': 'Taille', 'Grow icons under the pointer': 'Agrandir les icônes sous le pointeur', 'How much icons grow': 'Taille de l’agrandissement',
     'Automatically hide the Dock': 'Masquer automatiquement le Dock', 'Show desktop widgets': 'Afficher les widgets sur le bureau', 'Apps in the Dock': 'Apps dans le Dock', 'Desktop icons': 'Icônes du bureau', 'Clean Up': 'Ranger',
@@ -2110,7 +2125,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Low (best for older Chromebooks)': 'Basse (idéal pour les vieux Chromebooks)', 'Balanced': 'Équilibrée', 'High (sharpest)': 'Haute (la plus nette)', 'Output volume': 'Volume de sortie',
     'Play user interface sounds': 'Jouer les sons de l’interface', 'Test': 'Tester', 'Play Startup Chime': 'Jouer le son de démarrage', 'Login password': 'Mot de passe d’ouverture', 'Set': 'Définir',
     'Leave empty for no password. This only protects PatOS, not your computer.': 'Laissez vide pour ne pas avoir de mot de passe. Il protège seulement PatOS, pas votre ordinateur.',
-    'Status': 'État', 'Connection type': 'Type de connexion', 'Speed estimate': 'Vitesse estimée', 'Unknown': 'Inconnu', '🟢 Connected': '🟢 Connecté', '🔴 Offline': '🔴 Hors ligne',
+    'Status': 'État', 'Connection type': 'Type de connexion', 'Speed estimate': 'Vitesse estimée', 'Unknown': 'Inconnu', 'Connected': 'Connecté', 'Offline': 'Hors ligne',
     'PatOS uses Alt because Chromebooks reserve most Ctrl shortcuts.': 'PatOS utilise Alt parce que les Chromebooks réservent la plupart des raccourcis Ctrl.',
     'Spotlight search': 'Recherche Spotlight', 'Close window': 'Fermer la fenêtre', 'Quit app': 'Quitter l’app', 'Zoom window': 'Agrandir la fenêtre', 'Tile window left / right': 'Placer la fenêtre à gauche / à droite',
     'New window': 'Nouvelle fenêtre', 'Cycle windows': 'Changer d’app', 'Patoogle browser': 'Navigateur Patoogle', 'Close menus & overlays': 'Fermer les menus',
@@ -2121,16 +2136,16 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Windows': 'Fenêtres', 'Memory used': 'Mémoire utilisée', 'Items on screen': 'Éléments à l’écran', 'Time on': 'Allumé depuis', 'App': 'App', 'Items': 'Éléments', 'No apps are open': 'Aucune app ouverte',
     // 3d apps
     'Galaxy Generator': 'Générateur de galaxie', 'Stars': 'Étoiles', 'Arms': 'Bras', 'Radius': 'Rayon', 'Spin': 'Rotation', 'Spread': 'Dispersion', 'Star size': 'Taille des étoiles', 'Rotation speed': 'Vitesse de rotation',
-    'Core': 'Cœur', 'Edge': 'Bord', 'Spiral': 'Spirale', 'Nebula': 'Nébuleuse', 'Ring': 'Anneau', 'Vortex': 'Vortex', '⚙ Controls': '⚙ Réglages', 'Toggle controls': 'Afficher les réglages', 'Save picture to Photos': 'Enregistrer l’image dans Photos',
+    'Core': 'Cœur', 'Edge': 'Bord', 'Spiral': 'Spirale', 'Nebula': 'Nébuleuse', 'Ring': 'Anneau', 'Vortex': 'Vortex', 'Controls': 'Réglages', 'Toggle controls': 'Afficher les réglages', 'Save picture to Photos': 'Enregistrer l’image dans Photos',
     'Drag to orbit · scroll to zoom · click to make a supernova': 'Glissez pour tourner · défilez pour zoomer · cliquez pour une supernova', 'Galaxy saved': 'Galaxie enregistrée',
     'Add Shape': 'Ajouter une forme', 'Cube': 'Cube', 'Sphere': 'Sphère', 'Torus': 'Tore', 'Knot': 'Nœud', 'Cone': 'Cône', 'Cylinder': 'Cylindre', 'Gem': 'Gemme', 'Select a shape to edit it.': 'Sélectionnez une forme pour la modifier.',
     'Color': 'Couleur', 'Height': 'Hauteur', 'Left / Right': 'Gauche / Droite', 'Front / Back': 'Avant / Arrière', 'Metal': 'Métal', 'Matte': 'Mat', 'Spinning': 'Tourne', 'Outline': 'Contour',
     '⟳ Auto-rotate': '⟳ Rotation auto', 'Save to Photos': 'Enregistrer dans Photos', 'Scene saved': 'Scène enregistrée', 'Click a shape to select · drag empty space to orbit · scroll to zoom': 'Cliquez une forme pour la choisir · glissez le vide pour tourner · défilez pour zoomer',
-    '▶  PLAY': '▶  JOUER', '↻  PLAY AGAIN': '↻  REJOUER', 'GAME OVER': 'PARTIE TERMINÉE', 'PAUSED': 'PAUSE', 'RESUME': 'REPRENDRE', '🏆 New best!': '🏆 Nouveau record!',
+    '▶  PLAY': '▶  JOUER', '↻  PLAY AGAIN': '↻  REJOUER', 'GAME OVER': 'PARTIE TERMINÉE', 'PAUSED': 'PAUSE', 'RESUME': 'REPRENDRE', 'New best!': 'Nouveau record!',
     '← → or A / D to switch lanes · Space / ↑ to jump': '← → ou A / D pour changer de voie · Espace / ↑ pour sauter', 'Dodge the blocks, grab the gems. It gets faster!': 'Évitez les blocs, attrapez les gemmes. Ça accélère!',
     'vs Computer': 'contre l’ordinateur', 'vs Friend': 'contre un ami', 'Unbeatable': 'Imbattable', 'Easy': 'Facile', 'New Game': 'Nouvelle partie', 'Your turn (X)': 'À vous (X)', 'Computer is thinking…': 'L’ordinateur réfléchit…',
-    'You win! 🎉': 'Vous gagnez! 🎉', 'Computer wins 🤖': 'L’ordinateur gagne 🤖', "It's a draw!": 'Match nul!',
-    'Version': 'Version', 'Device': 'Appareil', 'Browser': 'Navigateur', 'Graphics': 'Graphismes', 'Activity…': 'Activité…', 'Made for Pat · Runs in your browser': 'Fait pour Pat · Fonctionne dans votre navigateur',
+    'You win! ': 'Vous gagnez! ', 'Computer wins ': 'L’ordinateur gagne ', "It's a draw!": 'Match nul!',
+    'Version': 'Version', 'Device': 'Appareil', 'Browser': 'Navigateur', 'Graphics': 'Graphismes', 'Activity…': 'Activité…', 'Made by Pat': 'Fait par Pat',
     // messages / app store / code / piano / cards / typing / memos / stickies / dictionary
     'PatOS Assistant': 'Assistant PatOS', 'help': 'aide', 'tell me a joke': 'raconte une blague', 'open galaxy': 'ouvre galaxie', 'what time is it?': 'quelle heure est-il?', 'remind me to study': 'rappelle-moi d’étudier',
     'Discover': 'Découvrir', 'All Apps': 'Toutes les apps', 'Search apps': 'Rechercher des apps', 'Results': 'Résultats', 'Essentials': 'Essentiels', 'Hidden Apps': 'Apps masquées', 'APP OF THE DAY': 'APP DU JOUR', 'FEATURED': 'EN VEDETTE',
@@ -2140,8 +2155,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     '● Record': '● Enregistrer', '■ Stop': '■ Arrêter', '▶ Play': '▶ Lire', 'Organ': 'Orgue', 'Synth': 'Synthé', 'Bell': 'Cloche',
     'Use your keyboard: A S D F G H J K L for white keys, W E T Y U O P for black keys, or tap the keys.': 'Utilisez le clavier : A S D F G H J K L pour les touches blanches, W E T Y U O P pour les noires, ou touchez les touches.',
     'Your Decks': 'Vos paquets', '+ New Deck': '+ Nouveau paquet', 'Study': 'Étudier', 'Delete Deck': 'Supprimer le paquet', '+ Add Card': '+ Ajouter une carte', 'Front': 'Recto', 'Show Answer': 'Voir la réponse',
-    '✗ Didn’t know': '✗ Je ne savais pas', '✓ Got it': '✓ Je savais', 'Click the card or press Space to flip': 'Cliquez sur la carte ou appuyez sur Espace pour la retourner', 'Study Again': 'Étudier encore', 'All Decks': 'Tous les paquets',
-    '‹ Decks': '‹ Paquets', 'Perfect! 🎉': 'Parfait! 🎉', 'Great job! 💪': 'Bravo! 💪', 'Keep practicing! 📚': 'Continuez à pratiquer! 📚', 'Name your new deck': 'Nommez votre nouveau paquet',
+    'Didn’t know': 'Je ne savais pas', 'Knew it': 'Je savais', 'Click the card or press Space to flip': 'Cliquez sur la carte ou appuyez sur Espace pour la retourner', 'Study Again': 'Étudier encore', 'All Decks': 'Tous les paquets',
+    '‹ Decks': '‹ Paquets', 'Perfect! ': 'Parfait! ', 'Great job! ': 'Bravo! ', 'Keep practicing! ': 'Continuez à pratiquer! ', 'Name your new deck': 'Nommez votre nouveau paquet',
     'New Text': 'Nouveau texte', 'WPM': 'MPM', 'Accuracy': 'Précision', 'Best': 'Record', 'Start typing to begin the timer. Press Esc to restart.': 'Commencez à taper pour lancer le chrono. Échap pour recommencer.',
     'All Recordings': 'Tous les enregistrements', 'Tap the red button to record your first memo.': 'Touchez le bouton rouge pour enregistrer votre premier mémo.', 'Write something…': 'Écrivez quelque chose…', 'New sticky': 'Nouveau post-it',
     'Look up a word': 'Chercher un mot', 'Type a word above and press Enter.': 'Tapez un mot ci-dessus et appuyez sur Entrée.', 'Looking up…': 'Recherche…', 'No definition found': 'Aucune définition trouvée', 'Synonyms: ': 'Synonymes : ',
@@ -2167,7 +2182,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Questions': 'Questions', 'Answer': 'Répondre', 'Responses': 'Réponses', 'Form title': 'Titre du formulaire', 'Form description': 'Description du formulaire', 'Question': 'Question', 'Multiple choice': 'Choix multiples',
     'Checkboxes': 'Cases à cocher', 'Short answer': 'Réponse courte', 'Paragraph': 'Paragraphe', 'Linear scale 1–5': 'Échelle de 1 à 5', '+ Add option': '+ Ajouter une option', ' Required': ' Obligatoire', 'Required': 'Obligatoire',
     '+ Add question': '+ Ajouter une question', ' Make this a quiz (mark the right answers to grade it)': ' En faire un quiz (cochez les bonnes réponses pour noter)', 'Correct answer': 'Bonne réponse', 'Correct answer (optional)': 'Bonne réponse (facultatif)',
-    'Submit': 'Envoyer', '✅ Response recorded': '✅ Réponse enregistrée', 'Submit another response': 'Envoyer une autre réponse', 'Please answer every required question': 'Répondez à toutes les questions obligatoires',
+    'Submit': 'Envoyer', 'Response recorded': 'Réponse enregistrée', 'Submit another response': 'Envoyer une autre réponse', 'Please answer every required question': 'Répondez à toutes les questions obligatoires',
     'Delete all responses': 'Supprimer toutes les réponses', 'Delete all responses?': 'Supprimer toutes les réponses?', 'No responses yet. Use the Answer tab to fill in the form.': 'Aucune réponse. Utilisez l’onglet Répondre pour remplir le formulaire.',
     'Untitled form': 'Formulaire sans titre', 'Untitled question': 'Question sans titre', 'Untitled spreadsheet': 'Feuille sans titre', 'Untitled presentation': 'Présentation sans titre',
     'Enter text': 'Saisissez du texte', 'Swap languages': 'Inverser les langues', 'Listen': 'Écouter', 'Recent': 'Récents', 'Translations by MyMemory (needs internet)': 'Traductions par MyMemory (Internet requis)', 'Copied': 'Copié',
@@ -2182,7 +2197,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Open “Credentials” › “Create credentials” › “API key”, and copy the key.': 'Ouvrez « Identifiants » › « Créer des identifiants » › « Clé API », puis copiez la clé.',
     'Paste it below. It stays only on this device.': 'Collez-la ci-dessous. Elle reste seulement sur cet appareil.',
     'Comments are turned off for this video.': 'Les commentaires sont désactivés pour cette vidéo.', 'This video is unavailable.': 'Cette vidéo n’est pas disponible.',
-    'Add a YouTube API key in settings (⚙) to see the title, comments and more videos.': 'Ajoutez une clé d’API YouTube dans les réglages (⚙) pour voir le titre, les commentaires et d’autres vidéos.',
+    'Add a YouTube API key in settings () to see the title, comments and more videos.': 'Ajoutez une clé d’API YouTube dans les réglages () pour voir le titre, les commentaires et d’autres vidéos.',
     'Search for a place': 'Rechercher un lieu', 'My location': 'Ma position', 'Open in Google Maps': 'Ouvrir dans Google Maps', 'Your location': 'Votre position',
     // dialogs and misc
     'Got it': 'Compris', 'Create': 'Créer', 'Copied': 'Copié', 'Error': 'Erreur', 'Yes': 'Oui', 'No': 'Non',
@@ -2191,13 +2206,23 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Downloads are off here': 'Téléchargements désactivés ici', 'Not supported': 'Non pris en charge', 'This browser can’t keep the screen on.': 'Ce navigateur ne peut pas garder l’écran allumé.',
     'No recent apps': 'Aucune app récente', 'Close App': 'Fermer l’app', 'Hide App': 'Masquer l’app', 'Edit Home Screen in Settings': 'Modifier l’écran d’accueil dans Réglages',
     'Press Enter to log in ': 'Appuyez sur Entrée ',
-    'Your own desktop that runs in any browser — even a school Chromebook.': 'Votre propre bureau qui fonctionne dans n’importe quel navigateur, même sur un Chromebook d’école.',
-    'Ask Pat': 'Demander à Pat', 'History': 'Historique', 'No history yet': 'Aucun historique', 'Clear History': 'Effacer l’historique',
+    'A full desktop that runs in your browser, even on a school Chromebook.': 'Un bureau complet qui fonctionne dans votre navigateur, même sur un Chromebook d’école.',
+    'Ask Pat': 'Demander à Pat',
+    'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
+    'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 'Offline': 'Hors ligne', 'Connected': 'Connecté',
+    'Not available on this device': 'Non disponible sur cet appareil', 'Search for a city': 'Rechercher une ville', 'The camera isn’t available.': 'La caméra n’est pas disponible.',
+    'Allow camera access in your browser settings. On a school Chromebook it may be turned off.': 'Autorisez la caméra dans les réglages du navigateur. Sur un Chromebook d’école, elle est peut-être désactivée.',
+    'Commands you can use:': 'Commandes disponibles :', 'Made by Pat': 'Fait par Pat', 'Can’t get the weather right now.': 'Impossible d’obtenir la météo pour l’instant.', 'Bing': 'Bing',
+    'A web browser with tabs. Searches go through Bing, since Google won’t show its results inside other apps.': 'Un navigateur avec onglets. Les recherches passent par Bing, car Google refuse d’afficher ses résultats dans d’autres apps.',
+    'Most sites open right here. A few big ones, like Gmail, won’t load inside other apps, so use the PatOS app for those.': 'La plupart des sites s’ouvrent ici. Quelques gros sites, comme Gmail, refusent de s’ouvrir dans d’autres apps; utilisez l’app PatOS pour ceux-là.',
+    'This site doesn’t let other apps show it, so it won’t open in Patoogle. You can search for it instead, or use the PatOS app that does the same thing (YouTube, Docs, Drive, Maps or Translate).': 'Ce site ne se laisse pas afficher par d’autres apps, alors il ne s’ouvre pas dans Patoogle. Vous pouvez le chercher à la place, ou utiliser l’app PatOS qui fait la même chose (YouTube, Docs, Drive, Plans ou Traduire).',
+    'Solid windows. Runs faster on older Chromebooks.': 'Fenêtres opaques. Plus rapide sur les vieux Chromebooks.', 'A full desktop that runs in your browser, even on a school Chromebook.': 'Un bureau complet qui fonctionne dans votre navigateur, même sur un Chromebook d’école.',
+    'Controls': 'Réglages', 'Import': 'Importer', 'That’s the fastest you’ve typed so far.': 'C’est le plus vite que vous avez tapé jusqu’ici.', 'History': 'Historique', 'No history yet': 'Aucun historique', 'Clear History': 'Effacer l’historique',
     // newer apps
     'Contacts': 'Contacts', 'Freeform': 'Freeform', 'Preview': 'Aperçu', 'Chess': 'Échecs', 'Screenshot': 'Capture d’écran', 'Patoogle': 'Patoogle',
     'No Name': 'Sans nom', 'New contact': 'Nouveau contact', 'Import or export': 'Importer ou exporter', 'No contacts yet. Press + to add one.': 'Aucun contact. Appuyez sur + pour en ajouter un.',
     'Select a contact or add a new one.': 'Choisissez un contact ou ajoutez-en un.', 'First name': 'Prénom', 'Last name': 'Nom', 'Phone': 'Téléphone', 'Email': 'Courriel', 'Birthday': 'Anniversaire', 'Address': 'Adresse',
-    'Delete Contact': 'Supprimer le contact', 'Delete this contact?': 'Supprimer ce contact?', '★ Favorite': '★ Favori', '☆ Favorite': '☆ Favori', 'Message': 'Message', 'Change photo': 'Changer la photo',
+    'Delete Contact': 'Supprimer le contact', 'Delete this contact?': 'Supprimer ce contact?', 'Favorite': 'Favori', 'Favorite': 'Favori', 'Message': 'Message', 'Change photo': 'Changer la photo',
     'Press Edit to add a phone number, email or birthday.': 'Appuyez sur Édition pour ajouter un numéro, un courriel ou un anniversaire.', 'Import a vCard (.vcf)…': 'Importer une vCard (.vcf)…', 'Export all as vCard': 'Tout exporter en vCard',
     'contacts imported': 'contacts importés', 'Birthday today': 'Anniversaire aujourd’hui',
     'Select and move': 'Sélectionner et déplacer', 'Draw': 'Dessiner', 'Sticky note': 'Note autocollante', 'Text': 'Texte', 'Box': 'Boîte', 'Add a picture': 'Ajouter une image', 'Fit everything': 'Tout afficher', 'Boards': 'Tableaux',
@@ -2228,7 +2253,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     [/^Press Ctrl\+Space to search, Alt\+L for Launchpad\.$/, () => 'Ctrl+Espace pour rechercher, Alt+L pour le Launchpad.'],
     [/^(\d+) cards( · best (\d+)%)?$/, (m) => m[1] + ' cartes' + (m[2] ? ' · record ' + m[3] + ' %' : '')], [/^(\d+) of (\d+) correct$/, (m) => m[1] + ' sur ' + m[2] + ' bonnes réponses'],
     [/^(\d+) responses?$/, (m) => m[1] + ' réponse' + (+m[1] > 1 ? 's' : '')], [/^(\d+) questions$/, (m) => m[1] + ' questions'], [/^You scored (.+)$/, (m) => 'Votre note : ' + m[1]], [/^Average score: (.+)$/, (m) => 'Note moyenne : ' + m[1]],
-    [/^Search Google for (.+)$/, (m) => 'Rechercher ' + m[1] + ' sur Google'], [/^Search the web for “(.+)”$/, (m) => 'Rechercher « ' + m[1] + ' » sur le Web'],
+    [/^Search Google for (.+)$/, (m) => 'Rechercher ' + m[1] + ' sur Google'], [/^Search the web for ([^“].*)$/, (m) => 'Rechercher ' + m[1] + ' sur le Web'], [/^Available \(three\.js r(\d+)\)$/, (m) => 'Disponible (three.js r' + m[1] + ')'], [/^(.+) can’t be shown inside PatOS$/, (m) => m[1] + ' ne peut pas s’afficher dans PatOS'], [/^New best: (\d+) WPM$/, (m) => 'Nouveau record : ' + m[1] + ' MPM'], [/^Search the web for “(.+)”$/, (m) => 'Rechercher « ' + m[1] + ' » sur le Web'],
     [/^Octave (\d+)$/, (m) => 'Octave ' + m[1]], [/^(\d+) left$/, (m) => m[1] + ' restant' + (+m[1] > 1 ? 's' : '')], [/^Lap (\d+)$/, (m) => 'Tour ' + m[1]],
     [/^(Document|Spreadsheet|Presentation|Form) · (.+)$/, (m) => t(m[1]) + ' · ' + m[2]], [/^([\d.,KMB]+) views( · (.+))?$/, (m) => m[1] + ' vues' + (m[3] ? ' · ' + ago(m[3]) : '')], [/^(\d+ \w+s? ago)$/, (m) => ago(m[1])],
     [/^Sum: (.+?)   Average: (.+?)   Count: (.+)$/, (m) => 'Somme : ' + m[1] + '   Moyenne : ' + m[2] + '   Nombre : ' + m[3]], [/^(\d+) filled$/, (m) => m[1] + ' remplies'],
@@ -2479,6 +2504,114 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (docIc) return PatOS.iconHTML(docIc);
     if (kind === 'link') return PatOS.iconHTML('linkfile');
     return PatOS.iconHTML('file', PatOS.fs.ext(name) || 'txt');
+  };
+})();
+
+/* ---------- interface symbols: simple line icons used instead of emoji ---------- */
+(function () {
+  'use strict';
+  const P = {
+    desktop: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/>',
+    doc: '<path d="M7 3h7l5 5v13H7z"/><path d="M14 3v5h5M10 13h6M10 17h6"/>',
+    download: '<path d="M12 4v11M7 10l5 5 5-5M5 20h14"/>',
+    upload: '<path d="M12 20V9M7 14l5-5 5 5M5 4h14"/>',
+    image: '<rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="9" cy="10" r="1.8"/><path d="M21 16l-5-5-9 8"/>',
+    music: '<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/>',
+    home: '<path d="M4 11l8-7 8 7v9H5z"/><path d="M10 20v-6h4v6"/>',
+    apps: '<rect x="4" y="4" width="6" height="6" rx="1.5"/><rect x="14" y="4" width="6" height="6" rx="1.5"/><rect x="4" y="14" width="6" height="6" rx="1.5"/><rect x="14" y="14" width="6" height="6" rx="1.5"/>',
+    trash: '<path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M12 2.5v3M12 18.5v3M2.5 12h3M18.5 12h3M5.3 5.3l2.1 2.1M16.6 16.6l2.1 2.1M5.3 18.7l2.1-2.1M16.6 7.4l2.1-2.1"/>',
+    palette: '<path d="M12 3a9 9 0 0 0 0 18c1.5 0 2-1 2-2s-1-1.5-1-2.5 1-1.5 2-1.5h2a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1.2"/><circle cx="10" cy="7" r="1.2"/><circle cx="15" cy="7" r="1.2"/>',
+    dock: '<rect x="3" y="4" width="18" height="16" rx="2"/><rect x="6" y="15" width="12" height="3" rx="1.5"/>',
+    display: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M9 20h6"/>',
+    speaker: '<path d="M4 10v4h4l5 4V6L8 10z"/><path d="M16 9a4 4 0 0 1 0 6M18.5 6.5a8 8 0 0 1 0 11"/>',
+    mute: '<path d="M4 10v4h4l5 4V6L8 10z"/><path d="M17 9l5 6M22 9l-5 6"/>',
+    lock: '<rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/>',
+    wifi: '<path d="M2 9a15 15 0 0 1 20 0M5 12.5a10 10 0 0 1 14 0M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19" r="1" fill="currentColor"/>',
+    keyboard: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M7 14h10"/>',
+    storage: '<ellipse cx="12" cy="6" rx="8" ry="3"/><path d="M4 6v12c0 1.7 3.6 3 8 3s8-1.3 8-3V6M4 12c0 1.7 3.6 3 8 3s8-1.3 8-3"/>',
+    folder: '<path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>',
+    sheet: '<rect x="4" y="3" width="16" height="18" rx="2"/><path d="M4 9h16M4 15h16M10 3v18"/>',
+    slides: '<rect x="3" y="4" width="18" height="12" rx="2"/><path d="M12 16v4M8 20h8"/>',
+    form: '<rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/>',
+    moon: '<path d="M20 14.5A8 8 0 0 1 9.5 4a8 8 0 1 0 10.5 10.5z"/>',
+    sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>',
+    contrast: '<circle cx="12" cy="12" r="9"/><path d="M12 3v18a9 9 0 0 0 0-18z" fill="currentColor"/>',
+    fullscreen: '<path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/>',
+    sparkle: '<path d="M12 3l2 6 6 2-6 2-2 6-2-6-6-2 6-2z"/>',
+    note: '<path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/>',
+    history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>',
+    camera: '<path d="M4 8h3l2-3h6l2 3h3v11H4z"/><circle cx="12" cy="13" r="3.5"/>',
+    search: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l5 5"/>',
+    save: '<path d="M5 3h11l3 3v15H5z"/><path d="M8 3v5h7V3M8 21v-7h8v7"/>',
+    print: '<path d="M7 9V3h10v6"/><rect x="3" y="9" width="18" height="8" rx="2"/><path d="M7 14h10v7H7z"/>',
+    link: '<path d="M10 14a4 4 0 0 0 6 0l3-3a4 4 0 0 0-6-6l-1 1M14 10a4 4 0 0 0-6 0l-3 3a4 4 0 0 0 6 6l1-1"/>',
+    chart: '<path d="M4 20V4M4 20h16"/><rect x="7" y="12" width="3" height="6"/><rect x="12" y="8" width="3" height="10"/><rect x="17" y="5" width="3" height="13"/>',
+    broom: '<path d="M14 4l6 6M12 6l6 6-7 7H6l-1-5z"/>',
+    bucket: '<path d="M5 10l7-7 7 7-7 7z"/><path d="M19 14s2 2.5 2 4a2 2 0 0 1-4 0c0-1.5 2-4 2-4z"/>',
+    marker: '<path d="M15 4l5 5-9 9H6v-5z"/><path d="M4 20h7"/>',
+    brush: '<path d="M18 3l3 3-9 9-3-3z"/><path d="M9 12c-3 0-5 2-5 5 0 2-1 3-2 3 5 1 9-1 9-5"/>',
+    pencil: '<path d="M16 3l5 5L8 21H3v-5z"/><path d="M13 6l5 5"/>',
+    eraser: '<path d="M8 20l-5-5 10-10 7 7-8 8z"/><path d="M8 20h12M10 9l6 6"/>',
+    spray: '<rect x="7" y="9" width="8" height="12" rx="2"/><path d="M9 9V6h4v3M17 5h.01M19 7h.01M19 3h.01M21 5h.01"/>',
+    drop: '<path d="M12 3s7 7 7 12a7 7 0 0 1-14 0c0-5 7-12 7-12z"/>',
+    rainbow: '<path d="M3 18a9 9 0 0 1 18 0M7 18a5 5 0 0 1 10 0"/>',
+    hand: '<path d="M8 13V5a1.5 1.5 0 0 1 3 0v6M11 11V3.5a1.5 1.5 0 0 1 3 0V11M14 11V5a1.5 1.5 0 0 1 3 0v8c0 4-2 8-7 8-3 0-5-2-6-4l-2-4a1.5 1.5 0 0 1 2.6-1.5L8 14"/>',
+    sticky: '<path d="M4 4h16v10l-6 6H4z"/><path d="M14 20v-6h6"/>',
+    play: '<path d="M7 4l13 8-13 8z" fill="currentColor"/>',
+    pause: '<rect x="6" y="4" width="4" height="16" rx="1" fill="currentColor"/><rect x="14" y="4" width="4" height="16" rx="1" fill="currentColor"/>',
+    prev: '<path d="M6 5v14"/><path d="M20 5L9 12l11 7z" fill="currentColor"/>',
+    next: '<path d="M18 5v14"/><path d="M4 5l11 7-11 7z" fill="currentColor"/>',
+    pin: '<path d="M12 21s-7-6.5-7-12a7 7 0 0 1 14 0c0 5.5-7 12-7 12z"/><circle cx="12" cy="9" r="2.5"/>',
+    gem: '<path d="M6 3h12l4 6-10 12L2 9z"/><path d="M2 9h20M12 21L8 9l4-6 4 6z"/>',
+    bolt: '<path d="M13 2L4 14h7l-1 8 9-12h-7z"/>',
+    cake: '<path d="M4 21h16v-8H4zM4 16c2 1 4 1 5.3 0s4.4-1 5.4 0 3.3 1 5.3 0M12 13V9M12 6a1 1 0 0 1 0-2c0 1 1 1 0 2z"/>',
+    alarm: '<circle cx="12" cy="13" r="7"/><path d="M12 9v4l2 2M5 3L2 6M19 3l3 3"/>',
+    window: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/>',
+    wall: '<rect x="3" y="4" width="18" height="16" rx="1"/><path d="M3 9h18M3 14h18M9 4v5M15 9v5M9 14v6"/>',
+    thermo: '<path d="M14 14V5a2 2 0 0 0-4 0v9a4 4 0 1 0 4 0z"/>',
+    wind: '<path d="M3 8h11a3 3 0 1 0-3-3M3 12h16a3 3 0 1 1-3 3M3 16h8"/>',
+    sunrise: '<path d="M4 18h16M7 18a5 5 0 0 1 10 0M12 4v5M9 7l3-3 3 3M3 13l2 1M21 13l-2 1"/>',
+    sunset: '<path d="M4 18h16M7 18a5 5 0 0 1 10 0M12 9V4M9 6l3 3 3-3M3 13l2 1M21 13l-2 1"/>',
+    calendar: '<rect x="3" y="5" width="18" height="16" rx="2"/><path d="M3 10h18M8 3v4M16 3v4"/>',
+    clock: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    thumb: '<path d="M7 11v9H4v-9zM7 11l4-8c2 0 3 1 3 3v3h5a2 2 0 0 1 2 2l-2 7a2 2 0 0 1-2 2H7"/>',
+    flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+    warn: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
+    check: '<path d="M4 12l5 5L20 6"/>',
+    star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+    cloud: '<path d="M7 18a5 5 0 0 1-.7-9.9A6 6 0 0 1 18 8a4.5 4.5 0 0 1-.5 10z"/>',
+    sunny: '<circle cx="12" cy="12" r="4.5" fill="#ffd60a" stroke="#ffb300"/><path stroke="#ffb300" d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/>',
+    partly: '<circle cx="9" cy="9" r="3.5" fill="#ffd60a" stroke="#ffb300"/><path d="M9 20a4 4 0 0 1-.5-8 5 5 0 0 1 9.6.7A3.7 3.7 0 0 1 18 20z" fill="#fff" stroke="#d1d5db"/>',
+    cloudy: '<path d="M7 19a5 5 0 0 1-.7-9.9A6 6 0 0 1 18 9a4.5 4.5 0 0 1-.5 10z" fill="#e5e7eb" stroke="#9ca3af"/>',
+    fog: '<path d="M4 9h16M3 13h18M5 17h14" stroke="#cbd5e1"/>',
+    rain: '<path d="M7 14a4.5 4.5 0 0 1-.6-8.9A5.5 5.5 0 0 1 17 6a4 4 0 0 1-.5 8z" fill="#e5e7eb" stroke="#9ca3af"/><path d="M8 17l-1 3M12 17l-1 3M16 17l-1 3" stroke="#60a5fa"/>',
+    snow: '<path d="M7 13a4.5 4.5 0 0 1-.6-8.9A5.5 5.5 0 0 1 17 5a4 4 0 0 1-.5 8z" fill="#e5e7eb" stroke="#9ca3af"/><path d="M8 17h.01M12 19h.01M16 17h.01M10 21h.01M14 21h.01" stroke="#fff" stroke-width="3"/>',
+    storm: '<path d="M7 13a4.5 4.5 0 0 1-.6-8.9A5.5 5.5 0 0 1 17 5a4 4 0 0 1-.5 8z" fill="#9ca3af" stroke="#6b7280"/><path d="M13 13l-3 4h3l-2 4" stroke="#ffd60a"/>'
+  };
+  PatOS.symPaths = P;
+  PatOS.sym = (name, cls) => `<svg class="sym${cls ? ' ' + cls : ''}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${P[name] || ''}</svg>`;
+  // emoji that the interface used to use as icons, and the drawn symbol that replaces each one
+  const MAP = {
+    '🖥': 'desktop', '📄': 'doc', '⬇': 'download', '⬆': 'upload', '🖼': 'image', '🎵': 'music', '🏠': 'home', '🚀': 'apps', '🗑': 'trash', '⚙': 'gear', '🎨': 'palette', '🧭': 'dock',
+    '🔊': 'speaker', '🔇': 'mute', '🔒': 'lock', '📶': 'wifi', '⌨': 'keyboard', '💾': 'save', '🗂': 'folder', '📊': 'chart', '📽': 'slides', '📋': 'form', '🌙': 'moon', '☀': 'sun', '◐': 'contrast',
+    '⛶': 'fullscreen', '✦': 'sparkle', '♪': 'note', '🕘': 'history', '📸': 'camera', '📷': 'camera', '🔍': 'search', '🖨': 'print', '🔗': 'link', '🧹': 'broom', '🪣': 'bucket', '🖍': 'marker',
+    '🖌': 'brush', '✏': 'pencil', '🧽': 'eraser', '💨': 'spray', '💧': 'drop', '🌈': 'rainbow', '✋': 'hand', '🗒': 'sticky', '⏮': 'prev', '⏭': 'next', '⏸': 'pause', '▶': 'play', '📍': 'pin',
+    '💎': 'gem', '⚡': 'bolt', '🎂': 'cake', '⏰': 'alarm', '🪟': 'window', '🧱': 'wall', '🌡': 'thermo', '🌅': 'sunrise', '🌇': 'sunset', '📅': 'calendar', '🕒': 'clock', '👍': 'thumb',
+    '⚠': 'warn', '☁': 'cloudy', '⛅': 'partly', '🌤': 'partly', '🌫': 'fog', '🌦': 'rain', '🌧': 'rain', '🌨': 'snow', '❄': 'snow', '⛈': 'storm', '📂': 'folder', '☀️': 'sunny'
+  };
+  const WEATHER = { '☀': 'sunny', '🌤': 'partly', '⛅': 'partly', '☁': 'cloudy', '🌫': 'fog', '🌦': 'rain', '🌧': 'rain', '🌨': 'snow', '❄': 'snow', '⛈': 'storm' };
+  /* used by PatOS.h: turns an emoji icon (alone, or at the start of a label) into a drawn symbol */
+  PatOS.symFor = function (str) {
+    if (!str || str.length > 60) return null;
+    const s = str.replace(/️/g, '');
+    const m = /^(\S{1,2}?)(?:\s+(.*))?$/u.exec(s); if (!m) return null;
+    const icon = m[1], rest = m[2];
+    const name = MAP[icon]; if (!name) return null;
+    const wrap = document.createElement('span'); wrap.className = 'symw';
+    wrap.innerHTML = PatOS.sym(WEATHER[icon] && !rest ? WEATHER[icon] : name, WEATHER[icon] && !rest ? 'wx' : '');
+    if (rest === undefined) return wrap;
+    const frag = document.createDocumentFragment(); frag.appendChild(wrap); frag.appendChild(document.createTextNode(' ' + rest)); return frag;
   };
 })();
 
@@ -3346,31 +3479,31 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   function renderCC() {
     const s = PatOS.settings; const cc = $('#control-center'); cc.innerHTML = '';
     const tog = (label, sub, on, icon, fn) => {
-      const b = h('button', { class: 'cc-toggle' + (on ? ' on' : '') }, h('span', { class: 'cc-dot', html: icon }), h('span', { class: 'cc-tl' }, h('b', {}, label), h('small', {}, sub)));
+      const b = h('button', { class: 'cc-toggle' + (on ? ' on' : '') }, h('span', { class: 'cc-dot', html: PatOS.symPaths[icon] ? PatOS.sym(icon) : icon }), h('span', { class: 'cc-tl' }, h('b', {}, label), h('small', {}, sub)));
       b.addEventListener('click', () => { fn(); renderCC(); }); return b;
     };
     const conn = h('div', { class: 'cc-tile cc-conn' },
-      tog('Wi-Fi', navigator.onLine ? ((navigator.connection && navigator.connection.effectiveType) ? 'Connected · ' + navigator.connection.effectiveType.toUpperCase() : 'Connected') : 'No Internet', navigator.onLine, '📶', () => PatOS.launch('settings', { pane: 'network' })),
-      tog('Keep Screen On', wakeLock ? 'On' : 'Off', !!wakeLock, '☀︎', toggleWake),
-      tog('Mute', muted ? 'Sound off' : 'Sound on', muted, '🔇', () => { if (muted) { PatOS.setSetting('volume', preMute || 0.7); muted = false; } else { preMute = s.volume; PatOS.setSetting('volume', 0); muted = true; } }));
+      tog('Wi-Fi', navigator.onLine ? ((navigator.connection && navigator.connection.effectiveType) ? 'Connected · ' + navigator.connection.effectiveType.toUpperCase() : 'Connected') : 'No Internet', navigator.onLine, 'wifi', () => PatOS.launch('settings', { pane: 'network' })),
+      tog('Keep Screen On', wakeLock ? 'On' : 'Off', !!wakeLock, 'sun', toggleWake),
+      tog('Mute', muted ? 'Sound off' : 'Sound on', muted, 'mute', () => { if (muted) { PatOS.setSetting('volume', preMute || 0.7); muted = false; } else { preMute = s.volume; PatOS.setSetting('volume', 0); muted = true; } }));
     const side = h('div', { class: 'cc-side' },
-      h('div', { class: 'cc-tile' }, tog('Focus', PatOS.focusMode ? 'Do Not Disturb' : 'Off', PatOS.focusMode, '🌙', () => { PatOS.focusMode = !PatOS.focusMode; })),
+      h('div', { class: 'cc-tile' }, tog('Focus', PatOS.focusMode ? 'Do Not Disturb' : 'Off', PatOS.focusMode, 'moon', () => { PatOS.focusMode = !PatOS.focusMode; })),
       h('div', { class: 'cc-tile cc-row2' },
-        tog(s.theme === 'dark' ? 'Dark' : 'Light', 'Appearance', s.theme === 'dark', '◐', () => PatOS.setSetting('theme', s.theme === 'dark' ? 'light' : 'dark')),
-        tog('Full Screen', document.fullscreenElement ? 'On' : 'Off', !!document.fullscreenElement, '⛶', toggleFullscreen)));
+        tog(s.theme === 'dark' ? 'Dark' : 'Light', 'Appearance', s.theme === 'dark', 'contrast', () => PatOS.setSetting('theme', s.theme === 'dark' ? 'light' : 'dark')),
+        tog('Full Screen', document.fullscreenElement ? 'On' : 'Off', !!document.fullscreenElement, 'fullscreen', toggleFullscreen)));
     const slider = (label, val, icon, fn, min) => {
       const input = h('input', { type: 'range', min: min || 0, max: 100, value: Math.round(val * 100) });
       input.addEventListener('input', () => fn(input.value / 100));
-      return h('div', { class: 'cc-tile cc-slider' }, h('b', {}, label), h('div', { class: 'cc-range' }, h('span', {}, icon), input));
+      return h('div', { class: 'cc-tile cc-slider' }, h('b', {}, label), h('div', { class: 'cc-range' }, h('span', { class: 'symw', html: PatOS.sym(icon) }), input));
     };
     const live = PatOS.wallpaper.live[s.wallpaper];
     cc.append(...[
       h('div', { class: 'cc-grid' }, conn, side),
-      slider('Display', s.brightness, '☀', (v) => PatOS.setSetting('brightness', v), 20),
-      slider('Sound', s.volume, '🔊', (v) => PatOS.setSetting('volume', v)),
+      slider('Display', s.brightness, 'sun', (v) => PatOS.setSetting('brightness', v), 20),
+      slider('Sound', s.volume, 'speaker', (v) => PatOS.setSetting('volume', v)),
       h('div', { class: 'cc-tile cc-row2' },
-        tog('3D Wallpaper', live ? (s.live3d ? 'Animating' : 'Paused') : 'Pick in Settings', live && s.live3d, '✦', () => { if (live) PatOS.setSetting('live3d', !s.live3d); else PatOS.launch('settings', { pane: 'wallpaper' }); }),
-        tog('UI Sounds', s.uiSounds ? 'On' : 'Off', s.uiSounds, '♪', () => PatOS.setSetting('uiSounds', !s.uiSounds))),
+        tog('3D Wallpaper', live ? (s.live3d ? 'Animating' : 'Paused') : 'Pick in Settings', live && s.live3d, 'sparkle', () => { if (live) PatOS.setSetting('live3d', !s.live3d); else PatOS.launch('settings', { pane: 'wallpaper' }); }),
+        tog('UI Sounds', s.uiSounds ? 'On' : 'Off', s.uiSounds, 'note', () => PatOS.setSetting('uiSounds', !s.uiSounds))),
       PatOS.music && PatOS.music.nowPlaying ? nowPlayingTile() : null
     ].filter(Boolean));
   }
@@ -4562,14 +4695,14 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'facebook.com', 'instagram.com', 'twitter.com', 'x.com', 'github.com', 'reddit.com', 'amazon.', 'netflix.com', 'tiktok.com', 'discord.com', 'chatgpt.com', 'openai.com', 'claude.ai',
     'microsoft.com', 'office.com', 'live.com', 'outlook.', 'linkedin.com', 'spotify.com', 'twitch.tv', 'apple.com', 'stackoverflow.com', 'canva.com', 'quizlet.com', 'kahoot', 'khanacademy.org', 'duckduckgo.com', 'roblox.com', 'scratch.mit.edu', 'pinterest.', 'translate.google.com', 'photos.google.com', 'keep.google.com', 'forms.google.com'];
   const DEFAULT_BM = [
-    { t: 'Google', u: 'https://www.google.com/webhp?igu=1' },
+    { t: 'Bing', u: 'https://www.bing.com/' },
     { t: 'Wikipedia', u: 'https://en.wikipedia.org/wiki/Main_Page' },
     { t: 'three.js', u: 'https://threejs.org/examples/' },
     { t: 'Maps', u: 'https://www.openstreetmap.org/export/embed.html?bbox=-74.2%2C45.3%2C-73.3%2C45.8&layer=mapnik' },
     { t: 'Internet Archive', u: 'https://archive.org' }
   ];
   const SHORTCUTS = [
-    { t: 'Google', u: 'https://www.google.com/webhp?igu=1', i: 'search' },
+    { t: 'Bing', u: 'https://www.bing.com/', i: 'search' },
     { t: 'Wikipedia', u: 'https://en.wikipedia.org/wiki/Main_Page', i: 'W' },
     { t: 'YouTube', app: 'youtube', i: 'youtube' },
     { t: 'Docs', app: 'docs', i: 'docs' },
@@ -4596,7 +4729,19 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (/^patos:\/\//.test(q)) return q;
     if (/^https?:\/\//i.test(q)) return q;
     if (/^[\w-]+(\.[\w-]+)+(:\d+)?(\/.*)?$/.test(q) && !q.includes(' ')) return 'https://' + q;
-    return 'https://www.google.com/search?igu=1&q=' + encodeURIComponent(q);
+    return searchURL(q);
+  }
+  /* Patoogle searches with Bing: Google refuses to show its results inside other apps (that's the 403 page),
+     while Bing allows it. Google search addresses are sent to Bing automatically. */
+  function searchURL(q) { return 'https://www.bing.com/search?q=' + encodeURIComponent(q) + '&setlang=' + (PatOS.lang || 'en'); }
+  function fixGoogle(url) {
+    try {
+      const u = new URL(url);
+      if (!/(^|\.)google\.[a-z.]+$/.test(u.hostname) || !/^www\.|^google\./.test(u.hostname)) return url;
+      if (u.pathname === '/search' && u.searchParams.get('q')) return searchURL(u.searchParams.get('q'));
+      if (u.pathname === '/' || u.pathname === '/webhp') return 'https://www.bing.com/';
+    } catch (e) {}
+    return url;
   }
   function host(url) { try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return url; } }
   const favicon = (url) => { try { const u = new URL(url); return /^https?:/.test(u.protocol) ? 'https://www.google.com/s2/favicons?sz=32&domain=' + u.hostname : null; } catch (e) { return null; } };
@@ -4607,11 +4752,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
   PatOS.registerApp({
     id: 'browser', name: 'Patoogle', icon: 'browser', single: true, width: 1040, height: 680, keywords: 'chrome safari web internet browser google',
-    about: 'A tabbed web browser. Some sites (like Gmail or YouTube) refuse to load inside other pages — Patoogle opens those in a real browser tab.',
+    about: 'A web browser with tabs. Searches go through Bing, since Google won’t show its results inside other apps.',
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'browser-win');
       const tabs = []; let cur = null;
-      let bookmarks = PatOS.store.get('bookmarks', DEFAULT_BM);
+      let bookmarks = PatOS.store.get('bookmarks', DEFAULT_BM).map((b) => (/google\.com\/webhp/.test(b.u) ? { t: 'Bing', u: 'https://www.bing.com/' } : b));
       const tabStrip = h('div', { class: 'br-tabs' });
       const addTab = h('button', { class: 'br-newtab', title: 'New tab' }, '+');
       win.toolbar.append(tabStrip, addTab);
@@ -4623,7 +4768,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       const bReload = h('button', { class: 'tbtn', title: 'Reload' }, '↻');
       const bHome = h('button', { class: 'tbtn', title: 'Home' }, '⌂');
       const omni = h('input', { class: 'br-omni', placeholder: 'Search Patoogle or type a web address', spellcheck: 'false' });
-      const lockIc = h('span', { class: 'br-lock' }, '🔒');
+      const lockIc = h('span', { class: 'br-lock', html: PatOS.sym('lock') });
       const bStar = h('button', { class: 'tbtn', title: 'Bookmark this page' }, '☆');
       const bExt = h('button', { class: 'tbtn', title: 'Open in a real browser tab' }, '↗');
       const bHist = h('button', { class: 'tbtn', title: 'History' }, '🕘');
@@ -4663,7 +4808,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       function syncUI() {
         if (!cur) return;
         omni.value = cur.url === 'patos://newtab' ? '' : cur.url;
-        lockIc.textContent = cur.url.startsWith('https') ? '🔒' : cur.url.startsWith('patos') ? '🔍' : 'ⓘ';
+        lockIc.innerHTML = PatOS.sym(cur.url.startsWith('https') ? 'lock' : cur.url.startsWith('patos') ? 'search' : 'warn');
         bBack.disabled = cur.idx <= 0; bFwd.disabled = cur.idx >= cur.hist.length - 1;
         bStar.textContent = bookmarks.some((b) => b.u === cur.url) ? '★' : '☆';
         cur.tabEl.querySelector('.br-tt').textContent = cur.title;
@@ -4672,7 +4817,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       }
       function navigate(input, t, noHist) {
         t = t || cur;
-        let url = toURL(input);
+        let url = fixGoogle(toURL(input));
         const yt = ytEmbed(url);
         if (yt || /(^|\.)youtube\.com$/.test(host(url).replace(/^m\./, ''))) { const vid = yt && yt.match(/embed\/([\w-]{11})/); PatOS.launch('youtube', vid ? { id: vid[1] } : (new URL(url).searchParams.get('search_query') ? { q: new URL(url).searchParams.get('search_query') } : {})); if (t.url === 'patos://newtab' || !t.hist.length) { t.hist = []; t.idx = -1; } return; }
         if (!noHist) { t.hist = t.hist.slice(0, t.idx + 1); t.hist.push(url); t.idx = t.hist.length - 1; }
@@ -4682,7 +4827,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         if (url === 'patos://newtab') { t.title = 'New Tab'; t.pane.appendChild(newTabPage()); }
         else if (isBlocked(url)) { t.title = host(url); t.pane.appendChild(blockedPage(url)); }
         else {
-          t.title = url.includes('google.com/search') ? (new URL(url).searchParams.get('q') + ' - Search') : host(url);
+          t.title = /bing\.com\/search/.test(url) ? new URL(url).searchParams.get('q') : host(url);
           const loader = h('div', { class: 'br-loading' });
           const frame = h('iframe', { src: url, allow: 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write', referrerpolicy: 'no-referrer-when-downgrade', allowfullscreen: true });
           frame.addEventListener('load', () => { loader.remove(); try { const d = frame.contentDocument; if (d && d.title) { t.title = d.title; syncUI(); } } catch (e) {} });
@@ -4710,14 +4855,14 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           h('div', { class: 'nt-logo' }, 'Patoogle'),
           h('div', { class: 'nt-greet' }, greet + ', ' + PatOS.settings.userName),
           q, grid,
-          h('div', { class: 'nt-tip' }, 'Websites load right inside PatOS. Some sites refuse to be shown inside other apps; for those, use the PatOS apps above.'));
+          h('div', { class: 'nt-tip' }, 'Most sites open right here. A few big ones, like Gmail, won’t load inside other apps, so use the PatOS app for those.'));
       }
       function blockedPage(url) {
         return h('div', { class: 'br-blocked' },
           h('div', { class: 'bb-ic' }, '🧱'),
           h('h2', {}, host(url) + ' can’t be shown inside PatOS'),
-          h('p', {}, PatOS.sandboxed ? 'PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead. PatOS stays open in this one.' : 'This website blocks being shown inside other apps, so it can’t load in Patoogle. Try searching for it with Google above, or use the matching PatOS app (YouTube, Docs, Drive, Maps, Translate).'),
-          h('div', { class: 'br-alts' }, h('button', { class: 'btn primary', onclick: () => navigate('https://www.google.com/search?igu=1&q=' + encodeURIComponent(host(url))) }, 'Search Google for ' + host(url))), h('a', { class: 'br-ext', href: url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '').replace('?igu=1', ''), target: '_blank', rel: 'noopener noreferrer' }, 'Open outside PatOS'));
+          h('p', {}, PatOS.sandboxed ? 'PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead. PatOS stays open in this one.' : 'This site doesn’t let other apps show it, so it won’t open in Patoogle. You can search for it instead, or use the PatOS app that does the same thing (YouTube, Docs, Drive, Maps or Translate).'),
+          h('div', { class: 'br-alts' }, h('button', { class: 'btn primary', onclick: () => navigate(searchURL(host(url))) }, 'Search the web for ' + host(url))), h('a', { class: 'br-ext', href: url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '').replace('?igu=1', ''), target: '_blank', rel: 'noopener noreferrer' }, 'Open outside PatOS'));
       }
       omni.addEventListener('keydown', (e) => { if (e.key === 'Enter') { navigate(omni.value); omni.blur(); } });
       omni.addEventListener('focus', () => omni.select());
@@ -4784,7 +4929,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       function show(z) {
         const d = z || 0.06;
         frame.src = `https://www.openstreetmap.org/export/embed.html?bbox=${lon - d * 1.6}%2C${lat - d}%2C${lon + d * 1.6}%2C${lat + d}&layer=mapnik&marker=${lat}%2C${lon}`;
-        info.textContent = '📍 ' + label; info.classList.remove('hidden');
+        info.textContent = label; info.classList.remove('hidden');
       }
       q.addEventListener('keydown', async (e) => {
         if (e.key !== 'Enter' || !q.value.trim()) return;
@@ -4970,8 +5115,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           .filter((n) => !ql || plain(n.body).toLowerCase().includes(ql))
           .forEach((n) => {
             const text = plain(n.body).trim().split('\n');
-            const el = h('div', { class: 'nt-item' + (cur && cur.id === n.id ? ' on' : '') },
-              h('b', {}, (n.pinned ? '📌 ' : '') + titleOf(n)),
+            const el = h('div', { class: 'nt-item' + (cur && cur.id === n.id ? ' on' : '') + (n.pinned ? ' pinned' : '') },
+              h('b', {}, titleOf(n)),
               h('div', {}, h('span', {}, new Date(n.mtime).toLocaleDateString()), ' ', (text[1] || 'No additional text').slice(0, 40)));
             el.onclick = () => open(n);
             el.oncontextmenu = (e) => { e.preventDefault(); PatOS.menu([{ label: n.pinned ? 'Unpin' : 'Pin to top', action: () => { n.pinned = !n.pinned; save(); renderList(); } }, { label: 'Export as .txt to Documents', action: () => { const nm = PatOS.fs.uniqueName('/Documents', titleOf(n).replace(/[\/]/g, '-') + '.txt'); PatOS.fs.write('/Documents/' + nm, plain(n.body)); PatOS.notify({ title: 'Exported', body: nm + ' saved in Documents', icon: 'notes' }); } }, { divider: true }, { label: 'Delete', action: () => del(n) }], e.clientX, e.clientY); };
@@ -5220,7 +5365,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
       const cmds = {
         help() {
-          text('PatOS Terminal — available commands:');
+          text('Commands you can use:');
           [['ls [dir]', 'list files'], ['cd <dir>', 'change folder'], ['pwd', 'print current folder'], ['cat <file>', 'show a file'], ['touch <file>', 'create an empty file'],
            ['mkdir <dir>', 'make a folder'], ['rm <path>', 'move to Trash'], ['mv <src> <dir>', 'move'], ['cp <src> <dir>', 'copy'], ['echo <text> [> file]', 'print or write text'],
            ['tree', 'show folder tree'], ['open <app|file>', 'open an app or file'], ['apps', 'list apps'], ['calc <expr>', 'calculator'], ['date', 'current date'], ['whoami', 'your name'],
@@ -5286,7 +5431,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
             `<span class="ty">Shell</span>: patsh 1.0`,
             `<span class="ty">Resolution</span>: ${screen.width}x${screen.height}`,
             `<span class="ty">Theme</span>: ${PatOS.settings.theme}`,
-            `<span class="ty">GPU</span>: ${PatOS.has3D ? 'WebGL ✓ (three.js r' + THREE.REVISION + ')' : 'none'}`,
+            `<span class="ty">GPU</span>: ${PatOS.has3D ? 'WebGL (three.js r' + THREE.REVISION + ')' : 'none'}`,
             `<span class="ty">CPU</span>: ${navigator.hardwareConcurrency || '?'} cores`,
             `<span class="ty">Memory</span>: ${navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'unknown'}`,
             `<span class="ty">Apps</span>: ${PatOS.appOrder.length}`,
@@ -5305,7 +5450,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         history() { text(hist.map((c, i) => String(i + 1).padStart(4) + '  ' + c).join('\n')); },
         clear() { out.innerHTML = ''; },
         exit() { win.close(); },
-        sudo() { text('Nice try 😎  ' + user + ' is not in the sudoers file. This incident will be reported.', 'err'); },
+        sudo() { text('Nice try. ' + user + ' is not in the sudoers file. This incident will be reported.', 'err'); },
         cowsay(a) {
           const msg = a.join(' ') || 'Moo! Welcome to PatOS.';
           text(' ' + '_'.repeat(msg.length + 2) + '\n< ' + msg + ' >\n ' + '-'.repeat(msg.length + 2) + '\n        \\   ^__^\n         \\  (oo)\\_______\n            (__)\\       )\\/\\\n                ||----w |\n                ||     ||');
@@ -5470,7 +5615,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (hm === lastMin) return; lastMin = hm;
     (PatOS.store.get('alarms', []) || []).forEach((a) => {
       if (!a.on || a.time !== hm) return;
-      PatOS.notify({ title: '⏰ ' + (a.label || PatOS.t('Alarm')), body: d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }), icon: 'clock', duration: 15000 });
+      PatOS.notify({ title: a.label || PatOS.t('Alarm'), body: d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }), icon: 'clock', duration: 15000 });
       for (let i = 0; i < 8; i++) { PatOS.sound.tone(880, 0.18, { delay: i * 0.5, vol: 0.25, type: 'square' }); PatOS.sound.tone(1100, 0.18, { delay: i * 0.5 + 0.22, vol: 0.2, type: 'square' }); }
       if (PatOS.mobile && PatOS.mobile.islandAlert) PatOS.mobile.islandAlert(a.label || PatOS.t('Alarm'), 'clock');
     });
@@ -5605,7 +5750,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       win.body.append(fx, content);
       let raf = 0, mode = 'clear';
 
-      const search = h('input', { class: 'wx-search', placeholder: '🔍 Search city', spellcheck: 'false' });
+      const search = h('input', { class: 'wx-search', placeholder: 'Search for a city', spellcheck: 'false' });
       const bUnit = h('button', { class: 'wx-unit' });
       const bLoc = h('button', { class: 'wx-unit', title: 'Use my location' }, '➤');
       const top = h('div', { class: 'wx-top' }, search, bLoc, bUnit);
@@ -5621,7 +5766,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           draw(await r.json());
         } catch (e) {
           main.innerHTML = '';
-          main.appendChild(h('div', { class: 'wx-loading' }, '⚠️ Can’t reach the weather service.', h('br'), h('small', {}, PatOS.sandboxed ? 'Claude Artifacts block live data. Open PatOS from its own website to see the weather.' : 'Check your internet connection (some school networks block it).'), h('br'), h('button', { class: 'btn', onclick: load, style: { marginTop: '12px' } }, 'Try again')));
+          main.appendChild(h('div', { class: 'wx-loading' }, 'Can’t get the weather right now.', h('br'), h('small', {}, PatOS.sandboxed ? 'Claude Artifacts block live data. Open PatOS from its own website to see the weather.' : 'Check your internet connection (some school networks block it).'), h('br'), h('button', { class: 'btn', onclick: load, style: { marginTop: '12px' } }, 'Try again')));
           setMode('cloud');
         }
       }
@@ -6157,7 +6302,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         try {
           stream = await navigator.mediaDevices.getUserMedia({ video: { width: 1280, height: 720 }, audio: false });
           video.srcObject = stream; msg.remove();
-        } catch (e) { msg.innerHTML = '📷<br>Camera not available.<br><small>Allow camera access in your browser (or ask your school admin).</small>'; }
+        } catch (e) { msg.innerHTML = PatOS.sym('camera', 'big') + '<br>' + PatOS.t('The camera isn’t available.') + '<br><small>' + PatOS.t('Allow camera access in your browser settings. On a school Chromebook it may be turned off.') + '</small>'; }
       }
       shoot.onclick = async () => {
         if (!stream) return;
@@ -6251,7 +6396,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         general() {
           const name = h('input', { class: 'field', value: S().userName, style: { width: '180px' } });
           name.onchange = () => PatOS.setSetting('userName', name.value.trim() || 'Pat');
-          return [h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('about') }), h('div', {}, h('h2', {}, 'PatOS ' + PatOS.version), h('p', {}, 'Your own desktop that runs in any browser — even a school Chromebook.'))),
+          return [h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('about') }), h('div', {}, h('h2', {}, 'PatOS ' + PatOS.version), h('p', {}, 'A full desktop that runs in your browser, even on a school Chromebook.'))),
             group(row('Your name', name), row('Language', (() => { const s2 = h('select', { class: 'field' }, ...[['auto', 'Automatic (device language)'], ['en', 'English'], ['fr', 'French']].map(([v, l]) => h('option', { value: v, selected: (S().language || 'auto') === v }, l))); s2.onchange = async () => { const v = s2.value; if (await PatOS.confirmBox(PatOS.t('Language'), PatOS.t('PatOS restarts to change the language.'), { ok: PatOS.t('Restart'), icon: 'settings' })) { PatOS.setSetting('language', v); setTimeout(() => location.reload(), 200); } else s2.value = S().language || 'auto'; }; return s2; })(), PatOS.lang === 'fr' ? 'Langue de l’appareil : ' + (PatOS.deviceLang === 'fr' ? 'français' : 'anglais') : 'Device language: ' + (PatOS.deviceLang === 'fr' ? 'French' : 'English')), row('Layout', select('deviceMode', [['auto', 'Automatic (phone or computer)'], ['desktop', 'Computer'], ['mobile', 'Phone']]), 'Automatic uses the phone layout on small touch screens'), row('Ask for full screen at login', toggle('askFullscreen'), 'Makes PatOS feel like a real OS'), row('24-hour clock', toggle('clock24')), row('Show seconds in menu bar', toggle('showSeconds'))),
             group(row('About this computer', h('button', { class: 'btn', onclick: () => PatOS.launch('about') }, 'About PatOS…')))];
         },
@@ -6263,7 +6408,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           });
           const acc = h('div', { class: 'st-acc' });
           ACCENTS.forEach((c) => { const b = h('button', { class: 'st-dot' + (S().accent === c ? ' on' : ''), style: { background: c } }); b.onclick = () => { PatOS.setSetting('accent', c); render(); }; acc.appendChild(b); });
-          return [h('h3', {}, 'Appearance'), modes, group(row('Highlight color', acc), row('Liquid Glass', toggle('liquidGlass'), 'See-through glass for the dock, menus, panels and widgets'), row('Glass bends the background', toggle('glassRefraction'), 'Works in Chrome. Uses more battery.'), row('Reduce transparency', toggle('reduceTransparency'), 'Solid windows — faster on older Chromebooks'), row('Fewer animations', toggle('reduceMotion')))];
+          return [h('h3', {}, 'Appearance'), modes, group(row('Highlight color', acc), row('Liquid Glass', toggle('liquidGlass'), 'See-through glass for the dock, menus, panels and widgets'), row('Glass bends the background', toggle('glassRefraction'), 'Works in Chrome. Uses more battery.'), row('Reduce transparency', toggle('reduceTransparency'), 'Solid windows. Runs faster on older Chromebooks.'), row('Fewer animations', toggle('reduceMotion')))];
         },
         wallpaper() {
           const grid = (ids, src) => { const g = h('div', { class: 'st-wps' }); ids.forEach((id) => { const b = h('button', { class: 'st-wp' + (S().wallpaper === id ? ' on' : '') }, h('img', { src: PatOS.wallpaper.thumb(id), alt: '' }), h('span', {}, src[id].name + (src[id].live ? ' ✦' : ''))); b.onclick = () => { PatOS.setSetting('wallpaper', id); if (src[id].live && !S().live3d) PatOS.setSetting('live3d', true); render(); }; g.appendChild(b); }); return g; };
@@ -6289,7 +6434,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         },
         display() {
           return [h('h3', {}, 'Display'), group(row('Brightness', range('brightness', 0.2, 1, 0.01, (v) => Math.round(v * 100) + '%')), row('Full screen', h('button', { class: 'btn', onclick: PatOS.toggleFullscreen }, document.fullscreenElement ? 'Exit Full Screen' : 'Enter Full Screen'))),
-            h('h3', {}, '3D Graphics'), group(row('3D quality', select('quality3d', [['low', 'Low (best for older Chromebooks)'], ['auto', 'Balanced'], ['high', 'High (sharpest)']])), row('WebGL', h('span', { class: 'st-val' }, PatOS.has3D ? '✓ Available — three.js r' + THREE.REVISION : '✗ Not available')))];
+            h('h3', {}, '3D Graphics'), group(row('3D quality', select('quality3d', [['low', 'Low (best for older Chromebooks)'], ['auto', 'Balanced'], ['high', 'High (sharpest)']])), row('WebGL', h('span', { class: 'st-val' }, PatOS.has3D ? 'Available (three.js r' + THREE.REVISION + ')' : 'Not available on this device')))];
         },
         sound() { return [h('h3', {}, 'Sound'), group(row('Output volume', range('volume', 0, 1, 0.01, (v) => Math.round(v * 100) + '%')), row('Play user interface sounds', toggle('uiSounds')), row('Test', h('button', { class: 'btn', onclick: () => PatOS.sound.startup() }, 'Play Startup Chime')))]; },
         lock() {
@@ -6298,7 +6443,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         },
         network() {
           const c = navigator.connection || {};
-          return [h('h3', {}, 'Network'), group(row('Status', h('span', { class: 'st-val' }, navigator.onLine ? '🟢 Connected' : '🔴 Offline')), row('Connection type', h('span', { class: 'st-val' }, c.effectiveType ? c.effectiveType.toUpperCase() : 'Unknown')), row('Speed estimate', h('span', { class: 'st-val' }, c.downlink ? c.downlink + ' Mbps' : 'Unknown')))];
+          return [h('h3', {}, 'Network'), group(row('Status', h('span', { class: 'st-val' }, navigator.onLine ? 'Connected' : 'Offline')), row('Connection type', h('span', { class: 'st-val' }, c.effectiveType ? c.effectiveType.toUpperCase() : 'Unknown')), row('Speed estimate', h('span', { class: 'st-val' }, c.downlink ? c.downlink + ' Mbps' : 'Unknown')))];
         },
         keyboard() {
           const sc = [['Ctrl+Space / Alt+Space', 'Spotlight search'], ['Alt+L or F4', 'Launchpad'], ['Alt+↑ or F3', 'Mission Control'], ['Alt+W', 'Close window'], ['Alt+Q', 'Quit app'], ['Alt+M', 'Minimize'], ['Alt+F', 'Zoom window'], ['Alt+← / Alt+→', 'Tile window left / right'], ['Alt+N', 'New window'], ['Alt+`', 'Cycle windows'], ['Alt+T', 'Terminal'], ['Alt+E', 'Finder'], ['Alt+B', 'Patoogle browser'], ['Alt+,', 'Settings'], ['Alt+Esc', 'Lock screen'], ['Esc', 'Close menus & overlays']];
@@ -6550,7 +6695,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       function showOverlay(kind) {
         overlay.classList.remove('hidden'); overlay.innerHTML = '';
         if (kind === 'menu') overlay.append(h('h1', {}, 'ORB RUNNER'), h('p', {}, '← → or A / D to switch lanes · Space / ↑ to jump'), h('p', {}, 'Dodge the blocks, grab the gems. It gets faster!'), h('button', { class: 'or-btn', onclick: start }, '▶  PLAY'), h('small', {}, 'Best: ' + S.best));
-        else overlay.append(h('h1', {}, 'GAME OVER'), h('p', {}, 'Score ' + S.score + ' · Gems ' + S.gems), h('p', {}, S.score >= S.best ? '🏆 New best!' : 'Best: ' + S.best), h('button', { class: 'or-btn', onclick: start }, '↻  PLAY AGAIN'));
+        else overlay.append(h('h1', {}, 'GAME OVER'), h('p', {}, 'Score ' + S.score + ' · Gems ' + S.gems), h('p', {}, S.score >= S.best ? 'New personal best' : 'Best: ' + S.best), h('button', { class: 'or-btn', onclick: start }, '↻  PLAY AGAIN'));
       }
       function start() { overlay.classList.add('hidden'); reset(); S.state = 'play'; stage.focus(); }
       const moveLane = (d) => { if (S.state !== 'play') return; const n = Math.max(0, Math.min(2, S.lane + d)); if (n !== S.lane) { S.lane = n; PatOS.sound.tone(500 + n * 120, 0.06, { vol: 0.06 }); } };
@@ -6605,7 +6750,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         cam.position.set(S.x * 0.5 + (Math.random() - 0.5) * S.shake, 4 + (Math.random() - 0.5) * S.shake, 8);
         cam.lookAt(S.x * 0.3, 1, -10);
         cam.fov = 65 + (S.speed - 18) * 0.4; cam.updateProjectionMatrix();
-        hud.innerHTML = playing || S.state === 'pause' ? `<b>${S.score}</b><span>💎 ${S.gems}</span><span>⚡ ${Math.round(S.speed * 3.6)} km/h</span>` : '';
+        hud.innerHTML = playing || S.state === 'pause' ? `<b>${S.score}</b><span>${PatOS.sym('gem')} ${S.gems}</span><span>${PatOS.sym('bolt')} ${Math.round(S.speed * 3.6)} km/h</span>` : '';
         renderer.render(scene, cam);
       };
       resize(); showOverlay('menu'); loop();
@@ -6746,7 +6891,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       function render() {
         grid.innerHTML = '';
         board.forEach((v, i) => { const c = h('button', { class: 'ttt-cell ' + (v || '') + (over && over.line && over.line.includes(i) ? ' win' : '') }, v || ''); c.onclick = () => { if (mode === 'cpu' && turn === 'O') return; play(i); }; grid.appendChild(c); });
-        status.textContent = over ? (over.p === 'draw' ? "It's a draw!" : (mode === 'cpu' ? (over.p === 'X' ? 'You win! 🎉' : 'Computer wins 🤖') : over.p + ' wins! 🎉')) : (mode === 'cpu' ? (turn === 'X' ? 'Your turn (X)' : 'Computer is thinking…') : turn + "'s turn");
+        status.textContent = over ? (over.p === 'draw' ? "It's a draw." : (mode === 'cpu' ? (over.p === 'X' ? 'You win.' : 'The computer wins.') : over.p + ' wins.')) : (mode === 'cpu' ? (turn === 'X' ? 'Your turn (X)' : 'Computer is thinking…') : turn + "'s turn");
         sc.innerHTML = `<span class="X">X ${score.X}</span><span>Draws ${score.D}</span><span class="O">O ${score.O}</span>`;
       }
       reset();
@@ -6782,43 +6927,43 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     let t = text.trim(); if (FR()) t = fromFrench(t);
     const l = t.toLowerCase(); let m;
     const name = PatOS.settings.userName;
-    if (/^(hi|hey|hello|yo|sup)\b/.test(l)) return L(`Hey ${name}! 👋 I can open apps, do math, tell the time, save notes and reminders, or tell you a joke. Type "help" to see everything.`, `Salut ${name}! 👋 Je peux ouvrir des apps, faire des calculs, donner l’heure, prendre des notes et des rappels, ou raconter une blague. Écris « aide » pour tout voir.`);
-    if (/\bhelp\b|what can you do/.test(l)) return L('Try:\n• open galaxy\n• what time is it?\n• 24 * 17 + 3\n• remind me to study for math\n• note: buy pencils\n• tell me a joke / a fact\n• flip a coin / roll a die\n• dark mode / light mode\n• change wallpaper\n• play music', 'Essaie :\n• ouvre galaxie\n• quelle heure est-il?\n• 24 * 17 + 3\n• rappelle-moi d’étudier les maths\n• note : acheter des crayons\n• raconte une blague / une anecdote\n• pile ou face / lance un dé\n• mode sombre / mode clair\n• change le fond d’écran\n• joue de la musique');
+    if (/^(hi|hey|hello|yo|sup)\b/.test(l)) return L(`Hey ${name}. What do you need? I can open an app, do a quick calculation, add a reminder, or just tell you a bad joke. Type "help" for the full list.`, `Salut ${name}. Qu’est-ce qu’il te faut? Je peux ouvrir une app, faire un calcul, ajouter un rappel ou te raconter une mauvaise blague. Écris « aide » pour la liste complète.`);
+    if (/\bhelp\b|what can you do/.test(l)) return L('Here’s what you can ask me:\n• open galaxy\n• what time is it?\n• 24 * 17 + 3\n• remind me to study for math\n• note: buy pencils\n• tell me a joke / a fact\n• flip a coin / roll a die\n• dark mode / light mode\n• change wallpaper\n• play music', 'Voici ce que tu peux me demander :\n• ouvre galaxie\n• quelle heure est-il?\n• 24 * 17 + 3\n• rappelle-moi d’étudier les maths\n• note : acheter des crayons\n• raconte une blague / une anecdote\n• pile ou face / lance un dé\n• mode sombre / mode clair\n• change le fond d’écran\n• joue de la musique');
     if ((m = l.match(/^(open|launch|start)\s+(.+)/))) {
       const q = m[2].replace(/[.!?]$/, '').trim();
       const nm = (k) => [PatOS.apps[k].name.toLowerCase(), PatOS.t(PatOS.apps[k].name).toLowerCase()];
       const id = PatOS.appOrder.find((k) => nm(k).includes(q) || k === q) || PatOS.appOrder.find((k) => nm(k).some((n) => n.includes(q)));
-      if (id) { setTimeout(() => PatOS.launch(id), 500); return L(`Opening ${PatOS.apps[id].name} 🚀`, `J’ouvre ${PatOS.t(PatOS.apps[id].name)} 🚀`); }
-      return L(`I couldn't find an app called "${q}". Say "list apps" to see them all.`, `Je ne trouve pas d’app appelée « ${q} ». Écris « liste des apps » pour toutes les voir.`);
+      if (id) { setTimeout(() => PatOS.launch(id), 500); return L(`Sure, opening ${PatOS.apps[id].name}.`, `D’accord, j’ouvre ${PatOS.t(PatOS.apps[id].name)}.`); }
+      return L(`Hmm, I don’t have an app called "${q}". Say "list apps" and I’ll show you what’s there.`, `Hmm, je n’ai pas d’app appelée « ${q} ». Écris « liste des apps » et je te montre ce qu’il y a.`);
     }
-    if (/list (all )?apps|what apps/.test(l)) return L('Your apps: ', 'Tes apps : ') + PatOS.appOrder.filter((k) => !PatOS.apps[k].hidden).map((k) => PatOS.t(PatOS.apps[k].name)).join(', ') + '.';
-    if (/\btime\b/.test(l)) return L('It’s ', 'Il est ') + new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) + ' ⏰';
-    if (/\b(date|day is it|today)\b/.test(l)) return L('Today is ', 'Nous sommes le ') + new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + ' 📅';
+    if (/list (all )?apps|what apps/.test(l)) return L('Here’s everything you’ve got: ', 'Voici tout ce que tu as : ') + PatOS.appOrder.filter((k) => !PatOS.apps[k].hidden).map((k) => PatOS.t(PatOS.apps[k].name)).join(', ') + '.';
+    if (/\btime\b/.test(l)) return L('It’s ', 'Il est ') + new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }) + '.';
+    if (/\b(date|day is it|today)\b/.test(l)) return L('Today is ', 'On est le ') + new Date().toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + '.';
     if ((m = t.match(/^(?:remind me to|reminder:?|add reminder:?)\s+(.+)/i))) {
       const items = PatOS.store.get('reminders', []); items.push({ id: Date.now(), text: m[1], done: false }); PatOS.store.set('reminders', items);
-      return L(`✅ Added to Reminders: “${m[1]}”`, `✅ Ajouté aux Rappels : « ${m[1]} »`);
+      return L(`Got it. I added “${m[1]}” to your reminders.`, `C’est noté. J’ai ajouté « ${m[1]} » à tes rappels.`);
     }
     if ((m = t.match(/^(?:note:?|take a note:?|write down:?)\s+(.+)/i))) {
       const notes = PatOS.store.get('notes', []) || []; notes.unshift({ id: PatOS.uid(), title: m[1].slice(0, 40), body: '<div>' + PatOS.esc(m[1]) + '</div>', mtime: Date.now() }); PatOS.store.set('notes', notes);
-      return L('📝 Saved a new note. Open Notes to see it.', '📝 Nouvelle note enregistrée. Ouvre Notes pour la voir.');
+      return L('Saved. You’ll find it at the top of Notes.', 'C’est enregistré. Tu la trouveras en haut de Notes.');
     }
-    if (/joke/.test(l)) return pick(FR() ? JOKES_FR : JOKES) + ' 😄';
-    if (/fact/.test(l)) return '🤓 ' + pick(FR() ? FACTS_FR : FACTS);
-    if (/flip a coin|coin flip/.test(l)) return Math.random() < 0.5 ? L('🪙 Heads!', '🪙 Pile!') : L('🪙 Tails!', '🪙 Face!');
-    if ((m = l.match(/roll (?:a )?(?:die|dice|d(\d+))/))) { const n = +(m[1] || 6); return L('🎲 You rolled a ', '🎲 Tu as obtenu ') + (1 + Math.floor(Math.random() * n)); }
-    if (/dark mode/.test(l)) { PatOS.setSetting('theme', 'dark'); return L('🌙 Dark mode on.', '🌙 Mode sombre activé.'); }
-    if (/light mode/.test(l)) { PatOS.setSetting('theme', 'light'); return L('☀️ Light mode on.', '☀️ Mode clair activé.'); }
-    if (/wallpaper/.test(l)) { const all = [...Object.keys(PatOS.wallpaper.live), ...Object.keys(PatOS.wallpaper.palettes)]; const next = all[(all.indexOf(PatOS.settings.wallpaper) + 1) % all.length]; PatOS.setSetting('wallpaper', next); return L('🖼 Switched the wallpaper to ', '🖼 Nouveau fond d’écran : ') + PatOS.t((PatOS.wallpaper.live[next] || PatOS.wallpaper.palettes[next]).name) + '.'; }
-    if (/play (some )?music|play a song/.test(l)) { PatOS.launch('music'); setTimeout(() => PatOS.music && !PatOS.music.nowPlaying() && PatOS.music.toggle(), 600); return L('🎵 Here comes a song.', '🎵 Voici une chanson.'); }
-    if (/weather/.test(l)) { setTimeout(() => PatOS.launch('weather'), 400); return L('🌤 Opening Weather for you.', '🌤 J’ouvre la Météo.'); }
-    if (/who are you|your name/.test(l)) return L('I’m Pat, the assistant built into PatOS. I live on your computer, so I don’t need the internet.', 'Je suis Pat, l’assistant intégré à PatOS. Je vis sur ton appareil, alors je n’ai pas besoin d’Internet.');
-    if (/thank/.test(l)) return L('Anytime! 😊', 'Avec plaisir! 😊');
-    if (/how are you/.test(l)) return L('Running at 60 frames per second and feeling great. You?', 'Je roule à 60 images par seconde et je me sens super bien. Et toi?');
+    if (/joke/.test(l)) return pick(FR() ? JOKES_FR : JOKES);
+    if (/fact/.test(l)) return L('Fun fact: ', 'Le savais-tu? ') + pick(FR() ? FACTS_FR : FACTS);
+    if (/flip a coin|coin flip/.test(l)) return Math.random() < 0.5 ? L('Heads.', 'Pile.') : L('Tails.', 'Face.');
+    if ((m = l.match(/roll (?:a )?(?:die|dice|d(\d+))/))) { const n = +(m[1] || 6); return L('You rolled a ', 'Tu as fait ') + (1 + Math.floor(Math.random() * n)) + '.'; }
+    if (/dark mode/.test(l)) { PatOS.setSetting('theme', 'dark'); return L('Done, dark mode is on.', 'C’est fait, le mode sombre est activé.'); }
+    if (/light mode/.test(l)) { PatOS.setSetting('theme', 'light'); return L('Done, light mode is on.', 'C’est fait, le mode clair est activé.'); }
+    if (/wallpaper/.test(l)) { const all = [...Object.keys(PatOS.wallpaper.live), ...Object.keys(PatOS.wallpaper.palettes)]; const next = all[(all.indexOf(PatOS.settings.wallpaper) + 1) % all.length]; PatOS.setSetting('wallpaper', next); return L('New wallpaper: ', 'Nouveau fond d’écran : ') + PatOS.t((PatOS.wallpaper.live[next] || PatOS.wallpaper.palettes[next]).name) + '.'; }
+    if (/play (some )?music|play a song/.test(l)) { PatOS.launch('music'); setTimeout(() => PatOS.music && !PatOS.music.nowPlaying() && PatOS.music.toggle(), 600); return L('Putting on a song.', 'Je mets une chanson.'); }
+    if (/weather/.test(l)) { setTimeout(() => PatOS.launch('weather'), 400); return L('Here’s the weather.', 'Voici la météo.'); }
+    if (/who are you|your name/.test(l)) return L('I’m Pat. I live inside PatOS on your device, so I work even without internet.', 'Moi c’est Pat. Je vis dans PatOS sur ton appareil, alors je marche même sans Internet.');
+    if (/thank/.test(l)) return L('Anytime.', 'Avec plaisir.');
+    if (/how are you/.test(l)) return L('Pretty good, thanks. How about you?', 'Ça va bien, merci. Et toi?');
     const expr = t.replace(/[x×]/g, '*').replace(/÷/g, '/').replace(/what is|what's|calculate|=|\?/gi, '').replace(/,/g, '.').trim();
-    if (/^[\d\s+\-*/().%^]+$/.test(expr) && /\d/.test(expr)) { try { const v = Function('"use strict";return (' + expr.replace(/\^/g, '**') + ')')(); if (Number.isFinite(v)) return '🧮 ' + expr + ' = ' + (+v.toPrecision(12)); } catch (e) {} }
-    if (/^(search|google|look up)\s+/.test(l)) { const q = t.replace(/^(search|google|look up)\s+/i, ''); setTimeout(() => PatOS.launch('browser', { url: q }), 400); return L('🔎 Searching the web for “', '🔎 Je cherche « ') + q + L('”', ' » sur le Web'); }
-    if ((m = l.match(/^(?:define|meaning of|what does (.+) mean)\s*(.*)/))) { const w = (m[1] || m[2]).trim(); setTimeout(() => PatOS.launch('dictionary', { word: w }), 400); return L('📖 Looking up “' + w + '” in Dictionary.', '📖 Je cherche « ' + w + ' » dans le Dictionnaire.'); }
-    return pick(FR() ? ['Hmm, je ne suis pas sûr. Écris « aide » pour voir ce que je peux faire.', 'Je ne sais pas encore ça! Essaie « aide ».'] : ['Hmm, I’m not sure about that one. Type "help" to see what I can do.', 'I don’t know that yet! Try "help".', 'Interesting! I can’t answer that, but I can open apps, do math and keep reminders.']);
+    if (/^[\d\s+\-*/().%^]+$/.test(expr) && /\d/.test(expr)) { try { const v = Function('"use strict";return (' + expr.replace(/\^/g, '**') + ')')(); if (Number.isFinite(v)) return expr + ' = ' + (+v.toPrecision(12)); } catch (e) {} }
+    if (/^(search|google|look up)\s+/.test(l)) { const q = t.replace(/^(search|google|look up)\s+/i, ''); setTimeout(() => PatOS.launch('browser', { url: q }), 400); return L('Looking up “', 'Je cherche « ') + q + L('” on the web.', ' » sur le Web.'); }
+    if ((m = l.match(/^(?:define|meaning of|what does (.+) mean)\s*(.*)/))) { const w = (m[1] || m[2]).trim(); setTimeout(() => PatOS.launch('dictionary', { word: w }), 400); return L('Let me look up “' + w + '”.', 'Je cherche « ' + w + ' ».'); }
+    return pick(FR() ? ['Je ne suis pas sûr de comprendre. Écris « aide » pour voir ce que je sais faire.', 'Ça, je ne sais pas encore le faire. Essaie « aide ».'] : ['I’m not sure what you mean. Type "help" to see what I can do.', 'That one’s beyond me for now. Try "help".', 'I can’t answer that, sorry. I’m better at opening apps, quick math and reminders.']);
   }
   PatOS.assistantReply = reply;
 
@@ -6826,7 +6971,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     id: 'messages', name: 'Messages', icon: 'messages', width: 760, height: 560, keywords: 'chat assistant bot pat siri ai text',
     about: 'Chat with Pat, the assistant built into PatOS.',
     launch(win) {
-      let log = PatOS.store.get('chatLog', null) || [{ from: 'pat', text: PatOS.lang === 'fr' ? `Salut ${PatOS.settings.userName}! Je suis Pat, ton assistant PatOS. Demande-moi d’ouvrir une app, de faire un calcul, d’ajouter un rappel ou de raconter une blague. Écris « aide » pour en voir plus.` : `Hi ${PatOS.settings.userName}! I’m Pat, your PatOS assistant. Ask me to open an app, do math, add a reminder or tell a joke. Type "help" to see more.`, t: Date.now() }];
+      let log = PatOS.store.get('chatLog', null) || [{ from: 'pat', text: PatOS.lang === 'fr' ? `Salut ${PatOS.settings.userName}, moi c’est Pat. Demande-moi d’ouvrir une app, de faire un calcul ou d’ajouter un rappel. Écris « aide » si tu veux la liste.` : `Hi ${PatOS.settings.userName}, I’m Pat. Ask me to open an app, do some math or add a reminder. Type "help" if you want the list.`, t: Date.now() }];
       const side = h('div', { class: 'msg-side' }, h('div', { class: 'msg-conv on' }, h('div', { class: 'msg-av' }, 'P'), h('div', {}, h('b', {}, 'Pat'), h('small', {}, 'PatOS Assistant'))));
       const list = h('div', { class: 'msg-list' });
       const input = h('input', { class: 'msg-in', placeholder: 'iMessage', spellcheck: 'true' });
@@ -7159,7 +7304,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         function showBtns() {
           btns.innerHTML = '';
           if (!card.classList.contains('flipped')) { btns.appendChild(h('button', { class: 'btn primary', onclick: flip }, 'Show Answer')); return; }
-          btns.append(h('button', { class: 'btn fc-wrong', onclick: () => next(false) }, '✗ Didn’t know'), h('button', { class: 'btn fc-right', onclick: () => next(true) }, '✓ Got it'));
+          btns.append(h('button', { class: 'btn fc-wrong', onclick: () => next(false) }, 'Didn’t know'), h('button', { class: 'btn fc-right', onclick: () => next(true) }, 'Knew it'));
         }
         function show() {
           const c = d.cards[order[i]];
@@ -7181,7 +7326,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           const pct = Math.round(right / order.length * 100);
           if (d.best == null || pct > d.best) d.best = pct; save();
           main.innerHTML = '';
-          main.append(h('div', { class: 'fc-done' }, h('div', { class: 'fc-score' }, pct + '%'), h('h2', {}, pct === 100 ? 'Perfect! 🎉' : pct >= 70 ? 'Great job! 💪' : 'Keep practicing! 📚'), h('p', {}, right + ' of ' + order.length + ' correct'), h('div', { class: 'fc-dbtns' }, h('button', { class: 'btn primary', onclick: () => study(d) }, 'Study Again'), h('button', { class: 'btn', onclick: home }, 'All Decks'))));
+          main.append(h('div', { class: 'fc-done' }, h('div', { class: 'fc-score' }, pct + '%'), h('h2', {}, pct === 100 ? 'Every single one. Nice.' : pct >= 70 ? 'Solid work.' : 'Give it another go.'), h('p', {}, right + ' of ' + order.length + ' correct'), h('div', { class: 'fc-dbtns' }, h('button', { class: 'btn primary', onclick: () => study(d) }, 'Study Again'), h('button', { class: 'btn', onclick: home }, 'All Decks'))));
         }
         const onKey = (e) => { if (PatOS.wm.active !== win || !main.contains(card)) return; if (e.key === ' ') { e.preventDefault(); flip(); } if (card.classList.contains('flipped')) { if (e.key === 'ArrowRight' || e.key === '1') next(true); if (e.key === 'ArrowLeft' || e.key === '2') next(false); } };
         document.addEventListener('keydown', onKey); win.on('closed', () => document.removeEventListener('keydown', onKey));
@@ -7247,7 +7392,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         if (v === target) {
           done = true; clearInterval(timer); input.disabled = true;
           const wpm = live();
-          if (wpm > best) { best = wpm; PatOS.store.set('typingBest', best); PatOS.notify({ title: 'New best: ' + wpm + ' WPM! 🎉', body: 'Your fastest typing yet.', icon: 'typing' }); }
+          if (wpm > best) { best = wpm; PatOS.store.set('typingBest', best); PatOS.notify({ title: 'New best: ' + wpm + ' WPM', body: 'That’s the fastest you’ve typed so far.', icon: 'typing' }); }
           live(); PatOS.sound.pop();
         }
       });
@@ -8070,7 +8215,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           main.innerHTML = '';
           let score = '';
           if (form.quiz) { const g = grade(answers); score = 'You scored ' + g.right + ' / ' + g.total; }
-          main.appendChild(h('div', { class: 'fm-card fm-head fm-thanks' }, h('h1', {}, '✅ Response recorded'), score ? h('p', { class: 'fm-score' }, score) : null, h('button', { class: 'btn', onclick: render }, 'Submit another response')));
+          main.appendChild(h('div', { class: 'fm-card fm-head fm-thanks' }, h('h1', {}, 'Thanks, your answers were sent'), score ? h('p', { class: 'fm-score' }, score) : null, h('button', { class: 'btn', onclick: render }, 'Submit another response')));
         };
         main.appendChild(submit);
       }
@@ -8217,7 +8362,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         const copy = (v) => navigator.clipboard && navigator.clipboard.writeText(v).then(() => PatOS.notify({ title: PatOS.t('Copied'), body: v, icon: 'contacts' })).catch(() => {});
         const age = c.birthday ? Math.floor((Date.now() - new Date(c.birthday + 'T12:00')) / 31557600000) : null;
         card.append(h('div', { class: 'ct-head center' }, avatar(c, true), h('h1', {}, fullName(c)),
-          h('div', { class: 'ct-actions' }, h('button', { class: 'btn', onclick: () => { c.fav = !c.fav; save(); render(); } }, c.fav ? '★ Favorite' : '☆ Favorite'), h('button', { class: 'btn', onclick: () => { editing = true; render(); } }, 'Edit'), h('button', { class: 'btn', onclick: () => PatOS.launch('messages') }, 'Message'))));
+          h('div', { class: 'ct-actions' }, h('button', { class: 'btn', onclick: () => { c.fav = !c.fav; save(); render(); } }, c.fav ? 'Favorite' : 'Add to Favorites'), h('button', { class: 'btn', onclick: () => { editing = true; render(); } }, 'Edit'), h('button', { class: 'btn', onclick: () => PatOS.launch('messages') }, 'Message'))));
         const rows = h('div', { class: 'ct-info' });
         FIELDS.forEach(([k, label]) => {
           if (!c[k]) return;
@@ -8241,7 +8386,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   setTimeout(() => {
     const d = new Date(), md = String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
     if (PatOS.store.get('bdayChecked') === d.toDateString()) return;
-    (PatOS.store.get('contacts', []) || []).forEach((c) => { if (c.birthday && c.birthday.slice(5) === md) PatOS.notify({ title: '🎂 ' + PatOS.t('Birthday today'), body: [c.first, c.last].filter(Boolean).join(' '), icon: 'contacts' }); });
+    (PatOS.store.get('contacts', []) || []).forEach((c) => { if (c.birthday && c.birthday.slice(5) === md) PatOS.notify({ title: PatOS.t('Birthday today'), body: [c.first, c.last].filter(Boolean).join(' '), icon: 'contacts' }); });
     PatOS.store.set('bdayChecked', d.toDateString());
   }, 15000);
 })();
@@ -8630,7 +8775,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       win.body.appendChild(h('div', { class: 'ab' }, canvas, h('div', { class: 'ab-info' }, h('h1', {}, 'PatOS'), h('div', { class: 'ab-ver' }, 'Version ' + PatOS.version),
         ...info.map(([k, v]) => h('div', { class: 'ab-row' }, h('span', {}, k), h('b', {}, v))),
         h('div', { class: 'ab-btns' }, h('button', { class: 'btn', onclick: () => PatOS.launch('settings') }, 'System Settings…'), h('button', { class: 'btn', onclick: () => PatOS.launch('activity') }, 'Activity…')),
-        h('small', { class: 'ab-cr' }, 'Made for Pat · Runs in your browser'))));
+        h('small', { class: 'ab-cr' }, 'Made by Pat'))));
       if (!PatOS.has3D) return;
       const r = PatOS.makeRenderer(canvas); r.setSize(200, 200, false);
       const scene = new THREE.Scene(); const cam = new THREE.PerspectiveCamera(40, 1, 0.1, 50); cam.position.z = 7;
