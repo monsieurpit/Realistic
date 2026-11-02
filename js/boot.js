@@ -8,7 +8,8 @@
   function lockClock() {
     const d = new Date();
     $('.lock-date').textContent = d.toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' });
-    $('.lock-time').textContent = d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: !PatOS.settings.clock24 }).replace(/\s?[AP]M$/i, '');
+    const parts = new Intl.DateTimeFormat(PatOS.locale, { hour: 'numeric', minute: '2-digit', hour12: !PatOS.settings.clock24 }).formatToParts(d);
+    $('.lock-time').textContent = parts.filter((p) => p.type !== 'dayPeriod').map((p) => p.value).join('').trim();
   }
 
   function showLock() {

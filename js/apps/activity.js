@@ -15,18 +15,21 @@
       function render() {
         const mem = performance.memory ? PatOS.fmtBytes(performance.memory.usedJSHeapSize) : 'n/a';
         stats.innerHTML = '';
-        [['FPS', fps], ['JS Memory', mem], ['Windows', PatOS.wm.windows.length], ['Storage', PatOS.fmtBytes(PatOS.store.usage())], ['CPU Cores', navigator.hardwareConcurrency || '?'], ['Uptime', Math.round(performance.now() / 60000) + ' min']]
+        [['FPS', fps], ['JS Memory', mem], ['Windows', PatOS.wm.windows.length], ['Page Elements', document.getElementsByTagName('*').length.toLocaleString()], ['Storage', PatOS.fmtBytes(PatOS.store.usage())], ['Uptime', Math.round(performance.now() / 60000) + ' min']]
           .forEach(([k, v]) => stats.appendChild(h('div', { class: 'am-stat' }, h('small', {}, k), h('b', {}, String(v)))));
         const x = graph.getContext('2d'); graph.width = graph.clientWidth || 600; x.clearRect(0, 0, graph.width, 80);
         x.strokeStyle = '#32d74b'; x.lineWidth = 2; x.beginPath();
         hist.forEach((v, i) => { const px = i / 59 * graph.width, py = 78 - Math.min(v, 75); i ? x.lineTo(px, py) : x.moveTo(px, py); }); x.stroke();
         table.innerHTML = '';
-        table.appendChild(h('div', { class: 'am-row am-h' }, h('span', {}, 'Process'), h('span', {}, 'Windows'), h('span', {}, 'CPU %'), h('span', {}, '')));
+        table.appendChild(h('div', { class: 'am-row am-h' }, h('span', {}, 'App'), h('span', {}, 'Windows'), h('span', {}, 'Elements'), h('span', {}, '')));
         const apps = [...new Set(PatOS.wm.windows.map((w) => w.app.id))];
-        [['kernel_task', 1], ['WindowServer', 1], ['Dock', 1], ...apps.map((a) => [a, PatOS.wm.windowsOf(a).length])].forEach(([id, n]) => {
-          const app = PatOS.apps[id]; const heavy = ['galaxy', 'orbrunner', 'studio', 'music'].includes(id);
-          table.appendChild(h('div', { class: 'am-row' }, h('span', { class: 'am-p' }, app ? h('span', { class: 'am-ic', html: PatOS.iconHTML(app.icon || id) }) : '⚙️', app ? app.name : id), h('span', {}, n), h('span', {}, (Math.random() * (heavy ? 30 : 4) + (heavy ? 15 : 0.2)).toFixed(1)),
-            app && id !== 'activity' ? h('button', { class: 'btn danger', onclick: () => { PatOS.wm.quit(id); render(); } }, 'Force Quit') : h('span')));
+        if (!apps.length) table.appendChild(h('div', { class: 'am-row' }, h('span', { class: 'am-p' }, 'No apps are open'), h('span'), h('span'), h('span')));
+        apps.forEach((id) => {
+          const app = PatOS.apps[id]; const ws = PatOS.wm.windowsOf(id);
+          const nodes = ws.reduce((n, w) => n + w.el.getElementsByTagName('*').length, 0);
+          const gpu = ws.some((w) => w.el.querySelector('canvas.g3d, canvas.mu-canvas, canvas.ab-canvas'));
+          table.appendChild(h('div', { class: 'am-row' }, h('span', { class: 'am-p' }, h('span', { class: 'am-ic', html: PatOS.iconHTML(app.icon || id) }), app.name, gpu ? h('small', { class: 'am-gpu' }, '3D') : null), h('span', {}, ws.length), h('span', {}, nodes.toLocaleString()),
+            id !== 'activity' ? h('button', { class: 'btn danger', onclick: () => { PatOS.wm.quit(id); render(); } }, 'Force Quit') : h('span')));
         });
       }
       const t = setInterval(render, 1000); render();

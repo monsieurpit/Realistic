@@ -110,7 +110,7 @@
     docs: { bg: '#fff', svg: () => S(`<path d="M18 8h20l10 10v38H18z" fill="#4285f4"/><path d="M38 8v10h10z" fill="#a1c2fa"/><g stroke="#fff" stroke-width="2.6"><path d="M24 30h18M24 37h18M24 44h12"/></g>`) },
     sheets: { bg: '#fff', svg: () => S(`<path d="M18 8h20l10 10v38H18z" fill="#0f9d58"/><path d="M38 8v10h10z" fill="#87ceac"/><rect x="23" y="28" width="20" height="18" fill="none" stroke="#fff" stroke-width="2.4"/><path d="M23 37h20M33 28v18" stroke="#fff" stroke-width="2.4"/>`) },
     slides: { bg: '#fff', svg: () => S(`<path d="M18 8h20l10 10v38H18z" fill="#f4b400"/><path d="M38 8v10h10z" fill="#fadb7f"/><rect x="23" y="29" width="20" height="14" rx="1.5" fill="none" stroke="#fff" stroke-width="2.6"/>`) },
-    drive: { bg: '#fff', svg: () => S(`<path d="M24 12h16l16 28H40z" fill="#fbbc04"/><path d="M24 12 8 40l8 13 16-28z" fill="#34a853"/><path d="M16 53h32l8-13H24z" fill="#4285f4"/>`) },
+    drive: { bg: 'linear-gradient(160deg,#5ac8fa,#007aff)', svg: () => S(`<path d="M20 44a10 10 0 0 1-1-20 14 14 0 0 1 27-3 11 11 0 0 1 0 23z" fill="#fff"/><path d="M32 26v12M26 32l6-6 6 6" stroke="#007aff" stroke-width="3.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/>`) },
     classroom: { bg: '#fff', svg: () => S(`<rect x="8" y="14" width="48" height="34" rx="3" fill="#1e8e3e"/><rect x="12" y="18" width="40" height="26" fill="#34a853"/><circle cx="32" cy="27" r="4" fill="#fff"/><path d="M24 40c1-5 5-7 8-7s7 2 8 7z" fill="#fff"/><rect x="36" y="48" width="14" height="4" fill="#fbbc04"/>`) },
     meet: { bg: '#fff', svg: () => S(`<rect x="8" y="18" width="34" height="28" rx="4" fill="#00897b"/><path d="M42 28l14-9v26l-14-9z" fill="#00ac47"/><rect x="8" y="18" width="12" height="28" fill="#4285f4" opacity=".9"/>`) },
     gcal: { bg: '#fff', svg: () => S(`<rect x="12" y="12" width="40" height="40" rx="4" fill="#fff" stroke="#4285f4" stroke-width="4"/><rect x="12" y="12" width="40" height="10" fill="#4285f4"/><text x="32" y="46" font-size="20" font-family="system-ui,sans-serif" font-weight="700" fill="#4285f4" text-anchor="middle">31</text>`) },
@@ -170,6 +170,8 @@
       return PatOS.iconHTML('imagefile');
     }
     if (kind === 'audio') return PatOS.iconHTML('audiofile');
+    const docIc = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms' }[PatOS.fs.ext(name)];
+    if (docIc) return PatOS.iconHTML(docIc);
     if (kind === 'link') return PatOS.iconHTML('linkfile');
     return PatOS.iconHTML('file', PatOS.fs.ext(name) || 'txt');
   };

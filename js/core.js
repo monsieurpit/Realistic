@@ -95,7 +95,10 @@
     clock24: false,
     showSeconds: false,
     desktopPositions: {},
-    deviceMode: 'auto',      // auto | desktop | mobile
+    deviceMode: 'auto',
+    liquidGlass: true,
+    glassRefraction: true,
+    language: 'auto',      // auto | en | fr      // auto | desktop | mobile
     showWidgets: true,
     hiddenApps: [],
     mobileDock: ['browser', 'messages', 'music', 'photos']
@@ -132,12 +135,24 @@
 
   /* ---------- virtual file system ---------- */
   const now = () => Date.now();
+  function isFr() { const l = (PatOS.settings && PatOS.settings.language) || 'auto'; return l === 'fr' || (l === 'auto' && /^fr/i.test((navigator.languages && navigator.languages[0]) || navigator.language || '')); }
   function seedFS() {
     const f = (content, extra) => Object.assign({ type: 'file', content, mtime: now() }, extra || {});
     const d = (children) => ({ type: 'dir', children: children || {}, mtime: now() });
     return d({
-      Desktop: d({
-        'Welcome to PatOS.txt': f(
+      Desktop: d(Object.assign(isFr() ? { 'Bienvenue dans PatOS.txt': f(
+          'Bienvenue dans PatOS!\n\n' +
+          'PatOS est un bureau complet qui fonctionne dans votre navigateur.\n\n' +
+          'Astuces :\n' +
+          ' • Ctrl+Espace (ou Alt+Espace) ouvre la recherche Spotlight.\n' +
+          ' • Alt+L ouvre le Launchpad avec toutes les apps.\n' +
+          ' • Alt+Haut affiche Mission Control (toutes les fenêtres).\n' +
+          ' • Alt+W ferme une fenêtre, Alt+M la place dans le Dock.\n' +
+          ' • Double-cliquez sur une barre de titre pour agrandir une fenêtre.\n' +
+          ' • Glissez une fenêtre vers le bord gauche ou droit pour la placer.\n' +
+          ' • Clic droit sur le bureau pour créer des dossiers ou changer le fond d’écran.\n\n' +
+          'Tout ce que vous créez est enregistré dans ce navigateur.\n\nAmusez-vous bien!\n') } : {}, {
+        ...(isFr() ? {} : { 'Welcome to PatOS.txt': f(
           'Welcome to PatOS!\n\n' +
           'PatOS is a full desktop that runs in your browser.\n\n' +
           'Tips:\n' +
@@ -149,9 +164,9 @@
           ' • Drag a window to the left or right edge to snap it.\n' +
           ' • Right-click the desktop to make folders or change the wallpaper.\n\n' +
           'Everything you make is saved in this browser.\n\nHave fun!\n'
-        ),
+        ) }),
         Projects: d({})
-      }),
+      })),
       Documents: d({
         'Homework.txt': f('Math: page 42, problems 1-10\nScience: read chapter 3\nEnglish: essay draft due Friday\n'),
         'Ideas.txt': f('- Build a 3D game in PatOS\n- Learn three.js\n- Customize my dock\n'),
@@ -383,6 +398,9 @@
     const n = PatOS.fs.get(path); if (!n) return;
     const kind = PatOS.fileKind(path, n);
     if (kind === 'folder') return PatOS.launch('finder', { path });
+    const ext = PatOS.fs.ext(path);
+    const byExt = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms' };
+    if (byExt[ext]) return PatOS.launch(byExt[ext], { path });
     if (kind === 'image') return PatOS.launch('photos', { path });
     if (kind === 'audio') return PatOS.launch('music', { path });
     if (kind === 'link') return PatOS.launch('browser', { url: n.content.trim() });

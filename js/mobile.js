@@ -38,7 +38,7 @@
 
   function tickStatus() {
     const t = $('.ms-time'); if (!t) return;
-    t.textContent = new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', hour12: !PatOS.settings.clock24 }).replace(/\s?[AP]M$/i, '');
+    t.textContent = new Intl.DateTimeFormat(PatOS.locale, { hour: 'numeric', minute: '2-digit', hour12: !PatOS.settings.clock24 }).formatToParts(new Date()).filter((p) => p.type !== 'dayPeriod').map((p) => p.value).join('').trim();
     updateIsland();
   }
 

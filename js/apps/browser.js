@@ -14,12 +14,12 @@
   ];
   const SHORTCUTS = [
     { t: 'Google', u: 'https://www.google.com/webhp?igu=1', i: 'search' },
-    { t: 'YouTube', u: 'https://www.youtube.com', i: 'youtube' },
-    { t: 'Gmail', u: 'https://mail.google.com', i: 'gmail' },
-    { t: 'Classroom', u: 'https://classroom.google.com', i: 'classroom' },
-    { t: 'Drive', u: 'https://drive.google.com', i: 'drive' },
-    { t: 'Docs', u: 'https://docs.google.com', i: 'docs' },
     { t: 'Wikipedia', u: 'https://en.wikipedia.org/wiki/Main_Page', i: 'W' },
+    { t: 'YouTube', app: 'youtube', i: 'youtube' },
+    { t: 'Docs', app: 'docs', i: 'docs' },
+    { t: 'Drive', app: 'drive', i: 'drive' },
+    { t: 'Translate', app: 'translate', i: 'translate' },
+    { t: 'Maps', app: 'maps', i: 'maps' },
     { t: 'three.js', u: 'https://threejs.org/examples/', i: '3' }
   ];
 
@@ -114,7 +114,8 @@
       function navigate(input, t, noHist) {
         t = t || cur;
         let url = toURL(input);
-        const yt = ytEmbed(url); if (yt) url = yt;
+        const yt = ytEmbed(url);
+        if (yt || /(^|\.)youtube\.com$/.test(host(url).replace(/^m\./, ''))) { const vid = yt && yt.match(/embed\/([\w-]{11})/); PatOS.launch('youtube', vid ? { id: vid[1] } : (new URL(url).searchParams.get('search_query') ? { q: new URL(url).searchParams.get('search_query') } : {})); if (t.url === 'patos://newtab' || !t.hist.length) { t.hist = []; t.idx = -1; } return; }
         if (!noHist) { t.hist = t.hist.slice(0, t.idx + 1); t.hist.push(url); t.idx = t.hist.length - 1; }
         t.url = url;
         t.pane.innerHTML = '';
@@ -140,7 +141,7 @@
         const grid = h('div', { class: 'nt-grid' });
         SHORTCUTS.forEach((s) => {
           const tile = h('button', { class: 'nt-tile' }, h('div', { class: 'nt-ic', html: PatOS.iconDefs[s.i] ? PatOS.iconHTML(s.i) : `<div class="nt-letter">${esc(s.i)}</div>` }), h('span', {}, s.t));
-          tile.onclick = () => navigate(s.u); grid.appendChild(tile);
+          tile.onclick = () => (s.app ? PatOS.launch(s.app) : navigate(s.u)); grid.appendChild(tile);
         });
         const hour = new Date().getHours();
         const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
@@ -149,14 +150,14 @@
           h('div', { class: 'nt-logo' }, h('span', { style: { color: '#4285f4' } }, 'S'), h('span', { style: { color: '#ea4335' } }, 'u'), h('span', { style: { color: '#fbbc05' } }, 'r'), h('span', { style: { color: '#34a853' } }, 'f')),
           h('div', { class: 'nt-greet' }, greet + ', ' + PatOS.settings.userName),
           q, grid,
-          h('div', { class: 'nt-tip' }, 'Tip: sites like Gmail, Docs and YouTube open in a real browser tab because they block being shown inside other pages. YouTube video links play right here!'));
+          h('div', { class: 'nt-tip' }, 'Websites load right inside PatOS. Some sites refuse to be shown inside other apps; for those, use the PatOS apps above.'));
       }
       function blockedPage(url) {
         return h('div', { class: 'br-blocked' },
           h('div', { class: 'bb-ic' }, '🧱'),
           h('h2', {}, host(url) + ' can’t be shown inside PatOS'),
-          h('p', {}, PatOS.sandboxed ? 'PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead. PatOS stays open in this one.' : 'This website blocks being displayed inside other pages (for your security). You can open it in a real browser tab instead. PatOS stays open in this one.'),
-          h('a', { class: 'btn primary br-ext', href: url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '').replace('?igu=1', ''), target: '_blank', rel: 'noopener noreferrer' }, 'Open ' + host(url) + ' in a new tab'));
+          h('p', {}, PatOS.sandboxed ? 'PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead. PatOS stays open in this one.' : 'This website blocks being shown inside other apps, so it can’t load in Surf. Try searching for it with Google above, or use the matching PatOS app (YouTube, Docs, Drive, Maps, Translate).'),
+          h('div', { class: 'br-alts' }, h('button', { class: 'btn primary', onclick: () => navigate('https://www.google.com/search?igu=1&q=' + encodeURIComponent(host(url))) }, 'Search Google for ' + host(url))), h('a', { class: 'br-ext', href: url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '').replace('?igu=1', ''), target: '_blank', rel: 'noopener noreferrer' }, 'Open outside PatOS'));
       }
       omni.addEventListener('keydown', (e) => { if (e.key === 'Enter') { navigate(omni.value); omni.blur(); } });
       omni.addEventListener('focus', () => omni.select());

@@ -122,7 +122,7 @@
         ...PatOS.wm.windows.map((x) => ({ label: x.title, checked: x === w, action: () => PatOS.wm.restore(x) }))
       ],
       help: [
-        { label: 'PatOS Help', action: () => PatOS.openFile('/Desktop/Welcome to PatOS.txt') },
+        { label: 'PatOS Help', action: () => PatOS.openFile(PatOS.fs.exists('/Desktop/Bienvenue dans PatOS.txt') ? '/Desktop/Bienvenue dans PatOS.txt' : '/Desktop/Welcome to PatOS.txt') },
         { label: 'Keyboard Shortcuts', action: () => PatOS.launch('settings', { pane: 'keyboard' }) },
         { label: 'About PatOS', action: () => PatOS.launch('about') }
       ],
@@ -241,7 +241,15 @@
 
   PatOS.panels = { toggle: (sel) => togglePanel(sel), closeAll: () => { $('#control-center').classList.add('hidden'); $('#notif-center').classList.add('hidden'); } };
   PatOS.focusMode = false;
-  let wifiOn = true, btOn = true, dropOn = false;
+  let wakeLock = null, muted = false, preMute = 0.7;
+  async function toggleWake() {
+    try {
+      if (wakeLock) { await wakeLock.release(); wakeLock = null; }
+      else if (navigator.wakeLock) { wakeLock = await navigator.wakeLock.request('screen'); wakeLock.addEventListener('release', () => { wakeLock = null; }); }
+      else PatOS.notify({ title: 'Not supported', body: 'This browser can’t keep the screen on.', icon: 'settings' });
+    } catch (e) { PatOS.notify({ title: 'Couldn’t keep the screen on', body: e.message, icon: 'settings' }); }
+    renderCC();
+  }
   function renderCC() {
     const s = PatOS.settings; const cc = $('#control-center'); cc.innerHTML = '';
     const tog = (label, sub, on, icon, fn) => {
@@ -249,9 +257,9 @@
       b.addEventListener('click', () => { fn(); renderCC(); }); return b;
     };
     const conn = h('div', { class: 'cc-tile cc-conn' },
-      tog('Wi-Fi', wifiOn ? (navigator.onLine ? 'Connected' : 'No Internet') : 'Off', wifiOn, '📶', () => { wifiOn = !wifiOn; }),
-      tog('Bluetooth', btOn ? 'On' : 'Off', btOn, '🔷', () => { btOn = !btOn; }),
-      tog('PatDrop', dropOn ? 'Everyone' : 'Contacts Only', dropOn, '📡', () => { dropOn = !dropOn; }));
+      tog('Wi-Fi', navigator.onLine ? ((navigator.connection && navigator.connection.effectiveType) ? 'Connected · ' + navigator.connection.effectiveType.toUpperCase() : 'Connected') : 'No Internet', navigator.onLine, '📶', () => PatOS.launch('settings', { pane: 'network' })),
+      tog('Keep Screen On', wakeLock ? 'On' : 'Off', !!wakeLock, '☀︎', toggleWake),
+      tog('Mute', muted ? 'Sound off' : 'Sound on', muted, '🔇', () => { if (muted) { PatOS.setSetting('volume', preMute || 0.7); muted = false; } else { preMute = s.volume; PatOS.setSetting('volume', 0); muted = true; } }));
     const side = h('div', { class: 'cc-side' },
       h('div', { class: 'cc-tile' }, tog('Focus', PatOS.focusMode ? 'Do Not Disturb' : 'Off', PatOS.focusMode, '🌙', () => { PatOS.focusMode = !PatOS.focusMode; })),
       h('div', { class: 'cc-tile cc-row2' },
@@ -443,7 +451,7 @@
   };
 
   /* =========================== LAUNCHPAD =========================== */
-  const CATS = ['Apps', '3D & Games', 'Google', 'Utilities'];
+  const CATS = ['Apps', 'Office', '3D & Games', 'Utilities'];
   PatOS.launchpad = {
     show() {
       const lp = $('#launchpad'); const input = $('.lp-search', lp);
@@ -459,7 +467,7 @@
       const ids = PatOS.appOrder.filter((id) => !PatOS.apps[id].hidden && id !== 'launchpad' && !(PatOS.settings.hiddenApps || []).includes(id));
       let n = 0;
       CATS.forEach((cat) => {
-        const list = ids.filter((id) => (PatOS.apps[id].category || 'Apps') === cat && (!q || PatOS.apps[id].name.toLowerCase().includes(q) || (PatOS.apps[id].keywords || '').includes(q)));
+        const list = ids.filter((id) => (PatOS.apps[id].category || 'Apps') === cat && (!q || PatOS.apps[id].name.toLowerCase().includes(q) || PatOS.t(PatOS.apps[id].name).toLowerCase().includes(q) || (PatOS.apps[id].keywords || '').includes(q)));
         if (!list.length) return;
         grid.appendChild(h('div', { class: 'lp-cat' }, cat));
         const sec = h('div', { class: 'lp-sec' });
@@ -508,7 +516,8 @@
     if (c !== null) spResults.push({ group: 'Calculator', label: q + ' = ' + c, icon: 'calculator', run: () => { navigator.clipboard && navigator.clipboard.writeText(String(c)).catch(() => {}); PatOS.notify({ title: 'Copied', body: String(c), icon: 'calculator' }); } });
     PatOS.appOrder.forEach((id) => {
       const a = PatOS.apps[id];
-      if (a.name.toLowerCase().includes(ql) || (a.keywords || '').includes(ql)) spResults.push({ group: 'Applications', label: a.name, icon: a.icon || id, score: a.name.toLowerCase().startsWith(ql) ? 0 : 1, run: () => PatOS.launch(id) });
+      const nm = PatOS.t ? PatOS.t(a.name) : a.name;
+      if (a.name.toLowerCase().includes(ql) || nm.toLowerCase().includes(ql) || (a.keywords || '').includes(ql)) spResults.push({ group: 'Applications', label: nm, icon: a.icon || id, score: a.name.toLowerCase().startsWith(ql) ? 0 : 1, run: () => PatOS.launch(id) });
     });
     spResults.sort((a, b) => (a.group === b.group ? (a.score || 0) - (b.score || 0) : 0));
     let files = 0;
@@ -757,8 +766,20 @@
     document.documentElement.classList.toggle('reduce-motion', !!s.reduceMotion);
     document.documentElement.classList.toggle('reduce-transparency', !!s.reduceTransparency);
     $('#dimmer').style.opacity = String(1 - s.brightness);
+    const chromium = !!window.chrome && !PatOS.isIOS && !/Firefox/.test(navigator.userAgent);
+    document.documentElement.classList.toggle('lg-on', !!s.liquidGlass);
+    document.documentElement.classList.toggle('lg-refract', !!(s.liquidGlass && s.glassRefraction && chromium && s.quality3d !== 'low' && !s.reduceTransparency));
   }
   PatOS.applyTheme = applyTheme;
+  /* Liquid Glass light follows the pointer */
+  const GLASS_SEL = '#dock, .mh-dock, .menu, #control-center, .toast, .sp-box, .dlg, .widget, .mw, .cc-tile, .asw-row, .nc-list';
+  document.addEventListener('pointermove', (e) => {
+    if (e.pointerType === 'touch' || !document.documentElement.classList.contains('lg-on')) return;
+    const g = e.target.closest && e.target.closest(GLASS_SEL); if (!g) return;
+    const r = g.getBoundingClientRect();
+    g.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+    g.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+  }, { passive: true });
 
   function setupKeys() {
     document.addEventListener('keydown', (e) => {
@@ -820,7 +841,7 @@
       applyTheme();
       setupMenubar(); setupLaunchpad(); setupSpotlight(); setupDesktop(); setupDockMagnify(); setupKeys();
       PatOS.on('setting', (s) => {
-        if (['theme', 'accent', 'brightness', 'reduceMotion', 'reduceTransparency'].includes(s.key)) applyTheme();
+        if (['theme', 'accent', 'brightness', 'reduceMotion', 'reduceTransparency', 'liquidGlass', 'glassRefraction', 'quality3d'].includes(s.key)) applyTheme();
         if (['dockSize', 'dockAutohide'].includes(s.key)) applyDockSize();
         if (s.key === 'dockPinned') renderDock();
       });

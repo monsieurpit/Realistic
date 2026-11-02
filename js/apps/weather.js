@@ -3,7 +3,7 @@
   'use strict';
   const { h } = PatOS;
   const CODES = {
-    0: ['Clear', '☀️', 'clear'], 1: ['Mostly Clear', '🌤', 'clear'], 2: ['Partly Cloudy', '⛅', 'cloud'], 3: ['Cloudy', '☁️', 'cloud'],
+    0: ['Clear Sky', '☀️', 'clear'], 1: ['Mostly Clear', '🌤', 'clear'], 2: ['Partly Cloudy', '⛅', 'cloud'], 3: ['Cloudy', '☁️', 'cloud'],
     45: ['Fog', '🌫', 'fog'], 48: ['Fog', '🌫', 'fog'], 51: ['Drizzle', '🌦', 'rain'], 53: ['Drizzle', '🌦', 'rain'], 55: ['Drizzle', '🌧', 'rain'],
     61: ['Light Rain', '🌧', 'rain'], 63: ['Rain', '🌧', 'rain'], 65: ['Heavy Rain', '🌧', 'rain'], 66: ['Freezing Rain', '🌧', 'rain'], 67: ['Freezing Rain', '🌧', 'rain'],
     71: ['Light Snow', '🌨', 'snow'], 73: ['Snow', '❄️', 'snow'], 75: ['Heavy Snow', '❄️', 'snow'], 77: ['Snow Grains', '🌨', 'snow'],

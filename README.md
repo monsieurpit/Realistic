@@ -17,6 +17,14 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 - Desktop icons, drag-select, right-click menus, drag files onto folders or the Trash
 - Live **three.js 3D wallpapers** (Nebula, Dot Waves, Crystals, Warp) that react to your mouse, plus 8 picture wallpapers or your own photo
 
+**Liquid Glass**
+- See-through glass on the dock, menus, Control Center, notifications, widgets and the iPhone home screen, with a light that follows your pointer
+- In Chrome the glass also bends what's behind it (System Settings › Appearance)
+
+**English and French**
+- PatOS uses French when your device is in French, English otherwise; change it in System Settings › General › Language
+- Pat in Messages understands French too ("ouvre calculatrice", "raconte une blague")
+
 **On iPhone (and other phones)**
 - PatOS switches to a phone layout automatically (or pick it in System Settings › General › Device style)
 - Lock screen: swipe up to open
@@ -45,7 +53,13 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 | Code Studio | HTML/CSS/JS editor with live preview and a console |
 | Piano, Flashcards, Typing Trainer, Voice Memos, Stickies, Dictionary | |
 | Tic-Tac-Toe, Maps, YouTube, System Settings, Activity Monitor | |
-| Google apps | Gmail, Docs, Sheets, Slides, Forms, Drive, Classroom, Meet, Calendar, Keep, Chat, Photos, Translate (open in a real tab, since Google blocks being shown inside other pages) |
+| Docs | word processor: styles, fonts, colors, lists, tables, images, find & replace, print, export |
+| Sheets | spreadsheet with real formulas (SUM, AVERAGE, IF, COUNTIF, SUMIF…), sorting, charts, CSV import/export |
+| Slides | slide decks with themes, text, images, shapes, speaker notes and full-screen presenting with transitions |
+| Drive | every document, spreadsheet, presentation and form in one place |
+| Forms | surveys and graded quizzes with a results view |
+| Translate | 20 languages (MyMemory, needs internet) with read-aloud |
+| YouTube | the real YouTube player inside PatOS; search, trending and comments with your own free YouTube API key |
 
 ## Keyboard shortcuts
 

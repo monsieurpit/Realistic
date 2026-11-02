@@ -14,9 +14,16 @@
     typing: 'Measure your typing speed and accuracy and watch your best score climb.',
     voicememos: 'Record your voice, see the waveform and play it back later.',
     browser: 'Tabs, bookmarks and a search box. YouTube links play right inside.',
-    terminal: 'A real little shell: ls, cd, cat, mkdir, neofetch, matrix and more.'
+    terminal: 'A real little shell: ls, cd, cat, mkdir, neofetch, matrix and more.',
+    docs: 'Write essays and reports with headings, fonts, lists, tables and pictures. Saves as you type.',
+    sheets: 'Spreadsheets with real formulas: SUM, AVERAGE, IF, COUNTIF and more, plus charts.',
+    slides: 'Build a slide deck with themes and transitions, then present it full screen.',
+    drive: 'Every document, spreadsheet, presentation and form you make, in one place.',
+    forms: 'Make a survey or a graded quiz, answer it, and see the results as charts.',
+    translate: 'Translate between 20 languages and hear the result read aloud.',
+    youtube: 'Search and watch YouTube with the real YouTube player, without leaving PatOS.'
   };
-  const FEATURED = ['galaxy', 'orbrunner', 'code', 'messages'];
+  const FEATURED = ['docs', 'galaxy', 'orbrunner', 'code'];
   const GRADS = ['linear-gradient(135deg,#3a1c71,#d76d77,#ffaf7b)', 'linear-gradient(135deg,#0b0130,#ff2fa3)', 'linear-gradient(135deg,#1e1e2e,#5b5bd6)', 'linear-gradient(135deg,#0bbf3a,#00a6fb)'];
   PatOS.registerApp({
     id: 'appstore', name: 'App Store', icon: 'appstore', width: 940, height: 640, category: 'Utilities', keywords: 'apps install store download',
@@ -24,7 +31,7 @@
       win.el.classList.add('has-toolbar');
       let tab = 'discover', q = '';
       const seg = h('div', { class: 'seg' });
-      [['discover', 'Discover'], ['games', '3D & Games'], ['google', 'Google'], ['all', 'All Apps']].forEach(([k, l]) => seg.appendChild(h('button', { class: 'tab', 'data-k': k, onclick: () => { tab = k; render(); } }, l)));
+      [['discover', 'Discover'], ['office', 'Office'], ['games', '3D & Games'], ['all', 'All Apps']].forEach(([k, l]) => seg.appendChild(h('button', { class: 'tab', 'data-k': k, onclick: () => { tab = k; render(); } }, l)));
       const search = h('input', { class: 'field', placeholder: 'Search apps', style: { width: '170px' } });
       search.oninput = () => { q = search.value.toLowerCase(); render(); };
       win.toolbar.append(seg, h('div', { style: { flex: 1 } }), search);
@@ -76,7 +83,7 @@
           if (hidden.length) { main.appendChild(h('h2', {}, 'Hidden Apps')); const g2 = h('div', { class: 'as-list' }); hidden.filter((id) => PatOS.apps[id]).forEach((id) => g2.appendChild(row(id))); main.appendChild(g2); }
           return;
         }
-        const cat = { games: '3D & Games', google: 'Google' }[tab];
+        const cat = { games: '3D & Games', office: 'Office' }[tab];
         main.appendChild(h('h1', { class: 'as-h1' }, cat || 'All Apps'));
         const g = h('div', { class: 'as-list' }); ids.filter((id) => !cat || PatOS.apps[id].category === cat).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
       }

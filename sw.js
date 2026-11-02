@@ -1,5 +1,5 @@
 /* PatOS service worker: caches the OS so it works offline once loaded */
-const CACHE = 'patos-v2';
+const CACHE = 'patos-v3';
 self.addEventListener('install', (e) => { self.skipWaiting(); });
 self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
 self.addEventListener('fetch', (e) => {

@@ -17,8 +17,18 @@
   <link rel="stylesheet" href="css/apps.css">
   <link rel="stylesheet" href="css/apps2.css">
   <link rel="stylesheet" href="css/mobile.css">
+  <link rel="stylesheet" href="css/glass.css">
 </head>
 <body>
+  <!-- Liquid Glass refraction filter (used by Chromium browsers) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="lg-refract" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.009 0.012" numOctaves="2" seed="7" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="2.5" result="soft"/>
+      <feDisplacementMap in="SourceGraphic" in2="soft" scale="46" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
+
   <!-- Boot screen -->
   <div id="boot" class="screen">
     <div class="boot-logo"><span>P</span></div>
@@ -104,6 +114,7 @@
 
   <script src="vendor/three.min.js"></script>
   <script src="js/core.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/icons.js"></script>
   <script src="js/wm.js"></script>
   <script src="js/wallpaper.js"></script>
@@ -139,6 +150,12 @@
   <script src="js/apps/voicememos.js"></script>
   <script src="js/apps/stickies.js"></script>
   <script src="js/apps/dictionary.js"></script>
+  <script src="js/apps/docs.js"></script>
+  <script src="js/apps/sheets.js"></script>
+  <script src="js/apps/slides.js"></script>
+  <script src="js/apps/drive.js"></script>
+  <script src="js/apps/forms.js"></script>
+  <script src="js/apps/translate.js"></script>
   <script src="js/apps/about.js"></script>
   <script src="js/boot.js"></script>
 </body>
