@@ -1,7 +1,7 @@
 /* ================= PatOS app styles ================= */
 .force-dark { --text: #f2f2f7; --text2: rgba(235,235,245,.62); --border: rgba(255,255,255,.1); --border2: rgba(255,255,255,.16); --hover: rgba(255,255,255,.08); --hover2: rgba(255,255,255,.14); --field: rgba(255,255,255,.08); --toolbar: rgba(44,44,50,.92); --win: rgba(28,28,32,.95); --card: rgba(255,255,255,.05); color-scheme: dark; }
 .seg { display: inline-flex; padding: 2px; border-radius: 8px; background: var(--hover2); gap: 2px; }
-.seg .tab { height: 24px; padding: 0 12px; border-radius: 6px; font-size: 12.5px; color: var(--text2); }
+.seg .tab { white-space: nowrap; height: 24px; padding: 0 12px; border-radius: 6px; font-size: 12.5px; color: var(--text2); }
 .seg .tab.on { background: var(--win-solid, #fff); color: var(--text); box-shadow: 0 1px 3px rgba(0,0,0,.2); }
 .force-dark .seg .tab.on { background: #636366; }
 .switch { width: 38px; height: 22px; border-radius: 11px; background: var(--hover2); position: relative; transition: background .2s; flex: 0 0 auto; box-shadow: inset 0 0 0 .5px var(--border2); }

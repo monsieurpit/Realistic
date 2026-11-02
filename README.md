@@ -1,6 +1,6 @@
 # PatOS
 
-A macOS-style desktop operating system that runs in any web browser. It's built to work on a school Chromebook.
+A macOS-style desktop operating system that runs in any web browser. It's built to work on a school Chromebook, and on an iPhone it turns into a phone OS.
 
 ![PatOS](assets/icon.svg)
 
@@ -10,11 +10,22 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 - Boot screen, lock screen with an optional password, Sleep, Restart and Shut Down
 - Menu bar with app menus, battery (real Chromebook battery level), Wi-Fi, clock
 - A dock with magnification, bouncing app icons, running-app dots, Trash, right-click menus and auto-hide
-- Windows you can drag, resize, minimize (they fly into the dock), zoom and snap to the left or right half
+- Windows you can drag, resize, minimize (with a genie effect into the dock), zoom and snap to the left or right half
 - Launchpad, Spotlight search (apps, files, notes, math, web), Mission Control
 - Control Center (brightness, volume, dark mode, Focus, full screen) and Notification Center with widgets
+- Desktop widgets (clock, calendar, events, music), a particle boot intro, and windows that zoom out of the icon you clicked
 - Desktop icons, drag-select, right-click menus, drag files onto folders or the Trash
 - Live **three.js 3D wallpapers** (Nebula, Dot Waves, Crystals, Warp) that react to your mouse, plus 8 picture wallpapers or your own photo
+
+**On iPhone (and other phones)**
+- PatOS switches to a phone layout automatically (or pick it in System Settings › General › Device style)
+- Lock screen: swipe up to open
+- Home screen pages with widgets and a 4-app dock; touch and hold an icon for quick actions
+- Apps open full screen, zooming out of their icon
+- Swipe up from the bottom bar to go home; swipe up and pause for the app switcher (swipe a card up to close it)
+- Pull down from the top right for Control Center, top left for notifications; pull down on the home screen to search
+- Dynamic Island shows the song that's playing
+- In Safari: Share → Add to Home Screen to run PatOS full screen like a real app
 
 **Apps**
 | | |
@@ -29,6 +40,10 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 | Galaxy | 3D galaxy generator (three.js) |
 | Orb Runner | original 3D neon runner game (three.js) |
 | 3D Studio | build a 3D scene with shapes and materials (three.js) |
+| Messages | chat with Pat, the built-in assistant (opens apps, does math, adds reminders and notes, tells jokes) |
+| App Store | browse every app, open it, add it to the Dock, hide or show it |
+| Code Studio | HTML/CSS/JS editor with live preview and a console |
+| Piano, Flashcards, Typing Trainer, Voice Memos, Stickies, Dictionary | |
 | Tic-Tac-Toe, Maps, YouTube, System Settings, Activity Monitor | |
 | Google apps | Gmail, Docs, Sheets, Slides, Forms, Drive, Classroom, Meet, Calendar, Keep, Chat, Photos, Translate (open in a real tab, since Google blocks being shown inside other pages) |
 
@@ -40,6 +55,7 @@ Chromebooks reserve most Ctrl shortcuts, so PatOS uses **Alt**:
 |---|---|
 | Ctrl+Space or Alt+Space | Spotlight |
 | Alt+L or F4 | Launchpad |
+| Hold Alt, press ` | App switcher |
 | Alt+↑ or F3 | Mission Control |
 | Alt+W / Alt+Q / Alt+M | Close window / Quit app / Minimize |
 | Alt+← / Alt+→ | Tile window left / right |

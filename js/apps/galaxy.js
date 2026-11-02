@@ -58,6 +58,7 @@
       bPanel.onclick = () => panel.classList.toggle('hidden');
       bShot.onclick = () => { renderer.render(scene, cam); const nm = PatOS.fs.uniqueName('/Pictures', 'Galaxy.jpg'); PatOS.fs.write('/Pictures/' + nm, canvas.toDataURL('image/jpeg', 0.85)); PatOS.notify({ title: 'Galaxy saved', body: nm + ' is in Photos', icon: 'galaxy' }); };
       win.toolbar.append(bShot, bPanel);
+      if (PatOS.isMobile) panel.classList.add('hidden');
       canvas.addEventListener('click', (e) => {
         if (orb.vx * orb.vx + orb.vy * orb.vy > 0.0001) return;
         const r = canvas.getBoundingClientRect();

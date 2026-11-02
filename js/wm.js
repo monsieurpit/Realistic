@@ -70,7 +70,7 @@
     layer().appendChild(el);
     wins.push(win);
     focusWindow(win);
-    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.remove('opening')));
+    openAnim(win);
 
     try { app.launch(win, win.args); } catch (e) {
       console.error(e);
@@ -83,11 +83,32 @@
     return win;
   }
 
+  /* zoom the window out of the icon that launched it (dock, Launchpad, home screen) */
+  const motionOK = () => !PatOS.settings.reduceMotion && el0().animate;
+  const el0 = () => document.body;
+  function rectTransform(from, to) {
+    const s = Math.max(0.04, Math.min(from.width / to.width, from.height / to.height));
+    return `translate(${from.left + from.width / 2 - (to.left + to.width / 2)}px, ${from.top + from.height / 2 - (to.top + to.height / 2)}px) scale(${s})`;
+  }
+  function openAnim(win) {
+    const el = win.el;
+    const src = PatOS._launchRect && Date.now() - PatOS._launchRect.t < 900 ? PatOS._launchRect : null;
+    PatOS._launchRect = null;
+    if (!motionOK()) { el.classList.remove('opening'); return; }
+    el.classList.remove('opening');
+    const r = el.getBoundingClientRect();
+    const frames = src
+      ? [{ transform: rectTransform(src, r), opacity: 0.2, borderRadius: '40px' }, { transform: 'none', opacity: 1, borderRadius: PatOS.isMobile ? '0px' : '12px' }]
+      : [{ transform: 'scale(.9) translateY(14px)', opacity: 0, filter: 'blur(6px)' }, { transform: 'none', opacity: 1, filter: 'blur(0)' }];
+    el.animate(frames, { duration: src ? 460 : 300, easing: 'cubic-bezier(.2,.95,.25,1.04)' });
+  }
+  PatOS.rectTransform = rectTransform;
+
   function setupDrag(win, handle, bodyMode) {
     let sx, sy, ox, oy, dragging = false, snap = null, pid = null;
     const preview = () => $('#snap-preview') || layer().appendChild(h('div', { id: 'snap-preview' }));
     handle.addEventListener('pointerdown', (e) => {
-      if (e.button !== 0) return;
+      if (e.button !== 0 || PatOS.isMobile) return;
       if (bodyMode && e.target.closest('button, input, textarea, select, canvas, a, [contenteditable], .no-drag, .calc-keys, .scrub')) return;
       if (!bodyMode && e.target.closest('.win-toolbar button, .win-toolbar input, .win-toolbar select, .win-toolbar .tab, .win-toolbar .no-drag')) return;
       sx = e.clientX; sy = e.clientY; ox = win.el.offsetLeft; oy = win.el.offsetTop; dragging = false; pid = e.pointerId;
@@ -138,6 +159,7 @@
   function setupResize(win) {
     win.el.querySelectorAll('.rz').forEach((hd) => {
       hd.addEventListener('pointerdown', (e) => {
+        if (PatOS.isMobile) return;
         e.preventDefault(); e.stopPropagation();
         const dir = hd.dataset.dir; const r = win.rect(); const sx = e.clientX, sy = e.clientY;
         const minW = win.app.minWidth, minH = win.app.minHeight;
@@ -192,10 +214,12 @@
     let veto = false;
     win.emit('beforeclose', { cancel: () => { veto = true; } });
     if (veto) return;
-    win.el.classList.add('closing');
+    if (motionOK()) win.el.animate([{ transform: 'none', opacity: 1 }, { transform: 'scale(.92)', opacity: 0, filter: 'blur(4px)' }], { duration: 200, easing: 'ease-in', fill: 'forwards' });
+    else win.el.classList.add('closing');
+    win.el.style.pointerEvents = 'none';
     win.emit('closed');
     const i = wins.indexOf(win); if (i >= 0) wins.splice(i, 1);
-    setTimeout(() => win.el.remove(), 180);
+    setTimeout(() => win.el.remove(), 210);
     if (active === win) {
       active = null;
       const next = wins.filter((w) => !w.minimized).sort((a, b) => b.el.style.zIndex - a.el.style.zIndex)[0];
@@ -204,18 +228,27 @@
     PatOS.emit('wm:close', win);
   }
 
+  function genieFrames(r, target, reverse) {
+    const dx = target.left + target.width / 2 - (r.left + r.width / 2);
+    const dy = target.top + target.height / 2 - (r.top + r.height / 2);
+    const s = Math.max(0.04, target.width / r.width);
+    const f = [
+      { transform: 'none', opacity: 1, offset: 0 },
+      { transform: `translate(${dx * 0.25}px, ${dy * 0.35}px) scale(${0.85}, ${0.7}) skewX(${dx > 0 ? -10 : 10}deg)`, opacity: 0.95, offset: 0.4 },
+      { transform: `translate(${dx * 0.8}px, ${dy * 0.85}px) scale(${s * 1.6}, ${s * 2.2}) skewX(${dx > 0 ? -4 : 4}deg)`, opacity: 0.6, offset: 0.8 },
+      { transform: `translate(${dx}px, ${dy}px) scale(${s})`, opacity: 0, offset: 1 }
+    ];
+    return reverse ? f.reverse().map((k, i, a) => Object.assign({}, k, { offset: 1 - k.offset })) : f;
+  }
   function minimizeWindow(win) {
     if (win.minimized) return;
+    if (PatOS.isMobile && PatOS.mobile) return PatOS.mobile.home(win);
     const target = PatOS.dock && PatOS.dock.iconRect(win.app.id);
     const r = win.el.getBoundingClientRect();
     win.minimized = true;
-    if (target && !PatOS.settings.reduceMotion) {
-      const dx = target.left + target.width / 2 - (r.left + r.width / 2);
-      const dy = target.top + target.height / 2 - (r.top + r.height / 2);
-      win.el.classList.add('minimizing');
-      win.el.style.transform = `translate(${dx}px, ${dy}px) scale(${Math.max(0.05, target.width / r.width)})`;
-      win.el.style.opacity = '0';
-      setTimeout(() => { win.el.style.display = 'none'; win.el.classList.remove('minimizing'); }, 380);
+    if (target && motionOK()) {
+      win.el.style.transformOrigin = 'center bottom';
+      win.el.animate(genieFrames(r, target), { duration: 560, easing: 'cubic-bezier(.55,.05,.4,1)' }).onfinish = () => { if (win.minimized) win.el.style.display = 'none'; win.el.style.transformOrigin = ''; };
     } else win.el.style.display = 'none';
     win.emit('minimize');
     if (active === win) {
@@ -226,14 +259,15 @@
     PatOS.emit('wm:minimize', win);
   }
   function restoreWindow(win) {
+    if (PatOS.isMobile && PatOS.mobile) return PatOS.mobile.show(win);
     if (!win.minimized) return focusWindow(win);
     win.minimized = false;
     win.el.style.display = '';
-    win.el.classList.add('minimizing');
-    requestAnimationFrame(() => {
-      win.el.style.transform = ''; win.el.style.opacity = '';
-      setTimeout(() => win.el.classList.remove('minimizing'), 380);
-    });
+    const target = PatOS.dock && PatOS.dock.iconRect(win.app.id);
+    if (target && motionOK()) {
+      win.el.style.transformOrigin = 'center bottom';
+      win.el.animate(genieFrames(win.el.getBoundingClientRect(), target, true), { duration: 480, easing: 'cubic-bezier(.2,.7,.3,1)' }).onfinish = () => { win.el.style.transformOrigin = ''; };
+    }
     focusWindow(win);
     win.emit('restore');
     PatOS.emit('wm:minimize', win);

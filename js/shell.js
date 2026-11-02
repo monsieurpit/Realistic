@@ -54,6 +54,7 @@
     return el;
   };
   PatOS.closeMenus = closeMenus;
+  PatOS.setLaunchRect = (el) => { if (!el) return; const r = el.getBoundingClientRect(); PatOS._launchRect = { left: r.left, top: r.top, width: r.width, height: r.height, t: Date.now() }; };
   document.addEventListener('pointerdown', (e) => { if (openMenu && !e.target.closest('.menu') && !e.target.closest('#menubar [data-menu]')) closeMenus(); });
 
   /* =========================== NOTIFICATIONS =========================== */
@@ -238,6 +239,7 @@
     if (!e.target.closest('#notif-center, #mb-clock')) $('#notif-center') && $('#notif-center').classList.add('hidden');
   });
 
+  PatOS.panels = { toggle: (sel) => togglePanel(sel), closeAll: () => { $('#control-center').classList.add('hidden'); $('#notif-center').classList.add('hidden'); } };
   PatOS.focusMode = false;
   let wifiOn = true, btOn = true, dropOn = false;
   function renderCC() {
@@ -283,8 +285,7 @@
     return tile;
   }
 
-  function renderNC() {
-    const nc = $('#notif-center'); nc.innerHTML = '';
+  function buildWidgets() {
     const d = new Date();
     // calendar widget
     const first = new Date(d.getFullYear(), d.getMonth(), 1).getDay();
@@ -308,6 +309,15 @@
     const remW = h('div', { class: 'widget w-up' }, h('b', {}, 'Reminders'),
       rem.length ? rem.map((r) => h('div', { class: 'w-ev' }, '○ ' + r.text)) : h('div', { class: 'w-muted' }, 'All done!'));
     remW.addEventListener('click', () => PatOS.launch('reminders'));
+    const np = PatOS.music && PatOS.music.nowPlaying && PatOS.music.nowPlaying();
+    const music = h('div', { class: 'widget w-music' }, h('div', { class: 'w-np-art', style: { background: np ? np.color : 'linear-gradient(135deg,#ff6482,#fa233b)' } }, '♫'), h('b', {}, np ? np.title : 'Music'), h('small', {}, np ? (np.playing ? 'Now playing · ' : 'Paused · ') + np.artist : 'Tap to play a song'));
+    music.addEventListener('click', () => PatOS.launch('music'));
+    return { cal, clock, up, remW, music };
+  }
+  PatOS.buildWidgets = buildWidgets;
+  function renderNC() {
+    const nc = $('#notif-center'); nc.innerHTML = '';
+    const { cal, clock, up, remW } = buildWidgets();
     const list = h('div', { class: 'nc-list' },
       h('div', { class: 'nc-head' }, h('b', {}, 'Notifications'), notifs.length ? h('button', { onclick: () => { notifs.length = 0; renderNC(); } }, 'Clear') : null),
       notifs.length ? notifs.slice(0, 8).map((n) => h('div', { class: 'toast in static' },
@@ -345,7 +355,7 @@
         h('div', { class: 'dock-label' }, app.name),
         h('div', { class: 'dock-icon', html: PatOS.iconHTML(app.icon || id) }),
         h('div', { class: 'dock-dot' }));
-      item.addEventListener('click', () => dockClick(id));
+      item.addEventListener('click', () => { PatOS.setLaunchRect(item.querySelector('.dock-icon')); dockClick(id); });
       item.addEventListener('contextmenu', (e) => { e.preventDefault(); dockMenu(id, item); });
       return item;
     };
@@ -442,11 +452,12 @@
       setTimeout(() => input.focus(), 50);
     },
     hide() { const lp = $('#launchpad'); lp.classList.remove('in'); setTimeout(() => lp.classList.add('hidden'), 220); },
-    toggle() { $('#launchpad').classList.contains('hidden') ? this.show() : this.hide(); },
+    toggle() { if (PatOS.isMobile && PatOS.mobile) return PatOS.mobile.goHome(); $('#launchpad').classList.contains('hidden') ? this.show() : this.hide(); },
     render(q) {
       const grid = $('.lp-grid'); grid.innerHTML = '';
       q = q.trim().toLowerCase();
-      const ids = PatOS.appOrder.filter((id) => !PatOS.apps[id].hidden && id !== 'launchpad');
+      const ids = PatOS.appOrder.filter((id) => !PatOS.apps[id].hidden && id !== 'launchpad' && !(PatOS.settings.hiddenApps || []).includes(id));
+      let n = 0;
       CATS.forEach((cat) => {
         const list = ids.filter((id) => (PatOS.apps[id].category || 'Apps') === cat && (!q || PatOS.apps[id].name.toLowerCase().includes(q) || (PatOS.apps[id].keywords || '').includes(q)));
         if (!list.length) return;
@@ -454,8 +465,8 @@
         const sec = h('div', { class: 'lp-sec' });
         list.forEach((id) => {
           const a = PatOS.apps[id];
-          const it = h('button', { class: 'lp-item' }, h('div', { class: 'lp-icon', html: PatOS.iconHTML(a.icon || id) }), h('span', {}, a.name));
-          it.addEventListener('click', () => { this.hide(); setTimeout(() => PatOS.launch(id), 120); });
+          const it = h('button', { class: 'lp-item', style: { animationDelay: Math.min(n++ * 14, 500) + 'ms' } }, h('div', { class: 'lp-icon', html: PatOS.iconHTML(a.icon || id) }), h('span', {}, a.name));
+          it.addEventListener('click', () => { PatOS.setLaunchRect(it.querySelector('.lp-icon')); this.hide(); setTimeout(() => PatOS.launch(id), 60); });
           sec.appendChild(it);
         });
         grid.appendChild(sec);
@@ -694,6 +705,42 @@
     PatOS.setSetting('wallpaper', all[(i + 1) % all.length]);
   }
 
+  /* =========================== DESKTOP WIDGETS =========================== */
+  function renderDeskWidgets() {
+    let wrap = $('#desk-widgets');
+    if (!wrap) { wrap = h('div', { id: 'desk-widgets' }); $('#desktop').insertBefore(wrap, $('#desktop-icons')); }
+    wrap.innerHTML = '';
+    if (!PatOS.settings.showWidgets) return;
+    const { cal, clock, up, music } = buildWidgets();
+    wrap.append(clock, cal, up, music);
+  }
+  PatOS.renderDeskWidgets = renderDeskWidgets;
+
+  /* =========================== APP SWITCHER (hold Alt, press `) =========================== */
+  const switcher = { open: false, list: [], i: 0, el: null };
+  function switcherOrder() {
+    const seen = []; PatOS.wm.windows.slice().sort((a, b) => (b.minimized ? -1 : +b.el.style.zIndex) - (a.minimized ? -1 : +a.el.style.zIndex)).forEach((w) => { if (!seen.includes(w.app.id)) seen.push(w.app.id); });
+    return seen;
+  }
+  function switcherStep(dir) {
+    if (!switcher.open) {
+      switcher.list = switcherOrder(); if (switcher.list.length < 1) return;
+      switcher.open = true; switcher.i = 0;
+      switcher.el = h('div', { id: 'app-switcher' }); $('#desktop').appendChild(switcher.el);
+    }
+    switcher.i = (switcher.i + dir + switcher.list.length) % switcher.list.length;
+    switcher.el.innerHTML = '';
+    const row = h('div', { class: 'asw-row' });
+    switcher.list.forEach((id, j) => { const b = h('div', { class: 'asw-item' + (j === switcher.i ? ' on' : '') }, h('div', { class: 'asw-ic', html: PatOS.iconHTML(PatOS.apps[id].icon || id) })); b.onclick = () => { switcher.i = j; switcherCommit(); }; row.appendChild(b); });
+    switcher.el.append(row, h('div', { class: 'asw-name' }, PatOS.apps[switcher.list[switcher.i]].name));
+  }
+  function switcherCommit() {
+    if (!switcher.open) return;
+    const id = switcher.list[switcher.i]; switcher.open = false; switcher.el.remove();
+    PatOS.wm.windowsOf(id).forEach((w) => PatOS.wm.restore(w));
+  }
+  document.addEventListener('keyup', (e) => { if (e.key === 'Alt' && switcher.open) switcherCommit(); });
+
   /* =========================== FULLSCREEN, THEME, KEYS =========================== */
   function toggleFullscreen() {
     if (document.fullscreenElement) document.exitFullscreen && document.exitFullscreen();
@@ -744,10 +791,7 @@
         ',': () => PatOS.launch('settings'),
         arrowleft: () => w && tile(w, 'left'),
         arrowright: () => w && tile(w, 'right'),
-        '`': () => { // cycle windows
-          const vis = PatOS.wm.windows.filter((x) => !x.minimized).sort((a, b) => a.el.style.zIndex - b.el.style.zIndex);
-          if (vis.length > 1) PatOS.wm.focus(vis[0]);
-        }
+        '`': () => switcherStep(switcher.open ? (e.shiftKey ? -1 : 1) : 1)
       };
       if (map[k]) { e.preventDefault(); map[k](); }
     });
@@ -787,7 +831,10 @@
         PatOS.wallpaper.pause(PatOS.wm.windows.some((w) => w.maximized && !w.minimized));
       }));
       PatOS.on('wm:focus', () => PatOS.wallpaper.pause(PatOS.wm.windows.some((w) => w.maximized && !w.minimized)));
-      renderDock(); renderDesktop();
+      renderDock(); renderDesktop(); renderDeskWidgets();
+      setInterval(renderDeskWidgets, 30000);
+      setInterval(() => { const c = $('#desk-widgets .w-clock canvas'); if (c) drawAnalog(c, new Date()); }, 1000);
+      PatOS.on('setting:showWidgets', renderDeskWidgets);
       // refresh calendar/clock dock icons every minute
       setInterval(() => { $$('#dock .dock-item[data-app="calendar"] .dock-icon, #dock .dock-item[data-app="clock"] .dock-icon').forEach((el) => { el.innerHTML = PatOS.iconHTML(el.parentNode.dataset.app); }); }, 60000);
     }

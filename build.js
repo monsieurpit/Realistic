@@ -11,6 +11,8 @@ html = html.replace(/<link rel="stylesheet" href="([^"]+)">/g, (_, href) => `<st
 html = html.replace(/<script src="([^"]+)"><\/script>/g, (_, src) => `<script>\n${read(src).replace(/<\/script/gi, '<\\/script')}\n</script>`);
 // inline the icon, drop the manifest (single-file mode)
 const icon = 'data:image/svg+xml;base64,' + Buffer.from(read('assets/icon.svg')).toString('base64');
+const touch = 'data:image/png;base64,' + fs.readFileSync(path.join(root, 'assets/icon-180.png')).toString('base64');
+html = html.replace(/<link rel="apple-touch-icon"[^>]*>/, `<link rel="apple-touch-icon" href="${touch}">`);
 html = html.replace(/<link rel="icon"[^>]*>/, `<link rel="icon" href="${icon}">`).replace(/<link rel="manifest"[^>]*>\n?/, '');
 html = html.replace('<html lang="en" data-theme="dark">', '<html lang="en" data-theme="dark" data-single-file="1">');
 html = html.replace('<link rel="stylesheet"', '<link rel="stylesheet"').replace('<body>', '<body>\n  <script>window.PATOS_SINGLE_FILE = 1;</script>');

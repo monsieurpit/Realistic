@@ -302,3 +302,43 @@ body.mission-on #windows { z-index: 11; }
   #control-center, #notif-center { width: calc(100vw - 16px); }
   .win-title { padding: 0 90px; }
 }
+
+/* ---------- desktop widgets ---------- */
+#desk-widgets { position: absolute; top: 44px; left: 18px; z-index: 2; display: grid; grid-template-columns: 170px 170px; gap: 14px; pointer-events: none; animation: widgetsIn .8s var(--ease) both; }
+#desk-widgets .widget { pointer-events: auto; cursor: default; transition: transform .25s var(--spring), box-shadow .25s; color: var(--text); }
+#desk-widgets .widget:hover { transform: translateY(-3px) scale(1.02); }
+#desk-widgets .w-clock canvas { width: 130px; height: 130px; }
+#desk-widgets .w-up, #desk-widgets .w-music { min-height: 110px; }
+@keyframes widgetsIn { from { opacity: 0; transform: translateY(-10px); } }
+.w-music { display: flex; flex-direction: column; gap: 4px; }
+.w-np-art { width: 44px; height: 44px; border-radius: 10px; display: grid; place-items: center; color: #fff; font-size: 20px; margin-bottom: 4px; box-shadow: 0 4px 12px rgba(0,0,0,.25); }
+.w-music small { color: var(--text2); font-size: 11.5px; }
+@media (max-width: 1000px) { #desk-widgets { display: none; } }
+
+/* ---------- Alt+` app switcher ---------- */
+#app-switcher { position: absolute; inset: 0; z-index: 9800; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 12px; pointer-events: none; }
+.asw-row { display: flex; gap: 10px; padding: 18px; border-radius: 26px; background: var(--menu); backdrop-filter: blur(40px) saturate(1.8); -webkit-backdrop-filter: blur(40px) saturate(1.8); box-shadow: 0 30px 80px rgba(0,0,0,.45), 0 0 0 .5px var(--border2); pointer-events: auto; animation: spIn .15s var(--ease); }
+.asw-item { padding: 10px; border-radius: 18px; transition: background .12s; }
+.asw-item.on { background: var(--hover2); box-shadow: inset 0 0 0 1px var(--border2); }
+.asw-ic { width: 84px; height: 84px; }
+.asw-name { color: #fff; font-size: 15px; font-weight: 600; text-shadow: 0 2px 8px rgba(0,0,0,.5); }
+
+/* ---------- motion polish ---------- */
+.lp-item { animation: lpIn .45s var(--spring) both; }
+@keyframes lpIn { from { opacity: 0; transform: translateY(18px) scale(.85); } }
+.boot-canvas { width: 150px; height: 150px; }
+.boot-logo { width: 150px; height: 150px; }
+.menu-item { transition: background .08s; }
+.dock-icon .icon-tile { transition: transform .2s var(--spring), filter .2s; }
+.dock-item:hover .dock-icon .icon-tile { filter: brightness(1.06); }
+.toast { transition: transform .5s var(--spring), opacity .3s; }
+.toast:hover { transform: scale(1.015); }
+.btn, .tbtn { transition: background .12s, filter .12s, transform .1s; }
+.btn:active, .tbtn:active { transform: scale(.96); }
+.window { transition: box-shadow .3s ease; }
+.window.active { box-shadow: 0 30px 90px rgba(0,0,0,.5), 0 0 0 .5px var(--border2); }
+.desk-icon { transition: background .15s; }
+.desk-icon:hover .di-img { background: rgba(255,255,255,.08); }
+.cc-toggle .cc-dot { transition: background .2s, transform .2s var(--spring); }
+.cc-toggle:active .cc-dot { transform: scale(.88); }
+.switch::after { transition: transform .28s var(--spring); }

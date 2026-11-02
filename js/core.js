@@ -84,7 +84,7 @@
     magnify: true,
     magnifyScale: 1.7,
     dockAutohide: false,
-    dockPinned: ['finder', 'launchpad', 'browser', 'notes', 'music', 'photos', 'calendar', 'terminal', 'galaxy', 'orbrunner', 'settings'],
+    dockPinned: ['finder', 'launchpad', 'browser', 'messages', 'notes', 'music', 'photos', 'calendar', 'appstore', 'code', 'terminal', 'galaxy', 'orbrunner', 'settings'],
     uiSounds: true,
     volume: 0.7,
     brightness: 1,
@@ -94,7 +94,11 @@
     askFullscreen: true,
     clock24: false,
     showSeconds: false,
-    desktopPositions: {}
+    desktopPositions: {},
+    deviceMode: 'auto',      // auto | desktop | mobile
+    showWidgets: true,
+    hiddenApps: [],
+    mobileDock: ['browser', 'messages', 'music', 'photos']
   };
   const saved = PatOS.store.get('settings', {});
   PatOS.settings = Object.assign({}, DEFAULTS, saved);
@@ -104,6 +108,26 @@
     PatOS.emit('setting', { key, value });
     PatOS.emit('setting:' + key, value);
   };
+  /* ---------- desktop vs phone mode ---------- */
+  PatOS.detectMobile = function () {
+    const m = PatOS.settings.deviceMode;
+    if (m === 'mobile') return true;
+    if (m === 'desktop') return false;
+    const w = window.innerWidth, ht = window.innerHeight;
+    const coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches;
+    return w <= 700 || (coarse && Math.min(w, ht) <= 500);
+  };
+  PatOS.isMobile = PatOS.detectMobile();
+  PatOS.isIOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  document.documentElement.classList.toggle('mobile', PatOS.isMobile);
+  PatOS.applyMode = function () {
+    const m = PatOS.detectMobile();
+    document.documentElement.classList.toggle('mobile', m);
+    if (m !== PatOS.isMobile) { PatOS.isMobile = m; PatOS.emit('mode', m); }
+  };
+  window.addEventListener('resize', PatOS.debounce(() => PatOS.applyMode(), 150));
+  PatOS.on('setting:deviceMode', () => PatOS.applyMode());
+
   PatOS.resetSettings = function () { PatOS.store.set('settings', Object.assign({}, DEFAULTS)); };
 
   /* ---------- virtual file system ---------- */
