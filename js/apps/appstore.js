@@ -33,7 +33,12 @@
     elements: 'The whole periodic table with details on every element, plus a molar mass calculator.',
     focus: 'Work in 25-minute sessions with breaks, rain sounds and stats on your study time.',
     journal: 'Write a page a day, track your mood and keep your streak going.',
-    sudoku: 'Fresh Sudoku puzzles at three levels, with notes, hints and undo.'
+    sudoku: 'Fresh Sudoku puzzles at three levels, with notes, hints and undo.',
+    news: 'Live headlines from NPR, Al Jazeera, Engadget, Space.com, NASA, Radio-Canada and La Presse.',
+    books: 'Read thousands of free classic books in a reader that turns pages like a real book.',
+    radio: 'Thousands of live radio stations from around the world, with favorites.',
+    videos: 'Watch your own video files, with speed control and Picture in Picture.',
+    solitaire: 'Classic Klondike solitaire. Drag or tap cards, draw 1 or 3, undo and auto-finish.'
   };
   const FEATURED = ['docs', 'galaxy', 'orbrunner', 'code'];
   const GRADS = ['linear-gradient(135deg,#3a1c71,#d76d77,#ffaf7b)', 'linear-gradient(135deg,#0b0130,#ff2fa3)', 'linear-gradient(135deg,#1e1e2e,#5b5bd6)', 'linear-gradient(135deg,#0bbf3a,#00a6fb)'];
@@ -90,7 +95,7 @@
             card.onclick = () => detail(id); hero.appendChild(card);
           });
           main.append(h('h1', { class: 'as-h1' }, 'Discover'), hero, h('h2', {}, 'Essentials'));
-          const g = h('div', { class: 'as-list' }); ['browser', 'docs', 'focus', 'grapher', 'elements', 'journal', 'contacts', 'freeform', 'chess', 'sudoku', 'flashcards', 'typing'].filter((id) => PatOS.apps[id]).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
+          const g = h('div', { class: 'as-list' }); ['browser', 'youtube', 'news', 'books', 'radio', 'docs', 'focus', 'grapher', 'elements', 'solitaire', 'chess', 'sudoku'].filter((id) => PatOS.apps[id]).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
           const hidden = PatOS.settings.hiddenApps || [];
           if (hidden.length) { main.appendChild(h('h2', {}, 'Hidden Apps')); const g2 = h('div', { class: 'as-list' }); hidden.filter((id) => PatOS.apps[id]).forEach((id) => g2.appendChild(row(id))); main.appendChild(g2); }
           return;

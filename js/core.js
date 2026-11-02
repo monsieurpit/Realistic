@@ -344,18 +344,42 @@
     if (!actx) {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return null;
-      actx = new AC();
+      try { actx = new AC({ latencyHint: 'interactive' }); } catch (e) { actx = new AC(); }
       master = actx.createGain();
       master.gain.value = PatOS.settings.volume;
       master.connect(actx.destination);
       PatOS.on('setting:volume', (v) => { master.gain.value = v; });
     }
-    if (actx.state === 'suspended') actx.resume();
+    if (actx.state !== 'running') actx.resume().catch(() => {});
     return { ctx: actx, out: master };
   };
+  /* Browsers only let a page make sound after the person taps or types. Unlock audio on the very first
+     tap or key press, and on iPhone tell Safari this is media so the silent switch doesn't mute it. */
+  let unlocked = false, pendingStartup = 0;
+  function unlockAudio() {
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+    const a = PatOS.audio(); if (!a) return;
+    if (!unlocked) {
+      try { const b = a.ctx.createBuffer(1, 1, 22050); const src = a.ctx.createBufferSource(); src.buffer = b; src.connect(a.ctx.destination); src.start(0); } catch (e) {}
+      if (/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent) && 'ontouchend' in document) {
+        // a silent looping <audio> keeps iOS in "playback" mode so Web Audio isn't muted by the ring switch
+        try { const el = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='); el.loop = true; el.volume = 0; el.setAttribute('playsinline', ''); el.play().catch(() => {}); PatOS._silentAudio = el; } catch (e) {}
+      }
+    }
+    if (a.ctx.state === 'running') unlocked = true;
+    if (pendingStartup) { const t = pendingStartup; pendingStartup = 0; if (Date.now() - t < 60000) a.ctx.resume().then(() => PatOS.sound.startup()).catch(() => {}); }
+  }
+  ['pointerdown', 'touchend', 'keydown', 'click'].forEach((ev) => window.addEventListener(ev, unlockAudio, { capture: true, passive: true }));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && actx && actx.state !== 'running') actx.resume().catch(() => {}); });
   function tone(freq, dur, opts) {
     if (!PatOS.settings.uiSounds) return;
     const a = PatOS.audio(); if (!a) return;
+    if (a.ctx.state !== 'running') {
+      // wait for the audio engine to wake up instead of scheduling into a frozen clock
+      const asked = Date.now();
+      a.ctx.resume().then(() => { if (Date.now() - asked < 1500) tone(freq, dur, opts); }).catch(() => {});
+      return;
+    }
     opts = opts || {};
     const t = a.ctx.currentTime + (opts.delay || 0);
     const o = a.ctx.createOscillator(); const g = a.ctx.createGain();
@@ -375,6 +399,7 @@
     startup() {
       if (!PatOS.settings.uiSounds) return;
       const a = PatOS.audio(); if (!a) return;
+      if (a.ctx.state !== 'running') { pendingStartup = Date.now(); return; }
       const t = a.ctx.currentTime;
       [261.63, 329.63, 392.0, 523.25, 659.25].forEach((f, i) => {
         const o = a.ctx.createOscillator(); const g = a.ctx.createGain();
@@ -403,6 +428,7 @@
     const ext = PatOS.fs.ext(path);
     const byExt = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms', pdf: 'preview' };
     if (byExt[ext]) return PatOS.launch(byExt[ext], { path });
+    if (/^(mp4|webm|mov|m4v|ogv)$/.test(ext) && PatOS.apps.videos) return PatOS.launch('videos', { path });
     if (kind === 'image') return PatOS.launch('photos', { path });
     if (kind === 'audio') return PatOS.launch('music', { path });
     if (kind === 'link') return PatOS.launch('browser', { url: n.content.trim() });

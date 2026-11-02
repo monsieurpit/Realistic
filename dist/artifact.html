@@ -1724,6 +1724,348 @@ html.mobile, html.mobile body { overscroll-behavior: none; touch-action: manipul
 .sd-done p { margin: 0 0 8px; color: var(--text2); }
 @media (max-width: 700px) { .sd-side { width: min(470px, 86vw); } .sd-pad { grid-template-columns: repeat(9, 1fr); } .sd-num b { font-size: 20px; } }
 
+/* ---------- YouTube ---------- */
+.ytx { --yb: #fff; --yb2: #f2f2f2; --yb3: #e5e5e5; --yt: #0f0f0f; --yt2: #606060; --yline: #e5e5e5; --yred: #ff0033; display: flex; flex-direction: column; height: 100%; background: var(--yb); color: var(--yt); font-family: Roboto, system-ui, -apple-system, sans-serif; }
+html[data-theme="dark"] .ytx { --yb: #0f0f0f; --yb2: #272727; --yb3: #3f3f3f; --yt: #f1f1f1; --yt2: #aaa; --yline: #303030; }
+.ytx button { color: inherit; font: inherit; }
+.ytx-head { display: flex; align-items: center; gap: 12px; height: 56px; padding: 0 16px 0 84px; flex: none; }
+.ytx-hl, .ytx-hr { display: flex; align-items: center; gap: 4px; flex: none; }
+.ytx-hr { margin-left: auto; }
+.ytx-ib { width: 40px; height: 40px; border-radius: 50%; display: grid; place-items: center; }
+.ytx-ib:hover { background: var(--yb2); }
+.ytx-logo { display: flex; align-items: center; padding: 0 8px; color: var(--yt); height: 40px; }
+.ytx-sbox { position: relative; flex: 1; max-width: 640px; margin: 0 auto; display: flex; height: 40px; }
+.ytx-q { flex: 1; min-width: 0; height: 40px; padding: 0 16px; border: 1px solid var(--yb3); border-right: 0; border-radius: 40px 0 0 40px; background: var(--yb); color: var(--yt); font-size: 16px; outline: none; }
+.ytx-q:focus { border-color: #1c62b9; box-shadow: inset 0 1px 2px rgba(0,0,0,.2); }
+.ytx-sbtn { width: 64px; border: 1px solid var(--yb3); border-radius: 0 40px 40px 0; background: var(--yb2); display: grid; place-items: center; }
+.ytx-sugg { position: absolute; top: 44px; left: 0; right: 64px; background: var(--yb); border-radius: 12px; box-shadow: 0 4px 32px rgba(0,0,0,.25); padding: 12px 0; display: none; z-index: 20; }
+.ytx-sugg.on { display: block; }
+.ytx-sugg button { display: flex; align-items: center; gap: 14px; width: 100%; padding: 6px 18px; text-align: left; font-weight: 500; }
+.ytx-sugg button:hover, .ytx-sugg button.sel { background: var(--yb2); }
+.ytx-back { display: none; }
+.ytx-body { flex: 1; display: flex; min-height: 0; }
+.ytx-nav { width: 232px; flex: none; overflow-y: auto; padding: 4px 12px 16px; }
+.ytx-ni { display: flex; align-items: center; gap: 22px; width: 100%; height: 40px; padding: 0 12px; border-radius: 10px; font-size: 14px; text-align: left; }
+.ytx-ni span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ytx-ni:hover { background: var(--yb2); }
+.ytx-ni.on { background: var(--yb2); font-weight: 600; }
+.ytx-ni.ch { gap: 16px; }
+.ytx-ni.ch img { width: 24px; height: 24px; border-radius: 50%; }
+.ytx-nav hr { border: 0; border-top: 1px solid var(--yline); margin: 12px 0; }
+.ytx-nh { padding: 6px 12px; font-size: 16px; font-weight: 600; }
+.ytx-mini .ytx-nav { width: 76px; padding: 4px; }
+.ytx-mini .ytx-ni { flex-direction: column; gap: 4px; height: 74px; justify-content: center; font-size: 10px; padding: 0; }
+.ytx-mini .ytx-nav hr, .ytx-mini .ytx-nh, .ytx-mini .ytx-ni.ch { display: none; }
+.ytx-watching .ytx-nav { display: none; }
+.ytx-main { flex: 1; min-width: 0; overflow-y: auto; padding: 0 24px 40px; }
+.ytx-chips { position: sticky; top: 0; z-index: 5; display: flex; gap: 12px; padding: 12px 0; background: var(--yb); overflow-x: auto; scrollbar-width: none; }
+.ytx-chips button { flex: none; height: 32px; padding: 0 12px; border-radius: 8px; background: var(--yb2); font-size: 14px; font-weight: 500; }
+.ytx-chips button.on { background: var(--yt); color: var(--yb); }
+.ytx-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(290px, 1fr)); gap: 40px 16px; padding: 12px 0 24px; }
+.ytx-card { cursor: pointer; min-width: 0; }
+.ytx-th { position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: var(--yb2); }
+.ytx-th img { width: 100%; height: 100%; object-fit: cover; display: block; transition: transform .25s; }
+.ytx-card:hover .ytx-th img { transform: scale(1.03); }
+.ytx-dur { position: absolute; right: 6px; bottom: 6px; padding: 1px 4px; border-radius: 4px; background: rgba(0,0,0,.8); color: #fff; font-size: 12px; font-weight: 500; }
+.ytx-dur.live { background: var(--yred); }
+.ytx-ci { display: flex; gap: 12px; margin-top: 12px; }
+.ytx-ct { min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.ytx-ct b { font-size: 16px; font-weight: 600; line-height: 22px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ytx-ct small, .ytx-cn { font-size: 14px; color: var(--yt2); text-align: left; }
+.ytx-cn:hover { color: var(--yt); }
+.ytx-av { width: 36px; height: 36px; border-radius: 50%; flex: none; object-fit: cover; background: var(--yb2); }
+.ytx-av.ph { display: grid; place-items: center; background: #5c6bc0; color: #fff; font-weight: 600; }
+.ytx-av.xs { width: 24px; height: 24px; font-size: 11px; }
+.ytx-av.sm { width: 40px; height: 40px; }
+.ytx-av.lg { width: 56px; height: 56px; font-size: 22px; }
+.ytx-av.xl { width: 136px; height: 136px; font-size: 48px; }
+.ytx-av.xxl { width: 160px; height: 160px; font-size: 60px; }
+.ytx-card.row { display: flex; gap: 16px; margin: 0 0 16px; }
+.ytx-card.row .ytx-th { width: min(500px, 45%); flex: none; }
+.ytx-card.row .ytx-ci { margin: 0; }
+.ytx-card.row .ytx-ct b { font-size: 18px; line-height: 26px; font-weight: 500; }
+.ytx-card.row .ytx-ct small { font-size: 12px; }
+.ytx-card.row p { font-size: 12px; color: var(--yt2); margin: 8px 0 0; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.ytx-rowch { display: flex; align-items: center; gap: 8px; margin: 10px 0 0; }
+.ytx-rowch .ytx-cn { font-size: 12px; }
+.ytx-results { max-width: 1100px; padding-top: 16px; }
+.ytx-chrow { display: flex; align-items: center; gap: 24px; padding: 8px 0 24px; border-bottom: 1px solid var(--yline); margin-bottom: 16px; cursor: pointer; }
+.ytx-chrow > div { flex: 1; min-width: 0; padding-left: 80px; }
+.ytx-chrow .ytx-av { margin-left: 80px; }
+.ytx-chrow > div { padding-left: 40px; }
+.ytx-chrow b { font-size: 18px; }
+.ytx-chrow small, .ytx-chrow p { display: block; font-size: 12px; color: var(--yt2); margin: 4px 0 0; }
+.ytx-subbtn { flex: none; height: 36px; padding: 0 16px; border-radius: 18px; background: var(--yt); color: var(--yb) !important; font-size: 14px; font-weight: 600; }
+.ytx-subbtn.on { background: var(--yb2); color: var(--yt) !important; }
+.ytx-subbtn.big { margin-top: 12px; }
+.ytx-shelf { padding: 8px 0 28px; border-top: 4px solid var(--yb2); border-bottom: 4px solid var(--yb2); margin: 8px 0 24px; }
+.ytx-shelf h3 { display: flex; align-items: center; gap: 8px; font-size: 20px; margin: 16px 0; }
+.ytx-shelf h3 svg { color: var(--yred); }
+.ytx-srow { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(170px, 210px); gap: 12px; overflow-x: auto; padding-bottom: 6px; }
+.ytx-short { cursor: pointer; }
+.ytx-short img { width: 100%; aspect-ratio: 9 / 16; object-fit: cover; border-radius: 12px; background: var(--yb2); display: block; }
+.ytx-short b { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; font-size: 15px; font-weight: 500; margin-top: 8px; }
+.ytx-short small { color: var(--yt2); font-size: 13px; }
+.ytx-watch { display: flex; gap: 24px; padding-top: 24px; max-width: 1750px; margin: 0 auto; }
+.ytx-left { flex: 1; min-width: 0; }
+.ytx-player { position: relative; aspect-ratio: 16 / 9; border-radius: 12px; overflow: hidden; background: #000; }
+.ytx-player iframe, .ytx-splayer iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.ytx-wt { font-size: 20px; font-weight: 700; margin: 12px 0 8px; line-height: 28px; }
+.ytx-bar { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.ytx-chan { display: flex; align-items: center; gap: 12px; }
+.ytx-chn { display: flex; flex-direction: column; cursor: pointer; min-width: 0; margin-right: 12px; }
+.ytx-chn b { font-size: 16px; }
+.ytx-chn small { font-size: 12px; color: var(--yt2); }
+.ytx-acts { display: flex; gap: 8px; }
+.ytx-pill { display: flex; align-items: center; gap: 6px; height: 36px; padding: 0 16px; border-radius: 18px; background: var(--yb2); font-size: 14px; font-weight: 500; }
+.ytx-pill:hover { background: var(--yb3); }
+.ytx-pill.on svg { fill: currentColor; }
+.ytx-desc { margin-top: 12px; padding: 12px; border-radius: 12px; background: var(--yb2); font-size: 14px; cursor: pointer; }
+.ytx-desc:hover { background: var(--yb3); }
+.ytx-dtext { white-space: pre-wrap; max-height: 60px; overflow: hidden; margin-top: 4px; line-height: 20px; }
+.ytx-desc.open .ytx-dtext { max-height: none; }
+.ytx-desc a { color: #3ea6ff; }
+.ytx-more { font-weight: 600; margin-top: 4px; }
+.ytx-comments h3 { font-size: 20px; margin: 24px 0 20px; }
+.ytx-cm { display: flex; gap: 16px; margin-bottom: 20px; }
+.ytx-cmh { display: flex; gap: 6px; align-items: baseline; font-size: 13px; }
+.ytx-cmh small { color: var(--yt2); }
+.ytx-cm p { margin: 4px 0 6px; font-size: 14px; line-height: 20px; white-space: pre-wrap; word-break: break-word; }
+.ytx-cmf { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--yt2); }
+.ytx-cmf em { font-style: normal; color: #3ea6ff; margin-left: 16px; font-weight: 600; }
+.ytx-side { width: 402px; flex: none; }
+.ytx-card.side { display: flex; gap: 8px; margin-bottom: 8px; }
+.ytx-card.side .ytx-th { width: 168px; flex: none; border-radius: 8px; }
+.ytx-card.side .ytx-ci { margin: 0; }
+.ytx-card.side .ytx-ct b { font-size: 14px; line-height: 20px; }
+.ytx-card.side .ytx-ct small, .ytx-card.side .ytx-cn { font-size: 12px; }
+.ytx-ap { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 0 0 12px; font-size: 14px; font-weight: 500; }
+.ytx-ap input { appearance: none; width: 36px; height: 14px; border-radius: 7px; background: var(--yb3); position: relative; cursor: pointer; }
+.ytx-ap input::after { content: ''; position: absolute; left: -2px; top: -3px; width: 20px; height: 20px; border-radius: 50%; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,.4); transition: left .2s; }
+.ytx-ap input:checked { background: #3ea6ff88; }
+.ytx-ap input:checked::after { left: 18px; background: #3ea6ff; }
+.ytx-btn { height: 36px; padding: 0 16px; border-radius: 18px; background: var(--yb2); font-size: 14px; font-weight: 600; }
+.ytx-btn:hover { background: var(--yb3); }
+.ytx-btn.wide { width: 100%; margin-top: 8px; border: 1px solid var(--yline); background: none; color: #3ea6ff !important; }
+.ytx-banner { aspect-ratio: 6.2 / 1; border-radius: 16px; background-size: cover; background-position: center; margin-top: 16px; }
+.ytx-chead { display: flex; gap: 24px; align-items: center; padding: 20px 0; }
+.ytx-chead h1 { font-size: 36px; margin: 0 0 6px; }
+.ytx-chead small { color: var(--yt2); font-size: 14px; }
+.ytx-chead p { color: var(--yt2); font-size: 14px; margin: 8px 0 0; }
+.ytx-tabs { border-bottom: 1px solid var(--yline); display: flex; gap: 24px; }
+.ytx-tabs span { padding: 12px 0; font-weight: 600; border-bottom: 2px solid var(--yt); }
+.ytx-sstage { position: relative; display: flex; align-items: center; justify-content: center; gap: 16px; height: 100%; padding: 16px 0; }
+.ytx-sbox2 { position: relative; height: 100%; max-height: 860px; aspect-ratio: 9 / 16; border-radius: 16px; overflow: hidden; background: #000; }
+.ytx-splayer { position: absolute; inset: 0; }
+.ytx-stitle { position: absolute; left: 0; right: 0; bottom: 0; padding: 40px 16px 70px; background: linear-gradient(transparent, rgba(0,0,0,.7)); color: #fff; pointer-events: none; display: flex; flex-direction: column; gap: 4px; opacity: 0; transition: opacity .3s; }
+.ytx-sbox2:hover .ytx-stitle { opacity: 1; }
+.ytx-sacts { display: flex; flex-direction: column; gap: 16px; align-self: flex-end; padding-bottom: 20px; }
+.ytx-sact { display: flex; flex-direction: column; align-items: center; gap: 4px; }
+.ytx-sact svg { width: 48px; height: 48px; padding: 11px; border-radius: 50%; background: var(--yb2); }
+.ytx-sact.on svg { fill: currentColor; }
+.ytx-sact small { font-size: 12px; }
+.ytx-snavs { position: absolute; right: 24px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 16px; }
+.ytx-snav { width: 56px; height: 56px; border-radius: 50%; background: var(--yb2); display: grid; place-items: center; }
+.ytx-snav:disabled { opacity: .3; }
+.ytx-subrow { display: flex; gap: 20px; overflow-x: auto; padding: 20px 0; border-bottom: 1px solid var(--yline); }
+.ytx-subrow button { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 76px; flex: none; }
+.ytx-subrow small { font-size: 12px; max-width: 76px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ytx-h2 { font-size: 20px; margin: 20px 0 0; }
+.ytx-libhead { display: flex; align-items: baseline; gap: 14px; padding: 24px 0 12px; flex-wrap: wrap; }
+.ytx-libhead h1 { font-size: 32px; margin: 0; }
+.ytx-libhead small { color: var(--yt2); }
+.ytx-libhead .ytx-btn { margin-left: auto; }
+.ytx-settings { max-width: 640px; padding-top: 24px; }
+.ytx-settings h1 { font-size: 28px; }
+.ytx-settings h3 { margin: 26px 0 8px; font-size: 16px; }
+.ytx-settings p { font-size: 14px; line-height: 1.5; }
+.ytx-srow2 { display: flex; gap: 8px; }
+.ytx-srow2 .field { flex: 1; }
+.ytx-dim { color: var(--yt2); font-size: 14px; }
+.ytx-msg { max-width: 520px; margin: 60px auto; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.ytx-msg p { color: var(--yt2); line-height: 1.5; }
+.ytx-bigic { width: 96px; height: 96px; margin-bottom: 10px; color: var(--yt2); }
+.ytx-bigic .app-icon, .ytx-bigic > * { width: 96px; height: 96px; }
+.ytx-load { display: flex; justify-content: center; padding: 40px; }
+.ytx-spin { width: 36px; height: 36px; border-radius: 50%; border: 3px solid var(--yb3); border-top-color: var(--yred); animation: spin .8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+@media (max-width: 1100px) { .ytx-watch { flex-direction: column; } .ytx-side { width: auto; } }
+.is-mobile .ytx-head, .ytx-win.mobile-app .ytx-head { padding-left: 8px; gap: 4px; }
+@media (max-width: 700px) {
+  .ytx-head { padding: 0 8px; gap: 4px; }
+  .ytx-logo svg { width: 80px; }
+  .ytx-sbtn { width: 44px; }
+  .ytx-nav { display: none; }
+  .ytx-main { padding: 0 12px 30px; }
+  .ytx-grid { grid-template-columns: 1fr; gap: 24px; }
+  .ytx-card.row { flex-direction: column; gap: 8px; }
+  .ytx-card.row .ytx-th { width: 100%; }
+  .ytx-chrow .ytx-av { margin: 0; width: 72px; height: 72px; } .ytx-chrow > div { padding: 0; }
+  .ytx-watch { padding-top: 0; margin: 0 -12px; } .ytx-player { border-radius: 0; } .ytx-winfo, .ytx-side { padding: 0 12px; }
+  .ytx-acts { overflow-x: auto; width: 100%; }
+  .ytx-sstage { padding: 0; } .ytx-sbox2 { height: 100%; border-radius: 0; aspect-ratio: auto; width: 100%; } .ytx-sacts { position: absolute; right: 8px; bottom: 80px; } .ytx-snavs { display: none; }
+  .ytx-chead { flex-direction: column; text-align: center; } .ytx-av.xxl { width: 96px; height: 96px; }
+  .ytx-back { display: grid !important; }
+}
+.pg-banner.g { justify-content: flex-start; flex-wrap: wrap; background: var(--win-solid); color: var(--text2); font-size: 12px; padding: 4px 12px; gap: 6px 14px; }
+.pg-banner.g span { flex: 1; min-width: 200px; }
+.pg-eng { display: flex; gap: 12px; align-items: flex-start; width: min(520px, 100%); padding: 12px 14px; border-radius: 12px; border: 1px solid var(--border2); margin: 6px auto; text-align: left; cursor: pointer; transition: border-color .2s, background .2s; }
+.pg-eng:hover { background: var(--hover); }
+.pg-eng.on { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 8%, transparent); }
+.pg-eng input { margin-top: 3px; accent-color: var(--accent); }
+.pg-eng b { display: block; font-size: 14px; }
+.pg-eng small { color: var(--text2); font-size: 12.5px; }
+.pg-csebox { display: none; width: min(520px, 100%); margin: 0 auto 8px; padding: 4px 14px 12px; text-align: left; font-size: 13px; }
+.pg-csebox.on { display: block; }
+.pg-csebox ol { padding-left: 20px; line-height: 1.6; }
+
+/* ---------- News ---------- */
+.nw-wrap { display: flex; height: 100%; position: relative; }
+.nw-side { width: 210px; flex: none; padding: 8px 10px; overflow: auto; background: var(--sidebar); border-right: 1px solid var(--border); }
+.nw-sh { padding: 12px 8px 4px; font-size: 11.5px; font-weight: 600; color: var(--text3); }
+.nw-si { display: block; width: 100%; text-align: left; padding: 6px 10px; border-radius: 7px; font-size: 13px; color: var(--text); }
+.nw-si:hover { background: var(--hover); }
+.nw-si.on { background: var(--accent); color: #fff; }
+.nw-main { flex: 1; overflow: auto; padding: 18px 26px 30px; }
+.nw-head h1 { margin: 0; font-size: 30px; font-weight: 800; }
+.nw-head small { color: var(--text2); text-transform: capitalize; }
+.nw-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; margin-top: 16px; }
+.nw-card { border-radius: 14px; overflow: hidden; background: var(--card, var(--win-solid)); box-shadow: 0 1px 3px rgba(0,0,0,.12), inset 0 0 0 .5px var(--border2); cursor: pointer; transition: transform .2s var(--spring, ease), box-shadow .2s; display: flex; flex-direction: column; }
+.nw-card:hover { transform: translateY(-3px); box-shadow: 0 10px 26px rgba(0,0,0,.18); }
+.nw-card.hero { grid-column: 1 / -1; flex-direction: row; min-height: 240px; }
+.nw-card.hero .nw-img { width: 55%; aspect-ratio: auto; }
+.nw-card.hero h3 { font-size: 24px; }
+.nw-img { aspect-ratio: 16 / 9; background: var(--hover2) center / cover; flex: none; }
+.nw-txt { padding: 12px 14px 14px; display: flex; flex-direction: column; gap: 5px; }
+.nw-txt small { color: var(--accent); font-weight: 600; font-size: 11.5px; }
+.nw-txt h3 { margin: 0; font-size: 16px; line-height: 1.3; }
+.nw-txt p { margin: 0; font-size: 13px; color: var(--text2); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+.nw-card.noimg .nw-txt p { -webkit-line-clamp: 6; }
+.nw-empty { text-align: center; color: var(--text2); padding: 60px 20px; }
+.nw-layer { position: absolute; inset: 0; background: rgba(0,0,0,.35); display: flex; align-items: center; justify-content: center; z-index: 5; animation: fadeIn .2s; }
+.nw-reader { position: relative; width: min(640px, 92%); max-height: 88%; overflow: auto; background: var(--win-solid); border-radius: 18px; padding: 0 0 22px; box-shadow: 0 20px 60px rgba(0,0,0,.4); animation: elPop .3s var(--spring, ease); }
+.nw-reader img { width: 100%; max-height: 300px; object-fit: cover; display: block; }
+.nw-reader small, .nw-reader h1, .nw-reader p, .nw-ra { margin-left: 24px; margin-right: 24px; }
+.nw-reader small { display: block; margin-top: 18px; color: var(--accent); font-weight: 600; }
+.nw-reader h1 { font-size: 24px; margin-top: 6px; margin-bottom: 10px; }
+.nw-reader p { color: var(--text2); line-height: 1.6; font-size: 15px; }
+.nw-ra { display: flex; gap: 8px; flex-wrap: wrap; }
+.nw-close { position: absolute; right: 10px; top: 10px; background: rgba(0,0,0,.5) !important; color: #fff !important; border-radius: 50% !important; z-index: 1; }
+@keyframes fadeIn { from { opacity: 0; } }
+@media (max-width: 700px) { .nw-wrap { flex-direction: column; } .nw-side { width: auto; display: flex; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border); padding: 6px; } .nw-sh { display: none; } .nw-si { width: auto; white-space: nowrap; } .nw-card.hero { flex-direction: column; } .nw-card.hero .nw-img { width: 100%; aspect-ratio: 16/9; } .nw-main { padding: 14px; } }
+
+/* ---------- Books ---------- */
+.bk-main { height: 100%; overflow: auto; padding: 8px 26px 30px; }
+.bk-main > h2 { font-size: 20px; margin: 18px 0 12px; }
+.bk-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 22px 18px; }
+.bk-card { cursor: pointer; display: flex; flex-direction: column; gap: 3px; }
+.bk-card b { font-size: 13px; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; margin-top: 6px; }
+.bk-card small { font-size: 12px; color: var(--text2); }
+.bk-cover { aspect-ratio: 2 / 3; border-radius: 4px 10px 10px 4px; overflow: hidden; box-shadow: 0 6px 16px rgba(0,0,0,.25), inset 3px 0 0 rgba(0,0,0,.15); background: var(--hover2); transition: transform .25s var(--spring, ease); }
+.bk-card:hover .bk-cover { transform: translateY(-4px) rotate(-1deg); }
+.bk-cover img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.bk-fake { height: 100%; padding: 14px 10px; background: linear-gradient(160deg, #5b4b8a, #2d2350); color: #fff; display: flex; flex-direction: column; justify-content: space-between; text-align: center; font-family: Georgia, serif; }
+.bk-fake b { font-size: 14px; -webkit-line-clamp: 5; }
+.bk-prog { height: 3px; border-radius: 3px; background: var(--hover2); overflow: hidden; margin-top: 4px; }
+.bk-prog i { display: block; height: 100%; background: var(--accent); }
+.bk-msg, .bk-note { text-align: center; color: var(--text2); padding: 40px 10px; }
+.bk-note { font-size: 12px; padding: 30px 0 0; }
+.bk-main:has(.bk-reader) { padding: 0; overflow: hidden; }
+.bk-reader { --bg: #fff; --fg: #1c1c1e; height: 100%; display: flex; flex-direction: column; background: var(--bg); color: var(--fg); outline: none; }
+.bk-sepia { --bg: #f8f1e3; --fg: #5b4636; }
+.bk-night { --bg: #121212; --fg: #d6d6d6; }
+.bk-rbar { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid color-mix(in srgb, var(--fg) 12%, transparent); }
+.bk-rbar b { flex: 1; text-align: center; font-size: 13px; opacity: .8; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bk-rbar .tbtn, .bk-foot .tbtn { color: var(--fg) !important; }
+.bk-rset { display: flex; align-items: center; gap: 4px; }
+.bk-th { width: 20px; height: 20px; border-radius: 50%; border: 1px solid rgba(128,128,128,.5); }
+.bk-th-paper { background: #fff; } .bk-th-sepia { background: #f8f1e3; } .bk-th-night { background: #121212; }
+.bk-page { flex: 1; overflow: hidden; margin: 24px clamp(20px, 8%, 90px) 8px; position: relative; cursor: pointer; user-select: none; }
+.bk-cols { column-gap: 40px; column-fill: auto; font-size: var(--fs); line-height: 1.65; transition: transform .35s var(--ease, ease); }
+.bk-f-serif .bk-cols { font-family: Georgia, 'Iowan Old Style', 'Times New Roman', serif; }
+.bk-f-sans .bk-cols { font-family: system-ui, -apple-system, sans-serif; }
+.bk-cols p { margin: 0 0 .9em; text-align: justify; hyphens: auto; }
+.bk-cols h3 { break-before: column; font-size: 1.3em; text-align: center; margin: 1em 0; }
+.bk-foot { display: flex; align-items: center; gap: 10px; padding: 6px 14px 10px; font-size: 12px; }
+.bk-slider { flex: 1; accent-color: var(--accent); }
+.bk-pn { min-width: 70px; text-align: right; opacity: .7; }
+
+/* ---------- Radio ---------- */
+.rd-wrap { display: flex; height: 100%; }
+.rd-side { width: 190px; flex: none; padding: 8px 10px; overflow: auto; background: var(--sidebar); border-right: 1px solid var(--border); }
+.rd-sh { padding: 12px 8px 4px; font-size: 11.5px; font-weight: 600; color: var(--text3); }
+.rd-si { display: block; width: 100%; text-align: left; padding: 6px 10px; border-radius: 7px; font-size: 13px; color: var(--text); }
+.rd-si:hover { background: var(--hover); }
+.rd-si.on { background: #ff2d55; color: #fff; }
+.rd-col { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+.rd-list { flex: 1; overflow: auto; padding: 8px 14px; }
+.rd-row { display: flex; align-items: center; gap: 12px; padding: 8px 10px; border-radius: 10px; cursor: pointer; }
+.rd-row:hover { background: var(--hover); }
+.rd-row.on { background: color-mix(in srgb, #ff2d55 14%, transparent); }
+.rd-row img, .rd-ph, .rd-now img { width: 44px; height: 44px; border-radius: 9px; object-fit: contain; background: #fff; flex: none; }
+.rd-ph { display: grid; place-items: center; background: linear-gradient(160deg, #ff2d55, #b40d6e); color: #fff; font-weight: 700; font-size: 18px; }
+.rd-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.rd-info b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rd-info small { font-size: 12px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rd-fav { font-size: 18px; color: var(--text3); padding: 4px 8px; }
+.rd-fav.on { color: #ff9f0a; }
+.rd-msg { text-align: center; color: var(--text2); padding: 50px 10px; }
+.rd-now { display: none; align-items: center; gap: 12px; padding: 10px 16px; border-top: 1px solid var(--border); background: var(--sidebar); }
+.rd-now.on { display: flex; }
+.rd-play { width: 40px; height: 40px; border-radius: 50%; background: #ff2d55; color: #fff; font-size: 14px; }
+.rd-vol { width: 100px; accent-color: #ff2d55; }
+.rd-eq { display: flex; align-items: flex-end; gap: 3px; height: 20px; }
+.rd-eq i { width: 4px; height: 4px; border-radius: 2px; background: #ff2d55; }
+.rd-eq.go i { animation: rdEq .9s ease-in-out infinite alternate; }
+.rd-eq.go i:nth-child(2) { animation-delay: .2s; } .rd-eq.go i:nth-child(3) { animation-delay: .4s; } .rd-eq.go i:nth-child(4) { animation-delay: .1s; }
+@keyframes rdEq { to { height: 20px; } }
+@media (max-width: 700px) { .rd-wrap { flex-direction: column; } .rd-side { width: auto; display: flex; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border); padding: 6px; } .rd-sh { display: none; } .rd-si { width: auto; white-space: nowrap; } .rd-vol { display: none; } }
+
+/* ---------- Videos ---------- */
+.vd-main { height: 100%; overflow: auto; display: flex; flex-direction: column; }
+.vd-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 18px; padding: 18px; }
+.vd-card { cursor: pointer; }
+.vd-card b { display: block; font-size: 13px; margin-top: 6px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vd-th { position: relative; aspect-ratio: 16 / 9; border-radius: 10px; overflow: hidden; background: #000; }
+.vd-th video { width: 100%; height: 100%; object-fit: cover; pointer-events: none; }
+.vd-dur { position: absolute; right: 6px; bottom: 6px; font-size: 11px; padding: 1px 5px; border-radius: 4px; background: rgba(0,0,0,.75); color: #fff; }
+.vd-dur:empty { display: none; }
+.vd-stage { flex: 1; min-height: 0; background: #000; display: flex; }
+.vd-player { width: 100%; height: 100%; object-fit: contain; outline: none; }
+.vd-bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; border-top: 1px solid var(--border); font-size: 13px; }
+.vd-bar b { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.vd-l { color: var(--text2); }
+.vd-empty { margin: auto; text-align: center; padding: 30px; max-width: 420px; display: flex; flex-direction: column; align-items: center; gap: 8px; color: var(--text2); }
+.vd-empty h2 { color: var(--text); margin: 6px 0 0; }
+.vd-big { width: 88px; height: 88px; }
+.vd-big > * { width: 88px !important; height: 88px !important; }
+
+/* ---------- Solitaire ---------- */
+.sol-table { position: relative; height: 100%; overflow: auto; padding: 16px; background: radial-gradient(ellipse at 50% 30%, #1f8a4c, #0c5a2e 80%); --cw: clamp(48px, calc((100% - 120px) / 7), 96px); }
+.sol-top, .sol-tabs { display: grid; grid-template-columns: repeat(7, minmax(44px, 96px)); gap: 14px; justify-content: center; }
+.sol-tabs { margin-top: 22px; align-items: start; }
+.sol-slot { position: relative; aspect-ratio: 5 / 7; border-radius: 8px; border: 2px solid rgba(255,255,255,.18); }
+.sol-slot.tab { aspect-ratio: auto; border: 0; }
+.sol-slot.tab::before { content: ''; position: absolute; left: 0; right: 0; top: 0; aspect-ratio: 5 / 7; border-radius: 8px; border: 2px solid rgba(255,255,255,.12); pointer-events: none; }
+.sol-slot.stock { cursor: pointer; border-style: dashed; }
+.sol-slot.waste { border: 0; }
+.sol-gap { }
+.sol-re { position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255,255,255,.5); font-size: 26px; }
+.sol-fs { position: absolute; inset: 0; display: grid; place-items: center; color: rgba(255,255,255,.22); font-size: 30px; pointer-events: none; }
+.sol-card { position: absolute; left: 0; top: 0; width: 100%; aspect-ratio: 5 / 7; border-radius: 8px; background: #fff; color: #1c1c1e; box-shadow: 0 1px 3px rgba(0,0,0,.35); cursor: pointer; user-select: none; touch-action: none; font-family: system-ui, -apple-system, sans-serif; transition: box-shadow .15s; }
+.sol-card.red { color: #d70015; }
+.sol-card.back { background: repeating-linear-gradient(45deg, #2a62d8 0 6px, #1e4fb8 6px 12px); border: 3px solid #fff; cursor: default; }
+.sol-card.sel { box-shadow: 0 0 0 3px #ffd60a, 0 4px 12px rgba(0,0,0,.4); }
+.sol-card.drag { z-index: 50; box-shadow: 0 12px 28px rgba(0,0,0,.45); transition: none; }
+.sol-tl { position: absolute; left: 5px; top: 3px; font-weight: 700; font-size: clamp(11px, 1.6vw, 16px); line-height: 1; display: flex; flex-direction: column; align-items: center; }
+.sol-tl i, .sol-br i { font-style: normal; font-size: .9em; }
+.sol-br { position: absolute; right: 5px; bottom: 3px; transform: rotate(180deg); font-weight: 700; font-size: clamp(11px, 1.6vw, 16px); line-height: 1; display: flex; flex-direction: column; align-items: center; }
+.sol-mid { position: absolute; inset: 0; display: grid; place-items: center; font-size: clamp(20px, 3.4vw, 36px); }
+.sol-info { color: var(--text2); font-size: 12px; font-variant-numeric: tabular-nums; white-space: pre; }
+.sol-win { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: rgba(0,0,0,.35); color: #fff; animation: fadeIn .4s; }
+.sol-win h2 { font-size: 40px; margin: 0; }
+@media (max-width: 700px) { .sol-table { padding: 10px 6px; } .sol-top, .sol-tabs { gap: 5px; grid-template-columns: repeat(7, 1fr); } .sol-card { border-radius: 5px; } .sol-tl { left: 2px; } .sol-br { display: none; } }
+
 </style>
   <style>
 /* ================= Liquid Glass ================= */
@@ -2259,18 +2601,42 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (!actx) {
       const AC = window.AudioContext || window.webkitAudioContext;
       if (!AC) return null;
-      actx = new AC();
+      try { actx = new AC({ latencyHint: 'interactive' }); } catch (e) { actx = new AC(); }
       master = actx.createGain();
       master.gain.value = PatOS.settings.volume;
       master.connect(actx.destination);
       PatOS.on('setting:volume', (v) => { master.gain.value = v; });
     }
-    if (actx.state === 'suspended') actx.resume();
+    if (actx.state !== 'running') actx.resume().catch(() => {});
     return { ctx: actx, out: master };
   };
+  /* Browsers only let a page make sound after the person taps or types. Unlock audio on the very first
+     tap or key press, and on iPhone tell Safari this is media so the silent switch doesn't mute it. */
+  let unlocked = false, pendingStartup = 0;
+  function unlockAudio() {
+    try { if (navigator.audioSession) navigator.audioSession.type = 'playback'; } catch (e) {}
+    const a = PatOS.audio(); if (!a) return;
+    if (!unlocked) {
+      try { const b = a.ctx.createBuffer(1, 1, 22050); const src = a.ctx.createBufferSource(); src.buffer = b; src.connect(a.ctx.destination); src.start(0); } catch (e) {}
+      if (/iPhone|iPad|iPod|Macintosh/.test(navigator.userAgent) && 'ontouchend' in document) {
+        // a silent looping <audio> keeps iOS in "playback" mode so Web Audio isn't muted by the ring switch
+        try { const el = new Audio('data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YQAAAAA='); el.loop = true; el.volume = 0; el.setAttribute('playsinline', ''); el.play().catch(() => {}); PatOS._silentAudio = el; } catch (e) {}
+      }
+    }
+    if (a.ctx.state === 'running') unlocked = true;
+    if (pendingStartup) { const t = pendingStartup; pendingStartup = 0; if (Date.now() - t < 60000) a.ctx.resume().then(() => PatOS.sound.startup()).catch(() => {}); }
+  }
+  ['pointerdown', 'touchend', 'keydown', 'click'].forEach((ev) => window.addEventListener(ev, unlockAudio, { capture: true, passive: true }));
+  document.addEventListener('visibilitychange', () => { if (!document.hidden && actx && actx.state !== 'running') actx.resume().catch(() => {}); });
   function tone(freq, dur, opts) {
     if (!PatOS.settings.uiSounds) return;
     const a = PatOS.audio(); if (!a) return;
+    if (a.ctx.state !== 'running') {
+      // wait for the audio engine to wake up instead of scheduling into a frozen clock
+      const asked = Date.now();
+      a.ctx.resume().then(() => { if (Date.now() - asked < 1500) tone(freq, dur, opts); }).catch(() => {});
+      return;
+    }
     opts = opts || {};
     const t = a.ctx.currentTime + (opts.delay || 0);
     const o = a.ctx.createOscillator(); const g = a.ctx.createGain();
@@ -2290,6 +2656,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     startup() {
       if (!PatOS.settings.uiSounds) return;
       const a = PatOS.audio(); if (!a) return;
+      if (a.ctx.state !== 'running') { pendingStartup = Date.now(); return; }
       const t = a.ctx.currentTime;
       [261.63, 329.63, 392.0, 523.25, 659.25].forEach((f, i) => {
         const o = a.ctx.createOscillator(); const g = a.ctx.createGain();
@@ -2318,6 +2685,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const ext = PatOS.fs.ext(path);
     const byExt = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms', pdf: 'preview' };
     if (byExt[ext]) return PatOS.launch(byExt[ext], { path });
+    if (/^(mp4|webm|mov|m4v|ogv)$/.test(ext) && PatOS.apps.videos) return PatOS.launch('videos', { path });
     if (kind === 'image') return PatOS.launch('photos', { path });
     if (kind === 'audio') return PatOS.launch('music', { path });
     if (kind === 'link') return PatOS.launch('browser', { url: n.content.trim() });
@@ -2744,6 +3112,143 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'What did you do today just for fun?': 'Qu’avez-vous fait aujourd’hui juste pour le plaisir ?',
     'What is a goal for tomorrow?': 'Quel est votre objectif pour demain ?',
     'What song matches your mood today, and why?': 'Quelle chanson correspond à votre humeur aujourd’hui, et pourquoi ?',
+    'News': 'Actualités',
+    'Books': 'Livres',
+    'Radio': 'Radio',
+    'Videos': 'Vidéos',
+    'Solitaire': 'Solitaire',
+    'Shorts': 'Shorts',
+    'Subscriptions': 'Abonnements',
+    'You': 'Vous',
+    'Watch later': 'À regarder plus tard',
+    'Liked videos': 'Vidéos « J’aime »',
+    'Subscribe': 'S’abonner',
+    'Subscribed': 'Abonné',
+    'Share': 'Partager',
+    'Like': 'J’aime',
+    'Autoplay': 'Lecture automatique',
+    'Show more': 'Afficher plus',
+    '...more': '...plus',
+    'Show less': 'Moins',
+    'replies': 'réponses',
+    'Comments are turned off.': 'Les commentaires sont désactivés.',
+    'Comments couldn’t load.': 'Impossible de charger les commentaires.',
+    'Open on YouTube': 'Ouvrir sur YouTube',
+    'If the video won’t play here, open it on youtube.com': 'Si la vidéo ne joue pas ici, ouvrez-la sur youtube.com',
+    'Save to Watch later': 'Ajouter à « À regarder plus tard »',
+    'Saved to Watch later': 'Ajouté à « À regarder plus tard »',
+    'Copy link': 'Copier le lien',
+    'Link copied': 'Lien copié',
+    'LIVE': 'EN DIRECT',
+    'Cars': 'Autos',
+    'No results found': 'Aucun résultat',
+    'Try different keywords.': 'Essayez d’autres mots.',
+    'Something went wrong': 'Un problème est survenu',
+    'YouTube didn’t answer. If you’re at school, YouTube may be blocked on this network.': 'YouTube n’a pas répondu. À l’école, YouTube est peut-être bloqué sur ce réseau.',
+    'You’re offline.': 'Vous êtes hors ligne.',
+    'YouTube needs the PatOS website': 'YouTube a besoin du site PatOS',
+    'This copy of PatOS runs inside a Claude Artifact, which blocks YouTube. Open PatOS from its website (your Render link) and YouTube works there.': 'Cette copie de PatOS tourne dans un artefact Claude, qui bloque YouTube. Ouvrez PatOS depuis son site (votre lien Render) et YouTube y fonctionne.',
+    'This copy of PatOS was opened as a file, so it has no server to ask YouTube for videos. Open PatOS from its website (your Render link), or type that link in Settings so this copy can use it.': 'Cette copie de PatOS a été ouverte comme fichier : elle n’a pas de serveur pour demander les vidéos à YouTube. Ouvrez PatOS depuis son site (votre lien Render), ou entrez ce lien dans les réglages.',
+    'No subscriptions yet': 'Aucun abonnement',
+    'Press Subscribe on a channel and its newest videos show up here.': 'Appuyez sur S’abonner sur une chaîne et ses nouvelles vidéos apparaîtront ici.',
+    'Latest': 'Plus récentes',
+    'videos': 'vidéos',
+    'Clear this list?': 'Vider cette liste ?',
+    'Clear all watch history': 'Effacer tout l’historique',
+    'Clear list': 'Vider la liste',
+    'Nothing here yet.': 'Rien ici pour l’instant.',
+    'Connection': 'Connexion',
+    'Checking…': 'Vérification…',
+    'Connected. Search, Shorts, comments and channels work with no key.': 'Connecté. Recherche, Shorts, commentaires et chaînes fonctionnent sans clé.',
+    'Not connected to a PatOS website.': 'Pas connecté à un site PatOS.',
+    'If you opened PatOS as a file, type your PatOS website address here (for example your Render link):': 'Si vous avez ouvert PatOS comme fichier, entrez ici l’adresse de votre site PatOS (par exemple votre lien Render) :',
+    'Play the next video automatically': 'Lire la vidéo suivante automatiquement',
+    'YouTube API key (optional)': 'Clé API YouTube (facultatif)',
+    'Optional': 'Facultatif',
+    'Only needed when there is no PatOS website to connect to.': 'Seulement utile s’il n’y a pas de site PatOS auquel se connecter.',
+    'Your data': 'Vos données',
+    'Subscriptions, likes, Watch later and history are kept on this device only.': 'Abonnements, « J’aime », « À regarder plus tard » et historique restent sur cet appareil.',
+    'Search engine': 'Moteur de recherche',
+    'Google (official search box)': 'Google (boîte de recherche officielle)',
+    'Real Google results, right inside Patoogle. Works with no setup.': 'De vrais résultats Google, directement dans Patoogle. Aucune configuration.',
+    'Set up on this PatOS website. Looks like today’s google.com.': 'Configuré sur ce site PatOS. Ressemble au google.com d’aujourd’hui.',
+    'Looks like today’s google.com. Needs a free ID (see below).': 'Ressemble au google.com d’aujourd’hui. Demande un identifiant gratuit (voir plus bas).',
+    'Wikipedia articles with instant answers for math, conversions and definitions.': 'Articles Wikipédia avec réponses instantanées pour les calculs, conversions et définitions.',
+    'Some school networks block Bing.': 'Certains réseaux scolaires bloquent Bing.',
+    'Searching with': 'Recherche avec',
+    'Search Google for': 'Chercher sur Google :',
+    'If a page says it refused to connect, that site doesn’t allow being shown inside other apps.': 'Si une page dit qu’elle a refusé la connexion, ce site n’accepte pas d’être affiché dans d’autres applis.',
+    'Open this search in a new tab': 'Ouvrir cette recherche dans un nouvel onglet',
+    'Google’s official search box for apps looks just like google.com today. It needs a free ID, made once:': 'La boîte de recherche officielle de Google pour les applis ressemble au google.com actuel. Il faut un identifiant gratuit, créé une seule fois :',
+    'Go to programmablesearchengine.google.com and sign in.': 'Allez sur programmablesearchengine.google.com et connectez-vous.',
+    'Click Add, give it any name, and choose “Search the entire web”.': 'Cliquez sur Ajouter, donnez-lui un nom et choisissez « Rechercher sur l’ensemble du Web ».',
+    'Click Create, then copy the Search engine ID.': 'Cliquez sur Créer, puis copiez l’ID du moteur de recherche.',
+    'Paste it here. If you run PatOS on Render, you can also add it there as GOOGLE_CX so it works for everyone.': 'Collez-le ici. Si PatOS tourne sur Render, vous pouvez aussi l’ajouter là-bas comme GOOGLE_CX pour que ça marche pour tout le monde.',
+    'Want full web results?': 'Envie de résultats complets ?',
+    'These results come from Wikipedia. Search Google for everything else.': 'Ces résultats viennent de Wikipédia. Cherchez sur Google pour tout le reste.',
+    'Top stories': 'À la une',
+    'World': 'Monde',
+    'Technology': 'Technologie',
+    'Hacker News': 'Hacker News',
+    'Sports (Radio-Canada)': 'Sports (Radio-Canada)',
+    'Science (Radio-Canada)': 'Science (Radio-Canada)',
+    'In English': 'En anglais',
+    'En français': 'En français',
+    'Saved stories': 'Articles enregistrés',
+    'Filter headlines': 'Filtrer les titres',
+    'Read the full story in Patoogle': 'Lire l’article complet dans Patoogle',
+    'Open in a new tab': 'Ouvrir dans un nouvel onglet',
+    'Stories you save show up here.': 'Les articles enregistrés apparaissent ici.',
+    'No stories.': 'Aucun article.',
+    'News needs the PatOS website': 'Actualités a besoin du site PatOS',
+    'This copy of PatOS runs inside a Claude Artifact, which blocks live news. Open PatOS from its website.': 'Cette copie de PatOS tourne dans un artefact Claude, qui bloque les actualités. Ouvrez PatOS depuis son site.',
+    'Open PatOS from its website (your Render link) to read the news.': 'Ouvrez PatOS depuis son site (votre lien Render) pour lire les actualités.',
+    'The news didn’t load': 'Les actualités n’ont pas chargé',
+    'Search 70,000 free books': 'Chercher parmi 70 000 livres gratuits',
+    'Continue reading': 'Continuer la lecture',
+    'Classics': 'Classiques',
+    'Books come from Project Gutenberg, a free library of books whose copyright has expired.': 'Les livres viennent du Projet Gutenberg, une bibliothèque gratuite de livres libres de droits.',
+    'Results for': 'Résultats pour',
+    'No books found.': 'Aucun livre trouvé.',
+    'Opening the book…': 'Ouverture du livre…',
+    'This copy of PatOS runs inside a Claude Artifact, which blocks this. Open PatOS from its website.': 'Cette copie de PatOS tourne dans un artefact Claude, qui bloque ceci. Ouvrez PatOS depuis son site.',
+    'Open PatOS from its website (your Render link) to search and read books.': 'Ouvrez PatOS depuis son site (votre lien Render) pour chercher et lire des livres.',
+    'Smaller text': 'Texte plus petit',
+    'Bigger text': 'Texte plus grand',
+    'Previous page': 'Page précédente',
+    'Next page': 'Page suivante',
+    'Near you': 'Près de vous',
+    'Most popular': 'Les plus populaires',
+    'Genres': 'Genres',
+    'Search stations': 'Chercher des stations',
+    'Loading stations…': 'Chargement des stations…',
+    'Press ☆ on a station to keep it here.': 'Appuyez sur ☆ sur une station pour la garder ici.',
+    'No stations found.': 'Aucune station trouvée.',
+    'Claude Artifacts block live radio. Open PatOS from its website.': 'Les artefacts Claude bloquent la radio en direct. Ouvrez PatOS depuis son site.',
+    'Radio stations couldn’t load. Your network may block them.': 'Les stations n’ont pas pu charger. Votre réseau les bloque peut-être.',
+    'Connecting…': 'Connexion…',
+    'This station isn’t working right now. Try another one.': 'Cette station ne fonctionne pas pour l’instant. Essayez-en une autre.',
+    'Live radio': 'Radio en direct',
+    'Open a video…': 'Ouvrir une vidéo…',
+    'No videos yet': 'Aucune vidéo',
+    'Open an MP4 or WebM video from your computer or phone. Videos you put in Finder show up here too.': 'Ouvrez une vidéo MP4 ou WebM depuis votre ordinateur ou téléphone. Les vidéos placées dans le Finder apparaissent ici aussi.',
+    'All videos': 'Toutes les vidéos',
+    'Speed': 'Vitesse',
+    'Picture in Picture': 'Image dans l’image',
+    'Draw 1': 'Piocher 1',
+    'Draw 3': 'Piocher 3',
+    'Finish': 'Terminer',
+    'You won!': 'Gagné !',
+    'moves': 'coups',
+    'Moves': 'Coups',
+    'Won': 'Gagnées',
+    'Live headlines from NPR, Al Jazeera, Engadget, Space.com, NASA, Radio-Canada, La Presse and more.': 'Les titres en direct de NPR, Al Jazeera, Engadget, Space.com, la NASA, Radio-Canada, La Presse et plus.',
+    'Read thousands of free classic books from Project Gutenberg.': 'Lisez des milliers de classiques gratuits du Projet Gutenberg.',
+    'Live radio stations from around the world.': 'Des stations de radio en direct du monde entier.',
+    'Watch your own video files.': 'Regardez vos propres vidéos.',
+    'Classic Klondike solitaire.': 'Le solitaire Klondike classique.',
+    'YouTube inside PatOS: search, Shorts, channels, comments and subscriptions, with the official YouTube player.': 'YouTube dans PatOS : recherche, Shorts, chaînes, commentaires et abonnements, avec le lecteur YouTube officiel.',
+    'A web browser with tabs that searches with Google, right inside PatOS.': 'Un navigateur à onglets qui cherche avec Google, directement dans PatOS.',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 'Offline': 'Hors ligne', 'Connected': 'Connecté',
@@ -3015,6 +3520,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     focus: { bg: 'linear-gradient(160deg,#5e5ce6,#bf5af2)', svg: () => S(`<circle cx="32" cy="34" r="19" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="5"/><path d="M32 15a19 19 0 1 1-17 27" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/><path d="M32 24v10l6 4" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>`) },
     journal: { bg: 'linear-gradient(160deg,#a06cd5,#6247aa)', svg: () => S(`<rect x="15" y="10" width="34" height="44" rx="4" fill="#fff"/><rect x="15" y="10" width="7" height="44" fill="#e0d4f7"/><path d="M27 22h16M27 29h16M27 36h10" stroke="#a06cd5" stroke-width="2.5" stroke-linecap="round"/><path d="M40 44l3-3 3 3-3 3z" fill="#ff6b9d"/>`) },
     sudoku: { bg: '#fff', svg: () => { let g = '<rect x="10" y="10" width="44" height="44" rx="4" fill="#f2f2f7" stroke="#3a3a3c" stroke-width="2"/>'; [24.7, 39.3].forEach((v) => { g += `<path d="M${v} 10v44M10 ${v}h44" stroke="#3a3a3c" stroke-width="2"/>`; }); [[17, 21, '5'], [32, 21, '3'], [47, 36, '7'], [17, 50, '9'], [32, 50, '1']].forEach(([x, y, n]) => { g += `<text x="${x}" y="${y}" font-size="10" font-weight="700" font-family="system-ui" fill="${n === '7' ? '#0a84ff' : '#1c1c1e'}" text-anchor="middle">${n}</text>`; }); return S(g); } },
+    news: { bg: 'linear-gradient(160deg,#ff5f6d,#e0193f)', svg: () => S(`<rect x="12" y="14" width="40" height="36" rx="5" fill="#fff"/><rect x="17" y="20" width="16" height="12" rx="2" fill="#ff8a95"/><path d="M37 21h10M37 26h10M37 31h10M17 37h30M17 42h30" stroke="#e0193f" stroke-width="2.6" stroke-linecap="round"/>`) },
+    books: { bg: 'linear-gradient(160deg,#ffb340,#ff7a00)', svg: () => S(`<path d="M32 18c-6-4-13-4-19-2v30c6-2 13-2 19 2 6-4 13-4 19-2V16c-6-2-13-2-19 2z" fill="#fff"/><path d="M32 18v30" stroke="#ff9500" stroke-width="2.5"/>`) },
+    radio: { bg: 'linear-gradient(160deg,#ff2d55,#b40d6e)', svg: () => S(`<circle cx="32" cy="32" r="5" fill="#fff"/><path d="M23 23a13 13 0 0 0 0 18M41 23a13 13 0 0 1 0 18M17 17a21 21 0 0 0 0 30M47 17a21 21 0 0 1 0 30" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round"/>`) },
+    videos: { bg: 'linear-gradient(160deg,#2c2c2e,#000)', svg: () => S(`<rect x="11" y="17" width="42" height="30" rx="6" fill="none" stroke="#fff" stroke-width="3"/><path d="M28 25v14l12-7z" fill="#fff"/>`) },
+    solitaire: { bg: 'linear-gradient(160deg,#30b45a,#0b6b33)', svg: () => S(`<rect x="14" y="14" width="24" height="34" rx="4" fill="#fff" transform="rotate(-10 26 31)"/><rect x="26" y="16" width="24" height="34" rx="4" fill="#fff" stroke="#0b6b33" stroke-width="1.5" transform="rotate(8 38 33)"/><text x="33" y="39" font-size="16" fill="#e0193f" font-family="system-ui" transform="rotate(8 38 33)">♥</text>`) },
   };
 
   /* generic letter-tile icon */
@@ -5405,7 +5915,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     { t: 'Internet Archive', u: 'https://archive.org' }
   ];
   const SHORTCUTS = [
-    { t: 'Google', u: 'patos://google', i: 'search' },
+    { t: 'Google', u: 'https://www.google.com/webhp?igu=1', i: 'search' },
     { t: 'Wikipedia', u: 'https://en.wikipedia.org/wiki/Main_Page', i: 'W' },
     { t: 'YouTube', app: 'youtube', i: 'youtube' },
     { t: 'Docs', app: 'docs', i: 'docs' },
@@ -5434,11 +5944,24 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (/^[\w-]+(\.[\w-]+)+(:\d+)?(\/.*)?$/.test(q) && !q.includes(' ')) return 'https://' + q;
     return searchURL(q);
   }
-  /* Searching. google.com refuses to load inside other apps (you get a 403 or an old stripped-down page),
-     so Patoogle shows real Google results through Google Programmable Search, which Google made for exactly
-     this. It needs a free Search engine ID from the user. Until one is added, searches go to Bing. */
-  const googleCx = () => (PatOS.store.get('googleCx', '') || '').trim();
-  function searchURL(q) { return (googleCx() ? 'patos://google?q=' : 'patos://search?q=') + encodeURIComponent(q); }
+  /* Searching. Real Google loads right inside Patoogle (Google's embeddable results page). With a
+     Programmable Search ID (from the person, or set on the PatOS server) Patoogle shows Google's
+     official search box instead, which looks like today's Google. Patoogle's own Wikipedia results
+     and Bing stay available as other engines. */
+  let serverCx = '';
+  const googleCx = () => (PatOS.store.get('googleCx', '') || '').trim() || serverCx;
+  const engine = () => { const e = PatOS.store.get('searchEngine', 'google'); return e === 'cse' && !googleCx() ? 'google' : e; };
+  const glang = () => (PatOS.lang === 'fr' ? 'fr' : 'en');
+  function googleURL(q) { return 'https://www.google.com/search?igu=1&hl=' + glang() + '&q=' + encodeURIComponent(q); }
+  function searchURL(q) {
+    const e = engine();
+    if (e === 'cse') return 'patos://google?q=' + encodeURIComponent(q);
+    if (e === 'patoogle') return 'patos://search?q=' + encodeURIComponent(q);
+    if (e === 'bing') return bingURL(q);
+    return googleURL(q);
+  }
+  const isGoogleFrame = (url) => /^https:\/\/www\.google\.[a-z.]+\/(search|webhp)\?(.*&)?igu=1/.test(url);
+  if (/^https?:/.test(location.protocol) && !PatOS.sandboxed) fetch('/api/config', { cache: 'no-store' }).then((r) => r.json()).then((j) => { if (j && j.googleCx) serverCx = String(j.googleCx); }).catch(() => {});
   function bingURL(q) { return 'https://www.bing.com/search?q=' + encodeURIComponent(q) + '&setlang=' + (PatOS.lang || 'en'); }
   let cseState = null; // { cx, ready: Promise }
   function loadCSE(cx) {
@@ -5458,8 +5981,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     try {
       const u = new URL(url);
       if (!/(^|\.)google\.[a-z.]+$/.test(u.hostname) || !/^www\.|^google\./.test(u.hostname)) return url;
-      if (u.pathname === '/search' && u.searchParams.get('q')) return searchURL(u.searchParams.get('q'));
-      if (u.pathname === '/' || u.pathname === '/webhp') return googleCx() ? 'patos://newtab' : 'patos://google-setup';
+      if (u.searchParams.get('igu') === '1') return url;
+      if (u.pathname === '/search' && u.searchParams.get('q')) return engine() === 'cse' ? searchURL(u.searchParams.get('q')) : googleURL(u.searchParams.get('q'));
+      if (u.pathname === '/' || u.pathname === '/webhp') return 'https://www.google.com/webhp?igu=1&hl=' + glang();
     } catch (e) {}
     return url;
   }
@@ -5472,11 +5996,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
   PatOS.registerApp({
     id: 'browser', name: 'Patoogle', icon: 'browser', single: true, width: 1040, height: 680, keywords: 'chrome safari web internet browser google',
-    about: 'A web browser with tabs. Searches go through Bing, since Google won’t show its results inside other apps.',
+    about: 'A web browser with tabs that searches with Google, right inside PatOS.',
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'browser-win');
       const tabs = []; let cur = null;
-      let bookmarks = PatOS.store.get('bookmarks', DEFAULT_BM).map((b) => (/google\.com\/webhp/.test(b.u) || /^https:\/\/www\.bing\.com\/?$/.test(b.u) ? { t: 'Patoogle', u: 'patos://newtab' } : b));
+      let bookmarks = PatOS.store.get('bookmarks', DEFAULT_BM).map((b) => (/google\.com\/webhp(?!\?igu)/.test(b.u) || /^https:\/\/www\.bing\.com\/?$/.test(b.u) ? { t: 'Patoogle', u: 'patos://newtab' } : b));
+      if (!bookmarks.some((b) => /google\.com\/webhp\?igu/.test(b.u))) bookmarks.splice(1, 0, { t: 'Google', u: 'https://www.google.com/webhp?igu=1' });
       const tabStrip = h('div', { class: 'br-tabs' });
       const addTab = h('button', { class: 'br-newtab', title: 'New tab' }, '+');
       win.toolbar.append(tabStrip, addTab);
@@ -5547,17 +6072,20 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         if (url === 'patos://newtab') { t.title = 'New Tab'; t.pane.appendChild(newTabPage()); }
         else if (url.startsWith('patos://google-setup')) { t.title = 'Google'; t.pane.appendChild(googleSetup(new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || '')); }
         else if (url.startsWith('patos://search')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Patoogle'; t.pane.appendChild(patoogleResults(q)); }
-        else if (url.startsWith('patos://google')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Google'; t.pane.appendChild(googleCx() ? googlePage(t, q) : googleSetup(q)); }
+        else if (url.startsWith('patos://google')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Google'; if (googleCx()) t.pane.appendChild(googlePage(t, q)); else { setTimeout(() => navigate(q ? googleURL(q) : 'https://www.google.com/webhp?igu=1&hl=' + glang(), t, true), 0); } }
         else if (isBlocked(url)) { t.title = host(url); t.pane.appendChild(blockedPage(url)); }
         else {
-          t.title = /bing\.com\/search/.test(url) ? new URL(url).searchParams.get('q') : host(url);
+          const gq = isGoogleFrame(url) ? new URL(url).searchParams.get('q') : null;
+          t.title = /bing\.com\/search/.test(url) ? new URL(url).searchParams.get('q') : gq ? gq + ' - Google' : isGoogleFrame(url) ? 'Google' : host(url);
           const loader = h('div', { class: 'br-loading' });
-          const frame = h('iframe', { src: url, allow: 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write', referrerpolicy: 'no-referrer-when-downgrade', allowfullscreen: true });
+          const attrs = { src: url, allow: 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write; geolocation', referrerpolicy: 'no-referrer-when-downgrade', allowfullscreen: true };
+          // Google pages can't take over the whole PatOS tab; links that open new windows still work
+          if (isGoogleFrame(url)) attrs.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads';
+          const frame = h('iframe', attrs);
           frame.addEventListener('load', () => { loader.remove(); try { const d = frame.contentDocument; if (d && d.title) { t.title = d.title; syncUI(); } } catch (e) {} });
           t.pane.append(loader, frame);
-          if (/bing\.com\/search/.test(url) && !googleCx()) {
-            const q = new URL(url).searchParams.get('q') || '';
-            t.pane.insertBefore(h('div', { class: 'pg-banner' }, h('span', {}, 'These results are from Bing.'), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup?q=' + encodeURIComponent(q)) }, 'Get real Google results')), frame);
+          if (isGoogleFrame(url)) {
+            t.pane.insertBefore(h('div', { class: 'pg-banner g' }, h('span', {}, PatOS.t('If a page says it refused to connect, that site doesn’t allow being shown inside other apps.')), h('button', { class: 'pg-link', onclick: () => PatOS.openExternal(url.replace('igu=1&', '').replace('?igu=1', '?')) }, 'Open this search in a new tab'), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup' + (gq ? '?q=' + encodeURIComponent(gq) : '')) }, 'Search settings')), frame);
           }
           setTimeout(() => loader.remove(), 8000);
         }
@@ -5578,6 +6106,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           e.preventDefault(); e.stopPropagation(); navigate(href);
         }, true);
         results.addEventListener('mousedown', (e) => { if (e.target.closest('a[href]')) e.stopPropagation(); }, true);
+        if (q && !googleCx()) { status.textContent = ''; setTimeout(() => navigate(googleURL(q), t, true), 0); return page; }
         if (q) loadCSE(googleCx()).then((el) => {
           status.remove();
           const gname = 'pg' + t.id + Date.now();
@@ -5598,8 +6127,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         const answers = h('div', { class: 'pr-answers' }), results = h('div', { class: 'pr-results' }), panel = h('div', { class: 'pr-panel' });
         const page = h('div', { class: 'pg-page' }, h('div', { class: 'pg-head' }, h('div', { class: 'pg-logo' }, 'Patoogle'), h('div', { class: 'pg-qwrap', html: PatOS.sym('search') }, box)),
           h('div', { class: 'pr-wrap' }, h('div', { class: 'pr-col' }, answers, results,
-            h('div', { class: 'pr-more' }, h('b', {}, PatOS.t('Want full web results like Google?')), h('p', {}, PatOS.t('Add a free Google search ID (about a minute) and Patoogle shows real Google results here.')),
-              h('div', { class: 'pr-btns' }, h('button', { class: 'btn primary', onclick: () => navigate('patos://google-setup?q=' + encodeURIComponent(q)) }, 'Set up Google results'), h('button', { class: 'btn', onclick: () => navigate(bingURL(q)) }, 'Try Bing')),
+            h('div', { class: 'pr-more' }, h('b', {}, PatOS.t('Want full web results?')), h('p', {}, PatOS.t('These results come from Wikipedia. Search Google for everything else.')),
+              h('div', { class: 'pr-btns' }, h('button', { class: 'btn primary', onclick: () => navigate(googleURL(q)) }, 'Search Google'), h('button', { class: 'btn', onclick: () => navigate(bingURL(q)) }, 'Try Bing')),
               h('small', {}, PatOS.t('Some schools block Bing. If you see “blocked by your administrator”, that’s your school’s setting.')))), panel));
         setTimeout(() => { if (!q) box.focus(); }, 50);
         if (!q) return page;
@@ -5636,25 +6165,33 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         return page;
       }
       function googleSetup(q) {
-        const inp = h('input', { class: 'field pg-cx', placeholder: 'Search engine ID (looks like a1b2c3d4e5f6g7h8i)', value: googleCx(), spellcheck: 'false' });
+        const cur = engine();
+        const opt = (id, title, desc) => { const r = h('label', { class: 'pg-eng' + (cur === id ? ' on' : '') }, h('input', { type: 'radio', name: 'eng', value: id }), h('div', {}, h('b', {}, PatOS.t(title)), h('small', {}, PatOS.t(desc)))); r.querySelector('input').checked = cur === id; r.querySelector('input').onchange = () => { if (id === 'cse' && !googleCx()) { cseBox.classList.add('on'); inp.focus(); return; } PatOS.store.set('searchEngine', id); navigate(q ? searchURL(q) : 'patos://newtab'); }; return r; };
+        const inp = h('input', { class: 'field pg-cx', placeholder: 'Search engine ID (looks like a1b2c3d4e5f6g7h8i)', value: PatOS.store.get('googleCx', ''), spellcheck: 'false' });
         const save = () => {
           let v = inp.value.trim(); const m = v.match(/cx=([\w:-]+)/); if (m) v = m[1];
           PatOS.store.set('googleCx', v);
           if (cseState && v && cseState.cx !== v) { PatOS.alertBox(PatOS.t('Saved'), PatOS.t('Close and reopen PatOS to use your new Search engine ID.'), { icon: 'browser' }); return; }
-          navigate(v ? (q ? 'patos://google?q=' + encodeURIComponent(q) : 'patos://newtab') : (q ? bingURL(q) : 'patos://newtab'));
+          PatOS.store.set('searchEngine', v || serverCx ? 'cse' : 'google');
+          navigate(q ? searchURL(q) : 'patos://newtab');
         };
         inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(); });
+        const cseBox = h('div', { class: 'pg-csebox' + (cur === 'cse' ? ' on' : '') },
+          h('p', {}, PatOS.t('Google’s official search box for apps looks just like google.com today. It needs a free ID, made once:')),
+          h('ol', {},
+            h('li', {}, PatOS.t('Go to programmablesearchengine.google.com and sign in.')),
+            h('li', {}, PatOS.t('Click Add, give it any name, and choose “Search the entire web”.')),
+            h('li', {}, PatOS.t('Click Create, then copy the Search engine ID.')),
+            h('li', {}, PatOS.t('Paste it here. If you run PatOS on Render, you can also add it there as GOOGLE_CX so it works for everyone.'))),
+          h('div', { class: 'pg-row' }, inp, h('button', { class: 'btn primary', onclick: save }, 'Save')));
         return h('div', { class: 'pg-setup' },
           h('div', { class: 'pg-logo big' }, 'Patoogle'),
-          h('h2', {}, 'Get real Google results'),
-          h('p', {}, 'google.com doesn’t let other apps show it, which is why you saw an error or an old-looking Google page. Google does offer an official search box that apps can use. It gives the same up-to-date results. You just need a free ID for it:'),
-          h('ol', {},
-            h('li', {}, 'On any device, go to programmablesearchengine.google.com and sign in.'),
-            h('li', {}, 'Click Add. Give it any name, and pick “Search the entire web”.'),
-            h('li', {}, 'Click Create, then copy the Search engine ID it shows you.'),
-            h('li', {}, 'Paste it here. It only stays on this device.')),
-          h('div', { class: 'pg-row' }, inp, h('button', { class: 'btn primary', onclick: save }, 'Use Google')),
-          googleCx() ? h('button', { class: 'pg-link', onclick: () => { inp.value = ''; save(); } }, 'Stop using Google and search with Bing') : h('button', { class: 'pg-link', onclick: () => navigate(q ? bingURL(q) : 'patos://newtab') }, 'Not now, keep using Bing'));
+          h('h2', {}, PatOS.t('Search engine')),
+          opt('google', 'Google', 'Real Google results, right inside Patoogle. Works with no setup.'),
+          opt('cse', 'Google (official search box)', serverCx ? 'Set up on this PatOS website. Looks like today’s google.com.' : 'Looks like today’s google.com. Needs a free ID (see below).'),
+          cseBox,
+          opt('patoogle', 'Patoogle', 'Wikipedia articles with instant answers for math, conversions and definitions.'),
+          opt('bing', 'Bing', 'Some school networks block Bing.'));
       }
       function loadHTML(t, html, title) {
         t.url = 'patos://file'; t.title = title || 'Document'; t.hist = [t.url]; t.idx = 0;
@@ -5663,7 +6200,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       function newTabPage() {
         const q = h('input', { class: 'nt-search', placeholder: 'Search Patoogle or type a web address', spellcheck: 'false' });
         q.addEventListener('keydown', (e) => { if (e.key === 'Enter') navigate(q.value); });
-        const engine = h('div', { class: 'nt-engine' }, h('span', {}, googleCx() ? 'Searching with Google' : 'Searching with Patoogle'), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup') }, googleCx() ? 'Change' : 'Use Google instead'));
+        const ENG = { google: 'Google', cse: 'Google', patoogle: 'Patoogle', bing: 'Bing' };
+        const engineRow = h('div', { class: 'nt-engine' }, h('span', {}, PatOS.t('Searching with') + ' ' + ENG[engine()]), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup') }, 'Change'));
         const grid = h('div', { class: 'nt-grid' });
         SHORTCUTS.forEach((s) => {
           const tile = h('button', { class: 'nt-tile' }, h('div', { class: 'nt-ic', html: PatOS.iconDefs[s.i] ? PatOS.iconHTML(s.i) : `<div class="nt-letter">${esc(s.i)}</div>` }), h('span', {}, s.t));
@@ -5675,7 +6213,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         return h('div', { class: 'nt-page' },
           h('div', { class: 'nt-logo' }, 'Patoogle'),
           h('div', { class: 'nt-greet' }, greet + ', ' + PatOS.settings.userName),
-          q, engine, grid,
+          q, engineRow, grid,
           h('div', { class: 'nt-tip' }, 'Most sites open right here. A few big ones, like Gmail, won’t load inside other apps, so use the PatOS app for those.'));
       }
       function blockedPage(url) {
@@ -5683,7 +6221,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           h('div', { class: 'bb-ic' }, '🧱'),
           h('h2', {}, host(url) + ' can’t be shown inside PatOS'),
           h('p', {}, PatOS.sandboxed ? 'PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead. PatOS stays open in this one.' : 'This site doesn’t let other apps show it, so it won’t open in Patoogle. You can search for it instead, or use the PatOS app that does the same thing (YouTube, Docs, Drive, Maps or Translate).'),
-          h('div', { class: 'br-alts' }, h('button', { class: 'btn primary', onclick: () => navigate(searchURL(host(url))) }, 'Search the web for ' + host(url))), h('a', { class: 'br-ext', href: url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '').replace('?igu=1', ''), target: '_blank', rel: 'noopener noreferrer' }, 'Open outside PatOS'));
+          h('div', { class: 'br-alts' }, h('button', { class: 'btn primary', onclick: () => navigate(searchURL(host(url))) }, PatOS.t('Search Google for') + ' ' + host(url))), h('a', { class: 'br-ext', href: url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '').replace('?igu=1', ''), target: '_blank', rel: 'noopener noreferrer' }, 'Open outside PatOS'));
       }
       omni.addEventListener('keydown', (e) => { if (e.key === 'Enter') { navigate(omni.value); omni.blur(); } });
       omni.addEventListener('focus', () => omni.select());
@@ -5695,7 +6233,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         const H = PatOS.store.get('browserHistory', []); const r = bHist.getBoundingClientRect();
         PatOS.menu([{ header: PatOS.t('History') }, ...(H.length ? H.slice(0, 15).map((x) => ({ label: host(x.u) + ' · ' + new Date(x.t).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }), action: () => navigate(x.u) })) : [{ label: PatOS.t('No history yet'), disabled: true }]), { divider: true }, { label: PatOS.t('Clear History'), disabled: !H.length, action: () => PatOS.store.set('browserHistory', []) }], r.left - 200, r.bottom + 4);
       };
-      bExt.onclick = () => { if (!cur.url.startsWith('patos')) PatOS.openExternal(cur.url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '')); };
+      bExt.onclick = () => { if (!cur.url.startsWith('patos')) PatOS.openExternal(cur.url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '').replace('?igu=1', '?')); };
       bStar.onclick = () => {
         if (cur.url.startsWith('patos')) return;
         const i = bookmarks.findIndex((b) => b.u === cur.url);
@@ -5766,128 +6304,420 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       show();
     }
   });
+})();
 
-  /* YouTube: the official YouTube player inside PatOS, with real search, trending, channels and comments
-     from the YouTube Data API (each person adds their own free API key once). */
+</script>
+  <script>
+/* YouTube: works like youtube.com inside PatOS. Home, search with suggestions, Shorts, channels,
+   comments, related videos, autoplay, subscriptions, likes, Watch later and history.
+   Data comes from the PatOS server (no key needed). Videos play in the official YouTube player. */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  const I = {
+    menu: '<path d="M3 6h18M3 12h18M3 18h18"/>',
+    home: '<path d="M4 10.5 12 4l8 6.5V20h-5.5v-6h-5v6H4z"/>',
+    shorts: '<path d="M14.5 3.5 7 7.6a3.4 3.4 0 0 0 0 6l.9.5-.9.5a3.4 3.4 0 0 0 3.3 6l7.5-4.1a3.4 3.4 0 0 0 0-6l-.9-.5.9-.5a3.4 3.4 0 0 0-3.3-6z"/><path d="m10 9.5 4.5 2.5-4.5 2.5z" fill="currentColor"/>',
+    subs: '<rect x="3" y="7" width="18" height="13" rx="2"/><path d="M6 4h12M10 10.5l5 3-5 3z"/>',
+    history: '<path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5M12 7v5l3 2"/>',
+    later: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+    like: '<path d="M7 11v9H4v-9zM7 11l4-7c1.5 0 2.5 1 2.2 2.6L12.6 10H19a2 2 0 0 1 2 2.3l-1.2 6A2 2 0 0 1 17.8 20H7"/>',
+    share: '<path d="M14 5l7 7-7 7v-4c-5 0-8 1.5-10 5 .5-5 3-10 10-11z"/>',
+    search: '<circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/>',
+    gear: '<circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
+    up: '<path d="m6 15 6-6 6 6"/>', down: '<path d="m6 9 6 6 6-6"/>', x: '<path d="M6 6l12 12M18 6 6 18"/>', back: '<path d="M15 5l-7 7 7 7"/>',
+    autoplay: '<rect x="2" y="7" width="20" height="10" rx="5"/><circle cx="17" cy="12" r="3" fill="currentColor"/>'
+  };
+  const ic = (n, s = 22) => `<svg viewBox="0 0 24 24" width="${s}" height="${s}" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${I[n]}</svg>`;
+  const LOGO = '<svg viewBox="0 0 100 20" width="100" height="20"><rect x="0" y="1" width="28" height="19" rx="5" fill="#ff0033"/><path d="M11 6v9l8-4.5z" fill="#fff"/><text x="31" y="16" font-family="system-ui,-apple-system,Roboto,sans-serif" font-size="16" font-weight="700" letter-spacing="-.6" fill="currentColor">YouTube</text></svg>';
+
+  /* ---------- where the data comes from ---------- */
+  let serverOK = null;
+  async function server() {
+    if (PatOS.sandboxed) return null;
+    const custom = (PatOS.store.get('patosServer', '') || '').trim().replace(/\/+$/, '');
+    if (serverOK !== null) return serverOK;
+    const tryBase = async (b) => { try { const r = await fetch(b + '/api/ping', { cache: 'no-store' }); const j = await r.json(); return j && j.patos ? b : null; } catch (e) { return null; } };
+    serverOK = (/^https?:/.test(location.protocol) && await tryBase(location.origin)) || (custom && await tryBase(custom)) || null;
+    return serverOK;
+  }
+  PatOS.server = server;
+  PatOS.resetServer = () => { serverOK = null; };
+  const hl = () => (PatOS.lang === 'fr' ? 'fr' : 'en');
+  const gl = () => ((navigator.language || 'en-CA').split('-')[1] || 'CA').toUpperCase().slice(0, 2);
+  async function get(path, params) {
+    const base = await server();
+    if (base) {
+      const r = await fetch(base + '/api/yt/' + path + '?' + new URLSearchParams(Object.assign({ hl: hl(), gl: gl() }, params)));
+      const j = await r.json(); if (j.error) throw new Error(j.error); return j;
+    }
+    const key = PatOS.store.get('ytKey', '');
+    if (key) return keyAPI(key, path, params);
+    const e = new Error('noserver'); throw e;
+  }
+  /* fallback: the official YouTube Data API with the person's own key (for the single-file version) */
+  async function keyAPI(key, path, p) {
+    const A = 'https://www.googleapis.com/youtube/v3/';
+    const call = async (ep, q) => { const r = await fetch(A + ep + '?' + new URLSearchParams(Object.assign({ key }, q))); const j = await r.json(); if (j.error) throw new Error(j.error.message); return j; };
+    const n = (x) => { x = +x || 0; return x >= 1e9 ? (x / 1e9).toFixed(1) + 'B' : x >= 1e6 ? (x / 1e6).toFixed(1) + 'M' : x >= 1e3 ? Math.round(x / 1e3) + 'K' : String(x); };
+    const dur = (iso) => { const m = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(iso || ''); if (!m) return ''; const a = +m[1] || 0, b = +m[2] || 0, c = +m[3] || 0; return (a ? a + ':' + String(b).padStart(2, '0') : b) + ':' + String(c).padStart(2, '0'); };
+    const dec = (s) => { const t = document.createElement('textarea'); t.innerHTML = s || ''; return t.value; };
+    const vids = async (ids) => { if (!ids.length) return []; const j = await call('videos', { part: 'snippet,statistics,contentDetails', id: ids.join(',') }); return j.items.map((it) => ({ type: 'video', id: it.id, title: dec(it.snippet.title), channel: it.snippet.channelTitle, channelId: it.snippet.channelId, thumb: 'https://i.ytimg.com/vi/' + it.id + '/mqdefault.jpg', duration: dur(it.contentDetails.duration), views: n(it.statistics.viewCount) + ' views', published: new Date(it.snippet.publishedAt).toLocaleDateString(), desc: it.snippet.description, likes: n(it.statistics.likeCount) })); };
+    const srch = async (q) => { const j = await call('search', { part: 'snippet', type: 'video', maxResults: 24, q, safeSearch: 'moderate' }); return vids(j.items.map((i) => i.id.videoId).filter(Boolean)); };
+    if (path === 'search') return { items: await srch(p.q), cont: '' };
+    if (path === 'home') { const j = await call('videos', { part: 'snippet,statistics,contentDetails', chart: 'mostPopular', maxResults: 24, regionCode: gl() }); return { items: await vids(j.items.map((i) => i.id)), shorts: [] }; }
+    if (path === 'video') { const [v] = await vids([p.id]); if (!v) throw new Error('This video isn’t available.'); return Object.assign(v, { views: v.views, date: v.published, related: (await srch(v.title.split(/[|\-–(]/)[0].slice(0, 60))).filter((x) => x.id !== p.id), commentsToken: 'key:' + p.id }); }
+    if (path === 'comments') { const j = await call('commentThreads', { part: 'snippet', videoId: p.token.slice(4), maxResults: 20, order: 'relevance', textFormat: 'plainText' }); return { items: j.items.map((c) => { const s = c.snippet.topLevelComment.snippet; return { author: s.authorDisplayName, avatar: s.authorProfileImageUrl, text: s.textDisplay, published: new Date(s.publishedAt).toLocaleDateString(), likes: n(s.likeCount) }; }), cont: '' }; }
+    if (path === 'channel') { const j = await call('channels', { part: 'snippet,statistics,brandingSettings', id: p.id }); const c = j.items[0]; const s = await call('search', { part: 'snippet', channelId: p.id, order: 'date', type: 'video', maxResults: 24 }); return { id: p.id, title: c.snippet.title, desc: c.snippet.description, avatar: c.snippet.thumbnails.medium.url, banner: c.brandingSettings && c.brandingSettings.image && c.brandingSettings.image.bannerExternalUrl, subs: n(c.statistics.subscriberCount) + ' subscribers', handle: c.snippet.customUrl, items: await vids(s.items.map((i) => i.id.videoId).filter(Boolean)) }; }
+    return { items: [] };
+  }
+
   PatOS.registerApp({
-    id: 'youtube', name: 'YouTube', icon: 'youtube', category: 'Apps', single: true, width: 1100, height: 700, dark: true, keywords: 'video watch tube music',
+    id: 'youtube', name: 'YouTube', icon: 'youtube', category: 'Apps', single: true, width: 1180, height: 740, keywords: 'video watch tube music shorts', titlebar: 'hidden',
+    about: 'YouTube inside PatOS: search, Shorts, channels, comments and subscriptions, with the official YouTube player.',
     launch(win, args) {
-      win.el.classList.add('has-toolbar', 'yt-win');
-      const API = 'https://www.googleapis.com/youtube/v3/';
-      let key = PatOS.store.get('ytKey', '');
-      const q = h('input', { class: 'yt-search', placeholder: 'Search', spellcheck: 'false' });
-      const bGo = h('button', { class: 'yt-sbtn', title: 'Search' }, '🔍');
-      const bHome = h('button', { class: 'tbtn', title: 'Home' }, '⌂');
-      const bKey = h('button', { class: 'tbtn', title: 'YouTube settings' }, '⚙');
-      win.toolbar.append(bHome, h('div', { class: 'yt-sbox' }, q, bGo), bKey);
-      win.toolbar.style.justifyContent = 'center';
-      const main = h('div', { class: 'yt-main' }); win.body.appendChild(main);
-      const hist = PatOS.store.get('ytHistory', []);
-      const fmtN = (n) => { n = +n || 0; return n >= 1e9 ? (n / 1e9).toFixed(1) + 'B' : n >= 1e6 ? (n / 1e6).toFixed(1) + 'M' : n >= 1e3 ? (n / 1e3).toFixed(n >= 1e4 ? 0 : 1) + 'K' : String(n); };
-      const ago = (d) => { const s = (Date.now() - new Date(d)) / 1000; const u = [[31536000, 'year'], [2592000, 'month'], [604800, 'week'], [86400, 'day'], [3600, 'hour'], [60, 'minute']]; for (const [k, n] of u) if (s >= k) { const v = Math.floor(s / k); return v + ' ' + n + (v > 1 ? 's' : '') + ' ago'; } return 'just now'; };
-      const dur = (iso) => { const m = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/.exec(iso || ''); if (!m) return ''; const hh = +m[1] || 0, mm = +m[2] || 0, ss = +m[3] || 0; return (hh ? hh + ':' + String(mm).padStart(2, '0') : mm) + ':' + String(ss).padStart(2, '0'); };
-      const dec = (s) => { const t = document.createElement('textarea'); t.innerHTML = s; return t.value; };
-      async function api(path, params) {
-        const u = API + path + '?' + new URLSearchParams(Object.assign({ key }, params));
-        const r = await fetch(u); const j = await r.json();
-        if (j.error) throw new Error(j.error.message || 'YouTube error');
-        return j;
+      win.el.classList.add('ytx-win');
+      const lib = Object.assign({ subs: [], liked: [], later: [], history: [] }, PatOS.store.get('ytLibrary', {}));
+      (PatOS.store.get('ytHistory', []) || []).forEach((v) => { if (!lib.history.some((x) => x.id === v.id)) lib.history.push({ type: 'video', id: v.id, title: v.title, channel: v.channel, thumb: v.thumb || 'https://i.ytimg.com/vi/' + v.id + '/mqdefault.jpg', duration: v.duration }); });
+      const saveLib = () => PatOS.store.set('ytLibrary', lib);
+      let autoplay = PatOS.store.get('ytAutoplay', true);
+      const stack = []; let route = null, upNext = null, scrollMore = null;
+
+      /* ---------- frame ---------- */
+      const q = h('input', { class: 'ytx-q', placeholder: 'Search', spellcheck: 'false', autocomplete: 'off' });
+      const sugg = h('div', { class: 'ytx-sugg' });
+      const bBack = h('button', { class: 'ytx-ib ytx-back', title: 'Back', html: ic('back') });
+      const bMenu = h('button', { class: 'ytx-ib', title: 'Menu', html: ic('menu') });
+      const logo = h('button', { class: 'ytx-logo', title: 'YouTube Home', html: LOGO });
+      const bSet = h('button', { class: 'ytx-ib', title: 'Settings', html: ic('gear') });
+      const head = h('div', { class: 'ytx-head' }, h('div', { class: 'ytx-hl' }, bBack, bMenu, logo), h('div', { class: 'ytx-sbox' }, q, h('button', { class: 'ytx-sbtn', title: 'Search', html: ic('search', 20) }), sugg), h('div', { class: 'ytx-hr' }, bSet));
+      const nav = h('div', { class: 'ytx-nav' });
+      const main = h('div', { class: 'ytx-main no-drag' });
+      win.body.appendChild(h('div', { class: 'ytx' }, head, h('div', { class: 'ytx-body' }, nav, main)));
+      if (win.el.offsetWidth < 900) win.el.classList.add('ytx-mini');
+
+      function renderNav() {
+        nav.innerHTML = '';
+        const item = (key, label, icon, fn) => { const b = h('button', { class: 'ytx-ni' + (route && route.key === key ? ' on' : ''), html: ic(icon) + '<span>' + PatOS.t(label) + '</span>' }); b.onclick = fn; nav.appendChild(b); };
+        item('home', 'Home', 'home', () => go({ key: 'home' }));
+        item('shorts', 'Shorts', 'shorts', () => go({ key: 'shorts' }));
+        item('subs', 'Subscriptions', 'subs', () => go({ key: 'subs' }));
+        nav.appendChild(h('hr'));
+        nav.appendChild(h('div', { class: 'ytx-nh' }, PatOS.t('You')));
+        item('history', 'History', 'history', () => go({ key: 'library', which: 'history' }));
+        item('later', 'Watch later', 'later', () => go({ key: 'library', which: 'later' }));
+        item('liked', 'Liked videos', 'like', () => go({ key: 'library', which: 'liked' }));
+        if (lib.subs.length) {
+          nav.appendChild(h('hr')); nav.appendChild(h('div', { class: 'ytx-nh' }, PatOS.t('Subscriptions')));
+          lib.subs.slice(0, 12).forEach((c) => { const b = h('button', { class: 'ytx-ni ch' }, h('img', { src: c.avatar || '', alt: '' }), h('span', {}, c.title)); b.onclick = () => go({ key: 'channel', id: c.id }); nav.appendChild(b); });
+        }
       }
-      function loading() { main.innerHTML = ''; main.appendChild(h('div', { class: 'yt-loading' }, h('div', { class: 'yt-spin' }))); }
-      function fail(e) {
-        main.innerHTML = '';
-        const bad = /API key|keyInvalid|not valid/i.test(e.message);
-        main.appendChild(h('div', { class: 'yt-msg' }, h('h2', {}, bad ? 'That API key doesn’t work' : 'YouTube couldn’t load'), h('p', {}, PatOS.sandboxed ? 'Claude Artifacts block live data. Open PatOS from its own website to use YouTube.' : bad ? 'Check the key in YouTube settings (⚙).' : e.message), h('button', { class: 'btn', onclick: home }, 'Try again')));
+      function go(r, replace) {
+        if (route && !replace) stack.push(route);
+        route = r; render();
       }
-      function setup() {
-        main.innerHTML = '';
-        const inp = h('input', { class: 'field yt-keyin', placeholder: 'Paste your YouTube API key', value: key, spellcheck: 'false' });
-        const link = h('input', { class: 'field yt-keyin', placeholder: 'Or paste a YouTube video link to watch it now', spellcheck: 'false' });
-        link.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const id = idOf(link.value); if (id) watch(id); } });
-        main.appendChild(h('div', { class: 'yt-setup' },
-          h('div', { class: 'yt-big', html: PatOS.iconHTML('youtube') }),
-          h('h1', {}, 'YouTube in PatOS'),
-          h('p', {}, 'Videos play in the real YouTube player, right here. To search and see trending videos, PatOS needs a free YouTube API key from Google (you only do this once):'),
-          h('ol', { class: 'yt-steps' },
-            h('li', {}, 'On a computer, go to console.cloud.google.com and sign in with a Google account.'),
-            h('li', {}, 'Create a project, then open “APIs & Services” › “Library” and turn on “YouTube Data API v3”.'),
-            h('li', {}, 'Open “Credentials” › “Create credentials” › “API key”, and copy the key.'),
-            h('li', {}, 'Paste it below. It stays only on this device.')),
-          h('div', { class: 'yt-keyrow' }, inp, h('button', { class: 'btn primary', onclick: async () => { key = inp.value.trim(); PatOS.store.set('ytKey', key); home(); } }, 'Save key')),
-          link,
-          hist.length ? h('div', { class: 'yt-section' }, h('h3', {}, 'Watch again'), grid(hist.slice(0, 8))) : null));
+      function render() {
+        scrollMore = null; upNext = null;
+        main.scrollTop = 0; main.innerHTML = '';
+        win.el.classList.toggle('ytx-watching', route.key === 'watch');
+        bBack.style.display = stack.length ? '' : 'none';
+        renderNav();
+        ({ home, search, watch, channel, shorts, subs, library, settings })[route.key](route);
       }
-      function idOf(s) { const m = String(s).match(/(?:v=|youtu\.be\/|shorts\/|embed\/|live\/)([\w-]{11})/) || String(s).match(/^([\w-]{11})$/); return m ? m[1] : null; }
-      function card(v) {
-        const c = h('div', { class: 'yt-card' },
-          h('div', { class: 'yt-thumb' }, h('img', { src: v.thumb, alt: '', loading: 'lazy' }), v.duration ? h('span', { class: 'yt-dur' }, v.duration) : null),
-          h('div', { class: 'yt-info' }, h('div', { class: 'yt-av' }, (v.channel || '?').charAt(0)), h('div', {}, h('b', { class: 'yt-title' }, v.title), h('small', {}, v.channel), h('small', {}, [v.views ? fmtN(v.views) + ' views' : '', v.date ? ago(v.date) : ''].filter(Boolean).join(' · ')))));
-        c.onclick = () => watch(v.id, v);
+      bBack.onclick = () => { if (stack.length) { route = stack.pop(); render(); } };
+      bMenu.onclick = () => win.el.classList.toggle('ytx-mini');
+      logo.onclick = () => go({ key: 'home' });
+      bSet.onclick = () => go({ key: 'settings' });
+      main.addEventListener('scroll', () => { if (scrollMore && main.scrollTop + main.clientHeight > main.scrollHeight - 600) { const f = scrollMore; scrollMore = null; f(); } });
+
+      /* ---------- bits ---------- */
+      const spinner = () => h('div', { class: 'ytx-load' }, h('div', { class: 'ytx-spin' }));
+      function problem(e, retry) {
+        const box = h('div', { class: 'ytx-msg' });
+        if (e.message === 'noserver') {
+          box.append(h('div', { class: 'ytx-bigic', html: PatOS.iconHTML('youtube') }), h('h2', {}, PatOS.t('YouTube needs the PatOS website')),
+            h('p', {}, PatOS.sandboxed ? PatOS.t('This copy of PatOS runs inside a Claude Artifact, which blocks YouTube. Open PatOS from its website (your Render link) and YouTube works there.') : PatOS.t('This copy of PatOS was opened as a file, so it has no server to ask YouTube for videos. Open PatOS from its website (your Render link), or type that link in Settings so this copy can use it.')),
+            h('button', { class: 'ytx-btn', onclick: () => go({ key: 'settings' }) }, PatOS.t('Settings')));
+        } else box.append(h('h2', {}, PatOS.t('Something went wrong')), h('p', {}, navigator.onLine ? PatOS.t('YouTube didn’t answer. If you’re at school, YouTube may be blocked on this network.') + ' (' + e.message + ')' : PatOS.t('You’re offline.')), retry ? h('button', { class: 'ytx-btn', onclick: retry }, PatOS.t('Try again')) : null);
+        return box;
+      }
+      const avatar = (src, name, cls) => (src ? h('img', { class: 'ytx-av ' + (cls || ''), src, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }) : h('div', { class: 'ytx-av ph ' + (cls || '') }, (name || '?').replace('@', '').charAt(0).toUpperCase()));
+      function card(v, mode) {
+        const thumb = h('div', { class: 'ytx-th' }, h('img', { src: v.thumb, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }), v.live ? h('span', { class: 'ytx-dur live' }, PatOS.t('LIVE')) : v.duration ? h('span', { class: 'ytx-dur' }, v.duration) : null);
+        const meta = [v.views, v.published].filter(Boolean).join(' · ');
+        const chan = h('button', { class: 'ytx-cn' }, v.channel || '');
+        if (v.channelId) chan.onclick = (e) => { e.stopPropagation(); go({ key: 'channel', id: v.channelId }); };
+        const c = h('div', { class: 'ytx-card ' + (mode || '') },
+          thumb,
+          h('div', { class: 'ytx-ci' }, mode === 'row' || mode === 'side' ? null : avatar(v.avatar, v.channel),
+            h('div', { class: 'ytx-ct' }, h('b', {}, v.title), mode === 'row' ? h('small', {}, meta) : null, mode === 'row' ? h('div', { class: 'ytx-rowch' }, v.avatar ? avatar(v.avatar, v.channel, 'xs') : null, chan) : chan, mode === 'row' ? null : h('small', {}, meta), mode === 'row' && v.desc ? h('p', {}, v.desc) : null)));
+        c.onclick = () => go({ key: 'watch', id: v.id, v });
+        c.oncontextmenu = (e) => { e.preventDefault(); PatOS.menu([{ label: PatOS.t('Save to Watch later'), action: () => toggleList('later', v, true) }, { label: PatOS.t('Copy link'), action: () => copyLink(v.id) }], e.clientX, e.clientY); };
         return c;
       }
-      function grid(list) { const g = h('div', { class: 'yt-grid' }); list.forEach((v) => g.appendChild(card(v))); return g; }
-      async function details(ids) {
-        if (!ids.length) return {};
-        const j = await api('videos', { part: 'snippet,statistics,contentDetails', id: ids.join(',') });
-        const map = {}; j.items.forEach((it) => { map[it.id] = toVid(it); }); return map;
+      function shortCard(s, list) {
+        const c = h('div', { class: 'ytx-short' }, h('img', { src: s.thumb2 || s.thumb, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }), h('div', {}, h('b', {}, s.title), h('small', {}, s.views || '')));
+        c.onclick = () => go({ key: 'shorts', list, start: list.indexOf(s) });
+        return c;
       }
-      function toVid(it) { const s = it.snippet || {}; return { id: typeof it.id === 'string' ? it.id : it.id.videoId, title: dec(s.title || ''), channel: s.channelTitle, channelId: s.channelId, date: s.publishedAt, desc: s.description, thumb: ((s.thumbnails || {}).medium || (s.thumbnails || {}).default || {}).url, views: it.statistics && it.statistics.viewCount, likes: it.statistics && it.statistics.likeCount, duration: it.contentDetails && dur(it.contentDetails.duration) }; }
-      const CHIPS = ['All', 'Music', 'Gaming', 'Minecraft', 'Science', 'Space', 'Coding', 'Sports', 'Comedy', 'Animals', 'Cooking', 'Lofi'];
-      async function home(chip) {
+      const grid = (list) => { const g = h('div', { class: 'ytx-grid' }); list.forEach((v) => g.appendChild(card(v))); return g; };
+      const shelf = (list) => { const s = h('div', { class: 'ytx-shelf' }, h('h3', { html: ic('shorts', 24) + '<span>Shorts</span>' })); const row = h('div', { class: 'ytx-srow' }); list.forEach((x) => row.appendChild(shortCard(x, list))); s.appendChild(row); return s; };
+      function copyLink(id) { const u = 'https://youtu.be/' + id; (navigator.clipboard ? navigator.clipboard.writeText(u) : Promise.reject()).then(() => PatOS.notify({ title: PatOS.t('Link copied'), body: u, icon: 'youtube' })).catch(() => PatOS.alertBox(PatOS.t('Share'), u)); }
+      function slim(v) { return { type: 'video', id: v.id, title: v.title, channel: v.channel, channelId: v.channelId, thumb: v.thumb || 'https://i.ytimg.com/vi/' + v.id + '/mqdefault.jpg', duration: v.duration || '', avatar: v.avatar || '' }; }
+      function toggleList(which, v, forceOn) {
+        const i = lib[which].findIndex((x) => x.id === v.id);
+        if (i >= 0 && !forceOn) lib[which].splice(i, 1); else if (i < 0) lib[which].unshift(slim(v));
+        saveLib(); if (forceOn && which === 'later') PatOS.notify({ title: PatOS.t('Saved to Watch later'), body: v.title, icon: 'youtube' });
+        return i < 0 || forceOn;
+      }
+
+      /* ---------- pages ---------- */
+      const CHIPS = [['All', ''], ['Music', 'music'], ['Gaming', 'gaming'], ['Minecraft', 'minecraft'], ['Live', 'live'], ['Science', 'science'], ['Sports', 'sports highlights'], ['Comedy', 'comedy'], ['Animals', 'funny animals'], ['Cooking', 'cooking'], ['Lofi', 'lofi'], ['News', 'news today'], ['Space', 'space'], ['Cars', 'cars']];
+      function topics() {
+        const fromHist = lib.history.slice(0, 4).map((v) => v.channel).filter(Boolean);
+        const base = PatOS.lang === 'fr' ? ['musique', 'jeux vidéo', 'science', 'humour', 'sport'] : ['music', 'gaming', 'science', 'comedy', 'sports'];
+        return [...new Set([...fromHist.slice(0, 2), ...base])].slice(0, 6);
+      }
+      function home(r) {
         win.setTitle('YouTube');
-        if (!key) return setup();
-        loading();
-        try {
-          let list;
-          if (!chip || chip === 'All') { const region = (navigator.language.split('-')[1] || 'CA').toUpperCase(); const j = await api('videos', { part: 'snippet,statistics,contentDetails', chart: 'mostPopular', maxResults: 24, regionCode: region }); list = j.items.map(toVid); }
-          else list = await searchList(chip);
-          main.innerHTML = '';
-          const chips = h('div', { class: 'yt-chips' }, ...CHIPS.map((c) => h('button', { class: (chip || 'All') === c ? 'on' : '', onclick: () => home(c) }, c)));
-          main.append(chips, grid(list));
-          if (hist.length && (!chip || chip === 'All')) main.append(h('div', { class: 'yt-section' }, h('h3', {}, 'Watch again'), grid(hist.slice(0, 4))));
-        } catch (e) { fail(e); }
+        const chips = h('div', { class: 'ytx-chips' }, ...CHIPS.map(([l, t]) => h('button', { class: (r.chip || '') === t ? 'on' : '', onclick: () => go({ key: 'home', chip: t }, true) }, PatOS.t(l))));
+        main.append(chips); const box = h('div'); main.appendChild(box); box.appendChild(spinner());
+        const p = r.chip ? get('search', { q: r.chip }).then((j) => ({ items: j.items.filter((x) => x.type === 'video'), shorts: j.items.filter((x) => x.type === 'short'), cont: j.cont, q: r.chip })) : get('home', { topics: topics().join(',') });
+        p.then((j) => {
+          box.innerHTML = '';
+          const g = grid(j.items.slice(0, 12)); box.appendChild(g);
+          if (j.shorts && j.shorts.length) box.appendChild(shelf(j.shorts));
+          if (j.items.length > 12) box.appendChild(grid(j.items.slice(12)));
+          if (j.cont) moreSearch(box, j.q, j.cont);
+        }).catch((e) => { box.innerHTML = ''; box.appendChild(problem(e, () => render())); });
       }
-      async function searchList(text) {
-        const j = await api('search', { part: 'snippet', type: 'video', maxResults: 24, q: text, safeSearch: 'moderate' });
-        const ids = j.items.map((i) => i.id.videoId).filter(Boolean);
-        const d = await details(ids); return ids.map((id) => d[id]).filter(Boolean);
+      function moreSearch(box, text, cont, rows) {
+        scrollMore = () => {
+          const sp = spinner(); box.appendChild(sp);
+          get('search', { cont }).then((j) => {
+            sp.remove();
+            const vids = j.items.filter((x) => x.type === 'video');
+            if (rows) vids.forEach((v) => box.appendChild(card(v, 'row'))); else box.appendChild(grid(vids));
+            if (j.cont) moreSearch(box, text, j.cont, rows);
+          }).catch(() => sp.remove());
+        };
       }
-      async function search(text) {
-        const id = idOf(text); if (id) return watch(id);
-        if (!key) return setup();
-        loading(); win.setTitle(text + ' - YouTube');
-        try { const list = await searchList(text); main.innerHTML = ''; main.appendChild(h('div', { class: 'yt-results' }, ...list.map((v) => { const c = card(v); c.classList.add('row'); return c; }))); }
-        catch (e) { fail(e); }
+      function search(r) {
+        win.setTitle(r.q + ' - YouTube'); q.value = r.q;
+        const box = h('div', { class: 'ytx-results' }); main.appendChild(box); box.appendChild(spinner());
+        get('search', { q: r.q }).then((j) => {
+          box.innerHTML = '';
+          if (!j.items.length) { box.appendChild(h('div', { class: 'ytx-msg' }, h('h2', {}, PatOS.t('No results found')), h('p', {}, PatOS.t('Try different keywords.')))); return; }
+          const shorts = j.items.filter((x) => x.type === 'short');
+          let shelfDone = false;
+          j.items.forEach((it, i) => {
+            if (it.type === 'channel') {
+              const sub = lib.subs.some((s) => s.id === it.id);
+              const b = h('button', { class: 'ytx-subbtn' + (sub ? ' on' : '') }, PatOS.t(sub ? 'Subscribed' : 'Subscribe'));
+              b.onclick = (e) => { e.stopPropagation(); subscribe(it, b); };
+              const row = h('div', { class: 'ytx-chrow' }, avatar(it.avatar, it.title, 'xl'), h('div', {}, h('b', {}, it.title), h('small', {}, [it.handle, it.subs].filter(Boolean).join(' · ')), h('p', {}, it.desc || '')), b);
+              row.onclick = () => go({ key: 'channel', id: it.id }); box.appendChild(row);
+            } else if (it.type === 'video') box.appendChild(card(it, 'row'));
+            else if (!shelfDone && i > 2) { shelfDone = true; box.appendChild(shelf(shorts)); }
+          });
+          if (j.cont) moreSearch(box, r.q, j.cont, true);
+        }).catch((e) => { box.innerHTML = ''; box.appendChild(problem(e, () => render())); });
       }
-      async function watch(id, v) {
-        main.innerHTML = '';
-        const player = h('div', { class: 'yt-player' }, h('iframe', { src: 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0&modestbranding=1&playsinline=1', allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen', allowfullscreen: true, referrerpolicy: 'strict-origin-when-cross-origin' }));
-        const info = h('div', { class: 'yt-winfo' });
-        const side = h('div', { class: 'yt-side' });
-        main.appendChild(h('div', { class: 'yt-watch' }, h('div', { class: 'yt-left' }, player, info), side));
-        if (!key) { info.appendChild(h('p', { class: 'yt-hint' }, 'Add a YouTube API key in settings (⚙) to see the title, comments and more videos.')); return; }
-        try {
-          if (!v || !v.views) { const d = await details([id]); v = d[id]; }
-          if (!v) throw new Error('This video is unavailable.');
+      function subscribe(c, btn) {
+        const i = lib.subs.findIndex((s) => s.id === c.id);
+        if (i >= 0) lib.subs.splice(i, 1); else lib.subs.unshift({ id: c.id, title: c.title || c.channel, avatar: c.avatar || '' });
+        saveLib(); renderNav();
+        if (btn) { const on = i < 0; btn.classList.toggle('on', on); btn.textContent = PatOS.t(on ? 'Subscribed' : 'Subscribe'); }
+      }
+      function player(id, onEnd, isShort) {
+        const origin = /^https?:/.test(location.protocol) ? '&origin=' + encodeURIComponent(location.origin) : '';
+        const f = h('iframe', { src: 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0&playsinline=1&enablejsapi=1&modestbranding=1' + (isShort ? '&loop=1&playlist=' + id : '') + origin, allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share', allowfullscreen: true, referrerpolicy: 'strict-origin-when-cross-origin', title: 'YouTube video player' });
+        // listen to the official player so the next video can start when this one ends
+        const onMsg = (e) => {
+          if (e.source !== f.contentWindow) return;
+          let d = e.data; try { d = typeof d === 'string' ? JSON.parse(d) : d; } catch (err) { return; }
+          const st = d && (d.event === 'onStateChange' ? d.info : d.info && d.info.playerState);
+          if (st === 0 && onEnd) { const fn = onEnd; onEnd = null; fn(); }
+        };
+        window.addEventListener('message', onMsg);
+        f.addEventListener('load', () => { try { f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }), '*'); } catch (e) {} });
+        const obs = new MutationObserver(() => { if (!f.isConnected) { window.removeEventListener('message', onMsg); obs.disconnect(); } });
+        obs.observe(main, { childList: true });
+        return f;
+      }
+      function watch(r) {
+        const id = r.id, v0 = r.v || {};
+        win.setTitle(v0.title || 'YouTube');
+        const info = h('div', { class: 'ytx-winfo' }), side = h('div', { class: 'ytx-side' });
+        const next = () => { if (autoplay && upNext) go({ key: 'watch', id: upNext.id, v: upNext }, true); };
+        const pl = h('div', { class: 'ytx-player' }, player(id, next));
+        main.appendChild(h('div', { class: 'ytx-watch' }, h('div', { class: 'ytx-left' }, pl, info), side));
+        info.appendChild(h('h1', { class: 'ytx-wt' }, v0.title || ''));
+        side.appendChild(spinner());
+        get('video', { id }).then((v) => {
           win.setTitle(v.title);
-          const i = hist.findIndex((x) => x.id === id); if (i >= 0) hist.splice(i, 1); hist.unshift({ id: v.id, title: v.title, channel: v.channel, thumb: v.thumb, duration: v.duration }); hist.length = Math.min(hist.length, 30); PatOS.store.set('ytHistory', hist);
-          const desc = h('div', { class: 'yt-desc' }, h('b', {}, fmtN(v.views) + ' views · ' + ago(v.date)), h('div', { class: 'yt-dtext' }, v.desc || ''));
-          desc.onclick = () => desc.classList.toggle('open');
-          info.append(h('h2', { class: 'yt-wt' }, v.title), h('div', { class: 'yt-chan' }, h('div', { class: 'yt-av' }, (v.channel || '?').charAt(0)), h('b', {}, v.channel), h('span', { class: 'yt-likes' }, '👍 ' + fmtN(v.likes))), desc);
-          searchList(v.title.split(/[|\-–(]/)[0].slice(0, 60)).then((list) => { side.innerHTML = ''; list.filter((x) => x.id !== id).slice(0, 15).forEach((x) => { const c = card(x); c.classList.add('row', 'sm'); side.appendChild(c); }); }).catch(() => {});
-          api('commentThreads', { part: 'snippet', videoId: id, maxResults: 20, order: 'relevance', textFormat: 'plainText' }).then((j) => {
-            const box = h('div', { class: 'yt-comments' }, h('h3', {}, 'Comments'));
-            j.items.forEach((c) => { const s = c.snippet.topLevelComment.snippet; box.appendChild(h('div', { class: 'yt-cm' }, h('div', { class: 'yt-av sm' }, (s.authorDisplayName || '?').replace('@', '').charAt(0)), h('div', {}, h('b', {}, s.authorDisplayName, h('small', {}, '  ' + ago(s.publishedAt))), h('p', {}, s.textDisplay), h('small', {}, '👍 ' + fmtN(s.likeCount))))); });
-            info.appendChild(box);
-          }).catch(() => info.appendChild(h('p', { class: 'yt-hint' }, 'Comments are turned off for this video.')));
-        } catch (e) { info.appendChild(h('p', { class: 'yt-hint' }, e.message)); }
+          const hv = slim(Object.assign({}, v0, v, { thumb: 'https://i.ytimg.com/vi/' + id + '/mqdefault.jpg', duration: v0.duration }));
+          const hi = lib.history.findIndex((x) => x.id === id); if (hi >= 0) lib.history.splice(hi, 1); lib.history.unshift(hv); lib.history.length = Math.min(lib.history.length, 200); saveLib();
+          info.innerHTML = '';
+          const sub = lib.subs.some((s) => s.id === v.channelId);
+          const bSub = h('button', { class: 'ytx-subbtn' + (sub ? ' on' : '') }, PatOS.t(sub ? 'Subscribed' : 'Subscribe'));
+          bSub.onclick = () => subscribe({ id: v.channelId, title: v.channel, avatar: v.avatar }, bSub);
+          const liked = lib.liked.some((x) => x.id === id);
+          const bLike = h('button', { class: 'ytx-pill' + (liked ? ' on' : ''), html: ic('like', 20) + '<span>' + (v.likes || PatOS.t('Like')) + '</span>' });
+          bLike.onclick = () => { const on = toggleList('liked', hv); bLike.classList.toggle('on', on); };
+          const inLater = lib.later.some((x) => x.id === id);
+          const bLater = h('button', { class: 'ytx-pill' + (inLater ? ' on' : ''), html: ic('later', 20) + '<span>' + PatOS.t('Save') + '</span>' });
+          bLater.onclick = () => { const on = toggleList('later', hv); bLater.classList.toggle('on', on); };
+          const bShare = h('button', { class: 'ytx-pill', html: ic('share', 20) + '<span>' + PatOS.t('Share') + '</span>' }); bShare.onclick = () => copyLink(id);
+          const bOpen = h('button', { class: 'ytx-pill', title: PatOS.t('If the video won’t play here, open it on youtube.com'), html: '<span>' + PatOS.t('Open on YouTube') + '</span>' }); bOpen.onclick = () => PatOS.openExternal('https://www.youtube.com/watch?v=' + id);
+          const chan = h('div', { class: 'ytx-chan' }, avatar(v.avatar, v.channel), h('div', { class: 'ytx-chn' }, h('b', {}, v.channel), h('small', {}, v.subs || '')), bSub);
+          chan.querySelector('.ytx-chn').onclick = () => v.channelId && go({ key: 'channel', id: v.channelId });
+          const desc = h('div', { class: 'ytx-desc' }, h('b', {}, [v.views, v.date].filter(Boolean).join('  ')), h('div', { class: 'ytx-dtext' }, linkify(v.desc || '')), h('button', { class: 'ytx-more' }, PatOS.t('...more')));
+          desc.onclick = (e) => { if (e.target.closest('a')) return; desc.classList.toggle('open'); desc.querySelector('.ytx-more').textContent = PatOS.t(desc.classList.contains('open') ? 'Show less' : '...more'); };
+          info.append(h('h1', { class: 'ytx-wt' }, v.title), h('div', { class: 'ytx-bar' }, chan, h('div', { class: 'ytx-acts' }, bLike, bShare, bLater, bOpen)), desc);
+          const cbox = h('div', { class: 'ytx-comments' }); info.appendChild(cbox);
+          if (v.commentsToken) loadComments(cbox, v.commentsToken, true); else cbox.appendChild(h('p', { class: 'ytx-dim' }, PatOS.t('Comments are turned off.')));
+          // related
+          side.innerHTML = '';
+          const ap = h('label', { class: 'ytx-ap' }, h('span', {}, PatOS.t('Autoplay')), h('input', { type: 'checkbox' }));
+          ap.querySelector('input').checked = autoplay; ap.querySelector('input').onchange = (e) => { autoplay = e.target.checked; PatOS.store.set('ytAutoplay', autoplay); };
+          side.appendChild(ap);
+          const rel = (v.related || []).filter((x) => x.id !== id);
+          upNext = rel[0] || null;
+          rel.forEach((x) => side.appendChild(card(x, 'side')));
+          if (v.relatedCont) {
+            let cont = v.relatedCont;
+            const more = h('button', { class: 'ytx-btn wide' }, PatOS.t('Show more'));
+            more.onclick = () => { more.disabled = true; get('more', { token: cont }).then((j) => { j.items.forEach((x) => side.insertBefore(card(x, 'side'), more)); cont = j.cont; more.disabled = false; if (!cont) more.remove(); }).catch(() => more.remove()); };
+            side.appendChild(more);
+          }
+        }).catch((e) => { side.innerHTML = ''; info.appendChild(problem(e, () => render())); });
       }
-      q.addEventListener('keydown', (e) => { if (e.key === 'Enter' && q.value.trim()) { search(q.value.trim()); q.blur(); } });
-      bGo.onclick = () => q.value.trim() && search(q.value.trim());
-      bHome.onclick = () => home();
-      bKey.onclick = setup;
-      win._open = (a) => { if (a.id) watch(a.id); else if (a.q) search(a.q); };
-      if (args.id) watch(args.id); else if (args.q) search(args.q); else home();
+      function linkify(t) {
+        const out = h('span');
+        t.split(/(https?:\/\/[^\s]+)/g).forEach((part) => {
+          if (/^https?:\/\//.test(part)) { const a = h('a', { href: part }, part.length > 60 ? part.slice(0, 57) + '…' : part); a.onclick = (e) => { e.preventDefault(); e.stopPropagation(); const m = part.match(/(?:v=|youtu\.be\/|shorts\/)([\w-]{11})/); if (m) go({ key: 'watch', id: m[1] }); else PatOS.launch('browser', { url: part }); }; out.appendChild(a); }
+          else out.appendChild(document.createTextNode(part));
+        });
+        return out;
+      }
+      function loadComments(box, token, first) {
+        const sp = spinner(); box.appendChild(sp);
+        get('comments', { token }).then((j) => {
+          sp.remove();
+          if (first) box.appendChild(h('h3', {}, (j.count ? j.count + ' ' : '') + (j.count && /comment/i.test(j.count) ? '' : PatOS.t('Comments'))));
+          if (first && !j.items.length) box.appendChild(h('p', { class: 'ytx-dim' }, PatOS.t('Comments are turned off.')));
+          j.items.forEach((c) => box.appendChild(h('div', { class: 'ytx-cm' }, avatar(c.avatar, c.author, 'sm'), h('div', {}, h('div', { class: 'ytx-cmh' }, h('b', {}, c.author), h('small', {}, c.published)), h('p', {}, c.text), h('div', { class: 'ytx-cmf', html: ic('like', 16) + '<span>' + (c.likes || '') + '</span>' + (c.replies ? '<em>' + c.replies + ' ' + PatOS.t('replies') + '</em>' : '') })))));
+          if (j.cont) scrollMore = () => loadComments(box, j.cont, false);
+        }).catch(() => { sp.remove(); if (first) box.appendChild(h('p', { class: 'ytx-dim' }, PatOS.t('Comments couldn’t load.'))); });
+      }
+      function channel(r) {
+        const box = h('div', { class: 'ytx-channel' }); main.appendChild(box); box.appendChild(spinner());
+        get('channel', { id: r.id }).then((c) => {
+          win.setTitle(c.title + ' - YouTube');
+          box.innerHTML = '';
+          const sub = lib.subs.some((s) => s.id === c.id);
+          const b = h('button', { class: 'ytx-subbtn big' + (sub ? ' on' : '') }, PatOS.t(sub ? 'Subscribed' : 'Subscribe'));
+          b.onclick = () => subscribe(c, b);
+          if (c.banner) box.appendChild(h('div', { class: 'ytx-banner', style: { backgroundImage: 'url("' + c.banner + '")' } }));
+          box.append(h('div', { class: 'ytx-chead' }, avatar(c.avatar, c.title, 'xxl'), h('div', {}, h('h1', {}, c.title), h('small', {}, [c.handle, c.subs].filter(Boolean).join(' · ')), h('p', {}, (c.desc || '').split('\n')[0].slice(0, 160)), b)),
+            h('div', { class: 'ytx-tabs' }, h('span', { class: 'on' }, PatOS.t('Videos'))));
+          const g = grid(c.items); box.appendChild(g);
+          const more = (cont) => { scrollMore = () => { const sp = spinner(); box.appendChild(sp); get('channel', { cont }).then((j) => { sp.remove(); j.items.filter((x) => x.type === 'video').forEach((v) => { v.channel = v.channel || c.title; g.appendChild(card(v)); }); if (j.cont) more(j.cont); }).catch(() => sp.remove()); }; };
+          if (c.cont) more(c.cont);
+        }).catch((e) => { box.innerHTML = ''; box.appendChild(problem(e, () => render())); });
+      }
+      function shorts(r) {
+        win.setTitle('Shorts - YouTube');
+        const stage = h('div', { class: 'ytx-sstage' }); main.appendChild(stage);
+        let list = r.list || null, i = r.start || 0;
+        const show = () => {
+          stage.innerHTML = '';
+          const s = list[i]; if (!s) return;
+          const bUp = h('button', { class: 'ytx-snav', title: 'Previous', html: ic('up', 26) }), bDn = h('button', { class: 'ytx-snav', title: 'Next', html: ic('down', 26) });
+          bUp.disabled = i === 0; bUp.onclick = () => { if (i > 0) { i--; show(); } }; bDn.onclick = () => step();
+          const liked = lib.liked.some((x) => x.id === s.id);
+          const bL = h('button', { class: 'ytx-sact' + (liked ? ' on' : ''), html: ic('like', 26) + '<small>' + PatOS.t('Like') + '</small>' }); bL.onclick = () => bL.classList.toggle('on', toggleList('liked', Object.assign({ thumb: s.thumb2 }, s)));
+          const bS = h('button', { class: 'ytx-sact', html: ic('share', 26) + '<small>' + PatOS.t('Share') + '</small>' }); bS.onclick = () => copyLink(s.id);
+          stage.append(h('div', { class: 'ytx-sbox2' }, h('div', { class: 'ytx-splayer' }, player(s.id, null, true)), h('div', { class: 'ytx-stitle' }, h('b', {}, s.title), h('small', {}, s.views || ''))), h('div', { class: 'ytx-sacts' }, bL, bS), h('div', { class: 'ytx-snavs' }, bUp, bDn));
+        };
+        const step = () => {
+          if (i < list.length - 1) { i++; show(); return; }
+          get('search', { q: (PatOS.lang === 'fr' ? 'drôle' : 'funny') + ' #shorts ' + Math.floor(Math.random() * 1000) }).then((j) => { const more = j.items.filter((x) => x.type === 'short' && !list.some((y) => y.id === x.id)); if (more.length) { list.push(...more); i++; show(); } }).catch(() => {});
+        };
+        const onKey = (e) => { if (route.key !== 'shorts' || !win.el.isConnected) return document.removeEventListener('keydown', onKey); if (e.key === 'ArrowDown') { e.preventDefault(); step(); } if (e.key === 'ArrowUp' && i > 0) { e.preventDefault(); i--; show(); } };
+        document.addEventListener('keydown', onKey);
+        let wheelT = 0; stage.addEventListener('wheel', (e) => { if (Date.now() - wheelT < 700 || Math.abs(e.deltaY) < 30) return; wheelT = Date.now(); if (e.deltaY > 0) step(); else if (i > 0) { i--; show(); } }, { passive: true });
+        let ty = null; stage.addEventListener('touchstart', (e) => { ty = e.touches[0].clientY; }, { passive: true }); stage.addEventListener('touchend', (e) => { if (ty == null) return; const d = ty - e.changedTouches[0].clientY; if (d > 60) step(); else if (d < -60 && i > 0) { i--; show(); } ty = null; });
+        if (list) show();
+        else { stage.appendChild(spinner()); get('search', { q: (PatOS.lang === 'fr' ? 'tendance' : 'trending') + ' #shorts' }).then((j) => { list = j.items.filter((x) => x.type === 'short'); if (!list.length) throw new Error('No Shorts found'); show(); }).catch((e) => { stage.innerHTML = ''; stage.appendChild(problem(e, () => render())); }); }
+      }
+      function subs() {
+        win.setTitle(PatOS.t('Subscriptions') + ' - YouTube');
+        if (!lib.subs.length) { main.appendChild(h('div', { class: 'ytx-msg' }, h('div', { class: 'ytx-bigic', html: ic('subs', 64) }), h('h2', {}, PatOS.t('No subscriptions yet')), h('p', {}, PatOS.t('Press Subscribe on a channel and its newest videos show up here.')))); return; }
+        const box = h('div'); main.appendChild(box);
+        box.appendChild(h('div', { class: 'ytx-subrow' }, ...lib.subs.map((c) => { const b = h('button', {}, avatar(c.avatar, c.title, 'lg'), h('small', {}, c.title)); b.onclick = () => go({ key: 'channel', id: c.id }); return b; })));
+        const g = h('div'); box.appendChild(g); g.appendChild(spinner());
+        Promise.all(lib.subs.slice(0, 10).map((c) => get('channel', { id: c.id }).then((j) => j.items.slice(0, 8).map((v) => Object.assign(v, { channel: v.channel || c.title, avatar: v.avatar || c.avatar }))).catch(() => []))).then((lists) => {
+          const out = []; for (let k = 0; k < 8; k++) lists.forEach((l) => l[k] && out.push(l[k]));
+          g.innerHTML = ''; g.appendChild(h('h2', { class: 'ytx-h2' }, PatOS.t('Latest'))); g.appendChild(grid(out));
+        });
+      }
+      function library(r) {
+        const names = { history: 'History', later: 'Watch later', liked: 'Liked videos' };
+        win.setTitle(PatOS.t(names[r.which]) + ' - YouTube');
+        const list = lib[r.which];
+        const head2 = h('div', { class: 'ytx-libhead' }, h('h1', {}, PatOS.t(names[r.which])), h('small', {}, list.length + ' ' + PatOS.t('videos')),
+          list.length ? h('button', { class: 'ytx-btn', onclick: async () => { if (await PatOS.confirmBox(PatOS.t('Clear this list?'), '', { danger: true, ok: 'Clear', icon: 'youtube' })) { lib[r.which] = []; saveLib(); render(); } } }, PatOS.t(r.which === 'history' ? 'Clear all watch history' : 'Clear list')) : null);
+        main.appendChild(head2);
+        if (!list.length) { main.appendChild(h('div', { class: 'ytx-msg' }, h('p', {}, PatOS.t('Nothing here yet.')))); return; }
+        const box = h('div', { class: 'ytx-results' }); list.forEach((v) => box.appendChild(card(v, 'row'))); main.appendChild(box);
+      }
+      function settings() {
+        win.setTitle(PatOS.t('Settings') + ' - YouTube');
+        const srvIn = h('input', { class: 'field', placeholder: 'https://your-patos.onrender.com', value: PatOS.store.get('patosServer', ''), spellcheck: 'false' });
+        const keyIn = h('input', { class: 'field', placeholder: PatOS.t('Optional'), value: PatOS.store.get('ytKey', ''), spellcheck: 'false' });
+        const status = h('p', { class: 'ytx-dim' }, PatOS.t('Checking…'));
+        server().then((b) => { status.textContent = b ? PatOS.t('Connected. Search, Shorts, comments and channels work with no key.') + ' (' + b.replace(/^https?:\/\//, '') + ')' : PatOS.t('Not connected to a PatOS website.'); });
+        main.appendChild(h('div', { class: 'ytx-settings' },
+          h('h1', {}, PatOS.t('Settings')),
+          h('h3', {}, PatOS.t('Connection')), status,
+          h('p', {}, PatOS.t('If you opened PatOS as a file, type your PatOS website address here (for example your Render link):')),
+          h('div', { class: 'ytx-srow2' }, srvIn, h('button', { class: 'ytx-btn', onclick: () => { PatOS.store.set('patosServer', srvIn.value.trim()); serverOK = null; settings2(); } }, PatOS.t('Save'))),
+          h('h3', {}, PatOS.t('Autoplay')),
+          (() => { const l = h('label', { class: 'ytx-ap' }, h('span', {}, PatOS.t('Play the next video automatically')), h('input', { type: 'checkbox' })); l.querySelector('input').checked = autoplay; l.querySelector('input').onchange = (e) => { autoplay = e.target.checked; PatOS.store.set('ytAutoplay', autoplay); }; return l; })(),
+          h('h3', {}, PatOS.t('YouTube API key (optional)')),
+          h('p', { class: 'ytx-dim' }, PatOS.t('Only needed when there is no PatOS website to connect to.')),
+          h('div', { class: 'ytx-srow2' }, keyIn, h('button', { class: 'ytx-btn', onclick: () => { PatOS.store.set('ytKey', keyIn.value.trim()); PatOS.notify({ title: PatOS.t('Saved'), body: 'YouTube', icon: 'youtube' }); } }, PatOS.t('Save'))),
+          h('h3', {}, PatOS.t('Your data')),
+          h('p', { class: 'ytx-dim' }, PatOS.t('Subscriptions, likes, Watch later and history are kept on this device only.'))));
+        function settings2() { render(); }
+      }
+
+      /* ---------- search box + suggestions ---------- */
+      let st = null, selIdx = -1;
+      const doSearch = (text) => { text = text.trim(); sugg.classList.remove('on'); q.blur(); if (!text) return; const m = text.match(/(?:v=|youtu\.be\/|shorts\/|embed\/|live\/)([\w-]{11})/); if (m) go({ key: 'watch', id: m[1] }); else go({ key: 'search', q: text }); };
+      q.addEventListener('input', () => {
+        clearTimeout(st); selIdx = -1;
+        const v = q.value.trim(); if (!v) { sugg.classList.remove('on'); return; }
+        st = setTimeout(() => get('suggest', { q: v }).then((list) => {
+          if (!Array.isArray(list) || !list.length || document.activeElement !== q) { sugg.classList.remove('on'); return; }
+          sugg.innerHTML = ''; list.forEach((s) => { const b = h('button', { html: ic('search', 16) + '<span></span>' }); b.querySelector('span').textContent = s; b.onmousedown = (e) => { e.preventDefault(); q.value = s; doSearch(s); }; sugg.appendChild(b); });
+          sugg.classList.add('on');
+        }).catch(() => {}), 160);
+      });
+      q.addEventListener('keydown', (e) => {
+        const items = [...sugg.querySelectorAll('button')];
+        if ((e.key === 'ArrowDown' || e.key === 'ArrowUp') && sugg.classList.contains('on') && items.length) { e.preventDefault(); selIdx = (selIdx + (e.key === 'ArrowDown' ? 1 : -1) + items.length) % items.length; items.forEach((b, k) => b.classList.toggle('sel', k === selIdx)); q.value = items[selIdx].textContent; }
+        if (e.key === 'Enter') doSearch(q.value);
+        if (e.key === 'Escape') sugg.classList.remove('on');
+      });
+      q.addEventListener('blur', () => setTimeout(() => sugg.classList.remove('on'), 120));
+      head.querySelector('.ytx-sbtn').onclick = () => doSearch(q.value);
+      win.on('resize', () => { if (win.el.offsetWidth < 760) win.el.classList.add('ytx-mini'); });
+
+      win._open = (a) => { if (a.id) go({ key: 'watch', id: a.id }); else if (a.q) go({ key: 'search', q: a.q }); };
+      if (args.id) go({ key: 'watch', id: args.id }); else if (args.q) go({ key: 'search', q: args.q }); else go({ key: 'home' });
     },
     onArgs(win, a) { win._open && win._open(a); }
   });
@@ -8352,7 +9182,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     elements: 'The whole periodic table with details on every element, plus a molar mass calculator.',
     focus: 'Work in 25-minute sessions with breaks, rain sounds and stats on your study time.',
     journal: 'Write a page a day, track your mood and keep your streak going.',
-    sudoku: 'Fresh Sudoku puzzles at three levels, with notes, hints and undo.'
+    sudoku: 'Fresh Sudoku puzzles at three levels, with notes, hints and undo.',
+    news: 'Live headlines from NPR, Al Jazeera, Engadget, Space.com, NASA, Radio-Canada and La Presse.',
+    books: 'Read thousands of free classic books in a reader that turns pages like a real book.',
+    radio: 'Thousands of live radio stations from around the world, with favorites.',
+    videos: 'Watch your own video files, with speed control and Picture in Picture.',
+    solitaire: 'Classic Klondike solitaire. Drag or tap cards, draw 1 or 3, undo and auto-finish.'
   };
   const FEATURED = ['docs', 'galaxy', 'orbrunner', 'code'];
   const GRADS = ['linear-gradient(135deg,#3a1c71,#d76d77,#ffaf7b)', 'linear-gradient(135deg,#0b0130,#ff2fa3)', 'linear-gradient(135deg,#1e1e2e,#5b5bd6)', 'linear-gradient(135deg,#0bbf3a,#00a6fb)'];
@@ -8409,7 +9244,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
             card.onclick = () => detail(id); hero.appendChild(card);
           });
           main.append(h('h1', { class: 'as-h1' }, 'Discover'), hero, h('h2', {}, 'Essentials'));
-          const g = h('div', { class: 'as-list' }); ['browser', 'docs', 'focus', 'grapher', 'elements', 'journal', 'contacts', 'freeform', 'chess', 'sudoku', 'flashcards', 'typing'].filter((id) => PatOS.apps[id]).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
+          const g = h('div', { class: 'as-list' }); ['browser', 'youtube', 'news', 'books', 'radio', 'docs', 'focus', 'grapher', 'elements', 'solitaire', 'chess', 'sudoku'].filter((id) => PatOS.apps[id]).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
           const hidden = PatOS.settings.hiddenApps || [];
           if (hidden.length) { main.appendChild(h('h2', {}, 'Hidden Apps')); const g2 = h('div', { class: 'as-list' }); hidden.filter((id) => PatOS.apps[id]).forEach((id) => g2.appendChild(row(id))); main.appendChild(g2); }
           return;
@@ -10657,6 +11492,481 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       bNew.onclick = () => newGame(lvl.value);
       lvl.onchange = () => newGame(lvl.value);
       if (st && st.sol) paint(); else newGame('easy');
+    }
+  });
+})();
+
+</script>
+  <script>
+/* News — live headlines from real news sites, with saved stories */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  const EN = ['top', 'world', 'tech', 'science', 'space', 'nasa', 'hn'], FR = ['fr_une', 'fr_presse', 'fr_sport', 'fr_science'];
+  const NAMES = { top: 'Top stories', world: 'World', tech: 'Technology', science: 'Science', space: 'Space', nasa: 'NASA', hn: 'Hacker News', fr_une: 'À la une', fr_presse: 'La Presse', fr_sport: 'Sports (Radio-Canada)', fr_science: 'Science (Radio-Canada)' };
+  const ago = (d) => { const t = Date.parse(d); if (!t) return ''; const s = (Date.now() - t) / 1000; if (s < 3600) return Math.max(1, Math.round(s / 60)) + ' min'; if (s < 86400) return Math.round(s / 3600) + ' h'; return new Date(t).toLocaleDateString(PatOS.locale, { day: 'numeric', month: 'short' }); };
+
+  PatOS.registerApp({
+    id: 'news', name: 'News', icon: 'news', width: 1060, height: 700, category: 'Apps', keywords: 'headlines articles journal nouvelles actualités',
+    about: 'Live headlines from NPR, Al Jazeera, Engadget, Space.com, NASA, Radio-Canada, La Presse and more.',
+    launch(win) {
+      win.el.classList.add('has-toolbar');
+      const saved = PatOS.store.get('newsSaved', []);
+      let feed = PatOS.store.get('newsFeed', PatOS.lang === 'fr' ? 'fr_une' : 'top');
+      const side = h('div', { class: 'nw-side' }), main = h('div', { class: 'nw-main' });
+      const bRefresh = h('button', { class: 'tbtn', title: 'Refresh' }, '↻');
+      const q = h('input', { class: 'field', placeholder: 'Filter headlines', style: { width: '200px' } });
+      win.toolbar.append(h('div', { style: { flex: 1 } }), q, bRefresh);
+      win.body.appendChild(h('div', { class: 'nw-wrap' }, side, main));
+      let items = [];
+      function renderSide() {
+        side.innerHTML = '';
+        const sec = (title, keys) => { side.appendChild(h('div', { class: 'nw-sh' }, PatOS.t(title))); keys.forEach((k) => { const b = h('button', { class: 'nw-si' + (feed === k ? ' on' : '') }, PatOS.t(NAMES[k])); b.onclick = () => { feed = k; PatOS.store.set('newsFeed', k); renderSide(); load(); }; side.appendChild(b); }); };
+        if (PatOS.lang === 'fr') { sec('En français', FR); sec('In English', EN); } else { sec('Today', EN); sec('En français', FR); }
+        side.appendChild(h('div', { class: 'nw-sh' }, PatOS.t('Library')));
+        const b = h('button', { class: 'nw-si' + (feed === 'saved' ? ' on' : '') }, PatOS.t('Saved stories') + (saved.length ? ' (' + saved.length + ')' : '')); b.onclick = () => { feed = 'saved'; renderSide(); show(saved, PatOS.t('Saved stories')); }; side.appendChild(b);
+      }
+      function open(it) {
+        const box = h('div', { class: 'nw-reader' },
+          h('button', { class: 'tbtn nw-close', title: 'Close' }, '×'),
+          it.img ? h('img', { src: it.img, alt: '', referrerpolicy: 'no-referrer' }) : null,
+          h('small', {}, (it.source || '') + (it.date ? ' · ' + ago(it.date) : '')), h('h1', {}, it.title), h('p', {}, it.desc || ''),
+          h('div', { class: 'nw-ra' },
+            h('button', { class: 'btn primary', onclick: () => PatOS.launch('browser', { url: it.link }) }, PatOS.t('Read the full story in Patoogle')),
+            h('button', { class: 'btn', onclick: () => PatOS.openExternal(it.link) }, PatOS.t('Open in a new tab')),
+            h('button', { class: 'btn', onclick: (e) => { const i = saved.findIndex((x) => x.link === it.link); if (i >= 0) saved.splice(i, 1); else saved.unshift(it); PatOS.store.set('newsSaved', saved.slice(0, 100)); e.target.textContent = PatOS.t(i >= 0 ? 'Save' : 'Saved'); renderSide(); } }, PatOS.t(saved.some((x) => x.link === it.link) ? 'Saved' : 'Save'))));
+        const layer = h('div', { class: 'nw-layer' }, box);
+        layer.onclick = (e) => { if (e.target === layer || e.target.classList.contains('nw-close')) layer.remove(); };
+        win.body.appendChild(layer);
+      }
+      function show(list, title) {
+        main.innerHTML = '';
+        const ql = q.value.trim().toLowerCase();
+        list = list.filter((x) => !ql || (x.title + ' ' + x.desc).toLowerCase().includes(ql));
+        main.appendChild(h('div', { class: 'nw-head' }, h('h1', {}, title), h('small', {}, new Date().toLocaleDateString(PatOS.locale, { weekday: 'long', day: 'numeric', month: 'long' }))));
+        if (!list.length) { main.appendChild(h('div', { class: 'nw-empty' }, PatOS.t(feed === 'saved' ? 'Stories you save show up here.' : 'No stories.'))); return; }
+        const grid = h('div', { class: 'nw-grid' });
+        list.forEach((it, i) => {
+          const c = h('article', { class: 'nw-card' + (i === 0 && !ql ? ' hero' : '') + (it.img ? '' : ' noimg') },
+            it.img ? h('div', { class: 'nw-img', style: { backgroundImage: 'url("' + it.img.replace(/"/g, '%22') + '")' } }) : null,
+            h('div', { class: 'nw-txt' }, h('small', {}, (it.source || '') + (it.date ? ' · ' + ago(it.date) : '')), h('h3', {}, it.title), it.desc ? h('p', {}, it.desc) : null));
+          c.onclick = () => open(it); grid.appendChild(c);
+        });
+        main.appendChild(grid);
+      }
+      async function load() {
+        main.innerHTML = ''; main.appendChild(h('div', { class: 'nw-empty' }, PatOS.t('Loading…')));
+        const base = PatOS.server && await PatOS.server();
+        if (!base) { main.innerHTML = ''; main.appendChild(h('div', { class: 'nw-empty' }, h('h2', {}, PatOS.t('News needs the PatOS website')), h('p', {}, PatOS.sandboxed ? PatOS.t('This copy of PatOS runs inside a Claude Artifact, which blocks live news. Open PatOS from its website.') : PatOS.t('Open PatOS from its website (your Render link) to read the news.')))); return; }
+        try {
+          const r = await fetch(base + '/api/news?feed=' + feed); const j = await r.json(); if (j.error) throw new Error(j.error);
+          items = j.items.map((x) => Object.assign(x, { source: j.source }));
+          show(items, PatOS.t(NAMES[feed]));
+        } catch (e) { main.innerHTML = ''; main.appendChild(h('div', { class: 'nw-empty' }, h('h2', {}, PatOS.t('The news didn’t load')), h('p', {}, e.message), h('button', { class: 'btn', onclick: load }, PatOS.t('Try again')))); }
+      }
+      q.oninput = () => show(feed === 'saved' ? saved : items, feed === 'saved' ? PatOS.t('Saved stories') : PatOS.t(NAMES[feed]));
+      bRefresh.onclick = load;
+      renderSide(); if (feed === 'saved') feed = 'top'; load();
+    }
+  });
+})();
+
+</script>
+  <script>
+/* Books — 70,000 free classic books from Project Gutenberg, with a page-turning reader */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  const FEATURED = [[11, 'Alice’s Adventures in Wonderland', 'Lewis Carroll'], [84, 'Frankenstein', 'Mary Shelley'], [1342, 'Pride and Prejudice', 'Jane Austen'], [1661, 'The Adventures of Sherlock Holmes', 'Arthur Conan Doyle'], [120, 'Treasure Island', 'Robert Louis Stevenson'], [64317, 'The Great Gatsby', 'F. Scott Fitzgerald'], [2701, 'Moby Dick', 'Herman Melville'], [74, 'The Adventures of Tom Sawyer', 'Mark Twain'], [345, 'Dracula', 'Bram Stoker'], [35, 'The Time Machine', 'H. G. Wells'], [36, 'The War of the Worlds', 'H. G. Wells'], [16, 'Peter Pan', 'J. M. Barrie'], [55, 'The Wonderful Wizard of Oz', 'L. Frank Baum'], [1260, 'Jane Eyre', 'Charlotte Brontë'], [17489, 'Les Misérables (tome 1)', 'Victor Hugo'], [5097, 'Vingt mille lieues sous les mers', 'Jules Verne'], [4791, 'Voyage au centre de la Terre', 'Jules Verne'], [800, 'Le Tour du monde en 80 jours', 'Jules Verne'], [13951, 'Les Trois Mousquetaires', 'Alexandre Dumas'], [17989, 'Le Comte de Monte-Cristo (tome 1)', 'Alexandre Dumas'], [14287, 'L’Île mystérieuse', 'Jules Verne']];
+  const cover = (id) => 'https://www.gutenberg.org/cache/epub/' + id + '/pg' + id + '.cover.medium.jpg';
+
+  PatOS.registerApp({
+    id: 'books', name: 'Books', icon: 'books', width: 1000, height: 680, category: 'Apps', keywords: 'read library novel ebook livres lecture gutenberg',
+    about: 'Read thousands of free classic books from Project Gutenberg.',
+    launch(win) {
+      win.el.classList.add('has-toolbar');
+      const lib = PatOS.store.get('booksLib', {}); // id -> { title, author, page, pages, opened }
+      const saveLib = () => PatOS.store.set('booksLib', lib);
+      const prefs = Object.assign({ size: 19, theme: 'paper', font: 'serif' }, PatOS.store.get('booksPrefs', {}));
+      const q = h('input', { class: 'field', placeholder: 'Search 70,000 free books', style: { width: '240px' } });
+      const bHome = h('button', { class: 'btn' }, PatOS.t('Library'));
+      win.toolbar.append(bHome, h('div', { style: { flex: 1 } }), q);
+      win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
+      const main = h('div', { class: 'bk-main' }); win.body.appendChild(main);
+      const bookCard = (b) => {
+        const c = h('div', { class: 'bk-card' }, h('div', { class: 'bk-cover' }, h('img', { src: b.cover || cover(b.id), alt: '', loading: 'lazy', onerror: (e) => { e.target.replaceWith(h('div', { class: 'bk-fake' }, h('b', {}, b.title), h('small', {}, b.author || ''))); } })), h('b', {}, b.title), h('small', {}, (b.author || '').replace(/^(.+), (.+)$/, '$2 $1')),
+          lib[b.id] && lib[b.id].pages ? h('div', { class: 'bk-prog' }, h('i', { style: { width: Math.round((lib[b.id].page + 1) / lib[b.id].pages * 100) + '%' } })) : null);
+        c.onclick = () => read(b); return c;
+      };
+      function home() {
+        win.setTitle(PatOS.t('Books')); main.innerHTML = '';
+        const mine = Object.entries(lib).sort((a, b) => b[1].opened - a[1].opened).map(([id, v]) => ({ id: +id, title: v.title, author: v.author }));
+        if (mine.length) { main.appendChild(h('h2', {}, PatOS.t('Continue reading'))); const g = h('div', { class: 'bk-grid' }); mine.forEach((b) => g.appendChild(bookCard(b))); main.appendChild(g); }
+        main.appendChild(h('h2', {}, PatOS.t('Classics')));
+        const g = h('div', { class: 'bk-grid' }); FEATURED.forEach(([id, title, author]) => g.appendChild(bookCard({ id, title, author }))); main.appendChild(g);
+        main.appendChild(h('p', { class: 'bk-note' }, PatOS.t('Books come from Project Gutenberg, a free library of books whose copyright has expired.')));
+      }
+      async function base() { const b = PatOS.server && await PatOS.server(); if (!b) throw new Error(PatOS.sandboxed ? PatOS.t('This copy of PatOS runs inside a Claude Artifact, which blocks this. Open PatOS from its website.') : PatOS.t('Open PatOS from its website (your Render link) to search and read books.')); return b; }
+      async function search(text) {
+        main.innerHTML = ''; main.appendChild(h('div', { class: 'bk-msg' }, PatOS.t('Searching…'))); win.setTitle(text);
+        try {
+          const b = await base(); const r = await fetch(b + '/api/books/search?q=' + encodeURIComponent(text)); const j = await r.json(); if (j.error) throw new Error(j.error);
+          main.innerHTML = ''; main.appendChild(h('h2', {}, PatOS.t('Results for') + ' “' + text + '”'));
+          if (!j.items.length) { main.appendChild(h('div', { class: 'bk-msg' }, PatOS.t('No books found.'))); return; }
+          const g = h('div', { class: 'bk-grid' }); j.items.forEach((x) => g.appendChild(bookCard(x))); main.appendChild(g);
+        } catch (e) { main.innerHTML = ''; main.appendChild(h('div', { class: 'bk-msg' }, e.message)); }
+      }
+      async function read(b) {
+        main.innerHTML = ''; main.appendChild(h('div', { class: 'bk-msg' }, PatOS.t('Opening the book…'))); win.setTitle(b.title);
+        let text;
+        try { const base0 = await base(); const r = await fetch(base0 + '/api/books/text?id=' + b.id); const j = await r.json(); if (j.error) throw new Error(j.error); text = j.text; }
+        catch (e) { main.innerHTML = ''; main.appendChild(h('div', { class: 'bk-msg' }, e.message)); return; }
+        const paras = text.replace(/\r/g, '').split(/\n\s*\n/).map((p) => p.replace(/\s*\n\s*/g, ' ').replace(/_([^_]+)_/g, '$1').trim()).filter(Boolean);
+        const entry = lib[b.id] || (lib[b.id] = { title: b.title, author: b.author, page: 0 }); entry.opened = Date.now(); saveLib();
+        main.innerHTML = '';
+        const page = h('div', { class: 'bk-page' }), cols = h('div', { class: 'bk-cols' });
+        const pn = h('span', { class: 'bk-pn' });
+        const slider = h('input', { type: 'range', min: 0, value: 0, class: 'bk-slider' });
+        const reader = h('div', { class: 'bk-reader bk-' + prefs.theme + ' bk-f-' + prefs.font, style: { '--fs': prefs.size + 'px' } },
+          h('div', { class: 'bk-rbar' },
+            h('button', { class: 'tbtn', title: 'Library', onclick: home }, '‹'), h('b', {}, b.title),
+            h('div', { class: 'bk-rset' },
+              h('button', { class: 'tbtn', title: 'Smaller text', onclick: () => setSize(-1) }, 'A−'), h('button', { class: 'tbtn', title: 'Bigger text', onclick: () => setSize(1) }, 'A+'),
+              ...['paper', 'sepia', 'night'].map((t) => h('button', { class: 'bk-th bk-th-' + t, title: t, onclick: () => { prefs.theme = t; PatOS.store.set('booksPrefs', prefs); reader.className = 'bk-reader bk-' + t + ' bk-f-' + prefs.font; } })),
+              h('button', { class: 'tbtn', title: 'Font', onclick: () => { prefs.font = prefs.font === 'serif' ? 'sans' : 'serif'; PatOS.store.set('booksPrefs', prefs); reader.className = 'bk-reader bk-' + prefs.theme + ' bk-f-' + prefs.font; layout(); } }, 'Aa'))),
+          page, h('div', { class: 'bk-foot' }, h('button', { class: 'tbtn', title: 'Previous page', onclick: () => turn(-1) }, '‹'), slider, pn, h('button', { class: 'tbtn', title: 'Next page', onclick: () => turn(1) }, '›')));
+        page.appendChild(cols); main.appendChild(reader);
+        // the book is laid out in CSS columns; one "page" is one screen width
+        const chunk = paras.slice(0, 6000);
+        chunk.forEach((p) => cols.appendChild(/^(CHAPTER|CHAPITRE|BOOK|LIVRE|PART|PARTIE|STAVE|[IVXLC]+\.)\b/.test(p) && p.length < 120 ? h('h3', {}, p) : h('p', {}, p)));
+        let pages = 1, cur = entry.page || 0;
+        function layout() {
+          const w = page.clientWidth; if (!w) return;
+          cols.style.columnWidth = w + 'px'; cols.style.height = page.clientHeight + 'px';
+          pages = Math.max(1, Math.round(cols.scrollWidth / (w + 40)));
+          slider.max = pages - 1; cur = Math.min(cur, pages - 1); go();
+        }
+        function go() { cols.style.transform = 'translateX(' + (-cur * (page.clientWidth + 40)) + 'px)'; pn.textContent = (cur + 1) + ' / ' + pages; slider.value = cur; entry.page = cur; entry.pages = pages; saveLib(); }
+        function turn(d) { cur = Math.max(0, Math.min(pages - 1, cur + d)); go(); }
+        function setSize(d) { prefs.size = Math.max(13, Math.min(30, prefs.size + d)); PatOS.store.set('booksPrefs', prefs); reader.style.setProperty('--fs', prefs.size + 'px'); const ratio = cur / pages; layout(); cur = Math.round(ratio * pages); go(); }
+        slider.oninput = () => { cur = +slider.value; go(); };
+        page.onclick = (e) => { const r = page.getBoundingClientRect(); turn(e.clientX - r.left > r.width / 2 ? 1 : -1); };
+        let tx = null; page.addEventListener('touchstart', (e) => { tx = e.touches[0].clientX; }, { passive: true }); page.addEventListener('touchend', (e) => { if (tx == null) return; const d = e.changedTouches[0].clientX - tx; if (Math.abs(d) > 40) turn(d < 0 ? 1 : -1); tx = null; });
+        reader.tabIndex = 0; reader.addEventListener('keydown', (e) => { if (e.key === 'ArrowRight' || e.key === ' ' || e.key === 'PageDown') { e.preventDefault(); turn(1); } if (e.key === 'ArrowLeft' || e.key === 'PageUp') { e.preventDefault(); turn(-1); } });
+        setTimeout(() => { layout(); reader.focus(); }, 30);
+        win.on('resize', () => { if (reader.isConnected) { const ratio = cur / pages; layout(); cur = Math.round(ratio * pages); go(); } });
+      }
+      q.addEventListener('keydown', (e) => { if (e.key === 'Enter' && q.value.trim()) search(q.value.trim()); });
+      bHome.onclick = home;
+      home();
+    }
+  });
+})();
+
+</script>
+  <script>
+/* Radio — thousands of real live radio stations from around the world (radio-browser.info) */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  const API = ['https://de1.api.radio-browser.info', 'https://fi1.api.radio-browser.info', 'https://de2.api.radio-browser.info'];
+  const TAGS = ['pop', 'rock', 'hip hop', 'jazz', 'classical', 'electronic', 'lofi', 'news', 'country', 'chill', 'dance', 'kids'];
+  async function api(path) {
+    let err;
+    for (const b of API) { try { const r = await fetch(b + path, { cache: 'no-store' }); if (r.ok) return r.json(); err = new Error('HTTP ' + r.status); } catch (e) { err = e; } }
+    throw err || new Error('offline');
+  }
+  let audio = null, playing = null;
+  PatOS.registerApp({
+    id: 'radio', name: 'Radio', icon: 'radio', width: 960, height: 640, category: 'Apps', keywords: 'live stations music fm stream',
+    about: 'Live radio stations from around the world.',
+    launch(win) {
+      win.el.classList.add('has-toolbar');
+      const favs = PatOS.store.get('radioFavs', []);
+      const country = ((navigator.language || 'en-CA').split('-')[1] || 'CA').toUpperCase();
+      const q = h('input', { class: 'field', placeholder: 'Search stations', style: { width: '220px' } });
+      win.toolbar.append(h('div', { style: { flex: 1 } }), q);
+      const side = h('div', { class: 'rd-side' }), list = h('div', { class: 'rd-list' });
+      const now = h('div', { class: 'rd-now' });
+      win.body.appendChild(h('div', { class: 'rd-wrap' }, side, h('div', { class: 'rd-col' }, list, now)));
+      let view = 'local';
+      function renderSide() {
+        side.innerHTML = '';
+        const item = (k, label) => { const b = h('button', { class: 'rd-si' + (view === k ? ' on' : '') }, PatOS.t(label)); b.onclick = () => { view = k; renderSide(); load(); }; side.appendChild(b); };
+        item('local', 'Near you'); item('top', 'Most popular'); item('favs', 'Favorites');
+        side.appendChild(h('div', { class: 'rd-sh' }, PatOS.t('Genres')));
+        TAGS.forEach((t) => item('tag:' + t, t.replace(/^./, (c) => c.toUpperCase())));
+      }
+      function row(s) {
+        const fav = favs.some((f) => f.stationuuid === s.stationuuid);
+        const bFav = h('button', { class: 'rd-fav' + (fav ? ' on' : ''), title: 'Favorite' }, fav ? '★' : '☆');
+        bFav.onclick = (e) => { e.stopPropagation(); const i = favs.findIndex((f) => f.stationuuid === s.stationuuid); if (i >= 0) favs.splice(i, 1); else favs.unshift({ stationuuid: s.stationuuid, name: s.name, url_resolved: s.url_resolved, url: s.url, favicon: s.favicon, tags: s.tags, country: s.country }); PatOS.store.set('radioFavs', favs); bFav.textContent = i >= 0 ? '☆' : '★'; bFav.classList.toggle('on', i < 0); };
+        const r = h('div', { class: 'rd-row' + (playing && playing.stationuuid === s.stationuuid ? ' on' : '') },
+          s.favicon ? h('img', { src: s.favicon, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer', onerror: (e) => { e.target.replaceWith(h('div', { class: 'rd-ph' }, (s.name || '?').trim().charAt(0))); } }) : h('div', { class: 'rd-ph' }, (s.name || '?').trim().charAt(0)),
+          h('div', { class: 'rd-info' }, h('b', {}, s.name.trim()), h('small', {}, [s.country, (s.tags || '').split(',').slice(0, 3).join(', ')].filter(Boolean).join(' · '))), bFav);
+        r.onclick = () => play(s);
+        return r;
+      }
+      async function load() {
+        list.innerHTML = ''; list.appendChild(h('div', { class: 'rd-msg' }, PatOS.t('Loading stations…')));
+        try {
+          let res;
+          const base = '?hidebroken=true&order=clickcount&reverse=true&limit=60';
+          if (view === 'favs') res = favs;
+          else if (view === 'local') res = await api('/json/stations/bycountrycodeexact/' + country + base);
+          else if (view === 'top') res = await api('/json/stations/topclick/60?hidebroken=true');
+          else if (view.startsWith('tag:')) res = await api('/json/stations/bytagexact/' + encodeURIComponent(view.slice(4)) + base);
+          else if (view.startsWith('q:')) res = await api('/json/stations/search?name=' + encodeURIComponent(view.slice(2)) + '&hidebroken=true&order=clickcount&reverse=true&limit=60');
+          res = (res || []).filter((s) => s.url_resolved || s.url).filter((s) => /^https:/.test(s.url_resolved || s.url) || location.protocol !== 'https:');
+          list.innerHTML = '';
+          if (!res.length) { list.appendChild(h('div', { class: 'rd-msg' }, PatOS.t(view === 'favs' ? 'Press ☆ on a station to keep it here.' : 'No stations found.'))); return; }
+          res.forEach((s) => list.appendChild(row(s)));
+        } catch (e) { list.innerHTML = ''; list.appendChild(h('div', { class: 'rd-msg' }, PatOS.sandboxed ? PatOS.t('Claude Artifacts block live radio. Open PatOS from its website.') : PatOS.t('Radio stations couldn’t load. Your network may block them.'))); }
+      }
+      function paintNow() {
+        now.innerHTML = '';
+        if (!playing) { now.classList.remove('on'); return; }
+        now.classList.add('on');
+        const bars = h('div', { class: 'rd-eq' + (audio && !audio.paused ? ' go' : '') }, h('i'), h('i'), h('i'), h('i'));
+        const vol = h('input', { type: 'range', min: 0, max: 1, step: 0.01, value: audio ? audio.volume : 1, class: 'rd-vol', title: 'Volume' });
+        vol.oninput = () => { if (audio) audio.volume = +vol.value; };
+        const bPlay = h('button', { class: 'rd-play', title: 'Play or pause' }, audio && !audio.paused ? '❚❚' : '▶');
+        bPlay.onclick = () => { if (!audio) return; if (audio.paused) audio.play().catch(() => {}); else audio.pause(); };
+        now.append(playing.favicon ? h('img', { src: playing.favicon, alt: '', referrerpolicy: 'no-referrer' }) : h('div', { class: 'rd-ph' }, playing.name.charAt(0)), h('div', { class: 'rd-info' }, h('b', {}, playing.name.trim()), h('small', { class: 'rd-state' }, playing.state || '')), bars, bPlay, vol);
+      }
+      function play(s) {
+        if (!audio) {
+          audio = new Audio(); audio.preload = 'none';
+          audio.addEventListener('playing', () => { if (playing) playing.state = PatOS.t('Live'); paintNow(); list.querySelectorAll('.rd-row').forEach((r) => r.classList.remove('on')); });
+          audio.addEventListener('pause', () => { if (playing) playing.state = PatOS.t('Paused'); paintNow(); });
+          audio.addEventListener('waiting', () => { if (playing) playing.state = PatOS.t('Connecting…'); paintNow(); });
+          audio.addEventListener('error', () => { if (playing) playing.state = PatOS.t('This station isn’t working right now. Try another one.'); paintNow(); });
+        }
+        playing = Object.assign({}, s, { state: PatOS.t('Connecting…') });
+        audio.src = s.url_resolved || s.url; audio.play().catch(() => {});
+        if ('mediaSession' in navigator) { try { navigator.mediaSession.metadata = new MediaMetadata({ title: s.name.trim(), artist: PatOS.t('Live radio'), artwork: s.favicon ? [{ src: s.favicon }] : [] }); } catch (e) {} }
+        fetch(API[0] + '/json/url/' + s.stationuuid).catch(() => {}); // counts the click, as radio-browser asks
+        paintNow();
+        list.querySelectorAll('.rd-row').forEach((r) => r.classList.remove('on'));
+      }
+      q.addEventListener('keydown', (e) => { if (e.key === 'Enter' && q.value.trim()) { view = 'q:' + q.value.trim(); renderSide(); load(); } });
+      win.on('closed', () => { if (audio) { audio.pause(); audio.src = ''; audio = null; playing = null; } });
+      renderSide(); load(); paintNow();
+    }
+  });
+})();
+
+</script>
+  <script>
+/* Videos — plays your own video files (from Finder or imported from your device) */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  const isVideo = (name) => /\.(mp4|webm|mov|m4v|ogv)$/i.test(name);
+  PatOS.registerApp({
+    id: 'videos', name: 'Videos', icon: 'videos', width: 940, height: 620, category: 'Apps', keywords: 'movie player mp4 film tv',
+    about: 'Watch your own video files.',
+    launch(win, args) {
+      win.el.classList.add('has-toolbar');
+      const bImport = h('button', { class: 'btn' }, PatOS.t('Open a video…'));
+      win.toolbar.append(bImport, h('div', { style: { flex: 1 } }));
+      win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
+      const main = h('div', { class: 'vd-main' }); win.body.appendChild(main);
+      const session = []; // videos opened from the device this session (object URLs)
+      function library() {
+        const out = [];
+        try { PatOS.fs.walk('/', (path, n) => { if (n.type !== 'dir' && isVideo(path)) out.push({ name: path.split('/').pop(), src: n.content, path }); }); } catch (e) {}
+        return out.concat(session);
+      }
+      function home() {
+        win.setTitle(PatOS.t('Videos')); main.innerHTML = '';
+        const vids = library();
+        if (!vids.length) {
+          main.appendChild(h('div', { class: 'vd-empty' }, h('div', { class: 'vd-big', html: PatOS.iconHTML('videos') }), h('h2', {}, PatOS.t('No videos yet')), h('p', {}, PatOS.t('Open an MP4 or WebM video from your computer or phone. Videos you put in Finder show up here too.')), h('button', { class: 'btn primary', onclick: pick }, PatOS.t('Open a video…'))));
+          return;
+        }
+        const g = h('div', { class: 'vd-grid' });
+        vids.forEach((v) => {
+          const vid = h('video', { src: v.src, preload: 'metadata', muted: true });
+          vid.addEventListener('loadedmetadata', () => { try { vid.currentTime = Math.min(2, vid.duration / 3); } catch (e) {} const d = vid.duration; if (isFinite(d)) c.querySelector('.vd-dur').textContent = Math.floor(d / 60) + ':' + String(Math.floor(d % 60)).padStart(2, '0'); });
+          const c = h('div', { class: 'vd-card' }, h('div', { class: 'vd-th' }, vid, h('span', { class: 'vd-dur' })), h('b', {}, v.name));
+          c.onclick = () => play(v); g.appendChild(c);
+        });
+        main.appendChild(g);
+      }
+      function play(v) {
+        win.setTitle(v.name); main.innerHTML = '';
+        const vid = h('video', { src: v.src, controls: true, autoplay: true, playsinline: true, class: 'vd-player' });
+        const speed = h('select', { class: 'field' }, ...[0.5, 0.75, 1, 1.25, 1.5, 2].map((s) => h('option', { value: s }, s + '×'))); speed.value = '1';
+        speed.onchange = () => { vid.playbackRate = +speed.value; };
+        const bPip = h('button', { class: 'btn' }, PatOS.t('Picture in Picture')); bPip.onclick = () => { if (document.pictureInPictureEnabled) vid.requestPictureInPicture().catch(() => {}); };
+        main.append(h('div', { class: 'vd-stage' }, vid), h('div', { class: 'vd-bar' }, h('button', { class: 'btn', onclick: home }, '‹ ' + PatOS.t('All videos')), h('b', {}, v.name), h('div', { style: { flex: 1 } }), h('span', { class: 'vd-l' }, PatOS.t('Speed')), speed, document.pictureInPictureEnabled ? bPip : null));
+      }
+      function pick() {
+        const inp = h('input', { type: 'file', accept: 'video/*', multiple: true, style: { display: 'none' } });
+        inp.onchange = () => { const files = [...inp.files]; files.forEach((f) => session.unshift({ name: f.name, src: URL.createObjectURL(f) })); inp.remove(); if (files.length === 1) play(session[0]); else home(); };
+        document.body.appendChild(inp); inp.click();
+      }
+      bImport.onclick = pick;
+      win._open = (a) => { if (a && a.path) { const n = PatOS.fs.get(a.path); if (n) play({ name: a.path.split('/').pop(), src: n.content, path: a.path }); } };
+      if (args && args.path) win._open(args); else home();
+    },
+    onArgs(win, a) { win._open && win._open(a); }
+  });
+})();
+
+</script>
+  <script>
+/* Solitaire — classic Klondike patience: drag or tap cards, draw 1 or 3, undo, auto-finish */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  const SUITS = ['♠', '♥', '♦', '♣'], RANKS = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K'];
+  const red = (c) => c.s === 1 || c.s === 2;
+  function deal() {
+    const deck = [];
+    for (let s = 0; s < 4; s++) for (let r = 0; r < 13; r++) deck.push({ s, r, up: false });
+    for (let i = deck.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [deck[i], deck[j]] = [deck[j], deck[i]]; }
+    const tab = [];
+    for (let i = 0; i < 7; i++) { tab.push(deck.splice(0, i + 1)); tab[i][i].up = true; }
+    return { stock: deck, waste: [], found: [[], [], [], []], tab, moves: 0, time: 0, won: false };
+  }
+  PatOS.registerApp({
+    id: 'solitaire', name: 'Solitaire', icon: 'solitaire', width: 900, height: 660, category: '3D & Games', keywords: 'cards klondike patience game',
+    about: 'Classic Klondike solitaire.',
+    launch(win) {
+      win.el.classList.add('has-toolbar');
+      const cfg = Object.assign({ draw: 1 }, PatOS.store.get('solCfg', {}));
+      const stats = Object.assign({ played: 0, won: 0, best: 0 }, PatOS.store.get('solStats', {}));
+      let g = PatOS.store.get('solGame', null) || deal(), undo = [], sel = null;
+      const drawSel = h('select', { class: 'field' }, h('option', { value: 1 }, PatOS.t('Draw 1')), h('option', { value: 3 }, PatOS.t('Draw 3'))); drawSel.value = String(cfg.draw);
+      const bNew = h('button', { class: 'btn' }, PatOS.t('New Game')), bUndo = h('button', { class: 'btn' }, PatOS.t('Undo')), bAuto = h('button', { class: 'btn' }, PatOS.t('Finish'));
+      const info = h('span', { class: 'sol-info' });
+      win.toolbar.append(bNew, drawSel, bUndo, bAuto, h('div', { style: { flex: 1 } }), info);
+      win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
+      const table = h('div', { class: 'sol-table' }); win.body.appendChild(table);
+      const save = () => PatOS.store.set('solGame', g);
+      const snap = () => { undo.push(JSON.stringify(g)); if (undo.length > 200) undo.shift(); };
+      const canFound = (c, f) => (f.length ? f[f.length - 1].s === c.s && f[f.length - 1].r === c.r - 1 : c.r === 0);
+      const canTab = (c, t) => (t.length ? t[t.length - 1].up && red(t[t.length - 1]) !== red(c) && t[t.length - 1].r === c.r + 1 : c.r === 12);
+      function pile(where) { const [k, i] = where; return k === 'waste' ? g.waste : k === 'found' ? g.found[i] : g.tab[i]; }
+      function take(where, n) { return pile(where).splice(pile(where).length - n, n); }
+      function flipTops() { g.tab.forEach((t) => { if (t.length && !t[t.length - 1].up) t[t.length - 1].up = true; }); }
+      function tryMove(from, n, to) {
+        const src = pile(from), cards = src.slice(src.length - n), c = cards[0];
+        if (!c || !c.up) return false;
+        const [k, i] = to;
+        if (k === 'found') { if (n !== 1 || !canFound(c, g.found[i])) return false; }
+        else if (k === 'tab') { if (from[0] === 'tab' && from[1] === i) return false; if (!canTab(c, g.tab[i])) return false; }
+        else return false;
+        snap(); pile(to).push(...take(from, n)); g.moves++; flipTops(); after(); return true;
+      }
+      function autoFound(from) {
+        const src = pile(from), c = src[src.length - 1]; if (!c || !c.up) return false;
+        for (let i = 0; i < 4; i++) if (canFound(c, g.found[i])) return tryMove(from, 1, ['found', i]);
+        for (let i = 0; i < 7; i++) if (canTab(c, g.tab[i]) && !(from[0] === 'tab' && from[1] === i) && g.tab[i].length) return tryMove(from, 1, ['tab', i]);
+        return false;
+      }
+      function drawCard() {
+        snap();
+        if (!g.stock.length) { g.stock = g.waste.reverse().map((c) => Object.assign(c, { up: false })); g.waste = []; }
+        else { const n = Math.min(cfg.draw, g.stock.length); for (let i = 0; i < n; i++) { const c = g.stock.pop(); c.up = true; g.waste.push(c); } }
+        g.moves++; PatOS.sound.click(); after();
+      }
+      function after() {
+        sel = null;
+        if (!g.won && g.found.every((f) => f.length === 13)) {
+          g.won = true; stats.won++; if (!stats.best || g.time < stats.best) stats.best = g.time; PatOS.store.set('solStats', stats);
+          [523, 659, 784, 1046, 1318].forEach((f, i) => PatOS.sound.tone(f, 0.3, { delay: i * 0.1, vol: 0.14 }));
+        }
+        save(); render();
+      }
+      const fmt = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+      function cardEl(c, where, n) {
+        if (!c.up) return h('div', { class: 'sol-card back' });
+        const el = h('div', { class: 'sol-card' + (red(c) ? ' red' : '') + (sel && sel.where[0] === where[0] && sel.where[1] === where[1] && n <= sel.n ? ' sel' : '') },
+          h('span', { class: 'sol-tl' }, RANKS[c.r], h('i', {}, SUITS[c.s])), h('span', { class: 'sol-mid' }, c.r > 9 ? RANKS[c.r] : SUITS[c.s]), h('span', { class: 'sol-br' }, RANKS[c.r], h('i', {}, SUITS[c.s])));
+        el.dataset.n = n;
+        el.addEventListener('pointerdown', (e) => startDrag(e, where, n, el));
+        el.addEventListener('dblclick', () => { if (n === 1) autoFound(where); });
+        return el;
+      }
+      function slot(where, cls) {
+        const el = h('div', { class: 'sol-slot ' + (cls || '') }); el.dataset.where = where.join(':');
+        el.addEventListener('click', (e) => { if (e.target !== el && !e.target.classList.contains('sol-pile')) return; if (sel) { tryMove(sel.where, sel.n, where) || (sel = null, render()); } });
+        return el;
+      }
+      function render() {
+        table.innerHTML = '';
+        const top = h('div', { class: 'sol-top' });
+        const stock = h('div', { class: 'sol-slot stock' + (g.stock.length ? '' : ' empty') }, g.stock.length ? h('div', { class: 'sol-card back' }) : h('span', { class: 'sol-re' }, '↻'));
+        stock.onclick = drawCard;
+        const waste = slot(['waste', 0], 'waste');
+        const show = g.waste.slice(-(cfg.draw === 3 ? 3 : 1));
+        show.forEach((c, k) => { const el = k === show.length - 1 ? cardEl(c, ['waste', 0], 1) : h('div', { class: 'sol-card' + (red(c) ? ' red' : '') }, h('span', { class: 'sol-tl' }, RANKS[c.r], h('i', {}, SUITS[c.s]))); el.style.left = k * 18 + 'px'; waste.appendChild(el); });
+        top.append(stock, waste, h('div', { class: 'sol-gap' }));
+        g.found.forEach((f, i) => { const s = slot(['found', i], 'found'); s.appendChild(h('span', { class: 'sol-fs' }, SUITS[i])); if (f.length) s.appendChild(cardEl(f[f.length - 1], ['found', i], 1)); top.appendChild(s); });
+        const tabs = h('div', { class: 'sol-tabs' });
+        g.tab.forEach((t, i) => {
+          const col = slot(['tab', i], 'tab'); col.classList.add('sol-pile');
+          let y = 0;
+          t.forEach((c, k) => { const el = cardEl(c, ['tab', i], t.length - k); el.style.top = y + 'px'; y += c.up ? 26 : 9; col.appendChild(el); });
+          col.style.minHeight = (y + 120) + 'px';
+          tabs.appendChild(col);
+        });
+        table.append(top, tabs);
+        if (g.won) table.appendChild(h('div', { class: 'sol-win' }, h('h2', {}, PatOS.t('You won!')), h('p', {}, fmt(g.time) + ' · ' + g.moves + ' ' + PatOS.t('moves')), h('button', { class: 'btn primary', onclick: newGame }, PatOS.t('Play Again'))));
+        info.textContent = PatOS.t('Moves') + ' ' + g.moves + '   ' + fmt(g.time) + '   ' + PatOS.t('Won') + ' ' + stats.won + '/' + stats.played;
+        bUndo.disabled = !undo.length;
+      }
+      /* drag a card (and the ones on top of it) with mouse or finger; a tap selects instead */
+      function startDrag(e, where, n, el) {
+        if (e.button > 0) return;
+        e.stopPropagation();
+        const src = pile(where); const startIdx = src.length - n;
+        if (!src[startIdx] || !src[startIdx].up) return;
+        const sx = e.clientX, sy = e.clientY; let ghost = null;
+        const els = [...el.parentNode.querySelectorAll('.sol-card')].filter((x) => +x.dataset.n <= n && x.dataset.n);
+        const move = (ev) => {
+          const dx = ev.clientX - sx, dy = ev.clientY - sy;
+          if (!ghost && Math.hypot(dx, dy) < 6) return;
+          if (!ghost) { ghost = true; els.forEach((x) => x.classList.add('drag')); }
+          els.forEach((x) => { x.style.transform = `translate(${dx}px, ${dy}px)`; });
+        };
+        const up = (ev) => {
+          window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up);
+          if (!ghost) { // tap
+            if (sel && !(sel.where[0] === where[0] && sel.where[1] === where[1])) { if (!tryMove(sel.where, sel.n, where)) { sel = { where, n }; render(); } }
+            else if (sel && sel.n === n) { sel = null; if (!autoFound(where)) render(); }
+            else { sel = { where, n }; render(); }
+            return;
+          }
+          els.forEach((x) => { x.style.visibility = 'hidden'; });
+          const target = document.elementFromPoint(ev.clientX, ev.clientY);
+          els.forEach((x) => { x.style.visibility = ''; });
+          const s = target && target.closest('.sol-slot');
+          if (s && s.dataset.where) { const [k, i] = s.dataset.where.split(':'); if (tryMove(where, n, [k, +i])) return; }
+          render();
+        };
+        window.addEventListener('pointermove', move); window.addEventListener('pointerup', up);
+      }
+      function newGame() { stats.played++; g = deal(); undo = []; PatOS.store.set('solStats', stats); save(); render(); }
+      bNew.onclick = newGame;
+      drawSel.onchange = () => { cfg.draw = +drawSel.value; PatOS.store.set('solCfg', cfg); render(); };
+      bUndo.onclick = () => { if (!undo.length) return; g = JSON.parse(undo.pop()); save(); render(); };
+      bAuto.onclick = () => {
+        let moved = true, guard = 0;
+        const step = () => {
+          moved = false;
+          for (const from of [['waste', 0], ...g.tab.map((t, i) => ['tab', i])]) { const p = pile(from), c = p[p.length - 1]; if (c && c.up) for (let i = 0; i < 4; i++) if (canFound(c, g.found[i])) { tryMove(from, 1, ['found', i]); moved = true; break; } if (moved) break; }
+          if (moved && guard++ < 60) setTimeout(step, 70);
+        };
+        step();
+      };
+      const tick = setInterval(() => { if (!g.won && g.moves && !document.hidden) { g.time++; info.textContent = PatOS.t('Moves') + ' ' + g.moves + '   ' + fmt(g.time) + '   ' + PatOS.t('Won') + ' ' + stats.won + '/' + stats.played; if (g.time % 10 === 0) save(); } }, 1000);
+      win.on('closed', () => { clearInterval(tick); save(); });
+      if (!PatOS.store.get('solGame', null)) { stats.played++; PatOS.store.set('solStats', stats); }
+      render();
     }
   });
 })();

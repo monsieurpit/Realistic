@@ -43,7 +43,7 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 | | |
 |---|---|
 | Finder | icon and list views, sorting, path bar, multi-select, color tags, info panel, Quick Look (Space), keyboard navigation, Trash, import from your computer |
-| Patoogle | tabbed web browser with bookmarks, site icons and history. Searches show Patoogle results (Wikipedia, plus instant answers for math, conversions, time and definitions) right inside PatOS; add a free Google Programmable Search ID for real Google results. YouTube links open in the YouTube app |
+| Patoogle | tabbed web browser with bookmarks, site icons and history. Searches show real Google results right inside PatOS (no setup). Optional: Google's official search box (free ID, or `GOOGLE_CX` on Render), Patoogle's Wikipedia results, or Bing. YouTube links open in the YouTube app |
 | Calendar | month and week views, event editor (time, color, notes), upcoming events, reminders |
 | Notes | folders, pinned notes, pictures (paste or insert), checklists, tables, Recently Deleted, export to text or Docs |
 | Reminders | lists with colors, due dates and times with alerts, priorities, flags, smart lists (Today, Scheduled, Flagged, All, Completed) |
@@ -77,7 +77,12 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 | Focus | study timer (25/5/15) with your task, rain or noise sounds, a daily goal, streaks and a 7-day chart |
 | Journal | one page a day with your mood, a writing prompt, word count, streak and search |
 | Sudoku | fresh puzzles with one solution (easy, medium, hard), notes, hints, undo, timer and best times |
-| YouTube | the real YouTube player inside PatOS; search, trending and comments with your own free YouTube API key |
+| YouTube | works like youtube.com: home feed, search with suggestions, Shorts, channels, comments, related videos, autoplay, subscriptions, likes, Watch later and history. No API key needed on the PatOS website |
+| News | live headlines from NPR, Al Jazeera, Engadget, Space.com, NASA, Radio-Canada and La Presse, with saved stories |
+| Books | 70,000 free classics from Project Gutenberg in a page-turning reader (text size, themes, remembers your page) |
+| Radio | thousands of live radio stations from around the world, by country or genre, with favorites |
+| Videos | play your own video files with speed control and Picture in Picture |
+| Solitaire | classic Klondike: drag or tap, draw 1 or 3, undo, auto-finish, stats |
 
 ## Keyboard shortcuts
 
@@ -102,7 +107,9 @@ Chromebooks reserve most Ctrl shortcuts, so PatOS uses **Alt**:
 **On Render (Web Service):**
 - Build Command: leave empty (or `npm install`)
 - Start Command: `npm start`
-- Environment variables: none. Render sets `PORT` itself and the server reads it.
+- Environment variables: none needed. Render sets `PORT` itself. Optional: `GOOGLE_CX` (a Google Programmable Search ID) to give everyone Google's official search box in Patoogle.
+
+YouTube, News and Books get their data through the PatOS server (`yt.js`, `services.js`), so they work on the website. The single-file and Claude Artifact versions have no server, so those apps ask you to open the website.
 
 Once it's on a real website, Chrome can install it as an app (⋮ menu → Install), and it keeps working offline.
 
@@ -120,6 +127,8 @@ js/wm.js            window manager
 js/shell.js         menu bar, dock, Launchpad, Spotlight, Control Center…
 js/wallpaper.js     picture + live 3D wallpapers
 js/apps/*.js        one file per app
-server.js           tiny static server for Render
+server.js           tiny server for Render (static files + /api)
+yt.js               YouTube data for the YouTube app (no API key)
+services.js         News and Books data
 build.js            makes the single-file versions in dist/
 ```
