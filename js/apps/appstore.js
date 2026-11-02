@@ -28,7 +28,12 @@
     chess: 'Real chess with every rule, against the computer (3 levels) or a friend.',
     screenshot: 'Take a picture of your screen or record it as a video.',
     calculator: 'A basic calculator and a scientific one with sin, cos, logs, powers and more.',
-    clock: 'World clocks, alarms, a stopwatch and a timer.'
+    clock: 'World clocks, alarms, a stopwatch and a timer.',
+    grapher: 'Type a function and see its graph. Zoom, pan and trace the curve.',
+    elements: 'The whole periodic table with details on every element, plus a molar mass calculator.',
+    focus: 'Work in 25-minute sessions with breaks, rain sounds and stats on your study time.',
+    journal: 'Write a page a day, track your mood and keep your streak going.',
+    sudoku: 'Fresh Sudoku puzzles at three levels, with notes, hints and undo.'
   };
   const FEATURED = ['docs', 'galaxy', 'orbrunner', 'code'];
   const GRADS = ['linear-gradient(135deg,#3a1c71,#d76d77,#ffaf7b)', 'linear-gradient(135deg,#0b0130,#ff2fa3)', 'linear-gradient(135deg,#1e1e2e,#5b5bd6)', 'linear-gradient(135deg,#0bbf3a,#00a6fb)'];
@@ -85,7 +90,7 @@
             card.onclick = () => detail(id); hero.appendChild(card);
           });
           main.append(h('h1', { class: 'as-h1' }, 'Discover'), hero, h('h2', {}, 'Essentials'));
-          const g = h('div', { class: 'as-list' }); ['browser', 'docs', 'contacts', 'freeform', 'chess', 'messages', 'flashcards', 'typing'].filter((id) => PatOS.apps[id]).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
+          const g = h('div', { class: 'as-list' }); ['browser', 'docs', 'focus', 'grapher', 'elements', 'journal', 'contacts', 'freeform', 'chess', 'sudoku', 'flashcards', 'typing'].filter((id) => PatOS.apps[id]).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
           const hidden = PatOS.settings.hiddenApps || [];
           if (hidden.length) { main.appendChild(h('h2', {}, 'Hidden Apps')); const g2 = h('div', { class: 'as-list' }); hidden.filter((id) => PatOS.apps[id]).forEach((id) => g2.appendChild(row(id))); main.appendChild(g2); }
           return;

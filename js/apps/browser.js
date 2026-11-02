@@ -6,7 +6,7 @@
     'facebook.com', 'instagram.com', 'twitter.com', 'x.com', 'github.com', 'reddit.com', 'amazon.', 'netflix.com', 'tiktok.com', 'discord.com', 'chatgpt.com', 'openai.com', 'claude.ai',
     'microsoft.com', 'office.com', 'live.com', 'outlook.', 'linkedin.com', 'spotify.com', 'twitch.tv', 'apple.com', 'stackoverflow.com', 'canva.com', 'quizlet.com', 'kahoot', 'khanacademy.org', 'duckduckgo.com', 'roblox.com', 'scratch.mit.edu', 'pinterest.', 'translate.google.com', 'photos.google.com', 'keep.google.com', 'forms.google.com'];
   const DEFAULT_BM = [
-    { t: 'Bing', u: 'https://www.bing.com/' },
+    { t: 'Patoogle', u: 'patos://newtab' },
     { t: 'Wikipedia', u: 'https://en.wikipedia.org/wiki/Main_Page' },
     { t: 'three.js', u: 'https://threejs.org/examples/' },
     { t: 'Maps', u: 'https://www.openstreetmap.org/export/embed.html?bbox=-74.2%2C45.3%2C-73.3%2C45.8&layer=mapnik' },
@@ -46,7 +46,7 @@
      so Patoogle shows real Google results through Google Programmable Search, which Google made for exactly
      this. It needs a free Search engine ID from the user. Until one is added, searches go to Bing. */
   const googleCx = () => (PatOS.store.get('googleCx', '') || '').trim();
-  function searchURL(q) { return googleCx() ? 'patos://google?q=' + encodeURIComponent(q) : bingURL(q); }
+  function searchURL(q) { return (googleCx() ? 'patos://google?q=' : 'patos://search?q=') + encodeURIComponent(q); }
   function bingURL(q) { return 'https://www.bing.com/search?q=' + encodeURIComponent(q) + '&setlang=' + (PatOS.lang || 'en'); }
   let cseState = null; // { cx, ready: Promise }
   function loadCSE(cx) {
@@ -84,7 +84,7 @@
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'browser-win');
       const tabs = []; let cur = null;
-      let bookmarks = PatOS.store.get('bookmarks', DEFAULT_BM).map((b) => (/google\.com\/webhp/.test(b.u) ? { t: 'Bing', u: 'https://www.bing.com/' } : b));
+      let bookmarks = PatOS.store.get('bookmarks', DEFAULT_BM).map((b) => (/google\.com\/webhp/.test(b.u) || /^https:\/\/www\.bing\.com\/?$/.test(b.u) ? { t: 'Patoogle', u: 'patos://newtab' } : b));
       const tabStrip = h('div', { class: 'br-tabs' });
       const addTab = h('button', { class: 'br-newtab', title: 'New tab' }, '+');
       win.toolbar.append(tabStrip, addTab);
@@ -154,6 +154,7 @@
         t.pane.innerHTML = '';
         if (url === 'patos://newtab') { t.title = 'New Tab'; t.pane.appendChild(newTabPage()); }
         else if (url.startsWith('patos://google-setup')) { t.title = 'Google'; t.pane.appendChild(googleSetup(new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || '')); }
+        else if (url.startsWith('patos://search')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Patoogle'; t.pane.appendChild(patoogleResults(q)); }
         else if (url.startsWith('patos://google')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Google'; t.pane.appendChild(googleCx() ? googlePage(t, q) : googleSetup(q)); }
         else if (isBlocked(url)) { t.title = host(url); t.pane.appendChild(blockedPage(url)); }
         else {
@@ -191,10 +192,55 @@
           el.render({ div: results.id, tag: 'searchresults-only', gname, attributes: { linkTarget: '_self', enableHistory: false } });
           el.getElement(gname).execute(q);
         }).catch((err) => {
-          status.textContent = err.message === 'restart' ? PatOS.t('Close and reopen PatOS to use your new Search engine ID.') : PatOS.sandboxed ? PatOS.t('Google search can’t run inside a Claude Artifact. Open PatOS from its website.') : PatOS.t('Google search didn’t load. Check your internet connection, or the Search engine ID in Search settings.');
+          status.textContent = err.message === 'restart' ? PatOS.t('Close and reopen PatOS to use your new Search engine ID.') : err.message === 'offline' && navigator.onLine ? PatOS.t('Google search was blocked. Your school’s Chromebook settings may not allow it on this network.') : PatOS.sandboxed ? PatOS.t('Google search can’t run inside a Claude Artifact. Open PatOS from its website.') : PatOS.t('Google search didn’t load. Check your internet connection, or the Search engine ID in Search settings.');
         });
         else status.textContent = '';
         setTimeout(() => { if (!q) box.focus(); }, 50);
+        return page;
+      }
+      /* Patoogle's own results, drawn inside PatOS: instant answers + Wikipedia. Used when no Google ID is set,
+         because many school Chromebooks block Bing ("your administrator has blocked this"). */
+      function patoogleResults(q) {
+        const box = h('input', { class: 'pg-q', value: q, spellcheck: 'false', placeholder: 'Search Patoogle' });
+        box.addEventListener('keydown', (e) => { if (e.key === 'Enter' && box.value.trim()) navigate(box.value.trim()); });
+        const answers = h('div', { class: 'pr-answers' }), results = h('div', { class: 'pr-results' }), panel = h('div', { class: 'pr-panel' });
+        const page = h('div', { class: 'pg-page' }, h('div', { class: 'pg-head' }, h('div', { class: 'pg-logo' }, 'Patoogle'), h('div', { class: 'pg-qwrap', html: PatOS.sym('search') }, box)),
+          h('div', { class: 'pr-wrap' }, h('div', { class: 'pr-col' }, answers, results,
+            h('div', { class: 'pr-more' }, h('b', {}, PatOS.t('Want full web results like Google?')), h('p', {}, PatOS.t('Add a free Google search ID (about a minute) and Patoogle shows real Google results here.')),
+              h('div', { class: 'pr-btns' }, h('button', { class: 'btn primary', onclick: () => navigate('patos://google-setup?q=' + encodeURIComponent(q)) }, 'Set up Google results'), h('button', { class: 'btn', onclick: () => navigate(bingURL(q)) }, 'Try Bing')),
+              h('small', {}, PatOS.t('Some schools block Bing. If you see “blocked by your administrator”, that’s your school’s setting.')))), panel));
+        setTimeout(() => { if (!q) box.focus(); }, 50);
+        if (!q) return page;
+        // instant answers
+        const ans = (title, value, sub) => answers.appendChild(h('div', { class: 'pr-answer' }, h('small', {}, PatOS.t(title)), h('div', { class: 'pr-big' }, value), sub ? h('small', {}, sub) : null));
+        const expr = q.replace(/[x×]/g, '*').replace(/÷/g, '/').replace(/,/g, '.');
+        if (/^[\d\s+\-*/().%^]+$/.test(expr) && /\d/.test(expr) && /[+\-*/^%]/.test(expr)) { try { const v = Function('"use strict";return (' + expr.replace(/\^/g, '**') + ')')(); if (Number.isFinite(v)) ans('Calculator', q + ' = ' + (+v.toPrecision(12))); } catch (e) {} }
+        const cv = PatOS.convertUnits && PatOS.convertUnits(q); if (cv) ans('Conversion', cv.text);
+        if (/^(time|heure|what time is it|quelle heure)/i.test(q)) ans('Time', new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }), new Date().toLocaleDateString(undefined, { dateStyle: 'full' }));
+        const dm = /^(?:define|definition of|meaning of|définition de|définir)\s+(\w[\w-]*)$/i.exec(q);
+        if (dm) fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(dm[1])).then((r) => r.json()).then((j) => { const m = j[0] && j[0].meanings[0]; if (m) ans('Dictionary', j[0].word, m.partOfSpeech + ' · ' + m.definitions[0].definition); }).catch(() => {});
+        // Wikipedia results (works through most school filters)
+        const lang = PatOS.lang === 'fr' ? 'fr' : 'en';
+        results.appendChild(h('div', { class: 'pg-status' }, PatOS.t('Searching…')));
+        const getJSON = (u, tries = 3) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).catch((e) => (tries > 1 ? new Promise((res) => setTimeout(res, 700)).then(() => getJSON(u, tries - 1)) : Promise.reject(e)));
+        getJSON(`https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*&srlimit=10&utf8=1`).then((j) => {
+          results.innerHTML = '';
+          const hits = (j.query && j.query.search) || [];
+          if (!hits.length) { results.appendChild(h('div', { class: 'pg-status' }, PatOS.t('No results found. Try different words.'))); return; }
+          results.appendChild(h('div', { class: 'pr-src' }, PatOS.t('Results from Wikipedia') + ' · ' + (j.query.searchinfo ? j.query.searchinfo.totalhits.toLocaleString() : '') + ' ' + PatOS.t('articles')));
+          hits.forEach((hit) => {
+            const url = `https://${lang}.wikipedia.org/wiki/` + encodeURIComponent(hit.title.replace(/ /g, '_'));
+            const a = h('div', { class: 'pr-hit' }, h('div', { class: 'pr-url' }, h('span', { class: 'pr-fav', html: PatOS.sym('doc') }), lang + '.wikipedia.org › ' + hit.title), h('a', { class: 'pr-title', href: url }, hit.title), h('p', { class: 'pr-snip', html: hit.snippet.replace(/<(?!\/?span)[^>]*>/g, '') + '…' }));
+            a.querySelector('a').addEventListener('click', (e) => { e.preventDefault(); navigate(url); });
+            results.appendChild(a);
+          });
+          // knowledge panel for the top hit
+          getJSON(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/` + encodeURIComponent(hits[0].title.replace(/ /g, '_'))).then((s) => {
+            if (!s.extract) return;
+            panel.append(s.thumbnail ? h('img', { src: s.thumbnail.source, alt: '' }) : null, h('h3', {}, s.title), s.description ? h('small', {}, s.description) : null, h('p', {}, s.extract), h('button', { class: 'pg-link', onclick: () => navigate(s.content_urls.desktop.page) }, PatOS.t('Read more on Wikipedia')));
+            panel.classList.add('on');
+          }).catch(() => {});
+        }).catch(() => { results.innerHTML = ''; results.appendChild(h('div', { class: 'pg-status' }, PatOS.sandboxed ? PatOS.t('Search can’t run inside a Claude Artifact. Open PatOS from its website.') : PatOS.t('Search couldn’t reach Wikipedia. Check the internet connection, or your school may block it.'))); });
         return page;
       }
       function googleSetup(q) {
@@ -225,7 +271,7 @@
       function newTabPage() {
         const q = h('input', { class: 'nt-search', placeholder: 'Search Patoogle or type a web address', spellcheck: 'false' });
         q.addEventListener('keydown', (e) => { if (e.key === 'Enter') navigate(q.value); });
-        const engine = h('div', { class: 'nt-engine' }, h('span', {}, googleCx() ? 'Searching with Google' : 'Searching with Bing'), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup') }, googleCx() ? 'Change' : 'Use Google instead'));
+        const engine = h('div', { class: 'nt-engine' }, h('span', {}, googleCx() ? 'Searching with Google' : 'Searching with Patoogle'), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup') }, googleCx() ? 'Change' : 'Use Google instead'));
         const grid = h('div', { class: 'nt-grid' });
         SHORTCUTS.forEach((s) => {
           const tile = h('button', { class: 'nt-tile' }, h('div', { class: 'nt-ic', html: PatOS.iconDefs[s.i] ? PatOS.iconHTML(s.i) : `<div class="nt-letter">${esc(s.i)}</div>` }), h('span', {}, s.t));

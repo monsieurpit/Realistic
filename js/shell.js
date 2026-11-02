@@ -524,6 +524,7 @@
     else r = v * A[1] / B[1];
     return { text: m[1] + ' ' + m[2] + ' = ' + (+r.toPrecision(6)).toLocaleString() + ' ' + m[3], value: +r.toPrecision(6) };
   }
+  PatOS.convertUnits = (q) => convert(q);
   PatOS.quickTimer = function (secs, label) {
     PatOS.notify({ title: PatOS.t('Timer started'), body: Math.round(secs / 60) >= 1 ? Math.round(secs / 60) + ' min' : secs + ' s', icon: 'clock' });
     setTimeout(() => { PatOS.notify({ title: label || PatOS.t('Timer done'), body: PatOS.t('Your timer finished.'), icon: 'clock', duration: 12000 }); for (let i = 0; i < 5; i++) PatOS.sound.tone(880, 0.25, { delay: i * 0.45, vol: 0.2 }); if (PatOS.mobile && PatOS.mobile.islandAlert) PatOS.mobile.islandAlert(PatOS.t('Timer done'), 'clock'); }, secs * 1000);

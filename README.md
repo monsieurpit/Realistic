@@ -43,7 +43,7 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 | | |
 |---|---|
 | Finder | icon and list views, sorting, path bar, multi-select, color tags, info panel, Quick Look (Space), keyboard navigation, Trash, import from your computer |
-| Patoogle | tabbed web browser with bookmarks, site icons and history. Real Google results with your free Programmable Search ID (Bing until you add one); YouTube links open in the YouTube app |
+| Patoogle | tabbed web browser with bookmarks, site icons and history. Searches show Patoogle results (Wikipedia, plus instant answers for math, conversions, time and definitions) right inside PatOS; add a free Google Programmable Search ID for real Google results. YouTube links open in the YouTube app |
 | Calendar | month and week views, event editor (time, color, notes), upcoming events, reminders |
 | Notes | folders, pinned notes, pictures (paste or insert), checklists, tables, Recently Deleted, export to text or Docs |
 | Reminders | lists with colors, due dates and times with alerts, priorities, flags, smart lists (Today, Scheduled, Flagged, All, Completed) |
@@ -72,6 +72,11 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 | Drive | every document, spreadsheet, presentation and form in one place |
 | Forms | surveys and graded quizzes with a results view |
 | Translate | 20 languages (MyMemory, needs internet) with read-aloud |
+| Grapher | plot several functions (y = x², sin(x), ln(x)…), pan, zoom, trace values, save the graph as a picture |
+| Elements | the full periodic table with details on all 118 elements, category filters and a molar mass calculator |
+| Focus | study timer (25/5/15) with your task, rain or noise sounds, a daily goal, streaks and a 7-day chart |
+| Journal | one page a day with your mood, a writing prompt, word count, streak and search |
+| Sudoku | fresh puzzles with one solution (easy, medium, hard), notes, hints, undo, timer and best times |
 | YouTube | the real YouTube player inside PatOS; search, trending and comments with your own free YouTube API key |
 
 ## Keyboard shortcuts

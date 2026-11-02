@@ -1535,6 +1535,200 @@ html.mobile, html.mobile body { overscroll-behavior: none; touch-action: manipul
 .wx-aqibar i { position: absolute; top: -3px; width: 11px; height: 11px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px rgba(0,0,0,.3); transform: translateX(-50%); }
 .wx-top .sym { width: 15px; height: 15px; }
 
+/* Patoogle results */
+.pr-wrap { display: flex; gap: 40px; padding: 8px 24px 30px; align-items: flex-start; }
+.pr-col { flex: 0 1 660px; min-width: 0; font-family: Arial, sans-serif; }
+.pr-answers { display: flex; flex-direction: column; gap: 10px; margin: 8px 0; }
+.pr-answer { border: 1px solid #dadce0; border-radius: 12px; padding: 14px 18px; } .pr-answer small { color: #70757a; display: block; } .pr-big { font-size: 28px; color: #202124; margin: 2px 0; word-break: break-word; }
+.pr-src { color: #70757a; font-size: 13px; margin: 12px 0 6px; }
+.pr-hit { padding: 12px 0; } .pr-url { display: flex; align-items: center; gap: 8px; color: #202124; font-size: 13px; }
+.pr-fav { width: 26px; height: 26px; border-radius: 50%; background: #f1f3f4; display: grid; place-items: center; } .pr-fav .sym { width: 14px; height: 14px; color: #5f6368; }
+.pr-title { display: inline-block; color: #1a0dab; font-size: 20px; margin: 4px 0 2px; text-decoration: none; cursor: pointer; } .pr-title:hover { text-decoration: underline; }
+.pr-snip { margin: 0; color: #4d5156; font-size: 14px; line-height: 1.55; } .pr-snip .searchmatch { font-weight: 700; color: #202124; }
+.pr-more { margin-top: 18px; padding: 16px 18px; border-radius: 12px; background: #f8f9fa; border: 1px solid #e8eaed; color: #202124; } .pr-more p { margin: 4px 0 10px; color: #4d5156; font-size: 14px; } .pr-more small { color: #70757a; display: block; margin-top: 8px; }
+.pr-btns { display: flex; gap: 8px; flex-wrap: wrap; } .pr-more .btn:not(.primary) { background: #fff; color: #202124; box-shadow: inset 0 0 0 1px #dadce0; }
+.pr-panel { display: none; width: 340px; flex: 0 0 auto; border: 1px solid #dadce0; border-radius: 12px; padding: 16px; color: #202124; font-family: Arial, sans-serif; margin-top: 8px; }
+.pr-panel.on { display: block; } .pr-panel img { width: 100%; max-height: 220px; object-fit: cover; border-radius: 8px; } .pr-panel h3 { margin: 10px 0 2px; font-size: 22px; font-weight: 400; } .pr-panel small { color: #70757a; } .pr-panel p { font-size: 14px; line-height: 1.55; color: #4d5156; }
+@media (max-width: 1100px) { .pr-panel { display: none !important; } }
+.mobile .pr-wrap { padding: 8px 14px 30px; }
+
+/* ---------- Grapher ---------- */
+.gr-wrap { display: flex; height: 100%; }
+.gr-side { width: 250px; flex: none; padding: 12px; overflow: auto; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
+.gr-row { display: flex; align-items: center; gap: 6px; }
+.gr-dot { width: 14px; height: 14px; border-radius: 50%; flex: none; box-shadow: 0 0 0 2px var(--win-solid), 0 0 0 3px var(--border2); }
+.gr-dot.off { opacity: .25; }
+.gr-y { font: 600 13px var(--mono, monospace); color: var(--text2); }
+.gr-in { flex: 1; min-width: 0; height: 28px; padding: 0 8px; border-radius: 7px; border: 1px solid var(--border2); background: var(--win-solid); color: var(--text); font: 13px var(--mono, monospace); outline: none; }
+.gr-in:focus { border-color: var(--accent); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 25%, transparent); }
+.gr-in.err { border-color: #ff453a; color: #ff453a; }
+.gr-add { align-self: flex-start; }
+.gr-help { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+.gr-help b { width: 100%; font-size: 12px; color: var(--text2); }
+.gr-help small { width: 100%; margin-top: 8px; color: var(--text3); font-size: 11.5px; line-height: 1.4; }
+.gr-ex { padding: 3px 8px; border-radius: 6px; background: var(--hover2); font: 12px var(--mono, monospace); color: var(--text); }
+.gr-ex:hover { background: var(--accent); color: #fff; }
+.gr-stage { flex: 1; position: relative; min-width: 0; overflow: hidden; }
+.gr-canvas { position: absolute; inset: 0; width: 100%; height: 100%; cursor: crosshair; touch-action: none; }
+.gr-read { position: absolute; left: 12px; top: 12px; padding: 7px 10px; border-radius: 10px; background: color-mix(in srgb, var(--win-solid) 88%, transparent); backdrop-filter: blur(12px); box-shadow: 0 4px 16px rgba(0,0,0,.15); font: 12px var(--mono, monospace); pointer-events: none; display: flex; flex-direction: column; gap: 3px; white-space: pre; }
+.gr-read i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+@media (max-width: 700px) { .gr-wrap { flex-direction: column-reverse; } .gr-side { width: auto; max-height: 38%; border-right: 0; border-top: 1px solid var(--border); } }
+
+/* ---------- Elements ---------- */
+.el-wrap { display: flex; height: 100%; }
+.el-main { flex: 1; min-width: 0; padding: 14px; overflow: auto; display: flex; flex-direction: column; gap: 12px; }
+.el-grid { display: grid; grid-template-columns: repeat(18, minmax(38px, 1fr)); grid-template-rows: repeat(7, minmax(44px, auto)) 12px repeat(2, minmax(44px, auto)); gap: 3px; min-width: 700px; }
+.el-cell { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3px 1px; border-radius: 6px; background: color-mix(in srgb, var(--c) 22%, var(--win-solid)); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); color: var(--text); transition: transform .15s var(--spring, ease), opacity .2s, box-shadow .2s; overflow: hidden; }
+.el-cell small { position: absolute; top: 2px; left: 4px; font-size: 8.5px; color: var(--text2); }
+.el-cell b { font-size: 15px; line-height: 1.1; margin-top: 6px; }
+.el-cell span { font-size: 7.5px; color: var(--text2); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.el-cell:hover { transform: scale(1.12); z-index: 2; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
+.el-cell.on { background: var(--c); color: #1c1c1e; box-shadow: 0 0 0 2px var(--text); z-index: 1; }
+.el-cell.on small, .el-cell.on span { color: rgba(0,0,0,.65); }
+.el-cell.dim { opacity: .18; }
+.el-mark { display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--text3); border: 1px dashed var(--border2); border-radius: 6px; }
+.el-legend { display: flex; flex-wrap: wrap; gap: 6px; }
+.el-leg { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px; background: var(--hover2); font-size: 12px; color: var(--text); }
+.el-leg i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
+.el-leg.on { background: var(--c); color: #1c1c1e; }
+.el-card { width: 270px; flex: none; padding: 18px; border-left: 1px solid var(--border); background: var(--sidebar); overflow: auto; display: flex; flex-direction: column; gap: 10px; }
+.el-big { position: relative; width: 120px; height: 120px; border-radius: 18px; background: linear-gradient(145deg, var(--c), color-mix(in srgb, var(--c) 60%, #000)); color: #1c1c1e; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 10px 30px color-mix(in srgb, var(--c) 40%, transparent); animation: elPop .35s var(--spring, ease); }
+.el-big small { position: absolute; top: 8px; left: 11px; font-weight: 600; }
+.el-big b { font-size: 48px; line-height: 1; }
+.el-big span { font-size: 12px; opacity: .75; margin-top: 4px; }
+@keyframes elPop { from { transform: scale(.85); opacity: .4; } }
+.el-card h2 { margin: 4px 0 0; font-size: 22px; }
+.el-cat { font-weight: 600; font-size: 13px; }
+.el-props { display: flex; flex-direction: column; border-radius: 10px; background: var(--card, var(--win-solid)); overflow: hidden; }
+.el-props div { display: flex; justify-content: space-between; gap: 10px; padding: 7px 10px; font-size: 12.5px; border-bottom: 1px solid var(--border); }
+.el-props div:last-child { border-bottom: 0; }
+.el-props span { color: var(--text2); }
+.el-card .btn { align-self: flex-start; }
+.el-mm { font: 600 13px var(--mono, monospace); color: var(--accent); margin-left: 8px; white-space: nowrap; }
+.el-mm.err { color: #ff453a; font-family: inherit; font-weight: 500; }
+@media (max-width: 700px) { .el-wrap { flex-direction: column; overflow: auto; } .el-main { flex: none; overflow: visible; overflow-x: auto; } .el-card { width: auto; flex: none; overflow: visible; border-left: 0; border-top: 1px solid var(--border); } }
+
+/* ---------- Focus ---------- */
+.fo-wrap { display: flex; height: 100%; --fo: #ff453a; transition: background .5s; }
+[data-fo="short"] .fo-wrap { --fo: #30d158; }
+[data-fo="long"] .fo-wrap { --fo: #0a84ff; }
+.fo-main { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 16px; padding: 20px; background: radial-gradient(circle at 50% 40%, color-mix(in srgb, var(--fo) 14%, transparent), transparent 70%); }
+.fo-ring { position: relative; width: min(280px, 60vw); aspect-ratio: 1; }
+.fo-ring svg { width: 100%; height: 100%; }
+.fo-bg { fill: none; stroke: var(--hover2); stroke-width: 12; }
+.fo-fg { fill: none; stroke: var(--fo); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset .3s linear, stroke .5s; filter: drop-shadow(0 0 8px color-mix(in srgb, var(--fo) 50%, transparent)); }
+.fo-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.fo-time { font-size: 58px; font-weight: 200; font-variant-numeric: tabular-nums; letter-spacing: -1px; }
+.fo-sub { color: var(--text2); font-size: 14px; }
+.fo-task { width: min(340px, 90%); height: 36px; text-align: center; border: 0; border-bottom: 1px solid var(--border2); background: transparent; color: var(--text); font-size: 15px; outline: none; }
+.fo-task:focus { border-color: var(--fo); }
+.fo-btns { display: flex; gap: 10px; }
+.fo-go { min-width: 110px; background: var(--fo) !important; border-color: transparent !important; }
+.fo-dots { display: flex; gap: 8px; }
+.fo-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--hover2); transition: background .3s; }
+.fo-dots i.on { background: var(--fo); }
+.fo-tl { font-size: 12px; color: var(--text2); margin-right: 6px; }
+.fo-stats { width: 260px; flex: none; padding: 14px 16px; border-left: 1px solid var(--border); background: var(--sidebar); overflow: auto; }
+.fo-nostats .fo-stats { display: none; }
+.fo-stats h3 { margin: 14px 0 8px; font-size: 13px; color: var(--text2); font-weight: 600; }
+.fo-stats h3:first-child { margin-top: 0; }
+.fo-goal { display: flex; flex-direction: column; gap: 5px; font-size: 12px; color: var(--text2); }
+.fo-bar { height: 8px; border-radius: 99px; background: var(--hover2); overflow: hidden; }
+.fo-bar i { display: block; height: 100%; background: var(--fo); border-radius: inherit; transition: width .5s var(--ease, ease); }
+.fo-nums { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 10px; }
+.fo-nums div { padding: 8px 4px; border-radius: 10px; background: var(--card, var(--win-solid)); text-align: center; }
+.fo-nums b { display: block; font-size: 20px; }
+.fo-nums span { font-size: 10.5px; color: var(--text2); }
+.fo-chart { display: flex; align-items: flex-end; gap: 6px; height: 120px; }
+.fo-col { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 3px; }
+.fo-col i { width: 100%; border-radius: 5px 5px 2px 2px; background: color-mix(in srgb, var(--fo) 45%, transparent); transition: height .5s var(--ease, ease); }
+.fo-col.today i { background: var(--fo); }
+.fo-col small { font-size: 9.5px; color: var(--text3); }
+.fo-col span { font-size: 10.5px; color: var(--text2); }
+.fo-trow { display: flex; justify-content: space-between; gap: 8px; padding: 6px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; }
+.fo-trow span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.fo-settings { position: absolute; right: 16px; top: 16px; width: 300px; padding: 16px; border-radius: 14px; background: var(--win-solid); box-shadow: 0 16px 48px rgba(0,0,0,.3); border: 1px solid var(--border); z-index: 5; animation: elPop .25s var(--spring, ease); }
+.fo-settings h3 { margin: 0 0 10px; font-size: 15px; }
+.fo-field { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 5px 0; font-size: 13px; }
+.fo-field input[type=number] { width: 70px; }
+@media (max-width: 700px) { .fo-wrap { flex-direction: column; overflow: auto; } .fo-stats { width: auto; border-left: 0; border-top: 1px solid var(--border); } .fo-time { font-size: 46px; } }
+
+/* ---------- Journal ---------- */
+.jn-wrap { display: flex; height: 100%; }
+.jn-list { width: 270px; flex: none; overflow: auto; background: var(--sidebar); border-right: 1px solid var(--border); padding: 6px 8px 12px; }
+.jn-month { padding: 12px 8px 4px; font-size: 11.5px; font-weight: 600; color: var(--text3); text-transform: uppercase; letter-spacing: .4px; }
+.jn-item { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; cursor: default; }
+.jn-item:hover { background: var(--hover); }
+.jn-item.on { background: var(--accent); color: #fff; }
+.jn-item.on small, .jn-item.on .jn-day small { color: rgba(255,255,255,.8); }
+.jn-day { width: 34px; flex: none; text-align: center; }
+.jn-day b { display: block; font-size: 19px; line-height: 1.1; }
+.jn-day small { font-size: 10.5px; color: var(--text2); }
+.jn-prev { flex: 1; min-width: 0; font-size: 13px; }
+.jn-prev div { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.jn-prev small { font-size: 11px; color: var(--text2); }
+.jn-mood-s { flex: none; display: flex; }
+.jn-empty { padding: 30px 10px; text-align: center; color: var(--text3); font-size: 13px; }
+.jn-page { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 14px; padding: 22px clamp(18px, 5%, 60px); overflow: auto; }
+.jn-head { display: flex; align-items: center; gap: 12px; }
+.jn-head > div { flex: 1; }
+.jn-head h1 { margin: 0; font-size: 26px; font-weight: 700; }
+.jn-head h1::first-letter { text-transform: uppercase; }
+.jn-head small { color: var(--text2); }
+.jn-moods { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.jn-moods > span { font-size: 13px; color: var(--text2); margin-right: 6px; }
+.jn-mood { display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 6px 8px; border-radius: 10px; opacity: .55; transition: opacity .2s, transform .2s var(--spring, ease), background .2s; }
+.jn-mood small { font-size: 10.5px; color: var(--text2); }
+.jn-mood svg { width: 28px; height: 28px; }
+.jn-mood:hover { opacity: 1; transform: translateY(-2px); }
+.jn-mood.on { opacity: 1; background: var(--hover2); transform: scale(1.06); }
+.jn-prompt { position: relative; padding: 12px 14px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 10%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent); font-size: 15px; }
+.jn-prompt small { display: block; font-size: 11px; color: var(--accent); font-weight: 600; margin-bottom: 3px; }
+.jn-use { position: absolute; right: 10px; top: 10px; font-size: 12px; color: var(--accent); padding: 3px 8px; border-radius: 6px; }
+.jn-use:hover { background: color-mix(in srgb, var(--accent) 15%, transparent); }
+.jn-text { flex: 1; min-height: 220px; resize: none; border: 0; outline: none; background: transparent; color: var(--text); font: 16px/1.7 Georgia, 'Times New Roman', serif; }
+.jn-count { font-size: 11.5px; color: var(--text3); text-align: right; }
+.jn-streak { font-size: 12px; color: #ff9f0a; font-weight: 600; margin-right: 10px; }
+@media (max-width: 700px) { .jn-wrap { flex-direction: column; } .jn-list { width: auto; max-height: 34%; border-right: 0; border-bottom: 1px solid var(--border); } .jn-page { padding: 16px; } }
+
+/* ---------- Sudoku ---------- */
+.sd-wrap { display: flex; align-items: center; justify-content: center; gap: 22px; height: 100%; padding: 16px; flex-wrap: wrap; overflow: auto; }
+.sd-bwrap { position: relative; }
+.sd-board { display: grid; grid-template-columns: repeat(9, 1fr); width: min(460px, 86vw, calc(100vh - 170px)); aspect-ratio: 1; border: 2px solid var(--text); border-radius: 8px; overflow: hidden; background: var(--win-solid); transition: opacity .2s; }
+.sd-board.sd-busy { opacity: .4; }
+.sd-cell { display: flex; align-items: center; justify-content: center; font-size: clamp(16px, 4vw, 26px); color: var(--accent); border-right: 1px solid var(--border2); border-bottom: 1px solid var(--border2); background: transparent; transition: background .12s; aspect-ratio: 1; padding: 0; min-width: 0; }
+.sd-cell[data-c="2"], .sd-cell[data-c="5"] { border-right: 2px solid var(--text); }
+.sd-cell[data-r="2"], .sd-cell[data-r="5"] { border-bottom: 2px solid var(--text); }
+.sd-cell[data-c="8"] { border-right: 0; }
+.sd-cell[data-r="8"] { border-bottom: 0; }
+.sd-cell.given { color: var(--text); font-weight: 600; }
+.sd-cell.peer { background: var(--hover); }
+.sd-cell.same { background: color-mix(in srgb, var(--accent) 22%, transparent); }
+.sd-cell.sel { background: color-mix(in srgb, var(--accent) 38%, transparent); }
+.sd-cell.wrong { color: #ff453a; background: color-mix(in srgb, #ff453a 14%, transparent); }
+.sd-notes { display: grid; grid-template-columns: repeat(3, 1fr); width: 100%; height: 100%; padding: 2px; }
+.sd-notes span { display: flex; align-items: center; justify-content: center; font-size: clamp(7px, 1.4vw, 11px); color: var(--text2); }
+.sd-side { display: flex; flex-direction: column; gap: 14px; width: 210px; }
+.sd-pad { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.sd-num { display: flex; flex-direction: column; align-items: center; padding: 8px 0 4px; border-radius: 10px; background: var(--hover2); color: var(--accent); transition: transform .12s, background .12s; }
+.sd-num b { font-size: 24px; font-weight: 500; line-height: 1; }
+.sd-num small { font-size: 10px; color: var(--text3); min-height: 12px; }
+.sd-num:hover { background: color-mix(in srgb, var(--accent) 18%, transparent); }
+.sd-num:active { transform: scale(.94); }
+.sd-num.full { opacity: .3; }
+.sd-tools { display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; }
+.sd-tool { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 6px 0; border-radius: 10px; color: var(--text); }
+.sd-tool small { font-size: 10.5px; color: var(--text2); white-space: nowrap; }
+.sd-tool:hover { background: var(--hover); }
+.sd-tool.on { color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.sd-clock { font: 600 13px var(--mono, monospace); color: var(--text); min-width: 46px; text-align: right; }
+.sd-mis { font-size: 12px; color: var(--text2); margin-right: 10px; }
+.sd-done { position: absolute; inset: 0; display: none; flex-direction: column; align-items: center; justify-content: center; gap: 6px; border-radius: 8px; background: color-mix(in srgb, var(--win-solid) 82%, transparent); backdrop-filter: blur(6px); }
+.sd-done.on { display: flex; animation: elPop .4s var(--spring, ease); }
+.sd-done h2 { margin: 0; font-size: 30px; }
+.sd-done p { margin: 0 0 8px; color: var(--text2); }
+@media (max-width: 700px) { .sd-side { width: min(470px, 86vw); } .sd-pad { grid-template-columns: repeat(9, 1fr); } .sd-num b { font-size: 20px; } }
+
 </style>
   <style>
 /* ================= Liquid Glass ================= */
@@ -1744,7 +1938,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         const v = attrs[k];
         if (v == null || v === false) continue;
         if (k === 'class') el.className = v;
-        else if (k === 'style' && typeof v === 'object') Object.assign(el.style, v);
+        else if (k === 'style' && typeof v === 'object') { for (const p in v) { if (p.startsWith('--')) el.style.setProperty(p, v[p]); else el.style[p] = v[p]; } }
         else if (k === 'html') el.innerHTML = v;
         else if (k === 'text') el.textContent = v;
         else if (k.startsWith('on') && typeof v === 'function') el.addEventListener(k.slice(2), v);
@@ -2449,6 +2643,113 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'None': 'Aucune', 'Low': 'Basse', 'Medium': 'Moyenne', 'High': 'Haute', 'Reminder': 'Rappel', 'Pink': 'Rose', 'Teal': 'Turquoise',
     'Saved cities': 'Villes enregistrées', 'Search for a city above to add it.': 'Cherchez une ville ci-dessus pour l’ajouter.', 'Remove': 'Retirer', 'NEXT 24 HOURS': 'PROCHAINES 24 HEURES', 'temperature and chance of rain': 'température et risque de pluie',
     'AIR QUALITY': 'QUALITÉ DE L’AIR', 'Good': 'Bonne', 'Moderate': 'Moyenne', 'Unhealthy for sensitive people': 'Mauvaise pour les personnes sensibles', 'Unhealthy': 'Mauvaise', 'Very unhealthy': 'Très mauvaise',
+    'Grapher': 'Grapheur',
+    'Elements': 'Éléments',
+    'Journal': 'Journal',
+    'Sudoku': 'Sudoku',
+    'Add Function': 'Ajouter une fonction',
+    'Examples': 'Exemples',
+    'Drag to move · scroll to zoom · hover to trace': 'Glissez pour déplacer · molette pour zoomer · survolez pour lire les valeurs',
+    'Graph': 'Graphique',
+    'Reset view': 'Réinitialiser la vue',
+    'Show or hide': 'Afficher ou masquer',
+    'Save picture to Photos': 'Enregistrer l’image dans Photos',
+    'Alkali metal': 'Métal alcalin',
+    'Alkaline earth metal': 'Métal alcalino-terreux',
+    'Transition metal': 'Métal de transition',
+    'Post-transition metal': 'Métal pauvre',
+    'Metalloid': 'Métalloïde',
+    'Nonmetal': 'Non-métal',
+    'Halogen': 'Halogène',
+    'Noble gas': 'Gaz noble',
+    'Lanthanide': 'Lanthanide',
+    'Actinide': 'Actinide',
+    'Atomic number': 'Numéro atomique',
+    'Atomic mass': 'Masse atomique',
+    'Period': 'Période',
+    'Group': 'Groupe',
+    'State at room temperature': 'État à température ambiante',
+    'Gas': 'Gaz',
+    'Liquid': 'Liquide',
+    'Solid': 'Solide',
+    'Protons': 'Protons',
+    'Electrons': 'Électrons',
+    'Neutrons (most common)': 'Neutrons (isotope le plus courant)',
+    'Read more': 'En savoir plus',
+    'not a valid formula': 'formule invalide',
+    'Find an element': 'Trouver un élément',
+    'Molar mass, e.g. H2O': 'Masse molaire, ex. H2O',
+    'Short Break': 'Petite pause',
+    'Long Break': 'Longue pause',
+    'What are you working on?': 'Sur quoi travaillez-vous ?',
+    'Skip': 'Passer',
+    'No sound': 'Sans son',
+    'White noise': 'Bruit blanc',
+    'Brown noise': 'Bruit brun',
+    'Timer settings': 'Réglages du minuteur',
+    'Statistics': 'Statistiques',
+    'Stay focused': 'Restez concentré',
+    'Take a breather': 'Respirez un peu',
+    'Resume': 'Reprendre',
+    'No task': 'Sans tâche',
+    'Focus session done': 'Session terminée',
+    'Nice work. Time for a break.': 'Beau travail. C’est l’heure de la pause.',
+    'Break is over': 'La pause est finie',
+    'Ready for the next session?': 'Prêt pour la prochaine session ?',
+    'sessions': 'sessions',
+    'minutes today': 'minutes aujourd’hui',
+    'day streak': 'jours de suite',
+    'hours in total': 'heures au total',
+    'Last 7 days': '7 derniers jours',
+    'Worked on today': 'Travaillé aujourd’hui',
+    'Focus (minutes)': 'Concentration (minutes)',
+    'Short break (minutes)': 'Petite pause (minutes)',
+    'Long break (minutes)': 'Longue pause (minutes)',
+    'Long break after': 'Longue pause après',
+    'Daily goal (sessions)': 'Objectif du jour (sessions)',
+    'Start the next timer automatically': 'Lancer le minuteur suivant automatiquement',
+    'Erase all your Focus history?': 'Effacer tout l’historique de concentration ?',
+    'Clear history': 'Effacer l’historique',
+    'Go to a date': 'Aller à une date',
+    'Nothing written yet': 'Rien d’écrit pour l’instant',
+    'words': 'mots',
+    'Delete Entry': 'Supprimer l’entrée',
+    'Delete this entry?': 'Supprimer cette entrée ?',
+    'This can’t be undone.': 'Impossible d’annuler.',
+    'day in a row': 'jour de suite',
+    'days in a row': 'jours de suite',
+    'How was your day?': 'Comment s’est passée votre journée ?',
+    'Start writing…': 'Commencez à écrire…',
+    'Previous day': 'Jour précédent',
+    'Next day': 'Jour suivant',
+    'Something to write about': 'Une idée pour écrire',
+    'Use it': 'L’utiliser',
+    'Notes on': 'Notes activées',
+    'Notes off': 'Notes désactivées',
+    'Hint': 'Indice',
+    'Mistakes': 'Erreurs',
+    'Solved!': 'Résolu !',
+    'New best time': 'Nouveau record',
+    'Play Again': 'Rejouer',
+    'The periodic table, with a molar mass calculator.': 'Le tableau périodique, avec un calculateur de masse molaire.',
+    'Draw graphs of math functions like y = x² or y = sin(x).': 'Tracez des fonctions comme y = x² ou y = sin(x).',
+    'A study timer: 25 minutes of focus, then a break. Keeps track of your time.': 'Un minuteur d’étude : 25 minutes de travail, puis une pause. Garde la trace de votre temps.',
+    'A private diary: one page per day, with your mood and a question to get you writing.': 'Un journal privé : une page par jour, avec votre humeur et une question pour vous lancer.',
+    'Number puzzles with exactly one answer, made fresh every game.': 'Des grilles avec une seule solution, nouvelles à chaque partie.',
+    'What made you smile today?': 'Qu’est-ce qui vous a fait sourire aujourd’hui ?',
+    'What is one thing you learned today?': 'Qu’avez-vous appris aujourd’hui ?',
+    'What are you looking forward to this week?': 'Qu’attendez-vous avec impatience cette semaine ?',
+    'Who helped you today, and how?': 'Qui vous a aidé aujourd’hui, et comment ?',
+    'What was the hardest part of your day?': 'Quel a été le moment le plus difficile de la journée ?',
+    'If today had a title, what would it be?': 'Si aujourd’hui avait un titre, quel serait-il ?',
+    'What is something you want to get better at?': 'Dans quoi aimeriez-vous vous améliorer ?',
+    'Describe a small win from today.': 'Décrivez une petite victoire d’aujourd’hui.',
+    'What would you tell yourself from a year ago?': 'Que diriez-vous à la personne que vous étiez il y a un an ?',
+    'What are three things you are thankful for?': 'Quelles sont trois choses pour lesquelles vous êtes reconnaissant ?',
+    'What is on your mind right now?': 'À quoi pensez-vous en ce moment ?',
+    'What did you do today just for fun?': 'Qu’avez-vous fait aujourd’hui juste pour le plaisir ?',
+    'What is a goal for tomorrow?': 'Quel est votre objectif pour demain ?',
+    'What song matches your mood today, and why?': 'Quelle chanson correspond à votre humeur aujourd’hui, et pourquoi ?',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 'Offline': 'Hors ligne', 'Connected': 'Connecté',
@@ -2715,6 +3016,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     preview: { bg: 'linear-gradient(160deg,#f5f5f7,#d1d1d6)', svg: () => S(`<rect x="10" y="16" width="34" height="38" rx="3" fill="#fff" stroke="#c7c7cc"/><rect x="14" y="20" width="26" height="18" fill="#64d2ff"/><path d="M14 38l8-8 6 6 4-4 8 6z" fill="#34c759"/><circle cx="44" cy="22" r="10" fill="none" stroke="#3a3a3c" stroke-width="4"/><path d="M51 29l6 6" stroke="#3a3a3c" stroke-width="5" stroke-linecap="round"/>`) },
     chess: { bg: 'linear-gradient(160deg,#a67c52,#5d3a1a)', svg: () => S(`<g fill="#fff"><path d="M26 50h18l-2-6H28z"/><path d="M29 44c0-8-6-10-6-18 0-6 5-10 11-10 7 0 10 6 9 10l-5 2 2 4-4 2c1 4 3 6 3 10z"/></g><rect x="22" y="50" width="26" height="4" rx="2" fill="#fff"/>`) },
     screenshot: { bg: 'linear-gradient(160deg,#636366,#2c2c2e)', svg: () => S(`<path d="M14 24v-8h8M42 16h8v8M50 40v8h-8M22 48h-8v-8" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="32" cy="32" r="8" fill="#ff453a"/>`) },
+    grapher: { bg: 'linear-gradient(160deg,#0b3d91,#1e88e5)', svg: () => S(`<path d="M10 54h46M14 58V8" stroke="#bfe0ff" stroke-width="2"/><path d="M14 50c8-2 10-30 18-30s10 26 18 18 6-14 6-14" stroke="#ffd60a" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M14 40c10 0 20-6 40-26" stroke="#ff6b9d" stroke-width="3" fill="none" stroke-linecap="round"/>`) },
+    elements: { bg: 'linear-gradient(160deg,#ff9a3c,#ff3d68)', svg: () => S(`<rect x="12" y="12" width="40" height="40" rx="6" fill="#fff"/><text x="16" y="22" font-size="7" font-family="system-ui" fill="#888">8</text><text x="32" y="42" font-size="22" font-weight="800" font-family="system-ui" fill="#ff3d68" text-anchor="middle">O</text><text x="32" y="49" font-size="5" font-family="system-ui" fill="#888" text-anchor="middle">15.999</text>`) },
+    focus: { bg: 'linear-gradient(160deg,#5e5ce6,#bf5af2)', svg: () => S(`<circle cx="32" cy="34" r="19" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="5"/><path d="M32 15a19 19 0 1 1-17 27" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/><path d="M32 24v10l6 4" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>`) },
+    journal: { bg: 'linear-gradient(160deg,#a06cd5,#6247aa)', svg: () => S(`<rect x="15" y="10" width="34" height="44" rx="4" fill="#fff"/><rect x="15" y="10" width="7" height="44" fill="#e0d4f7"/><path d="M27 22h16M27 29h16M27 36h10" stroke="#a06cd5" stroke-width="2.5" stroke-linecap="round"/><path d="M40 44l3-3 3 3-3 3z" fill="#ff6b9d"/>`) },
+    sudoku: { bg: '#fff', svg: () => { let g = '<rect x="10" y="10" width="44" height="44" rx="4" fill="#f2f2f7" stroke="#3a3a3c" stroke-width="2"/>'; [24.7, 39.3].forEach((v) => { g += `<path d="M${v} 10v44M10 ${v}h44" stroke="#3a3a3c" stroke-width="2"/>`; }); [[17, 21, '5'], [32, 21, '3'], [47, 36, '7'], [17, 50, '9'], [32, 50, '1']].forEach(([x, y, n]) => { g += `<text x="${x}" y="${y}" font-size="10" font-weight="700" font-family="system-ui" fill="${n === '7' ? '#0a84ff' : '#1c1c1e'}" text-anchor="middle">${n}</text>`; }); return S(g); } },
   };
 
   /* generic letter-tile icon */
@@ -3992,6 +4298,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     else r = v * A[1] / B[1];
     return { text: m[1] + ' ' + m[2] + ' = ' + (+r.toPrecision(6)).toLocaleString() + ' ' + m[3], value: +r.toPrecision(6) };
   }
+  PatOS.convertUnits = (q) => convert(q);
   PatOS.quickTimer = function (secs, label) {
     PatOS.notify({ title: PatOS.t('Timer started'), body: Math.round(secs / 60) >= 1 ? Math.round(secs / 60) + ' min' : secs + ' s', icon: 'clock' });
     setTimeout(() => { PatOS.notify({ title: label || PatOS.t('Timer done'), body: PatOS.t('Your timer finished.'), icon: 'clock', duration: 12000 }); for (let i = 0; i < 5; i++) PatOS.sound.tone(880, 0.25, { delay: i * 0.45, vol: 0.2 }); if (PatOS.mobile && PatOS.mobile.islandAlert) PatOS.mobile.islandAlert(PatOS.t('Timer done'), 'clock'); }, secs * 1000);
@@ -5097,7 +5404,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'facebook.com', 'instagram.com', 'twitter.com', 'x.com', 'github.com', 'reddit.com', 'amazon.', 'netflix.com', 'tiktok.com', 'discord.com', 'chatgpt.com', 'openai.com', 'claude.ai',
     'microsoft.com', 'office.com', 'live.com', 'outlook.', 'linkedin.com', 'spotify.com', 'twitch.tv', 'apple.com', 'stackoverflow.com', 'canva.com', 'quizlet.com', 'kahoot', 'khanacademy.org', 'duckduckgo.com', 'roblox.com', 'scratch.mit.edu', 'pinterest.', 'translate.google.com', 'photos.google.com', 'keep.google.com', 'forms.google.com'];
   const DEFAULT_BM = [
-    { t: 'Bing', u: 'https://www.bing.com/' },
+    { t: 'Patoogle', u: 'patos://newtab' },
     { t: 'Wikipedia', u: 'https://en.wikipedia.org/wiki/Main_Page' },
     { t: 'three.js', u: 'https://threejs.org/examples/' },
     { t: 'Maps', u: 'https://www.openstreetmap.org/export/embed.html?bbox=-74.2%2C45.3%2C-73.3%2C45.8&layer=mapnik' },
@@ -5137,7 +5444,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
      so Patoogle shows real Google results through Google Programmable Search, which Google made for exactly
      this. It needs a free Search engine ID from the user. Until one is added, searches go to Bing. */
   const googleCx = () => (PatOS.store.get('googleCx', '') || '').trim();
-  function searchURL(q) { return googleCx() ? 'patos://google?q=' + encodeURIComponent(q) : bingURL(q); }
+  function searchURL(q) { return (googleCx() ? 'patos://google?q=' : 'patos://search?q=') + encodeURIComponent(q); }
   function bingURL(q) { return 'https://www.bing.com/search?q=' + encodeURIComponent(q) + '&setlang=' + (PatOS.lang || 'en'); }
   let cseState = null; // { cx, ready: Promise }
   function loadCSE(cx) {
@@ -5175,7 +5482,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'browser-win');
       const tabs = []; let cur = null;
-      let bookmarks = PatOS.store.get('bookmarks', DEFAULT_BM).map((b) => (/google\.com\/webhp/.test(b.u) ? { t: 'Bing', u: 'https://www.bing.com/' } : b));
+      let bookmarks = PatOS.store.get('bookmarks', DEFAULT_BM).map((b) => (/google\.com\/webhp/.test(b.u) || /^https:\/\/www\.bing\.com\/?$/.test(b.u) ? { t: 'Patoogle', u: 'patos://newtab' } : b));
       const tabStrip = h('div', { class: 'br-tabs' });
       const addTab = h('button', { class: 'br-newtab', title: 'New tab' }, '+');
       win.toolbar.append(tabStrip, addTab);
@@ -5245,6 +5552,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         t.pane.innerHTML = '';
         if (url === 'patos://newtab') { t.title = 'New Tab'; t.pane.appendChild(newTabPage()); }
         else if (url.startsWith('patos://google-setup')) { t.title = 'Google'; t.pane.appendChild(googleSetup(new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || '')); }
+        else if (url.startsWith('patos://search')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Patoogle'; t.pane.appendChild(patoogleResults(q)); }
         else if (url.startsWith('patos://google')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Google'; t.pane.appendChild(googleCx() ? googlePage(t, q) : googleSetup(q)); }
         else if (isBlocked(url)) { t.title = host(url); t.pane.appendChild(blockedPage(url)); }
         else {
@@ -5282,10 +5590,55 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           el.render({ div: results.id, tag: 'searchresults-only', gname, attributes: { linkTarget: '_self', enableHistory: false } });
           el.getElement(gname).execute(q);
         }).catch((err) => {
-          status.textContent = err.message === 'restart' ? PatOS.t('Close and reopen PatOS to use your new Search engine ID.') : PatOS.sandboxed ? PatOS.t('Google search can’t run inside a Claude Artifact. Open PatOS from its website.') : PatOS.t('Google search didn’t load. Check your internet connection, or the Search engine ID in Search settings.');
+          status.textContent = err.message === 'restart' ? PatOS.t('Close and reopen PatOS to use your new Search engine ID.') : err.message === 'offline' && navigator.onLine ? PatOS.t('Google search was blocked. Your school’s Chromebook settings may not allow it on this network.') : PatOS.sandboxed ? PatOS.t('Google search can’t run inside a Claude Artifact. Open PatOS from its website.') : PatOS.t('Google search didn’t load. Check your internet connection, or the Search engine ID in Search settings.');
         });
         else status.textContent = '';
         setTimeout(() => { if (!q) box.focus(); }, 50);
+        return page;
+      }
+      /* Patoogle's own results, drawn inside PatOS: instant answers + Wikipedia. Used when no Google ID is set,
+         because many school Chromebooks block Bing ("your administrator has blocked this"). */
+      function patoogleResults(q) {
+        const box = h('input', { class: 'pg-q', value: q, spellcheck: 'false', placeholder: 'Search Patoogle' });
+        box.addEventListener('keydown', (e) => { if (e.key === 'Enter' && box.value.trim()) navigate(box.value.trim()); });
+        const answers = h('div', { class: 'pr-answers' }), results = h('div', { class: 'pr-results' }), panel = h('div', { class: 'pr-panel' });
+        const page = h('div', { class: 'pg-page' }, h('div', { class: 'pg-head' }, h('div', { class: 'pg-logo' }, 'Patoogle'), h('div', { class: 'pg-qwrap', html: PatOS.sym('search') }, box)),
+          h('div', { class: 'pr-wrap' }, h('div', { class: 'pr-col' }, answers, results,
+            h('div', { class: 'pr-more' }, h('b', {}, PatOS.t('Want full web results like Google?')), h('p', {}, PatOS.t('Add a free Google search ID (about a minute) and Patoogle shows real Google results here.')),
+              h('div', { class: 'pr-btns' }, h('button', { class: 'btn primary', onclick: () => navigate('patos://google-setup?q=' + encodeURIComponent(q)) }, 'Set up Google results'), h('button', { class: 'btn', onclick: () => navigate(bingURL(q)) }, 'Try Bing')),
+              h('small', {}, PatOS.t('Some schools block Bing. If you see “blocked by your administrator”, that’s your school’s setting.')))), panel));
+        setTimeout(() => { if (!q) box.focus(); }, 50);
+        if (!q) return page;
+        // instant answers
+        const ans = (title, value, sub) => answers.appendChild(h('div', { class: 'pr-answer' }, h('small', {}, PatOS.t(title)), h('div', { class: 'pr-big' }, value), sub ? h('small', {}, sub) : null));
+        const expr = q.replace(/[x×]/g, '*').replace(/÷/g, '/').replace(/,/g, '.');
+        if (/^[\d\s+\-*/().%^]+$/.test(expr) && /\d/.test(expr) && /[+\-*/^%]/.test(expr)) { try { const v = Function('"use strict";return (' + expr.replace(/\^/g, '**') + ')')(); if (Number.isFinite(v)) ans('Calculator', q + ' = ' + (+v.toPrecision(12))); } catch (e) {} }
+        const cv = PatOS.convertUnits && PatOS.convertUnits(q); if (cv) ans('Conversion', cv.text);
+        if (/^(time|heure|what time is it|quelle heure)/i.test(q)) ans('Time', new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }), new Date().toLocaleDateString(undefined, { dateStyle: 'full' }));
+        const dm = /^(?:define|definition of|meaning of|définition de|définir)\s+(\w[\w-]*)$/i.exec(q);
+        if (dm) fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(dm[1])).then((r) => r.json()).then((j) => { const m = j[0] && j[0].meanings[0]; if (m) ans('Dictionary', j[0].word, m.partOfSpeech + ' · ' + m.definitions[0].definition); }).catch(() => {});
+        // Wikipedia results (works through most school filters)
+        const lang = PatOS.lang === 'fr' ? 'fr' : 'en';
+        results.appendChild(h('div', { class: 'pg-status' }, PatOS.t('Searching…')));
+        const getJSON = (u, tries = 3) => fetch(u).then((r) => { if (!r.ok) throw new Error(r.status); return r.json(); }).catch((e) => (tries > 1 ? new Promise((res) => setTimeout(res, 700)).then(() => getJSON(u, tries - 1)) : Promise.reject(e)));
+        getJSON(`https://${lang}.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&format=json&origin=*&srlimit=10&utf8=1`).then((j) => {
+          results.innerHTML = '';
+          const hits = (j.query && j.query.search) || [];
+          if (!hits.length) { results.appendChild(h('div', { class: 'pg-status' }, PatOS.t('No results found. Try different words.'))); return; }
+          results.appendChild(h('div', { class: 'pr-src' }, PatOS.t('Results from Wikipedia') + ' · ' + (j.query.searchinfo ? j.query.searchinfo.totalhits.toLocaleString() : '') + ' ' + PatOS.t('articles')));
+          hits.forEach((hit) => {
+            const url = `https://${lang}.wikipedia.org/wiki/` + encodeURIComponent(hit.title.replace(/ /g, '_'));
+            const a = h('div', { class: 'pr-hit' }, h('div', { class: 'pr-url' }, h('span', { class: 'pr-fav', html: PatOS.sym('doc') }), lang + '.wikipedia.org › ' + hit.title), h('a', { class: 'pr-title', href: url }, hit.title), h('p', { class: 'pr-snip', html: hit.snippet.replace(/<(?!\/?span)[^>]*>/g, '') + '…' }));
+            a.querySelector('a').addEventListener('click', (e) => { e.preventDefault(); navigate(url); });
+            results.appendChild(a);
+          });
+          // knowledge panel for the top hit
+          getJSON(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/` + encodeURIComponent(hits[0].title.replace(/ /g, '_'))).then((s) => {
+            if (!s.extract) return;
+            panel.append(s.thumbnail ? h('img', { src: s.thumbnail.source, alt: '' }) : null, h('h3', {}, s.title), s.description ? h('small', {}, s.description) : null, h('p', {}, s.extract), h('button', { class: 'pg-link', onclick: () => navigate(s.content_urls.desktop.page) }, PatOS.t('Read more on Wikipedia')));
+            panel.classList.add('on');
+          }).catch(() => {});
+        }).catch(() => { results.innerHTML = ''; results.appendChild(h('div', { class: 'pg-status' }, PatOS.sandboxed ? PatOS.t('Search can’t run inside a Claude Artifact. Open PatOS from its website.') : PatOS.t('Search couldn’t reach Wikipedia. Check the internet connection, or your school may block it.'))); });
         return page;
       }
       function googleSetup(q) {
@@ -5316,7 +5669,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       function newTabPage() {
         const q = h('input', { class: 'nt-search', placeholder: 'Search Patoogle or type a web address', spellcheck: 'false' });
         q.addEventListener('keydown', (e) => { if (e.key === 'Enter') navigate(q.value); });
-        const engine = h('div', { class: 'nt-engine' }, h('span', {}, googleCx() ? 'Searching with Google' : 'Searching with Bing'), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup') }, googleCx() ? 'Change' : 'Use Google instead'));
+        const engine = h('div', { class: 'nt-engine' }, h('span', {}, googleCx() ? 'Searching with Google' : 'Searching with Patoogle'), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup') }, googleCx() ? 'Change' : 'Use Google instead'));
         const grid = h('div', { class: 'nt-grid' });
         SHORTCUTS.forEach((s) => {
           const tile = h('button', { class: 'nt-tile' }, h('div', { class: 'nt-ic', html: PatOS.iconDefs[s.i] ? PatOS.iconHTML(s.i) : `<div class="nt-letter">${esc(s.i)}</div>` }), h('span', {}, s.t));
@@ -8000,7 +8353,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     chess: 'Real chess with every rule, against the computer (3 levels) or a friend.',
     screenshot: 'Take a picture of your screen or record it as a video.',
     calculator: 'A basic calculator and a scientific one with sin, cos, logs, powers and more.',
-    clock: 'World clocks, alarms, a stopwatch and a timer.'
+    clock: 'World clocks, alarms, a stopwatch and a timer.',
+    grapher: 'Type a function and see its graph. Zoom, pan and trace the curve.',
+    elements: 'The whole periodic table with details on every element, plus a molar mass calculator.',
+    focus: 'Work in 25-minute sessions with breaks, rain sounds and stats on your study time.',
+    journal: 'Write a page a day, track your mood and keep your streak going.',
+    sudoku: 'Fresh Sudoku puzzles at three levels, with notes, hints and undo.'
   };
   const FEATURED = ['docs', 'galaxy', 'orbrunner', 'code'];
   const GRADS = ['linear-gradient(135deg,#3a1c71,#d76d77,#ffaf7b)', 'linear-gradient(135deg,#0b0130,#ff2fa3)', 'linear-gradient(135deg,#1e1e2e,#5b5bd6)', 'linear-gradient(135deg,#0bbf3a,#00a6fb)'];
@@ -8057,7 +8415,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
             card.onclick = () => detail(id); hero.appendChild(card);
           });
           main.append(h('h1', { class: 'as-h1' }, 'Discover'), hero, h('h2', {}, 'Essentials'));
-          const g = h('div', { class: 'as-list' }); ['browser', 'docs', 'contacts', 'freeform', 'chess', 'messages', 'flashcards', 'typing'].filter((id) => PatOS.apps[id]).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
+          const g = h('div', { class: 'as-list' }); ['browser', 'docs', 'focus', 'grapher', 'elements', 'journal', 'contacts', 'freeform', 'chess', 'sudoku', 'flashcards', 'typing'].filter((id) => PatOS.apps[id]).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
           const hidden = PatOS.settings.hiddenApps || [];
           if (hidden.length) { main.appendChild(h('h2', {}, 'Hidden Apps')); const g2 = h('div', { class: 'as-list' }); hidden.filter((id) => PatOS.apps[id]).forEach((id) => g2.appendChild(row(id))); main.appendChild(g2); }
           return;
@@ -9718,6 +10076,593 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         timer = setInterval(() => { const s = Math.floor((Date.now() - t0) / 1000); bRec.querySelector('b').textContent = PatOS.t('Stop') + '  ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }, 250);
       };
       win.on('closed', () => { if (rec) rec.stop(); clearInterval(timer); });
+    }
+  });
+})();
+
+</script>
+  <script>
+/* Grapher — plot y = f(x): several functions, pan, zoom, trace, roots */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  const COLORS = ['#0a84ff', '#ff375f', '#32d74b', '#ff9f0a', '#bf5af2', '#64d2ff'];
+  const FN = ['sin', 'cos', 'tan', 'asin', 'acos', 'atan', 'sqrt', 'abs', 'log', 'ln', 'exp', 'floor', 'ceil', 'round', 'pow', 'min', 'max', 'sign'];
+  function compile(src) {
+    let s = String(src).toLowerCase().replace(/^\s*y\s*=\s*/, '').replace(/\s+/g, '');
+    if (!s) return null;
+    if (/[^0-9x+\-*/^().,a-z]/.test(s)) throw new Error('bad');
+    s = s.replace(/π/g, 'pi');
+    s = s.replace(/(\d)(x|pi|e(?![a-z])|\(|[a-z])/g, '$1*$2').replace(/\)(\(|x|\d|[a-z])/g, ')*$1').replace(/x\(/g, 'x*(').replace(/x(\d)/g, 'x*$1');
+    const words = s.match(/[a-z]+/g) || [];
+    for (const w of words) if (!['x', 'pi', 'e'].includes(w) && !FN.includes(w)) throw new Error('name');
+    s = s.replace(/\^/g, '**').replace(/\bln\(/g, 'L(').replace(/\blog\(/g, 'G(').replace(/\b(sin|cos|tan|asin|acos|atan|sqrt|abs|exp|floor|ceil|round|pow|min|max|sign)\(/g, 'Math.$1(').replace(/\bpi\b/g, 'Math.PI').replace(/\be\b/g, 'Math.E');
+    const f = Function('x', 'L', 'G', '"use strict";return (' + s + ');');
+    f(1, Math.log, Math.log10);
+    return (x) => f(x, Math.log, Math.log10);
+  }
+  PatOS.registerApp({
+    id: 'grapher', name: 'Grapher', icon: 'grapher', width: 980, height: 640, category: 'Utilities', keywords: 'graph math function plot calculator algebra',
+    about: 'Draw graphs of math functions like y = x² or y = sin(x).',
+    launch(win) {
+      win.el.classList.add('has-toolbar');
+      let fns = PatOS.store.get('grapherFns', null) || [{ src: 'x^2 - 3', color: COLORS[0], on: true }, { src: '2sin(x)', color: COLORS[1], on: true }];
+      let view = { cx: 0, cy: 0, scale: 50 };
+      const save = () => PatOS.store.set('grapherFns', fns);
+      const side = h('div', { class: 'gr-side' }), cv = h('canvas', { class: 'gr-canvas' }), readout = h('div', { class: 'gr-read' });
+      const stage = h('div', { class: 'gr-stage' }, cv, readout);
+      win.body.appendChild(h('div', { class: 'gr-wrap' }, side, stage));
+      const bIn = h('button', { class: 'tbtn', title: 'Zoom in' }, '+'), bOut = h('button', { class: 'tbtn', title: 'Zoom out' }, '−'), bHome = h('button', { class: 'tbtn', title: 'Reset view' }, '⌂');
+      const bShot = h('button', { class: 'tbtn', title: 'Save picture to Photos', html: PatOS.sym('camera') });
+      win.toolbar.append(bOut, bIn, bHome, bShot);
+      let mouse = null;
+      function renderSide() {
+        side.innerHTML = '';
+        fns.forEach((f, i) => {
+          let err = false; try { compile(f.src); } catch (e) { err = true; }
+          const inp = h('input', { class: 'gr-in' + (err ? ' err' : ''), value: f.src, spellcheck: 'false', placeholder: 'x^2' });
+          inp.oninput = () => { f.src = inp.value; let bad = false; try { compile(f.src); } catch (e) { bad = true; } inp.classList.toggle('err', bad); save(); draw(); };
+          const dot = h('button', { class: 'gr-dot' + (f.on ? '' : ' off'), style: { background: f.color }, title: 'Show or hide' }); dot.onclick = () => { f.on = !f.on; save(); renderSide(); draw(); };
+          side.appendChild(h('div', { class: 'gr-row' }, dot, h('span', { class: 'gr-y' }, 'y ='), inp, h('button', { class: 'tbtn', title: 'Remove', onclick: () => { fns.splice(i, 1); save(); renderSide(); draw(); } }, '×')));
+        });
+        side.appendChild(h('button', { class: 'btn gr-add', onclick: () => { fns.push({ src: '', color: COLORS[fns.length % COLORS.length], on: true }); save(); renderSide(); side.querySelectorAll('.gr-in')[fns.length - 1].focus(); } }, '+ ' + PatOS.t('Add Function')));
+        side.appendChild(h('div', { class: 'gr-help' }, h('b', {}, PatOS.t('Examples')), ...['x^3 - 2x', 'sqrt(x)', 'sin(x)/x', '1/x', 'abs(x) - 2', 'ln(x)', '2^x', 'cos(2x) + 1'].map((ex) => h('button', { class: 'gr-ex', onclick: () => { fns.push({ src: ex, color: COLORS[fns.length % COLORS.length], on: true }); save(); renderSide(); draw(); } }, ex)),
+          h('small', {}, PatOS.t('Drag to move · scroll to zoom · hover to trace'))));
+      }
+      function draw() {
+        const dpr = Math.min(2, window.devicePixelRatio || 1), W = stage.clientWidth, H = stage.clientHeight; if (!W || !H) return;
+        cv.width = W * dpr; cv.height = H * dpr; const x = cv.getContext('2d'); x.scale(dpr, dpr);
+        const dark = document.documentElement.dataset.theme === 'dark';
+        x.fillStyle = dark ? '#16161a' : '#fff'; x.fillRect(0, 0, W, H);
+        const toX = (wx) => W / 2 + (wx - view.cx) * view.scale, toY = (wy) => H / 2 - (wy - view.cy) * view.scale;
+        const fromX = (px) => (px - W / 2) / view.scale + view.cx;
+        const raw = 80 / view.scale, mag = Math.pow(10, Math.floor(Math.log10(raw))), step = [1, 2, 5, 10].map((m) => m * mag).find((s) => s >= raw);
+        x.lineWidth = 1; x.font = '11px system-ui'; x.fillStyle = dark ? '#8e8e93' : '#6b6b70';
+        const x0 = Math.floor(fromX(0) / step) * step, x1 = fromX(W);
+        for (let gx = x0; gx <= x1; gx += step) { x.strokeStyle = dark ? '#2a2a30' : '#ececf0'; x.beginPath(); x.moveTo(toX(gx), 0); x.lineTo(toX(gx), H); x.stroke(); if (Math.abs(gx) > step / 2) x.fillText(+gx.toPrecision(6), toX(gx) + 3, Math.min(H - 4, Math.max(12, toY(0) + 13))); }
+        const y0 = Math.floor((view.cy - H / 2 / view.scale) / step) * step, y1 = view.cy + H / 2 / view.scale;
+        for (let gy = y0; gy <= y1; gy += step) { x.strokeStyle = dark ? '#2a2a30' : '#ececf0'; x.beginPath(); x.moveTo(0, toY(gy)); x.lineTo(W, toY(gy)); x.stroke(); if (Math.abs(gy) > step / 2) x.fillText(+gy.toPrecision(6), Math.min(W - 30, Math.max(3, toX(0) + 4)), toY(gy) - 3); }
+        x.strokeStyle = dark ? '#8e8e93' : '#3a3a3c'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(0, toY(0)); x.lineTo(W, toY(0)); x.moveTo(toX(0), 0); x.lineTo(toX(0), H); x.stroke();
+        const traces = [];
+        fns.forEach((f) => {
+          if (!f.on) return; let fn; try { fn = compile(f.src); } catch (e) { return; } if (!fn) return;
+          x.strokeStyle = f.color; x.lineWidth = 2.5; x.beginPath(); let pen = false, prevY = null;
+          for (let px = 0; px <= W; px += 1) {
+            const y = fn(fromX(px)); const py = toY(y);
+            if (!isFinite(y) || (prevY != null && Math.abs(py - prevY) > H * 1.5)) { pen = false; prevY = null; continue; }
+            if (!pen) { x.moveTo(px, py); pen = true; } else x.lineTo(px, py); prevY = py;
+          }
+          x.stroke();
+          if (mouse) { const wx = fromX(mouse.x), wy = fn(wx); if (isFinite(wy)) { traces.push({ f, wx, wy }); x.fillStyle = f.color; x.beginPath(); x.arc(toX(wx), toY(wy), 5, 0, 7); x.fill(); } }
+        });
+        readout.innerHTML = '';
+        traces.forEach((t) => readout.appendChild(h('div', {}, h('i', { style: { background: t.f.color } }), 'x = ' + (+t.wx.toFixed(3)) + '   y = ' + (+t.wy.toFixed(3)))));
+        readout.style.display = traces.length ? '' : 'none';
+      }
+      let drag = null;
+      cv.addEventListener('pointerdown', (e) => { drag = { x: e.clientX, y: e.clientY, cx: view.cx, cy: view.cy }; cv.setPointerCapture(e.pointerId); });
+      cv.addEventListener('pointermove', (e) => { const r = cv.getBoundingClientRect(); mouse = { x: e.clientX - r.left, y: e.clientY - r.top }; if (drag) { view.cx = drag.cx - (e.clientX - drag.x) / view.scale; view.cy = drag.cy + (e.clientY - drag.y) / view.scale; } draw(); });
+      cv.addEventListener('pointerup', () => { drag = null; }); cv.addEventListener('pointerleave', () => { mouse = null; draw(); });
+      cv.addEventListener('wheel', (e) => { e.preventDefault(); const r = cv.getBoundingClientRect(); const mx = e.clientX - r.left - r.width / 2, my = e.clientY - r.top - r.height / 2; const wx = view.cx + mx / view.scale, wy = view.cy - my / view.scale; view.scale = Math.min(5000, Math.max(2, view.scale * (e.deltaY < 0 ? 1.15 : 1 / 1.15))); view.cx = wx - mx / view.scale; view.cy = wy + my / view.scale; draw(); }, { passive: false });
+      bIn.onclick = () => { view.scale = Math.min(5000, view.scale * 1.4); draw(); }; bOut.onclick = () => { view.scale = Math.max(2, view.scale / 1.4); draw(); }; bHome.onclick = () => { view = { cx: 0, cy: 0, scale: 50 }; draw(); };
+      bShot.onclick = () => { const nm = PatOS.fs.uniqueName('/Pictures', PatOS.t('Graph') + '.jpg'); PatOS.fs.write('/Pictures/' + nm, cv.toDataURL('image/jpeg', 0.9)); PatOS.notify({ title: PatOS.t('Saved to Pictures'), body: nm, icon: 'grapher' }); };
+      win.on('resize', draw);
+      renderSide(); setTimeout(draw, 30);
+    }
+  });
+  PatOS.grapherCompile = compile;
+})();
+
+</script>
+  <script>
+/* Elements — interactive periodic table with a molar mass calculator */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  // Z|symbol|name|mass|category   categories: a alkali, e alkaline earth, t transition, p post-transition, m metalloid, n nonmetal, h halogen, g noble gas, l lanthanide, c actinide
+  const RAW = 'H|Hydrogen|1.008|n He|Helium|4.0026|g Li|Lithium|6.94|a Be|Beryllium|9.0122|e B|Boron|10.81|m C|Carbon|12.011|n N|Nitrogen|14.007|n O|Oxygen|15.999|n F|Fluorine|18.998|h Ne|Neon|20.180|g Na|Sodium|22.990|a Mg|Magnesium|24.305|e Al|Aluminium|26.982|p Si|Silicon|28.085|m P|Phosphorus|30.974|n S|Sulfur|32.06|n Cl|Chlorine|35.45|h Ar|Argon|39.948|g K|Potassium|39.098|a Ca|Calcium|40.078|e Sc|Scandium|44.956|t Ti|Titanium|47.867|t V|Vanadium|50.942|t Cr|Chromium|51.996|t Mn|Manganese|54.938|t Fe|Iron|55.845|t Co|Cobalt|58.933|t Ni|Nickel|58.693|t Cu|Copper|63.546|t Zn|Zinc|65.38|t Ga|Gallium|69.723|p Ge|Germanium|72.630|m As|Arsenic|74.922|m Se|Selenium|78.971|n Br|Bromine|79.904|h Kr|Krypton|83.798|g Rb|Rubidium|85.468|a Sr|Strontium|87.62|e Y|Yttrium|88.906|t Zr|Zirconium|91.224|t Nb|Niobium|92.906|t Mo|Molybdenum|95.95|t Tc|Technetium|98|t Ru|Ruthenium|101.07|t Rh|Rhodium|102.91|t Pd|Palladium|106.42|t Ag|Silver|107.87|t Cd|Cadmium|112.41|t In|Indium|114.82|p Sn|Tin|118.71|p Sb|Antimony|121.76|m Te|Tellurium|127.60|m I|Iodine|126.90|h Xe|Xenon|131.29|g Cs|Caesium|132.91|a Ba|Barium|137.33|e La|Lanthanum|138.91|l Ce|Cerium|140.12|l Pr|Praseodymium|140.91|l Nd|Neodymium|144.24|l Pm|Promethium|145|l Sm|Samarium|150.36|l Eu|Europium|151.96|l Gd|Gadolinium|157.25|l Tb|Terbium|158.93|l Dy|Dysprosium|162.50|l Ho|Holmium|164.93|l Er|Erbium|167.26|l Tm|Thulium|168.93|l Yb|Ytterbium|173.05|l Lu|Lutetium|174.97|l Hf|Hafnium|178.49|t Ta|Tantalum|180.95|t W|Tungsten|183.84|t Re|Rhenium|186.21|t Os|Osmium|190.23|t Ir|Iridium|192.22|t Pt|Platinum|195.08|t Au|Gold|196.97|t Hg|Mercury|200.59|t Tl|Thallium|204.38|p Pb|Lead|207.2|p Bi|Bismuth|208.98|p Po|Polonium|209|p At|Astatine|210|h Rn|Radon|222|g Fr|Francium|223|a Ra|Radium|226|e Ac|Actinium|227|c Th|Thorium|232.04|c Pa|Protactinium|231.04|c U|Uranium|238.03|c Np|Neptunium|237|c Pu|Plutonium|244|c Am|Americium|243|c Cm|Curium|247|c Bk|Berkelium|247|c Cf|Californium|251|c Es|Einsteinium|252|c Fm|Fermium|257|c Md|Mendelevium|258|c No|Nobelium|259|c Lr|Lawrencium|266|c Rf|Rutherfordium|267|t Db|Dubnium|268|t Sg|Seaborgium|269|t Bh|Bohrium|270|t Hs|Hassium|277|t Mt|Meitnerium|278|t Ds|Darmstadtium|281|t Rg|Roentgenium|282|t Cn|Copernicium|285|t Nh|Nihonium|286|p Fl|Flerovium|289|p Mc|Moscovium|290|p Lv|Livermorium|293|p Ts|Tennessine|294|h Og|Oganesson|294|g';
+  const CATS = { a: ['Alkali metal', '#ff6b6b'], e: ['Alkaline earth metal', '#ffa94d'], t: ['Transition metal', '#ffd43b'], p: ['Post-transition metal', '#8ce99a'], m: ['Metalloid', '#63e6be'], n: ['Nonmetal', '#74c0fc'], h: ['Halogen', '#91a7ff'], g: ['Noble gas', '#da77f2'], l: ['Lanthanide', '#f783ac'], c: ['Actinide', '#e599f7'] };
+  const GAS = ['H', 'He', 'N', 'O', 'F', 'Ne', 'Cl', 'Ar', 'Kr', 'Xe', 'Rn'], LIQ = ['Br', 'Hg'];
+  const FR = 'Hydrogène Hélium Lithium Béryllium Bore Carbone Azote Oxygène Fluor Néon Sodium Magnésium Aluminium Silicium Phosphore Soufre Chlore Argon Potassium Calcium Scandium Titane Vanadium Chrome Manganèse Fer Cobalt Nickel Cuivre Zinc Gallium Germanium Arsenic Sélénium Brome Krypton Rubidium Strontium Yttrium Zirconium Niobium Molybdène Technétium Ruthénium Rhodium Palladium Argent Cadmium Indium Étain Antimoine Tellure Iode Xénon Césium Baryum Lanthane Cérium Praséodyme Néodyme Prométhium Samarium Europium Gadolinium Terbium Dysprosium Holmium Erbium Thulium Ytterbium Lutécium Hafnium Tantale Tungstène Rhénium Osmium Iridium Platine Or Mercure Thallium Plomb Bismuth Polonium Astate Radon Francium Radium Actinium Thorium Protactinium Uranium Neptunium Plutonium Américium Curium Berkélium Californium Einsteinium Fermium Mendélévium Nobélium Lawrencium Rutherfordium Dubnium Seaborgium Bohrium Hassium Meitnérium Darmstadtium Roentgenium Copernicium Nihonium Flérovium Moscovium Livermorium Tennesse Oganesson'.split(' ');
+  const EL = RAW.split(' ').map((s, i) => { const [sym, en, mass, cat] = s.split('|'); return { z: i + 1, sym, en, fr: FR[i], get name() { return PatOS.lang === 'fr' ? this.fr : this.en; }, mass: +mass, cat }; });
+  function pos(z) {
+    if (z === 1) return [1, 1]; if (z === 2) return [1, 18];
+    const rows = [[3, 10, 2], [11, 18, 3]];
+    for (const [a, b, p] of rows) if (z >= a && z <= b) return [p, z - a < 2 ? z - a + 1 : z - a + 11];
+    if (z <= 36) return [4, z - 18]; if (z <= 54) return [5, z - 36];
+    if (z <= 56) return [6, z - 54]; if (z <= 71) return [9, z - 57 + 3]; if (z <= 86) return [6, z - 68];
+    if (z <= 88) return [7, z - 86]; if (z <= 103) return [10, z - 89 + 3]; return [7, z - 100];
+  }
+  const bySym = {}; EL.forEach((e) => { bySym[e.sym] = e; });
+  function molarMass(formula) {
+    let i = 0; const s = formula.replace(/\s/g, '');
+    function group() {
+      const counts = {};
+      while (i < s.length && s[i] !== ')') {
+        let part = {};
+        if (s[i] === '(') { i++; part = group(); if (s[i] !== ')') throw new Error('paren'); i++; }
+        else { const m = /^[A-Z][a-z]?/.exec(s.slice(i)); if (!m || !bySym[m[0]]) throw new Error('el'); part[m[0]] = 1; i += m[0].length; }
+        const n = /^\d+/.exec(s.slice(i)); const k = n ? +n[0] : 1; if (n) i += n[0].length;
+        Object.keys(part).forEach((e) => { counts[e] = (counts[e] || 0) + part[e] * k; });
+      }
+      return counts;
+    }
+    const c = group(); if (i !== s.length || !Object.keys(c).length) throw new Error('bad');
+    return { counts: c, mass: Object.entries(c).reduce((t, [e, n]) => t + bySym[e].mass * n, 0) };
+  }
+  PatOS.registerApp({
+    id: 'elements', name: 'Elements', icon: 'elements', width: 1080, height: 660, category: 'Utilities', keywords: 'chemistry periodic table science atoms molar mass',
+    about: 'The periodic table, with a molar mass calculator.',
+    launch(win) {
+      win.el.classList.add('has-toolbar');
+      let sel = EL[0], filter = null;
+      const q = h('input', { class: 'field', placeholder: 'Find an element', style: { width: '170px' } });
+      const mm = h('input', { class: 'field', placeholder: 'Molar mass, e.g. H2O', style: { width: '170px' }, spellcheck: 'false' });
+      const mmOut = h('span', { class: 'el-mm' });
+      win.toolbar.append(mm, mmOut, h('div', { style: { flex: 1 } }), q); win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
+      const grid = h('div', { class: 'el-grid' }), card = h('div', { class: 'el-card' }), legend = h('div', { class: 'el-legend' });
+      win.body.appendChild(h('div', { class: 'el-wrap' }, h('div', { class: 'el-main' }, grid, legend), card));
+      function render() {
+        grid.innerHTML = ''; const ql = q.value.trim().toLowerCase();
+        EL.forEach((e) => {
+          const [r, c] = pos(e.z);
+          const match = (!ql || e.en.toLowerCase().includes(ql) || e.fr.toLowerCase().includes(ql) || e.sym.toLowerCase() === ql || String(e.z) === ql) && (!filter || e.cat === filter);
+          const cell = h('button', { class: 'el-cell' + (sel === e ? ' on' : '') + (match ? '' : ' dim'), style: { gridRow: r, gridColumn: c, '--c': CATS[e.cat][1] } }, h('small', {}, e.z), h('b', {}, e.sym), h('span', {}, e.name));
+          cell.onclick = () => { sel = e; render(); };
+          grid.appendChild(cell);
+        });
+        grid.appendChild(h('div', { class: 'el-gap', style: { gridRow: 8, gridColumn: '1 / -1' } }));
+        grid.appendChild(h('div', { class: 'el-mark', style: { gridRow: 6, gridColumn: 3 } }, '57–71')); grid.appendChild(h('div', { class: 'el-mark', style: { gridRow: 7, gridColumn: 3 } }, '89–103'));
+        legend.innerHTML = '';
+        Object.entries(CATS).forEach(([k, [l, c]]) => { const b = h('button', { class: 'el-leg' + (filter === k ? ' on' : ''), style: { '--c': c } }, h('i'), PatOS.t(l)); b.onclick = () => { filter = filter === k ? null : k; render(); }; legend.appendChild(b); });
+        const e = sel, [r, c] = pos(e.z);
+        card.innerHTML = '';
+        card.append(h('div', { class: 'el-big', style: { '--c': CATS[e.cat][1] } }, h('small', {}, e.z), h('b', {}, e.sym), h('span', {}, e.mass)),
+          h('h2', {}, e.name), h('div', { class: 'el-cat', style: { color: CATS[e.cat][1] } }, PatOS.t(CATS[e.cat][0])),
+          h('div', { class: 'el-props' }, ...[['Atomic number', e.z], ['Atomic mass', e.mass + ' u'], ['Period', r > 7 ? r - 3 : r], ['Group', r > 7 ? '3' : c], ['State at room temperature', PatOS.t(e.z > 100 ? 'Unknown' : GAS.includes(e.sym) ? 'Gas' : LIQ.includes(e.sym) ? 'Liquid' : 'Solid')], ['Protons', e.z], ['Electrons', e.z], ['Neutrons (most common)', Math.max(0, Math.round(e.mass) - e.z)]].map(([k, v]) => h('div', {}, h('span', {}, PatOS.t(k)), h('b', {}, String(v))))),
+          h('button', { class: 'btn', onclick: () => PatOS.launch('browser', { url: (PatOS.lang === 'fr' ? 'https://fr' : 'https://en') + '.wikipedia.org/wiki/' + encodeURIComponent(PatOS.lang === 'fr' ? e.fr : e.en) }) }, PatOS.t('Read more')));
+      }
+      q.oninput = render;
+      mm.oninput = () => { const v = mm.value.trim(); if (!v) { mmOut.textContent = ''; return; } try { const r = molarMass(v); mmOut.textContent = '= ' + r.mass.toFixed(3) + ' g/mol'; mmOut.classList.remove('err'); } catch (e) { mmOut.textContent = PatOS.t('not a valid formula'); mmOut.classList.add('err'); } };
+      win.body.tabIndex = 0;
+      win.body.addEventListener('keydown', (e) => { if (e.target.tagName === 'INPUT') return; const i = EL.indexOf(sel); if (e.key === 'ArrowRight') { sel = EL[Math.min(117, i + 1)]; render(); } if (e.key === 'ArrowLeft') { sel = EL[Math.max(0, i - 1)]; render(); } });
+      render();
+    }
+  });
+  PatOS.molarMass = molarMass;
+})();
+
+</script>
+  <script>
+/* Focus — a study timer (Pomodoro) with a task, background sound and stats */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  const MODES = { focus: ['Focus', 25], short: ['Short Break', 5], long: ['Long Break', 15] };
+  const day = (d) => { const x = d || new Date(); return x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0'); };
+  const fmt = (s) => String(Math.floor(s / 60)).padStart(2, '0') + ':' + String(Math.floor(s % 60)).padStart(2, '0');
+
+  /* background noise made with Web Audio */
+  let noise = null;
+  function startNoise(kind) {
+    stopNoise(); if (kind === 'off') return;
+    const a = PatOS.audio(); if (!a) return;
+    const len = a.ctx.sampleRate * 2, buf = a.ctx.createBuffer(1, len, a.ctx.sampleRate), d = buf.getChannelData(0);
+    let last = 0;
+    for (let i = 0; i < len; i++) { const w = Math.random() * 2 - 1; if (kind === 'brown') { last = (last + 0.02 * w) / 1.02; d[i] = last * 3.5; } else d[i] = w * 0.5; }
+    const src = a.ctx.createBufferSource(); src.buffer = buf; src.loop = true;
+    const f = a.ctx.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = kind === 'rain' ? 1800 : kind === 'brown' ? 900 : 6000;
+    const g = a.ctx.createGain(); g.gain.value = 0;
+    g.gain.linearRampToValueAtTime(kind === 'rain' ? 0.22 : 0.3, a.ctx.currentTime + 1.2);
+    src.connect(f); f.connect(g); g.connect(a.out); src.start();
+    let lfo = null;
+    if (kind === 'rain') { lfo = setInterval(() => { f.frequency.setTargetAtTime(1400 + Math.random() * 900, a.ctx.currentTime, 0.4); }, 700); }
+    noise = { src, g, a, lfo };
+  }
+  function stopNoise() {
+    if (!noise) return; const n = noise; noise = null; clearInterval(n.lfo);
+    try { n.g.gain.setTargetAtTime(0, n.a.ctx.currentTime, 0.2); setTimeout(() => { try { n.src.stop(); } catch (e) {} }, 800); } catch (e) {}
+  }
+
+  PatOS.registerApp({
+    id: 'focus', name: 'Focus', icon: 'focus', width: 760, height: 560, category: 'Utilities', keywords: 'pomodoro study timer concentrate homework productivity',
+    about: 'A study timer: 25 minutes of focus, then a break. Keeps track of your time.',
+    launch(win) {
+      win.el.classList.add('has-toolbar');
+      const cfg = Object.assign({ focus: 25, short: 5, long: 15, every: 4, auto: false, sound: 'off', goal: 4 }, PatOS.store.get('focusCfg', {}));
+      const hist = PatOS.store.get('focusHistory', {}); // { 'YYYY-MM-DD': { n, min, tasks: {name: min} } }
+      let mode = 'focus', total = cfg.focus * 60, left = total, running = false, endAt = 0, done = 0, timer = null;
+      const task = h('input', { class: 'fo-task', placeholder: 'What are you working on?', value: PatOS.store.get('focusTask', '') });
+      task.oninput = () => PatOS.store.set('focusTask', task.value);
+      const tabs = h('div', { class: 'seg fo-tabs' });
+      const R = 120, C = 2 * Math.PI * R;
+      const ring = h('div', { class: 'fo-ring', html: `<svg viewBox="0 0 280 280"><circle cx="140" cy="140" r="${R}" class="fo-bg"/><circle cx="140" cy="140" r="${R}" class="fo-fg" stroke-dasharray="${C}" stroke-dashoffset="0" transform="rotate(-90 140 140)"/></svg>` });
+      const time = h('div', { class: 'fo-time' }), sub = h('div', { class: 'fo-sub' });
+      ring.appendChild(h('div', { class: 'fo-center' }, time, sub));
+      const bStart = h('button', { class: 'btn primary fo-go' }), bReset = h('button', { class: 'btn' }, PatOS.t('Reset')), bSkip = h('button', { class: 'btn' }, PatOS.t('Skip'));
+      const dots = h('div', { class: 'fo-dots' });
+      const sound = h('select', { class: 'field' }, ...[['off', 'No sound'], ['rain', 'Rain'], ['white', 'White noise'], ['brown', 'Brown noise']].map(([v, l]) => h('option', { value: v }, PatOS.t(l))));
+      sound.value = cfg.sound;
+      sound.onchange = () => { cfg.sound = sound.value; PatOS.store.set('focusCfg', cfg); if (running && mode === 'focus') startNoise(cfg.sound); else stopNoise(); };
+      const bSet = h('button', { class: 'tbtn', title: 'Timer settings', html: PatOS.sym('gear') });
+      const bStats = h('button', { class: 'tbtn', title: 'Statistics', html: PatOS.sym('sheet') });
+      win.toolbar.append(h('span', { class: 'fo-tl' }, PatOS.t('Sound')), sound, h('div', { style: { flex: 1 } }), bStats, bSet);
+      const main = h('div', { class: 'fo-main' }, tabs, ring, task, h('div', { class: 'fo-btns' }, bReset, bStart, bSkip), dots);
+      const stats = h('div', { class: 'fo-stats' });
+      win.body.appendChild(h('div', { class: 'fo-wrap' }, main, stats));
+
+      function setMode(m, keepRunning) {
+        mode = m; total = cfg[m] * 60; left = total; if (!keepRunning) running = false;
+        if (running) endAt = Date.now() + left * 1000;
+        win.el.dataset.fo = m; paint();
+      }
+      function renderTabs() {
+        tabs.innerHTML = '';
+        Object.entries(MODES).forEach(([k, [l]]) => { const b = h('button', { class: 'tab' + (mode === k ? ' on' : '') }, PatOS.t(l)); b.onclick = () => { setMode(k); stopNoise(); }; tabs.appendChild(b); });
+      }
+      function paint() {
+        renderTabs();
+        time.textContent = fmt(Math.ceil(left));
+        sub.textContent = PatOS.t(running ? (mode === 'focus' ? 'Stay focused' : 'Take a breather') : left < total ? 'Paused' : MODES[mode][0]);
+        ring.querySelector('.fo-fg').style.strokeDashoffset = String(C * (1 - left / total));
+        bStart.textContent = PatOS.t(running ? 'Pause' : left < total ? 'Resume' : 'Start');
+        dots.innerHTML = '';
+        for (let i = 0; i < cfg.every; i++) dots.appendChild(h('i', { class: i < done % cfg.every || (done && done % cfg.every === 0 && mode === 'long') ? 'on' : '' }));
+        win.setTitle(running ? fmt(Math.ceil(left)) + ' · ' + PatOS.t('Focus') : PatOS.t('Focus'));
+      }
+      function tick() {
+        if (!running) return;
+        left = Math.max(0, (endAt - Date.now()) / 1000);
+        if (left <= 0) finish(); else paint();
+      }
+      function finish(skipped) {
+        running = false; stopNoise();
+        if (!skipped) [0, 0.25, 0.5].forEach((d, i) => PatOS.sound.tone([660, 880, 1100][i], 0.35, { delay: d, vol: 0.18 }));
+        if (mode === 'focus') {
+          done++;
+          if (!skipped) {
+          const k = day(), e = hist[k] || (hist[k] = { n: 0, min: 0, tasks: {} });
+          e.n++; e.min += cfg.focus; const tn = task.value.trim() || PatOS.t('No task'); e.tasks[tn] = (e.tasks[tn] || 0) + cfg.focus;
+          PatOS.store.set('focusHistory', hist);
+          }
+          if (!skipped) PatOS.notify({ title: PatOS.t('Focus session done'), body: PatOS.t('Nice work. Time for a break.'), icon: 'focus' });
+          setMode(done % cfg.every === 0 ? 'long' : 'short');
+        } else {
+          if (!skipped) PatOS.notify({ title: PatOS.t('Break is over'), body: PatOS.t('Ready for the next session?'), icon: 'focus' });
+          setMode('focus');
+        }
+        renderStats();
+        if (cfg.auto) start();
+      }
+      function start() {
+        running = true; endAt = Date.now() + left * 1000;
+        if (mode === 'focus') startNoise(cfg.sound);
+        paint();
+      }
+      bStart.onclick = () => { if (running) { running = false; left = Math.max(0, (endAt - Date.now()) / 1000); stopNoise(); paint(); } else start(); };
+      bReset.onclick = () => { setMode(mode); stopNoise(); };
+      bSkip.onclick = () => { const was = running; left = 0; running = true; endAt = Date.now(); finish(true); if (!was && !cfg.auto) paint(); };
+      timer = setInterval(tick, 250);
+      win.on('closed', () => { clearInterval(timer); stopNoise(); });
+      win.body.tabIndex = 0;
+      win.body.addEventListener('keydown', (e) => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return; if (e.key === ' ') { e.preventDefault(); bStart.click(); } if (e.key === 'r') bReset.click(); });
+
+      function renderStats() {
+        stats.innerHTML = '';
+        const today = hist[day()] || { n: 0, min: 0, tasks: {} };
+        let streak = 0; for (let d = new Date(); ; d.setDate(d.getDate() - 1)) { const e = hist[day(d)]; if (e && e.n) streak++; else if (day(d) !== day()) break; if (streak > 3650) break; }
+        const all = Object.values(hist).reduce((t, e) => t + e.min, 0);
+        stats.append(h('h3', {}, PatOS.t('Today')),
+          h('div', { class: 'fo-goal' }, h('div', { class: 'fo-bar' }, h('i', { style: { width: Math.min(100, today.n / cfg.goal * 100) + '%' } })), h('span', {}, today.n + ' / ' + cfg.goal + ' ' + PatOS.t('sessions'))),
+          h('div', { class: 'fo-nums' },
+            h('div', {}, h('b', {}, String(today.min)), h('span', {}, PatOS.t('minutes today'))),
+            h('div', {}, h('b', {}, String(streak)), h('span', {}, PatOS.t('day streak'))),
+            h('div', {}, h('b', {}, (all / 60).toFixed(1)), h('span', {}, PatOS.t('hours in total')))));
+        stats.appendChild(h('h3', {}, PatOS.t('Last 7 days')));
+        const week = []; for (let i = 6; i >= 0; i--) { const d = new Date(); d.setDate(d.getDate() - i); week.push([d, (hist[day(d)] || { min: 0 }).min]); }
+        const max = Math.max(cfg.focus, ...week.map((w) => w[1]));
+        stats.appendChild(h('div', { class: 'fo-chart' }, ...week.map(([d, m]) => h('div', { class: 'fo-col' + (day(d) === day() ? ' today' : ''), title: m + ' min' }, h('small', {}, m ? String(m) : ''), h('i', { style: { height: Math.max(3, m / max * 100) + '%' } }), h('span', {}, d.toLocaleDateString(PatOS.locale, { weekday: 'narrow' }))))));
+        const tasks = Object.entries(today.tasks).sort((a, b) => b[1] - a[1]);
+        if (tasks.length) {
+          stats.appendChild(h('h3', {}, PatOS.t('Worked on today')));
+          tasks.slice(0, 6).forEach(([n, m]) => stats.appendChild(h('div', { class: 'fo-trow' }, h('span', {}, n), h('b', {}, m + ' min'))));
+        }
+      }
+      bStats.onclick = () => win.el.classList.toggle('fo-nostats');
+      bSet.onclick = () => {
+        const field = (label, key, min, max) => { const i = h('input', { class: 'field', type: 'number', min, max, value: cfg[key] }); i.onchange = () => { const v = Math.round(+i.value); if (v >= min && v <= max) { cfg[key] = v; PatOS.store.set('focusCfg', cfg); if (!running) setMode(mode); renderStats(); } }; return h('label', { class: 'fo-field' }, h('span', {}, PatOS.t(label)), i); };
+        const auto = h('input', { type: 'checkbox' }); auto.checked = cfg.auto; auto.onchange = () => { cfg.auto = auto.checked; PatOS.store.set('focusCfg', cfg); };
+        const box = h('div', { class: 'fo-settings' },
+          h('h3', {}, PatOS.t('Timer settings')),
+          field('Focus (minutes)', 'focus', 1, 180), field('Short break (minutes)', 'short', 1, 60), field('Long break (minutes)', 'long', 1, 90),
+          field('Long break after', 'every', 2, 10), field('Daily goal (sessions)', 'goal', 1, 20),
+          h('label', { class: 'fo-field' }, h('span', {}, PatOS.t('Start the next timer automatically')), auto),
+          h('div', { style: { display: 'flex', justifyContent: 'space-between', marginTop: '10px' } },
+            h('button', { class: 'btn', onclick: () => PatOS.confirmBox(PatOS.t('Erase all your Focus history?'), '', { danger: true, ok: 'Clear', icon: 'focus' }).then((ok) => { if (ok) { Object.keys(hist).forEach((k) => delete hist[k]); PatOS.store.set('focusHistory', hist); renderStats(); } }) }, PatOS.t('Clear history')),
+            h('button', { class: 'btn primary', onclick: () => box.remove() }, PatOS.t('Done'))));
+        win.body.appendChild(box);
+      };
+      win.el.dataset.fo = mode;
+      setMode('focus'); renderStats();
+    }
+  });
+})();
+
+</script>
+  <script>
+/* Journal — one entry per day, with mood, prompts, streaks and search */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  const MOODS = [['great', 'Great', '#30d158', 'Super'], ['good', 'Good', '#64d2ff', 'Bien'], ['okay', 'Okay', '#ffd60a', 'Correct'], ['meh', 'Meh', '#ff9f0a', 'Bof'], ['bad', 'Rough', '#ff453a', 'Difficile']];
+  const moodName = (m) => PatOS.lang === 'fr' ? m[3] : m[1];
+  const FACES = { great: 'M8 14c1.2 2 6.8 2 8 0', good: 'M8.5 14.5c1.5 1.2 5.5 1.2 7 0', okay: 'M8.5 15h7', meh: 'M8.5 15.5c1.5-.8 5.5-.8 7 0', bad: 'M8 16c1.2-2 6.8-2 8 0' };
+  const face = (m, c) => `<svg viewBox="0 0 24 24" width="22" height="22"><circle cx="12" cy="12" r="10" fill="${c}" opacity=".9"/><circle cx="9" cy="10" r="1.2" fill="#1c1c1e"/><circle cx="15" cy="10" r="1.2" fill="#1c1c1e"/><path d="${FACES[m]}" stroke="#1c1c1e" stroke-width="1.6" fill="none" stroke-linecap="round"/></svg>`;
+  const PROMPTS = [
+    'What made you smile today?', 'What is one thing you learned today?', 'What are you looking forward to this week?',
+    'Who helped you today, and how?', 'What was the hardest part of your day?', 'If today had a title, what would it be?',
+    'What is something you want to get better at?', 'Describe a small win from today.', 'What would you tell yourself from a year ago?',
+    'What are three things you are thankful for?', 'What is on your mind right now?', 'What did you do today just for fun?',
+    'What is a goal for tomorrow?', 'What song matches your mood today, and why?'
+  ];
+  const key = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  const parse = (k) => { const [y, m, d] = k.split('-').map(Number); return new Date(y, m - 1, d); };
+
+  PatOS.registerApp({
+    id: 'journal', name: 'Journal', icon: 'journal', width: 940, height: 620, category: 'Apps', keywords: 'diary daily writing mood gratitude',
+    about: 'A private diary: one page per day, with your mood and a question to get you writing.',
+    launch(win) {
+      win.el.classList.add('has-toolbar');
+      const data = PatOS.store.get('journal', {}); // { 'YYYY-MM-DD': { text, mood, updated } }
+      const save = () => PatOS.store.set('journal', data);
+      let cur = key(new Date()), query = '';
+      const list = h('div', { class: 'jn-list' }), page = h('div', { class: 'jn-page' });
+      const search = h('input', { class: 'field', placeholder: 'Search', style: { width: '180px' } });
+      const streakEl = h('span', { class: 'jn-streak' });
+      const bToday = h('button', { class: 'btn' }, PatOS.t('Today'));
+      const bPick = h('input', { class: 'field', type: 'date', title: 'Go to a date', style: { width: '140px' } });
+      win.toolbar.append(bToday, bPick, h('div', { style: { flex: 1 } }), streakEl, search);
+      win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
+      win.body.appendChild(h('div', { class: 'jn-wrap' }, list, page));
+      const words = (t) => (t.trim().match(/\S+/g) || []).length;
+
+      function streak() {
+        let n = 0; const d = new Date();
+        if (!(data[key(d)] && data[key(d)].text.trim())) d.setDate(d.getDate() - 1);
+        while (data[key(d)] && data[key(d)].text.trim()) { n++; d.setDate(d.getDate() - 1); }
+        return n;
+      }
+      function renderList() {
+        list.innerHTML = '';
+        const ql = query.toLowerCase();
+        const keys = Object.keys(data).filter((k) => data[k].text.trim() && (!ql || data[k].text.toLowerCase().includes(ql))).sort().reverse();
+        if (!keys.includes(cur) && !ql) keys.unshift(cur), keys.sort().reverse();
+        let month = '';
+        keys.forEach((k) => {
+          const d = parse(k), m = d.toLocaleDateString(PatOS.locale, { month: 'long', year: 'numeric' });
+          if (m !== month) { month = m; list.appendChild(h('div', { class: 'jn-month' }, m)); }
+          const e = data[k] || { text: '' }, md = MOODS.find((x) => x[0] === e.mood);
+          const row = h('div', { class: 'jn-item' + (k === cur ? ' on' : '') },
+            h('div', { class: 'jn-day' }, h('b', {}, String(d.getDate())), h('small', {}, d.toLocaleDateString(PatOS.locale, { weekday: 'short' }))),
+            h('div', { class: 'jn-prev' }, h('div', {}, e.text.trim().split('\n')[0].slice(0, 80) || PatOS.t('Nothing written yet')), h('small', {}, words(e.text) + ' ' + PatOS.t('words'))),
+            md ? h('span', { class: 'jn-mood-s', html: face(md[0], md[2]) }) : null);
+          row.onclick = () => { cur = k; render(); };
+          row.oncontextmenu = (ev) => { ev.preventDefault(); PatOS.menu([{ label: PatOS.t('Delete Entry'), action: async () => { if (await PatOS.confirmBox(PatOS.t('Delete this entry?'), PatOS.t('This can’t be undone.'), { danger: true, ok: 'Delete', icon: 'journal' })) { delete data[k]; save(); render(); } } }], ev.clientX, ev.clientY); };
+          list.appendChild(row);
+        });
+        if (!keys.length) list.appendChild(h('div', { class: 'jn-empty' }, PatOS.t('No results')));
+        const s = streak();
+        streakEl.textContent = s ? s + ' ' + PatOS.t(s === 1 ? 'day in a row' : 'days in a row') : '';
+      }
+      function renderPage() {
+        page.innerHTML = '';
+        const d = parse(cur), e = data[cur] || { text: '', mood: null };
+        const prompt = PROMPTS[(d.getFullYear() * 372 + d.getMonth() * 31 + d.getDate()) % PROMPTS.length];
+        const moods = h('div', { class: 'jn-moods' }, h('span', {}, PatOS.t('How was your day?')));
+        MOODS.forEach((m) => {
+          const [id, , c] = m;
+          const b = h('button', { class: 'jn-mood' + (e.mood === id ? ' on' : ''), title: moodName(m), html: face(id, c) + '<small>' + moodName(m) + '</small>' });
+          b.onclick = () => { const x = data[cur] || (data[cur] = { text: '' }); x.mood = x.mood === id ? null : id; x.updated = Date.now(); save(); render(); };
+          moods.appendChild(b);
+        });
+        const ta = h('textarea', { class: 'jn-text', placeholder: PatOS.t('Start writing…'), spellcheck: 'true' }); ta.value = e.text;
+        const count = h('div', { class: 'jn-count' });
+        const upd = () => { count.textContent = words(ta.value) + ' ' + PatOS.t('words') + (e.updated ? ' · ' + PatOS.t('Saved') : ''); };
+        let t = null;
+        ta.oninput = () => { const x = data[cur] || (data[cur] = { text: '', mood: null }); x.text = ta.value; x.updated = Date.now(); clearTimeout(t); t = setTimeout(() => { save(); renderList(); }, 400); upd(); };
+        const today = cur === key(new Date());
+        page.append(
+          h('div', { class: 'jn-head' },
+            h('button', { class: 'tbtn', title: 'Previous day', onclick: () => { const x = parse(cur); x.setDate(x.getDate() - 1); cur = key(x); render(); } }, '‹'),
+            h('div', {}, h('h1', {}, d.toLocaleDateString(PatOS.locale, { weekday: 'long', day: 'numeric', month: 'long' })), h('small', {}, today ? PatOS.t('Today') : String(d.getFullYear()))),
+            h('button', { class: 'tbtn', title: 'Next day', onclick: () => { const x = parse(cur); x.setDate(x.getDate() + 1); if (x <= new Date()) { cur = key(x); render(); } } }, '›')),
+          moods,
+          h('div', { class: 'jn-prompt' }, h('small', {}, PatOS.t('Something to write about')), h('div', {}, PatOS.t(prompt)), h('button', { class: 'jn-use', onclick: () => { ta.value = (ta.value ? ta.value + '\n\n' : '') + PatOS.t(prompt) + '\n'; ta.oninput(); ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length); } }, PatOS.t('Use it'))),
+          ta, count);
+        upd();
+        if (today && !e.text) setTimeout(() => ta.focus(), 50);
+      }
+      function render() { renderList(); renderPage(); bPick.value = cur; }
+      search.oninput = () => { query = search.value.trim(); renderList(); };
+      bToday.onclick = () => { cur = key(new Date()); render(); };
+      bPick.onchange = () => { if (bPick.value && parse(bPick.value) <= new Date()) { cur = bPick.value; render(); } };
+      render();
+    }
+  });
+})();
+
+</script>
+  <script>
+/* Sudoku — fresh puzzles with one solution, notes, hints, undo and a timer */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  const LEVELS = { easy: ['Easy', 40], medium: ['Medium', 32], hard: ['Hard', 26] };
+  const rnd = (n) => Math.floor(Math.random() * n);
+  const shuffle = (a) => { for (let i = a.length - 1; i > 0; i--) { const j = rnd(i + 1); [a[i], a[j]] = [a[j], a[i]]; } return a; };
+  const ok = (g, i, v) => {
+    const r = Math.floor(i / 9), c = i % 9, br = r - r % 3, bc = c - c % 3;
+    for (let k = 0; k < 9; k++) { if (g[r * 9 + k] === v || g[k * 9 + c] === v) return false; }
+    for (let y = 0; y < 3; y++) for (let x = 0; x < 3; x++) if (g[(br + y) * 9 + bc + x] === v) return false;
+    return true;
+  };
+  function fill(g) {
+    const i = g.indexOf(0); if (i < 0) return true;
+    for (const v of shuffle([1, 2, 3, 4, 5, 6, 7, 8, 9])) { if (ok(g, i, v)) { g[i] = v; if (fill(g)) return true; g[i] = 0; } }
+    return false;
+  }
+  function count(g, limit) {
+    // counts solutions up to limit, picking the cell with the fewest options
+    let best = -1, opts = null;
+    for (let i = 0; i < 81; i++) {
+      if (g[i]) continue;
+      const o = []; for (let v = 1; v <= 9; v++) if (ok(g, i, v)) o.push(v);
+      if (!o.length) return 0;
+      if (!opts || o.length < opts.length) { best = i; opts = o; if (o.length === 1) break; }
+    }
+    if (best < 0) return 1;
+    let n = 0;
+    for (const v of opts) { g[best] = v; n += count(g, limit - n); if (n >= limit) break; }
+    g[best] = 0; return n;
+  }
+  function generate(level) {
+    const sol = new Array(81).fill(0); fill(sol);
+    const puz = sol.slice(), target = LEVELS[level][1];
+    let clues = 81;
+    for (const i of shuffle([...Array(81).keys()])) {
+      if (clues <= target) break;
+      const v = puz[i]; puz[i] = 0;
+      if (count(puz.slice(), 2) !== 1) puz[i] = v; else clues--;
+    }
+    return { puz, sol };
+  }
+  const fmt = (s) => Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0');
+
+  PatOS.registerApp({
+    id: 'sudoku', name: 'Sudoku', icon: 'sudoku', width: 800, height: 620, category: '3D & Games', keywords: 'puzzle numbers game logic',
+    about: 'Number puzzles with exactly one answer, made fresh every game.',
+    launch(win) {
+      win.el.classList.add('has-toolbar');
+      let st = PatOS.store.get('sudokuGame', null), sel = -1, notesMode = false, undo = [], timer = null;
+      const best = PatOS.store.get('sudokuBest', {});
+      const lvl = h('select', { class: 'field' }, ...Object.entries(LEVELS).map(([k, [l]]) => h('option', { value: k }, PatOS.t(l))));
+      const bNew = h('button', { class: 'btn' }, PatOS.t('New Game'));
+      const clock = h('span', { class: 'sd-clock' }), mistakes = h('span', { class: 'sd-mis' });
+      win.toolbar.append(lvl, bNew, h('div', { style: { flex: 1 } }), mistakes, clock);
+      win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
+      const board = h('div', { class: 'sd-board' }), pad = h('div', { class: 'sd-pad' }), tools = h('div', { class: 'sd-tools' });
+      const overlay = h('div', { class: 'sd-done' });
+      win.body.appendChild(h('div', { class: 'sd-wrap' }, h('div', { class: 'sd-bwrap' }, board, overlay), h('div', { class: 'sd-side' }, pad, tools)));
+      const cells = [];
+      for (let i = 0; i < 81; i++) {
+        const c = h('button', { class: 'sd-cell', 'data-r': Math.floor(i / 9), 'data-c': i % 9 });
+        c.onclick = () => { sel = i; paint(); };
+        cells.push(c); board.appendChild(c);
+      }
+      const save = () => PatOS.store.set('sudokuGame', st);
+      function newGame(level) {
+        board.classList.add('sd-busy');
+        setTimeout(() => {
+          const { puz, sol } = generate(level);
+          st = { level, puz, sol, val: puz.slice(), notes: Array.from({ length: 81 }, () => []), time: 0, mis: 0, done: false, hints: 0 };
+          undo = []; sel = -1; save(); board.classList.remove('sd-busy'); paint();
+        }, 20);
+      }
+      function set(i, v, asNote) {
+        if (st.done || i < 0 || st.puz[i]) return;
+        undo.push({ i, val: st.val[i], notes: st.notes[i].slice() });
+        if (asNote && v) {
+          if (st.val[i]) return;
+          const n = st.notes[i], k = n.indexOf(v); if (k >= 0) n.splice(k, 1); else n.push(v);
+        } else {
+          st.val[i] = st.val[i] === v ? 0 : v; st.notes[i] = [];
+          if (v && st.val[i] && st.val[i] !== st.sol[i]) { st.mis++; PatOS.sound.error(); }
+          if (st.val[i] && st.val[i] === st.sol[i]) {
+            // clear this number from notes in the same row, column and box
+            const r = Math.floor(i / 9), c = i % 9;
+            for (let j = 0; j < 81; j++) { const rj = Math.floor(j / 9), cj = j % 9; if (rj === r || cj === c || (Math.floor(rj / 3) === Math.floor(r / 3) && Math.floor(cj / 3) === Math.floor(c / 3))) { const k = st.notes[j].indexOf(v); if (k >= 0) st.notes[j].splice(k, 1); } }
+          }
+        }
+        check(); save(); paint();
+      }
+      function check() {
+        if (st.val.every((v, i) => v === st.sol[i])) {
+          st.done = true;
+          const b = best[st.level]; if (!b || st.time < b) { best[st.level] = st.time; PatOS.store.set('sudokuBest', best); }
+          [523, 659, 784, 1046].forEach((f, i) => PatOS.sound.tone(f, 0.3, { delay: i * 0.12, vol: 0.15 }));
+        }
+      }
+      function paint() {
+        if (!st) return;
+        lvl.value = st.level;
+        const sv = sel >= 0 ? st.val[sel] : 0, sr = Math.floor(sel / 9), sc = sel % 9;
+        cells.forEach((c, i) => {
+          const r = Math.floor(i / 9), col = i % 9, v = st.val[i];
+          const peer = sel >= 0 && (r === sr || col === sc || (Math.floor(r / 3) === Math.floor(sr / 3) && Math.floor(col / 3) === Math.floor(sc / 3)));
+          c.className = 'sd-cell' + (st.puz[i] ? ' given' : '') + (i === sel ? ' sel' : peer ? ' peer' : '') + (v && sv && v === sv && i !== sel ? ' same' : '') + (v && v !== st.sol[i] ? ' wrong' : '');
+          if (v) c.textContent = v;
+          else { c.innerHTML = ''; if (st.notes[i].length) { const g = h('div', { class: 'sd-notes' }); for (let n = 1; n <= 9; n++) g.appendChild(h('span', {}, st.notes[i].includes(n) ? String(n) : '')); c.appendChild(g); } }
+        });
+        pad.innerHTML = '';
+        for (let n = 1; n <= 9; n++) {
+          const left = 9 - st.val.filter((v, i) => v === n && v === st.sol[i]).length;
+          const b = h('button', { class: 'sd-num' + (left ? '' : ' full') }, h('b', {}, String(n)), h('small', {}, left ? String(left) : ''));
+          b.onclick = () => set(sel, n, notesMode); pad.appendChild(b);
+        }
+        tools.innerHTML = '';
+        const tool = (label, icon, fn, on) => { const b = h('button', { class: 'sd-tool' + (on ? ' on' : '') }, h('span', { html: icon }), h('small', {}, PatOS.t(label))); b.onclick = fn; tools.appendChild(b); };
+        tool('Undo', '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 7 4 12l5 5"/><path d="M4 12h10a6 6 0 0 1 0 12h-2"/></svg>', () => { const u = undo.pop(); if (!u || st.done) return; st.val[u.i] = u.val; st.notes[u.i] = u.notes; sel = u.i; save(); paint(); });
+        tool('Erase', '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><path d="M20 20H8l-5-5 10-10 8 8-6 7"/><path d="m8 10 6 6"/></svg>', () => { if (sel >= 0 && !st.puz[sel] && (st.val[sel] || st.notes[sel].length)) { undo.push({ i: sel, val: st.val[sel], notes: st.notes[sel].slice() }); st.val[sel] = 0; st.notes[sel] = []; save(); paint(); } });
+        tool(notesMode ? 'Notes on' : 'Notes off', '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M4 20h4L19 9l-4-4L4 16z"/></svg>', () => { notesMode = !notesMode; paint(); }, notesMode);
+        tool('Hint', '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.7.7 1 1.5 1 2.5h6c0-1 .3-1.8 1-2.5A6 6 0 0 0 12 3z"/></svg>', () => {
+          if (st.done) return;
+          let i = sel >= 0 && !st.puz[sel] && st.val[sel] !== st.sol[sel] ? sel : -1;
+          if (i < 0) { const open = []; st.val.forEach((v, k) => { if (v !== st.sol[k]) open.push(k); }); i = open[rnd(open.length)]; }
+          if (i == null) return;
+          undo.push({ i, val: st.val[i], notes: st.notes[i].slice() }); st.val[i] = st.sol[i]; st.notes[i] = []; st.hints++; sel = i; check(); save(); paint();
+        });
+        mistakes.textContent = PatOS.t('Mistakes') + ': ' + st.mis;
+        clock.textContent = fmt(st.time);
+        overlay.innerHTML = '';
+        overlay.classList.toggle('on', st.done);
+        if (st.done) overlay.append(h('h2', {}, PatOS.t('Solved!')), h('p', {}, PatOS.t(LEVELS[st.level][0]) + ' · ' + fmt(st.time) + (best[st.level] === st.time ? ' · ' + PatOS.t('New best time') : '')), h('button', { class: 'btn primary', onclick: () => newGame(st.level) }, PatOS.t('Play Again')));
+      }
+      timer = setInterval(() => { if (st && !st.done && !document.hidden) { st.time++; clock.textContent = fmt(st.time); if (st.time % 5 === 0) save(); } }, 1000);
+      win.on('closed', () => { clearInterval(timer); save(); });
+      win.body.tabIndex = 0;
+      win.body.addEventListener('keydown', (e) => {
+        if (!st || e.target.tagName === 'SELECT') return;
+        const k = e.key;
+        if (/^[1-9]$/.test(k)) { set(sel, +k, notesMode !== e.shiftKey); e.preventDefault(); return; }
+        if (k === 'Backspace' || k === 'Delete' || k === '0') { tools.children[1].click(); e.preventDefault(); return; }
+        if (k === 'n' || k === 'N') { notesMode = !notesMode; paint(); return; }
+        if (k === 'z' && (e.ctrlKey || e.metaKey || e.altKey)) { tools.children[0].click(); e.preventDefault(); return; }
+        const mv = { ArrowUp: -9, ArrowDown: 9, ArrowLeft: -1, ArrowRight: 1 }[k];
+        if (mv) { e.preventDefault(); if (sel < 0) sel = 0; else { const r = Math.floor(sel / 9), c = sel % 9; if (mv === -1) sel = r * 9 + (c + 8) % 9; else if (mv === 1) sel = r * 9 + (c + 1) % 9; else sel = (sel + mv + 81) % 81; } paint(); }
+      });
+      bNew.onclick = () => newGame(lvl.value);
+      lvl.onchange = () => newGame(lvl.value);
+      if (st && st.sol) paint(); else newGame('easy');
     }
   });
 })();
