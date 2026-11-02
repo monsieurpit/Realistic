@@ -874,13 +874,13 @@
       const wake = () => { off.removeEventListener('pointerdown', wake); document.removeEventListener('keydown', wake); off.classList.add('hidden'); off.classList.remove('sleeping'); PatOS.wallpaper.pause(false); PatOS.boot.showLock(); };
       setTimeout(() => { off.addEventListener('pointerdown', wake); document.addEventListener('keydown', wake); }, 400);
     },
-    async restart() { if (!(await PatOS.confirmBox('Restart PatOS?', 'Open windows will close.', { ok: 'Restart' }))) return; PatOS.wm.closeAll(); PatOS.loggedIn = false; setTimeout(() => location.reload(), 300); },
+    async restart() { if (!(await PatOS.confirmBox('Restart PatOS?', 'Open windows will close.', { ok: 'Restart' }))) return; PatOS.wm.closeAll(); PatOS.loggedIn = false; setTimeout(() => (PatOS._leaving = true, location.reload()), 300); },
     async shutdown() {
       if (!(await PatOS.confirmBox('Shut down PatOS?', 'Open windows will close.', { ok: 'Shut Down' }))) return;
       PatOS.wm.closeAll(); PatOS.loggedIn = false; PatOS.wallpaper.stop();
       $('#desktop').classList.add('hidden');
       const off = $('#off'); off.querySelector('.off-msg').innerHTML = 'PatOS is shut down.<br><small>Click anywhere to start up.</small>'; off.classList.remove('hidden');
-      off.addEventListener('pointerdown', () => location.reload(), { once: true });
+      off.addEventListener('pointerdown', () => (PatOS._leaving = true, location.reload()), { once: true });
     }
   };
 

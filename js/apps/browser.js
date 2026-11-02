@@ -87,6 +87,9 @@
   }
   function host(url) { try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return url; } }
   const favicon = (url) => { try { const u = new URL(url); return /^https?:/.test(u.protocol) ? 'https://www.google.com/s2/favicons?sz=32&domain=' + u.hostname : null; } catch (e) { return null; } };
+  /* If a web page inside Patoogle ever tries to replace the whole PatOS page, the browser asks first. */
+  let webTabs = 0;
+  window.addEventListener('beforeunload', (e) => { if (webTabs > 0 && !PatOS._leaving) { e.preventDefault(); e.returnValue = ''; } });
   PatOS.openExternal = (url) => {
     const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
     document.body.appendChild(a); a.click(); a.remove();
@@ -140,7 +143,7 @@
         return t;
       }
       function closeTab(t) {
-        const i = tabs.indexOf(t); tabs.splice(i, 1); t.tabEl.remove(); t.pane.remove();
+        const i = tabs.indexOf(t); tabs.splice(i, 1); t.tabEl.remove(); t.pane.remove(); if (t.web) { webTabs--; t.web = false; }
         if (!tabs.length) { win.close(); return; }
         if (cur === t) select(tabs[Math.min(i, tabs.length - 1)]);
       }
@@ -165,6 +168,8 @@
         if (yt || /(^|\.)youtube\.com$/.test(host(url).replace(/^m\./, ''))) { const vid = yt && yt.match(/embed\/([\w-]{11})/); PatOS.launch('youtube', vid ? { id: vid[1] } : (new URL(url).searchParams.get('search_query') ? { q: new URL(url).searchParams.get('search_query') } : {})); if (t.url === 'patos://newtab' || !t.hist.length) { t.hist = []; t.idx = -1; } return; }
         if (!noHist) { t.hist = t.hist.slice(0, t.idx + 1); t.hist.push(url); t.idx = t.hist.length - 1; }
         if (/^https?:/.test(url)) { const H = PatOS.store.get('browserHistory', []); if (!H[0] || H[0].u !== url) { H.unshift({ u: url, t: Date.now() }); PatOS.store.set('browserHistory', H.slice(0, 100)); } }
+        if (t.web) { webTabs--; t.web = false; }
+        if (/^https?:/.test(url) && !isBlocked(url)) { webTabs++; t.web = true; }
         t.url = url;
         t.pane.innerHTML = '';
         if (url === 'patos://newtab') { t.title = 'New Tab'; t.pane.appendChild(newTabPage()); }
@@ -178,7 +183,7 @@
           const loader = h('div', { class: 'br-loading' });
           const attrs = { src: url, allow: 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write; geolocation', referrerpolicy: 'no-referrer-when-downgrade', allowfullscreen: true };
           // Google pages can't take over the whole PatOS tab; links that open new windows still work
-          if (isGoogleFrame(url)) attrs.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads';
+          if (isGoogleFrame(url)) attrs.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-top-navigation-by-user-activation allow-storage-access-by-user-activation';
           const frame = h('iframe', attrs);
           frame.addEventListener('load', () => { loader.remove(); try { const d = frame.contentDocument; if (d && d.title) { t.title = d.title; syncUI(); } } catch (e) {} });
           t.pane.append(loader, frame);
@@ -343,6 +348,7 @@
       win.body.addEventListener('keydown', (e) => {
         if (e.altKey && e.key.toLowerCase() === 't') { e.preventDefault(); e.stopPropagation(); newTab(); }
       });
+      win.on('closed', () => { tabs.forEach((t) => { if (t.web) { webTabs--; t.web = false; } }); });
       renderBM();
       if (args.html) newTab(null, args.html, args.title); else newTab(args.url);
     },

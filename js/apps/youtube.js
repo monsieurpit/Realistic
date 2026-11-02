@@ -108,7 +108,7 @@
       }
       function render() {
         scrollMore = null; upNext = null;
-        main.scrollTop = 0; main.innerHTML = '';
+        main.scrollTop = 0; main.innerHTML = ''; main.classList.remove('ytx-noscroll');
         win.el.classList.toggle('ytx-watching', route.key === 'watch');
         bBack.style.display = stack.length ? '' : 'none';
         renderNav();
@@ -133,7 +133,7 @@
       }
       const avatar = (src, name, cls) => (src ? h('img', { class: 'ytx-av ' + (cls || ''), src, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }) : h('div', { class: 'ytx-av ph ' + (cls || '') }, (name || '?').replace('@', '').charAt(0).toUpperCase()));
       function card(v, mode) {
-        const thumb = h('div', { class: 'ytx-th' }, h('img', { src: v.thumb, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }), v.live ? h('span', { class: 'ytx-dur live' }, PatOS.t('LIVE')) : v.duration ? h('span', { class: 'ytx-dur' }, v.duration) : null);
+        const thumb = h('div', { class: 'ytx-th' }, h('img', { src: v.thumb, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }), v.live ? h('span', { class: 'ytx-dur live' }, PatOS.t('LIVE')) : v.duration ? h('span', { class: 'ytx-dur' }, v.duration) : null, bad.has(v.id) ? h('span', { class: 'ytx-ext', title: PatOS.t('The uploader doesn’t allow this video to play outside youtube.com.') }, PatOS.t('youtube.com only')) : null);
         const meta = [v.views, v.published].filter(Boolean).join(' · ');
         const chan = h('button', { class: 'ytx-cn' }, v.channel || '');
         if (v.channelId) chan.onclick = (e) => { e.stopPropagation(); go({ key: 'channel', id: v.channelId }); };
@@ -219,28 +219,94 @@
         saveLib(); renderNav();
         if (btn) { const on = i < 0; btn.classList.toggle('on', on); btn.textContent = PatOS.t(on ? 'Subscribed' : 'Subscribe'); }
       }
-      function player(id, onEnd, isShort) {
-        const origin = /^https?:/.test(location.protocol) ? '&origin=' + encodeURIComponent(location.origin) : '';
-        const f = h('iframe', { src: 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0&playsinline=1&enablejsapi=1&modestbranding=1' + (isShort ? '&loop=1&playlist=' + id : '') + origin, allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share', allowfullscreen: true, referrerpolicy: 'strict-origin-when-cross-origin', title: 'YouTube video player' });
-        // listen to the official player so the next video can start when this one ends
+      /* The official YouTube player, controlled with YouTube's own iframe messages. It tells us when a video
+         ends, and when it can't play (the uploader turned off playback on other sites, a school block, etc.). */
+      const bad = new Set(PatOS.store.get('ytNoEmbed', []));
+      const markBad = (id) => { bad.add(id); PatOS.store.set('ytNoEmbed', [...bad].slice(-500)); };
+      const ERR = {
+        2: 'This video link isn’t valid.',
+        5: 'This video can’t play in this browser.',
+        100: 'This video was removed or made private.',
+        101: 'The uploader doesn’t allow this video to play outside youtube.com.',
+        150: 'The uploader doesn’t allow this video to play outside youtube.com.',
+        152: 'YouTube didn’t allow this video to play here.',
+        153: 'YouTube didn’t allow this video to play here.',
+        auth: 'YouTube wants to check that you’re not a robot before it plays videos inside other apps on this network.',
+        embedder_identity_denied: 'YouTube didn’t allow this video to play here.'
+      };
+      const NETWORK = (code) => code === 'auth' || code === 152 || code === 153 || code === 'embedder_identity_denied';
+      let errStreak = 0;
+      function player(id, o) {
+        o = o || {};
+        const web = /^https?:/.test(location.protocol);
+        const params = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1', enablejsapi: '1', modestbranding: '1', iv_load_policy: '3' });
+        if (o.short) { params.set('loop', '1'); params.set('playlist', id); params.set('controls', '0'); }
+        if (o.muted) params.set('mute', '1');
+        if (web) { params.set('origin', location.origin); params.set('widget_referrer', location.origin + '/'); }
+        const f = h('iframe', { src: 'https://www.youtube.com/embed/' + id + '?' + params, allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share', allowfullscreen: true, referrerpolicy: 'strict-origin-when-cross-origin', title: 'YouTube video player' });
+        const wrap = h('div', { class: 'ytx-pwrap' }, f);
+        let heard = false, state = -1, done = false, started = false, errTimer = null;
+        const send = (func, args) => { try { f.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args: args || [], id: 1, channel: 'widget' }), '*'); } catch (e) {} };
+        wrap.cmd = send;
+        wrap.state = () => state;
+        const showError = (code) => {
+          if (done || started) return; done = true;
+          const net = NETWORK(code);
+          if (!net) markBad(id);
+          errStreak++;
+          const msg = ERR[code] || 'This video can’t play here.';
+          const box = h('div', { class: 'ytx-perr' },
+            h('b', {}, PatOS.t(msg)),
+            net ? h('small', {}, PatOS.t('This usually happens when the browser blocks YouTube’s sign-in inside other sites (common on school Chromebooks). Signing in to YouTube in this browser often fixes it. You can always watch on youtube.com.')) : null,
+            !net && errStreak >= 4 ? h('small', {}, PatOS.t('Lots of videos are failing in a row. Your school or network may limit YouTube on this device.')) : null,
+            h('small', { class: 'ytx-code' }, PatOS.t('Error code') + ' ' + code),
+            h('div', { class: 'ytx-perrb' },
+              h('button', { class: 'ytx-btn', onclick: () => PatOS.openExternal('https://www.youtube.com/' + (o.short ? 'shorts/' : 'watch?v=') + id) }, PatOS.t('Watch on youtube.com')),
+              net ? h('button', { class: 'ytx-btn', onclick: () => PatOS.openExternal('https://accounts.google.com/ServiceLogin?service=youtube&continue=' + encodeURIComponent('https://www.youtube.com/')) }, PatOS.t('Sign in to YouTube')) : null,
+              net ? h('button', { class: 'ytx-btn', onclick: () => { const pw = wrap.parentNode; const nw = player(id, o); wrap.replaceWith(nw); } }, PatOS.t('Try again')) : null,
+              o.onSkip ? h('button', { class: 'ytx-btn', onclick: () => o.onSkip() }, PatOS.t(o.short ? 'Next Short' : 'Play the next video')) : null));
+          wrap.appendChild(box);
+          if (o.onError) o.onError(code, net);
+        };
         const onMsg = (e) => {
           if (e.source !== f.contentWindow) return;
           let d = e.data; try { d = typeof d === 'string' ? JSON.parse(d) : d; } catch (err) { return; }
-          const st = d && (d.event === 'onStateChange' ? d.info : d.info && d.info.playerState);
-          if (st === 0 && onEnd) { const fn = onEnd; onEnd = null; fn(); }
+          if (!d || typeof d !== 'object') return;
+          heard = true;
+          if (d.event === 'onError') return showError(d.info);
+          if (d.event === 'infoDelivery' && d.info && d.info.videoData && d.info.videoData.errorCode && !started && !errTimer) {
+            const code = d.info.videoData.errorCode;
+            errTimer = setTimeout(() => { if (!started && f.isConnected) showError(/^\d+$/.test(code) ? +code : code); }, 1500);
+          }
+          let st = null;
+          if (d.event === 'onStateChange') st = d.info;
+          else if (d.event === 'infoDelivery' && d.info && typeof d.info.playerState === 'number') st = d.info.playerState;
+          if (st === null || st === state) return;
+          state = st;
+          if (st === 1) { started = true; errStreak = 0; clearTimeout(errTimer); }
+          if (o.onState) o.onState(st);
+          if (st === 0 && o.onEnd) { const fn = o.onEnd; o.onEnd = null; fn(); }
         };
         window.addEventListener('message', onMsg);
-        f.addEventListener('load', () => { try { f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }), '*'); } catch (e) {} });
-        const obs = new MutationObserver(() => { if (!f.isConnected) { window.removeEventListener('message', onMsg); obs.disconnect(); } });
-        obs.observe(main, { childList: true });
-        return f;
+        // keep saying hello until the player answers (it loads after the iframe's load event)
+        let tries = 0;
+        const hello = setInterval(() => { if (heard || ++tries > 40 || !f.isConnected) return clearInterval(hello); try { f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }), '*'); } catch (e) {} }, 250);
+        // if autoplay with sound is blocked, start muted and offer sound
+        setTimeout(() => {
+          if (!f.isConnected || started || done || !heard) return;
+          if (state === -1 || state === 5) { send('mute'); send('playVideo'); setTimeout(() => { if (state === 1 && f.isConnected && !wrap.querySelector('.ytx-unmute')) { const u = h('button', { class: 'ytx-unmute' }, PatOS.t('Tap for sound')); u.onclick = (ev) => { ev.stopPropagation(); send('unMute'); send('setVolume', [100]); u.remove(); }; wrap.appendChild(u); } }, 900); }
+        }, 2500);
+        const obs = new MutationObserver(() => { if (!f.isConnected) { window.removeEventListener('message', onMsg); clearInterval(hello); obs.disconnect(); } });
+        obs.observe(main, { childList: true, subtree: true });
+        return wrap;
       }
       function watch(r) {
         const id = r.id, v0 = r.v || {};
         win.setTitle(v0.title || 'YouTube');
         const info = h('div', { class: 'ytx-winfo' }), side = h('div', { class: 'ytx-side' });
-        const next = () => { if (autoplay && upNext) go({ key: 'watch', id: upNext.id, v: upNext }, true); };
-        const pl = h('div', { class: 'ytx-player' }, player(id, next));
+        const nextUp = () => upNext && go({ key: 'watch', id: upNext.id, v: upNext }, true);
+        const next = () => { if (autoplay) nextUp(); };
+        const pl = h('div', { class: 'ytx-player' }, player(id, { onEnd: next, onSkip: () => nextUp() }));
         main.appendChild(h('div', { class: 'ytx-watch' }, h('div', { class: 'ytx-left' }, pl, info), side));
         info.appendChild(h('h1', { class: 'ytx-wt' }, v0.title || ''));
         side.appendChild(spinner());
@@ -273,6 +339,7 @@
           ap.querySelector('input').checked = autoplay; ap.querySelector('input').onchange = (e) => { autoplay = e.target.checked; PatOS.store.set('ytAutoplay', autoplay); };
           side.appendChild(ap);
           const rel = (v.related || []).filter((x) => x.id !== id);
+          rel.sort((a, b2) => (bad.has(a.id) ? 1 : 0) - (bad.has(b2.id) ? 1 : 0));
           upNext = rel[0] || null;
           rel.forEach((x) => side.appendChild(card(x, 'side')));
           if (v.relatedCont) {
@@ -317,30 +384,68 @@
           if (c.cont) more(c.cont);
         }).catch((e) => { box.innerHTML = ''; box.appendChild(problem(e, () => render())); });
       }
+      /* Shorts: a vertical feed you scroll or swipe through, one Short per screen. Only the Short on
+         screen gets a player; a clear layer over it keeps scrolling and swiping working. */
       function shorts(r) {
         win.setTitle('Shorts - YouTube');
-        const stage = h('div', { class: 'ytx-sstage' }); main.appendChild(stage);
-        let list = r.list || null, i = r.start || 0;
-        const show = () => {
-          stage.innerHTML = '';
-          const s = list[i]; if (!s) return;
-          const bUp = h('button', { class: 'ytx-snav', title: 'Previous', html: ic('up', 26) }), bDn = h('button', { class: 'ytx-snav', title: 'Next', html: ic('down', 26) });
-          bUp.disabled = i === 0; bUp.onclick = () => { if (i > 0) { i--; show(); } }; bDn.onclick = () => step();
-          const liked = lib.liked.some((x) => x.id === s.id);
-          const bL = h('button', { class: 'ytx-sact' + (liked ? ' on' : ''), html: ic('like', 26) + '<small>' + PatOS.t('Like') + '</small>' }); bL.onclick = () => bL.classList.toggle('on', toggleList('liked', Object.assign({ thumb: s.thumb2 }, s)));
-          const bS = h('button', { class: 'ytx-sact', html: ic('share', 26) + '<small>' + PatOS.t('Share') + '</small>' }); bS.onclick = () => copyLink(s.id);
-          stage.append(h('div', { class: 'ytx-sbox2' }, h('div', { class: 'ytx-splayer' }, player(s.id, null, true)), h('div', { class: 'ytx-stitle' }, h('b', {}, s.title), h('small', {}, s.views || ''))), h('div', { class: 'ytx-sacts' }, bL, bS), h('div', { class: 'ytx-snavs' }, bUp, bDn));
+        const feed = h('div', { class: 'ytx-sfeed', tabIndex: 0 }); main.appendChild(feed);
+        main.classList.add('ytx-noscroll');
+        let list = (r.list || []).filter((s2) => !bad.has(s2.id)), active = -1, loading = false, muted = false;
+        const items = [];
+        const mk = (s2, k) => {
+          const liked = lib.liked.some((x) => x.id === s2.id);
+          const bL = h('button', { class: 'ytx-sact' + (liked ? ' on' : ''), html: ic('like', 26) + '<small>' + PatOS.t('Like') + '</small>' }); bL.onclick = () => bL.classList.toggle('on', toggleList('liked', Object.assign({ thumb: s2.thumb2 }, s2)));
+          const bS = h('button', { class: 'ytx-sact', html: ic('share', 26) + '<small>' + PatOS.t('Share') + '</small>' }); bS.onclick = () => copyLink(s2.id);
+          const bO = h('button', { class: 'ytx-sact', html: ic('back', 26).replace('M15 5l-7 7 7 7', 'M9 5l7 7-7 7') + '<small>YouTube</small>' }); bO.onclick = () => PatOS.openExternal('https://www.youtube.com/shorts/' + s2.id);
+          const slot = h('div', { class: 'ytx-sslot' }, h('img', { src: s2.thumb2 || s2.thumb, alt: '', referrerpolicy: 'no-referrer' }));
+          const cover = h('div', { class: 'ytx-scover' });
+          const icon = h('div', { class: 'ytx-sicon' });
+          cover.onclick = () => { const pw = slot.querySelector('.ytx-pwrap'); if (!pw) return; const playingNow = pw.state() === 1; pw.cmd(playingNow ? 'pauseVideo' : 'playVideo'); icon.innerHTML = playingNow ? '❚❚' : '▶'; icon.classList.remove('show'); void icon.offsetWidth; icon.classList.add('show'); };
+          const item = h('section', { class: 'ytx-sitem' },
+            h('div', { class: 'ytx-sbox2' }, slot, cover, icon, h('div', { class: 'ytx-stitle' }, h('b', {}, s2.title), h('small', {}, s2.views || ''))),
+            h('div', { class: 'ytx-sacts' }, bL, bS, bO));
+          item.dataset.k = k; item._slot = slot; item._s = s2;
+          return item;
         };
-        const step = () => {
-          if (i < list.length - 1) { i++; show(); return; }
-          get('search', { q: (PatOS.lang === 'fr' ? 'drôle' : 'funny') + ' #shorts ' + Math.floor(Math.random() * 1000) }).then((j) => { const more = j.items.filter((x) => x.type === 'short' && !list.some((y) => y.id === x.id)); if (more.length) { list.push(...more); i++; show(); } }).catch(() => {});
+        const addItems = (arr) => { arr.forEach((s2) => { const it = mk(s2, items.length); items.push(it); feed.appendChild(it); io.observe(it); }); };
+        function activate(k) {
+          if (k === active || !items[k]) return;
+          if (items[active]) { const sl = items[active]._slot; const pw = sl.querySelector('.ytx-pwrap'); if (pw) pw.remove(); sl.querySelector('img').style.display = ''; }
+          active = k;
+          const it = items[k], sl = it._slot;
+          sl.querySelector('img').style.display = 'none';
+          sl.appendChild(player(it._s.id, { short: true, muted, onSkip: () => goTo(k + 1), onError: (code, net) => { if (!net) setTimeout(() => { if (active === k) goTo(k + 1); }, 1800); } }));
+          if (k >= items.length - 3) more();
+        }
+        const io = new IntersectionObserver((ents) => { ents.forEach((en) => { if (en.isIntersecting && en.intersectionRatio > 0.6) activate(+en.target.dataset.k); }); }, { root: feed, threshold: [0.6] });
+        const goTo = (k) => { if (items[k]) items[k].scrollIntoView({ behavior: 'smooth', block: 'start' }); else more(); };
+        const QUERIES = PatOS.lang === 'fr' ? ['drôle', 'tendance', 'animaux', 'sport', 'minecraft', 'cuisine', 'science', 'musique'] : ['funny', 'trending', 'animals', 'sports', 'minecraft', 'satisfying', 'science', 'music', 'gaming', 'art'];
+        let qi = 0;
+        function more() {
+          if (loading) return; loading = true;
+          const term = QUERIES[qi++ % QUERIES.length] + ' #shorts';
+          get('search', { q: term }).then((j) => {
+            const fresh = j.items.filter((x) => x.type === 'short' && !bad.has(x.id) && !items.some((it) => it._s.id === x.id));
+            addItems(fresh); loading = false;
+            if (!items.length) { feed.appendChild(h('div', { class: 'ytx-msg' }, PatOS.t('No Shorts found.'))); }
+          }).catch((e) => { loading = false; if (!items.length) { feed.innerHTML = ''; feed.appendChild(problem(e, () => render())); } });
+        }
+        const nav = h('div', { class: 'ytx-snavs' },
+          h('button', { class: 'ytx-snav', title: 'Previous', html: ic('up', 26), onclick: () => goTo(Math.max(0, active - 1)) }),
+          h('button', { class: 'ytx-snav', title: 'Next', html: ic('down', 26), onclick: () => goTo(active + 1) }));
+        main.appendChild(nav);
+        const onKey = (e) => {
+          if (route.key !== 'shorts' || !feed.isConnected) return document.removeEventListener('keydown', onKey);
+          if (e.target.tagName === 'INPUT') return;
+          if (e.key === 'ArrowDown' || e.key === 'j') { e.preventDefault(); goTo(active + 1); }
+          if (e.key === 'ArrowUp' || e.key === 'k') { e.preventDefault(); goTo(Math.max(0, active - 1)); }
+          if (e.key === ' ') { e.preventDefault(); const it = items[active]; if (it) it.querySelector('.ytx-scover').click(); }
         };
-        const onKey = (e) => { if (route.key !== 'shorts' || !win.el.isConnected) return document.removeEventListener('keydown', onKey); if (e.key === 'ArrowDown') { e.preventDefault(); step(); } if (e.key === 'ArrowUp' && i > 0) { e.preventDefault(); i--; show(); } };
         document.addEventListener('keydown', onKey);
-        let wheelT = 0; stage.addEventListener('wheel', (e) => { if (Date.now() - wheelT < 700 || Math.abs(e.deltaY) < 30) return; wheelT = Date.now(); if (e.deltaY > 0) step(); else if (i > 0) { i--; show(); } }, { passive: true });
-        let ty = null; stage.addEventListener('touchstart', (e) => { ty = e.touches[0].clientY; }, { passive: true }); stage.addEventListener('touchend', (e) => { if (ty == null) return; const d = ty - e.changedTouches[0].clientY; if (d > 60) step(); else if (d < -60 && i > 0) { i--; show(); } ty = null; });
-        if (list) show();
-        else { stage.appendChild(spinner()); get('search', { q: (PatOS.lang === 'fr' ? 'tendance' : 'trending') + ' #shorts' }).then((j) => { list = j.items.filter((x) => x.type === 'short'); if (!list.length) throw new Error('No Shorts found'); show(); }).catch((e) => { stage.innerHTML = ''; stage.appendChild(problem(e, () => render())); }); }
+        if (list.length) { addItems(list); const st = Math.max(0, Math.min(list.length - 1, r.start || 0)); setTimeout(() => { items[st].scrollIntoView({ block: 'start' }); activate(st); }, 30); }
+        else { feed.appendChild(spinner()); more(); setTimeout(() => { const sp = feed.querySelector('.ytx-load'); if (sp && items.length) sp.remove(); }, 4000); }
+        const obs = new MutationObserver(() => { const sp = feed.querySelector('.ytx-load'); if (sp && items.length) sp.remove(); });
+        obs.observe(feed, { childList: true });
       }
       function subs() {
         win.setTitle(PatOS.t('Subscriptions') + ' - YouTube');

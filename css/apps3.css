@@ -854,3 +854,37 @@ html[data-theme="dark"] .ytx { --yb: #0f0f0f; --yb2: #272727; --yb3: #3f3f3f; --
 .sol-win { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: rgba(0,0,0,.35); color: #fff; animation: fadeIn .4s; }
 .sol-win h2 { font-size: 40px; margin: 0; }
 @media (max-width: 700px) { .sol-table { padding: 10px 6px; } .sol-top, .sol-tabs { gap: 5px; grid-template-columns: repeat(7, 1fr); } .sol-card { border-radius: 5px; } .sol-tl { left: 2px; } .sol-br { display: none; } }
+/* YouTube player states + Shorts feed */
+.ytx-pwrap { position: absolute; inset: 0; }
+.ytx-pwrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.ytx-perr { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 20px; text-align: center; background: #0f0f0f; color: #fff; z-index: 3; }
+.ytx-perr b { font-size: 17px; max-width: 420px; }
+.ytx-perr small { color: #aaa; max-width: 420px; }
+.ytx-perr .ytx-btn { background: #272727; color: #fff; }
+.ytx-perrb { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+.ytx-unmute { position: absolute; left: 12px; top: 12px; z-index: 4; padding: 8px 14px; border-radius: 18px; background: rgba(0,0,0,.75); color: #fff !important; font-weight: 600; font-size: 13px; }
+.ytx-ext { position: absolute; left: 6px; bottom: 6px; padding: 1px 6px; border-radius: 4px; background: rgba(0,0,0,.8); color: #fff; font-size: 11px; }
+.ytx-main.ytx-noscroll { overflow: hidden; padding: 0; position: relative; }
+.ytx-sfeed { height: 100%; overflow-y: auto; scroll-snap-type: y mandatory; overscroll-behavior: contain; scrollbar-width: none; outline: none; }
+.ytx-sfeed::-webkit-scrollbar { display: none; }
+.ytx-sitem { height: 100%; scroll-snap-align: start; scroll-snap-stop: always; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 14px 0; box-sizing: border-box; }
+.ytx-sitem .ytx-sbox2 { position: relative; height: 100%; max-height: 860px; aspect-ratio: 9 / 16; border-radius: 16px; overflow: hidden; background: #000; }
+.ytx-sslot { position: absolute; inset: 0; }
+.ytx-sslot img { width: 100%; height: 100%; object-fit: cover; }
+.ytx-scover { position: absolute; inset: 0 0 0 0; z-index: 2; cursor: pointer; }
+.ytx-sicon { position: absolute; left: 50%; top: 50%; width: 72px; height: 72px; margin: -36px 0 0 -36px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; display: grid; place-items: center; font-size: 26px; z-index: 3; pointer-events: none; opacity: 0; }
+.ytx-sicon.show { animation: ytxPop .7s ease; }
+@keyframes ytxPop { 0% { opacity: 1; transform: scale(.8); } 60% { opacity: 1; transform: scale(1.05); } 100% { opacity: 0; transform: scale(1.2); } }
+.ytx-sitem .ytx-stitle { z-index: 3; opacity: 1; padding: 40px 16px 18px; }
+.ytx-sitem .ytx-perr { z-index: 4; }
+.ytx-sitem .ytx-sacts { align-self: flex-end; padding-bottom: 30px; }
+.ytx-noscroll > .ytx-snavs { position: absolute; right: 24px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 16px; z-index: 5; }
+@media (max-width: 700px) {
+  .ytx-sitem { padding: 0; gap: 0; position: relative; }
+  .ytx-sitem .ytx-sbox2 { width: 100%; height: 100%; max-height: none; aspect-ratio: auto; border-radius: 0; }
+  .ytx-sitem .ytx-sacts { position: absolute; right: 8px; bottom: 90px; z-index: 5; padding: 0; }
+  .ytx-sitem .ytx-sact svg { background: rgba(0,0,0,.45); color: #fff; }
+  .ytx-sitem .ytx-sact small { color: #fff; text-shadow: 0 1px 2px #000; }
+  .ytx-noscroll > .ytx-snavs { display: none; }
+}
+@media (max-width: 700px) { .ytx-sitem .ytx-perr { padding: 20px 76px 20px 16px; } .ytx-sitem .ytx-perr b { font-size: 15px; } }

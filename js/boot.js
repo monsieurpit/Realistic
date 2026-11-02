@@ -122,13 +122,13 @@
     $('#lock').addEventListener('click', (e) => { if (!e.target.closest('.lock-form, .lock-actions')) $('.lock-pass').focus(); });
     $('.lock-actions').addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;
-      if (b.dataset.act === 'restart') location.reload();
+      if (b.dataset.act === 'restart') (PatOS._leaving = true, location.reload());
       if (b.dataset.act === 'sleep') PatOS.power.sleep();
       if (b.dataset.act === 'shutdown') {
         $('#lock').classList.add('hidden');
         PatOS.wallpaper.stop();
         const off = $('#off'); off.classList.remove('hidden');
-        off.addEventListener('pointerdown', () => location.reload(), { once: true });
+        off.addEventListener('pointerdown', () => (PatOS._leaving = true, location.reload()), { once: true });
       }
     });
     boot();

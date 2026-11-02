@@ -2070,6 +2070,40 @@ html[data-theme="dark"] .ytx { --yb: #0f0f0f; --yb2: #272727; --yb3: #3f3f3f; --
 .sol-win { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; background: rgba(0,0,0,.35); color: #fff; animation: fadeIn .4s; }
 .sol-win h2 { font-size: 40px; margin: 0; }
 @media (max-width: 700px) { .sol-table { padding: 10px 6px; } .sol-top, .sol-tabs { gap: 5px; grid-template-columns: repeat(7, 1fr); } .sol-card { border-radius: 5px; } .sol-tl { left: 2px; } .sol-br { display: none; } }
+/* YouTube player states + Shorts feed */
+.ytx-pwrap { position: absolute; inset: 0; }
+.ytx-pwrap iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.ytx-perr { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 20px; text-align: center; background: #0f0f0f; color: #fff; z-index: 3; }
+.ytx-perr b { font-size: 17px; max-width: 420px; }
+.ytx-perr small { color: #aaa; max-width: 420px; }
+.ytx-perr .ytx-btn { background: #272727; color: #fff; }
+.ytx-perrb { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; margin-top: 6px; }
+.ytx-unmute { position: absolute; left: 12px; top: 12px; z-index: 4; padding: 8px 14px; border-radius: 18px; background: rgba(0,0,0,.75); color: #fff !important; font-weight: 600; font-size: 13px; }
+.ytx-ext { position: absolute; left: 6px; bottom: 6px; padding: 1px 6px; border-radius: 4px; background: rgba(0,0,0,.8); color: #fff; font-size: 11px; }
+.ytx-main.ytx-noscroll { overflow: hidden; padding: 0; position: relative; }
+.ytx-sfeed { height: 100%; overflow-y: auto; scroll-snap-type: y mandatory; overscroll-behavior: contain; scrollbar-width: none; outline: none; }
+.ytx-sfeed::-webkit-scrollbar { display: none; }
+.ytx-sitem { height: 100%; scroll-snap-align: start; scroll-snap-stop: always; display: flex; align-items: center; justify-content: center; gap: 16px; padding: 14px 0; box-sizing: border-box; }
+.ytx-sitem .ytx-sbox2 { position: relative; height: 100%; max-height: 860px; aspect-ratio: 9 / 16; border-radius: 16px; overflow: hidden; background: #000; }
+.ytx-sslot { position: absolute; inset: 0; }
+.ytx-sslot img { width: 100%; height: 100%; object-fit: cover; }
+.ytx-scover { position: absolute; inset: 0 0 0 0; z-index: 2; cursor: pointer; }
+.ytx-sicon { position: absolute; left: 50%; top: 50%; width: 72px; height: 72px; margin: -36px 0 0 -36px; border-radius: 50%; background: rgba(0,0,0,.55); color: #fff; display: grid; place-items: center; font-size: 26px; z-index: 3; pointer-events: none; opacity: 0; }
+.ytx-sicon.show { animation: ytxPop .7s ease; }
+@keyframes ytxPop { 0% { opacity: 1; transform: scale(.8); } 60% { opacity: 1; transform: scale(1.05); } 100% { opacity: 0; transform: scale(1.2); } }
+.ytx-sitem .ytx-stitle { z-index: 3; opacity: 1; padding: 40px 16px 18px; }
+.ytx-sitem .ytx-perr { z-index: 4; }
+.ytx-sitem .ytx-sacts { align-self: flex-end; padding-bottom: 30px; }
+.ytx-noscroll > .ytx-snavs { position: absolute; right: 24px; top: 50%; transform: translateY(-50%); display: flex; flex-direction: column; gap: 16px; z-index: 5; }
+@media (max-width: 700px) {
+  .ytx-sitem { padding: 0; gap: 0; position: relative; }
+  .ytx-sitem .ytx-sbox2 { width: 100%; height: 100%; max-height: none; aspect-ratio: auto; border-radius: 0; }
+  .ytx-sitem .ytx-sacts { position: absolute; right: 8px; bottom: 90px; z-index: 5; padding: 0; }
+  .ytx-sitem .ytx-sact svg { background: rgba(0,0,0,.45); color: #fff; }
+  .ytx-sitem .ytx-sact small { color: #fff; text-shadow: 0 1px 2px #000; }
+  .ytx-noscroll > .ytx-snavs { display: none; }
+}
+@media (max-width: 700px) { .ytx-sitem .ytx-perr { padding: 20px 76px 20px 16px; } .ytx-sitem .ytx-perr b { font-size: 15px; } }
 
 </style>
   <style>
@@ -3255,6 +3289,23 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Classic Klondike solitaire.': 'Le solitaire Klondike classique.',
     'YouTube inside PatOS: search, Shorts, channels, comments and subscriptions, with the official YouTube player.': 'YouTube dans PatOS : recherche, Shorts, chaînes, commentaires et abonnements, avec le lecteur YouTube officiel.',
     'A web browser with tabs that searches with Google, right inside PatOS.': 'Un navigateur à onglets qui cherche avec Google, directement dans PatOS.',
+    'Error code': 'Code d’erreur',
+    'Watch on youtube.com': 'Regarder sur youtube.com',
+    'Next Short': 'Short suivant',
+    'Play the next video': 'Lire la vidéo suivante',
+    'Sign in to YouTube': 'Se connecter à YouTube',
+    'Tap for sound': 'Touchez pour le son',
+    'youtube.com only': 'youtube.com seulement',
+    'No Shorts found.': 'Aucun Short trouvé.',
+    'This video link isn’t valid.': 'Ce lien vidéo n’est pas valide.',
+    'This video can’t play in this browser.': 'Cette vidéo ne peut pas jouer dans ce navigateur.',
+    'This video was removed or made private.': 'Cette vidéo a été supprimée ou rendue privée.',
+    'The uploader doesn’t allow this video to play outside youtube.com.': 'L’auteur n’autorise pas la lecture de cette vidéo en dehors de youtube.com.',
+    'YouTube didn’t allow this video to play here.': 'YouTube n’a pas autorisé la lecture de cette vidéo ici.',
+    'This video can’t play here.': 'Cette vidéo ne peut pas jouer ici.',
+    'YouTube wants to check that you’re not a robot before it plays videos inside other apps on this network.': 'YouTube veut vérifier que vous n’êtes pas un robot avant de lire des vidéos dans d’autres applis sur ce réseau.',
+    'This usually happens when the browser blocks YouTube’s sign-in inside other sites (common on school Chromebooks). Signing in to YouTube in this browser often fixes it. You can always watch on youtube.com.': 'Ça arrive quand le navigateur bloque la connexion YouTube dans d’autres sites (fréquent sur les Chromebooks scolaires). Se connecter à YouTube dans ce navigateur règle souvent le problème. Vous pouvez toujours regarder sur youtube.com.',
+    'Lots of videos are failing in a row. Your school or network may limit YouTube on this device.': 'Plusieurs vidéos échouent de suite. Votre école ou votre réseau limite peut-être YouTube sur cet appareil.',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 'Offline': 'Hors ligne', 'Connected': 'Connecté',
@@ -5158,13 +5209,13 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       const wake = () => { off.removeEventListener('pointerdown', wake); document.removeEventListener('keydown', wake); off.classList.add('hidden'); off.classList.remove('sleeping'); PatOS.wallpaper.pause(false); PatOS.boot.showLock(); };
       setTimeout(() => { off.addEventListener('pointerdown', wake); document.addEventListener('keydown', wake); }, 400);
     },
-    async restart() { if (!(await PatOS.confirmBox('Restart PatOS?', 'Open windows will close.', { ok: 'Restart' }))) return; PatOS.wm.closeAll(); PatOS.loggedIn = false; setTimeout(() => location.reload(), 300); },
+    async restart() { if (!(await PatOS.confirmBox('Restart PatOS?', 'Open windows will close.', { ok: 'Restart' }))) return; PatOS.wm.closeAll(); PatOS.loggedIn = false; setTimeout(() => (PatOS._leaving = true, location.reload()), 300); },
     async shutdown() {
       if (!(await PatOS.confirmBox('Shut down PatOS?', 'Open windows will close.', { ok: 'Shut Down' }))) return;
       PatOS.wm.closeAll(); PatOS.loggedIn = false; PatOS.wallpaper.stop();
       $('#desktop').classList.add('hidden');
       const off = $('#off'); off.querySelector('.off-msg').innerHTML = 'PatOS is shut down.<br><small>Click anywhere to start up.</small>'; off.classList.remove('hidden');
-      off.addEventListener('pointerdown', () => location.reload(), { once: true });
+      off.addEventListener('pointerdown', () => (PatOS._leaving = true, location.reload()), { once: true });
     }
   };
 
@@ -5591,7 +5642,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       let i = 0; helloTimer = setInterval(() => { i = (i + 1) % HELLOS.length; hello.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(-8px)' }], { duration: 300 }).onfinish = () => { hello.textContent = HELLOS[i]; hello.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 400 }); }; }, 1800);
       c.append(hello, h('p', { class: 'su-sub' }, T('Welcome to PatOS. Let’s set things up. It takes less than a minute.')), next('Get Started', () => go(1)), dots);
     } else if (step === 1) {
-      const pick = (code, label, flag) => { const b = h('button', { class: 'su-opt' + (PatOS.lang === code ? ' on' : '') }, h('span', { class: 'su-flag' }, flag), label); b.onclick = () => { if (PatOS.lang === code) return go(2); PatOS.setSetting('language', code); PatOS.store.set('setupStep', 2); location.reload(); }; return b; };
+      const pick = (code, label, flag) => { const b = h('button', { class: 'su-opt' + (PatOS.lang === code ? ' on' : '') }, h('span', { class: 'su-flag' }, flag), label); b.onclick = () => { if (PatOS.lang === code) return go(2); PatOS.setSetting('language', code); PatOS.store.set('setupStep', 2); (PatOS._leaving = true, location.reload()); }; return b; };
       c.append(h('h1', {}, T('Choose your language')), h('p', { class: 'su-sub' }, T('You can change it later in System Settings.')), h('div', { class: 'su-opts' }, pick('en', 'English', 'EN'), pick('fr', 'Français', 'FR')), next(null, () => go(2)), dots);
     } else if (step === 2) {
       const inp = h('input', { class: 'field su-in', value: PatOS.settings.userName, maxlength: '24', spellcheck: 'false' });
@@ -5995,6 +6046,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   }
   function host(url) { try { return new URL(url).hostname.replace(/^www\./, ''); } catch (e) { return url; } }
   const favicon = (url) => { try { const u = new URL(url); return /^https?:/.test(u.protocol) ? 'https://www.google.com/s2/favicons?sz=32&domain=' + u.hostname : null; } catch (e) { return null; } };
+  /* If a web page inside Patoogle ever tries to replace the whole PatOS page, the browser asks first. */
+  let webTabs = 0;
+  window.addEventListener('beforeunload', (e) => { if (webTabs > 0 && !PatOS._leaving) { e.preventDefault(); e.returnValue = ''; } });
   PatOS.openExternal = (url) => {
     const a = document.createElement('a'); a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer';
     document.body.appendChild(a); a.click(); a.remove();
@@ -6048,7 +6102,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         return t;
       }
       function closeTab(t) {
-        const i = tabs.indexOf(t); tabs.splice(i, 1); t.tabEl.remove(); t.pane.remove();
+        const i = tabs.indexOf(t); tabs.splice(i, 1); t.tabEl.remove(); t.pane.remove(); if (t.web) { webTabs--; t.web = false; }
         if (!tabs.length) { win.close(); return; }
         if (cur === t) select(tabs[Math.min(i, tabs.length - 1)]);
       }
@@ -6073,6 +6127,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         if (yt || /(^|\.)youtube\.com$/.test(host(url).replace(/^m\./, ''))) { const vid = yt && yt.match(/embed\/([\w-]{11})/); PatOS.launch('youtube', vid ? { id: vid[1] } : (new URL(url).searchParams.get('search_query') ? { q: new URL(url).searchParams.get('search_query') } : {})); if (t.url === 'patos://newtab' || !t.hist.length) { t.hist = []; t.idx = -1; } return; }
         if (!noHist) { t.hist = t.hist.slice(0, t.idx + 1); t.hist.push(url); t.idx = t.hist.length - 1; }
         if (/^https?:/.test(url)) { const H = PatOS.store.get('browserHistory', []); if (!H[0] || H[0].u !== url) { H.unshift({ u: url, t: Date.now() }); PatOS.store.set('browserHistory', H.slice(0, 100)); } }
+        if (t.web) { webTabs--; t.web = false; }
+        if (/^https?:/.test(url) && !isBlocked(url)) { webTabs++; t.web = true; }
         t.url = url;
         t.pane.innerHTML = '';
         if (url === 'patos://newtab') { t.title = 'New Tab'; t.pane.appendChild(newTabPage()); }
@@ -6086,7 +6142,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           const loader = h('div', { class: 'br-loading' });
           const attrs = { src: url, allow: 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write; geolocation', referrerpolicy: 'no-referrer-when-downgrade', allowfullscreen: true };
           // Google pages can't take over the whole PatOS tab; links that open new windows still work
-          if (isGoogleFrame(url)) attrs.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads';
+          if (isGoogleFrame(url)) attrs.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-top-navigation-by-user-activation allow-storage-access-by-user-activation';
           const frame = h('iframe', attrs);
           frame.addEventListener('load', () => { loader.remove(); try { const d = frame.contentDocument; if (d && d.title) { t.title = d.title; syncUI(); } } catch (e) {} });
           t.pane.append(loader, frame);
@@ -6251,6 +6307,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       win.body.addEventListener('keydown', (e) => {
         if (e.altKey && e.key.toLowerCase() === 't') { e.preventDefault(); e.stopPropagation(); newTab(); }
       });
+      win.on('closed', () => { tabs.forEach((t) => { if (t.web) { webTabs--; t.web = false; } }); });
       renderBM();
       if (args.html) newTab(null, args.html, args.title); else newTab(args.url);
     },
@@ -6424,7 +6481,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       }
       function render() {
         scrollMore = null; upNext = null;
-        main.scrollTop = 0; main.innerHTML = '';
+        main.scrollTop = 0; main.innerHTML = ''; main.classList.remove('ytx-noscroll');
         win.el.classList.toggle('ytx-watching', route.key === 'watch');
         bBack.style.display = stack.length ? '' : 'none';
         renderNav();
@@ -6449,7 +6506,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       }
       const avatar = (src, name, cls) => (src ? h('img', { class: 'ytx-av ' + (cls || ''), src, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }) : h('div', { class: 'ytx-av ph ' + (cls || '') }, (name || '?').replace('@', '').charAt(0).toUpperCase()));
       function card(v, mode) {
-        const thumb = h('div', { class: 'ytx-th' }, h('img', { src: v.thumb, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }), v.live ? h('span', { class: 'ytx-dur live' }, PatOS.t('LIVE')) : v.duration ? h('span', { class: 'ytx-dur' }, v.duration) : null);
+        const thumb = h('div', { class: 'ytx-th' }, h('img', { src: v.thumb, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }), v.live ? h('span', { class: 'ytx-dur live' }, PatOS.t('LIVE')) : v.duration ? h('span', { class: 'ytx-dur' }, v.duration) : null, bad.has(v.id) ? h('span', { class: 'ytx-ext', title: PatOS.t('The uploader doesn’t allow this video to play outside youtube.com.') }, PatOS.t('youtube.com only')) : null);
         const meta = [v.views, v.published].filter(Boolean).join(' · ');
         const chan = h('button', { class: 'ytx-cn' }, v.channel || '');
         if (v.channelId) chan.onclick = (e) => { e.stopPropagation(); go({ key: 'channel', id: v.channelId }); };
@@ -6535,28 +6592,94 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         saveLib(); renderNav();
         if (btn) { const on = i < 0; btn.classList.toggle('on', on); btn.textContent = PatOS.t(on ? 'Subscribed' : 'Subscribe'); }
       }
-      function player(id, onEnd, isShort) {
-        const origin = /^https?:/.test(location.protocol) ? '&origin=' + encodeURIComponent(location.origin) : '';
-        const f = h('iframe', { src: 'https://www.youtube.com/embed/' + id + '?autoplay=1&rel=0&playsinline=1&enablejsapi=1&modestbranding=1' + (isShort ? '&loop=1&playlist=' + id : '') + origin, allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share', allowfullscreen: true, referrerpolicy: 'strict-origin-when-cross-origin', title: 'YouTube video player' });
-        // listen to the official player so the next video can start when this one ends
+      /* The official YouTube player, controlled with YouTube's own iframe messages. It tells us when a video
+         ends, and when it can't play (the uploader turned off playback on other sites, a school block, etc.). */
+      const bad = new Set(PatOS.store.get('ytNoEmbed', []));
+      const markBad = (id) => { bad.add(id); PatOS.store.set('ytNoEmbed', [...bad].slice(-500)); };
+      const ERR = {
+        2: 'This video link isn’t valid.',
+        5: 'This video can’t play in this browser.',
+        100: 'This video was removed or made private.',
+        101: 'The uploader doesn’t allow this video to play outside youtube.com.',
+        150: 'The uploader doesn’t allow this video to play outside youtube.com.',
+        152: 'YouTube didn’t allow this video to play here.',
+        153: 'YouTube didn’t allow this video to play here.',
+        auth: 'YouTube wants to check that you’re not a robot before it plays videos inside other apps on this network.',
+        embedder_identity_denied: 'YouTube didn’t allow this video to play here.'
+      };
+      const NETWORK = (code) => code === 'auth' || code === 152 || code === 153 || code === 'embedder_identity_denied';
+      let errStreak = 0;
+      function player(id, o) {
+        o = o || {};
+        const web = /^https?:/.test(location.protocol);
+        const params = new URLSearchParams({ autoplay: '1', rel: '0', playsinline: '1', enablejsapi: '1', modestbranding: '1', iv_load_policy: '3' });
+        if (o.short) { params.set('loop', '1'); params.set('playlist', id); params.set('controls', '0'); }
+        if (o.muted) params.set('mute', '1');
+        if (web) { params.set('origin', location.origin); params.set('widget_referrer', location.origin + '/'); }
+        const f = h('iframe', { src: 'https://www.youtube.com/embed/' + id + '?' + params, allow: 'accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; fullscreen; web-share', allowfullscreen: true, referrerpolicy: 'strict-origin-when-cross-origin', title: 'YouTube video player' });
+        const wrap = h('div', { class: 'ytx-pwrap' }, f);
+        let heard = false, state = -1, done = false, started = false, errTimer = null;
+        const send = (func, args) => { try { f.contentWindow.postMessage(JSON.stringify({ event: 'command', func, args: args || [], id: 1, channel: 'widget' }), '*'); } catch (e) {} };
+        wrap.cmd = send;
+        wrap.state = () => state;
+        const showError = (code) => {
+          if (done || started) return; done = true;
+          const net = NETWORK(code);
+          if (!net) markBad(id);
+          errStreak++;
+          const msg = ERR[code] || 'This video can’t play here.';
+          const box = h('div', { class: 'ytx-perr' },
+            h('b', {}, PatOS.t(msg)),
+            net ? h('small', {}, PatOS.t('This usually happens when the browser blocks YouTube’s sign-in inside other sites (common on school Chromebooks). Signing in to YouTube in this browser often fixes it. You can always watch on youtube.com.')) : null,
+            !net && errStreak >= 4 ? h('small', {}, PatOS.t('Lots of videos are failing in a row. Your school or network may limit YouTube on this device.')) : null,
+            h('small', { class: 'ytx-code' }, PatOS.t('Error code') + ' ' + code),
+            h('div', { class: 'ytx-perrb' },
+              h('button', { class: 'ytx-btn', onclick: () => PatOS.openExternal('https://www.youtube.com/' + (o.short ? 'shorts/' : 'watch?v=') + id) }, PatOS.t('Watch on youtube.com')),
+              net ? h('button', { class: 'ytx-btn', onclick: () => PatOS.openExternal('https://accounts.google.com/ServiceLogin?service=youtube&continue=' + encodeURIComponent('https://www.youtube.com/')) }, PatOS.t('Sign in to YouTube')) : null,
+              net ? h('button', { class: 'ytx-btn', onclick: () => { const pw = wrap.parentNode; const nw = player(id, o); wrap.replaceWith(nw); } }, PatOS.t('Try again')) : null,
+              o.onSkip ? h('button', { class: 'ytx-btn', onclick: () => o.onSkip() }, PatOS.t(o.short ? 'Next Short' : 'Play the next video')) : null));
+          wrap.appendChild(box);
+          if (o.onError) o.onError(code, net);
+        };
         const onMsg = (e) => {
           if (e.source !== f.contentWindow) return;
           let d = e.data; try { d = typeof d === 'string' ? JSON.parse(d) : d; } catch (err) { return; }
-          const st = d && (d.event === 'onStateChange' ? d.info : d.info && d.info.playerState);
-          if (st === 0 && onEnd) { const fn = onEnd; onEnd = null; fn(); }
+          if (!d || typeof d !== 'object') return;
+          heard = true;
+          if (d.event === 'onError') return showError(d.info);
+          if (d.event === 'infoDelivery' && d.info && d.info.videoData && d.info.videoData.errorCode && !started && !errTimer) {
+            const code = d.info.videoData.errorCode;
+            errTimer = setTimeout(() => { if (!started && f.isConnected) showError(/^\d+$/.test(code) ? +code : code); }, 1500);
+          }
+          let st = null;
+          if (d.event === 'onStateChange') st = d.info;
+          else if (d.event === 'infoDelivery' && d.info && typeof d.info.playerState === 'number') st = d.info.playerState;
+          if (st === null || st === state) return;
+          state = st;
+          if (st === 1) { started = true; errStreak = 0; clearTimeout(errTimer); }
+          if (o.onState) o.onState(st);
+          if (st === 0 && o.onEnd) { const fn = o.onEnd; o.onEnd = null; fn(); }
         };
         window.addEventListener('message', onMsg);
-        f.addEventListener('load', () => { try { f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }), '*'); } catch (e) {} });
-        const obs = new MutationObserver(() => { if (!f.isConnected) { window.removeEventListener('message', onMsg); obs.disconnect(); } });
-        obs.observe(main, { childList: true });
-        return f;
+        // keep saying hello until the player answers (it loads after the iframe's load event)
+        let tries = 0;
+        const hello = setInterval(() => { if (heard || ++tries > 40 || !f.isConnected) return clearInterval(hello); try { f.contentWindow.postMessage(JSON.stringify({ event: 'listening', id: 1, channel: 'widget' }), '*'); } catch (e) {} }, 250);
+        // if autoplay with sound is blocked, start muted and offer sound
+        setTimeout(() => {
+          if (!f.isConnected || started || done || !heard) return;
+          if (state === -1 || state === 5) { send('mute'); send('playVideo'); setTimeout(() => { if (state === 1 && f.isConnected && !wrap.querySelector('.ytx-unmute')) { const u = h('button', { class: 'ytx-unmute' }, PatOS.t('Tap for sound')); u.onclick = (ev) => { ev.stopPropagation(); send('unMute'); send('setVolume', [100]); u.remove(); }; wrap.appendChild(u); } }, 900); }
+        }, 2500);
+        const obs = new MutationObserver(() => { if (!f.isConnected) { window.removeEventListener('message', onMsg); clearInterval(hello); obs.disconnect(); } });
+        obs.observe(main, { childList: true, subtree: true });
+        return wrap;
       }
       function watch(r) {
         const id = r.id, v0 = r.v || {};
         win.setTitle(v0.title || 'YouTube');
         const info = h('div', { class: 'ytx-winfo' }), side = h('div', { class: 'ytx-side' });
-        const next = () => { if (autoplay && upNext) go({ key: 'watch', id: upNext.id, v: upNext }, true); };
-        const pl = h('div', { class: 'ytx-player' }, player(id, next));
+        const nextUp = () => upNext && go({ key: 'watch', id: upNext.id, v: upNext }, true);
+        const next = () => { if (autoplay) nextUp(); };
+        const pl = h('div', { class: 'ytx-player' }, player(id, { onEnd: next, onSkip: () => nextUp() }));
         main.appendChild(h('div', { class: 'ytx-watch' }, h('div', { class: 'ytx-left' }, pl, info), side));
         info.appendChild(h('h1', { class: 'ytx-wt' }, v0.title || ''));
         side.appendChild(spinner());
@@ -6589,6 +6712,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           ap.querySelector('input').checked = autoplay; ap.querySelector('input').onchange = (e) => { autoplay = e.target.checked; PatOS.store.set('ytAutoplay', autoplay); };
           side.appendChild(ap);
           const rel = (v.related || []).filter((x) => x.id !== id);
+          rel.sort((a, b2) => (bad.has(a.id) ? 1 : 0) - (bad.has(b2.id) ? 1 : 0));
           upNext = rel[0] || null;
           rel.forEach((x) => side.appendChild(card(x, 'side')));
           if (v.relatedCont) {
@@ -6633,30 +6757,68 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           if (c.cont) more(c.cont);
         }).catch((e) => { box.innerHTML = ''; box.appendChild(problem(e, () => render())); });
       }
+      /* Shorts: a vertical feed you scroll or swipe through, one Short per screen. Only the Short on
+         screen gets a player; a clear layer over it keeps scrolling and swiping working. */
       function shorts(r) {
         win.setTitle('Shorts - YouTube');
-        const stage = h('div', { class: 'ytx-sstage' }); main.appendChild(stage);
-        let list = r.list || null, i = r.start || 0;
-        const show = () => {
-          stage.innerHTML = '';
-          const s = list[i]; if (!s) return;
-          const bUp = h('button', { class: 'ytx-snav', title: 'Previous', html: ic('up', 26) }), bDn = h('button', { class: 'ytx-snav', title: 'Next', html: ic('down', 26) });
-          bUp.disabled = i === 0; bUp.onclick = () => { if (i > 0) { i--; show(); } }; bDn.onclick = () => step();
-          const liked = lib.liked.some((x) => x.id === s.id);
-          const bL = h('button', { class: 'ytx-sact' + (liked ? ' on' : ''), html: ic('like', 26) + '<small>' + PatOS.t('Like') + '</small>' }); bL.onclick = () => bL.classList.toggle('on', toggleList('liked', Object.assign({ thumb: s.thumb2 }, s)));
-          const bS = h('button', { class: 'ytx-sact', html: ic('share', 26) + '<small>' + PatOS.t('Share') + '</small>' }); bS.onclick = () => copyLink(s.id);
-          stage.append(h('div', { class: 'ytx-sbox2' }, h('div', { class: 'ytx-splayer' }, player(s.id, null, true)), h('div', { class: 'ytx-stitle' }, h('b', {}, s.title), h('small', {}, s.views || ''))), h('div', { class: 'ytx-sacts' }, bL, bS), h('div', { class: 'ytx-snavs' }, bUp, bDn));
+        const feed = h('div', { class: 'ytx-sfeed', tabIndex: 0 }); main.appendChild(feed);
+        main.classList.add('ytx-noscroll');
+        let list = (r.list || []).filter((s2) => !bad.has(s2.id)), active = -1, loading = false, muted = false;
+        const items = [];
+        const mk = (s2, k) => {
+          const liked = lib.liked.some((x) => x.id === s2.id);
+          const bL = h('button', { class: 'ytx-sact' + (liked ? ' on' : ''), html: ic('like', 26) + '<small>' + PatOS.t('Like') + '</small>' }); bL.onclick = () => bL.classList.toggle('on', toggleList('liked', Object.assign({ thumb: s2.thumb2 }, s2)));
+          const bS = h('button', { class: 'ytx-sact', html: ic('share', 26) + '<small>' + PatOS.t('Share') + '</small>' }); bS.onclick = () => copyLink(s2.id);
+          const bO = h('button', { class: 'ytx-sact', html: ic('back', 26).replace('M15 5l-7 7 7 7', 'M9 5l7 7-7 7') + '<small>YouTube</small>' }); bO.onclick = () => PatOS.openExternal('https://www.youtube.com/shorts/' + s2.id);
+          const slot = h('div', { class: 'ytx-sslot' }, h('img', { src: s2.thumb2 || s2.thumb, alt: '', referrerpolicy: 'no-referrer' }));
+          const cover = h('div', { class: 'ytx-scover' });
+          const icon = h('div', { class: 'ytx-sicon' });
+          cover.onclick = () => { const pw = slot.querySelector('.ytx-pwrap'); if (!pw) return; const playingNow = pw.state() === 1; pw.cmd(playingNow ? 'pauseVideo' : 'playVideo'); icon.innerHTML = playingNow ? '❚❚' : '▶'; icon.classList.remove('show'); void icon.offsetWidth; icon.classList.add('show'); };
+          const item = h('section', { class: 'ytx-sitem' },
+            h('div', { class: 'ytx-sbox2' }, slot, cover, icon, h('div', { class: 'ytx-stitle' }, h('b', {}, s2.title), h('small', {}, s2.views || ''))),
+            h('div', { class: 'ytx-sacts' }, bL, bS, bO));
+          item.dataset.k = k; item._slot = slot; item._s = s2;
+          return item;
         };
-        const step = () => {
-          if (i < list.length - 1) { i++; show(); return; }
-          get('search', { q: (PatOS.lang === 'fr' ? 'drôle' : 'funny') + ' #shorts ' + Math.floor(Math.random() * 1000) }).then((j) => { const more = j.items.filter((x) => x.type === 'short' && !list.some((y) => y.id === x.id)); if (more.length) { list.push(...more); i++; show(); } }).catch(() => {});
+        const addItems = (arr) => { arr.forEach((s2) => { const it = mk(s2, items.length); items.push(it); feed.appendChild(it); io.observe(it); }); };
+        function activate(k) {
+          if (k === active || !items[k]) return;
+          if (items[active]) { const sl = items[active]._slot; const pw = sl.querySelector('.ytx-pwrap'); if (pw) pw.remove(); sl.querySelector('img').style.display = ''; }
+          active = k;
+          const it = items[k], sl = it._slot;
+          sl.querySelector('img').style.display = 'none';
+          sl.appendChild(player(it._s.id, { short: true, muted, onSkip: () => goTo(k + 1), onError: (code, net) => { if (!net) setTimeout(() => { if (active === k) goTo(k + 1); }, 1800); } }));
+          if (k >= items.length - 3) more();
+        }
+        const io = new IntersectionObserver((ents) => { ents.forEach((en) => { if (en.isIntersecting && en.intersectionRatio > 0.6) activate(+en.target.dataset.k); }); }, { root: feed, threshold: [0.6] });
+        const goTo = (k) => { if (items[k]) items[k].scrollIntoView({ behavior: 'smooth', block: 'start' }); else more(); };
+        const QUERIES = PatOS.lang === 'fr' ? ['drôle', 'tendance', 'animaux', 'sport', 'minecraft', 'cuisine', 'science', 'musique'] : ['funny', 'trending', 'animals', 'sports', 'minecraft', 'satisfying', 'science', 'music', 'gaming', 'art'];
+        let qi = 0;
+        function more() {
+          if (loading) return; loading = true;
+          const term = QUERIES[qi++ % QUERIES.length] + ' #shorts';
+          get('search', { q: term }).then((j) => {
+            const fresh = j.items.filter((x) => x.type === 'short' && !bad.has(x.id) && !items.some((it) => it._s.id === x.id));
+            addItems(fresh); loading = false;
+            if (!items.length) { feed.appendChild(h('div', { class: 'ytx-msg' }, PatOS.t('No Shorts found.'))); }
+          }).catch((e) => { loading = false; if (!items.length) { feed.innerHTML = ''; feed.appendChild(problem(e, () => render())); } });
+        }
+        const nav = h('div', { class: 'ytx-snavs' },
+          h('button', { class: 'ytx-snav', title: 'Previous', html: ic('up', 26), onclick: () => goTo(Math.max(0, active - 1)) }),
+          h('button', { class: 'ytx-snav', title: 'Next', html: ic('down', 26), onclick: () => goTo(active + 1) }));
+        main.appendChild(nav);
+        const onKey = (e) => {
+          if (route.key !== 'shorts' || !feed.isConnected) return document.removeEventListener('keydown', onKey);
+          if (e.target.tagName === 'INPUT') return;
+          if (e.key === 'ArrowDown' || e.key === 'j') { e.preventDefault(); goTo(active + 1); }
+          if (e.key === 'ArrowUp' || e.key === 'k') { e.preventDefault(); goTo(Math.max(0, active - 1)); }
+          if (e.key === ' ') { e.preventDefault(); const it = items[active]; if (it) it.querySelector('.ytx-scover').click(); }
         };
-        const onKey = (e) => { if (route.key !== 'shorts' || !win.el.isConnected) return document.removeEventListener('keydown', onKey); if (e.key === 'ArrowDown') { e.preventDefault(); step(); } if (e.key === 'ArrowUp' && i > 0) { e.preventDefault(); i--; show(); } };
         document.addEventListener('keydown', onKey);
-        let wheelT = 0; stage.addEventListener('wheel', (e) => { if (Date.now() - wheelT < 700 || Math.abs(e.deltaY) < 30) return; wheelT = Date.now(); if (e.deltaY > 0) step(); else if (i > 0) { i--; show(); } }, { passive: true });
-        let ty = null; stage.addEventListener('touchstart', (e) => { ty = e.touches[0].clientY; }, { passive: true }); stage.addEventListener('touchend', (e) => { if (ty == null) return; const d = ty - e.changedTouches[0].clientY; if (d > 60) step(); else if (d < -60 && i > 0) { i--; show(); } ty = null; });
-        if (list) show();
-        else { stage.appendChild(spinner()); get('search', { q: (PatOS.lang === 'fr' ? 'tendance' : 'trending') + ' #shorts' }).then((j) => { list = j.items.filter((x) => x.type === 'short'); if (!list.length) throw new Error('No Shorts found'); show(); }).catch((e) => { stage.innerHTML = ''; stage.appendChild(problem(e, () => render())); }); }
+        if (list.length) { addItems(list); const st = Math.max(0, Math.min(list.length - 1, r.start || 0)); setTimeout(() => { items[st].scrollIntoView({ block: 'start' }); activate(st); }, 30); }
+        else { feed.appendChild(spinner()); more(); setTimeout(() => { const sp = feed.querySelector('.ytx-load'); if (sp && items.length) sp.remove(); }, 4000); }
+        const obs = new MutationObserver(() => { const sp = feed.querySelector('.ytx-load'); if (sp && items.length) sp.remove(); });
+        obs.observe(feed, { childList: true });
       }
       function subs() {
         win.setTitle(PatOS.t('Subscriptions') + ' - YouTube');
@@ -8527,7 +8689,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           const name = h('input', { class: 'field', value: S().userName, style: { width: '180px' } });
           name.onchange = () => PatOS.setSetting('userName', name.value.trim() || 'Pat');
           return [h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('about') }), h('div', {}, h('h2', {}, 'PatOS ' + PatOS.version), h('p', {}, 'A full desktop that runs in your browser, even on a school Chromebook.'))),
-            group(row('Your name', name), row('Language', (() => { const s2 = h('select', { class: 'field' }, ...[['auto', 'Automatic (device language)'], ['en', 'English'], ['fr', 'French']].map(([v, l]) => h('option', { value: v, selected: (S().language || 'auto') === v }, l))); s2.onchange = async () => { const v = s2.value; if (await PatOS.confirmBox(PatOS.t('Language'), PatOS.t('PatOS restarts to change the language.'), { ok: PatOS.t('Restart'), icon: 'settings' })) { PatOS.setSetting('language', v); setTimeout(() => location.reload(), 200); } else s2.value = S().language || 'auto'; }; return s2; })(), PatOS.lang === 'fr' ? 'Langue de l’appareil : ' + (PatOS.deviceLang === 'fr' ? 'français' : 'anglais') : 'Device language: ' + (PatOS.deviceLang === 'fr' ? 'French' : 'English')), row('Layout', select('deviceMode', [['auto', 'Automatic (phone or computer)'], ['desktop', 'Computer'], ['mobile', 'Phone']]), 'Automatic uses the phone layout on small touch screens'), row('Ask for full screen at login', toggle('askFullscreen'), 'Makes PatOS feel like a real OS'), row('24-hour clock', toggle('clock24')), row('Show seconds in menu bar', toggle('showSeconds'))),
+            group(row('Your name', name), row('Language', (() => { const s2 = h('select', { class: 'field' }, ...[['auto', 'Automatic (device language)'], ['en', 'English'], ['fr', 'French']].map(([v, l]) => h('option', { value: v, selected: (S().language || 'auto') === v }, l))); s2.onchange = async () => { const v = s2.value; if (await PatOS.confirmBox(PatOS.t('Language'), PatOS.t('PatOS restarts to change the language.'), { ok: PatOS.t('Restart'), icon: 'settings' })) { PatOS.setSetting('language', v); setTimeout(() => (PatOS._leaving = true, location.reload()), 200); } else s2.value = S().language || 'auto'; }; return s2; })(), PatOS.lang === 'fr' ? 'Langue de l’appareil : ' + (PatOS.deviceLang === 'fr' ? 'français' : 'anglais') : 'Device language: ' + (PatOS.deviceLang === 'fr' ? 'French' : 'English')), row('Layout', select('deviceMode', [['auto', 'Automatic (phone or computer)'], ['desktop', 'Computer'], ['mobile', 'Phone']]), 'Automatic uses the phone layout on small touch screens'), row('Ask for full screen at login', toggle('askFullscreen'), 'Makes PatOS feel like a real OS'), row('24-hour clock', toggle('clock24')), row('Show seconds in menu bar', toggle('showSeconds'))),
             group(row('About this computer', h('button', { class: 'btn', onclick: () => PatOS.launch('about') }, 'About PatOS…')))];
         },
         appearance() {
@@ -8584,8 +8746,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           return [h('h3', {}, 'Storage'), h('div', { class: 'st-storage' }, h('div', { class: 'fd-bar big' }, h('span', { style: { width: Math.min(100, used / cap * 100) + '%' } })), h('small', {}, PatOS.fmtBytes(used) + ' used of about 5 MB browser storage')),
             group(row('Empty Trash', h('button', { class: 'btn', onclick: () => { PatOS.fs.emptyTrash(); render(); } }, 'Empty')),
               row('Back up everything', h('button', { class: 'btn', onclick: () => { const all = {}; try { Object.keys(localStorage).filter((k) => k.startsWith('patos:')).forEach((k) => (all[k] = localStorage.getItem(k))); } catch (e) {} PatOS.downloadFile('PatOS-backup.json', JSON.stringify(all)); } }, 'Download Backup')),
-              row('Restore backup', h('button', { class: 'btn', onclick: () => { const i = h('input', { type: 'file', accept: '.json' }); i.onchange = () => { const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); Object.entries(d).forEach(([k, v]) => localStorage.setItem(k, v)); location.reload(); } catch (e) { PatOS.alertBox('That file is not a PatOS backup', 'Choose a PatOS-backup.json file.', { icon: 'settings' }); } }; r.readAsText(i.files[0]); }; i.click(); } }, 'Restore…')),
-              row('Erase all content and settings', h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox('Erase PatOS?', 'Everything in PatOS will be erased and it will start fresh. This cannot be undone.', { ok: 'Erase', danger: true, icon: 'settings' })) { PatOS.store.clearAll(); location.reload(); } } }, 'Erase PatOS…')))];
+              row('Restore backup', h('button', { class: 'btn', onclick: () => { const i = h('input', { type: 'file', accept: '.json' }); i.onchange = () => { const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); Object.entries(d).forEach(([k, v]) => localStorage.setItem(k, v)); (PatOS._leaving = true, location.reload()); } catch (e) { PatOS.alertBox('That file is not a PatOS backup', 'Choose a PatOS-backup.json file.', { icon: 'settings' }); } }; r.readAsText(i.files[0]); }; i.click(); } }, 'Restore…')),
+              row('Erase all content and settings', h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox('Erase PatOS?', 'Everything in PatOS will be erased and it will start fresh. This cannot be undone.', { ok: 'Erase', danger: true, icon: 'settings' })) { PatOS.store.clearAll(); (PatOS._leaving = true, location.reload()); } } }, 'Erase PatOS…')))];
         }
       };
       const KW = { general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace' };
@@ -12137,13 +12299,13 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     $('#lock').addEventListener('click', (e) => { if (!e.target.closest('.lock-form, .lock-actions')) $('.lock-pass').focus(); });
     $('.lock-actions').addEventListener('click', (e) => {
       const b = e.target.closest('button'); if (!b) return;
-      if (b.dataset.act === 'restart') location.reload();
+      if (b.dataset.act === 'restart') (PatOS._leaving = true, location.reload());
       if (b.dataset.act === 'sleep') PatOS.power.sleep();
       if (b.dataset.act === 'shutdown') {
         $('#lock').classList.add('hidden');
         PatOS.wallpaper.stop();
         const off = $('#off'); off.classList.remove('hidden');
-        off.addEventListener('pointerdown', () => location.reload(), { once: true });
+        off.addEventListener('pointerdown', () => (PatOS._leaving = true, location.reload()), { once: true });
       }
     });
     boot();
