@@ -1,0 +1,12 @@
+{
+  "name": "patos",
+  "version": "1.0.0",
+  "description": "PatOS — a macOS-style desktop that runs in the browser (works on Chromebooks).",
+  "private": true,
+  "scripts": {
+    "start": "node server.js",
+    "build": "node build.js"
+  },
+  "engines": { "node": ">=16" },
+  "license": "MIT"
+}

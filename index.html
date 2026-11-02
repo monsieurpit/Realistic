@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>PatOS</title>
+  <meta name="description" content="PatOS — a desktop operating system that runs in your browser.">
+  <meta name="theme-color" content="#0b0b14">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/patos.css">
+  <link rel="stylesheet" href="css/apps.css">
+</head>
+<body>
+  <!-- Boot screen -->
+  <div id="boot" class="screen">
+    <div class="boot-logo"><span>P</span></div>
+    <div class="boot-bar"><div class="boot-fill"></div></div>
+  </div>
+
+  <!-- Lock / login screen -->
+  <div id="lock" class="screen hidden">
+    <div class="lock-bg"></div>
+    <div class="lock-clock">
+      <div class="lock-date"></div>
+      <div class="lock-time"></div>
+    </div>
+    <div class="lock-user">
+      <div class="lock-avatar"></div>
+      <div class="lock-name"></div>
+      <form class="lock-form" autocomplete="off">
+        <input type="password" class="lock-pass" placeholder="Enter Password">
+        <button type="submit" class="lock-go" aria-label="Log in">&#10140;</button>
+      </form>
+      <div class="lock-hint"></div>
+    </div>
+    <div class="lock-actions">
+      <button data-act="sleep"><span>&#9790;</span>Sleep</button>
+      <button data-act="restart"><span>&#8635;</span>Restart</button>
+      <button data-act="shutdown"><span>&#9211;</span>Shut Down</button>
+    </div>
+  </div>
+
+  <!-- Off screen -->
+  <div id="off" class="screen hidden"><div class="off-msg">PatOS is shut down.<br><small>Click anywhere to start up.</small></div></div>
+
+  <!-- Desktop -->
+  <div id="desktop" class="hidden">
+    <canvas id="wallpaper"></canvas>
+    <canvas id="wallpaper3d"></canvas>
+    <div id="desktop-icons"></div>
+    <div id="windows"></div>
+    <div id="selection-box"></div>
+
+    <header id="menubar">
+      <div class="mb-left">
+        <button class="mb-logo" data-menu="system" aria-label="PatOS menu">P</button>
+        <button class="mb-app" data-menu="app">Finder</button>
+        <button class="mb-item" data-menu="file">File</button>
+        <button class="mb-item" data-menu="edit">Edit</button>
+        <button class="mb-item" data-menu="view">View</button>
+        <button class="mb-item" data-menu="window">Window</button>
+        <button class="mb-item" data-menu="help">Help</button>
+      </div>
+      <div class="mb-right">
+        <span class="mb-status" id="mb-battery" title="Battery"></span>
+        <button class="mb-status" id="mb-wifi" title="Wi-Fi"></button>
+        <button class="mb-status" id="mb-search" title="Spotlight (Ctrl+Space)"></button>
+        <button class="mb-status" id="mb-cc" title="Control Center"></button>
+        <button class="mb-clock" id="mb-clock"></button>
+      </div>
+    </header>
+
+    <nav id="dock-wrap"><div id="dock"></div></nav>
+
+    <div id="launchpad" class="hidden">
+      <input class="lp-search" placeholder="Search" spellcheck="false">
+      <div class="lp-grid"></div>
+    </div>
+
+    <div id="spotlight" class="hidden">
+      <div class="sp-box">
+        <div class="sp-row"><span class="sp-icon"></span><input class="sp-input" placeholder="Spotlight Search" spellcheck="false"></div>
+        <div class="sp-results"></div>
+      </div>
+    </div>
+
+    <div id="control-center" class="panel hidden"></div>
+    <div id="notif-center" class="panel hidden"></div>
+    <div id="toasts"></div>
+    <div id="menu-layer"></div>
+    <div id="mission" class="hidden"><div class="mc-hint">Click a window to focus it &middot; Esc to exit</div></div>
+    <div id="dimmer"></div>
+  </div>
+
+  <noscript><div style="padding:40px;font:16px system-ui;color:#fff;background:#111">PatOS needs JavaScript turned on.</div></noscript>
+
+  <script src="vendor/three.min.js"></script>
+  <script src="js/core.js"></script>
+  <script src="js/icons.js"></script>
+  <script src="js/wm.js"></script>
+  <script src="js/wallpaper.js"></script>
+  <script src="js/shell.js"></script>
+  <script src="js/apps/finder.js"></script>
+  <script src="js/apps/browser.js"></script>
+  <script src="js/apps/webapps.js"></script>
+  <script src="js/apps/notes.js"></script>
+  <script src="js/apps/textedit.js"></script>
+  <script src="js/apps/calculator.js"></script>
+  <script src="js/apps/terminal.js"></script>
+  <script src="js/apps/calendar.js"></script>
+  <script src="js/apps/clock.js"></script>
+  <script src="js/apps/weather.js"></script>
+  <script src="js/apps/music.js"></script>
+  <script src="js/apps/photos.js"></script>
+  <script src="js/apps/paint.js"></script>
+  <script src="js/apps/photobooth.js"></script>
+  <script src="js/apps/reminders.js"></script>
+  <script src="js/apps/settings.js"></script>
+  <script src="js/apps/activity.js"></script>
+  <script src="js/apps/galaxy.js"></script>
+  <script src="js/apps/orbrunner.js"></script>
+  <script src="js/apps/studio.js"></script>
+  <script src="js/apps/tictactoe.js"></script>
+  <script src="js/apps/about.js"></script>
+  <script src="js/boot.js"></script>
+</body>
+</html>
