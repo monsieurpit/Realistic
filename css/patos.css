@@ -365,3 +365,6 @@ body.mission-on #windows { z-index: 11; }
 .sp-pv-text { width: 100%; text-align: left; font: 11px/1.4 var(--mono); color: var(--text2); white-space: pre-wrap; margin: 6px 0 0; max-height: 150px; overflow: hidden; }
 .sp-pv-big { font-size: 34px; font-weight: 300; margin-top: 30px; word-break: break-all; }
 @media (max-width: 700px) { .sp-box.has { grid-template-columns: 1fr; } .sp-preview { display: none; } }
+/* windows without a visible title bar: only the traffic lights take clicks, the rest goes to the app */
+.tb-hidden .titlebar { pointer-events: none; }
+.tb-hidden .titlebar .traffic { pointer-events: auto; }

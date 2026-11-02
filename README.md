@@ -45,8 +45,10 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 | Finder | icon and list views, sorting, path bar, multi-select, color tags, info panel, Quick Look (Space), keyboard navigation, Trash, import from your computer |
 | Patoogle | tabbed web browser with bookmarks, site icons and history. Real Google results with your free Programmable Search ID (Bing until you add one); YouTube links open in the YouTube app |
 | Calendar | month and week views, event editor (time, color, notes), upcoming events, reminders |
-| Notes, TextEdit, Reminders | saved automatically |
-| Calculator (basic and scientific), Clock (world clock, alarms, stopwatch, timer), Weather (live forecast) | |
+| Notes | folders, pinned notes, pictures (paste or insert), checklists, tables, Recently Deleted, export to text or Docs |
+| Reminders | lists with colors, due dates and times with alerts, priorities, flags, smart lists (Today, Scheduled, Flagged, All, Completed) |
+| TextEdit | plain text and code editor |
+| Calculator (basic and scientific), Clock (world clock, alarms, stopwatch, timer), Weather (live forecast, saved cities, 24-hour chart, air quality) | |
 | Music | songs composed live by your computer, a 3D visualizer, your own MP3s, shuffle and repeat, and your device's media controls (Chromebook media keys, iPhone lock screen) |
 | Photos | albums, favorites, slideshow, and an editor with filters, brightness, contrast, color, warmth, vignette, crop and rotate |
 | Paint, Photo Booth | |

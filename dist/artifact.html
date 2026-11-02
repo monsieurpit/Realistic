@@ -375,6 +375,9 @@ body.mission-on #windows { z-index: 11; }
 .sp-pv-text { width: 100%; text-align: left; font: 11px/1.4 var(--mono); color: var(--text2); white-space: pre-wrap; margin: 6px 0 0; max-height: 150px; overflow: hidden; }
 .sp-pv-big { font-size: 34px; font-weight: 300; margin-top: 30px; word-break: break-all; }
 @media (max-width: 700px) { .sp-box.has { grid-template-columns: 1fr; } .sp-preview { display: none; } }
+/* windows without a visible title bar: only the traffic lights take clicks, the rest goes to the app */
+.tb-hidden .titlebar { pointer-events: none; }
+.tb-hidden .titlebar .traffic { pointer-events: auto; }
 
 </style>
   <style>
@@ -1475,6 +1478,58 @@ html.mobile, html.mobile body { overscroll-behavior: none; touch-action: manipul
 .st-noresult { color: var(--text3); font-size: 12px; padding: 10px; text-align: center; }
 .mobile .st-search { display: none; }
 
+/* Notes, pro */
+.nf-side { width: 170px; flex: 0 0 auto; padding: 8px; overflow-y: auto; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 1px; }
+.nf-side .sym { color: #e6b800; } .nf-name { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .nf-count { color: var(--text3); font-size: 11px; }
+.nf-side .fd-si.drop { background: var(--accent); color: #fff; }
+.nf-new { margin-top: auto; text-align: left; padding: 8px; font-size: 12.5px; color: var(--text2); border-radius: 6px; } .nf-new:hover { background: var(--hover); color: var(--text); }
+.nl-head { display: flex; align-items: baseline; gap: 6px; padding: 0 14px 6px; } .nl-head b { font-size: 15px; } .nl-head small { color: var(--text2); } .nl-sort { margin-left: auto; height: 22px; min-width: 24px; font-size: 13px; }
+.nl-sec { font-size: 11px; font-weight: 700; color: var(--text2); padding: 10px 12px 4px; }
+.nl-empty, .notes-empty { color: var(--text3); text-align: center; padding: 40px 12px; font-size: 13px; }
+.notes-empty { margin: auto; }
+.nt-item { display: flex; gap: 8px; align-items: center; } .nt-txt { flex: 1; min-width: 0; }
+.nt-thumb { width: 40px; height: 40px; border-radius: 6px; object-fit: cover; flex: 0 0 auto; }
+.notes-ed img { max-width: 100%; border-radius: 8px; margin: 6px 0; display: block; }
+.notes-ed pre { font: 13px/1.5 var(--mono); background: var(--card); padding: 8px 10px; border-radius: 6px; white-space: pre-wrap; }
+.notes-ed h1 { font-size: 26px; margin: 4px 0 6px; } .notes-ed h2 { font-size: 19px; margin: 10px 0 4px; }
+.nt-table { border-collapse: collapse; margin: 6px 0; } .nt-table td { border: 1px solid var(--border2); padding: 5px 10px; min-width: 70px; }
+.tb-gap { width: 10px; }
+.mobile .nf-side { width: auto; flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border); flex: 0 0 auto; } .mobile .nf-side .fd-sh, .mobile .nf-side .nf-count { display: none; } .mobile .nf-side .fd-si { flex: 0 0 auto; border-radius: 16px; background: var(--hover); } .mobile .nf-new { margin: 0; white-space: nowrap; }
+
+/* Reminders, pro */
+.rm-wrap { flex: 1; display: flex; min-height: 0; }
+.rm-side { width: 230px; flex: 0 0 auto; padding: 10px; overflow-y: auto; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; gap: 1px; }
+.rm-smart { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 6px; }
+.rm-tile { display: grid; grid-template-columns: auto 1fr; grid-template-rows: auto auto; align-items: center; gap: 2px 8px; padding: 8px 10px; border-radius: 12px; background: var(--card); box-shadow: inset 0 0 0 .5px var(--border2); text-align: left; }
+.rm-tile b { justify-self: end; font-size: 20px; } .rm-tile > span:last-child { grid-column: 1 / -1; font-size: 12.5px; font-weight: 600; color: var(--text2); }
+.rm-tile.on { background: var(--accent); color: #fff; } .rm-tile.on > span:last-child { color: rgba(255,255,255,.85); }
+.rm-dot { width: 26px; height: 26px; border-radius: 50%; } .rm-ldot { width: 18px; height: 18px; border-radius: 50%; margin: 0 2px; flex: 0 0 auto; }
+.rm-side .fd-si.drop { background: var(--accent); color: #fff; }
+.rm-head { display: flex; align-items: baseline; gap: 10px; } .rm-head h1 { margin: 0 0 8px; font-size: 28px; } .rm-head > span { font-size: 26px; color: var(--text2); margin-left: auto; }
+.rm-showdone { font-size: 12px; color: var(--accent); }
+.rm-item { align-items: flex-start; transition: opacity .4s, transform .4s; } .rm-item.leaving { opacity: 0; transform: translateX(20px); }
+.rm-chk { margin-top: 2px; box-shadow: inset 0 0 0 1.5px var(--text3); } .rm-chk.on { background: var(--c, var(--accent)); box-shadow: inset 0 0 0 4px var(--win-solid), 0 0 0 1.5px var(--c, var(--accent)); }
+.rm-body { flex: 1; min-width: 0; } .rm-line { display: flex; gap: 6px; align-items: baseline; }
+.rm-meta { display: flex; gap: 8px; flex-wrap: wrap; font-size: 12px; color: var(--text2); margin-top: 2px; } .rm-meta .late { color: #ff453a; }
+.rm-prio { color: var(--accent); font-weight: 800; } .rm-flag .sym { width: 13px; height: 13px; color: #ff9f0a; fill: #ff9f0a; }
+.rm-info { opacity: 0; color: var(--accent); font-size: 16px; padding: 0 4px; } .rm-item:hover .rm-info { opacity: 1; }
+.rm-group { font-size: 13px; font-weight: 700; padding: 12px 0 4px; } .rm-group.late { color: #ff453a; }
+.rm-empty { color: var(--text3); text-align: center; padding: 40px; }
+.mobile .rm-wrap { flex-direction: column; } .mobile .rm-side { width: auto; max-height: 42%; border-right: 0; border-bottom: 1px solid var(--border); } .mobile .rm-info { opacity: 1; }
+
+/* Weather, pro */
+.wx-places { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-bottom: 14px; }
+.wx-pcard { position: relative; display: flex; justify-content: space-between; align-items: center; gap: 10px; padding: 12px 14px; border-radius: 14px; background: rgba(0,0,0,.18); box-shadow: inset 0 0 0 .5px rgba(255,255,255,.25); cursor: pointer; transition: transform .2s var(--spring); }
+.wx-pcard:hover { transform: translateY(-2px); } .wx-pcard.on { box-shadow: inset 0 0 0 2px rgba(255,255,255,.8); }
+.wx-pcard b { font-size: 30px; font-weight: 300; } .wx-pname { display: block; font-weight: 700; font-size: 15px; } .wx-pcard small { opacity: .75; font-size: 12px; }
+.wx-px { position: absolute; top: 4px; right: 6px; opacity: 0; color: #fff; font-size: 15px; } .wx-pcard:hover .wx-px { opacity: .8; }
+.wx-hint { grid-column: 1 / -1; font-size: 12px; opacity: .7; }
+.wx-chart { width: 100%; height: 150px; display: block; }
+.wx-card + .wx-card { margin-top: 12px; }
+.wx-aqi { display: block; font-size: 13px; font-weight: 700; } .wx-aqibar { position: relative; height: 5px; border-radius: 3px; margin-top: 6px; background: linear-gradient(90deg, #32d74b, #ffd60a, #ff9f0a, #ff453a, #bf5af2); }
+.wx-aqibar i { position: absolute; top: -3px; width: 11px; height: 11px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 2px rgba(0,0,0,.3); transform: translateX(-50%); }
+.wx-top .sym { width: 15px; height: 15px; }
+
 </style>
   <style>
 /* ================= Liquid Glass ================= */
@@ -2377,6 +2432,17 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Nothing planned. Double-click a day or press + to add an event.': 'Rien de prévu. Double-cliquez sur un jour ou appuyez sur + pour ajouter un événement.',
     'Conversion': 'Conversion', 'Timer': 'Minuterie', 'Start a timer for': 'Lancer une minuterie de', 'Timer started': 'Minuterie lancée', 'Timer done': 'Minuterie terminée', 'Your timer finished.': 'Votre minuterie est terminée.',
     'Press Enter to copy': 'Appuyez sur Entrée pour copier', 'Open now': 'Ouverte',
+    'Body': 'Texte', 'Monospaced': 'Chasse fixe', 'Table': 'Tableau', 'Add a picture': 'Ajouter une image', 'Share and export': 'Partager et exporter', 'Copy Text': 'Copier le texte', 'Open in Docs': 'Ouvrir dans Docs',
+    'Save as Text File in Documents': 'Enregistrer en fichier texte dans Documents', 'All Notes': 'Toutes les notes', 'Rename Folder…': 'Renommer le dossier…', 'Delete Folder': 'Supprimer le dossier', 'Delete this folder?': 'Supprimer ce dossier?',
+    'Its notes move to Recently Deleted.': 'Ses notes iront dans Supprimés récemment.', 'Recently Deleted': 'Supprimés récemment', 'School': 'École', 'note': 'note', 'notes': 'notes', 'Date Edited': 'Date de modification', 'Pinned': 'Épinglées',
+    'Previous 7 Days': '7 derniers jours', 'Earlier': 'Plus tôt', 'Recover': 'Récupérer', 'Move to': 'Déplacer vers', 'Nothing here. Deleted notes stay for 30 days.': 'Rien ici. Les notes supprimées restent 30 jours.', 'No notes yet': 'Aucune note pour l’instant',
+    'In Recently Deleted': 'Dans Supprimés récemment', 'No note selected': 'Aucune note sélectionnée', 'Search all notes': 'Rechercher dans toutes les notes', 'New Folder': 'Nouveau dossier',
+    'Tomorrow': 'Demain', 'Yesterday': 'Hier', 'Scheduled': 'Planifiés', 'All': 'Tout', 'Flagged': 'Avec drapeau', 'My Lists': 'Mes listes', 'Rename List…': 'Renommer la liste…', 'Delete List': 'Supprimer la liste', 'Delete this list?': 'Supprimer cette liste?',
+    'Its reminders will be deleted too.': 'Ses rappels seront aussi supprimés.', 'New List': 'Nouvelle liste', 'Homework': 'Devoirs', 'Add List': 'Ajouter une liste', 'Hide Completed': 'Masquer les terminés', 'Show Completed': 'Afficher les terminés',
+    'Overdue': 'En retard', 'Nothing completed yet': 'Rien de terminé pour l’instant', 'All done. Nice.': 'Tout est fait. Bravo.', 'New Reminder': 'Nouveau rappel', 'Details': 'Détails', 'Time': 'Heure', 'Priority': 'Priorité', 'List': 'Liste',
+    'None': 'Aucune', 'Low': 'Basse', 'Medium': 'Moyenne', 'High': 'Haute', 'Reminder': 'Rappel', 'Pink': 'Rose', 'Teal': 'Turquoise',
+    'Saved cities': 'Villes enregistrées', 'Search for a city above to add it.': 'Cherchez une ville ci-dessus pour l’ajouter.', 'Remove': 'Retirer', 'NEXT 24 HOURS': 'PROCHAINES 24 HEURES', 'temperature and chance of rain': 'température et risque de pluie',
+    'AIR QUALITY': 'QUALITÉ DE L’AIR', 'Good': 'Bonne', 'Moderate': 'Moyenne', 'Unhealthy for sensitive people': 'Mauvaise pour les personnes sensibles', 'Unhealthy': 'Mauvaise', 'Very unhealthy': 'Très mauvaise',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 'Offline': 'Hors ligne', 'Connected': 'Connecté',
@@ -3949,7 +4015,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         files++; spResults.push({ group: 'Files', filePath: p, label: PatOS.fs.basename(p), sub: PatOS.fs.dirname(p), iconHTML: PatOS.fileIconHTML(p, n), run: () => PatOS.openFile(p) });
       }
     });
-    PatOS.store.get('notes', []).filter((n) => (n.title + ' ' + n.body).toLowerCase().includes(ql)).slice(0, 4).forEach((n) =>
+    (PatOS.store.get('notes', []) || []).filter((n) => !n.deletedAt && (n.title + ' ' + n.body).toLowerCase().includes(ql)).slice(0, 4).forEach((n) =>
       spResults.push({ group: 'Notes', label: n.title || 'Untitled', icon: 'notes', run: () => PatOS.launch('notes', { id: n.id }) }));
     spResults.push({ group: 'Web', label: 'Search the web for “' + q + '”', icon: 'browser', run: () => PatOS.launch('browser', { url: q }) });
     let lastG = '';
@@ -5476,77 +5542,142 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 </script>
   <script>
-/* Notes */
+/* Notes — folders, pinned notes, pictures, checklists, Recently Deleted, export */
 (function () {
   'use strict';
   const { h } = PatOS;
-  const load = () => PatOS.store.get('notes', null) || [
-    { id: 'n1', title: 'Welcome to Notes', body: '<div><b>Welcome to Notes</b></div><div>Your notes save automatically.</div><div><br></div><div>• Use the toolbar for <b>bold</b>, <i>italic</i> and checklists</div><div>• Search with the box on the left</div>', mtime: Date.now(), pinned: true },
+  const seed = () => [
+    { id: 'n1', title: 'Welcome to Notes', body: '<div><b>Welcome to Notes</b></div><div>Your notes save as you type.</div><div><br></div><div>• Put notes in folders with the sidebar</div><div>• Paste a picture straight into a note</div><div>• Press ☑ for a checklist</div>', mtime: Date.now(), pinned: true },
     { id: 'n2', title: 'Shopping list', body: '<div>Shopping list</div><div>☐ Pencils</div><div>☐ Binder</div><div>☐ Snacks</div>', mtime: Date.now() - 86400000 }
   ];
-  const plain = (html) => { const t = document.createElement('textarea'); t.innerHTML = html.replace(/<(div|br|p|h\d|li)[^>]*>/gi, '\n').replace(/<[^>]+>/g, ''); return t.value.replace(/^\n+/, ''); };
+  const plain = (html) => { const t = document.createElement('textarea'); t.innerHTML = String(html).replace(/<img[^>]*>/gi, ' ').replace(/<(div|br|p|h\d|li|tr)[^>]*>/gi, '\n').replace(/<[^>]+>/g, ''); return t.value.replace(/^\n+/, ''); };
+  const DAY = 86400000;
   PatOS.registerApp({
-    id: 'notes', name: 'Notes', icon: 'notes', width: 820, height: 540, keywords: 'note write memo',
+    id: 'notes', name: 'Notes', icon: 'notes', width: 980, height: 600, keywords: 'note write memo folders checklist',
     launch(win, args) {
       win.el.classList.add('has-toolbar');
-      let notes = load(); let cur = null;
+      let notes = PatOS.store.get('notes', null) || seed();
+      let folders = PatOS.store.get('noteFolders', []);
+      let folder = 'all', cur = null, sortBy = PatOS.store.get('noteSort', 'date');
+      notes = notes.filter((n) => !(n.deletedAt && Date.now() - n.deletedAt > 30 * DAY)); // empty Recently Deleted after 30 days
       const save = PatOS.debounce(() => PatOS.store.set('notes', notes), 300);
-      const list = h('div', { class: 'nt-list' });
-      const q = h('input', { class: 'field', placeholder: 'Search', style: { width: '100%' } });
-      const side = h('div', { class: 'notes-side' }, h('div', { class: 'notes-search' }, q), list);
+      const saveFolders = () => PatOS.store.set('noteFolders', folders);
+      const fside = h('div', { class: 'nf-side' });
+      const listEl = h('div', { class: 'nt-list' });
+      const q = h('input', { class: 'field', placeholder: 'Search all notes', style: { width: '100%' } });
+      const listHead = h('div', { class: 'nl-head' });
+      const side = h('div', { class: 'notes-side' }, h('div', { class: 'notes-search' }, q), listHead, listEl);
       const ed = h('div', { class: 'notes-ed', contenteditable: 'true', spellcheck: 'true' });
       const meta = h('div', { class: 'notes-meta' });
-      win.body.append(h('div', { class: 'notes-wrap' }, side, h('div', { class: 'notes-main' }, meta, ed)));
-      const fmt = (cmd, val) => () => { ed.focus(); document.execCommand(cmd, false, val); };
-      const bNew = h('button', { class: 'tbtn', title: 'New note', html: '<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16z M14 6l4 4" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/></svg>' });
-      const bDel = h('button', { class: 'tbtn', title: 'Delete note', html: '<svg viewBox="0 0 24 24"><path d="M5 7h14M10 7V5h4v2M7 7l1 13h8l1-13" stroke="currentColor" stroke-width="1.8" fill="none" stroke-linejoin="round"/></svg>' });
-      const bB = h('button', { class: 'tbtn', title: 'Bold', onclick: fmt('bold') }, h('b', {}, 'B'));
-      const bI = h('button', { class: 'tbtn', title: 'Italic', onclick: fmt('italic') }, h('i', {}, 'I'));
-      const bU = h('button', { class: 'tbtn', title: 'Underline', onclick: fmt('underline') }, h('u', {}, 'U'));
-      const bH = h('button', { class: 'tbtn', title: 'Heading', onclick: fmt('formatBlock', 'h2') }, 'Aa');
-      const bL = h('button', { class: 'tbtn', title: 'Bulleted list', onclick: fmt('insertUnorderedList') }, '☰');
-      const bC = h('button', { class: 'tbtn', title: 'Checkbox', onclick: () => { ed.focus(); document.execCommand('insertText', false, '☐ '); } }, '☑');
-      win.toolbar.append(bNew, h('div', { style: { width: '12px' } }), bH, bB, bI, bU, bL, bC, h('div', { style: { flex: 1 } }), bDel);
+      const empty = h('div', { class: 'notes-empty' });
+      const mainEl = h('div', { class: 'notes-main' }, meta, ed, empty);
+      win.body.append(h('div', { class: 'notes-wrap' }, fside, side, mainEl));
+      const fmt = (cmd, val) => (e) => { if (e) e.preventDefault(); ed.focus(); document.execCommand(cmd, false, val); onInput(); };
+      const tb = (label, title, fn) => { const b = h('button', { class: 'tbtn', title }, label); b.addEventListener('mousedown', (e) => e.preventDefault()); b.onclick = fn; return b; };
+      const bNew = tb(h('span', { class: 'symw', html: PatOS.sym('pencil') }), 'New note', () => create());
+      const bStyle = tb('Aa', 'Text style', (e) => { const r = e.currentTarget.getBoundingClientRect(); PatOS.menu([{ label: PatOS.t('Title'), action: fmt('formatBlock', 'h1') }, { label: PatOS.t('Heading'), action: fmt('formatBlock', 'h2') }, { label: PatOS.t('Body'), action: fmt('formatBlock', 'div') }, { label: PatOS.t('Monospaced'), action: fmt('formatBlock', 'pre') }, { divider: true }, { label: PatOS.t('Bulleted list'), action: fmt('insertUnorderedList') }, { label: PatOS.t('Numbered list'), action: fmt('insertOrderedList') }], r.left, r.bottom + 4); });
+      const bB = tb(h('b', {}, 'B'), 'Bold', fmt('bold')), bI = tb(h('i', {}, 'I'), 'Italic', fmt('italic')), bU = tb(h('u', {}, 'U'), 'Underline', fmt('underline')), bS = tb(h('s', {}, 'S'), 'Strikethrough', fmt('strikeThrough'));
+      const bCheck = tb('☑', 'Checklist', () => { ed.focus(); document.execCommand('insertText', false, '☐ '); onInput(); });
+      const bTable = tb(h('span', { class: 'symw', html: PatOS.sym('sheet') }), 'Table', () => { ed.focus(); document.execCommand('insertHTML', false, '<table class="nt-table"><tr><td><br></td><td><br></td><td><br></td></tr><tr><td><br></td><td><br></td><td><br></td></tr></table><div><br></div>'); onInput(); });
+      const bImg = tb(h('span', { class: 'symw', html: PatOS.sym('image') }), 'Add a picture', () => { const i = h('input', { type: 'file', accept: 'image/*' }); i.onchange = () => { if (i.files[0]) readImage(i.files[0]); }; i.click(); });
+      const bShare = tb(h('span', { class: 'symw', html: PatOS.sym('upload') }), 'Share and export', (e) => {
+        if (!cur) return; const r = e.currentTarget.getBoundingClientRect(); const txt = plain(cur.body);
+        PatOS.menu([
+          { label: PatOS.t('Copy Text'), action: () => navigator.clipboard && navigator.clipboard.writeText(txt).then(() => PatOS.notify({ title: PatOS.t('Copied'), body: titleOf(cur), icon: 'notes' })).catch(() => {}) },
+          { label: PatOS.t('Open in Docs'), action: () => { const p = PatOS.newDocPath('/Documents', titleOf(cur).replace(/[\/]/g, '-').slice(0, 40), 'pdoc'); PatOS.fs.write(p, cur.body); PatOS.launch('docs', { path: p }); } },
+          { label: PatOS.t('Save as Text File in Documents'), action: () => { const nm = PatOS.fs.uniqueName('/Documents', titleOf(cur).replace(/[\/]/g, '-').slice(0, 40) + '.txt'); PatOS.fs.write('/Documents/' + nm, txt); PatOS.notify({ title: PatOS.t('Saved'), body: nm, icon: 'notes' }); } },
+          { label: PatOS.t('Download'), action: () => PatOS.downloadFile(titleOf(cur).slice(0, 40) + '.txt', txt) }
+        ], r.left - 160, r.bottom + 4);
+      });
+      const bDel = tb(h('span', { class: 'symw', html: PatOS.sym('trash') }), 'Delete note', () => cur && del(cur));
+      win.toolbar.append(bNew, h('div', { class: 'tb-gap' }), bStyle, bB, bI, bU, bS, bCheck, bTable, bImg, h('div', { style: { flex: 1 } }), bShare, bDel);
       win.toolbar.style.paddingLeft = '200px';
 
-      function titleOf(n) { const t = plain(n.body).trim().split('\n')[0]; return t.slice(0, 60) || 'New Note'; }
+      const titleOf = (n) => { const t = plain(n.body).trim().split('\n')[0]; return t.slice(0, 60) || PatOS.t('New Note'); };
+      const inFolder = (n) => folder === 'deleted' ? !!n.deletedAt : !n.deletedAt && (folder === 'all' || (folder === 'notes' ? !n.folder : n.folder === folder));
+      function renderFolders() {
+        fside.innerHTML = '';
+        const item = (key, label, ic, count, extra) => { const el = h('div', { class: 'fd-si' + (folder === key ? ' on' : '') }, h('span', { class: 'symw', html: PatOS.sym(ic) }), h('span', { class: 'nf-name' }, label), h('small', { class: 'nf-count' }, count || '')); el.onclick = () => { folder = key; cur = null; render(); }; if (extra) extra(el); return el; };
+        const live = notes.filter((n) => !n.deletedAt);
+        fside.append(h('div', { class: 'fd-sh' }, 'PatOS'), item('all', PatOS.t('All Notes'), 'folder', live.length), item('notes', PatOS.t('Notes'), 'folder', live.filter((n) => !n.folder).length));
+        folders.forEach((f) => fside.appendChild(item(f.id, f.name, 'folder', live.filter((n) => n.folder === f.id).length, (el) => {
+          el.oncontextmenu = (e) => { e.preventDefault(); PatOS.menu([{ label: PatOS.t('Rename Folder…'), action: async () => { const n = await PatOS.ask(PatOS.t('Rename Folder…'), f.name, { icon: 'notes', ok: 'Rename' }); if (n) { f.name = n; saveFolders(); render(); } } }, { label: PatOS.t('Delete Folder'), action: async () => { if (await PatOS.confirmBox(PatOS.t('Delete this folder?'), PatOS.t('Its notes move to Recently Deleted.'), { danger: true, ok: 'Delete', icon: 'notes' })) { notes.forEach((n) => { if (n.folder === f.id) { n.deletedAt = Date.now(); n.folder = null; } }); folders = folders.filter((x) => x !== f); saveFolders(); save(); folder = 'all'; render(); } } }], e.clientX, e.clientY); };
+          el.addEventListener('dragover', (e) => { e.preventDefault(); el.classList.add('drop'); }); el.addEventListener('dragleave', () => el.classList.remove('drop'));
+          el.addEventListener('drop', (e) => { e.preventDefault(); el.classList.remove('drop'); const n = notes.find((x) => x.id === e.dataTransfer.getData('text/note')); if (n) { n.folder = f.id; save(); render(); } });
+        })));
+        const del = notes.filter((n) => n.deletedAt).length;
+        if (del) fside.appendChild(item('deleted', PatOS.t('Recently Deleted'), 'trash', del));
+        fside.appendChild(h('button', { class: 'nf-new', onclick: async () => { const n = await PatOS.ask(PatOS.t('New Folder'), PatOS.t('School'), { icon: 'notes', ok: 'Create' }); if (n) { const f = { id: PatOS.uid(), name: n }; folders.push(f); saveFolders(); folder = f.id; render(); } } }, '+ ' + PatOS.t('New Folder')));
+      }
       function renderList() {
-        list.innerHTML = '';
+        listEl.innerHTML = '';
         const ql = q.value.toLowerCase();
-        notes.sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.mtime - a.mtime)
-          .filter((n) => !ql || plain(n.body).toLowerCase().includes(ql))
-          .forEach((n) => {
-            const text = plain(n.body).trim().split('\n');
-            const el = h('div', { class: 'nt-item' + (cur && cur.id === n.id ? ' on' : '') + (n.pinned ? ' pinned' : '') },
-              h('b', {}, titleOf(n)),
-              h('div', {}, h('span', {}, new Date(n.mtime).toLocaleDateString()), ' ', (text[1] || 'No additional text').slice(0, 40)));
-            el.onclick = () => open(n);
-            el.oncontextmenu = (e) => { e.preventDefault(); PatOS.menu([{ label: n.pinned ? 'Unpin' : 'Pin to top', action: () => { n.pinned = !n.pinned; save(); renderList(); } }, { label: 'Export as .txt to Documents', action: () => { const nm = PatOS.fs.uniqueName('/Documents', titleOf(n).replace(/[\/]/g, '-') + '.txt'); PatOS.fs.write('/Documents/' + nm, plain(n.body)); PatOS.notify({ title: 'Exported', body: nm + ' saved in Documents', icon: 'notes' }); } }, { divider: true }, { label: 'Delete', action: () => del(n) }], e.clientX, e.clientY); };
-            list.appendChild(el);
-          });
+        const items = notes.filter((n) => (ql ? !n.deletedAt : inFolder(n)) && (!ql || plain(n.body).toLowerCase().includes(ql)))
+          .sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || (sortBy === 'title' ? titleOf(a).localeCompare(titleOf(b)) : b.mtime - a.mtime));
+        const fname = folder === 'all' ? PatOS.t('All Notes') : folder === 'notes' ? PatOS.t('Notes') : folder === 'deleted' ? PatOS.t('Recently Deleted') : (folders.find((f) => f.id === folder) || {}).name;
+        listHead.innerHTML = '';
+        listHead.append(h('b', {}, ql ? PatOS.t('Results') : fname), h('small', {}, items.length + ' ' + PatOS.t(items.length === 1 ? 'note' : 'notes')), h('button', { class: 'tbtn nl-sort', title: 'Sort by', onclick: (e) => { const r = e.currentTarget.getBoundingClientRect(); PatOS.menu([{ label: PatOS.t('Date Edited'), checked: sortBy === 'date', action: () => { sortBy = 'date'; PatOS.store.set('noteSort', sortBy); renderList(); } }, { label: PatOS.t('Title'), checked: sortBy === 'title', action: () => { sortBy = 'title'; PatOS.store.set('noteSort', sortBy); renderList(); } }], r.left, r.bottom + 4); } }, '⇅'));
+        let section = '';
+        items.forEach((n) => {
+          const age = Date.now() - n.mtime; const sec = n.pinned && !ql ? PatOS.t('Pinned') : age < DAY ? PatOS.t('Today') : age < 7 * DAY ? PatOS.t('Previous 7 Days') : PatOS.t('Earlier');
+          if (sortBy === 'date' && sec !== section) { section = sec; listEl.appendChild(h('div', { class: 'nl-sec' }, sec)); }
+          const text = plain(n.body).trim().split('\n').filter(Boolean);
+          const img = (/<img[^>]+src="([^"]+)"/.exec(n.body) || [])[1];
+          const el = h('div', { class: 'nt-item' + (cur && cur.id === n.id ? ' on' : '') + (n.pinned ? ' pinned' : ''), draggable: 'true' },
+            h('div', { class: 'nt-txt' }, h('b', {}, titleOf(n)), h('div', {}, h('span', {}, new Date(n.mtime).toLocaleDateString(undefined, age < DAY ? undefined : { month: 'short', day: 'numeric' }).replace(/\/\d{4}$/, '')), ' ', (text[1] || PatOS.t('No additional text')).slice(0, 60))),
+            img ? h('img', { class: 'nt-thumb', src: img, alt: '' }) : null);
+          el.onclick = () => open(n);
+          el.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/note', n.id));
+          el.oncontextmenu = (e) => {
+            e.preventDefault();
+            if (n.deletedAt) return PatOS.menu([{ label: PatOS.t('Recover'), action: () => { delete n.deletedAt; save(); render(); } }, { label: PatOS.t('Delete Immediately'), action: () => { notes = notes.filter((x) => x !== n); save(); if (cur === n) cur = null; render(); } }], e.clientX, e.clientY);
+            PatOS.menu([{ label: PatOS.t(n.pinned ? 'Unpin' : 'Pin to top'), action: () => { n.pinned = !n.pinned; save(); renderList(); } },
+              { header: PatOS.t('Move to') }, { label: PatOS.t('Notes'), checked: !n.folder, action: () => { n.folder = null; save(); render(); } }, ...folders.map((f) => ({ label: f.name, checked: n.folder === f.id, action: () => { n.folder = f.id; save(); render(); } })),
+              { divider: true }, { label: PatOS.t('Delete'), action: () => del(n) }], e.clientX, e.clientY);
+          };
+          listEl.appendChild(el);
+        });
+        if (!items.length) listEl.appendChild(h('div', { class: 'nl-empty' }, folder === 'deleted' ? PatOS.t('Nothing here. Deleted notes stay for 30 days.') : PatOS.t('No notes yet')));
       }
       function open(n) {
-        cur = n; ed.innerHTML = n.body; meta.textContent = new Date(n.mtime).toLocaleString(undefined, { dateStyle: 'long', timeStyle: 'short' });
-        n.title = titleOf(n);
+        cur = n; ed.innerHTML = n.body; ed.contentEditable = n.deletedAt ? 'false' : 'true';
+        meta.textContent = new Date(n.mtime).toLocaleString(undefined, { dateStyle: 'long', timeStyle: 'short' }) + (n.deletedAt ? ' · ' + PatOS.t('In Recently Deleted') : '');
+        empty.style.display = 'none'; ed.style.display = ''; meta.style.display = '';
         renderList();
       }
-      function del(n) { notes = notes.filter((x) => x !== n); save(); if (cur === n) { cur = null; notes[0] ? open(notes[0]) : create(); } else renderList(); }
-      function create() { const n = { id: PatOS.uid(), title: '', body: '<div><br></div>', mtime: Date.now() }; notes.unshift(n); save(); open(n); ed.focus(); }
-      ed.addEventListener('input', () => { if (!cur) return; cur.body = ed.innerHTML; cur.mtime = Date.now(); cur.title = titleOf(cur); save(); renderList(); });
-      ed.addEventListener('click', (e) => {
-        // toggle checkboxes by clicking on them
-        const sel = window.getSelection(); if (!sel.rangeCount) return;
-        const node = sel.anchorNode; if (!node || node.nodeType !== 3) return;
+      function showEmpty() { cur = null; ed.style.display = 'none'; meta.style.display = 'none'; empty.style.display = ''; empty.textContent = PatOS.t('No note selected'); }
+      function del(n) {
+        if (n.deletedAt) { notes = notes.filter((x) => x !== n); } else { n.deletedAt = Date.now(); n.pinned = false; }
+        save(); PatOS.sound.trash();
+        const next = notes.filter(inFolder).sort((a, b) => b.mtime - a.mtime)[0];
+        if (cur === n) { if (next) open(next); else { showEmpty(); } } render(true);
+      }
+      function create() {
+        if (folder === 'deleted') folder = 'all';
+        const n = { id: PatOS.uid(), title: '', body: '<div><br></div>', mtime: Date.now(), folder: ['all', 'notes'].includes(folder) ? null : folder };
+        notes.unshift(n); save(); open(n); render(true); ed.focus();
+      }
+      function onInput() { if (!cur || cur.deletedAt) return; cur.body = ed.innerHTML; cur.mtime = Date.now(); cur.title = titleOf(cur); save(); renderList(); renderFolders(); }
+      function readImage(file) {
+        const r = new FileReader(); r.onload = () => { const img = new Image(); img.onload = () => { const s = Math.min(1, 700 / img.width); const c = document.createElement('canvas'); c.width = img.width * s; c.height = img.height * s; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); ed.focus(); document.execCommand('insertHTML', false, `<img src="${c.toDataURL('image/jpeg', 0.8)}" alt=""><div><br></div>`); onInput(); }; img.src = r.result; }; r.readAsDataURL(file);
+      }
+      ed.addEventListener('input', onInput);
+      ed.addEventListener('paste', (e) => { const it = [...((e.clipboardData || {}).items || [])].find((x) => x.type.startsWith('image/')); if (it) { e.preventDefault(); readImage(it.getAsFile()); } });
+      ed.addEventListener('drop', (e) => { const f = e.dataTransfer.files && e.dataTransfer.files[0]; if (f && f.type.startsWith('image/')) { e.preventDefault(); readImage(f); } });
+      ed.addEventListener('click', () => {
+        const sel = window.getSelection(); if (!sel.rangeCount) return; const node = sel.anchorNode; if (!node || node.nodeType !== 3) return;
         const i = sel.anchorOffset; const t = node.textContent;
-        for (const j of [i - 1, i]) {
-          if (t[j] === '☐' || t[j] === '☑') { node.textContent = t.slice(0, j) + (t[j] === '☐' ? '☑' : '☐') + t.slice(j + 1); ed.dispatchEvent(new Event('input')); break; }
-        }
+        for (const j of [i - 1, i]) if (t[j] === '☐' || t[j] === '☑') { node.textContent = t.slice(0, j) + (t[j] === '☐' ? '☑' : '☐') + t.slice(j + 1); onInput(); break; }
+      });
+      ed.addEventListener('keydown', (e) => {
+        // keep checklists going: Enter on a "☐ " line starts a new one
+        if (e.key === 'Enter' && !e.shiftKey) { const sel = window.getSelection(); const line = sel.anchorNode && (sel.anchorNode.nodeType === 3 ? sel.anchorNode.textContent : sel.anchorNode.textContent || ''); if (/^[☐☑]\s/.test(line || '')) { e.preventDefault(); if (/^[☐☑]\s*$/.test(line)) { sel.anchorNode.textContent = ''; } else { document.execCommand('insertParagraph'); document.execCommand('insertText', false, '☐ '); } onInput(); } }
       });
       q.addEventListener('input', renderList);
-      bNew.onclick = create; bDel.onclick = () => cur && del(cur);
-      win._openNote = (id) => { const n = notes.find((x) => x.id === id); if (n) open(n); };
+      function render(keepCur) { renderFolders(); renderList(); if (!keepCur && !cur) { const first = notes.filter(inFolder).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.mtime - a.mtime)[0]; if (first) open(first); else showEmpty(); } }
+      win._openNote = (id) => { const n = notes.find((x) => x.id === id); if (n) { folder = 'all'; open(n); render(true); } };
       const first = args.id ? notes.find((n) => n.id === args.id) : null;
-      open(first || notes.sort((a, b) => b.mtime - a.mtime)[0] || (create(), notes[0]));
+      if (first) { open(first); render(true); } else render();
     },
     onArgs(win, args) { if (args.id) win._openNote(args.id); }
   });
@@ -6295,15 +6426,32 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       const search = h('input', { class: 'wx-search', placeholder: 'Search for a city', spellcheck: 'false' });
       const bUnit = h('button', { class: 'wx-unit' });
       const bLoc = h('button', { class: 'wx-unit', title: 'Use my location' }, '➤');
-      const top = h('div', { class: 'wx-top' }, search, bLoc, bUnit);
+      const bList = h('button', { class: 'wx-unit', title: 'Saved cities', html: PatOS.sym('apps') });
+      const top = h('div', { class: 'wx-top' }, bList, search, bLoc, bUnit);
       const main = h('div', { class: 'wx-main' }, h('div', { class: 'wx-loading' }, 'Loading weather…'));
-      content.append(top, main);
+      const placesEl = h('div', { class: 'wx-places hidden' });
+      content.append(top, placesEl, main);
+      let places = PatOS.store.get('weatherPlaces', null) || [place];
+      const savePlaces = () => PatOS.store.set('weatherPlaces', places);
+      const same = (a, b) => Math.abs(a.lat - b.lat) < 0.01 && Math.abs(a.lon - b.lon) < 0.01;
+      async function renderPlaces() {
+        placesEl.innerHTML = '';
+        places.forEach((pl, i) => {
+          const temp = h('b', {}, '…'), cond = h('small', {}, '');
+          const card = h('div', { class: 'wx-pcard' + (same(pl, place) ? ' on' : '') }, h('div', {}, h('span', { class: 'wx-pname' }, pl.name), cond), temp, places.length > 1 ? h('button', { class: 'wx-px', title: 'Remove', onclick: (e) => { e.stopPropagation(); places.splice(i, 1); savePlaces(); if (same(pl, place)) { place = places[0]; PatOS.store.set('weatherPlace', place); load(); } renderPlaces(); } }, '×') : null);
+          card.onclick = () => { place = pl; PatOS.store.set('weatherPlace', place); placesEl.classList.add('hidden'); load(); };
+          placesEl.appendChild(card);
+          fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pl.lat}&longitude=${pl.lon}&current=temperature_2m,weather_code&timezone=auto`).then((r) => r.json()).then((j) => { temp.textContent = T(j.current.temperature_2m); cond.textContent = PatOS.t(code(j.current.weather_code)[0]) + ' · ' + new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', timeZone: j.timezone }); }).catch(() => { temp.textContent = '—'; });
+        });
+        placesEl.appendChild(h('div', { class: 'wx-hint' }, PatOS.t('Search for a city above to add it.')));
+      }
+      bList.onclick = () => { placesEl.classList.toggle('hidden'); if (!placesEl.classList.contains('hidden')) renderPlaces(); };
       const T = (c) => Math.round(unit === 'C' ? c : c * 9 / 5 + 32) + '°';
 
       async function load() {
         bUnit.textContent = '°' + unit;
         try {
-          const url = `https://api.open-meteo.com/v1/forecast?latitude=${place.lat}&longitude=${place.lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=auto&forecast_days=7`;
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${place.lat}&longitude=${place.lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=auto&forecast_days=7`;
           const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status);
           draw(await r.json());
         } catch (e) {
@@ -6312,8 +6460,30 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           setMode('cloud');
         }
       }
+      function chart(d, nowIdx) {
+        const cv = h('canvas', { class: 'wx-chart', width: 720, height: 150 });
+        requestAnimationFrame(() => {
+          const W = cv.width = Math.max(300, cv.clientWidth * 2), H = cv.height = 300; const x = cv.getContext('2d');
+          const temps = d.hourly.temperature_2m.slice(nowIdx, nowIdx + 24), rain = (d.hourly.precipitation_probability || []).slice(nowIdx, nowIdx + 24);
+          const mn = Math.min(...temps) - 1, mx = Math.max(...temps) + 1, px = (i) => 30 + i * (W - 60) / 23, py = (v) => 40 + (1 - (v - mn) / (mx - mn)) * (H - 110);
+          rain.forEach((p, i) => { if (!p) return; x.fillStyle = 'rgba(100,180,255,' + (0.25 + p / 250) + ')'; const bh = p / 100 * 60; x.fillRect(px(i) - 7, H - 30 - bh, 14, bh); });
+          const g = x.createLinearGradient(0, 40, 0, H - 70); g.addColorStop(0, 'rgba(255,214,10,.45)'); g.addColorStop(1, 'rgba(255,214,10,0)');
+          x.beginPath(); temps.forEach((v, i) => (i ? x.lineTo(px(i), py(v)) : x.moveTo(px(i), py(v)))); x.lineTo(px(23), H - 70); x.lineTo(px(0), H - 70); x.closePath(); x.fillStyle = g; x.fill();
+          x.beginPath(); temps.forEach((v, i) => (i ? x.lineTo(px(i), py(v)) : x.moveTo(px(i), py(v)))); x.strokeStyle = '#ffd60a'; x.lineWidth = 5; x.lineJoin = 'round'; x.stroke();
+          x.fillStyle = '#fff'; x.font = '600 22px system-ui'; x.textAlign = 'center';
+          temps.forEach((v, i) => { if (i % 3) return; x.fillText(T(v), px(i), py(v) - 14); x.fillStyle = 'rgba(255,255,255,.7)'; x.font = '20px system-ui'; x.fillText(i === 0 ? PatOS.t('Now') : new Date(d.hourly.time[nowIdx + i]).toLocaleTimeString(undefined, { hour: 'numeric' }), px(i), H - 6); if (rain[i] >= 20) { x.fillStyle = '#9fd3ff'; x.fillText(rain[i] + '%', px(i), H - 36 - rain[i] / 100 * 60); } x.fillStyle = '#fff'; x.font = '600 22px system-ui'; });
+        });
+        return h('div', { class: 'wx-card' }, h('div', { class: 'wx-ch' }, PatOS.t('NEXT 24 HOURS') + ' · ' + PatOS.t('temperature and chance of rain')), cv);
+      }
+      let aqiTile = null;
       function draw(d) {
         const c = d.current; const [label, emoji, m] = code(c.weather_code);
+        aqiTile = h('div', { class: 'wx-card wx-tile' }, h('div', { class: 'wx-ch' }, PatOS.t('AIR QUALITY')), h('div', { class: 'wx-tv' }, '…'));
+        fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${place.lat}&longitude=${place.lon}&current=us_aqi`).then((r) => r.json()).then((j) => {
+          const v = Math.round(j.current.us_aqi); const lvl = v <= 50 ? ['Good', '#32d74b'] : v <= 100 ? ['Moderate', '#ffd60a'] : v <= 150 ? ['Unhealthy for sensitive people', '#ff9f0a'] : v <= 200 ? ['Unhealthy', '#ff453a'] : ['Very unhealthy', '#bf5af2'];
+          aqiTile.querySelector('.wx-tv').innerHTML = ''; aqiTile.querySelector('.wx-tv').append(String(v), h('small', { class: 'wx-aqi', style: { color: lvl[1] } }, PatOS.t(lvl[0])));
+          aqiTile.appendChild(h('div', { class: 'wx-aqibar' }, h('i', { style: { left: Math.min(100, v / 3) + '%' } })));
+        }).catch(() => { aqiTile.querySelector('.wx-tv').textContent = '—'; });
         setMode(c.is_day ? m : (m === 'clear' ? 'night' : m));
         const dl = d.daily;
         const nowIdx = Math.max(0, d.hourly.time.findIndex((t) => t >= c.time.slice(0, 13)));
@@ -6329,6 +6499,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
               h('small', {}, i === 0 ? 'Now' : new Date(t).toLocaleTimeString(undefined, { hour: 'numeric' })),
               h('span', {}, code(d.hourly.weather_code[nowIdx + i])[1]),
               h('b', {}, T(d.hourly.temperature_2m[nowIdx + i])))))),
+          chart(d, nowIdx),
           h('div', { class: 'wx-row' },
             h('div', { class: 'wx-card wx-days' }, h('div', { class: 'wx-ch' }, '📅 7-DAY FORECAST'),
               ...dl.time.map((t, i) => {
@@ -6341,6 +6512,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
             h('div', { class: 'wx-tiles' },
               tile('🌡 FEELS LIKE', T(c.apparent_temperature)), tile('💧 HUMIDITY', c.relative_humidity_2m + '%'),
               tile('💨 WIND', Math.round(c.wind_speed_10m) + ' km/h'), tile('☀️ UV INDEX', Math.round(dl.uv_index_max[0])),
+              aqiTile,
               tile('🌅 SUNRISE', new Date(dl.sunrise[0]).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })),
               tile('🌇 SUNSET', new Date(dl.sunset[0]).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })))));
         win.setTitle('Weather — ' + place.name);
@@ -6377,7 +6549,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           const j = await r.json();
           if (!j.results || !j.results.length) { PatOS.notify({ title: 'City not found', body: search.value, icon: 'weather' }); return; }
           const g = j.results[0]; place = { name: g.name, lat: g.latitude, lon: g.longitude };
-          PatOS.store.set('weatherPlace', place); search.value = ''; search.blur(); load();
+          if (!places.some((x) => same(x, place))) { places.push(place); savePlaces(); }
+          PatOS.store.set('weatherPlace', place); search.value = ''; search.blur(); placesEl.classList.add('hidden'); load();
         } catch (er) { PatOS.notify({ title: 'Search failed', body: 'No internet connection?', icon: 'weather' }); }
       });
       bUnit.onclick = () => { unit = unit === 'C' ? 'F' : 'C'; PatOS.store.set('weatherUnit', unit); load(); };
@@ -7024,43 +7197,114 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 </script>
   <script>
-/* Reminders — to-do lists */
+/* Reminders — lists, due dates with alerts, priorities, flags and smart lists */
 (function () {
   'use strict';
   const { h } = PatOS;
+  const COLORS = ['#0a84ff', '#ff453a', '#ff9f0a', '#32d74b', '#bf5af2', '#ff375f', '#64d2ff', '#8e8e93'];
+  const todayKey = () => PatOS.dateKey(new Date());
+  const load = () => PatOS.store.get('reminders', null) || [{ id: 1, text: 'Finish math homework', done: false, due: todayKey(), time: '18:00', prio: 2 }, { id: 2, text: 'Try the 3D Galaxy app', done: false }, { id: 3, text: 'Customize the dock', done: true }];
+  const fmtDue = (r) => {
+    if (!r.due) return '';
+    const d = new Date(r.due + 'T12:00'), t = new Date(); t.setHours(12, 0, 0, 0);
+    const diff = Math.round((d - t) / 86400000);
+    let s = diff === 0 ? PatOS.t('Today') : diff === 1 ? PatOS.t('Tomorrow') : diff === -1 ? PatOS.t('Yesterday') : d.toLocaleDateString(undefined, { weekday: diff > 0 && diff < 7 ? 'long' : undefined, month: 'short', day: 'numeric' });
+    if (r.time) { const [hh, mm] = r.time.split(':').map(Number); const x = new Date(); x.setHours(hh, mm, 0, 0); s += ', ' + x.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); }
+    return s;
+  };
+  const overdue = (r) => !r.done && r.due && (r.due < todayKey() || (r.due === todayKey() && r.time && r.time < new Date().toTimeString().slice(0, 5)));
+
   PatOS.registerApp({
-    id: 'reminders', name: 'Reminders', icon: 'reminders', width: 560, height: 520, keywords: 'todo tasks list checklist homework',
+    id: 'reminders', name: 'Reminders', icon: 'reminders', width: 860, height: 560, keywords: 'todo tasks list checklist homework due',
     launch(win) {
-      let items = PatOS.store.get('reminders', [{ id: 1, text: 'Finish math homework', done: false }, { id: 2, text: 'Try the 3D Galaxy app', done: false }, { id: 3, text: 'Customize the dock', done: true }]);
-      let filter = 'all';
-      const save = () => PatOS.store.set('reminders', items);
-      const head = h('div', { class: 'rm-head' });
-      const list = h('div', { class: 'rm-list' });
-      const add = h('input', { class: 'rm-add', placeholder: '+ New Reminder (press Enter)' });
-      const seg = h('div', { class: 'seg' });
-      [['all', 'All'], ['todo', 'To Do'], ['done', 'Completed']].forEach(([k, l]) => seg.appendChild(h('button', { class: 'tab', 'data-k': k, onclick: () => { filter = k; render(); } }, l)));
-      win.toolbar.appendChild(seg);
-      win.body.append(h('div', { class: 'rm' }, head, list, add));
-      function render() {
-        [...seg.children].forEach((b) => b.classList.toggle('on', b.dataset.k === filter));
-        const left = items.filter((i) => !i.done).length;
-        head.innerHTML = ''; head.append(h('h1', {}, filter === 'done' ? 'Completed' : 'Reminders'), h('span', {}, left + ' left'));
-        list.innerHTML = '';
-        items.filter((i) => filter === 'all' || (filter === 'done' ? i.done : !i.done)).forEach((it) => {
-          const chk = h('button', { class: 'rm-chk' + (it.done ? ' on' : '') });
-          const txt = h('div', { class: 'rm-txt', contenteditable: 'true', spellcheck: 'true' }, it.text);
-          const del = h('button', { class: 'rm-del', title: 'Delete' }, '×');
-          chk.onclick = () => { it.done = !it.done; if (it.done) PatOS.sound.pop(); save(); render(); };
-          txt.onblur = () => { it.text = txt.textContent.trim(); if (!it.text) items = items.filter((x) => x !== it); save(); render(); };
-          txt.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); txt.blur(); } };
-          del.onclick = () => { items = items.filter((x) => x !== it); save(); render(); };
-          list.appendChild(h('div', { class: 'rm-item' + (it.done ? ' done' : '') }, chk, txt, del));
+      let items = load(), lists = PatOS.store.get('remLists', [{ id: 'default', name: PatOS.t('Reminders'), color: COLORS[0] }]);
+      let view = 'today', showDone = false, editing = null;
+      const save = () => PatOS.store.set('reminders', items), saveLists = () => PatOS.store.set('remLists', lists);
+      const side = h('div', { class: 'rm-side' }), main = h('div', { class: 'rm' });
+      win.body.appendChild(h('div', { class: 'rm-wrap' }, side, main));
+      const SMART = [['today', 'Today', '#0a84ff', (r) => !r.done && r.due && r.due <= todayKey()], ['scheduled', 'Scheduled', '#ff453a', (r) => !r.done && r.due], ['all', 'All', '#3a3a3c', (r) => !r.done], ['flagged', 'Flagged', '#ff9f0a', (r) => !r.done && r.flag], ['completed', 'Completed', '#8e8e93', (r) => r.done]];
+      function listFilter() { const sm = SMART.find((s) => s[0] === view); if (sm) return sm[3]; return (r) => (r.list || 'default') === view && (showDone || !r.done); }
+      function renderSide() {
+        side.innerHTML = '';
+        const grid = h('div', { class: 'rm-smart' });
+        SMART.forEach(([k, l, c, fn]) => { const b = h('button', { class: 'rm-tile' + (view === k ? ' on' : '') }, h('span', { class: 'rm-dot', style: { background: c } }), h('b', {}, items.filter(fn).length), h('span', {}, PatOS.t(l))); b.onclick = () => { view = k; render(); }; grid.appendChild(b); });
+        side.append(grid, h('div', { class: 'fd-sh' }, PatOS.t('My Lists')));
+        lists.forEach((L) => {
+          const n = items.filter((r) => (r.list || 'default') === L.id && !r.done).length;
+          const el = h('div', { class: 'fd-si' + (view === L.id ? ' on' : '') }, h('span', { class: 'rm-ldot', style: { background: L.color } }), h('span', { class: 'nf-name' }, L.name), h('small', { class: 'nf-count' }, n || ''));
+          el.onclick = () => { view = L.id; render(); };
+          el.oncontextmenu = (e) => { e.preventDefault(); PatOS.menu([{ label: PatOS.t('Rename List…'), action: async () => { const v = await PatOS.ask(PatOS.t('Rename List…'), L.name, { icon: 'reminders', ok: 'Rename' }); if (v) { L.name = v; saveLists(); render(); } } }, { header: PatOS.t('Color') }, ...COLORS.map((c, i) => ({ label: ['Blue', 'Red', 'Orange', 'Green', 'Purple', 'Pink', 'Teal', 'Gray'].map(PatOS.t)[i], checked: L.color === c, action: () => { L.color = c; saveLists(); render(); } })), { divider: true }, { label: PatOS.t('Delete List'), disabled: lists.length < 2, action: async () => { if (await PatOS.confirmBox(PatOS.t('Delete this list?'), PatOS.t('Its reminders will be deleted too.'), { danger: true, ok: 'Delete', icon: 'reminders' })) { items = items.filter((r) => (r.list || 'default') !== L.id); lists = lists.filter((x) => x !== L); save(); saveLists(); view = 'today'; render(); } } }], e.clientX, e.clientY); };
+          el.addEventListener('dragover', (e) => { e.preventDefault(); el.classList.add('drop'); }); el.addEventListener('dragleave', () => el.classList.remove('drop'));
+          el.addEventListener('drop', (e) => { e.preventDefault(); el.classList.remove('drop'); const r = items.find((x) => String(x.id) === e.dataTransfer.getData('text/rem')); if (r) { r.list = L.id; save(); render(); } });
+          side.appendChild(el);
         });
+        side.appendChild(h('button', { class: 'nf-new', onclick: async () => { const v = await PatOS.ask(PatOS.t('New List'), PatOS.t('Homework'), { icon: 'reminders', ok: 'Create' }); if (v) { const L = { id: PatOS.uid(), name: v, color: COLORS[lists.length % COLORS.length] }; lists.push(L); saveLists(); view = L.id; render(); } } }, '+ ' + PatOS.t('Add List')));
       }
-      add.addEventListener('keydown', (e) => { if (e.key === 'Enter' && add.value.trim()) { items.push({ id: Date.now(), text: add.value.trim(), done: false }); add.value = ''; save(); render(); } });
+      function renderMain() {
+        main.innerHTML = '';
+        const sm = SMART.find((s) => s[0] === view); const L = lists.find((x) => x.id === view);
+        const color = sm ? sm[2] : L ? L.color : COLORS[0];
+        const shown = items.filter(listFilter()).sort((a, b) => (a.done - b.done) || ((a.due || '9') + (a.time || '99')).localeCompare((b.due || '9') + (b.time || '99')) || (b.prio || 0) - (a.prio || 0));
+        const left = shown.filter((r) => !r.done).length;
+        main.appendChild(h('div', { class: 'rm-head' }, h('h1', { style: { color } }, sm ? PatOS.t(sm[1]) : L ? L.name : ''), h('span', {}, left), !sm ? h('button', { class: 'tbtn rm-showdone', onclick: () => { showDone = !showDone; renderMain(); } }, PatOS.t(showDone ? 'Hide Completed' : 'Show Completed')) : null));
+        const listEl = h('div', { class: 'rm-list' });
+        let group = '';
+        shown.forEach((r) => {
+          if (view === 'scheduled') { const g = r.due < todayKey() ? PatOS.t('Overdue') : fmtDue({ due: r.due }); if (g !== group) { group = g; listEl.appendChild(h('div', { class: 'rm-group' + (r.due < todayKey() ? ' late' : '') }, g)); } }
+          listEl.appendChild(row(r, color));
+        });
+        if (!shown.length) listEl.appendChild(h('div', { class: 'rm-empty' }, view === 'completed' ? PatOS.t('Nothing completed yet') : PatOS.t('All done. Nice.')));
+        main.appendChild(listEl);
+        if (view !== 'completed') {
+          const add = h('input', { class: 'rm-add', placeholder: '+ ' + PatOS.t('New Reminder') });
+          add.addEventListener('keydown', (e) => { if (e.key === 'Enter' && add.value.trim()) { const r = { id: Date.now(), text: add.value.trim(), done: false, list: L ? L.id : 'default' }; if (view === 'today') r.due = todayKey(); if (view === 'flagged') r.flag = true; items.push(r); add.value = ''; save(); render(); main.querySelector('.rm-add').focus(); } });
+          main.appendChild(add);
+        }
+      }
+      function row(r, color) {
+        const chk = h('button', { class: 'rm-chk' + (r.done ? ' on' : ''), style: { '--c': color } });
+        const txt = h('div', { class: 'rm-txt', contenteditable: 'true', spellcheck: 'true' }, r.text);
+        const lst = lists.find((x) => x.id === (r.list || 'default'));
+        const metaBits = [r.due ? h('span', { class: overdue(r) ? 'late' : '' }, fmtDue(r)) : null, SMART.some((s) => s[0] === view) && lst ? h('span', {}, lst.name) : null, r.notes ? h('span', {}, r.notes) : null].filter(Boolean);
+        const meta = metaBits.length ? h('div', { class: 'rm-meta' }, ...metaBits) : null;
+        const prio = r.prio ? h('span', { class: 'rm-prio' }, '!'.repeat(r.prio)) : null;
+        const flag = r.flag ? h('span', { class: 'rm-flag', html: PatOS.sym('flag') }) : null;
+        const info = h('button', { class: 'rm-info', title: 'Details' }, 'ⓘ');
+        chk.onclick = () => { r.done = !r.done; r.doneAt = r.done ? Date.now() : null; if (r.done) PatOS.sound.pop(); const el = chk.closest('.rm-item'); if (r.done && !SMART.some((s) => s[0] === view && s[0] !== 'completed') && !showDone) { el.classList.add('leaving'); setTimeout(() => { save(); render(); }, 450); } else { save(); render(); } };
+        txt.onblur = () => { const v = txt.textContent.trim(); if (v === r.text) return; r.text = v; if (!r.text) items = items.filter((x) => x !== r); save(); render(); };
+        txt.onkeydown = (e) => { if (e.key === 'Enter') { e.preventDefault(); txt.blur(); } };
+        info.onclick = () => details(r);
+        const el = h('div', { class: 'rm-item' + (r.done ? ' done' : ''), draggable: 'true' }, chk, h('div', { class: 'rm-body' }, h('div', { class: 'rm-line' }, prio, txt, flag), meta), info);
+        el.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/rem', String(r.id)));
+        return el;
+      }
+      function details(r) {
+        const fDue = h('input', { class: 'field', type: 'date', value: r.due || '' }), fTime = h('input', { class: 'field', type: 'time', value: r.time || '' });
+        const fPrio = h('select', { class: 'field' }, ...[[0, 'None'], [1, 'Low'], [2, 'Medium'], [3, 'High']].map(([v, l]) => h('option', { value: v, selected: (r.prio || 0) === v }, PatOS.t(l))));
+        const fList = h('select', { class: 'field' }, ...lists.map((L) => h('option', { value: L.id, selected: (r.list || 'default') === L.id }, L.name)));
+        const fFlag = h('input', { type: 'checkbox', checked: !!r.flag });
+        const fNotes = h('textarea', { class: 'field ce-notes', placeholder: PatOS.t('Notes') }); fNotes.value = r.notes || '';
+        const layer = h('div', { class: 'dlg-layer' }); const close = () => layer.remove();
+        layer.appendChild(h('div', { class: 'dlg ce' }, h('b', {}, r.text),
+          h('label', { class: 'ce-row' }, h('span', {}, PatOS.t('Date')), fDue), h('label', { class: 'ce-row' }, h('span', {}, PatOS.t('Time')), fTime),
+          h('label', { class: 'ce-row' }, h('span', {}, PatOS.t('Priority')), fPrio), h('label', { class: 'ce-row' }, h('span', {}, PatOS.t('List')), fList), h('label', { class: 'ce-row' }, h('span', {}, PatOS.t('Flagged')), fFlag), fNotes,
+          h('div', { class: 'dlg-btns' }, h('button', { class: 'btn danger', onclick: () => { items = items.filter((x) => x !== r); save(); close(); render(); } }, 'Delete'), h('button', { class: 'btn primary', onclick: () => { r.due = fDue.value || null; r.time = fDue.value ? fTime.value || null : null; r.prio = +fPrio.value; r.list = fList.value; r.flag = fFlag.checked; r.notes = fNotes.value.trim(); delete r.alerted; save(); close(); render(); } }, 'Done'))));
+        layer.addEventListener('pointerdown', (e) => { if (e.target === layer) close(); });
+        document.body.appendChild(layer);
+      }
+      function render() { renderSide(); renderMain(); }
+      const off = PatOS.on('reminders', () => { items = load(); render(); }); win.on('closed', off);
       render();
     }
   });
+  /* alerts at the due time, while PatOS is open */
+  setInterval(() => {
+    if (!PatOS.loggedIn) return;
+    const items = PatOS.store.get('reminders', []); let changed = false;
+    const now = new Date(), k = PatOS.dateKey(now), hm = now.toTimeString().slice(0, 5);
+    items.forEach((r) => { if (!r.done && !r.alerted && r.due === k && r.time && r.time <= hm) { r.alerted = true; changed = true; PatOS.notify({ title: r.text, body: PatOS.t('Reminder'), icon: 'reminders', duration: 10000 }); } });
+    if (changed) { PatOS.store.set('reminders', items); PatOS.emit('reminders'); }
+  }, 20000);
 })();
 
 </script>

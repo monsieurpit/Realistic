@@ -27,15 +27,32 @@
       const search = h('input', { class: 'wx-search', placeholder: 'Search for a city', spellcheck: 'false' });
       const bUnit = h('button', { class: 'wx-unit' });
       const bLoc = h('button', { class: 'wx-unit', title: 'Use my location' }, '➤');
-      const top = h('div', { class: 'wx-top' }, search, bLoc, bUnit);
+      const bList = h('button', { class: 'wx-unit', title: 'Saved cities', html: PatOS.sym('apps') });
+      const top = h('div', { class: 'wx-top' }, bList, search, bLoc, bUnit);
       const main = h('div', { class: 'wx-main' }, h('div', { class: 'wx-loading' }, 'Loading weather…'));
-      content.append(top, main);
+      const placesEl = h('div', { class: 'wx-places hidden' });
+      content.append(top, placesEl, main);
+      let places = PatOS.store.get('weatherPlaces', null) || [place];
+      const savePlaces = () => PatOS.store.set('weatherPlaces', places);
+      const same = (a, b) => Math.abs(a.lat - b.lat) < 0.01 && Math.abs(a.lon - b.lon) < 0.01;
+      async function renderPlaces() {
+        placesEl.innerHTML = '';
+        places.forEach((pl, i) => {
+          const temp = h('b', {}, '…'), cond = h('small', {}, '');
+          const card = h('div', { class: 'wx-pcard' + (same(pl, place) ? ' on' : '') }, h('div', {}, h('span', { class: 'wx-pname' }, pl.name), cond), temp, places.length > 1 ? h('button', { class: 'wx-px', title: 'Remove', onclick: (e) => { e.stopPropagation(); places.splice(i, 1); savePlaces(); if (same(pl, place)) { place = places[0]; PatOS.store.set('weatherPlace', place); load(); } renderPlaces(); } }, '×') : null);
+          card.onclick = () => { place = pl; PatOS.store.set('weatherPlace', place); placesEl.classList.add('hidden'); load(); };
+          placesEl.appendChild(card);
+          fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pl.lat}&longitude=${pl.lon}&current=temperature_2m,weather_code&timezone=auto`).then((r) => r.json()).then((j) => { temp.textContent = T(j.current.temperature_2m); cond.textContent = PatOS.t(code(j.current.weather_code)[0]) + ' · ' + new Date().toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit', timeZone: j.timezone }); }).catch(() => { temp.textContent = '—'; });
+        });
+        placesEl.appendChild(h('div', { class: 'wx-hint' }, PatOS.t('Search for a city above to add it.')));
+      }
+      bList.onclick = () => { placesEl.classList.toggle('hidden'); if (!placesEl.classList.contains('hidden')) renderPlaces(); };
       const T = (c) => Math.round(unit === 'C' ? c : c * 9 / 5 + 32) + '°';
 
       async function load() {
         bUnit.textContent = '°' + unit;
         try {
-          const url = `https://api.open-meteo.com/v1/forecast?latitude=${place.lat}&longitude=${place.lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,weather_code&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=auto&forecast_days=7`;
+          const url = `https://api.open-meteo.com/v1/forecast?latitude=${place.lat}&longitude=${place.lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=auto&forecast_days=7`;
           const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status);
           draw(await r.json());
         } catch (e) {
@@ -44,8 +61,30 @@
           setMode('cloud');
         }
       }
+      function chart(d, nowIdx) {
+        const cv = h('canvas', { class: 'wx-chart', width: 720, height: 150 });
+        requestAnimationFrame(() => {
+          const W = cv.width = Math.max(300, cv.clientWidth * 2), H = cv.height = 300; const x = cv.getContext('2d');
+          const temps = d.hourly.temperature_2m.slice(nowIdx, nowIdx + 24), rain = (d.hourly.precipitation_probability || []).slice(nowIdx, nowIdx + 24);
+          const mn = Math.min(...temps) - 1, mx = Math.max(...temps) + 1, px = (i) => 30 + i * (W - 60) / 23, py = (v) => 40 + (1 - (v - mn) / (mx - mn)) * (H - 110);
+          rain.forEach((p, i) => { if (!p) return; x.fillStyle = 'rgba(100,180,255,' + (0.25 + p / 250) + ')'; const bh = p / 100 * 60; x.fillRect(px(i) - 7, H - 30 - bh, 14, bh); });
+          const g = x.createLinearGradient(0, 40, 0, H - 70); g.addColorStop(0, 'rgba(255,214,10,.45)'); g.addColorStop(1, 'rgba(255,214,10,0)');
+          x.beginPath(); temps.forEach((v, i) => (i ? x.lineTo(px(i), py(v)) : x.moveTo(px(i), py(v)))); x.lineTo(px(23), H - 70); x.lineTo(px(0), H - 70); x.closePath(); x.fillStyle = g; x.fill();
+          x.beginPath(); temps.forEach((v, i) => (i ? x.lineTo(px(i), py(v)) : x.moveTo(px(i), py(v)))); x.strokeStyle = '#ffd60a'; x.lineWidth = 5; x.lineJoin = 'round'; x.stroke();
+          x.fillStyle = '#fff'; x.font = '600 22px system-ui'; x.textAlign = 'center';
+          temps.forEach((v, i) => { if (i % 3) return; x.fillText(T(v), px(i), py(v) - 14); x.fillStyle = 'rgba(255,255,255,.7)'; x.font = '20px system-ui'; x.fillText(i === 0 ? PatOS.t('Now') : new Date(d.hourly.time[nowIdx + i]).toLocaleTimeString(undefined, { hour: 'numeric' }), px(i), H - 6); if (rain[i] >= 20) { x.fillStyle = '#9fd3ff'; x.fillText(rain[i] + '%', px(i), H - 36 - rain[i] / 100 * 60); } x.fillStyle = '#fff'; x.font = '600 22px system-ui'; });
+        });
+        return h('div', { class: 'wx-card' }, h('div', { class: 'wx-ch' }, PatOS.t('NEXT 24 HOURS') + ' · ' + PatOS.t('temperature and chance of rain')), cv);
+      }
+      let aqiTile = null;
       function draw(d) {
         const c = d.current; const [label, emoji, m] = code(c.weather_code);
+        aqiTile = h('div', { class: 'wx-card wx-tile' }, h('div', { class: 'wx-ch' }, PatOS.t('AIR QUALITY')), h('div', { class: 'wx-tv' }, '…'));
+        fetch(`https://air-quality-api.open-meteo.com/v1/air-quality?latitude=${place.lat}&longitude=${place.lon}&current=us_aqi`).then((r) => r.json()).then((j) => {
+          const v = Math.round(j.current.us_aqi); const lvl = v <= 50 ? ['Good', '#32d74b'] : v <= 100 ? ['Moderate', '#ffd60a'] : v <= 150 ? ['Unhealthy for sensitive people', '#ff9f0a'] : v <= 200 ? ['Unhealthy', '#ff453a'] : ['Very unhealthy', '#bf5af2'];
+          aqiTile.querySelector('.wx-tv').innerHTML = ''; aqiTile.querySelector('.wx-tv').append(String(v), h('small', { class: 'wx-aqi', style: { color: lvl[1] } }, PatOS.t(lvl[0])));
+          aqiTile.appendChild(h('div', { class: 'wx-aqibar' }, h('i', { style: { left: Math.min(100, v / 3) + '%' } })));
+        }).catch(() => { aqiTile.querySelector('.wx-tv').textContent = '—'; });
         setMode(c.is_day ? m : (m === 'clear' ? 'night' : m));
         const dl = d.daily;
         const nowIdx = Math.max(0, d.hourly.time.findIndex((t) => t >= c.time.slice(0, 13)));
@@ -61,6 +100,7 @@
               h('small', {}, i === 0 ? 'Now' : new Date(t).toLocaleTimeString(undefined, { hour: 'numeric' })),
               h('span', {}, code(d.hourly.weather_code[nowIdx + i])[1]),
               h('b', {}, T(d.hourly.temperature_2m[nowIdx + i])))))),
+          chart(d, nowIdx),
           h('div', { class: 'wx-row' },
             h('div', { class: 'wx-card wx-days' }, h('div', { class: 'wx-ch' }, '📅 7-DAY FORECAST'),
               ...dl.time.map((t, i) => {
@@ -73,6 +113,7 @@
             h('div', { class: 'wx-tiles' },
               tile('🌡 FEELS LIKE', T(c.apparent_temperature)), tile('💧 HUMIDITY', c.relative_humidity_2m + '%'),
               tile('💨 WIND', Math.round(c.wind_speed_10m) + ' km/h'), tile('☀️ UV INDEX', Math.round(dl.uv_index_max[0])),
+              aqiTile,
               tile('🌅 SUNRISE', new Date(dl.sunrise[0]).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })),
               tile('🌇 SUNSET', new Date(dl.sunset[0]).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })))));
         win.setTitle('Weather — ' + place.name);
@@ -109,7 +150,8 @@
           const j = await r.json();
           if (!j.results || !j.results.length) { PatOS.notify({ title: 'City not found', body: search.value, icon: 'weather' }); return; }
           const g = j.results[0]; place = { name: g.name, lat: g.latitude, lon: g.longitude };
-          PatOS.store.set('weatherPlace', place); search.value = ''; search.blur(); load();
+          if (!places.some((x) => same(x, place))) { places.push(place); savePlaces(); }
+          PatOS.store.set('weatherPlace', place); search.value = ''; search.blur(); placesEl.classList.add('hidden'); load();
         } catch (er) { PatOS.notify({ title: 'Search failed', body: 'No internet connection?', icon: 'weather' }); }
       });
       bUnit.onclick = () => { unit = unit === 'C' ? 'F' : 'C'; PatOS.store.set('weatherUnit', unit); load(); };

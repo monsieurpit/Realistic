@@ -553,7 +553,7 @@
         files++; spResults.push({ group: 'Files', filePath: p, label: PatOS.fs.basename(p), sub: PatOS.fs.dirname(p), iconHTML: PatOS.fileIconHTML(p, n), run: () => PatOS.openFile(p) });
       }
     });
-    PatOS.store.get('notes', []).filter((n) => (n.title + ' ' + n.body).toLowerCase().includes(ql)).slice(0, 4).forEach((n) =>
+    (PatOS.store.get('notes', []) || []).filter((n) => !n.deletedAt && (n.title + ' ' + n.body).toLowerCase().includes(ql)).slice(0, 4).forEach((n) =>
       spResults.push({ group: 'Notes', label: n.title || 'Untitled', icon: 'notes', run: () => PatOS.launch('notes', { id: n.id }) }));
     spResults.push({ group: 'Web', label: 'Search the web for “' + q + '”', icon: 'browser', run: () => PatOS.launch('browser', { url: q }) });
     let lastG = '';
