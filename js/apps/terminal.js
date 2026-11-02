@@ -24,9 +24,15 @@
       scr.addEventListener('click', () => { if (!window.getSelection().toString()) input.focus(); });
       const pathLabel = () => (cwd === '/' ? '~' : '~' + cwd);
       const setPrompt = () => { prompt.innerHTML = `<span class="tg">${esc(user)}@patos</span> <span class="tb">${esc(pathLabel())}</span> % `; win.setTitle(user + ' — ' + pathLabel() + ' — zsh'); };
-      const print = (html, cls) => { out.appendChild(h('div', { class: 'term-row ' + (cls || ''), html })); scr.scrollTop = scr.scrollHeight; };
-      const text = (s, cls) => print(esc(s), cls);
-      const resolve = (p) => !p ? cwd : p.startsWith('/') || p.startsWith('~') ? PatOS.fs.norm(p) : PatOS.fs.norm(cwd + '/' + p);
+      let capture = null, stdin = null; // used by pipes and > redirects
+      const print = (html, cls) => {
+        if (capture) { const d = document.createElement('div'); d.innerHTML = html.replace(/<br>/g, '\n'); capture.push(d.textContent); return; }
+        out.appendChild(h('div', { class: 'term-row ' + (cls || ''), html })); scr.scrollTop = scr.scrollHeight;
+      };
+      const text = (s, cls) => { if (capture) { capture.push(String(s)); return; } print(esc(s), cls); };
+      const input2 = (a) => { const f = a.filter((x) => !x.startsWith('-')); if (f.length) { const c = PatOS.fs.read(resolve(f[f.length - 1])); if (c == null) throw new Error(f[f.length - 1] + ': No such file'); return c; } return stdin == null ? '' : stdin; };
+      const flag = (a, f) => a.includes(f);
+            const resolve = (p) => !p ? cwd : p.startsWith('/') || p.startsWith('~') ? PatOS.fs.norm(p) : PatOS.fs.norm(cwd + '/' + p);
       let matrixStop = null;
 
       const cmds = {
@@ -36,7 +42,7 @@
            ['mkdir <dir>', 'make a folder'], ['rm <path>', 'move to Trash'], ['mv <src> <dir>', 'move'], ['cp <src> <dir>', 'copy'], ['echo <text> [> file]', 'print or write text'],
            ['tree', 'show folder tree'], ['open <app|file>', 'open an app or file'], ['apps', 'list apps'], ['calc <expr>', 'calculator'], ['date', 'current date'], ['whoami', 'your name'],
            ['neofetch', 'system info'], ['theme dark|light', 'change appearance'], ['wallpaper <name>', 'change wallpaper'], ['matrix', 'enter the matrix (press any key to stop)'],
-           ['cowsay <text>', 'a talking cow'], ['fortune', 'a random message'], ['history', 'command history'], ['clear', 'clear screen'], ['exit', 'close terminal']]
+           ['grep / wc / head / tail', 'filter text (works with |)'], ['sort / uniq / rev / seq', 'more text tools'], ['find [dir] -name <pattern>', 'find files'], ['ls -l', 'detailed list'], ['curl <url>', 'download a web page'], ['ping <host>', 'check a website'], ['weather', 'current weather'], ['todo [text]', 'list or add reminders'], ['cmd > file', 'save output to a file'], ['cmd1 && cmd2', 'run one after another'], ['cowsay <text>', 'a talking cow'], ['fortune', 'a random message'], ['history', 'command history'], ['clear', 'clear screen'], ['exit', 'close terminal']]
             .forEach(([c, d]) => print(`  <span class="ty">${esc(c.padEnd(22))}</span>${esc(d)}`));
         },
         ls(a) {
@@ -140,16 +146,90 @@
           matrixStop = () => { cancelAnimationFrame(raf); c.remove(); matrixStop = null; };
         }
       };
+      Object.assign(cmds, {
+        grep(a) {
+          const opts = a.filter((x) => x.startsWith('-')).join(''); const rest = a.filter((x) => !x.startsWith('-'));
+          const pat = rest.shift(); if (!pat) return text('usage: grep [-i] [-n] [-v] <text> [file]', 'err');
+          const src = rest.length ? PatOS.fs.read(resolve(rest[0])) : stdin; if (src == null) return text('grep: ' + rest[0] + ': No such file', 'err');
+          const re = new RegExp(pat.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), opts.includes('i') ? 'i' : '');
+          String(src).split('\n').forEach((l, i) => { if (re.test(l) !== opts.includes('v')) capture ? text((opts.includes('n') ? (i + 1) + ':' : '') + l) : print((opts.includes('n') ? `<span class="tm">${i + 1}:</span>` : '') + esc(l).replace(new RegExp(esc(pat).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g' + (opts.includes('i') ? 'i' : '')), (m) => `<span class="ty">${m}</span>`)); });
+        },
+        wc(a) { const s = input2(a); const lines = s ? s.split('\n').length - (s.endsWith('\n') ? 1 : 0) : 0; if (flag(a, '-l')) return text(String(lines)); if (flag(a, '-w')) return text(String((s.match(/\S+/g) || []).length)); text(lines + '  ' + (s.match(/\S+/g) || []).length + '  ' + s.length); },
+        head(a) { const n = a.includes('-n') ? +a[a.indexOf('-n') + 1] || 10 : 10; const rest = a.filter((x, i) => !(x === '-n' || a[i - 1] === '-n')); text(input2(rest).split('\n').slice(0, n).join('\n')); },
+        tail(a) { const n = a.includes('-n') ? +a[a.indexOf('-n') + 1] || 10 : 10; const rest = a.filter((x, i) => !(x === '-n' || a[i - 1] === '-n')); const l = input2(rest).replace(/\n$/, '').split('\n'); text(l.slice(-n).join('\n')); },
+        sort(a) { let l = input2(a).replace(/\n$/, '').split('\n'); l.sort(flag(a, '-n') ? (x, y) => parseFloat(x) - parseFloat(y) : (x, y) => x.localeCompare(y)); if (flag(a, '-r')) l.reverse(); text(l.join('\n')); },
+        uniq(a) { const l = input2(a).replace(/\n$/, '').split('\n'); text(l.filter((x, i) => x !== l[i - 1]).join('\n')); },
+        rev(a) { text(input2(a).split('\n').map((x) => [...x].reverse().join('')).join('\n')); },
+        seq(a) { const [x, y] = a.length > 1 ? [+a[0], +a[1]] : [1, +a[0] || 10]; const o = []; for (let i = x; i <= y && o.length < 1000; i++) o.push(i); text(o.join('\n')); },
+        find(a) {
+          const ni = a.indexOf('-name'); const pat = ni >= 0 ? a[ni + 1] : null; const dir = resolve(a[0] && a[0] !== '-name' ? a[0] : '.');
+          const re = pat ? new RegExp('^' + pat.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.') + '$', 'i') : null; const o = [];
+          PatOS.fs.walk(dir, (p) => { if (!re || re.test(PatOS.fs.basename(p))) o.push(p === '/' ? '~' : '~' + p); }); text(o.join('\n') || '(nothing found)');
+        },
+        du(a) { const p = resolve(a[0]); const n = PatOS.fs.get(p); if (!n) return text('du: no such file', 'err'); text(PatOS.fmtBytes(PatOS.fs.size(n)) + '\t' + (a[0] || '.')); },
+        rmdir(a) { const p = resolve(a[0]); if (!PatOS.fs.isDir(p)) return text('rmdir: not a folder', 'err'); if (PatOS.fs.list(p).length) return text('rmdir: folder is not empty', 'err'); PatOS.fs.remove(p); },
+        async curl(a) {
+          const u = a.find((x) => !x.startsWith('-')); if (!u) return text('usage: curl <url>', 'err');
+          const url = /^https?:/.test(u) ? u : 'https://' + u; const t0 = performance.now();
+          try { const r = await fetch(url); const body = await r.text(); text(flag(a, '-I') ? 'HTTP ' + r.status + ' ' + r.statusText + '\ncontent-type: ' + r.headers.get('content-type') : body.slice(0, 4000) + (body.length > 4000 ? '\n… (' + body.length + ' bytes)' : '')); }
+          catch (e) { text('curl: this site doesn’t allow requests from web pages (CORS), or there’s no internet (' + Math.round(performance.now() - t0) + ' ms)', 'err'); }
+        },
+        async ping(a) {
+          const host = (a[0] || '').replace(/^https?:\/\//, '').split('/')[0]; if (!host) return text('usage: ping <host>', 'err');
+          text('PING ' + host);
+          for (let i = 0; i < 4; i++) { const t0 = performance.now(); try { await fetch('https://' + host + '/favicon.ico?' + Date.now(), { mode: 'no-cors', cache: 'no-store' }); text('reply from ' + host + ': time=' + Math.round(performance.now() - t0) + ' ms'); } catch (e) { text('request to ' + host + ' failed', 'err'); } await new Promise((r) => setTimeout(r, 400)); }
+        },
+        async weather() {
+          const pl = PatOS.store.get('weatherPlace', { name: 'Montréal', lat: 45.5019, lon: -73.5674 });
+          try { const j = await (await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pl.lat}&longitude=${pl.lon}&current=temperature_2m,wind_speed_10m,relative_humidity_2m`)).json(); text(pl.name + ': ' + Math.round(j.current.temperature_2m) + '°C, wind ' + Math.round(j.current.wind_speed_10m) + ' km/h, humidity ' + j.current.relative_humidity_2m + '%'); }
+          catch (e) { text('weather: no internet connection', 'err'); }
+        },
+        todo(a) { if (!a.length) { const l = PatOS.store.get('reminders', []).filter((r) => !r.done); return text(l.map((r, i) => (i + 1) + '. ' + r.text).join('\n') || 'Nothing to do.'); } const items = PatOS.store.get('reminders', []); items.push({ id: Date.now(), text: a.join(' '), done: false }); PatOS.store.set('reminders', items); text('Added to Reminders.', 'tm'); },
+        env() { text(['USER=' + user, 'HOME=/Users/' + user, 'SHELL=/bin/patsh', 'LANG=' + (PatOS.lang === 'fr' ? 'fr_CA' : 'en_CA') + '.UTF-8', 'OS=PatOS ' + PatOS.version, 'TERM=patos-256color'].join('\n')); },
+        uname(a) { text(flag(a, '-a') ? 'PatOS ' + PatOS.version + ' patos ' + navigator.userAgent : 'PatOS'); },
+        free() { const m = performance.memory; text(m ? 'used ' + PatOS.fmtBytes(m.usedJSHeapSize) + ' of ' + PatOS.fmtBytes(m.jsHeapSizeLimit) : 'Memory info is not available in this browser.'); },
+        hostname() { text('patos.local'); },
+        yes(a) { text(Array(20).fill(a.join(' ') || 'y').join('\n')); }
+      });
+      const oldLs = cmds.ls;
+      cmds.ls = (a) => {
+        if (!flag(a, '-l') && !flag(a, '-la')) return oldLs(a.filter((x) => !x.startsWith('-')));
+        const p = resolve(a.find((x) => !x.startsWith('-')));
+        PatOS.fs.list(p).forEach((i) => print(`<span class="tm">${i.type === 'dir' ? 'd' : '-'}rw-r--r--  ${esc(user)}  ${esc(PatOS.fmtBytes(PatOS.fs.size(i)).padStart(9))}  ${esc(new Date(i.mtime).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).padEnd(7))}</span> ${i.type === 'dir' ? `<span class="tb">${esc(i.name)}/</span>` : esc(i.name)}`));
+      };
+      const oldHist = cmds.history; cmds.history = (a) => { if (flag(a, '-c')) { hist.length = 0; PatOS.store.set('termHist', hist); return text('History cleared.', 'tm'); } oldHist(a); };
+      const oldMv = cmds.mv; cmds.mv = (a) => { if (a.length === 2 && !PatOS.fs.isDir(resolve(a[1])) && PatOS.fs.dirname(resolve(a[1])) === PatOS.fs.dirname(resolve(a[0]))) { try { PatOS.fs.rename(resolve(a[0]), PatOS.fs.basename(resolve(a[1]))); } catch (e) { text('mv: ' + e.message, 'err'); } return; } oldMv(a); };
+      const oldCat = cmds.cat; cmds.cat = (a) => { if (!a.length && stdin != null) return text(stdin); if (a.length > 1) return a.forEach((f) => oldCat([f])); oldCat(a); };
       cmds.dir = cmds.ls; cmds.cls = cmds.clear; cmds.man = cmds.help; cmds.say = cmds.echo;
 
-      function run(raw) {
+      const splitTop = (s, sep) => { const out = []; let cur = '', q = null; for (let i = 0; i < s.length; i++) { const c = s[i]; if (q) { if (c === q) q = null; cur += c; } else if (c === '"' || c === "'") { q = c; cur += c; } else if (s.startsWith(sep, i)) { out.push(cur); cur = ''; i += sep.length - 1; } else cur += c; } out.push(cur); return out.map((x) => x.trim()).filter(Boolean); };
+      async function exec1(seg, inData, capt) {
+        const parts = seg.match(/"[^"]*"|'[^']*'|\S+/g).map((p) => p.replace(/^["']|["']$/g, ''));
+        const name = parts.shift().toLowerCase();
+        if (!cmds[name]) { text('patsh: command not found: ' + name + '  (type “help”)', 'err'); return false; }
+        const prevCap = capture, prevIn = stdin; capture = capt; stdin = inData;
+        try { await cmds[name](parts, seg); return true; } catch (e) { capture = prevCap; text(name + ': ' + e.message, 'err'); return false; } finally { capture = prevCap; stdin = prevIn; }
+      }
+      async function runLine(line) {
+        let redirect = null; const m = line.match(/^(.*?)\s(>>?)\s*([^>|&]+)$/);
+        if (m && !/^echo\s/.test(line.trim())) { line = m[1]; redirect = { append: m[2] === '>>', file: m[3].trim() }; }
+        const stages = splitTop(line, '|'); let data = null;
+        for (let i = 0; i < stages.length; i++) {
+          const last = i === stages.length - 1;
+          const buf = (!last || redirect) ? [] : null;
+          const ok = await exec1(stages[i], data, buf); if (!ok) return false;
+          if (buf) data = buf.join('\n');
+        }
+        if (redirect) { const p = resolve(redirect.file); try { PatOS.fs.write(p, (redirect.append ? (PatOS.fs.read(p) || '') : '') + (data || '') + '\n'); } catch (e) { text(e.message, 'err'); return false; } }
+        return true;
+      }
+      async function run(raw) {
         print(prompt.innerHTML + esc(raw), 'cmd');
         raw = raw.trim(); if (!raw) return;
         hist.push(raw); if (hist.length > 200) hist.shift(); hi = hist.length; PatOS.store.set('termHist', hist);
-        const parts = raw.match(/"[^"]*"|'[^']*'|\S+/g).map((p) => p.replace(/^["']|["']$/g, ''));
-        const name = parts.shift().toLowerCase();
-        if (cmds[name]) { try { cmds[name](parts, raw); } catch (e) { text(name + ': ' + e.message, 'err'); } }
-        else text('patsh: command not found: ' + name + '  (type “help”)', 'err');
+        input.disabled = true;
+        for (const part of splitTop(raw, '&&')) { const ok = await runLine(part); if (!ok) break; }
+        input.disabled = false; input.focus(); scr.scrollTop = scr.scrollHeight;
       }
       input.addEventListener('keydown', (e) => {
         if (matrixStop) { e.preventDefault(); matrixStop(); return; }

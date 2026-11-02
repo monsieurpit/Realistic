@@ -21,7 +21,15 @@
       E.bus = a.ctx.createGain(); E.bus.gain.value = 0.55;
       E.analyser = a.ctx.createAnalyser(); E.analyser.fftSize = 512; E.analyser.smoothingTimeConstant = 0.8;
       const comp = a.ctx.createDynamicsCompressor();
-      E.bus.connect(comp); comp.connect(E.analyser); E.analyser.connect(a.out);
+      E.bus.connect(comp); comp.connect(E.analyser);
+      /* send the music through a normal <audio> element so the device treats it as real media:
+         Chromebook media keys and shelf controls, and the iPhone lock screen, can then control it */
+      try {
+        E.dest = a.ctx.createMediaStreamDestination(); E.outGain = a.ctx.createGain(); E.outGain.gain.value = PatOS.settings.volume;
+        E.analyser.connect(E.outGain); E.outGain.connect(E.dest);
+        E.sink = new Audio(); E.sink.srcObject = E.dest.stream;
+        PatOS.on('setting:volume', (v) => { E.outGain.gain.value = v; });
+      } catch (e) { E.analyser.connect(a.out); }
       // simple echo
       const d = a.ctx.createDelay(); d.delayTime.value = 0.33; const fb = a.ctx.createGain(); fb.gain.value = 0.28;
       E.echo = a.ctx.createGain(); E.echo.gain.value = 0.35; E.echo.connect(d); d.connect(fb); fb.connect(d); d.connect(E.bus);
@@ -79,7 +87,7 @@
       // arpeggio sparkle
       if (section === 2 && beat % 1 === 0 && beat % 3 === 0) voice(a, t, NOTE(chordRoot + 24 + [0, 7, 12][beat % 3]), sixteenth, 'sine', 0.03, E.bus, { echo: true });
       E.step++; E.nextTime += sixteenth;
-      if (E.step >= BARS * 16) { E.step = 0; next(); return; }
+      if (E.step >= BARS * 16) { E.step = 0; songEnded(); return; }
     }
   }
   function songDuration(i) { return BARS * 4 * 60 / SONGS[i].bpm; }
@@ -87,23 +95,56 @@
     if (E.custom && E.el) return { t: E.el.currentTime || 0, d: E.el.duration || 0 };
     return { t: E.step * (60 / SONGS[E.idx].bpm / 4), d: songDuration(E.idx) };
   }
-  function emit() { E.listeners.forEach((f) => f()); }
+  function directOut() { if (E.direct) return; E.direct = true; try { E.analyser.disconnect(); } catch (e) {} E.analyser.connect(PatOS.audio().out); E.sink = null; }
+  function sinkPlay() { if (E.sink) E.sink.play().catch(() => directOut()); }
+  let artCache = {};
+  function artwork(s) {
+    if (artCache[s.title]) return artCache[s.title];
+    const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
+    const m = String(s.color).match(/#[0-9a-f]{6}/gi) || ['#ff6482', '#5b2bff'];
+    const g = x.createLinearGradient(0, 0, 256, 256); g.addColorStop(0, m[0]); g.addColorStop(1, m[1] || m[0]); x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+    x.fillStyle = 'rgba(255,255,255,.9)'; x.font = '700 120px system-ui'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('♫', 128, 136);
+    return (artCache[s.title] = c.toDataURL('image/png'));
+  }
+  function mediaSession() {
+    if (!('mediaSession' in navigator)) return;
+    const s = current();
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: s.artist, album: 'PatOS Music', artwork: [{ src: artwork(s), sizes: '256x256', type: 'image/png' }] });
+      navigator.mediaSession.playbackState = E.playing ? 'playing' : 'paused';
+      if (!E.msWired) {
+        E.msWired = true;
+        navigator.mediaSession.setActionHandler('play', () => play());
+        navigator.mediaSession.setActionHandler('pause', () => pause());
+        navigator.mediaSession.setActionHandler('nexttrack', () => next());
+        navigator.mediaSession.setActionHandler('previoustrack', () => prev());
+      }
+    } catch (e) {}
+  }
+  function emit() { mediaSession(); E.listeners.forEach((f) => f()); }
   function play() {
     const a = ensure(); if (!a) return;
+    sinkPlay();
     if (E.custom) { E.el.play(); E.playing = true; emit(); return; }
     E.seed = E.idx * 9973 + 7 + Math.floor(E.step / 64);
     E.nextTime = a.ctx.currentTime + 0.05; E.playing = true;
     clearInterval(E.timer); E.timer = setInterval(schedule, 25); emit();
   }
-  function pause() { E.playing = false; clearInterval(E.timer); if (E.el) E.el.pause(); emit(); }
+  function pause() { E.playing = false; clearInterval(E.timer); if (E.el) E.el.pause(); if (E.sink) E.sink.pause(); emit(); }
   function stopCustom() { if (E.el) { E.el.pause(); } E.custom = null; }
   function select(i, autoplay) { stopCustom(); clearInterval(E.timer); E.idx = (i + SONGS.length) % SONGS.length; E.step = 0; if (autoplay !== false && (E.playing || autoplay)) play(); else emit(); }
-  function next() { select(E.idx + 1, true); }
+  E.shuffle = PatOS.store.get('musicShuffle', false); E.repeat = PatOS.store.get('musicRepeat', 'all');
+  function next() {
+    if (E.shuffle && SONGS.length > 1) { let n; do { n = Math.floor(Math.random() * SONGS.length); } while (n === E.idx); select(n, true); }
+    else if (E.repeat === 'off' && E.idx === SONGS.length - 1 && !E.custom) { select(0, false); pause(); }
+    else select(E.idx + 1, true);
+  }
+  function songEnded() { if (E.repeat === 'one') { E.step = 0; if (E.custom && E.el) { E.el.currentTime = 0; E.el.play(); } else play(); } else next(); }
   function prev() { if (position().t > 3) { E.step = 0; emit(); } else select(E.idx - 1, true); }
   function playFile(name, src) {
     const a = ensure(); if (!a) return;
     pause();
-    if (!E.el) { E.el = new Audio(); E.el.crossOrigin = 'anonymous'; const node = a.ctx.createMediaElementSource(E.el); node.connect(E.bus); E.el.addEventListener('ended', () => { E.playing = false; emit(); }); }
+    if (!E.el) { E.el = new Audio(); E.el.crossOrigin = 'anonymous'; const node = a.ctx.createMediaElementSource(E.el); node.connect(E.bus); E.el.addEventListener('ended', () => { if (E.repeat === 'one') { E.el.currentTime = 0; E.el.play(); } else { E.playing = false; emit(); } }); }
     E.el.src = src; E.custom = { title: name.replace(/\.[^.]+$/, ''), artist: 'Your Music', color: 'linear-gradient(135deg,#434343,#000)', hue: 0.55 };
     play();
   }
@@ -125,10 +166,17 @@
       const stage = h('div', { class: 'mu-stage' });
       const canvas = h('canvas', { class: 'mu-canvas' });
       const art = h('div', { class: 'mu-art' }); const tt = h('div', { class: 'mu-tt' }); const ar = h('div', { class: 'mu-ar' });
-      const bPrev = h('button', { class: 'mu-b' }, '⏮'); const bPlay = h('button', { class: 'mu-b big' }, '▶'); const bNext = h('button', { class: 'mu-b' }, '⏭');
+      const bPrev = h('button', { class: 'mu-b', title: 'Previous', html: PatOS.sym('prev') }); const bPlay = h('button', { class: 'mu-b big', title: 'Play', html: PatOS.sym('play') }); const bNext = h('button', { class: 'mu-b', title: 'Next', html: PatOS.sym('next') });
+      const svg = (d) => '<svg class="sym" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+      const bShuf = h('button', { class: 'mu-b sm', title: 'Shuffle', html: svg('<path d="M3 7h3c4 0 6 10 10 10h5M17 14l4 3-4 3M3 17h3c1.5 0 2.7-1.4 3.8-3M14.2 10C15.3 8.4 16.5 7 18 7h3M17 4l4 3-4 3"/>') });
+      const bRep = h('button', { class: 'mu-b sm', title: 'Repeat', html: svg('<path d="M4 11V9a3 3 0 0 1 3-3h13M17 3l3 3-3 3M20 13v2a3 3 0 0 1-3 3H4M7 21l-3-3 3-3"/>') });
+      const syncModes = () => { bShuf.classList.toggle('on', E.shuffle); bRep.classList.toggle('on', E.repeat !== 'off'); bRep.classList.toggle('one', E.repeat === 'one'); bRep.title = PatOS.t({ off: 'Repeat off', all: 'Repeat all', one: 'Repeat one' }[E.repeat]); };
+      bShuf.onclick = () => { E.shuffle = !E.shuffle; PatOS.store.set('musicShuffle', E.shuffle); syncModes(); };
+      bRep.onclick = () => { E.repeat = { off: 'all', all: 'one', one: 'off' }[E.repeat]; PatOS.store.set('musicRepeat', E.repeat); syncModes(); };
+      syncModes();
       const prog = h('div', { class: 'mu-prog scrub' }, h('span')); const tA = h('small'); const tB = h('small');
       const vol = h('input', { type: 'range', min: 0, max: 100, value: Math.round(PatOS.settings.volume * 100), class: 'mu-vol' });
-      const bar = h('div', { class: 'mu-bar' }, art, h('div', { class: 'mu-info' }, tt, ar), h('div', { class: 'mu-ctl' }, bPrev, bPlay, bNext), h('div', { class: 'mu-time' }, tA, prog, tB), h('span', {}, '🔊'), vol);
+      const bar = h('div', { class: 'mu-bar' }, art, h('div', { class: 'mu-info' }, tt, ar), h('div', { class: 'mu-ctl' }, bShuf, bPrev, bPlay, bNext, bRep), h('div', { class: 'mu-time' }, tA, prog, tB), h('span', {}, '🔊'), vol);
       stage.appendChild(canvas);
       win.body.append(h('div', { class: 'mu-wrap' }, list, stage), bar);
 
@@ -149,8 +197,8 @@
       function sync() {
         const s = current();
         art.style.background = s.color; tt.textContent = s.title; ar.textContent = s.artist;
-        bPlay.textContent = E.playing ? '⏸' : '▶';
-        renderList(); win.setTitle('Music — ' + s.title);
+        bPlay.innerHTML = PatOS.sym(E.playing ? 'pause' : 'play'); bPlay.title = PatOS.t(E.playing ? 'Pause' : 'Play');
+        renderList(); win.setTitle(s.title);
         if (viz) viz.setHue(s.hue);
       }
       bPlay.onclick = () => PatOS.music.toggle(); bNext.onclick = next; bPrev.onclick = prev;

@@ -88,10 +88,26 @@
               row('Erase all content and settings', h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox('Erase PatOS?', 'Everything in PatOS will be erased and it will start fresh. This cannot be undone.', { ok: 'Erase', danger: true, icon: 'settings' })) { PatOS.store.clearAll(); location.reload(); } } }, 'Erase PatOS…')))];
         }
       };
-      function render() {
+      const KW = { general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace' };
+      let filter = '';
+      const sq = h('input', { class: 'field st-search', placeholder: 'Search', spellcheck: 'false' });
+      sq.addEventListener('input', () => { filter = sq.value.trim().toLowerCase(); drawSide(); const hits = PANES.filter(match); if (filter && hits.length && !hits.some((p) => p[0] === pane)) { pane = hits[0][0]; renderMain(); drawSide(); } });
+      sq.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const hits = PANES.filter(match); if (hits[0]) { pane = hits[0][0]; renderMain(); drawSide(); } } });
+      const match = ([k, l]) => !filter || (l + ' ' + PatOS.t(l) + ' ' + KW[k]).toLowerCase().includes(filter);
+      function drawSide() {
+        side.querySelectorAll('.st-si, .st-noresult').forEach((e) => e.remove());
+        const hits = PANES.filter(match);
+        hits.forEach(([k, l, ic]) => { const b = h('button', { class: 'st-si' + (k === pane ? ' on' : '') }, h('span', { class: 'st-ic' }, ic), l); b.onclick = () => { pane = k; renderMain(); drawSide(); }; side.appendChild(b); });
+        if (!hits.length) side.appendChild(h('div', { class: 'st-noresult' }, 'No results'));
+      }
+      function render(keepSearch) {
         side.innerHTML = '';
         side.appendChild(h('div', { class: 'st-user' }, h('div', { class: 'lock-avatar sm' }, S().userName.charAt(0).toUpperCase()), h('div', {}, h('b', {}, S().userName), h('small', {}, 'PatOS Account'))));
-        PANES.forEach(([k, l, ic]) => { const b = h('button', { class: 'st-si' + (k === pane ? ' on' : '') }, h('span', { class: 'st-ic' }, ic), l); b.onclick = () => { pane = k; render(); }; side.appendChild(b); });
+        side.appendChild(sq); if (!keepSearch) { sq.value = filter; }
+        drawSide();
+        renderMain();
+      }
+      function renderMain() {
         main.innerHTML = '';
         main.append(h('h1', {}, PANES.find((p) => p[0] === pane)[1]), ...panes[pane]());
         win.setTitle(PANES.find((p) => p[0] === pane)[1]);

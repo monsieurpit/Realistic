@@ -14,7 +14,8 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 - Menu bar with app menus, battery (real Chromebook battery level), Wi-Fi, clock
 - A dock with magnification, bouncing app icons, running-app dots, Trash, right-click menus and auto-hide
 - Windows you can drag, resize, minimize (with a genie effect into the dock), zoom and snap to the left or right half
-- Launchpad, Spotlight search (apps, files, notes, math, web), Mission Control
+- Launchpad, Spotlight search (apps, files, notes, math, unit conversions like "5 km to mi", quick timers like "timer 10", with a preview panel), Mission Control
+- Quick Look: select a file and press Space
 - Control Center (brightness, volume, dark mode, Focus, full screen) and Notification Center with widgets
 - Desktop widgets (clock, calendar, events, music), a particle boot intro, and windows that zoom out of the icon you clicked
 - Desktop icons, drag-select, right-click menus, drag files onto folders or the Trash
@@ -41,13 +42,15 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 **Apps**
 | | |
 |---|---|
-| Finder | files and folders, list/icon view, Trash, import from your computer |
+| Finder | icon and list views, sorting, path bar, multi-select, color tags, info panel, Quick Look (Space), keyboard navigation, Trash, import from your computer |
 | Patoogle | tabbed web browser with bookmarks, site icons and history. Real Google results with your free Programmable Search ID (Bing until you add one); YouTube links open in the YouTube app |
-| Notes, TextEdit, Reminders, Calendar | saved automatically |
+| Calendar | month and week views, event editor (time, color, notes), upcoming events, reminders |
+| Notes, TextEdit, Reminders | saved automatically |
 | Calculator (basic and scientific), Clock (world clock, alarms, stopwatch, timer), Weather (live forecast) | |
-| Music | songs composed live by your computer, a 3D visualizer, and your own MP3s |
-| Photos, Paint, Photo Booth | |
-| Terminal | `ls`, `cd`, `cat`, `mkdir`, `open`, `neofetch`, `matrix`, `cowsay` and more |
+| Music | songs composed live by your computer, a 3D visualizer, your own MP3s, shuffle and repeat, and your device's media controls (Chromebook media keys, iPhone lock screen) |
+| Photos | albums, favorites, slideshow, and an editor with filters, brightness, contrast, color, warmth, vignette, crop and rotate |
+| Paint, Photo Booth | |
+| Terminal | pipes (`|`), `&&`, `>` redirects; `ls -l`, `grep`, `wc`, `head`, `tail`, `sort`, `find`, `curl`, `ping`, `weather`, `todo`, `neofetch`, `matrix` and more |
 | Galaxy | 3D galaxy generator (three.js) |
 | Orb Runner | original 3D neon runner game (three.js) |
 | 3D Studio | build a 3D scene with shapes and materials (three.js) |

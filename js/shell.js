@@ -506,25 +506,51 @@
     if (!/^[\d\s+\-*/().%^,]+$/.test(q) || !/\d/.test(q) || !/[+\-*/^%]/.test(q)) return null;
     try { const v = Function('"use strict";return (' + q.replace(/\^/g, '**').replace(/,/g, '') + ')')(); return Number.isFinite(v) ? +v.toPrecision(12) : null; } catch (e) { return null; }
   }
+  /* unit conversions: "5 km to mi", "20 c in f", "3 lb to kg" */
+  const UNITS = {
+    km: ['len', 1000], m: ['len', 1], cm: ['len', 0.01], mm: ['len', 0.001], mi: ['len', 1609.344], mile: ['len', 1609.344], miles: ['len', 1609.344], ft: ['len', 0.3048], feet: ['len', 0.3048], foot: ['len', 0.3048], in: ['len', 0.0254], inch: ['len', 0.0254], inches: ['len', 0.0254], yd: ['len', 0.9144],
+    kg: ['mass', 1], g: ['mass', 0.001], lb: ['mass', 0.45359237], lbs: ['mass', 0.45359237], pound: ['mass', 0.45359237], pounds: ['mass', 0.45359237], oz: ['mass', 0.0283495],
+    l: ['vol', 1], ml: ['vol', 0.001], gal: ['vol', 3.78541], cup: ['vol', 0.24], cups: ['vol', 0.24],
+    c: ['temp'], f: ['temp'], k: ['temp'], '°c': ['temp'], '°f': ['temp'],
+    kmh: ['speed', 1 / 3.6], 'km/h': ['speed', 1 / 3.6], mph: ['speed', 0.44704], 'm/s': ['speed', 1],
+    min: ['time', 60], h: ['time', 3600], hr: ['time', 3600], hours: ['time', 3600], s: ['time', 1], sec: ['time', 1], day: ['time', 86400], days: ['time', 86400]
+  };
+  function convert(q) {
+    const m = /^(-?[\d.,]+)\s*([a-z°\/]+)\s+(?:to|in|en|=)\s+([a-z°\/]+)$/i.exec(q.trim()); if (!m) return null;
+    const v = parseFloat(m[1].replace(',', '.')), a = m[2].toLowerCase(), b = m[3].toLowerCase(); const A = UNITS[a], B = UNITS[b];
+    if (!A || !B || A[0] !== B[0] || isNaN(v)) return null;
+    let r;
+    if (A[0] === 'temp') { const t = a.replace('°', ''), u = b.replace('°', ''); const cel = t === 'c' ? v : t === 'f' ? (v - 32) * 5 / 9 : v - 273.15; r = u === 'c' ? cel : u === 'f' ? cel * 9 / 5 + 32 : cel + 273.15; }
+    else r = v * A[1] / B[1];
+    return { text: m[1] + ' ' + m[2] + ' = ' + (+r.toPrecision(6)).toLocaleString() + ' ' + m[3], value: +r.toPrecision(6) };
+  }
+  PatOS.quickTimer = function (secs, label) {
+    PatOS.notify({ title: PatOS.t('Timer started'), body: Math.round(secs / 60) >= 1 ? Math.round(secs / 60) + ' min' : secs + ' s', icon: 'clock' });
+    setTimeout(() => { PatOS.notify({ title: label || PatOS.t('Timer done'), body: PatOS.t('Your timer finished.'), icon: 'clock', duration: 12000 }); for (let i = 0; i < 5; i++) PatOS.sound.tone(880, 0.25, { delay: i * 0.45, vol: 0.2 }); if (PatOS.mobile && PatOS.mobile.islandAlert) PatOS.mobile.islandAlert(PatOS.t('Timer done'), 'clock'); }, secs * 1000);
+  };
   function render(q) {
     const box = $('.sp-results'); box.innerHTML = ''; spResults = []; spSel = 0;
     q = q.trim();
     $('.sp-icon').innerHTML = $('#mb-search').innerHTML;
-    if (!q) { $('#spotlight .sp-box').classList.remove('has'); return; }
+    if (!q) { $('#spotlight .sp-box').classList.remove('has'); const pv0 = $('.sp-preview'); if (pv0) pv0.remove(); return; }
     const ql = q.toLowerCase();
     const c = calc(q);
+    const cv = convert(q);
+    if (cv) spResults.push({ group: 'Conversion', label: cv.text, icon: 'calculator', preview: () => h('div', { class: 'sp-pv-big' }, String(cv.value)), run: () => { navigator.clipboard && navigator.clipboard.writeText(String(cv.value)).catch(() => {}); PatOS.notify({ title: PatOS.t('Copied'), body: cv.text, icon: 'calculator' }); } });
+    const tm = /^(?:timer|minuterie)\s+(\d+(?:[.,]\d+)?)\s*(s|sec|secs|seconds?|m|min|mins|minutes?|h|hours?)?$/i.exec(q);
+    if (tm) { const n = parseFloat(tm[1].replace(',', '.')); const u = (tm[2] || 'm')[0].toLowerCase(); const secs = Math.round(n * (u === 's' ? 1 : u === 'h' ? 3600 : 60)); spResults.push({ group: 'Timer', label: PatOS.t('Start a timer for') + ' ' + tm[1] + ' ' + (u === 's' ? 's' : u === 'h' ? 'h' : 'min'), icon: 'clock', run: () => PatOS.quickTimer(secs) }); }
     if (c !== null) spResults.push({ group: 'Calculator', label: q + ' = ' + c, icon: 'calculator', run: () => { navigator.clipboard && navigator.clipboard.writeText(String(c)).catch(() => {}); PatOS.notify({ title: 'Copied', body: String(c), icon: 'calculator' }); } });
     PatOS.appOrder.forEach((id) => {
       const a = PatOS.apps[id];
       const nm = PatOS.t ? PatOS.t(a.name) : a.name;
-      if (a.name.toLowerCase().includes(ql) || nm.toLowerCase().includes(ql) || (a.keywords || '').includes(ql)) spResults.push({ group: 'Applications', label: nm, icon: a.icon || id, score: a.name.toLowerCase().startsWith(ql) ? 0 : 1, run: () => PatOS.launch(id) });
+      if (a.name.toLowerCase().includes(ql) || nm.toLowerCase().includes(ql) || (a.keywords || '').includes(ql)) spResults.push({ group: 'Applications', appId: id, label: nm, icon: a.icon || id, score: a.name.toLowerCase().startsWith(ql) ? 0 : 1, run: () => PatOS.launch(id) });
     });
     spResults.sort((a, b) => (a.group === b.group ? (a.score || 0) - (b.score || 0) : 0));
     let files = 0;
     PatOS.fs.walk('/', (p, n) => {
       if (files > 8) return;
       if (PatOS.fs.basename(p).toLowerCase().includes(ql) || (n.type === 'file' && !String(n.content).startsWith('data:') && String(n.content).toLowerCase().includes(ql))) {
-        files++; spResults.push({ group: 'Files', label: PatOS.fs.basename(p), sub: PatOS.fs.dirname(p), iconHTML: PatOS.fileIconHTML(p, n), run: () => PatOS.openFile(p) });
+        files++; spResults.push({ group: 'Files', filePath: p, label: PatOS.fs.basename(p), sub: PatOS.fs.dirname(p), iconHTML: PatOS.fileIconHTML(p, n), run: () => PatOS.openFile(p) });
       }
     });
     PatOS.store.get('notes', []).filter((n) => (n.title + ' ' + n.body).toLowerCase().includes(ql)).slice(0, 4).forEach((n) =>
@@ -539,12 +565,30 @@
       box.appendChild(row);
     });
     $('#spotlight .sp-box').classList.add('has');
+    preview(spResults[0]);
   }
   function setSel(i) {
     const rows = $$('.sp-res'); if (!rows.length) return;
     spSel = (i + rows.length) % rows.length;
     rows.forEach((r, j) => r.classList.toggle('sel', j === spSel));
     rows[spSel].scrollIntoView({ block: 'nearest' });
+    preview(spResults[spSel]);
+  }
+  function preview(r) {
+    let pv = $('.sp-preview'); if (!pv) { pv = h('div', { class: 'sp-preview' }); $('#spotlight .sp-box').appendChild(pv); }
+    pv.innerHTML = ''; if (!r) return;
+    if (r.appId) { const a = PatOS.apps[r.appId]; pv.append(h('div', { class: 'sp-pv-ic', html: PatOS.iconHTML(a.icon || r.appId) }), h('b', {}, PatOS.t(a.name)), h('p', {}, PatOS.t(a.about || a.category || 'Apps')), h('small', {}, PatOS.wm.isRunning(r.appId) ? PatOS.t('Open now') : PatOS.t(a.category || 'Apps'))); return; }
+    if (r.filePath) {
+      const n = PatOS.fs.get(r.filePath); if (!n) return;
+      const kind = PatOS.fileKind(r.filePath, n);
+      if (kind === 'image') pv.appendChild(h('img', { class: 'sp-pv-img', src: n.content, alt: '' }));
+      else pv.appendChild(h('div', { class: 'sp-pv-ic', html: PatOS.fileIconHTML(r.label, n) }));
+      pv.append(h('b', {}, r.label), h('small', {}, (r.filePath.startsWith('/') ? '~' + r.filePath : r.filePath) + ' · ' + PatOS.fmtBytes(PatOS.fs.size(n))));
+      if (n.type === 'file' && kind === 'text' && !String(n.content).startsWith('data:')) pv.appendChild(h('pre', { class: 'sp-pv-text' }, String(n.content).slice(0, 400)));
+      return;
+    }
+    if (r.preview) { pv.appendChild(r.preview()); pv.appendChild(h('small', {}, PatOS.t('Press Enter to copy'))); return; }
+    pv.append(h('div', { class: 'sp-pv-ic', html: r.iconHTML || PatOS.iconHTML(r.icon) }), h('b', {}, r.label));
   }
   function setupSpotlight() {
     const input = $('.sp-input');
@@ -794,6 +838,10 @@
         closeMenus(); $('#control-center').classList.add('hidden'); $('#notif-center').classList.add('hidden');
         if (e.altKey) PatOS.power.lock();
         return;
+      }
+      if (e.key === ' ' && !PatOS.wm.active && (document.activeElement === document.body || !document.activeElement)) {
+        const s = document.querySelector('.desk-icon.sel');
+        if (s) { e.preventDefault(); PatOS.quickLook(s.dataset.path, [...document.querySelectorAll('.desk-icon')].map((x) => x.dataset.path)); return; }
       }
       if (e.key === 'F3' || (e.altKey && e.key === 'ArrowUp')) { e.preventDefault(); PatOS.mission.toggle(); return; }
       if (e.key === 'F4') { e.preventDefault(); PatOS.launchpad.toggle(); return; }

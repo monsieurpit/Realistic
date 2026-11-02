@@ -368,6 +368,19 @@ body.mission-on #windows { z-index: 11; }
 .st-ic { background: var(--accent) !important; color: #fff; }
 .st-si.on .st-ic { background: rgba(255,255,255,.25) !important; }
 
+/* Spotlight preview */
+.sp-box { display: grid; grid-template-columns: 1fr; }
+.sp-box.has { grid-template-columns: minmax(0, 1fr) 240px; width: min(780px, calc(100vw - 32px)); }
+.sp-row { grid-column: 1 / -1; }
+.sp-results { grid-column: 1; }
+.sp-preview { grid-column: 2; grid-row: 2; border-top: 1px solid var(--border); border-left: 1px solid var(--border); padding: 18px 14px; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 6px; max-height: 52vh; overflow: hidden; }
+.sp-box:not(.has) .sp-preview { display: none; }
+.sp-pv-ic { width: 72px; height: 72px; } .sp-pv-img { max-width: 100%; max-height: 150px; border-radius: 8px; box-shadow: 0 4px 14px rgba(0,0,0,.25); }
+.sp-preview p { margin: 0; font-size: 12px; color: var(--text2); line-height: 1.4; } .sp-preview small { color: var(--text3); font-size: 11px; word-break: break-all; }
+.sp-pv-text { width: 100%; text-align: left; font: 11px/1.4 var(--mono); color: var(--text2); white-space: pre-wrap; margin: 6px 0 0; max-height: 150px; overflow: hidden; }
+.sp-pv-big { font-size: 34px; font-weight: 300; margin-top: 30px; word-break: break-all; }
+@media (max-width: 700px) { .sp-box.has { grid-template-columns: 1fr; } .sp-preview { display: none; } }
+
 </style>
   <style>
 /* ================= PatOS app styles ================= */
@@ -1360,6 +1373,113 @@ html.mobile, html.mobile body { overscroll-behavior: none; touch-action: manipul
 .pg-results .gsc-result-info { color: #70757a !important; padding-left: 0 !important; }
 .pg-results .gsc-orderby-container, .pg-results .gcsc-branding { display: none !important; }
 
+/* Finder, pro */
+.fd-right { position: relative; }
+.fd-main { outline: 0; }
+.fd-path { display: flex; align-items: center; gap: 2px; padding: 3px 10px; min-height: 26px; border-top: 1px solid var(--border); font-size: 11.5px; overflow-x: auto; scrollbar-width: none; flex: 0 0 auto; }
+.fd-path:empty { display: none; }
+.fd-crumb { display: inline-flex; align-items: center; gap: 4px; padding: 2px 6px; border-radius: 5px; color: var(--text2); white-space: nowrap; } .fd-crumb:hover { background: var(--hover2); color: var(--text); }
+.fd-crumb .sym { width: 13px; height: 13px; }
+.fd-sep { color: var(--text3); }
+.fd-si .symw { width: 18px; } .fd-si .sym { color: var(--accent); }
+.fd-tagdot { display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin: 0 6px 0 4px; flex: 0 0 auto; box-shadow: inset 0 0 0 1px rgba(0,0,0,.15); }
+.fd-nm .fd-tagdot { width: 8px; height: 8px; margin: 0 4px 1px 0; vertical-align: middle; }
+.fd-tagdot.big { width: 18px; height: 18px; margin: 0; cursor: pointer; } .fd-tagdot.big.on { box-shadow: 0 0 0 2px var(--win-solid), 0 0 0 4px var(--text2); }
+.fd-lhc { cursor: pointer; } .fd-lhc:hover, .fd-lhc.on { color: var(--text); }
+.fd-info { width: 230px; flex: 0 0 auto; padding: 18px 14px; display: flex; flex-direction: column; align-items: center; gap: 6px; text-align: center; border-left: 1px solid var(--border); background: var(--sidebar); overflow-y: auto; }
+.fd-info-ic { width: 96px; height: 96px; margin-bottom: 4px; } .fd-info-nm { word-break: break-word; } .fd-info small { color: var(--text2); }
+.fd-info-rows { width: 100%; margin-top: 10px; border-top: 1px solid var(--border); padding-top: 8px; display: flex; flex-direction: column; gap: 6px; font-size: 12px; }
+.fd-info-row { display: flex; justify-content: space-between; gap: 8px; text-align: right; } .fd-info-row span { color: var(--text2); } .fd-info-row b { font-weight: 500; word-break: break-all; }
+.fd-info-tags { display: flex; gap: 6px; margin: 10px 0 4px; flex-wrap: wrap; justify-content: center; }
+.fd-info-btns { display: flex; gap: 6px; margin-top: 6px; }
+.fd-info-empty { color: var(--text3); font-size: 12px; margin-top: 40px; }
+.mobile .fd-info { display: none; }
+/* Quick Look */
+.ql-layer { position: fixed; inset: 0; z-index: 25000; display: grid; place-items: center; background: rgba(0,0,0,.35); animation: qlIn .2s ease; padding: 20px; }
+.ql-layer.out { opacity: 0; transition: opacity .18s; }
+@keyframes qlIn { from { opacity: 0; } }
+.ql-card { width: min(820px, 100%); max-height: calc(100vh - 60px); display: flex; flex-direction: column; border-radius: 16px; overflow: hidden; background: var(--win-solid); box-shadow: 0 30px 90px rgba(0,0,0,.55), 0 0 0 .5px var(--border2); animation: qlPop .28s cubic-bezier(.2,.9,.3,1.1); }
+@keyframes qlPop { from { transform: scale(.88); opacity: 0; } }
+.ql-bar { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--toolbar); border-bottom: 1px solid var(--border); }
+.ql-x { width: 24px; height: 24px; border-radius: 50%; background: var(--hover2); font-size: 16px; line-height: 1; }
+.ql-meta { color: var(--text2); font-size: 12px; }
+.ql-body { flex: 1; overflow: auto; display: flex; justify-content: center; min-height: 200px; background: color-mix(in srgb, var(--win-solid) 85%, #888 15%); }
+.ql-body > img { max-width: 100%; max-height: calc(100vh - 140px); object-fit: contain; align-self: center; }
+.ql-text { margin: 0; padding: 20px; width: 100%; white-space: pre-wrap; font: 13px/1.5 var(--mono); color: var(--text); background: var(--win-solid); }
+.ql-doc { width: min(700px, 100%); margin: 20px; padding: 40px 50px; background: #fff; color: #222; box-shadow: 0 2px 10px rgba(0,0,0,.2); font: 14px/1.55 Arial, sans-serif; }
+.ql-doc img { max-width: 100%; }
+.ql-sheet { margin: 20px; border-collapse: collapse; background: #fff; color: #222; font-size: 12px; } .ql-sheet td { border: 1px solid #ddd; padding: 4px 8px; min-width: 70px; height: 22px; }
+.ql-pdf { width: 100%; height: calc(100vh - 140px); border: 0; background: #fff; }
+.ql-folder, .ql-audio { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding: 40px; color: var(--text); } .ql-folder small { color: var(--text2); }
+.ql-icon { width: 128px; height: 128px; }
+
+/* Photos, pro */
+.ph-wrap { flex: 1; display: flex; min-height: 0; }
+.ph-side { width: 190px; flex: 0 0 auto; padding: 8px; overflow-y: auto; background: var(--sidebar); border-right: 1px solid var(--border); }
+.ph-side .sym { color: var(--accent); } .ph-count { margin-left: auto; color: var(--text3); font-size: 11px; }
+.ph-main { flex: 1; position: relative; min-width: 0; display: flex; }
+.ph-grid { flex: 1; overflow-y: auto; padding: 6px; display: grid; grid-template-columns: repeat(auto-fill, minmax(var(--ph, 160px), 1fr)); gap: 4px; align-content: start; background: var(--win-solid); }
+.ph-day { grid-column: 1 / -1; font-weight: 700; font-size: 15px; padding: 14px 6px 6px; }
+.ph-thumb { position: relative; cursor: pointer; }
+.ph-heart { position: absolute; left: 6px; bottom: 6px; color: #fff; filter: drop-shadow(0 1px 3px rgba(0,0,0,.6)); } .ph-heart .sym { width: 16px; height: 16px; fill: #fff; }
+.ph-zoom { width: 110px; accent-color: var(--accent); }
+.ph-big { width: 76px; height: 76px; margin: 0 auto; }
+.ph-title { display: flex; flex-direction: column; line-height: 1.2; } .ph-title small { color: #aaa; font-size: 11px; }
+.ph-fav.on { color: #ff375f; } .ph-fav.on .sym { fill: #ff375f; }
+.ph-bar .tbtn { color: #ddd; }
+.ph-stage img { transition: transform .3s var(--ease); }
+.ed-layer { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; background: #111; color: #fff; }
+.ed-top { display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: #1c1c1e; border-bottom: 1px solid #000; }
+.ed-body { flex: 1; display: flex; min-height: 0; }
+.ed-stage { flex: 1; display: grid; place-items: center; padding: 20px; min-width: 0; }
+.ed-canvas { max-width: 100%; max-height: 100%; box-shadow: 0 10px 40px rgba(0,0,0,.6); }
+.ed-panel { width: 270px; flex: 0 0 auto; overflow-y: auto; padding: 12px; background: #1c1c1e; display: flex; flex-direction: column; gap: 10px; }
+.ed-sec { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .6px; color: #8e8e93; margin-top: 6px; }
+.ed-filters { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+.ed-filter { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 11px; color: #ddd; padding: 3px; border-radius: 8px; }
+.ed-filter canvas { width: 100%; height: auto; border-radius: 6px; } .ed-filter.on { background: rgba(255,214,10,.2); box-shadow: inset 0 0 0 2px #ffd60a; }
+.ed-adj { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; } .ed-adj > div { display: flex; justify-content: space-between; color: #ccc; } .ed-adj input { accent-color: #ffd60a; }
+.ed-crop { display: flex; flex-wrap: wrap; gap: 5px; } .ed-crop .btn { height: 26px; padding: 0 10px; font-size: 12px; color: #fff; background: rgba(255,255,255,.12); } .ed-crop .btn.primary { background: #ffd60a; color: #000; }
+.ph-show { position: fixed; inset: 0; z-index: 50000; background: #000; overflow: hidden; cursor: pointer; }
+.ph-show img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: contain; opacity: 0; transform: scale(1.04); transition: opacity 1.2s ease, transform 5s linear; }
+.ph-show img.in { opacity: 1; transform: scale(1.12); }
+.mobile .ph-wrap { flex-direction: column; } .mobile .ph-side { width: auto; display: flex; gap: 4px; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border); flex: 0 0 auto; } .mobile .ph-side .fd-sh { display: none; } .mobile .ph-side .fd-si { flex: 0 0 auto; border-radius: 16px; background: var(--hover); }
+.mobile .ed-body { flex-direction: column; } .mobile .ed-panel { width: auto; max-height: 45%; }
+.mu-b { display: grid; place-items: center; } .mu-b .sym { width: 18px; height: 18px; } .mu-b.big .sym { width: 18px; height: 18px; color: #000; }
+.mu-b.sm { width: 30px; height: 30px; color: #8e8e93; } .mu-b.sm.on { color: #fa233b; } .mu-b.sm .sym { width: 16px; height: 16px; }
+.mu-b.one { position: relative; } .mu-b.one::after { content: "1"; position: absolute; right: 3px; top: 2px; font-size: 8px; font-weight: 900; color: #fa233b; }
+
+/* Calendar, pro */
+.cal-main { min-height: 0; overflow: hidden; }
+.cal-ev { cursor: pointer; } .cal-ev:hover { filter: brightness(1.15); }
+.cal-notes { font-size: 11.5px; color: var(--text2); margin-top: 3px; white-space: pre-wrap; }
+.cal-upt { font-size: 11px; font-weight: 700; color: var(--text2); text-transform: uppercase; letter-spacing: .5px; margin-top: 10px; }
+.cal-up { padding: 6px 8px; border-left: 3px solid var(--c); border-radius: 4px; background: var(--card); cursor: pointer; } .cal-up b { display: block; font-size: 12.5px; } .cal-up small { color: var(--text2); font-size: 11px; }
+.cw { flex: 1; display: flex; flex-direction: column; min-height: 0; height: 100%; }
+.cw-head, .cw-allday { display: grid; grid-template-columns: 52px repeat(7, 1fr); border-bottom: 1px solid var(--border); flex: 0 0 auto; }
+.cw-gutter { font-size: 10px; color: var(--text3); display: flex; align-items: center; justify-content: flex-end; padding-right: 6px; }
+.cw-day { display: flex; flex-direction: column; align-items: center; padding: 6px 0; gap: 2px; } .cw-day small { color: var(--text2); font-size: 11px; text-transform: uppercase; } .cw-day b { font-size: 20px; font-weight: 400; width: 34px; height: 34px; display: grid; place-items: center; border-radius: 50%; }
+.cw-day.today b { background: #ff453a; color: #fff; font-weight: 700; }
+.cw-adcell { min-height: 24px; padding: 2px; border-left: 1px solid var(--border); display: flex; flex-direction: column; gap: 2px; }
+.cw-adcell .cw-ev { position: static; height: auto !important; }
+.cw-scroll { flex: 1; overflow-y: auto; min-height: 0; }
+.cw-body { display: grid; grid-template-columns: 52px repeat(7, 1fr); height: 1152px; position: relative; }
+.cw-hours { position: relative; } .cw-hr { height: 48px; font-size: 10px; color: var(--text3); text-align: right; padding-right: 6px; transform: translateY(-6px); }
+.cw-col { position: relative; border-left: 1px solid var(--border); background-image: repeating-linear-gradient(to bottom, var(--border) 0 1px, transparent 1px 48px); }
+.cw-col.today { background-color: color-mix(in srgb, var(--accent) 5%, transparent); }
+.cw-ev { position: absolute; left: 2px; right: 2px; border-radius: 6px; padding: 3px 6px; overflow: hidden; background: color-mix(in srgb, var(--c) 28%, var(--win-solid)); border-left: 3px solid var(--c); font-size: 11.5px; cursor: pointer; display: flex; flex-direction: column; }
+.cw-ev:hover { filter: brightness(1.12); } .cw-ev b { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .cw-ev small { color: var(--text2); font-size: 10.5px; }
+.cw-now { position: absolute; left: -4px; right: 0; height: 2px; background: #ff453a; z-index: 2; } .cw-now::before { content: ""; position: absolute; left: -2px; top: -4px; width: 10px; height: 10px; border-radius: 50%; background: #ff453a; }
+.dlg.ce { width: min(360px, calc(100vw - 32px)); align-items: stretch; text-align: left; }
+.ce .field { width: 100%; } .ce-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; font-size: 13px; } .ce-row .field { width: auto; }
+.ce-times { display: flex; align-items: center; gap: 6px; } .ce-times .field { flex: 1; }
+.ce-colors { display: flex; gap: 8px; justify-content: center; padding: 4px 0; } .ce-c { width: 22px; height: 22px; border-radius: 50%; } .ce-c.on { box-shadow: 0 0 0 2px var(--menu), 0 0 0 4px var(--text2); }
+.ce-notes { height: 60px; padding: 6px 10px; resize: vertical; }
+.mobile .cw-head, .mobile .cw-allday, .mobile .cw-body { grid-template-columns: 34px repeat(7, 1fr); } .mobile .cw-day b { font-size: 14px; width: 26px; height: 26px; }
+.st-search { width: 100%; margin: 0 0 8px; }
+.st-noresult { color: var(--text3); font-size: 12px; padding: 10px; text-align: center; }
+.mobile .st-search { display: none; }
+
 </style>
   <style>
 /* ================= Liquid Glass ================= */
@@ -2249,6 +2369,20 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Click Create, then copy the Search engine ID it shows you.': 'Cliquez sur Créer, puis copiez l’ID du moteur de recherche affiché.', 'Paste it here. It only stays on this device.': 'Collez-le ici. Il reste seulement sur cet appareil.',
     'Close and reopen PatOS to use your new Search engine ID.': 'Fermez et rouvrez PatOS pour utiliser votre nouvel ID de moteur de recherche.', 'Google search can’t run inside a Claude Artifact. Open PatOS from its website.': 'La recherche Google ne fonctionne pas dans un Artifact Claude. Ouvrez PatOS depuis son site Web.',
     'Google search didn’t load. Check your internet connection, or the Search engine ID in Search settings.': 'La recherche Google n’a pas chargé. Vérifiez votre connexion Internet ou l’ID dans les réglages de recherche.',
+    'Sort by': 'Trier par', 'Ascending': 'Croissant', 'Descending': 'Décroissant', 'Show info': 'Afficher les infos', 'Show Info': 'Afficher les infos', 'Hide Info': 'Masquer les infos', 'Tags': 'Étiquettes',
+    'Red': 'Rouge', 'Orange': 'Orange', 'Yellow': 'Jaune', 'Green': 'Vert', 'Blue': 'Bleu', 'Purple': 'Violet', 'Gray': 'Gris', 'No files with this tag': 'Aucun fichier avec cette étiquette',
+    'Select something to see its details.': 'Sélectionnez un élément pour voir ses détails.', 'Where': 'Emplacement', 'Contains': 'Contient', 'Quick Look': 'Coup d’œil', 'items': 'éléments', 'item': 'élément', 'of': 'sur', 'used': 'utilisés',
+    'Image': 'Image', 'Audio': 'Audio', 'PDF document': 'Document PDF', 'Web page': 'Page Web', 'Web link': 'Lien Web', 'Text document': 'Document texte', 'Modified': 'Modifié',
+    'Albums': 'Albums', 'Screenshots': 'Captures d’écran', 'Drawings': 'Dessins', 'No favorites yet': 'Aucun favori pour l’instant', 'No photos here yet': 'Aucune photo ici pour l’instant',
+    'Open a photo and press the star to add it here.': 'Ouvrez une photo et appuyez sur l’étoile pour l’ajouter ici.', 'Thumbnail size': 'Taille des vignettes', 'Slideshow': 'Diaporama', 'Revert': 'Revenir à l’original',
+    'Save as Copy': 'Enregistrer une copie', 'Save to Photos': 'Enregistrer dans Photos', 'Filters': 'Filtres', 'Adjust': 'Ajuster', 'Contrast': 'Contraste', 'Warmth': 'Chaleur', 'Vignette': 'Vignettage',
+    'Crop and Rotate': 'Recadrer et pivoter', 'Original': 'Originale', 'Square': 'Carré', 'Mirror': 'Miroir', 'edited': 'modifiée', 'Photo saved': 'Photo enregistrée', 'Copy saved to Pictures': 'Copie enregistrée dans Images', 'More': 'Plus',
+    'Vivid': 'Éclatant', 'Warm': 'Chaud', 'Cool': 'Froid', 'Mono': 'Mono', 'Noir': 'Noir', 'Dramatic': 'Dramatique',
+    'Shuffle': 'Aléatoire', 'Repeat': 'Répéter', 'Repeat off': 'Répétition désactivée', 'Repeat all': 'Tout répéter', 'Repeat one': 'Répéter un morceau', 'Previous': 'Précédent', 'Play': 'Lire',
+    'Week': 'Semaine', 'Month': 'Mois', 'all-day': 'journée', 'Coming up': 'À venir', 'New Event': 'Nouvel événement', 'Edit Event': 'Modifier l’événement', 'Date': 'Date', 'Add': 'Ajouter', 'Starting now': 'Commence maintenant',
+    'Nothing planned. Double-click a day or press + to add an event.': 'Rien de prévu. Double-cliquez sur un jour ou appuyez sur + pour ajouter un événement.',
+    'Conversion': 'Conversion', 'Timer': 'Minuterie', 'Start a timer for': 'Lancer une minuterie de', 'Timer started': 'Minuterie lancée', 'Timer done': 'Minuterie terminée', 'Your timer finished.': 'Votre minuterie est terminée.',
+    'Press Enter to copy': 'Appuyez sur Entrée pour copier', 'Open now': 'Ouverte',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 'Offline': 'Hors ligne', 'Connected': 'Connecté',
@@ -3774,25 +3908,51 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (!/^[\d\s+\-*/().%^,]+$/.test(q) || !/\d/.test(q) || !/[+\-*/^%]/.test(q)) return null;
     try { const v = Function('"use strict";return (' + q.replace(/\^/g, '**').replace(/,/g, '') + ')')(); return Number.isFinite(v) ? +v.toPrecision(12) : null; } catch (e) { return null; }
   }
+  /* unit conversions: "5 km to mi", "20 c in f", "3 lb to kg" */
+  const UNITS = {
+    km: ['len', 1000], m: ['len', 1], cm: ['len', 0.01], mm: ['len', 0.001], mi: ['len', 1609.344], mile: ['len', 1609.344], miles: ['len', 1609.344], ft: ['len', 0.3048], feet: ['len', 0.3048], foot: ['len', 0.3048], in: ['len', 0.0254], inch: ['len', 0.0254], inches: ['len', 0.0254], yd: ['len', 0.9144],
+    kg: ['mass', 1], g: ['mass', 0.001], lb: ['mass', 0.45359237], lbs: ['mass', 0.45359237], pound: ['mass', 0.45359237], pounds: ['mass', 0.45359237], oz: ['mass', 0.0283495],
+    l: ['vol', 1], ml: ['vol', 0.001], gal: ['vol', 3.78541], cup: ['vol', 0.24], cups: ['vol', 0.24],
+    c: ['temp'], f: ['temp'], k: ['temp'], '°c': ['temp'], '°f': ['temp'],
+    kmh: ['speed', 1 / 3.6], 'km/h': ['speed', 1 / 3.6], mph: ['speed', 0.44704], 'm/s': ['speed', 1],
+    min: ['time', 60], h: ['time', 3600], hr: ['time', 3600], hours: ['time', 3600], s: ['time', 1], sec: ['time', 1], day: ['time', 86400], days: ['time', 86400]
+  };
+  function convert(q) {
+    const m = /^(-?[\d.,]+)\s*([a-z°\/]+)\s+(?:to|in|en|=)\s+([a-z°\/]+)$/i.exec(q.trim()); if (!m) return null;
+    const v = parseFloat(m[1].replace(',', '.')), a = m[2].toLowerCase(), b = m[3].toLowerCase(); const A = UNITS[a], B = UNITS[b];
+    if (!A || !B || A[0] !== B[0] || isNaN(v)) return null;
+    let r;
+    if (A[0] === 'temp') { const t = a.replace('°', ''), u = b.replace('°', ''); const cel = t === 'c' ? v : t === 'f' ? (v - 32) * 5 / 9 : v - 273.15; r = u === 'c' ? cel : u === 'f' ? cel * 9 / 5 + 32 : cel + 273.15; }
+    else r = v * A[1] / B[1];
+    return { text: m[1] + ' ' + m[2] + ' = ' + (+r.toPrecision(6)).toLocaleString() + ' ' + m[3], value: +r.toPrecision(6) };
+  }
+  PatOS.quickTimer = function (secs, label) {
+    PatOS.notify({ title: PatOS.t('Timer started'), body: Math.round(secs / 60) >= 1 ? Math.round(secs / 60) + ' min' : secs + ' s', icon: 'clock' });
+    setTimeout(() => { PatOS.notify({ title: label || PatOS.t('Timer done'), body: PatOS.t('Your timer finished.'), icon: 'clock', duration: 12000 }); for (let i = 0; i < 5; i++) PatOS.sound.tone(880, 0.25, { delay: i * 0.45, vol: 0.2 }); if (PatOS.mobile && PatOS.mobile.islandAlert) PatOS.mobile.islandAlert(PatOS.t('Timer done'), 'clock'); }, secs * 1000);
+  };
   function render(q) {
     const box = $('.sp-results'); box.innerHTML = ''; spResults = []; spSel = 0;
     q = q.trim();
     $('.sp-icon').innerHTML = $('#mb-search').innerHTML;
-    if (!q) { $('#spotlight .sp-box').classList.remove('has'); return; }
+    if (!q) { $('#spotlight .sp-box').classList.remove('has'); const pv0 = $('.sp-preview'); if (pv0) pv0.remove(); return; }
     const ql = q.toLowerCase();
     const c = calc(q);
+    const cv = convert(q);
+    if (cv) spResults.push({ group: 'Conversion', label: cv.text, icon: 'calculator', preview: () => h('div', { class: 'sp-pv-big' }, String(cv.value)), run: () => { navigator.clipboard && navigator.clipboard.writeText(String(cv.value)).catch(() => {}); PatOS.notify({ title: PatOS.t('Copied'), body: cv.text, icon: 'calculator' }); } });
+    const tm = /^(?:timer|minuterie)\s+(\d+(?:[.,]\d+)?)\s*(s|sec|secs|seconds?|m|min|mins|minutes?|h|hours?)?$/i.exec(q);
+    if (tm) { const n = parseFloat(tm[1].replace(',', '.')); const u = (tm[2] || 'm')[0].toLowerCase(); const secs = Math.round(n * (u === 's' ? 1 : u === 'h' ? 3600 : 60)); spResults.push({ group: 'Timer', label: PatOS.t('Start a timer for') + ' ' + tm[1] + ' ' + (u === 's' ? 's' : u === 'h' ? 'h' : 'min'), icon: 'clock', run: () => PatOS.quickTimer(secs) }); }
     if (c !== null) spResults.push({ group: 'Calculator', label: q + ' = ' + c, icon: 'calculator', run: () => { navigator.clipboard && navigator.clipboard.writeText(String(c)).catch(() => {}); PatOS.notify({ title: 'Copied', body: String(c), icon: 'calculator' }); } });
     PatOS.appOrder.forEach((id) => {
       const a = PatOS.apps[id];
       const nm = PatOS.t ? PatOS.t(a.name) : a.name;
-      if (a.name.toLowerCase().includes(ql) || nm.toLowerCase().includes(ql) || (a.keywords || '').includes(ql)) spResults.push({ group: 'Applications', label: nm, icon: a.icon || id, score: a.name.toLowerCase().startsWith(ql) ? 0 : 1, run: () => PatOS.launch(id) });
+      if (a.name.toLowerCase().includes(ql) || nm.toLowerCase().includes(ql) || (a.keywords || '').includes(ql)) spResults.push({ group: 'Applications', appId: id, label: nm, icon: a.icon || id, score: a.name.toLowerCase().startsWith(ql) ? 0 : 1, run: () => PatOS.launch(id) });
     });
     spResults.sort((a, b) => (a.group === b.group ? (a.score || 0) - (b.score || 0) : 0));
     let files = 0;
     PatOS.fs.walk('/', (p, n) => {
       if (files > 8) return;
       if (PatOS.fs.basename(p).toLowerCase().includes(ql) || (n.type === 'file' && !String(n.content).startsWith('data:') && String(n.content).toLowerCase().includes(ql))) {
-        files++; spResults.push({ group: 'Files', label: PatOS.fs.basename(p), sub: PatOS.fs.dirname(p), iconHTML: PatOS.fileIconHTML(p, n), run: () => PatOS.openFile(p) });
+        files++; spResults.push({ group: 'Files', filePath: p, label: PatOS.fs.basename(p), sub: PatOS.fs.dirname(p), iconHTML: PatOS.fileIconHTML(p, n), run: () => PatOS.openFile(p) });
       }
     });
     PatOS.store.get('notes', []).filter((n) => (n.title + ' ' + n.body).toLowerCase().includes(ql)).slice(0, 4).forEach((n) =>
@@ -3807,12 +3967,30 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       box.appendChild(row);
     });
     $('#spotlight .sp-box').classList.add('has');
+    preview(spResults[0]);
   }
   function setSel(i) {
     const rows = $$('.sp-res'); if (!rows.length) return;
     spSel = (i + rows.length) % rows.length;
     rows.forEach((r, j) => r.classList.toggle('sel', j === spSel));
     rows[spSel].scrollIntoView({ block: 'nearest' });
+    preview(spResults[spSel]);
+  }
+  function preview(r) {
+    let pv = $('.sp-preview'); if (!pv) { pv = h('div', { class: 'sp-preview' }); $('#spotlight .sp-box').appendChild(pv); }
+    pv.innerHTML = ''; if (!r) return;
+    if (r.appId) { const a = PatOS.apps[r.appId]; pv.append(h('div', { class: 'sp-pv-ic', html: PatOS.iconHTML(a.icon || r.appId) }), h('b', {}, PatOS.t(a.name)), h('p', {}, PatOS.t(a.about || a.category || 'Apps')), h('small', {}, PatOS.wm.isRunning(r.appId) ? PatOS.t('Open now') : PatOS.t(a.category || 'Apps'))); return; }
+    if (r.filePath) {
+      const n = PatOS.fs.get(r.filePath); if (!n) return;
+      const kind = PatOS.fileKind(r.filePath, n);
+      if (kind === 'image') pv.appendChild(h('img', { class: 'sp-pv-img', src: n.content, alt: '' }));
+      else pv.appendChild(h('div', { class: 'sp-pv-ic', html: PatOS.fileIconHTML(r.label, n) }));
+      pv.append(h('b', {}, r.label), h('small', {}, (r.filePath.startsWith('/') ? '~' + r.filePath : r.filePath) + ' · ' + PatOS.fmtBytes(PatOS.fs.size(n))));
+      if (n.type === 'file' && kind === 'text' && !String(n.content).startsWith('data:')) pv.appendChild(h('pre', { class: 'sp-pv-text' }, String(n.content).slice(0, 400)));
+      return;
+    }
+    if (r.preview) { pv.appendChild(r.preview()); pv.appendChild(h('small', {}, PatOS.t('Press Enter to copy'))); return; }
+    pv.append(h('div', { class: 'sp-pv-ic', html: r.iconHTML || PatOS.iconHTML(r.icon) }), h('b', {}, r.label));
   }
   function setupSpotlight() {
     const input = $('.sp-input');
@@ -4062,6 +4240,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         closeMenus(); $('#control-center').classList.add('hidden'); $('#notif-center').classList.add('hidden');
         if (e.altKey) PatOS.power.lock();
         return;
+      }
+      if (e.key === ' ' && !PatOS.wm.active && (document.activeElement === document.body || !document.activeElement)) {
+        const s = document.querySelector('.desk-icon.sel');
+        if (s) { e.preventDefault(); PatOS.quickLook(s.dataset.path, [...document.querySelectorAll('.desk-icon')].map((x) => x.dataset.path)); return; }
       }
       if (e.key === 'F3' || (e.altKey && e.key === 'ArrowUp')) { e.preventDefault(); PatOS.mission.toggle(); return; }
       if (e.key === 'F4') { e.preventDefault(); PatOS.launchpad.toggle(); return; }
@@ -4566,62 +4748,103 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 </script>
   <script>
-/* Finder — file manager */
+/* Finder — file manager: icons/list views, sorting, path bar, multi-select, tags, Quick Look, info panel */
 (function () {
   'use strict';
   const { h, $$ } = PatOS;
   const PLACES = [
-    { label: 'Desktop', path: '/Desktop', ic: '🖥' },
-    { label: 'Documents', path: '/Documents', ic: '📄' },
-    { label: 'Downloads', path: '/Downloads', ic: '⬇️' },
-    { label: 'Pictures', path: '/Pictures', ic: '🖼' },
-    { label: 'Music', path: '/Music', ic: '🎵' },
-    { label: 'Home', path: '/', ic: '🏠' }
+    { label: 'Desktop', path: '/Desktop', ic: 'desktop' }, { label: 'Documents', path: '/Documents', ic: 'doc' }, { label: 'Downloads', path: '/Downloads', ic: 'download' },
+    { label: 'Pictures', path: '/Pictures', ic: 'image' }, { label: 'Music', path: '/Music', ic: 'music' }, { label: 'Home', path: '/', ic: 'home' }
   ];
-  const svgBack = '<svg viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
-  const svgFwd = '<svg viewBox="0 0 24 24"><path d="M9 5l7 7-7 7" stroke="currentColor" stroke-width="2.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+  const TAGS = { red: '#ff453a', orange: '#ff9f0a', yellow: '#ffd60a', green: '#32d74b', blue: '#0a84ff', purple: '#bf5af2', gray: '#8e8e93' };
+  const TAG_NAMES = { red: 'Red', orange: 'Orange', yellow: 'Yellow', green: 'Green', blue: 'Blue', purple: 'Purple', gray: 'Gray' };
+  const tagsOf = () => PatOS.store.get('fileTags', {});
+  const kindLabel = (it) => it.app ? 'Application' : it.type === 'dir' ? 'Folder' : ({ image: 'Image', audio: 'Audio', pdf: 'PDF document', html: 'Web page', link: 'Web link' }[PatOS.fileKind(it.name, it)] || ({ pdoc: 'Document', psheet: 'Spreadsheet', csv: 'Spreadsheet', pslides: 'Presentation', pform: 'Form' }[PatOS.fs.ext(it.name)]) || 'Text document');
+
+  /* ---------- Quick Look: press Space on a file to preview it ---------- */
+  PatOS.quickLook = function (path, list) {
+    const old = document.querySelector('.ql-layer'); if (old) old.remove();
+    let idx = list ? Math.max(0, list.indexOf(path)) : 0;
+    const layer = h('div', { class: 'ql-layer' });
+    const close = () => { layer.classList.add('out'); document.removeEventListener('keydown', onKey, true); setTimeout(() => layer.remove(), 180); };
+    const onKey = (e) => {
+      if (e.key === 'Escape' || e.key === ' ') { e.preventDefault(); e.stopPropagation(); close(); }
+      else if (list && (e.key === 'ArrowRight' || e.key === 'ArrowDown')) { e.preventDefault(); e.stopPropagation(); idx = (idx + 1) % list.length; draw(); }
+      else if (list && (e.key === 'ArrowLeft' || e.key === 'ArrowUp')) { e.preventDefault(); e.stopPropagation(); idx = (idx - 1 + list.length) % list.length; draw(); }
+      else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); close(); PatOS.openFile(list ? list[idx] : path); }
+    };
+    function draw() {
+      const p = list ? list[idx] : path; const n = PatOS.fs.get(p); if (!n) return close();
+      const name = PatOS.fs.basename(p), kind = PatOS.fileKind(p, n), ext = PatOS.fs.ext(p);
+      const body = h('div', { class: 'ql-body' });
+      if (kind === 'image') body.appendChild(h('img', { src: n.content, alt: name }));
+      else if (kind === 'audio') body.appendChild(h('div', { class: 'ql-audio' }, h('div', { class: 'ql-icon', html: PatOS.fileIconHTML(name, n) }), h('audio', { src: n.content, controls: true, autoplay: true })));
+      else if (kind === 'pdf' || ext === 'pdf') { try { const bin = atob(String(n.content).split(',')[1]); const arr = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i); body.appendChild(h('iframe', { class: 'ql-pdf', src: URL.createObjectURL(new Blob([arr], { type: 'application/pdf' })) })); } catch (e) {} }
+      else if (n.type === 'dir') body.appendChild(h('div', { class: 'ql-folder' }, h('div', { class: 'ql-icon', html: PatOS.iconHTML('folder') }), h('b', {}, name), h('small', {}, PatOS.fs.list(p).length + ' ' + PatOS.t('items'))));
+      else if (ext === 'pdoc') body.appendChild(h('div', { class: 'ql-doc', html: String(n.content).replace(/<script[\s\S]*?<\/script>/gi, '').replace(/\son\w+="[^"]*"/gi, '') }));
+      else if (ext === 'psheet') { try { const cells = JSON.parse(n.content).cells || {}; const t = h('table', { class: 'ql-sheet' }); for (let r = 1; r <= 14; r++) { const tr = h('tr'); for (let c = 0; c < 6; c++) { const v = cells[String.fromCharCode(65 + c) + r]; tr.appendChild(h('td', {}, v ? String(v.v).slice(0, 18) : '')); } t.appendChild(tr); } body.appendChild(t); } catch (e) {} }
+      else if (['pslides', 'pform'].includes(ext) || String(n.content).startsWith('data:')) body.appendChild(h('div', { class: 'ql-folder' }, h('div', { class: 'ql-icon', html: PatOS.fileIconHTML(name, n) }), h('b', {}, name), h('small', {}, PatOS.t(kindLabel({ name, ...n })))));
+      else body.appendChild(h('pre', { class: 'ql-text' }, String(n.content).slice(0, 20000)));
+      layer.innerHTML = '';
+      const card = h('div', { class: 'ql-card' },
+        h('div', { class: 'ql-bar' }, h('button', { class: 'ql-x', title: 'Close', onclick: close }, '×'), h('b', {}, name), h('span', { class: 'ql-meta' }, PatOS.fmtBytes(PatOS.fs.size(n))), h('div', { style: { flex: 1 } }),
+          list && list.length > 1 ? h('span', { class: 'ql-meta' }, (idx + 1) + ' / ' + list.length) : null,
+          h('button', { class: 'btn', onclick: () => { close(); PatOS.openFile(p); } }, 'Open')),
+        body);
+      layer.appendChild(card);
+    }
+    layer.addEventListener('pointerdown', (e) => { if (e.target === layer) close(); });
+    document.body.appendChild(layer); document.addEventListener('keydown', onKey, true); draw();
+  };
 
   PatOS.registerApp({
-    id: 'finder', name: 'Finder', icon: 'finder', single: false, width: 860, height: 520, keywords: 'files folders explorer',
+    id: 'finder', name: 'Finder', icon: 'finder', single: false, width: 900, height: 560, keywords: 'files folders explorer',
     about: 'Browse and organize everything stored in PatOS.',
     launch(win, args) {
       win.el.classList.add('has-toolbar');
       let cwd = args.path || '/Desktop';
       let view = PatOS.store.get('finderView', 'grid');
+      let sort = PatOS.store.get('finderSort', { by: 'name', dir: 1 });
+      let showInfo = PatOS.store.get('finderInfo', false);
+      let tagFilter = null;
       const back = [], fwd = [];
-      let sel = null;
+      let selected = new Set(), anchor = null, list = [];
+      const S = (n) => PatOS.sym(n);
 
-      const bBack = h('button', { class: 'tbtn', html: svgBack, title: 'Back' });
-      const bFwd = h('button', { class: 'tbtn', html: svgFwd, title: 'Forward' });
+      const bBack = h('button', { class: 'tbtn', html: '<svg class="sym" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>', title: 'Back' });
+      const bFwd = h('button', { class: 'tbtn', html: '<svg class="sym" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>', title: 'Forward' });
       const title = h('div', { class: 'fd-title' });
-      const bGrid = h('button', { class: 'tbtn', title: 'Icons', html: '<svg viewBox="0 0 24 24"><g fill="currentColor"><rect x="3" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="3" width="7.5" height="7.5" rx="1.5"/><rect x="3" y="13.5" width="7.5" height="7.5" rx="1.5"/><rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.5"/></g></svg>' });
-      const bList = h('button', { class: 'tbtn', title: 'List', html: '<svg viewBox="0 0 24 24"><g stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></g></svg>' });
-      const bNew = h('button', { class: 'tbtn', title: 'New Folder', html: '<svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" fill="none" stroke="currentColor" stroke-width="1.8"/><path d="M12 10v6M9 13h6" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>' });
-      const bImport = h('button', { class: 'tbtn', title: 'Import from computer', html: '<svg viewBox="0 0 24 24"><path d="M12 4v11M7 10l5 5 5-5M5 20h14" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' });
+      const bGrid = h('button', { class: 'tbtn', title: 'Icons', html: S('apps') });
+      const bList = h('button', { class: 'tbtn', title: 'List', html: '<svg class="sym" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h16"/></svg>' });
+      const bSort = h('button', { class: 'tbtn', title: 'Sort by', html: '<svg class="sym" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h11M4 12h8M4 17h5M18 5v14M15 16l3 3 3-3"/></svg>' });
+      const bNew = h('button', { class: 'tbtn', title: 'New Folder', html: S('folder') });
+      const bImport = h('button', { class: 'tbtn', title: 'Import from computer', html: S('download') });
+      const bInfo = h('button', { class: 'tbtn', title: 'Show info', html: '<svg class="sym" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg>' });
       const search = h('input', { class: 'field fd-search', placeholder: 'Search', spellcheck: 'false' });
-      win.toolbar.append(bBack, bFwd, title, h('div', { style: { flex: 1 } }), bGrid, bList, bNew, bImport, search);
-      win.toolbar.style.justifyContent = 'flex-start';
-      win.toolbar.style.paddingLeft = '70px';
+      win.toolbar.append(bBack, bFwd, title, h('div', { style: { flex: 1 } }), bGrid, bList, bSort, bNew, bImport, bInfo, search);
+      win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '70px';
 
       const side = h('div', { class: 'fd-side' });
-      const main = h('div', { class: 'fd-main' });
+      const main = h('div', { class: 'fd-main', tabindex: '0' });
+      const pathbar = h('div', { class: 'fd-path' });
       const status = h('div', { class: 'fd-status' });
-      win.body.append(h('div', { class: 'fd-wrap' }, side, h('div', { class: 'fd-right' }, main, status)));
-      win.el._finderPath = () => (cwd === '/.Trash' || cwd === 'apps') ? '/Desktop' : cwd;
+      const info = h('div', { class: 'fd-info' });
+      win.body.append(h('div', { class: 'fd-wrap' }, side, h('div', { class: 'fd-right' }, main, pathbar, status), info));
+      win.el._finderPath = () => (cwd === '/.Trash' || cwd === 'apps' || cwd === 'tag') ? '/Desktop' : cwd;
 
       function renderSide() {
         side.innerHTML = '';
-        side.appendChild(h('div', { class: 'fd-sh' }, 'Favorites'));
-        PLACES.forEach((p) => side.appendChild(sideItem(p.ic, p.label, p.path)));
-        side.appendChild(h('div', { class: 'fd-sh' }, 'PatOS'));
-        side.appendChild(sideItem('🚀', 'Applications', 'apps'));
-        side.appendChild(sideItem('🗑', 'Trash', '/.Trash'));
-        side.appendChild(h('div', { class: 'fd-sh' }, 'Storage'));
-        const used = PatOS.store.usage(); const cap = 5 * 1024 * 1024;
+        const sec = (t) => side.appendChild(h('div', { class: 'fd-sh' }, t));
+        sec('Favorites'); PLACES.forEach((p) => side.appendChild(sideItem(p.ic, p.label, p.path)));
+        sec('PatOS'); side.appendChild(sideItem('apps', 'Applications', 'apps')); side.appendChild(sideItem('trash', 'Trash', '/.Trash'));
+        sec('Tags');
+        Object.keys(TAGS).forEach((k) => { const it = h('div', { class: 'fd-si' + (cwd === 'tag' && tagFilter === k ? ' on' : '') }, h('span', { class: 'fd-tagdot', style: { background: TAGS[k] } }), TAG_NAMES[k]); it.onclick = () => { tagFilter = k; go('tag'); }; side.appendChild(it); });
+        sec('Storage');
+        const used = PatOS.store.usage(), cap = 5 * 1024 * 1024;
         side.appendChild(h('div', { class: 'fd-storage' }, h('div', { class: 'fd-bar' }, h('span', { style: { width: Math.min(100, used / cap * 100) + '%' } })), h('small', {}, PatOS.fmtBytes(used) + ' of ~5 MB used')));
       }
       function sideItem(ic, label, path) {
-        const it = h('div', { class: 'fd-si' + (cwd === path ? ' on' : '') }, h('span', {}, ic), label);
+        const it = h('div', { class: 'fd-si' + (cwd === path ? ' on' : '') }, h('span', { class: 'symw', html: S(ic) }), label);
         it.addEventListener('click', () => go(path));
         if (path !== 'apps') {
           it.addEventListener('dragover', (e) => { e.preventDefault(); it.classList.add('drop'); });
@@ -4631,60 +4854,104 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         return it;
       }
       function dropTo(e, path) {
-        const src = e.dataTransfer.getData('text/patos-path'); if (!src) return;
-        try { if (path === '/.Trash') { PatOS.fs.remove(src); PatOS.sound.trash(); } else PatOS.fs.move(src, path); } catch (er) { PatOS.notify({ title: 'Cannot move', body: er.message, icon: 'finder' }); }
+        const raw = e.dataTransfer.getData('text/patos-paths') || e.dataTransfer.getData('text/patos-path'); if (!raw) return;
+        const paths = raw.startsWith('[') ? JSON.parse(raw) : [raw];
+        paths.forEach((src) => { try { if (path === '/.Trash') { PatOS.fs.remove(src); } else if (PatOS.fs.dirname(src) !== path) PatOS.fs.move(src, path); } catch (er) { PatOS.notify({ title: PatOS.t('Cannot move'), body: er.message, icon: 'finder' }); } });
+        if (path === '/.Trash') PatOS.sound.trash();
       }
-      function go(path, noHist) {
-        if (!noHist && path !== cwd) { back.push(cwd); fwd.length = 0; }
-        cwd = path; sel = null; search.value = ''; render();
-      }
+      function go(path, noHist) { if (!noHist && path !== cwd) { back.push(cwd); fwd.length = 0; } cwd = path; selected.clear(); anchor = null; search.value = ''; render(); }
       bBack.onclick = () => { if (back.length) { fwd.push(cwd); go(back.pop(), true); } };
       bFwd.onclick = () => { if (fwd.length) { back.push(cwd); go(fwd.pop(), true); } };
       bGrid.onclick = () => { view = 'grid'; PatOS.store.set('finderView', view); render(); };
       bList.onclick = () => { view = 'list'; PatOS.store.set('finderView', view); render(); };
-      bNew.onclick = () => { if (cwd !== 'apps' && cwd !== '/.Trash') PatOS.newFolder(cwd); };
-      bImport.onclick = () => { if (cwd !== 'apps' && cwd !== '/.Trash') PatOS.importFiles(cwd); };
+      bNew.onclick = () => { if (canWrite()) { const nm = PatOS.newFolder(cwd); setTimeout(() => select([cwd + '/' + nm]), 50); } };
+      bImport.onclick = () => { if (canWrite()) PatOS.importFiles(cwd); };
+      bInfo.onclick = () => { showInfo = !showInfo; PatOS.store.set('finderInfo', showInfo); render(); };
+      bSort.onclick = () => { const r = bSort.getBoundingClientRect(); const opt = (by, label) => ({ label: PatOS.t(label), checked: sort.by === by, action: () => { sort = { by, dir: sort.by === by ? -sort.dir : 1 }; PatOS.store.set('finderSort', sort); render(); } }); PatOS.menu([{ header: PatOS.t('Sort by') }, opt('name', 'Name'), opt('date', 'Date Modified'), opt('size', 'Size'), opt('kind', 'Kind'), { divider: true }, { label: PatOS.t(sort.dir > 0 ? 'Ascending' : 'Descending'), action: () => { sort.dir = -sort.dir; PatOS.store.set('finderSort', sort); render(); } }], r.left - 120, r.bottom + 4); };
       search.addEventListener('input', () => render());
+      const canWrite = () => !['apps', '/.Trash', 'tag'].includes(cwd);
 
       function items() {
         const q = search.value.trim().toLowerCase();
-        if (cwd === 'apps') {
-          return PatOS.appOrder.filter((id) => !PatOS.apps[id].hidden).map((id) => ({ name: PatOS.apps[id].name, app: id })).filter((x) => !q || x.name.toLowerCase().includes(q));
-        }
-        if (q) { const res = []; PatOS.fs.walk(cwd === '/.Trash' ? '/' : cwd, (p, n) => { if (PatOS.fs.basename(p).toLowerCase().includes(q)) res.push({ name: PatOS.fs.basename(p), path: p, ...n }); }); return res; }
-        if (cwd === '/.Trash') return PatOS.fs.trashList();
-        return PatOS.fs.list(cwd);
+        let out;
+        if (cwd === 'apps') out = PatOS.appOrder.filter((id) => !PatOS.apps[id].hidden).map((id) => ({ name: PatOS.t(PatOS.apps[id].name), app: id, path: 'app:' + id }));
+        else if (cwd === 'tag') { const tags = tagsOf(); out = Object.keys(tags).filter((p) => tags[p] === tagFilter && PatOS.fs.exists(p)).map((p) => ({ name: PatOS.fs.basename(p), path: p, ...PatOS.fs.get(p) })); }
+        else if (q) { out = []; PatOS.fs.walk(cwd === '/.Trash' ? '/' : cwd, (p, n) => { if (PatOS.fs.basename(p).toLowerCase().includes(q)) out.push({ name: PatOS.fs.basename(p), path: p, ...n }); }); }
+        else if (cwd === '/.Trash') out = PatOS.fs.trashList();
+        else out = PatOS.fs.list(cwd);
+        if (q && cwd === 'apps') out = out.filter((x) => x.name.toLowerCase().includes(q));
+        const key = { name: (x) => x.name.toLowerCase(), date: (x) => x.mtime || 0, size: (x) => (x.app ? 0 : PatOS.fs.size(x)), kind: (x) => kindLabel(x) }[sort.by];
+        return out.sort((a, b) => { if (!a.app && (a.type === 'dir') !== (b.type === 'dir')) return a.type === 'dir' ? -1 : 1; const x = key(a), y = key(b); return (x < y ? -1 : x > y ? 1 : 0) * sort.dir || a.name.localeCompare(b.name); });
       }
       function render() {
         renderSide();
-        const label = cwd === 'apps' ? 'Applications' : cwd === '/.Trash' ? 'Trash' : cwd === '/' ? 'Home' : PatOS.fs.basename(cwd);
-        title.textContent = label; win.setTitle(label);
+        const label = cwd === 'apps' ? 'Applications' : cwd === '/.Trash' ? 'Trash' : cwd === 'tag' ? TAG_NAMES[tagFilter] : cwd === '/' ? 'Home' : PatOS.fs.basename(cwd);
+        title.textContent = PatOS.t(label); win.setTitle(PatOS.t(label));
         bBack.disabled = !back.length; bFwd.disabled = !fwd.length;
-        bGrid.classList.toggle('on', view === 'grid'); bList.classList.toggle('on', view === 'list');
+        bGrid.classList.toggle('on', view === 'grid'); bList.classList.toggle('on', view === 'list'); bInfo.classList.toggle('on', showInfo);
         main.innerHTML = ''; main.className = 'fd-main ' + view;
-        const list = items();
+        list = items();
         if (cwd === '/.Trash' && list.length) main.appendChild(h('div', { class: 'fd-trashbar' }, 'Items in the Trash', h('button', { class: 'btn', onclick: async () => { if (await PatOS.confirmBox('Empty the Trash?', 'The items will be erased for good.', { ok: 'Empty Trash', danger: true, icon: 'finder' })) { PatOS.fs.emptyTrash(); PatOS.sound.trash(); } } }, 'Empty')));
-        if (view === 'list') main.appendChild(h('div', { class: 'fd-lh' }, h('span', {}, 'Name'), h('span', {}, 'Date Modified'), h('span', {}, 'Size'), h('span', {}, 'Kind')));
-        list.forEach((it) => main.appendChild(item(it)));
-        if (!list.length) main.appendChild(h('div', { class: 'fd-empty' }, search.value ? 'No results' : cwd === '/.Trash' ? 'Trash is empty' : 'This folder is empty'));
-        status.textContent = list.length + ' item' + (list.length === 1 ? '' : 's') + (cwd !== 'apps' ? ' · ' + PatOS.fmtBytes(PatOS.store.usage()) + ' used' : '');
+        if (view === 'list') {
+          const hd = (by, l) => h('span', { class: 'fd-lhc' + (sort.by === by ? ' on' : ''), onclick: () => { sort = { by, dir: sort.by === by ? -sort.dir : 1 }; PatOS.store.set('finderSort', sort); render(); } }, l, sort.by === by ? (sort.dir > 0 ? ' ▲' : ' ▼') : '');
+          main.appendChild(h('div', { class: 'fd-lh' }, hd('name', 'Name'), hd('date', 'Date Modified'), hd('size', 'Size'), hd('kind', 'Kind')));
+        }
+        list.forEach((it, i) => main.appendChild(item(it, i)));
+        if (!list.length) main.appendChild(h('div', { class: 'fd-empty' }, search.value ? 'No results' : cwd === '/.Trash' ? 'Trash is empty' : cwd === 'tag' ? 'No files with this tag' : 'This folder is empty'));
+        // path bar
+        pathbar.innerHTML = '';
+        if (!['apps', '/.Trash', 'tag'].includes(cwd)) {
+          const parts = cwd === '/' ? [] : cwd.slice(1).split('/');
+          const crumb = (lbl, p) => { const c = h('button', { class: 'fd-crumb' }, h('span', { class: 'symw', html: S(p === '/' ? 'home' : 'folder') }), PatOS.t(lbl)); c.onclick = () => go(p); c.addEventListener('dragover', (e) => e.preventDefault()); c.addEventListener('drop', (e) => { e.preventDefault(); dropTo(e, p); }); return c; };
+          pathbar.appendChild(crumb(PatOS.settings.userName, '/'));
+          parts.forEach((pt, k) => { pathbar.appendChild(h('span', { class: 'fd-sep' }, '›')); pathbar.appendChild(crumb(pt, '/' + parts.slice(0, k + 1).join('/'))); });
+        }
+        updateStatus(); renderInfo();
       }
-      function item(it) {
+      function updateStatus() {
+        const n = selected.size;
+        status.textContent = (n ? n + ' ' + PatOS.t('of') + ' ' : '') + list.length + ' ' + PatOS.t(list.length === 1 ? 'item' : 'items') + (cwd !== 'apps' ? ' · ' + PatOS.fmtBytes(PatOS.store.usage()) + ' ' + PatOS.t('used') : '');
+      }
+      function select(paths, keep) {
+        if (!keep) selected.clear(); paths.forEach((p) => selected.add(p));
+        $$('.fd-item, .fd-row', main).forEach((el) => el.classList.toggle('sel', selected.has(el.dataset.path)));
+        updateStatus(); renderInfo();
+      }
+      function renderInfo() {
+        info.classList.toggle('hidden', !showInfo); if (!showInfo) return;
+        info.innerHTML = '';
+        const p = [...selected].pop(); const it = p && list.find((x) => x.path === p);
+        if (!it) { info.appendChild(h('div', { class: 'fd-info-empty' }, PatOS.t('Select something to see its details.'))); return; }
+        const isApp = !!it.app; const n = isApp ? null : PatOS.fs.get(it.path);
+        info.append(h('div', { class: 'fd-info-ic', html: isApp ? PatOS.iconHTML(PatOS.apps[it.app].icon || it.app) : PatOS.fileIconHTML(it.name, n) }), h('b', { class: 'fd-info-nm' }, it.name), h('small', {}, PatOS.t(kindLabel(it)) + (isApp ? '' : ' · ' + PatOS.fmtBytes(PatOS.fs.size(n)))));
+        if (!isApp) {
+          const row = (k, v) => h('div', { class: 'fd-info-row' }, h('span', {}, PatOS.t(k)), h('b', {}, v));
+          info.append(h('div', { class: 'fd-info-rows' }, row('Where', PatOS.fs.dirname(it.path) === '/' ? '~' : PatOS.fs.dirname(it.path)), row('Modified', new Date(n.mtime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' })), n.type === 'dir' ? row('Contains', PatOS.fs.list(it.path).length + ' ' + PatOS.t('items')) : null));
+          const tg = tagsOf()[it.path];
+          info.appendChild(h('div', { class: 'fd-info-tags' }, ...Object.keys(TAGS).map((k) => h('button', { class: 'fd-tagdot big' + (tg === k ? ' on' : ''), title: PatOS.t(TAG_NAMES[k]), style: { background: TAGS[k] }, onclick: () => setTag([it.path], tg === k ? null : k) }))));
+          info.appendChild(h('div', { class: 'fd-info-btns' }, h('button', { class: 'btn', onclick: () => PatOS.quickLook(it.path, list.filter((x) => !x.app).map((x) => x.path)) }, 'Quick Look'), h('button', { class: 'btn', onclick: () => PatOS.openFile(it.path) }, 'Open')));
+        }
+      }
+      function setTag(paths, k) { const t = tagsOf(); paths.forEach((p) => { if (k) t[p] = k; else delete t[p]; }); PatOS.store.set('fileTags', t); render(); }
+      function item(it, i) {
         const isApp = !!it.app;
         const iconHTML = isApp ? PatOS.iconHTML(PatOS.apps[it.app].icon || it.app) : PatOS.fileIconHTML(it.name, it);
-        const kind = isApp ? 'Application' : it.type === 'dir' ? 'Folder' : PatOS.fileKind(it.name, it).replace(/^./, (c) => c.toUpperCase());
+        const tg = !isApp && tagsOf()[it.path];
+        const dot = tg ? h('span', { class: 'fd-tagdot', style: { background: TAGS[tg] } }) : null;
         const el = view === 'grid'
-          ? h('div', { class: 'fd-item' }, h('div', { class: 'fd-ic', html: iconHTML }), h('div', { class: 'fd-nm' }, it.name))
-          : h('div', { class: 'fd-row' }, h('span', { class: 'fd-rn' }, h('span', { class: 'fd-ric', html: iconHTML }), it.name), h('span', {}, it.mtime ? new Date(it.mtime).toLocaleString() : '—'), h('span', {}, isApp || it.type === 'dir' ? '—' : PatOS.fmtBytes(PatOS.fs.size(it))), h('span', {}, kind));
-        el.addEventListener('click', (e) => { e.stopPropagation(); $$('.sel', main).forEach((x) => x.classList.remove('sel')); el.classList.add('sel'); sel = it; });
-        el.addEventListener('dblclick', () => {
-          if (isApp) return PatOS.launch(it.app);
-          if (cwd === '/.Trash') return;
-          if (it.type === 'dir') go(it.path); else PatOS.openFile(it.path);
+          ? h('div', { class: 'fd-item', 'data-path': it.path }, h('div', { class: 'fd-ic', html: iconHTML }), h('div', { class: 'fd-nm' }, dot, it.name))
+          : h('div', { class: 'fd-row', 'data-path': it.path }, h('span', { class: 'fd-rn' }, h('span', { class: 'fd-ric', html: iconHTML }), it.name, dot), h('span', {}, it.mtime ? new Date(it.mtime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—'), h('span', {}, isApp || it.type === 'dir' ? '—' : PatOS.fmtBytes(PatOS.fs.size(it))), h('span', {}, PatOS.t(kindLabel(it))));
+        if (selected.has(it.path)) el.classList.add('sel');
+        el.addEventListener('click', (e) => {
+          e.stopPropagation(); main.focus({ preventScroll: true });
+          if (e.shiftKey && anchor) { const a = list.findIndex((x) => x.path === anchor), b = i; select(list.slice(Math.min(a, b), Math.max(a, b) + 1).map((x) => x.path)); }
+          else if (e.ctrlKey || e.metaKey) { if (selected.has(it.path)) { selected.delete(it.path); select([], true); } else select([it.path], true); anchor = it.path; }
+          else { select([it.path]); anchor = it.path; }
         });
+        el.addEventListener('dblclick', () => openItem(it));
         if (!isApp) {
           el.draggable = true;
-          el.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/patos-path', it.path); });
+          el.addEventListener('dragstart', (e) => { const paths = selected.has(it.path) ? [...selected] : [it.path]; e.dataTransfer.setData('text/patos-paths', JSON.stringify(paths)); e.dataTransfer.setData('text/patos-path', it.path); });
           if (it.type === 'dir') {
             el.addEventListener('dragover', (e) => { e.preventDefault(); el.classList.add('drop'); });
             el.addEventListener('dragleave', () => el.classList.remove('drop'));
@@ -4692,36 +4959,63 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           }
         }
         el.addEventListener('contextmenu', (e) => {
-          e.preventDefault(); e.stopPropagation(); el.click();
-          if (isApp) return PatOS.menu([{ label: 'Open', action: () => PatOS.launch(it.app) }, { label: PatOS.settings.dockPinned.includes(it.app) ? 'Remove from Dock' : 'Add to Dock', action: () => { const l = PatOS.settings.dockPinned.slice(); const i = l.indexOf(it.app); if (i >= 0) l.splice(i, 1); else l.push(it.app); PatOS.setSetting('dockPinned', l); } }], e.clientX, e.clientY);
-          if (cwd === '/.Trash') return PatOS.menu([{ label: 'Put Back', action: () => PatOS.fs.restore(it.name) }, { label: 'Delete Immediately', action: () => PatOS.fs.remove(it.path, true) }], e.clientX, e.clientY);
-          PatOS.fileMenu(it.path, e.clientX, e.clientY);
+          e.preventDefault(); e.stopPropagation(); if (!selected.has(it.path)) { select([it.path]); anchor = it.path; }
+          if (isApp) return PatOS.menu([{ label: PatOS.t('Open'), action: () => PatOS.launch(it.app) }, { label: PatOS.t(PatOS.settings.dockPinned.includes(it.app) ? 'Remove from Dock' : 'Add to Dock'), action: () => { const l = PatOS.settings.dockPinned.slice(); const k = l.indexOf(it.app); if (k >= 0) l.splice(k, 1); else l.push(it.app); PatOS.setSetting('dockPinned', l); } }], e.clientX, e.clientY);
+          if (cwd === '/.Trash') return PatOS.menu([{ label: PatOS.t('Put Back'), action: () => [...selected].forEach((p) => PatOS.fs.restore(PatOS.fs.basename(p))) }, { label: PatOS.t('Delete Immediately'), action: () => [...selected].forEach((p) => PatOS.fs.remove(p, true)) }], e.clientX, e.clientY);
+          const sel = [...selected];
+          PatOS.menu([
+            { label: PatOS.t('Open'), action: () => sel.forEach((p) => PatOS.openFile(p)) },
+            { label: PatOS.t('Quick Look'), shortcut: 'Space', action: () => PatOS.quickLook(it.path, list.filter((x) => !x.app).map((x) => x.path)) },
+            { divider: true },
+            sel.length === 1 ? { label: PatOS.t('Rename…'), shortcut: 'Enter', action: () => PatOS.renameInline(it.path) } : null,
+            { label: PatOS.t('Duplicate'), action: () => sel.forEach((p) => PatOS.fs.copy(p, PatOS.fs.dirname(p))) },
+            it.type === 'file' && sel.length === 1 ? { label: PatOS.t('Download to Computer'), action: () => PatOS.downloadFile(it.name, it.content) } : null,
+            { divider: true },
+            { header: PatOS.t('Tags') },
+            ...Object.keys(TAGS).map((k) => ({ label: PatOS.t(TAG_NAMES[k]), checked: sel.every((p) => tagsOf()[p] === k), action: () => setTag(sel, sel.every((p) => tagsOf()[p] === k) ? null : k) })),
+            { divider: true },
+            { label: PatOS.t('Move to Trash'), shortcut: 'Delete', action: () => { sel.forEach((p) => PatOS.fs.remove(p)); PatOS.sound.trash(); } }
+          ], e.clientX, e.clientY);
         });
         return el;
       }
-      main.addEventListener('click', () => { $$('.sel', main).forEach((x) => x.classList.remove('sel')); sel = null; });
+      function openItem(it) {
+        if (it.app) return PatOS.launch(it.app);
+        if (cwd === '/.Trash') return;
+        if (it.type === 'dir') go(it.path); else PatOS.openFile(it.path);
+      }
+      main.addEventListener('click', () => { select([]); anchor = null; });
       main.addEventListener('contextmenu', (e) => {
-        if (e.target.closest('.fd-item, .fd-row') || cwd === 'apps') return;
+        if (e.target.closest('.fd-item, .fd-row') || cwd === 'apps' || cwd === 'tag') return;
         e.preventDefault();
-        if (cwd === '/.Trash') return PatOS.menu([{ label: 'Empty Trash', action: () => PatOS.fs.emptyTrash() }], e.clientX, e.clientY);
+        if (cwd === '/.Trash') return PatOS.menu([{ label: PatOS.t('Empty Trash'), action: () => PatOS.fs.emptyTrash() }], e.clientX, e.clientY);
         PatOS.menu([
-          { label: 'New Folder', action: () => PatOS.newFolder(cwd) },
-          { label: 'New Text File', action: () => { const nm = PatOS.fs.uniqueName(cwd, 'untitled.txt'); PatOS.fs.write(cwd + '/' + nm, ''); PatOS.launch('textedit', { path: cwd + '/' + nm }); } },
-          { label: 'Import from Computer…', action: () => PatOS.importFiles(cwd) },
+          { label: PatOS.t('New Folder'), action: () => PatOS.newFolder(cwd) },
+          { label: PatOS.t('New Text File'), action: () => { const nm = PatOS.fs.uniqueName(cwd, 'untitled.txt'); PatOS.fs.write(cwd + '/' + nm, ''); PatOS.launch('textedit', { path: cwd + '/' + nm }); } },
+          { label: PatOS.t('New Document'), action: () => PatOS.launch('docs') },
+          { label: PatOS.t('Import from Computer…'), action: () => PatOS.importFiles(cwd) },
           { divider: true },
-          { label: view === 'grid' ? 'View as List' : 'View as Icons', action: () => { view = view === 'grid' ? 'list' : 'grid'; render(); } }
+          { label: PatOS.t(view === 'grid' ? 'View as List' : 'View as Icons'), action: () => { view = view === 'grid' ? 'list' : 'grid'; PatOS.store.set('finderView', view); render(); } },
+          { label: PatOS.t(showInfo ? 'Hide Info' : 'Show Info'), action: () => bInfo.click() }
         ], e.clientX, e.clientY);
       });
-      win.body.addEventListener('keydown', (e) => {
-        if (!sel || sel.app) return;
-        if (e.key === 'Delete' || (e.key === 'Backspace' && e.ctrlKey)) { PatOS.fs.remove(sel.path); PatOS.sound.trash(); }
-        if (e.key === 'Enter') PatOS.renameInline(sel.path);
+      main.addEventListener('keydown', (e) => {
+        if (e.target !== main) return;
+        const cur = [...selected].pop(); let i = list.findIndex((x) => x.path === cur);
+        const cols = view === 'grid' ? Math.max(1, Math.floor(main.clientWidth / 102)) : 1;
+        const move = (d) => { e.preventDefault(); if (!list.length) return; i = i < 0 ? 0 : Math.max(0, Math.min(list.length - 1, i + d)); if (e.shiftKey && anchor) { const a = list.findIndex((x) => x.path === anchor); select(list.slice(Math.min(a, i), Math.max(a, i) + 1).map((x) => x.path)); } else { select([list[i].path]); anchor = list[i].path; } const el = main.querySelector(`[data-path="${CSS.escape(list[i].path)}"]`); if (el) el.scrollIntoView({ block: 'nearest' }); };
+        if (e.key === 'ArrowRight') move(1); else if (e.key === 'ArrowLeft') move(-1); else if (e.key === 'ArrowDown') move(cols); else if (e.key === 'ArrowUp') move(-cols);
+        else if (e.key === ' ' && cur && !cur.startsWith('app:')) { e.preventDefault(); PatOS.quickLook(cur, list.filter((x) => !x.app).map((x) => x.path)); }
+        else if (e.key === 'Enter' && cur) { e.preventDefault(); if (e.ctrlKey || cur.startsWith('app:')) openItem(list[i]); else PatOS.renameInline(cur); }
+        else if ((e.key === 'o' && e.ctrlKey) || (e.key === 'ArrowDown' && e.ctrlKey)) { if (list[i]) openItem(list[i]); }
+        else if ((e.key === 'Delete' || (e.key === 'Backspace' && e.ctrlKey)) && selected.size && canWrite()) { [...selected].forEach((p) => PatOS.fs.remove(p)); PatOS.sound.trash(); }
+        else if (e.key === 'a' && e.ctrlKey) { e.preventDefault(); select(list.map((x) => x.path)); }
+        else if (e.key === 'Backspace' && cwd !== '/' && canWrite()) { e.preventDefault(); go(PatOS.fs.dirname(cwd)); }
       });
-      win.body.tabIndex = 0;
-      const off = PatOS.on('fs', () => render());
+      const off = PatOS.on('fs', PatOS.debounce(() => { const keep = [...selected].filter((p) => PatOS.fs.exists(p)); selected = new Set(keep); render(); }, 60));
       win.on('closed', off);
       win._go = go;
-      render();
+      render(); setTimeout(() => main.focus({ preventScroll: true }), 80);
     },
     onArgs(win, args) { if (args.path && win._go) win._go(args.path); }
   });
@@ -5472,9 +5766,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       scr.addEventListener('click', () => { if (!window.getSelection().toString()) input.focus(); });
       const pathLabel = () => (cwd === '/' ? '~' : '~' + cwd);
       const setPrompt = () => { prompt.innerHTML = `<span class="tg">${esc(user)}@patos</span> <span class="tb">${esc(pathLabel())}</span> % `; win.setTitle(user + ' — ' + pathLabel() + ' — zsh'); };
-      const print = (html, cls) => { out.appendChild(h('div', { class: 'term-row ' + (cls || ''), html })); scr.scrollTop = scr.scrollHeight; };
-      const text = (s, cls) => print(esc(s), cls);
-      const resolve = (p) => !p ? cwd : p.startsWith('/') || p.startsWith('~') ? PatOS.fs.norm(p) : PatOS.fs.norm(cwd + '/' + p);
+      let capture = null, stdin = null; // used by pipes and > redirects
+      const print = (html, cls) => {
+        if (capture) { const d = document.createElement('div'); d.innerHTML = html.replace(/<br>/g, '\n'); capture.push(d.textContent); return; }
+        out.appendChild(h('div', { class: 'term-row ' + (cls || ''), html })); scr.scrollTop = scr.scrollHeight;
+      };
+      const text = (s, cls) => { if (capture) { capture.push(String(s)); return; } print(esc(s), cls); };
+      const input2 = (a) => { const f = a.filter((x) => !x.startsWith('-')); if (f.length) { const c = PatOS.fs.read(resolve(f[f.length - 1])); if (c == null) throw new Error(f[f.length - 1] + ': No such file'); return c; } return stdin == null ? '' : stdin; };
+      const flag = (a, f) => a.includes(f);
+            const resolve = (p) => !p ? cwd : p.startsWith('/') || p.startsWith('~') ? PatOS.fs.norm(p) : PatOS.fs.norm(cwd + '/' + p);
       let matrixStop = null;
 
       const cmds = {
@@ -5484,7 +5784,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
            ['mkdir <dir>', 'make a folder'], ['rm <path>', 'move to Trash'], ['mv <src> <dir>', 'move'], ['cp <src> <dir>', 'copy'], ['echo <text> [> file]', 'print or write text'],
            ['tree', 'show folder tree'], ['open <app|file>', 'open an app or file'], ['apps', 'list apps'], ['calc <expr>', 'calculator'], ['date', 'current date'], ['whoami', 'your name'],
            ['neofetch', 'system info'], ['theme dark|light', 'change appearance'], ['wallpaper <name>', 'change wallpaper'], ['matrix', 'enter the matrix (press any key to stop)'],
-           ['cowsay <text>', 'a talking cow'], ['fortune', 'a random message'], ['history', 'command history'], ['clear', 'clear screen'], ['exit', 'close terminal']]
+           ['grep / wc / head / tail', 'filter text (works with |)'], ['sort / uniq / rev / seq', 'more text tools'], ['find [dir] -name <pattern>', 'find files'], ['ls -l', 'detailed list'], ['curl <url>', 'download a web page'], ['ping <host>', 'check a website'], ['weather', 'current weather'], ['todo [text]', 'list or add reminders'], ['cmd > file', 'save output to a file'], ['cmd1 && cmd2', 'run one after another'], ['cowsay <text>', 'a talking cow'], ['fortune', 'a random message'], ['history', 'command history'], ['clear', 'clear screen'], ['exit', 'close terminal']]
             .forEach(([c, d]) => print(`  <span class="ty">${esc(c.padEnd(22))}</span>${esc(d)}`));
         },
         ls(a) {
@@ -5588,16 +5888,90 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           matrixStop = () => { cancelAnimationFrame(raf); c.remove(); matrixStop = null; };
         }
       };
+      Object.assign(cmds, {
+        grep(a) {
+          const opts = a.filter((x) => x.startsWith('-')).join(''); const rest = a.filter((x) => !x.startsWith('-'));
+          const pat = rest.shift(); if (!pat) return text('usage: grep [-i] [-n] [-v] <text> [file]', 'err');
+          const src = rest.length ? PatOS.fs.read(resolve(rest[0])) : stdin; if (src == null) return text('grep: ' + rest[0] + ': No such file', 'err');
+          const re = new RegExp(pat.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), opts.includes('i') ? 'i' : '');
+          String(src).split('\n').forEach((l, i) => { if (re.test(l) !== opts.includes('v')) capture ? text((opts.includes('n') ? (i + 1) + ':' : '') + l) : print((opts.includes('n') ? `<span class="tm">${i + 1}:</span>` : '') + esc(l).replace(new RegExp(esc(pat).replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g' + (opts.includes('i') ? 'i' : '')), (m) => `<span class="ty">${m}</span>`)); });
+        },
+        wc(a) { const s = input2(a); const lines = s ? s.split('\n').length - (s.endsWith('\n') ? 1 : 0) : 0; if (flag(a, '-l')) return text(String(lines)); if (flag(a, '-w')) return text(String((s.match(/\S+/g) || []).length)); text(lines + '  ' + (s.match(/\S+/g) || []).length + '  ' + s.length); },
+        head(a) { const n = a.includes('-n') ? +a[a.indexOf('-n') + 1] || 10 : 10; const rest = a.filter((x, i) => !(x === '-n' || a[i - 1] === '-n')); text(input2(rest).split('\n').slice(0, n).join('\n')); },
+        tail(a) { const n = a.includes('-n') ? +a[a.indexOf('-n') + 1] || 10 : 10; const rest = a.filter((x, i) => !(x === '-n' || a[i - 1] === '-n')); const l = input2(rest).replace(/\n$/, '').split('\n'); text(l.slice(-n).join('\n')); },
+        sort(a) { let l = input2(a).replace(/\n$/, '').split('\n'); l.sort(flag(a, '-n') ? (x, y) => parseFloat(x) - parseFloat(y) : (x, y) => x.localeCompare(y)); if (flag(a, '-r')) l.reverse(); text(l.join('\n')); },
+        uniq(a) { const l = input2(a).replace(/\n$/, '').split('\n'); text(l.filter((x, i) => x !== l[i - 1]).join('\n')); },
+        rev(a) { text(input2(a).split('\n').map((x) => [...x].reverse().join('')).join('\n')); },
+        seq(a) { const [x, y] = a.length > 1 ? [+a[0], +a[1]] : [1, +a[0] || 10]; const o = []; for (let i = x; i <= y && o.length < 1000; i++) o.push(i); text(o.join('\n')); },
+        find(a) {
+          const ni = a.indexOf('-name'); const pat = ni >= 0 ? a[ni + 1] : null; const dir = resolve(a[0] && a[0] !== '-name' ? a[0] : '.');
+          const re = pat ? new RegExp('^' + pat.replace(/[.+^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '.*').replace(/\?/g, '.') + '$', 'i') : null; const o = [];
+          PatOS.fs.walk(dir, (p) => { if (!re || re.test(PatOS.fs.basename(p))) o.push(p === '/' ? '~' : '~' + p); }); text(o.join('\n') || '(nothing found)');
+        },
+        du(a) { const p = resolve(a[0]); const n = PatOS.fs.get(p); if (!n) return text('du: no such file', 'err'); text(PatOS.fmtBytes(PatOS.fs.size(n)) + '\t' + (a[0] || '.')); },
+        rmdir(a) { const p = resolve(a[0]); if (!PatOS.fs.isDir(p)) return text('rmdir: not a folder', 'err'); if (PatOS.fs.list(p).length) return text('rmdir: folder is not empty', 'err'); PatOS.fs.remove(p); },
+        async curl(a) {
+          const u = a.find((x) => !x.startsWith('-')); if (!u) return text('usage: curl <url>', 'err');
+          const url = /^https?:/.test(u) ? u : 'https://' + u; const t0 = performance.now();
+          try { const r = await fetch(url); const body = await r.text(); text(flag(a, '-I') ? 'HTTP ' + r.status + ' ' + r.statusText + '\ncontent-type: ' + r.headers.get('content-type') : body.slice(0, 4000) + (body.length > 4000 ? '\n… (' + body.length + ' bytes)' : '')); }
+          catch (e) { text('curl: this site doesn’t allow requests from web pages (CORS), or there’s no internet (' + Math.round(performance.now() - t0) + ' ms)', 'err'); }
+        },
+        async ping(a) {
+          const host = (a[0] || '').replace(/^https?:\/\//, '').split('/')[0]; if (!host) return text('usage: ping <host>', 'err');
+          text('PING ' + host);
+          for (let i = 0; i < 4; i++) { const t0 = performance.now(); try { await fetch('https://' + host + '/favicon.ico?' + Date.now(), { mode: 'no-cors', cache: 'no-store' }); text('reply from ' + host + ': time=' + Math.round(performance.now() - t0) + ' ms'); } catch (e) { text('request to ' + host + ' failed', 'err'); } await new Promise((r) => setTimeout(r, 400)); }
+        },
+        async weather() {
+          const pl = PatOS.store.get('weatherPlace', { name: 'Montréal', lat: 45.5019, lon: -73.5674 });
+          try { const j = await (await fetch(`https://api.open-meteo.com/v1/forecast?latitude=${pl.lat}&longitude=${pl.lon}&current=temperature_2m,wind_speed_10m,relative_humidity_2m`)).json(); text(pl.name + ': ' + Math.round(j.current.temperature_2m) + '°C, wind ' + Math.round(j.current.wind_speed_10m) + ' km/h, humidity ' + j.current.relative_humidity_2m + '%'); }
+          catch (e) { text('weather: no internet connection', 'err'); }
+        },
+        todo(a) { if (!a.length) { const l = PatOS.store.get('reminders', []).filter((r) => !r.done); return text(l.map((r, i) => (i + 1) + '. ' + r.text).join('\n') || 'Nothing to do.'); } const items = PatOS.store.get('reminders', []); items.push({ id: Date.now(), text: a.join(' '), done: false }); PatOS.store.set('reminders', items); text('Added to Reminders.', 'tm'); },
+        env() { text(['USER=' + user, 'HOME=/Users/' + user, 'SHELL=/bin/patsh', 'LANG=' + (PatOS.lang === 'fr' ? 'fr_CA' : 'en_CA') + '.UTF-8', 'OS=PatOS ' + PatOS.version, 'TERM=patos-256color'].join('\n')); },
+        uname(a) { text(flag(a, '-a') ? 'PatOS ' + PatOS.version + ' patos ' + navigator.userAgent : 'PatOS'); },
+        free() { const m = performance.memory; text(m ? 'used ' + PatOS.fmtBytes(m.usedJSHeapSize) + ' of ' + PatOS.fmtBytes(m.jsHeapSizeLimit) : 'Memory info is not available in this browser.'); },
+        hostname() { text('patos.local'); },
+        yes(a) { text(Array(20).fill(a.join(' ') || 'y').join('\n')); }
+      });
+      const oldLs = cmds.ls;
+      cmds.ls = (a) => {
+        if (!flag(a, '-l') && !flag(a, '-la')) return oldLs(a.filter((x) => !x.startsWith('-')));
+        const p = resolve(a.find((x) => !x.startsWith('-')));
+        PatOS.fs.list(p).forEach((i) => print(`<span class="tm">${i.type === 'dir' ? 'd' : '-'}rw-r--r--  ${esc(user)}  ${esc(PatOS.fmtBytes(PatOS.fs.size(i)).padStart(9))}  ${esc(new Date(i.mtime).toLocaleDateString(undefined, { month: 'short', day: 'numeric' }).padEnd(7))}</span> ${i.type === 'dir' ? `<span class="tb">${esc(i.name)}/</span>` : esc(i.name)}`));
+      };
+      const oldHist = cmds.history; cmds.history = (a) => { if (flag(a, '-c')) { hist.length = 0; PatOS.store.set('termHist', hist); return text('History cleared.', 'tm'); } oldHist(a); };
+      const oldMv = cmds.mv; cmds.mv = (a) => { if (a.length === 2 && !PatOS.fs.isDir(resolve(a[1])) && PatOS.fs.dirname(resolve(a[1])) === PatOS.fs.dirname(resolve(a[0]))) { try { PatOS.fs.rename(resolve(a[0]), PatOS.fs.basename(resolve(a[1]))); } catch (e) { text('mv: ' + e.message, 'err'); } return; } oldMv(a); };
+      const oldCat = cmds.cat; cmds.cat = (a) => { if (!a.length && stdin != null) return text(stdin); if (a.length > 1) return a.forEach((f) => oldCat([f])); oldCat(a); };
       cmds.dir = cmds.ls; cmds.cls = cmds.clear; cmds.man = cmds.help; cmds.say = cmds.echo;
 
-      function run(raw) {
+      const splitTop = (s, sep) => { const out = []; let cur = '', q = null; for (let i = 0; i < s.length; i++) { const c = s[i]; if (q) { if (c === q) q = null; cur += c; } else if (c === '"' || c === "'") { q = c; cur += c; } else if (s.startsWith(sep, i)) { out.push(cur); cur = ''; i += sep.length - 1; } else cur += c; } out.push(cur); return out.map((x) => x.trim()).filter(Boolean); };
+      async function exec1(seg, inData, capt) {
+        const parts = seg.match(/"[^"]*"|'[^']*'|\S+/g).map((p) => p.replace(/^["']|["']$/g, ''));
+        const name = parts.shift().toLowerCase();
+        if (!cmds[name]) { text('patsh: command not found: ' + name + '  (type “help”)', 'err'); return false; }
+        const prevCap = capture, prevIn = stdin; capture = capt; stdin = inData;
+        try { await cmds[name](parts, seg); return true; } catch (e) { capture = prevCap; text(name + ': ' + e.message, 'err'); return false; } finally { capture = prevCap; stdin = prevIn; }
+      }
+      async function runLine(line) {
+        let redirect = null; const m = line.match(/^(.*?)\s(>>?)\s*([^>|&]+)$/);
+        if (m && !/^echo\s/.test(line.trim())) { line = m[1]; redirect = { append: m[2] === '>>', file: m[3].trim() }; }
+        const stages = splitTop(line, '|'); let data = null;
+        for (let i = 0; i < stages.length; i++) {
+          const last = i === stages.length - 1;
+          const buf = (!last || redirect) ? [] : null;
+          const ok = await exec1(stages[i], data, buf); if (!ok) return false;
+          if (buf) data = buf.join('\n');
+        }
+        if (redirect) { const p = resolve(redirect.file); try { PatOS.fs.write(p, (redirect.append ? (PatOS.fs.read(p) || '') : '') + (data || '') + '\n'); } catch (e) { text(e.message, 'err'); return false; } }
+        return true;
+      }
+      async function run(raw) {
         print(prompt.innerHTML + esc(raw), 'cmd');
         raw = raw.trim(); if (!raw) return;
         hist.push(raw); if (hist.length > 200) hist.shift(); hi = hist.length; PatOS.store.set('termHist', hist);
-        const parts = raw.match(/"[^"]*"|'[^']*'|\S+/g).map((p) => p.replace(/^["']|["']$/g, ''));
-        const name = parts.shift().toLowerCase();
-        if (cmds[name]) { try { cmds[name](parts, raw); } catch (e) { text(name + ': ' + e.message, 'err'); } }
-        else text('patsh: command not found: ' + name + '  (type “help”)', 'err');
+        input.disabled = true;
+        for (const part of splitTop(raw, '&&')) { const ok = await runLine(part); if (!ok) break; }
+        input.disabled = false; input.focus(); scr.scrollTop = scr.scrollHeight;
       }
       input.addEventListener('keydown', (e) => {
         if (matrixStop) { e.preventDefault(); matrixStop(); return; }
@@ -5629,75 +6003,135 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 </script>
   <script>
-/* Calendar */
+/* Calendar — month and week views, event editor, reminders */
 (function () {
   'use strict';
   const { h } = PatOS;
   PatOS.dateKey = (d) => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  const COLORS = ['#ff453a', '#ff9f0a', '#32d74b', '#0a84ff', '#bf5af2'];
+  const COLORS = ['#ff453a', '#ff9f0a', '#ffd60a', '#32d74b', '#0a84ff', '#bf5af2', '#8e8e93'];
+  const toMin = (t) => { const m = /^(\d{1,2}):(\d{2})/.exec(t || ''); return m ? +m[1] * 60 + +m[2] : null; };
+  const fmtT = (t) => { const m = toMin(t); if (m == null) return ''; const d = new Date(); d.setHours(Math.floor(m / 60), m % 60, 0, 0); return d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }); };
+
   PatOS.registerApp({
-    id: 'calendar', name: 'Calendar', icon: 'calendar', width: 900, height: 600, keywords: 'date events schedule',
+    id: 'calendar', name: 'Calendar', icon: 'calendar', width: 980, height: 640, keywords: 'date events schedule agenda week',
     launch(win) {
       win.el.classList.add('has-toolbar');
-      let view = new Date(); view.setDate(1);
-      let selected = new Date();
+      let cursor = new Date(), selected = new Date(), mode = PatOS.store.get('calMode', 'month');
       let events = PatOS.store.get('calendar', {});
+      Object.values(events).forEach((l) => l.forEach((e) => { if (!e.id) e.id = PatOS.uid(); }));
       const save = () => PatOS.store.set('calendar', events);
       const title = h('div', { class: 'cal-title' });
-      const bPrev = h('button', { class: 'tbtn' }, '‹'); const bNext = h('button', { class: 'tbtn' }, '›');
-      const bToday = h('button', { class: 'btn' }, 'Today');
-      const bAdd = h('button', { class: 'tbtn', title: 'New event' }, '+');
-      win.toolbar.append(title, h('div', { style: { flex: 1 } }), bAdd, bPrev, bToday, bNext);
-      win.toolbar.style.paddingLeft = '76px';
-      const grid = h('div', { class: 'cal-grid' });
-      const side = h('div', { class: 'cal-side' });
-      win.body.appendChild(h('div', { class: 'cal-wrap' }, h('div', { class: 'cal-main' }, grid), side));
+      const seg = h('div', { class: 'seg' }, ...[['week', 'Week'], ['month', 'Month']].map(([k, l]) => h('button', { class: 'tab', 'data-k': k, onclick: () => { mode = k; PatOS.store.set('calMode', mode); render(); } }, l)));
+      const bPrev = h('button', { class: 'tbtn', title: 'Previous' }, '‹'), bNext = h('button', { class: 'tbtn', title: 'Next' }, '›');
+      const bToday = h('button', { class: 'btn' }, 'Today'), bAdd = h('button', { class: 'tbtn', title: 'New event' }, '+');
+      win.toolbar.append(title, h('div', { style: { flex: 1 } }), seg, bAdd, bPrev, bToday, bNext); win.toolbar.style.paddingLeft = '76px';
+      const main = h('div', { class: 'cal-main' }), side = h('div', { class: 'cal-side' });
+      win.body.appendChild(h('div', { class: 'cal-wrap' }, main, side));
+      const dayEvents = (d) => (events[PatOS.dateKey(d)] || []).slice().sort((a, b) => (toMin(a.time) ?? -1) - (toMin(b.time) ?? -1));
 
       function render() {
-        title.innerHTML = '<b>' + view.toLocaleDateString(undefined, { month: 'long' }) + '</b> ' + view.getFullYear();
-        grid.innerHTML = '';
-        ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].forEach((d) => grid.appendChild(h('div', { class: 'cal-dn' }, d)));
-        const start = new Date(view); start.setDate(1 - view.getDay());
+        [...seg.children].forEach((b) => b.classList.toggle('on', b.dataset.k === mode));
+        main.innerHTML = ''; mode === 'week' ? week() : month(); renderSide();
+      }
+      function month() {
+        const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
+        title.innerHTML = '<b>' + first.toLocaleDateString(undefined, { month: 'long' }) + '</b> ' + first.getFullYear();
+        const grid = h('div', { class: 'cal-grid' });
+        for (let i = 0; i < 7; i++) { const d = new Date(2024, 0, 7 + i); grid.appendChild(h('div', { class: 'cal-dn' }, d.toLocaleDateString(undefined, { weekday: 'short' }))); }
+        const start = new Date(first); start.setDate(1 - first.getDay());
         const todayK = PatOS.dateKey(new Date()), selK = PatOS.dateKey(selected);
         for (let i = 0; i < 42; i++) {
-          const d = new Date(start); d.setDate(start.getDate() + i);
-          const k = PatOS.dateKey(d);
-          const cell = h('div', { class: 'cal-cell' + (d.getMonth() !== view.getMonth() ? ' other' : '') + (k === selK ? ' sel' : '') },
-            h('span', { class: 'cal-num' + (k === todayK ? ' today' : '') }, d.getDate() === 1 ? d.toLocaleDateString(undefined, { month: 'short' }) + ' ' + 1 : d.getDate()));
-          (events[k] || []).slice(0, 3).forEach((ev) => cell.appendChild(h('div', { class: 'cal-ev', style: { '--c': ev.color || COLORS[3] } }, ev.time ? ev.time + ' ' : '', ev.title)));
-          if ((events[k] || []).length > 3) cell.appendChild(h('div', { class: 'cal-more' }, '+' + (events[k].length - 3) + ' more'));
-          cell.onclick = () => { selected = d; render(); };
-          cell.ondblclick = () => { selected = d; add(); };
+          const d = new Date(start); d.setDate(start.getDate() + i); const k = PatOS.dateKey(d);
+          const cell = h('div', { class: 'cal-cell' + (d.getMonth() !== first.getMonth() ? ' other' : '') + (k === selK ? ' sel' : '') },
+            h('span', { class: 'cal-num' + (k === todayK ? ' today' : '') }, d.getDate() === 1 ? d.toLocaleDateString(undefined, { month: 'short' }) + ' 1' : d.getDate()));
+          const evs = dayEvents(d);
+          evs.slice(0, 3).forEach((ev) => { const e = h('div', { class: 'cal-ev', style: { '--c': ev.color || COLORS[4] } }, ev.time ? fmtT(ev.time) + ' ' : '', ev.title); e.onclick = (x) => { x.stopPropagation(); editor(d, ev); }; cell.appendChild(e); });
+          if (evs.length > 3) cell.appendChild(h('div', { class: 'cal-more' }, '+' + (evs.length - 3) + ' more'));
+          cell.onclick = () => { selected = d; render(); }; cell.ondblclick = () => { selected = d; editor(d); };
           grid.appendChild(cell);
         }
-        renderSide();
+        main.appendChild(grid);
+      }
+      function week() {
+        const start = new Date(cursor); start.setDate(cursor.getDate() - cursor.getDay()); start.setHours(0, 0, 0, 0);
+        const end = new Date(start); end.setDate(start.getDate() + 6);
+        title.innerHTML = '<b>' + start.toLocaleDateString(undefined, { month: 'long' }) + '</b> ' + start.getFullYear();
+        const wrap = h('div', { class: 'cw' });
+        const head = h('div', { class: 'cw-head' }, h('div', { class: 'cw-gutter' }));
+        const allday = h('div', { class: 'cw-allday' }, h('div', { class: 'cw-gutter' }, PatOS.t('all-day')));
+        const body = h('div', { class: 'cw-body' });
+        const hours = h('div', { class: 'cw-hours' });
+        for (let hr = 0; hr < 24; hr++) { const d = new Date(); d.setHours(hr, 0); hours.appendChild(h('div', { class: 'cw-hr' }, hr ? d.toLocaleTimeString(undefined, { hour: 'numeric' }) : '')); }
+        body.appendChild(hours);
+        const todayK = PatOS.dateKey(new Date());
+        for (let i = 0; i < 7; i++) {
+          const d = new Date(start); d.setDate(start.getDate() + i); const k = PatOS.dateKey(d);
+          head.appendChild(h('div', { class: 'cw-day' + (k === todayK ? ' today' : '') }, h('small', {}, d.toLocaleDateString(undefined, { weekday: 'short' })), h('b', {}, d.getDate())));
+          const ad = h('div', { class: 'cw-adcell' }); allday.appendChild(ad);
+          const col = h('div', { class: 'cw-col' + (k === todayK ? ' today' : '') });
+          col.addEventListener('dblclick', (e) => { const r = col.getBoundingClientRect(); const mins = Math.round((e.clientY - r.top) / r.height * 1440 / 30) * 30; editor(d, null, String(Math.floor(mins / 60)).padStart(2, '0') + ':' + String(mins % 60).padStart(2, '0')); });
+          dayEvents(d).forEach((ev) => {
+            const s = toMin(ev.time);
+            const el = h('div', { class: 'cw-ev', style: { '--c': ev.color || COLORS[4] } }, h('b', {}, ev.title), s != null ? h('small', {}, fmtT(ev.time) + (ev.end ? ' – ' + fmtT(ev.end) : '')) : null);
+            el.onclick = (x) => { x.stopPropagation(); editor(d, ev); };
+            if (s == null) { ad.appendChild(el); return; }
+            const e2 = toMin(ev.end); const dur = Math.max(30, (e2 != null && e2 > s ? e2 : s + 60) - s);
+            el.style.top = (s / 1440 * 100) + '%'; el.style.height = (dur / 1440 * 100) + '%';
+            col.appendChild(el);
+          });
+          if (k === todayK) { const now = new Date(); col.appendChild(h('div', { class: 'cw-now', style: { top: ((now.getHours() * 60 + now.getMinutes()) / 1440 * 100) + '%' } })); }
+          body.appendChild(col);
+        }
+        wrap.append(head, allday, h('div', { class: 'cw-scroll' }, body));
+        main.appendChild(wrap);
+        setTimeout(() => { const sc = wrap.querySelector('.cw-scroll'); if (sc) sc.scrollTop = sc.scrollHeight * (7.5 / 24); }, 0);
       }
       function renderSide() {
-        const k = PatOS.dateKey(selected);
         side.innerHTML = '';
         side.append(h('div', { class: 'cal-sd' }, selected.toLocaleDateString(undefined, { weekday: 'long' })), h('div', { class: 'cal-sdn' }, selected.toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })));
-        const list = (events[k] || []).slice().sort((a, b) => (a.time || '').localeCompare(b.time || ''));
-        if (!list.length) side.appendChild(h('div', { class: 'cal-none' }, 'No events. Double-click a day or press + to add one.'));
+        const list = dayEvents(selected);
+        if (!list.length) side.appendChild(h('div', { class: 'cal-none' }, 'Nothing planned. Double-click a day or press + to add an event.'));
         list.forEach((ev) => {
-          const el = h('div', { class: 'cal-item', style: { '--c': ev.color || COLORS[3] } }, h('b', {}, ev.title), h('small', {}, ev.time || 'All day'), h('button', { class: 'cal-del', title: 'Delete' }, '×'));
-          el.querySelector('.cal-del').onclick = () => { events[k] = events[k].filter((x) => x !== ev); if (!events[k].length) delete events[k]; save(); render(); };
-          side.appendChild(el);
+          const el = h('div', { class: 'cal-item', style: { '--c': ev.color || COLORS[4] } }, h('b', {}, ev.title), h('small', {}, ev.time ? fmtT(ev.time) + (ev.end ? ' – ' + fmtT(ev.end) : '') : PatOS.t('All day')), ev.notes ? h('div', { class: 'cal-notes' }, ev.notes) : null);
+          el.onclick = () => editor(selected, ev); side.appendChild(el);
         });
-        side.appendChild(h('button', { class: 'btn primary cal-addbtn', onclick: add }, '+ Add Event'));
+        // next 7 days
+        const up = []; for (let i = 1; i <= 7; i++) { const d = new Date(); d.setDate(d.getDate() + i); dayEvents(d).forEach((ev) => up.push({ d, ev })); }
+        if (up.length) { side.appendChild(h('div', { class: 'cal-upt' }, PatOS.t('Coming up'))); up.slice(0, 6).forEach(({ d, ev }) => side.appendChild(h('div', { class: 'cal-up', style: { '--c': ev.color || COLORS[4] }, onclick: () => { selected = d; cursor = new Date(d); render(); } }, h('b', {}, ev.title), h('small', {}, d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) + (ev.time ? ' · ' + fmtT(ev.time) : ''))))); }
+        side.appendChild(h('button', { class: 'btn primary cal-addbtn', onclick: () => editor(selected) }, '+ ' + PatOS.t('New Event')));
       }
-      async function add() {
-        const t = await PatOS.ask('New event on ' + selected.toLocaleDateString(), 'Study session', { icon: 'calendar', ok: 'Next' }); if (!t) return;
-        const tm = await PatOS.ask('Time (e.g. 14:30)', '', { icon: 'calendar', text: 'Leave empty for an all-day event.', ok: 'Add Event' }); if (tm === null) return;
-        const time = tm;
-        const k = PatOS.dateKey(selected);
-        (events[k] = events[k] || []).push({ title: t, time: time.trim(), color: COLORS[Math.floor(Math.random() * COLORS.length)] });
-        save(); render();
+      function editor(day, ev, time) {
+        const isNew = !ev; const e = ev ? Object.assign({}, ev) : { id: PatOS.uid(), title: '', time: time || '', end: '', color: COLORS[4], notes: '' };
+        let date = PatOS.dateKey(day);
+        const fTitle = h('input', { class: 'field', value: e.title, placeholder: PatOS.t('Title') });
+        const fDate = h('input', { class: 'field', type: 'date', value: date });
+        const fAll = h('input', { type: 'checkbox', checked: !e.time });
+        const fStart = h('input', { class: 'field', type: 'time', value: e.time || '09:00' }), fEnd = h('input', { class: 'field', type: 'time', value: e.end || '' });
+        const times = h('div', { class: 'ce-times' }, fStart, h('span', {}, '–'), fEnd);
+        fAll.onchange = () => { times.style.display = fAll.checked ? 'none' : ''; }; fAll.onchange();
+        const fNotes = h('textarea', { class: 'field ce-notes', placeholder: PatOS.t('Notes') }, e.notes || ''); fNotes.value = e.notes || '';
+        const colors = h('div', { class: 'ce-colors' }, ...COLORS.map((c) => { const b = h('button', { class: 'ce-c' + (e.color === c ? ' on' : ''), style: { background: c } }); b.onclick = () => { e.color = c; colors.querySelectorAll('.ce-c').forEach((x) => x.classList.toggle('on', x === b)); }; return b; }));
+        const layer = h('div', { class: 'dlg-layer' });
+        const close = () => layer.remove();
+        const commit = () => {
+          e.title = fTitle.value.trim() || PatOS.t('New Event'); e.time = fAll.checked ? '' : fStart.value; e.end = fAll.checked ? '' : fEnd.value; e.notes = fNotes.value.trim();
+          Object.keys(events).forEach((k) => { events[k] = events[k].filter((x) => x.id !== e.id); if (!events[k].length) delete events[k]; });
+          (events[fDate.value || date] = events[fDate.value || date] || []).push(e);
+          save(); selected = new Date((fDate.value || date) + 'T12:00'); close(); render();
+        };
+        fTitle.addEventListener('keydown', (k) => { if (k.key === 'Enter') commit(); });
+        layer.appendChild(h('div', { class: 'dlg ce' }, h('b', {}, PatOS.t(isNew ? 'New Event' : 'Edit Event')), fTitle,
+          h('label', { class: 'ce-row' }, h('span', {}, PatOS.t('Date')), fDate), h('label', { class: 'ce-row' }, h('span', {}, PatOS.t('All day')), fAll), times, colors, fNotes,
+          h('div', { class: 'dlg-btns' }, !isNew ? h('button', { class: 'btn danger', onclick: () => { Object.keys(events).forEach((k) => { events[k] = events[k].filter((x) => x.id !== e.id); if (!events[k].length) delete events[k]; }); save(); close(); render(); } }, 'Delete') : null, h('button', { class: 'btn', onclick: close }, 'Cancel'), h('button', { class: 'btn primary', onclick: commit }, isNew ? 'Add' : 'Save'))));
+        layer.addEventListener('pointerdown', (x) => { if (x.target === layer) close(); });
+        document.body.appendChild(layer); setTimeout(() => fTitle.focus(), 30);
       }
-      bPrev.onclick = () => { view.setMonth(view.getMonth() - 1); render(); };
-      bNext.onclick = () => { view.setMonth(view.getMonth() + 1); render(); };
-      bToday.onclick = () => { view = new Date(); view.setDate(1); selected = new Date(); render(); };
-      bAdd.onclick = add;
-      win.body.addEventListener('wheel', (e) => { if (Math.abs(e.deltaY) > 30) { view.setMonth(view.getMonth() + (e.deltaY > 0 ? 1 : -1)); render(); } }, { passive: true });
+      const shift = (dir) => { if (mode === 'week') cursor.setDate(cursor.getDate() + 7 * dir); else cursor = new Date(cursor.getFullYear(), cursor.getMonth() + dir, 1); render(); };
+      bPrev.onclick = () => shift(-1); bNext.onclick = () => shift(1);
+      bToday.onclick = () => { cursor = new Date(); selected = new Date(); render(); };
+      bAdd.onclick = () => editor(selected);
+      win.body.tabIndex = 0;
+      win.body.addEventListener('keydown', (e) => { if (e.target !== win.body) return; if (e.key === 'ArrowLeft') shift(-1); if (e.key === 'ArrowRight') shift(1); if (e.key === 't') bToday.click(); if (e.key === 'n') editor(selected); });
       render();
     }
   });
@@ -5707,7 +6141,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (!PatOS.loggedIn) return;
     const d = new Date(); const k = PatOS.dateKey(d);
     const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-    (PatOS.store.get('calendar', {})[k] || []).forEach((ev) => { if (ev.time === hm && d.getSeconds() < 30) PatOS.notify({ title: ev.title, body: 'Starting now · ' + ev.time, icon: 'calendar' }); });
+    (PatOS.store.get('calendar', {})[k] || []).forEach((ev) => { if (ev.time === hm && d.getSeconds() < 30) PatOS.notify({ title: ev.title, body: PatOS.t('Starting now'), icon: 'calendar' }); });
   }, 30000);
 })();
 
@@ -5985,7 +6419,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       E.bus = a.ctx.createGain(); E.bus.gain.value = 0.55;
       E.analyser = a.ctx.createAnalyser(); E.analyser.fftSize = 512; E.analyser.smoothingTimeConstant = 0.8;
       const comp = a.ctx.createDynamicsCompressor();
-      E.bus.connect(comp); comp.connect(E.analyser); E.analyser.connect(a.out);
+      E.bus.connect(comp); comp.connect(E.analyser);
+      /* send the music through a normal <audio> element so the device treats it as real media:
+         Chromebook media keys and shelf controls, and the iPhone lock screen, can then control it */
+      try {
+        E.dest = a.ctx.createMediaStreamDestination(); E.outGain = a.ctx.createGain(); E.outGain.gain.value = PatOS.settings.volume;
+        E.analyser.connect(E.outGain); E.outGain.connect(E.dest);
+        E.sink = new Audio(); E.sink.srcObject = E.dest.stream;
+        PatOS.on('setting:volume', (v) => { E.outGain.gain.value = v; });
+      } catch (e) { E.analyser.connect(a.out); }
       // simple echo
       const d = a.ctx.createDelay(); d.delayTime.value = 0.33; const fb = a.ctx.createGain(); fb.gain.value = 0.28;
       E.echo = a.ctx.createGain(); E.echo.gain.value = 0.35; E.echo.connect(d); d.connect(fb); fb.connect(d); d.connect(E.bus);
@@ -6043,7 +6485,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       // arpeggio sparkle
       if (section === 2 && beat % 1 === 0 && beat % 3 === 0) voice(a, t, NOTE(chordRoot + 24 + [0, 7, 12][beat % 3]), sixteenth, 'sine', 0.03, E.bus, { echo: true });
       E.step++; E.nextTime += sixteenth;
-      if (E.step >= BARS * 16) { E.step = 0; next(); return; }
+      if (E.step >= BARS * 16) { E.step = 0; songEnded(); return; }
     }
   }
   function songDuration(i) { return BARS * 4 * 60 / SONGS[i].bpm; }
@@ -6051,23 +6493,56 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (E.custom && E.el) return { t: E.el.currentTime || 0, d: E.el.duration || 0 };
     return { t: E.step * (60 / SONGS[E.idx].bpm / 4), d: songDuration(E.idx) };
   }
-  function emit() { E.listeners.forEach((f) => f()); }
+  function directOut() { if (E.direct) return; E.direct = true; try { E.analyser.disconnect(); } catch (e) {} E.analyser.connect(PatOS.audio().out); E.sink = null; }
+  function sinkPlay() { if (E.sink) E.sink.play().catch(() => directOut()); }
+  let artCache = {};
+  function artwork(s) {
+    if (artCache[s.title]) return artCache[s.title];
+    const c = document.createElement('canvas'); c.width = c.height = 256; const x = c.getContext('2d');
+    const m = String(s.color).match(/#[0-9a-f]{6}/gi) || ['#ff6482', '#5b2bff'];
+    const g = x.createLinearGradient(0, 0, 256, 256); g.addColorStop(0, m[0]); g.addColorStop(1, m[1] || m[0]); x.fillStyle = g; x.fillRect(0, 0, 256, 256);
+    x.fillStyle = 'rgba(255,255,255,.9)'; x.font = '700 120px system-ui'; x.textAlign = 'center'; x.textBaseline = 'middle'; x.fillText('♫', 128, 136);
+    return (artCache[s.title] = c.toDataURL('image/png'));
+  }
+  function mediaSession() {
+    if (!('mediaSession' in navigator)) return;
+    const s = current();
+    try {
+      navigator.mediaSession.metadata = new MediaMetadata({ title: s.title, artist: s.artist, album: 'PatOS Music', artwork: [{ src: artwork(s), sizes: '256x256', type: 'image/png' }] });
+      navigator.mediaSession.playbackState = E.playing ? 'playing' : 'paused';
+      if (!E.msWired) {
+        E.msWired = true;
+        navigator.mediaSession.setActionHandler('play', () => play());
+        navigator.mediaSession.setActionHandler('pause', () => pause());
+        navigator.mediaSession.setActionHandler('nexttrack', () => next());
+        navigator.mediaSession.setActionHandler('previoustrack', () => prev());
+      }
+    } catch (e) {}
+  }
+  function emit() { mediaSession(); E.listeners.forEach((f) => f()); }
   function play() {
     const a = ensure(); if (!a) return;
+    sinkPlay();
     if (E.custom) { E.el.play(); E.playing = true; emit(); return; }
     E.seed = E.idx * 9973 + 7 + Math.floor(E.step / 64);
     E.nextTime = a.ctx.currentTime + 0.05; E.playing = true;
     clearInterval(E.timer); E.timer = setInterval(schedule, 25); emit();
   }
-  function pause() { E.playing = false; clearInterval(E.timer); if (E.el) E.el.pause(); emit(); }
+  function pause() { E.playing = false; clearInterval(E.timer); if (E.el) E.el.pause(); if (E.sink) E.sink.pause(); emit(); }
   function stopCustom() { if (E.el) { E.el.pause(); } E.custom = null; }
   function select(i, autoplay) { stopCustom(); clearInterval(E.timer); E.idx = (i + SONGS.length) % SONGS.length; E.step = 0; if (autoplay !== false && (E.playing || autoplay)) play(); else emit(); }
-  function next() { select(E.idx + 1, true); }
+  E.shuffle = PatOS.store.get('musicShuffle', false); E.repeat = PatOS.store.get('musicRepeat', 'all');
+  function next() {
+    if (E.shuffle && SONGS.length > 1) { let n; do { n = Math.floor(Math.random() * SONGS.length); } while (n === E.idx); select(n, true); }
+    else if (E.repeat === 'off' && E.idx === SONGS.length - 1 && !E.custom) { select(0, false); pause(); }
+    else select(E.idx + 1, true);
+  }
+  function songEnded() { if (E.repeat === 'one') { E.step = 0; if (E.custom && E.el) { E.el.currentTime = 0; E.el.play(); } else play(); } else next(); }
   function prev() { if (position().t > 3) { E.step = 0; emit(); } else select(E.idx - 1, true); }
   function playFile(name, src) {
     const a = ensure(); if (!a) return;
     pause();
-    if (!E.el) { E.el = new Audio(); E.el.crossOrigin = 'anonymous'; const node = a.ctx.createMediaElementSource(E.el); node.connect(E.bus); E.el.addEventListener('ended', () => { E.playing = false; emit(); }); }
+    if (!E.el) { E.el = new Audio(); E.el.crossOrigin = 'anonymous'; const node = a.ctx.createMediaElementSource(E.el); node.connect(E.bus); E.el.addEventListener('ended', () => { if (E.repeat === 'one') { E.el.currentTime = 0; E.el.play(); } else { E.playing = false; emit(); } }); }
     E.el.src = src; E.custom = { title: name.replace(/\.[^.]+$/, ''), artist: 'Your Music', color: 'linear-gradient(135deg,#434343,#000)', hue: 0.55 };
     play();
   }
@@ -6089,10 +6564,17 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       const stage = h('div', { class: 'mu-stage' });
       const canvas = h('canvas', { class: 'mu-canvas' });
       const art = h('div', { class: 'mu-art' }); const tt = h('div', { class: 'mu-tt' }); const ar = h('div', { class: 'mu-ar' });
-      const bPrev = h('button', { class: 'mu-b' }, '⏮'); const bPlay = h('button', { class: 'mu-b big' }, '▶'); const bNext = h('button', { class: 'mu-b' }, '⏭');
+      const bPrev = h('button', { class: 'mu-b', title: 'Previous', html: PatOS.sym('prev') }); const bPlay = h('button', { class: 'mu-b big', title: 'Play', html: PatOS.sym('play') }); const bNext = h('button', { class: 'mu-b', title: 'Next', html: PatOS.sym('next') });
+      const svg = (d) => '<svg class="sym" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
+      const bShuf = h('button', { class: 'mu-b sm', title: 'Shuffle', html: svg('<path d="M3 7h3c4 0 6 10 10 10h5M17 14l4 3-4 3M3 17h3c1.5 0 2.7-1.4 3.8-3M14.2 10C15.3 8.4 16.5 7 18 7h3M17 4l4 3-4 3"/>') });
+      const bRep = h('button', { class: 'mu-b sm', title: 'Repeat', html: svg('<path d="M4 11V9a3 3 0 0 1 3-3h13M17 3l3 3-3 3M20 13v2a3 3 0 0 1-3 3H4M7 21l-3-3 3-3"/>') });
+      const syncModes = () => { bShuf.classList.toggle('on', E.shuffle); bRep.classList.toggle('on', E.repeat !== 'off'); bRep.classList.toggle('one', E.repeat === 'one'); bRep.title = PatOS.t({ off: 'Repeat off', all: 'Repeat all', one: 'Repeat one' }[E.repeat]); };
+      bShuf.onclick = () => { E.shuffle = !E.shuffle; PatOS.store.set('musicShuffle', E.shuffle); syncModes(); };
+      bRep.onclick = () => { E.repeat = { off: 'all', all: 'one', one: 'off' }[E.repeat]; PatOS.store.set('musicRepeat', E.repeat); syncModes(); };
+      syncModes();
       const prog = h('div', { class: 'mu-prog scrub' }, h('span')); const tA = h('small'); const tB = h('small');
       const vol = h('input', { type: 'range', min: 0, max: 100, value: Math.round(PatOS.settings.volume * 100), class: 'mu-vol' });
-      const bar = h('div', { class: 'mu-bar' }, art, h('div', { class: 'mu-info' }, tt, ar), h('div', { class: 'mu-ctl' }, bPrev, bPlay, bNext), h('div', { class: 'mu-time' }, tA, prog, tB), h('span', {}, '🔊'), vol);
+      const bar = h('div', { class: 'mu-bar' }, art, h('div', { class: 'mu-info' }, tt, ar), h('div', { class: 'mu-ctl' }, bShuf, bPrev, bPlay, bNext, bRep), h('div', { class: 'mu-time' }, tA, prog, tB), h('span', {}, '🔊'), vol);
       stage.appendChild(canvas);
       win.body.append(h('div', { class: 'mu-wrap' }, list, stage), bar);
 
@@ -6113,8 +6595,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       function sync() {
         const s = current();
         art.style.background = s.color; tt.textContent = s.title; ar.textContent = s.artist;
-        bPlay.textContent = E.playing ? '⏸' : '▶';
-        renderList(); win.setTitle('Music — ' + s.title);
+        bPlay.innerHTML = PatOS.sym(E.playing ? 'pause' : 'play'); bPlay.title = PatOS.t(E.playing ? 'Pause' : 'Play');
+        renderList(); win.setTitle(s.title);
         if (viz) viz.setHue(s.hue);
       }
       bPlay.onclick = () => PatOS.music.toggle(); bNext.onclick = next; bPrev.onclick = prev;
@@ -6199,66 +6681,173 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 </script>
   <script>
-/* Photos — gallery & viewer */
+/* Photos — library, albums, favorites, slideshow and a photo editor */
 (function () {
   'use strict';
   const { h } = PatOS;
   const samples = [];
   function sampleArt() {
     if (samples.length) return samples;
-    const kinds = ['sonora', 'aurora', 'monterra', 'ocean', 'sunrise', 'mint', 'ember', 'midnight'];
-    kinds.forEach((k) => samples.push({ name: PatOS.wallpaper.palettes[k].name + ' Waves', src: PatOS.wallpaper.thumbLarge(k), sample: true }));
-    // generative extra pieces
+    ['sonora', 'aurora', 'monterra', 'ocean', 'sunrise', 'mint', 'ember', 'midnight'].forEach((k) => samples.push({ name: PatOS.wallpaper.palettes[k].name, src: PatOS.wallpaper.thumbLarge(k), sample: true }));
     const gen = (name, fn) => { const c = document.createElement('canvas'); c.width = 640; c.height = 400; fn(c.getContext('2d'), 640, 400); samples.push({ name, src: c.toDataURL('image/jpeg', 0.85), sample: true }); };
     gen('Circles', (x, W, H) => { x.fillStyle = '#0d1b2a'; x.fillRect(0, 0, W, H); for (let i = 0; i < 70; i++) { x.fillStyle = `hsla(${180 + Math.random() * 140},80%,60%,.35)`; x.beginPath(); x.arc(Math.random() * W, Math.random() * H, 10 + Math.random() * 70, 0, 7); x.fill(); } });
     gen('Mountains', (x, W, H) => { const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#ff9a8b'); g.addColorStop(1, '#ff6a88'); x.fillStyle = g; x.fillRect(0, 0, W, H); x.fillStyle = '#fff6'; x.beginPath(); x.arc(W * 0.7, H * 0.35, 50, 0, 7); x.fill(); ['#7a3b69', '#563d7c', '#2d1e4f'].forEach((c, j) => { x.fillStyle = c; x.beginPath(); x.moveTo(0, H); for (let i = 0; i <= W; i += 20) x.lineTo(i, H * (0.45 + j * 0.15) - Math.abs(Math.sin(i * 0.01 * (j + 1) + j)) * 90); x.lineTo(W, H); x.fill(); }); });
     gen('Grid City', (x, W, H) => { x.fillStyle = '#090018'; x.fillRect(0, 0, W, H); x.strokeStyle = '#ff2fa3'; for (let i = -20; i <= 20; i++) { x.beginPath(); x.moveTo(W / 2 + i * 12, H * 0.55); x.lineTo(W / 2 + i * 90, H); x.stroke(); } for (let j = 0; j < 12; j++) { const y = H * 0.55 + Math.pow(j / 12, 2) * H * 0.45; x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke(); } const g = x.createLinearGradient(0, 60, 0, 220); g.addColorStop(0, '#ffd319'); g.addColorStop(1, '#ff2975'); x.fillStyle = g; x.beginPath(); x.arc(W / 2, H * 0.55, 120, Math.PI, 0); x.fill(); });
     return samples;
   }
+  const FILTERS = { Original: {}, Vivid: { sat: 45, con: 15 }, Warm: { warm: 40, sat: 10 }, Cool: { warm: -40 }, Mono: { sat: -100 }, Noir: { sat: -100, con: 45, light: -10 }, Fade: { con: -25, light: 10, sat: -25 }, Dramatic: { con: 35, light: -12, vig: 50 } };
+  const favs = () => PatOS.store.get('photoFavs', []);
 
   PatOS.registerApp({
-    id: 'photos', name: 'Photos', icon: 'photos', width: 900, height: 600, keywords: 'pictures images gallery',
+    id: 'photos', name: 'Photos', icon: 'photos', width: 980, height: 640, keywords: 'pictures images gallery edit',
     launch(win, args) {
       win.el.classList.add('has-toolbar');
-      const seg = h('div', { class: 'seg' });
-      const bImport = h('button', { class: 'tbtn', title: 'Import photos' }, '⬆ Import');
-      win.toolbar.style.justifyContent = 'space-between'; win.toolbar.style.paddingLeft = '70px';
-      win.toolbar.append(seg, bImport);
-      let tab = 'library';
-      [['library', 'Library'], ['samples', 'Art']].forEach(([k, l]) => seg.appendChild(h('button', { class: 'tab', 'data-k': k, onclick: () => { tab = k; render(); } }, l)));
+      let album = 'library', size = PatOS.store.get('photoSize', 160), list = [];
+      const zoom = h('input', { type: 'range', min: 90, max: 280, value: size, class: 'ph-zoom', title: 'Thumbnail size' });
+      const bShow = h('button', { class: 'tbtn', title: 'Slideshow', html: PatOS.sym('play') });
+      const bImport = h('button', { class: 'tbtn', title: 'Import photos', html: PatOS.sym('upload') });
+      win.toolbar.append(zoom, bShow, bImport); win.toolbar.style.paddingLeft = '200px';
+      const side = h('div', { class: 'ph-side' });
       const grid = h('div', { class: 'ph-grid' });
       const viewer = h('div', { class: 'ph-view hidden' });
-      win.body.append(grid, viewer);
-      let list = [];
+      win.body.appendChild(h('div', { class: 'ph-wrap' }, side, h('div', { class: 'ph-main' }, grid, viewer)));
       function userImages() { const out = []; PatOS.fs.walk('/', (p, n) => { if (PatOS.fileKind(p, n) === 'image' && String(n.content).startsWith('data:image')) out.push({ name: PatOS.fs.basename(p), src: n.content, path: p, mtime: n.mtime }); }); return out.sort((a, b) => b.mtime - a.mtime); }
+      const ALBUMS = [
+        ['library', 'Library', 'image', () => userImages()],
+        ['favorites', 'Favorites', 'star', () => userImages().filter((p) => favs().includes(p.path))],
+        ['screens', 'Screenshots', 'desktop', () => userImages().filter((p) => /screenshot|capture/i.test(p.name))],
+        ['booth', 'Photo Booth', 'camera', () => userImages().filter((p) => /photo booth/i.test(p.name))],
+        ['drawings', 'Drawings', 'brush', () => userImages().filter((p) => /drawing|dessin|galaxy|scene/i.test(p.name))],
+        ['art', 'Art', 'sparkle', () => sampleArt()]
+      ];
+      function renderSide() {
+        side.innerHTML = '';
+        side.appendChild(h('div', { class: 'fd-sh' }, PatOS.t('Photos')));
+        ALBUMS.forEach(([k, l, ic, fn], i) => {
+          if (i === 2) side.appendChild(h('div', { class: 'fd-sh' }, PatOS.t('Albums')));
+          const n = fn().length;
+          const b = h('div', { class: 'fd-si' + (album === k ? ' on' : '') }, h('span', { class: 'symw', html: PatOS.sym(ic) }), PatOS.t(l), h('small', { class: 'ph-count' }, n || ''));
+          b.onclick = () => { album = k; viewer.classList.add('hidden'); render(); }; side.appendChild(b);
+        });
+      }
       function render() {
-        [...seg.children].forEach((b) => b.classList.toggle('on', b.dataset.k === tab));
-        list = tab === 'library' ? userImages() : sampleArt();
+        renderSide();
+        list = ALBUMS.find((a) => a[0] === album)[3]();
+        grid.style.setProperty('--ph', size + 'px');
         grid.innerHTML = '';
-        if (!list.length) grid.appendChild(h('div', { class: 'ph-empty' }, h('div', { style: { fontSize: '48px' } }, '🖼'), h('b', {}, 'No photos yet'), h('p', {}, 'Take pictures in Photo Booth, draw in Paint, or import images from your computer.'), h('button', { class: 'btn primary', onclick: () => PatOS.importFiles('/Pictures', 'image/*') }, 'Import Photos')));
-        list.forEach((p, i) => { const t = h('div', { class: 'ph-thumb' }, h('img', { src: p.src, alt: p.name, loading: 'lazy' })); t.onclick = () => open(i); grid.appendChild(t); });
+        if (!list.length) grid.appendChild(h('div', { class: 'ph-empty' }, h('div', { class: 'ph-big', html: PatOS.iconHTML('photos') }), h('b', {}, album === 'favorites' ? 'No favorites yet' : 'No photos here yet'), h('p', {}, album === 'favorites' ? 'Open a photo and press the star to add it here.' : 'Take pictures in Photo Booth, draw in Paint, or import images from your computer.'), album === 'library' ? h('button', { class: 'btn primary', onclick: () => PatOS.importFiles('/Pictures', 'image/*') }, 'Import Photos') : null));
+        let lastDay = '';
+        list.forEach((p, i) => {
+          const day = p.mtime ? new Date(p.mtime).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric' }) : '';
+          if (day && day !== lastDay && album !== 'art') { lastDay = day; grid.appendChild(h('div', { class: 'ph-day' }, day)); }
+          const t = h('div', { class: 'ph-thumb' }, h('img', { src: p.src, alt: p.name, loading: 'lazy' }), p.path && favs().includes(p.path) ? h('span', { class: 'ph-heart', html: PatOS.sym('star') }) : null);
+          t.onclick = () => open(i); grid.appendChild(t);
+        });
+        win.setTitle(PatOS.t(ALBUMS.find((a) => a[0] === album)[1]));
       }
       function open(i) {
         const p = list[i]; if (!p) return;
         viewer.innerHTML = ''; viewer.classList.remove('hidden');
-        const img = h('img', { src: p.src, alt: p.name });
+        const isFav = p.path && favs().includes(p.path);
+        const img = h('img', { src: p.src, alt: p.name, draggable: 'false' });
+        const heart = p.path ? h('button', { class: 'tbtn ph-fav' + (isFav ? ' on' : ''), title: 'Favorite', html: PatOS.sym('star') }) : null;
+        if (heart) heart.onclick = () => { const f = favs(); const k = f.indexOf(p.path); if (k >= 0) f.splice(k, 1); else f.push(p.path); PatOS.store.set('photoFavs', f); heart.classList.toggle('on', k < 0); renderSide(); };
         const bar = h('div', { class: 'ph-bar' },
-          h('button', { class: 'btn', onclick: () => viewer.classList.add('hidden') }, '‹ All Photos'),
-          h('b', {}, p.name), h('div', { style: { flex: 1 } }),
-          h('button', { class: 'btn', onclick: () => { PatOS.setSetting('customWallpaper', p.src); PatOS.setSetting('wallpaper', 'custom'); PatOS.notify({ title: 'Wallpaper set', body: p.name, icon: 'photos' }); } }, 'Set as Wallpaper'),
-          h('button', { class: 'btn', onclick: () => PatOS.downloadFile(p.name.includes('.') ? p.name : p.name + '.jpg', p.src) }, 'Download'),
-          p.path ? h('button', { class: 'btn danger', onclick: () => { PatOS.fs.remove(p.path); viewer.classList.add('hidden'); } }, 'Delete') : null);
+          h('button', { class: 'btn', onclick: () => { viewer.classList.add('hidden'); render(); } }, '‹ ' + PatOS.t('All Photos')),
+          h('div', { class: 'ph-title' }, h('b', {}, p.name), p.mtime ? h('small', {}, new Date(p.mtime).toLocaleString(undefined, { dateStyle: 'long', timeStyle: 'short' })) : null), h('div', { style: { flex: 1 } }),
+          heart, h('button', { class: 'btn primary', onclick: () => edit(p) }, 'Edit'),
+          h('button', { class: 'tbtn', title: 'More', html: '<svg class="sym" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>', onclick: (e) => { const r = e.currentTarget.getBoundingClientRect(); PatOS.menu([
+            { label: PatOS.t('Set as Wallpaper'), action: () => { PatOS.setSetting('customWallpaper', p.src); PatOS.setSetting('wallpaper', 'custom'); PatOS.notify({ title: PatOS.t('Wallpaper set'), body: p.name, icon: 'photos' }); } },
+            { label: PatOS.t('Slideshow'), action: () => slideshow(i) },
+            { label: PatOS.t('Download'), action: () => PatOS.downloadFile(p.name.includes('.') ? p.name : p.name + '.jpg', p.src) },
+            p.path ? { divider: true } : null, p.path ? { label: PatOS.t('Delete'), action: () => { PatOS.fs.remove(p.path); viewer.classList.add('hidden'); } } : null], r.left - 150, r.bottom + 4); } }));
         const prev = h('button', { class: 'ph-nav l', onclick: () => open((i - 1 + list.length) % list.length) }, '‹');
         const next = h('button', { class: 'ph-nav r', onclick: () => open((i + 1) % list.length) }, '›');
-        viewer.append(bar, h('div', { class: 'ph-stage' }, img, list.length > 1 ? prev : null, list.length > 1 ? next : null));
+        const stage = h('div', { class: 'ph-stage' }, img, list.length > 1 ? prev : null, list.length > 1 ? next : null);
+        let z = 1; stage.addEventListener('dblclick', () => { z = z === 1 ? 2.2 : 1; img.style.transform = `scale(${z})`; });
+        viewer.append(bar, stage);
+        win._viewIdx = i;
         win.setTitle(p.name);
       }
+      /* ---------- photo editor ---------- */
+      function edit(p) {
+        const st = { light: 0, con: 0, sat: 0, warm: 0, vig: 0, rot: 0, flip: false, crop: 'original', filter: 'Original' };
+        const src = new Image(); src.src = p.src;
+        const cv = h('canvas', { class: 'ed-canvas' });
+        const panel = h('div', { class: 'ed-panel' });
+        const layer = h('div', { class: 'ed-layer' }, h('div', { class: 'ed-top' }, h('button', { class: 'btn', onclick: () => layer.remove() }, 'Cancel'), h('b', {}, PatOS.t('Edit') + ' · ' + p.name), h('div', { style: { flex: 1 } }),
+          h('button', { class: 'btn', onclick: () => { Object.assign(st, { light: 0, con: 0, sat: 0, warm: 0, vig: 0, rot: 0, flip: false, crop: 'original', filter: 'Original' }); buildPanel(); draw(); } }, 'Revert'),
+          p.path ? h('button', { class: 'btn', onclick: () => save(false) }, 'Save as Copy') : null, h('button', { class: 'btn primary', onclick: () => save(!!p.path) }, p.path ? 'Done' : 'Save to Photos')), h('div', { class: 'ed-body' }, h('div', { class: 'ed-stage' }, cv), panel));
+        viewer.appendChild(layer);
+        const v = (k) => st[k] + (FILTERS[st.filter][k] || 0);
+        function paint(target, maxW) {
+          const rot = st.rot % 180 !== 0; let sw = src.width, sh = src.height, sx = 0, sy = 0;
+          const ratio = { square: 1, wide: 16 / 9, photo: 4 / 3, portrait: 3 / 4 }[st.crop];
+          if (ratio) { if (sw / sh > ratio) { const nw = sh * ratio; sx = (sw - nw) / 2; sw = nw; } else { const nh = sw / ratio; sy = (sh - nh) / 2; sh = nh; } }
+          const scale = Math.min(1, maxW / Math.max(sw, sh));
+          const W = Math.round((rot ? sh : sw) * scale), H = Math.round((rot ? sw : sh) * scale);
+          target.width = W; target.height = H; const x = target.getContext('2d');
+          x.save(); x.translate(W / 2, H / 2); x.rotate(st.rot * Math.PI / 180); if (st.flip) x.scale(-1, 1);
+          x.filter = `brightness(${100 + v('light')}%) contrast(${100 + v('con')}%) saturate(${Math.max(0, 100 + v('sat'))}%)`;
+          const dw = sw * scale, dh = sh * scale; x.drawImage(src, sx, sy, sw, sh, -dw / 2, -dh / 2, dw, dh); x.restore(); x.filter = 'none';
+          const warm = v('warm'); if (warm) { x.globalCompositeOperation = 'soft-light'; x.fillStyle = warm > 0 ? `rgba(255,150,40,${warm / 160})` : `rgba(40,120,255,${-warm / 160})`; x.fillRect(0, 0, W, H); x.globalCompositeOperation = 'source-over'; }
+          const vig = v('vig'); if (vig > 0) { const g = x.createRadialGradient(W / 2, H / 2, Math.min(W, H) * 0.3, W / 2, H / 2, Math.max(W, H) * 0.75); g.addColorStop(0, 'rgba(0,0,0,0)'); g.addColorStop(1, `rgba(0,0,0,${vig / 100})`); x.fillStyle = g; x.fillRect(0, 0, W, H); }
+        }
+        const draw = () => { if (src.complete && src.naturalWidth) paint(cv, 1100); };
+        src.onload = draw;
+        function buildPanel() {
+          panel.innerHTML = '';
+          const sec = (t) => panel.appendChild(h('div', { class: 'ed-sec' }, PatOS.t(t)));
+          sec('Filters');
+          const fr = h('div', { class: 'ed-filters' });
+          Object.keys(FILTERS).forEach((f) => { const c = h('canvas', { width: 80, height: 60 }); const b = h('button', { class: 'ed-filter' + (st.filter === f ? ' on' : '') }, c, h('span', {}, PatOS.t(f))); b.onclick = () => { st.filter = f; buildPanel(); draw(); }; fr.appendChild(b); setTimeout(() => { const keep = st.filter; st.filter = f; if (src.naturalWidth) { const tmp = document.createElement('canvas'); paint(tmp, 120); c.getContext('2d').drawImage(tmp, 0, 0, 80, 60); } st.filter = keep; }, 0); });
+          panel.appendChild(fr);
+          sec('Adjust');
+          [['light', 'Brightness', -60, 60], ['con', 'Contrast', -60, 60], ['sat', 'Color', -100, 100], ['warm', 'Warmth', -100, 100], ['vig', 'Vignette', 0, 100]].forEach(([k, l, mn, mx]) => {
+            const val = h('span', {}, st[k]);
+            const r = h('input', { type: 'range', min: mn, max: mx, value: st[k] }); r.oninput = () => { st[k] = +r.value; val.textContent = r.value; draw(); };
+            r.ondblclick = () => { st[k] = 0; r.value = 0; val.textContent = 0; draw(); };
+            panel.appendChild(h('label', { class: 'ed-adj' }, h('div', {}, PatOS.t(l), val), r));
+          });
+          sec('Crop and Rotate');
+          panel.appendChild(h('div', { class: 'ed-crop' }, ...[['original', 'Original'], ['square', 'Square'], ['wide', '16:9'], ['photo', '4:3'], ['portrait', '3:4']].map(([k, l]) => h('button', { class: 'btn' + (st.crop === k ? ' primary' : ''), onclick: () => { st.crop = k; buildPanel(); draw(); } }, PatOS.t(l)))));
+          panel.appendChild(h('div', { class: 'ed-crop' }, h('button', { class: 'btn', onclick: () => { st.rot = (st.rot + 270) % 360; draw(); } }, '⟲ ' + PatOS.t('Rotate')), h('button', { class: 'btn', onclick: () => { st.flip = !st.flip; draw(); } }, '⇋ ' + PatOS.t('Mirror'))));
+        }
+        function save(replace) {
+          const out = document.createElement('canvas'); paint(out, 1800);
+          const data = out.toDataURL('image/jpeg', 0.9);
+          if (replace) { PatOS.fs.write(p.path, data); }
+          else { const nm = PatOS.fs.uniqueName('/Pictures', p.name.replace(/\.\w+$/, '') + ' ' + PatOS.t('edited') + '.jpg'); PatOS.fs.write('/Pictures/' + nm, data); }
+          layer.remove(); PatOS.notify({ title: PatOS.t(replace ? 'Photo saved' : 'Copy saved to Pictures'), body: p.name, icon: 'photos' });
+          album = album === 'art' ? 'library' : album; render(); viewer.classList.add('hidden');
+        }
+        buildPanel();
+      }
+      /* ---------- slideshow ---------- */
+      function slideshow(start) {
+        if (!list.length) return;
+        let i = start || 0;
+        const layer = h('div', { class: 'ph-show' }); document.body.appendChild(layer);
+        if (layer.requestFullscreen) layer.requestFullscreen().catch(() => {});
+        const step = () => { const img = h('img', { src: list[i].src, alt: '' }); layer.appendChild(img); requestAnimationFrame(() => img.classList.add('in')); const old = layer.querySelectorAll('img'); if (old.length > 2) old[0].remove(); i = (i + 1) % list.length; };
+        step(); const t = setInterval(step, 4000);
+        const end = () => { clearInterval(t); document.removeEventListener('keydown', key, true); if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); layer.remove(); };
+        const key = (e) => { if (e.key === 'Escape' || e.key === ' ') { e.preventDefault(); end(); } };
+        layer.onclick = end; document.addEventListener('keydown', key, true);
+      }
+      zoom.oninput = () => { size = +zoom.value; PatOS.store.set('photoSize', size); grid.style.setProperty('--ph', size + 'px'); };
+      bShow.onclick = () => slideshow(0);
       bImport.onclick = () => PatOS.importFiles('/Pictures', 'image/*');
       win.body.tabIndex = 0;
-      win.body.addEventListener('keydown', (e) => { if (viewer.classList.contains('hidden')) return; if (e.key === 'ArrowRight') viewer.querySelector('.ph-nav.r') && viewer.querySelector('.ph-nav.r').click(); if (e.key === 'ArrowLeft') viewer.querySelector('.ph-nav.l') && viewer.querySelector('.ph-nav.l').click(); if (e.key === 'Escape') viewer.classList.add('hidden'); });
-      const off = PatOS.on('fs', () => { if (tab === 'library') render(); });
+      win.body.addEventListener('keydown', (e) => {
+        if (viewer.classList.contains('hidden') || viewer.querySelector('.ed-layer')) return;
+        if (e.key === 'ArrowRight') viewer.querySelector('.ph-nav.r') && viewer.querySelector('.ph-nav.r').click();
+        if (e.key === 'ArrowLeft') viewer.querySelector('.ph-nav.l') && viewer.querySelector('.ph-nav.l').click();
+        if (e.key === 'Escape') { viewer.classList.add('hidden'); render(); }
+      });
+      const off = PatOS.on('fs', PatOS.debounce(() => { if (viewer.classList.contains('hidden')) render(); else renderSide(); }, 200));
       win.on('closed', off);
-      win._open = (a) => { if (a.path) { tab = 'library'; render(); const i = list.findIndex((x) => x.path === PatOS.fs.norm(a.path)); if (i >= 0) open(i); } };
+      win._open = (a) => { if (a.path) { album = 'library'; render(); const i = list.findIndex((x) => x.path === PatOS.fs.norm(a.path)); if (i >= 0) open(i); } };
       render(); if (args.path) win._open(args);
     },
     onArgs(win, args) { win._open(args); }
@@ -6572,10 +7161,26 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
               row('Erase all content and settings', h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox('Erase PatOS?', 'Everything in PatOS will be erased and it will start fresh. This cannot be undone.', { ok: 'Erase', danger: true, icon: 'settings' })) { PatOS.store.clearAll(); location.reload(); } } }, 'Erase PatOS…')))];
         }
       };
-      function render() {
+      const KW = { general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace' };
+      let filter = '';
+      const sq = h('input', { class: 'field st-search', placeholder: 'Search', spellcheck: 'false' });
+      sq.addEventListener('input', () => { filter = sq.value.trim().toLowerCase(); drawSide(); const hits = PANES.filter(match); if (filter && hits.length && !hits.some((p) => p[0] === pane)) { pane = hits[0][0]; renderMain(); drawSide(); } });
+      sq.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const hits = PANES.filter(match); if (hits[0]) { pane = hits[0][0]; renderMain(); drawSide(); } } });
+      const match = ([k, l]) => !filter || (l + ' ' + PatOS.t(l) + ' ' + KW[k]).toLowerCase().includes(filter);
+      function drawSide() {
+        side.querySelectorAll('.st-si, .st-noresult').forEach((e) => e.remove());
+        const hits = PANES.filter(match);
+        hits.forEach(([k, l, ic]) => { const b = h('button', { class: 'st-si' + (k === pane ? ' on' : '') }, h('span', { class: 'st-ic' }, ic), l); b.onclick = () => { pane = k; renderMain(); drawSide(); }; side.appendChild(b); });
+        if (!hits.length) side.appendChild(h('div', { class: 'st-noresult' }, 'No results'));
+      }
+      function render(keepSearch) {
         side.innerHTML = '';
         side.appendChild(h('div', { class: 'st-user' }, h('div', { class: 'lock-avatar sm' }, S().userName.charAt(0).toUpperCase()), h('div', {}, h('b', {}, S().userName), h('small', {}, 'PatOS Account'))));
-        PANES.forEach(([k, l, ic]) => { const b = h('button', { class: 'st-si' + (k === pane ? ' on' : '') }, h('span', { class: 'st-ic' }, ic), l); b.onclick = () => { pane = k; render(); }; side.appendChild(b); });
+        side.appendChild(sq); if (!keepSearch) { sq.value = filter; }
+        drawSide();
+        renderMain();
+      }
+      function renderMain() {
         main.innerHTML = '';
         main.append(h('h1', {}, PANES.find((p) => p[0] === pane)[1]), ...panes[pane]());
         win.setTitle(PANES.find((p) => p[0] === pane)[1]);
