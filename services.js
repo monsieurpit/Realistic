@@ -78,29 +78,52 @@ async function bookText(id) {
 const dns = require('dns').promises; const net = require('net');
 const frameCache = new Map(); const hits = new Map();
 function privateIP(ip) {
-  if (net.isIPv6(ip)) return /^(::1|fc|fd|fe80)/i.test(ip) || ip === '::';
-  const [a, b] = ip.split('.').map(Number);
-  return a === 10 || a === 127 || a === 0 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 169 && b === 254) || (a === 100 && b >= 64 && b <= 127) || a >= 224;
+  ip = String(ip).replace(/^\[|\]$/g, '').toLowerCase();
+  if (net.isIPv6(ip)) {
+    // IPv4 hidden inside IPv6 (::ffff:127.0.0.1, NAT64, 6to4) is checked as IPv4
+    const m = /^(?:::ffff:(?:0:)?|64:ff9b::)(\d+\.\d+\.\d+\.\d+)$/.exec(ip); if (m) return privateIP(m[1]);
+    const h = /^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/.exec(ip); if (h) { const a = parseInt(h[1], 16), b = parseInt(h[2], 16); return privateIP([a >> 8, a & 255, b >> 8, b & 255].join('.')); }
+    if (/^2002:/.test(ip)) { const p = ip.split(':'); const a = parseInt(p[1] || '0', 16), b = parseInt(p[2] || '0', 16); return privateIP([a >> 8, a & 255, b >> 8, b & 255].join('.')); }
+    return ip === '::' || ip === '::1' || /^(fc|fd|fe[89ab])/.test(ip) || /^ff/.test(ip);
+  }
+  if (!net.isIPv4(ip)) return true;
+  const [a, b, c] = ip.split('.').map(Number);
+  return a === 10 || a === 127 || a === 0 || (a === 172 && b >= 16 && b <= 31) || (a === 192 && b === 168) || (a === 169 && b === 254) || (a === 100 && b >= 64 && b <= 127) || (a === 198 && (b === 18 || b === 19)) || (a === 192 && b === 0 && c === 0) || a >= 224;
 }
+// check an address and return the IP it resolves to; the request then connects to exactly that IP,
+// so a second DNS answer (DNS rebinding) can't point it somewhere private
 async function safeURL(u) {
   const url = new URL(u); if (!/^https?:$/.test(url.protocol)) throw new Error('Only web addresses');
   if (url.port && !['80', '443'].includes(url.port)) throw new Error('Port not allowed');
-  if (net.isIP(url.hostname)) { if (privateIP(url.hostname)) throw new Error('Not allowed'); }
-  else { const addrs = await dns.lookup(url.hostname, { all: true }); if (!addrs.length || addrs.some((a) => privateIP(a.address))) throw new Error('Not allowed'); }
-  return url;
+  if (url.username || url.password) throw new Error('Not allowed');
+  const host = url.hostname.replace(/^\[|\]$/g, '');
+  let ip, family;
+  if (net.isIP(host)) { ip = host; family = net.isIP(host); }
+  else { const addrs = await dns.lookup(host, { all: true }); if (!addrs.length || addrs.some((a) => privateIP(a.address))) throw new Error('Not allowed'); ip = addrs[0].address; family = addrs[0].family; }
+  if (privateIP(ip)) throw new Error('Not allowed');
+  return { url, ip, family };
+}
+// a GET that only reads the headers, connected to the checked IP (TLS still checks the real host name)
+function headersOf(target) {
+  const { url, ip, family } = target; const mod = url.protocol === 'https:' ? require('https') : require('http');
+  return new Promise((res, rej) => {
+    const req = mod.request({ protocol: url.protocol, hostname: url.hostname.replace(/^\[|\]$/g, ''), port: url.port || (url.protocol === 'https:' ? 443 : 80), path: url.pathname + url.search, method: 'GET', servername: net.isIP(url.hostname) ? undefined : url.hostname,
+      headers: { 'User-Agent': 'PatOS/1.0 (frame check)', Accept: 'text/html' }, lookup: (h, o, cb) => (o && o.all ? cb(null, [{ address: ip, family }]) : cb(null, ip, family)), timeout: 6000 }, (r) => { res({ status: r.statusCode, headers: r.headers }); r.destroy(); });
+    req.on('timeout', () => req.destroy(new Error('timeout'))); req.on('error', rej); req.end();
+  });
 }
 async function frameable(target, embedder) {
   const key = target + '|' + embedder; const hit = frameCache.get(key);
   if (hit && Date.now() - hit.t < 30 * 60 * 1000) return hit.v;
-  let url = await safeURL(target), res = null;
+  let t = await safeURL(target), res = null;
   for (let i = 0; i < 5; i++) {
-    const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 6000);
-    try { res = await fetch(url, { method: 'GET', redirect: 'manual', signal: ctl.signal, headers: { 'User-Agent': 'PatOS/1.0 (frame check)', Accept: 'text/html' } }); } finally { clearTimeout(tm); }
-    try { res.body && res.body.cancel(); } catch (e) {}
-    if (res.status >= 300 && res.status < 400 && res.headers.get('location')) { url = await safeURL(new URL(res.headers.get('location'), url).href); continue; }
+    res = await headersOf(t);
+    const loc = res.headers.location;
+    if (res.status >= 300 && res.status < 400 && loc) { t = await safeURL(new URL(loc, t.url).href); continue; } // every hop is checked again
     break;
   }
-  const xfo = (res.headers.get('x-frame-options') || '').toLowerCase(); const csp = res.headers.get('content-security-policy') || '';
+  const url = t.url; const hdr = (n) => { const v = res.headers[n]; return Array.isArray(v) ? v.join(', ') : v || ''; };
+  const xfo = hdr('x-frame-options').toLowerCase(); const csp = hdr('content-security-policy');
   const fa = (csp.match(/frame-ancestors([^;]*)/i) || [])[1]; let ok = true, why = '';
   if (xfo && /deny|sameorigin|allow-from/.test(xfo)) { ok = false; why = 'X-Frame-Options: ' + xfo; }
   if (fa != null) {
@@ -138,4 +161,4 @@ async function handle(req, res, url) {
     return send(400, { error: 'Bad request' });
   } catch (e) { return send(502, { error: e.message || 'Service didn’t answer' }); }
 }
-module.exports = { handle, news, bookSearch, bookText, suggest };
+module.exports = { handle, news, bookSearch, bookText, suggest, privateIP, safeURL };

@@ -337,7 +337,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
           results.appendChild(h('div', { class: 'pr-src' }, PatOS.t('Results from Wikipedia') + ' · ' + (j.query.searchinfo ? j.query.searchinfo.totalhits.toLocaleString() : '') + ' ' + PatOS.t('articles')));
           hits.forEach((hit) => {
             const url = `https://${lang}.wikipedia.org/wiki/` + encodeURIComponent(hit.title.replace(/ /g, '_'));
-            const a = h('div', { class: 'pr-hit' }, h('div', { class: 'pr-url' }, h('span', { class: 'pr-fav', html: PatOS.sym('doc') }), lang + '.wikipedia.org › ' + hit.title), h('a', { class: 'pr-title', href: url }, hit.title), h('p', { class: 'pr-snip', html: hit.snippet.replace(/<(?!\/?span)[^>]*>/g, '') + '…' }));
+            const a = h('div', { class: 'pr-hit' }, h('div', { class: 'pr-url' }, h('span', { class: 'pr-fav', html: PatOS.sym('doc') }), lang + '.wikipedia.org › ' + hit.title), h('a', { class: 'pr-title', href: url }, hit.title), h('p', { class: 'pr-snip', html: PatOS.sanitize(hit.snippet.replace(/<(?!\/?span)[^>]*>/g, '')) + '…' }));
             a.querySelector('a').addEventListener('click', (e) => { e.preventDefault(); navigate(url); });
             results.appendChild(a);
           });

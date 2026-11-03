@@ -881,3 +881,6 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 .mu-drop::after { content: ''; position: absolute; inset: 6px; border: 3px dashed #fa233b; border-radius: 14px; pointer-events: none; z-index: 20; }
 @media (max-width: 820px) { .mu-tr { grid-template-columns: 28px minmax(140px, 2fr) minmax(80px, 1fr) 48px; } .mu-tr > span:nth-child(4) { display: none; } .mu-side { width: 160px; } }
 .mobile .mu-wrap2 { flex-direction: column; } .mobile .mu-side { width: auto; display: flex; overflow-x: auto; padding: 6px; } .mobile .mu-sh { display: none; } .mobile .mu-queue { position: absolute; inset: 0; width: auto; z-index: 5; }
+.pw-warn { display: flex; align-items: center; gap: 10px; margin: 8px 10px; padding: 10px 12px; border-radius: 10px; background: rgba(255,159,10,.14); border: .5px solid rgba(255,159,10,.4); font-size: 12.5px; line-height: 1.4; }
+.pw-warn span { flex: 1; }
+.pw-warn .btn { flex: none; white-space: nowrap; }

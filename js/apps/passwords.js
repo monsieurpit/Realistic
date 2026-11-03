@@ -1,6 +1,10 @@
-/* Passwords — a password manager for PatOS, plus the vault Patoogle uses to save and fill sign-ins.
-   Without a master password, logins are stored in this browser like other PatOS data. With a master
-   password, they are encrypted (AES-GCM, key from PBKDF2) and only readable after unlocking. */
+/* Passwords — a password manager for PatOS.
+   Passwords are never kept as plain text:
+   - without a master password they are encrypted (AES-GCM) with a key made for this device, which the
+     browser keeps and won't let anyone copy out. Anyone using this browser on this device can still open
+     them, so the app recommends a master password.
+   - with a master password they are encrypted with a key made from it (PBKDF2, 250,000 rounds) and stay
+     locked until it is typed. The vault locks again when PatOS locks or after 15 minutes without use. */
 (function () {
   'use strict';
   const { h } = PatOS;
@@ -11,21 +15,45 @@
   const unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
   const canCrypt = !!(window.crypto && crypto.subtle);
 
-  let vault = PatOS.store.get(KEY, null) || { v: 1, enc: false, items: [] };
-  let items = vault.enc ? null : vault.items; // decrypted items in memory
-  let aesKey = null;
+  let vault = PatOS.store.get(KEY, null) || { v: 2, enc: 'device', items: [] };
+  const master = () => vault.enc === true;
+  let items = vault.enc && vault.data ? null : (vault.items || []); // decrypted items in memory
+  let aesKey = null, unreadable = false;
+
+  /* the device key: made once, kept by the browser in the database, never readable as bytes */
+  async function deviceKey() {
+    const db = window.__IDB; if (!db || !canCrypt) return null;
+    const get = () => new Promise((res) => { try { const r = db.transaction('handles').objectStore('handles').get('pw-device-key'); r.onsuccess = () => res(r.result || null); r.onerror = () => res(null); } catch (e) { res(null); } });
+    let k = await get(); if (k) return k;
+    k = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    await new Promise((res) => { try { const tx = db.transaction('handles', 'readwrite'); tx.objectStore('handles').put(k, 'pw-device-key'); tx.oncomplete = res; tx.onerror = res; } catch (e) { res(); } });
+    return (await get()) || k;
+  }
+  const ready = (async () => {
+    if (vault.enc === 'device' && !vault.data) { items = vault.items || []; } // a new, empty vault
+    else if (vault.enc === 'device') {
+      try { const k = await deviceKey(); const data = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(vault.iv) }, k, unb64(vault.data)); items = JSON.parse(dec.decode(data)); }
+      catch (e) { unreadable = true; items = null; } // saved on another device or browser: its key isn't here
+    } else if (!vault.enc) { await persist(); } // older plain-text vault: encrypt it now
+    PatOS.emit('passwords');
+  })();
 
   async function deriveKey(pw, salt) {
     const base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveKey']);
     return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 250000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
   }
   async function persist() {
-    if (vault.enc) {
+    if (!items) return;
+    const iv = crypto.getRandomValues && crypto.getRandomValues(new Uint8Array(12));
+    if (master()) {
       if (!aesKey) return;
-      const iv = crypto.getRandomValues(new Uint8Array(12));
       const data = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, enc.encode(JSON.stringify(items)));
-      vault = { v: 1, enc: true, salt: vault.salt, iv: b64(iv), data: b64(data) };
-    } else vault = { v: 1, enc: false, items };
+      vault = { v: 2, enc: true, salt: vault.salt, iv: b64(iv), data: b64(data) };
+    } else {
+      const k = await deviceKey().catch(() => null);
+      if (k) { const data = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, k, enc.encode(JSON.stringify(items))); vault = { v: 2, enc: 'device', iv: b64(iv), data: b64(data) }; }
+      else vault = { v: 1, enc: false, items }; // this browser can't encrypt (very old, or no database)
+    }
     PatOS.store.set(KEY, vault);
     PatOS.emit('passwords');
   }
@@ -35,8 +63,13 @@
 
   const P = PatOS.passwords = {
     hostOf, sameSite, canCrypt,
-    get locked() { return vault.enc && !items; },
-    get encrypted() { return !!vault.enc; },
+    get locked() { return !items; },
+    get encrypted() { return master(); },
+    get deviceOnly() { return vault.enc === 'device'; },
+    get plain() { return !vault.enc; },
+    get unreadable() { return unreadable; },
+    ready,
+    async startOver() { items = []; unreadable = false; vault = { v: 2, enc: 'device' }; await persist(); },
     all: () => (items || []).slice(),
     forSite: (site) => (items || []).filter((x) => sameSite(x.site, site)),
     has: (site, username, password) => (items || []).some((x) => sameSite(x.site, site) && x.username === username && (password == null || x.password === password)),
@@ -55,12 +88,12 @@
     addNever(site) { const l = P.never(); if (!l.includes(norm(site))) { l.push(norm(site)); PatOS.store.set('pwNever', l); } },
     removeNever(site) { PatOS.store.set('pwNever', P.never().filter((x) => x !== site)); },
     async unlock(pw) {
-      if (!vault.enc) return true;
+      if (!master()) return !!items;
       try { const k = await deriveKey(pw, unb64(vault.salt)); const data = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(vault.iv) }, k, unb64(vault.data)); items = JSON.parse(dec.decode(data)); aesKey = k; PatOS.emit('passwords'); return true; } catch (e) { return false; }
     },
-    lock() { if (vault.enc) { items = null; aesKey = null; PatOS.emit('passwords'); } },
-    async setMaster(pw) { if (!canCrypt || !items) return false; const salt = crypto.getRandomValues(new Uint8Array(16)); aesKey = await deriveKey(pw, salt); vault = { v: 1, enc: true, salt: b64(salt) }; await persist(); return true; },
-    async removeMaster() { if (!items) return false; vault = { v: 1, enc: false, items }; aesKey = null; await persist(); return true; },
+    lock() { if (master() && items) { items = null; aesKey = null; PatOS.emit('passwords'); } },
+    async setMaster(pw) { if (!canCrypt || !items) return false; const salt = crypto.getRandomValues(new Uint8Array(16)); aesKey = await deriveKey(pw, salt); vault = { v: 2, enc: true, salt: b64(salt) }; await persist(); return true; },
+    async removeMaster() { if (!items) return false; vault = { v: 2, enc: 'device' }; aesKey = null; await persist(); return true; },
     strength(pw) {
       pw = String(pw || ''); if (!pw) return { score: 0, label: '' };
       let s = 0; const kinds = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter((r) => r.test(pw)).length;
@@ -89,6 +122,10 @@
     }
   };
 
+  let lastInput = Date.now();
+  ['pointerdown', 'keydown'].forEach((ev) => addEventListener(ev, () => { lastInput = Date.now(); }, { capture: true, passive: true }));
+  setInterval(() => { if (master() && items && Date.now() - lastInput > 15 * 60000) P.lock(); }, 30000);
+  setTimeout(() => { const pw = PatOS.power; if (pw && pw.lock && !pw._pwWrapped) { const orig = pw.lock; pw.lock = function () { P.lock(); return orig.apply(this, arguments); }; pw._pwWrapped = true; } }, 0);
   const isFile = (site) => String(site).startsWith('file:');
   const label = (site) => (isFile(site) ? site.slice(5) : site);
   const fav = (site) => (isFile(site) ? 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#007aff"/><path d="M7 5h7l3 3v11H7z" fill="#fff"/></svg>') : 'https://www.google.com/s2/favicons?sz=64&domain=' + encodeURIComponent(site));
@@ -136,6 +173,8 @@
       }
       function renderList() {
         list.innerHTML = '';
+        // without a master password, say clearly who can see the passwords
+        if (!P.encrypted && P.all().length) list.appendChild(h('div', { class: 'pw-warn' }, h('span', {}, P.plain ? T('This browser can’t encrypt passwords. Anyone using it can see them.') : T('Encrypted on this device, but anyone using this browser can open them. Add a master password to lock them.')), canCrypt ? h('button', { class: 'btn', onclick: () => settings() }, T('Add a Master Password')) : null));
         const l = filtered();
         if (!l.length) { list.appendChild(h('div', { class: 'pw-empty' }, h('div', { class: 'pw-bigic', html: PatOS.iconHTML('passwords') }), h('b', {}, T(P.all().length ? 'No results' : 'No passwords yet')), P.all().length ? null : h('p', {}, T('Add one here, or sign in to a site in Patoogle and press Save when it asks.')), P.all().length ? null : h('button', { class: 'btn', onclick: () => PatOS.launch('browser', { html: P.practicePage(), title: T('Practice sign-in') }) }, T('Try it on a practice page')))); return; }
         let letter = '';
@@ -208,8 +247,8 @@
         const never = P.never();
         const layer = h('div', { class: 'pw-layer' }, h('div', { class: 'pw-modal' }, h('h3', {}, T('Settings')),
           h('b', {}, T('Master password')),
-          h('p', { class: 'pw-small' }, P.encrypted ? T('Your passwords are encrypted. You need the master password to see them after PatOS restarts.') : canCrypt ? T('Add a master password to encrypt your passwords. If you forget it, they can’t be recovered.') : T('Open PatOS from its website to use a master password.')),
-          P.encrypted ? h('div', { class: 'pw-dbtns' }, h('button', { class: 'btn', onclick: () => { P.lock(); layer.remove(); } }, T('Lock now')), h('button', { class: 'btn', onclick: async () => { if (await PatOS.confirmBox(T('Remove the master password?'), T('Your passwords will no longer be encrypted.'), { icon: 'passwords' })) { await P.removeMaster(); layer.remove(); } } }, T('Remove master password'))) : canCrypt ? h('button', { class: 'btn', onclick: async () => { const a = await PatOS.ask(T('New master password'), '', { icon: 'passwords', ok: T('Next'), password: true }); if (!a) return; if (a.length < 6) return PatOS.alertBox(T('Too short'), T('Use at least 6 characters.'), { icon: 'passwords' }); const b2 = await PatOS.ask(T('Type it again'), '', { icon: 'passwords', ok: T('Turn on'), password: true }); if (a !== b2) return PatOS.alertBox(T('They don’t match'), '', { icon: 'passwords' }); await P.setMaster(a); layer.remove(); OF.toast(win, T('Passwords encrypted')); } }, T('Add master password')) : null,
+          h('p', { class: 'pw-small' }, P.encrypted ? T('Your passwords are locked with your master password. They lock again when PatOS locks, or after 15 minutes without use.') : canCrypt ? T('Right now your passwords are encrypted with a key kept on this device, so anyone using this browser can open them. A master password locks them. If you forget it, they can’t be recovered.') : T('Open PatOS from its website to use a master password.')),
+          P.encrypted ? h('div', { class: 'pw-dbtns' }, h('button', { class: 'btn', onclick: () => { P.lock(); layer.remove(); } }, T('Lock now')), h('button', { class: 'btn', onclick: async () => { if (await PatOS.confirmBox(T('Remove the master password?'), T('Your passwords stay encrypted on this device, but anyone using this browser will be able to open them.'), { icon: 'passwords' })) { await P.removeMaster(); layer.remove(); } } }, T('Remove master password'))) : canCrypt ? h('button', { class: 'btn', onclick: async () => { const a = await PatOS.ask(T('New master password'), '', { icon: 'passwords', ok: T('Next'), password: true }); if (!a) return; if (a.length < 6) return PatOS.alertBox(T('Too short'), T('Use at least 6 characters.'), { icon: 'passwords' }); const b2 = await PatOS.ask(T('Type it again'), '', { icon: 'passwords', ok: T('Turn on'), password: true }); if (a !== b2) return PatOS.alertBox(T('They don’t match'), '', { icon: 'passwords' }); await P.setMaster(a); layer.remove(); OF.toast(win, T('Passwords encrypted')); } }, T('Add master password')) : null,
           h('b', {}, T('Never save for these sites')),
           never.length ? h('div', { class: 'pw-never' }, ...never.map((s) => h('div', {}, h('span', {}, s), h('button', { class: 'tbtn', onclick: (e) => { P.removeNever(s); e.currentTarget.parentNode.remove(); } }, '×')))) : h('p', { class: 'pw-small' }, T('None')),
           h('b', {}, T('Import and export')),
@@ -236,6 +275,12 @@
         const err = h('small', { class: 'pw-err' });
         const go = async () => { if (await P.unlock(inp.value)) return; err.textContent = T('That isn’t the master password.'); inp.select(); win.el.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(8px)' }, { transform: 'translateX(0)' }], { duration: 260 }); };
         inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+        if (P.unreadable) {
+          win.body.appendChild(h('div', { class: 'pw-lock' }, h('div', { class: 'pw-bigic', html: PatOS.iconHTML('passwords') }), h('h2', {}, T('These passwords can’t be opened here')), h('p', {}, T('They were saved on another device or browser, and only that device has the key. Restore a backup made with a master password, or start a new empty list.')),
+            h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox(T('Start a new list?'), T('The passwords that can’t be opened will be replaced by an empty list.'), { ok: T('Start Over'), danger: true, icon: 'passwords' })) await P.startOver(); } }, T('Start a New List'))));
+          return;
+        }
+        if (!P.encrypted) { win.body.appendChild(h('div', { class: 'pw-lock' }, h('p', {}, T('Opening…')))); P.ready.then(() => render()); return; }
         win.body.appendChild(h('div', { class: 'pw-lock' }, h('div', { class: 'pw-bigic', html: PatOS.iconHTML('passwords') }), h('h2', {}, T('Passwords are locked')), h('p', {}, T('Enter your master password to see them.')), inp, err, h('button', { class: 'btn primary', onclick: go }, T('Unlock'))));
         setTimeout(() => inp.focus(), 50);
       }

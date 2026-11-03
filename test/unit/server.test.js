@@ -48,3 +48,13 @@ test('the frame check refuses private addresses', async () => {
     assert.ok(!j.status, u + ' was fetched (status ' + j.status + ')');
   }
 });
+
+test('private addresses are recognised, also when hidden in IPv6', () => {
+  const { privateIP } = require('../../services.js');
+  for (const ip of ['127.0.0.1', '10.1.2.3', '172.16.0.1', '192.168.0.10', '169.254.169.254', '100.64.0.1', '0.0.0.0', '::1', '::', 'fd00::1', 'fe80::1', '::ffff:127.0.0.1', '::ffff:7f00:1', '64:ff9b::10.0.0.1', '2002:c0a8:0101::1', '[::1]']) assert.equal(privateIP(ip), true, ip);
+  for (const ip of ['8.8.8.8', '142.250.72.14', '2607:f8b0:4004:800::200e', '1.1.1.1']) assert.equal(privateIP(ip), false, ip);
+});
+test('the frame check still reads a real site (when there is internet)', async () => {
+  const j = await (await fetch(srv.base + '/api/frameable?url=' + encodeURIComponent('https://www.google.com/'))).json();
+  assert.ok(j.unknown || typeof j.frameable === 'boolean', JSON.stringify(j));
+});

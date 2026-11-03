@@ -43,7 +43,7 @@
     win.el.classList.add('has-toolbar');
     let raw = PatOS.fs.read(path) || '<p><br></p>';
     const page = h('div', { class: 'doc-page dx-page', contenteditable: 'true', spellcheck: 'true' });
-    page.innerHTML = raw;
+    page.innerHTML = PatOS.sanitize(raw); // a document file can't carry scripts or event handlers
     const baseName = () => PatOS.fs.basename(path).replace(/\.pdoc$/, '');
     const head = OF.header(win, {
       name: baseName(), icon: 'docs', getPath: () => path,

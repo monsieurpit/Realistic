@@ -55,7 +55,7 @@
       function preview(f) {
         try {
           if (f.t[0] === 'docs') { const d = h('div', { class: 'dv-doc', html: String(f.n.content).replace(/<img[^>]*>/g, '') }); return d; }
-          if (f.t[0] === 'slides') { const deck = JSON.parse(f.n.content); const t = deck.slides[0] && deck.slides[0].els.find((e) => e.type === 'text'); return h('div', { class: 'dv-slide' }, t ? h('div', { html: t.html }) : ''); }
+          if (f.t[0] === 'slides') { const deck = JSON.parse(f.n.content); const t = deck.slides[0] && deck.slides[0].els.find((e) => e.type === 'text'); return h('div', { class: 'dv-slide' }, t ? h('div', { html: PatOS.sanitize(t.html) }) : ''); }
           if (f.t[0] === 'sheets') { const g = h('div', { class: 'dv-sheet' }); for (let i = 0; i < 24; i++) g.appendChild(h('span')); return g; }
           if (f.t[0] === 'forms') { const fm = JSON.parse(f.n.content); return h('div', { class: 'dv-form' }, h('b', {}, fm.title || 'Form'), h('small', {}, (fm.questions || []).length + ' questions')); }
         } catch (e) {}

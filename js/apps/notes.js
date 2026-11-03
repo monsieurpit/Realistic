@@ -17,7 +17,7 @@
   // older notes used ☐ and ☑ characters; turn those lines into real checklist items
   function upgrade(html) {
     if (!/[☐☑]/.test(html)) return html;
-    const box = document.createElement('div'); box.innerHTML = html;
+    const box = PatOS.parseHTML(html);
     box.querySelectorAll(':scope > div').forEach((d) => {
       const m = /^\s*([☐☑])\s?/.exec(d.textContent); if (!m) return;
       d.classList.add('nt-chk'); if (m[1] === '☑') d.classList.add('done');
@@ -84,7 +84,7 @@
       const titleOf = (n) => { const t = plain(n.body).trim().split('\n')[0]; return t.slice(0, 60) || T('New Note'); };
       const inFolder = (n) => folder === 'deleted' ? !!n.deletedAt : !n.deletedAt && (folder === 'all' || (folder === 'notes' ? !n.folder : folder.startsWith('tag:') ? tagsOf(n).includes(folder.slice(4)) : n.folder === folder));
       // what other apps get: checklist items written as ☐ / ☑ so they still read as a checklist
-      const exportHTML = (html) => { const box = document.createElement('div'); box.innerHTML = html; box.querySelectorAll('.nt-chk').forEach((d) => { d.insertBefore(document.createTextNode(d.classList.contains('done') ? '☑ ' : '☐ '), d.firstChild); d.removeAttribute('class'); }); return box.innerHTML; };
+      const exportHTML = (html) => { const box = PatOS.parseHTML(PatOS.sanitize(html)); box.querySelectorAll('.nt-chk').forEach((d) => { d.insertBefore(document.createTextNode(d.classList.contains('done') ? '☑ ' : '☐ '), d.firstChild); d.removeAttribute('class'); }); return box.innerHTML; };
       const textOut = (html) => plain(exportHTML(html));
 
       /* ---------- sidebar: folders and tags ---------- */
@@ -129,7 +129,7 @@
           let second = lines[1] || T('No additional text');
           if (ql) { const hit = lines.find((l, k) => k > 0 && fold(l).includes(ql)); if (hit) second = hit; }
           const img = (/<img[^>]+src="([^"]+)"/.exec(n.body) || [])[1];
-          const box = document.createElement('div'); box.innerHTML = n.body; const all = box.querySelectorAll('.nt-chk').length, done = box.querySelectorAll('.nt-chk.done').length;
+          const box = PatOS.parseHTML(n.body); const all = box.querySelectorAll('.nt-chk').length, done = box.querySelectorAll('.nt-chk.done').length;
           const el = h('div', { class: 'nt-item' + (cur && cur.id === n.id ? ' on' : '') + (n.pinned ? ' pinned' : ''), draggable: 'true', role: 'button', tabindex: '0' },
             h('div', { class: 'nt-txt' }, h('b', {}, markText(titleOf(n), ql)), h('div', {}, h('span', {}, new Date(n.mtime).toLocaleDateString(PatOS.locale, age < DAY ? undefined : { month: 'short', day: 'numeric' })), ' ', markText(second.slice(0, 70), ql)),
               all ? h('small', { class: 'nt-prog' + (done === all ? ' full' : '') }, done + '/' + all + ' ' + T('done')) : null),
@@ -158,7 +158,7 @@
         if (picked && PatOS.mobile && PatOS.mobile.detail) PatOS.mobile.detail(win, true, titleOf(n));
         cur = n; PatOS.remember && PatOS.remember(win, { id: n.id });
         const up = upgrade(n.body); if (up !== n.body) { n.body = up; save(); }
-        ed.innerHTML = n.body; ed.contentEditable = n.deletedAt ? 'false' : 'true';
+        ed.innerHTML = PatOS.sanitize(n.body); ed.contentEditable = n.deletedAt ? 'false' : 'true';
         updateMeta();
         empty.style.display = 'none'; ed.style.display = ''; meta.style.display = '';
         renderList(); highlightSearch();

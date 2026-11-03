@@ -38,7 +38,7 @@
     const node = h('div', { class: 'sl-slide', style: { width: W + 'px', height: H + 'px', background: s.bg || t.bg, color: t.fg, fontFamily: t.font, transform: `scale(${scale})` } });
     s.els.forEach((el, i) => {
       const box = h('div', { class: 'sl-el ' + el.type + (opts.sel && opts.sel.includes(el) ? ' on' : ''), 'data-i': i, style: { left: el.x + 'px', top: el.y + 'px', width: el.w + 'px', height: el.h + 'px', opacity: el.opacity != null ? el.opacity : '' } });
-      if (el.type === 'text') { box.innerHTML = el.html; Object.assign(box.style, { fontSize: el.size + 'px', fontWeight: el.bold ? '700' : '400', fontStyle: el.italic ? 'italic' : '', textDecoration: el.underline ? 'underline' : '', textAlign: el.align || 'left', color: el.color || (el.accent ? t.accent : ''), fontFamily: el.role === 'title' ? t.head : '', background: el.fill || '' }); }
+      if (el.type === 'text') { box.innerHTML = PatOS.sanitize(el.html); Object.assign(box.style, { fontSize: el.size + 'px', fontWeight: el.bold ? '700' : '400', fontStyle: el.italic ? 'italic' : '', textDecoration: el.underline ? 'underline' : '', textAlign: el.align || 'left', color: el.color || (el.accent ? t.accent : ''), fontFamily: el.role === 'title' ? t.head : '', background: el.fill || '' }); }
       if (el.type === 'image') box.appendChild(h('img', { src: el.src, alt: '', draggable: 'false', style: { borderRadius: (el.radius || 0) + 'px' } }));
       if (el.type === 'shape') {
         const fill = el.fill === 'accent' ? t.accent : el.fill;

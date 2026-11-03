@@ -31,6 +31,37 @@
     }
     return el;
   };
+  /* HTML from files, notes, pasted text or the web is cleaned before it is put on screen: no scripts,
+     frames, plug-ins, event handlers (onerror=…) or javascript: links. parseHTML reads HTML into a
+     document that never runs or loads anything, for looking inside it. */
+  const DROP_TAGS = new Set(['SCRIPT', 'IFRAME', 'FRAME', 'FRAMESET', 'OBJECT', 'EMBED', 'APPLET', 'LINK', 'META', 'BASE', 'NOSCRIPT', 'TEMPLATE', 'STYLE', 'FORM', 'PORTAL', 'FOREIGNOBJECT', 'MATH']);
+  const URL_ATTRS = new Set(['href', 'src', 'xlink:href', 'action', 'formaction', 'poster', 'background', 'cite', 'data', 'srcset', 'ping']);
+  PatOS.parseHTML = (html) => new DOMParser().parseFromString('<!doctype html><body>' + String(html == null ? '' : html), 'text/html').body;
+  PatOS.sanitize = function (html) {
+    const body = PatOS.parseHTML(html);
+    const walk = (el) => {
+      for (const c of [...el.children]) {
+        if (DROP_TAGS.has(c.tagName.toUpperCase())) { c.remove(); continue; }
+        for (const a of [...c.attributes]) {
+          const n = a.name.toLowerCase(), v = a.value.replace(/[\u0000- ]/g, '').toLowerCase();
+          if (n.startsWith('on') || n === 'srcdoc' || n === 'formaction') { c.removeAttribute(a.name); continue; }
+          if (URL_ATTRS.has(n) && (/^(javascript|vbscript|livescript):/.test(v) || (/^data:/.test(v) && !(n === 'src' && /^data:image\/(png|jpe?g|gif|webp|bmp|avif);/.test(v))))) { c.removeAttribute(a.name); continue; }
+          if (n === 'style' && /expression\(|javascript:|behavior:|-moz-binding/i.test(a.value)) c.removeAttribute(a.name);
+        }
+        if (c.tagName.toUpperCase() === 'A' && c.getAttribute('target') === '_blank') c.setAttribute('rel', 'noopener noreferrer');
+        walk(c);
+      }
+    };
+    walk(body);
+    return body.innerHTML;
+  };
+  // pasting into any editable text: formatted text is cleaned on the way in
+  document.addEventListener('paste', (e) => {
+    const t = e.target && e.target.closest && e.target.closest('[contenteditable="true"], [contenteditable=""]'); if (!t || !e.clipboardData) return;
+    const items = [...(e.clipboardData.items || [])]; if (items.some((x) => x.kind === 'file')) return; // pictures: the app handles them
+    const html = e.clipboardData.getData('text/html'); if (!html) return;
+    e.preventDefault(); document.execCommand('insertHTML', false, PatOS.sanitize(html.replace(/^[\s\S]*<!--StartFragment-->|<!--EndFragment-->[\s\S]*$/g, '')));
+  }, true);
   PatOS.esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   PatOS.clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   PatOS.uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);

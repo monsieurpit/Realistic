@@ -3133,6 +3133,9 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 .mu-drop::after { content: ''; position: absolute; inset: 6px; border: 3px dashed #fa233b; border-radius: 14px; pointer-events: none; z-index: 20; }
 @media (max-width: 820px) { .mu-tr { grid-template-columns: 28px minmax(140px, 2fr) minmax(80px, 1fr) 48px; } .mu-tr > span:nth-child(4) { display: none; } .mu-side { width: 160px; } }
 .mobile .mu-wrap2 { flex-direction: column; } .mobile .mu-side { width: auto; display: flex; overflow-x: auto; padding: 6px; } .mobile .mu-sh { display: none; } .mobile .mu-queue { position: absolute; inset: 0; width: auto; z-index: 5; }
+.pw-warn { display: flex; align-items: center; gap: 10px; margin: 8px 10px; padding: 10px 12px; border-radius: 10px; background: rgba(255,159,10,.14); border: .5px solid rgba(255,159,10,.4); font-size: 12.5px; line-height: 1.4; }
+.pw-warn span { flex: 1; }
+.pw-warn .btn { flex: none; white-space: nowrap; }
 
 </style>
   <style>
@@ -3458,6 +3461,37 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
     return el;
   };
+  /* HTML from files, notes, pasted text or the web is cleaned before it is put on screen: no scripts,
+     frames, plug-ins, event handlers (onerror=…) or javascript: links. parseHTML reads HTML into a
+     document that never runs or loads anything, for looking inside it. */
+  const DROP_TAGS = new Set(['SCRIPT', 'IFRAME', 'FRAME', 'FRAMESET', 'OBJECT', 'EMBED', 'APPLET', 'LINK', 'META', 'BASE', 'NOSCRIPT', 'TEMPLATE', 'STYLE', 'FORM', 'PORTAL', 'FOREIGNOBJECT', 'MATH']);
+  const URL_ATTRS = new Set(['href', 'src', 'xlink:href', 'action', 'formaction', 'poster', 'background', 'cite', 'data', 'srcset', 'ping']);
+  PatOS.parseHTML = (html) => new DOMParser().parseFromString('<!doctype html><body>' + String(html == null ? '' : html), 'text/html').body;
+  PatOS.sanitize = function (html) {
+    const body = PatOS.parseHTML(html);
+    const walk = (el) => {
+      for (const c of [...el.children]) {
+        if (DROP_TAGS.has(c.tagName.toUpperCase())) { c.remove(); continue; }
+        for (const a of [...c.attributes]) {
+          const n = a.name.toLowerCase(), v = a.value.replace(/[\u0000- ]/g, '').toLowerCase();
+          if (n.startsWith('on') || n === 'srcdoc' || n === 'formaction') { c.removeAttribute(a.name); continue; }
+          if (URL_ATTRS.has(n) && (/^(javascript|vbscript|livescript):/.test(v) || (/^data:/.test(v) && !(n === 'src' && /^data:image\/(png|jpe?g|gif|webp|bmp|avif);/.test(v))))) { c.removeAttribute(a.name); continue; }
+          if (n === 'style' && /expression\(|javascript:|behavior:|-moz-binding/i.test(a.value)) c.removeAttribute(a.name);
+        }
+        if (c.tagName.toUpperCase() === 'A' && c.getAttribute('target') === '_blank') c.setAttribute('rel', 'noopener noreferrer');
+        walk(c);
+      }
+    };
+    walk(body);
+    return body.innerHTML;
+  };
+  // pasting into any editable text: formatted text is cleaned on the way in
+  document.addEventListener('paste', (e) => {
+    const t = e.target && e.target.closest && e.target.closest('[contenteditable="true"], [contenteditable=""]'); if (!t || !e.clipboardData) return;
+    const items = [...(e.clipboardData.items || [])]; if (items.some((x) => x.kind === 'file')) return; // pictures: the app handles them
+    const html = e.clipboardData.getData('text/html'); if (!html) return;
+    e.preventDefault(); document.execCommand('insertHTML', false, PatOS.sanitize(html.replace(/^[\s\S]*<!--StartFragment-->|<!--EndFragment-->[\s\S]*$/g, '')));
+  }, true);
   PatOS.esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   PatOS.clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   PatOS.uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
@@ -4975,7 +5009,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       return `<p:bg><p:bgPr><a:solidFill><a:srgbClr val="${colors[0] || 'FFFFFF'}"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>`;
     };
     function paragraphs(el) {
-      const wrap = document.createElement('div'); wrap.innerHTML = el.html || '';
+      const wrap = PatOS.parseHTML(el.html || '');
       const base = { sz: Math.round((el.size || 24) * 0.75 * 100), b: el.bold ? 1 : 0, i: el.italic ? 1 : 0, u: el.underline ? 1 : 0, color: hex6(el.color) || (el.accent ? accent : fgHex), font: el.role === 'title' ? t.head : t.font };
       const paras = []; let cur = []; let bullet = false;
       const flush = () => { paras.push({ runs: cur, bullet }); cur = []; bullet = false; };
@@ -10126,9 +10160,13 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 </script>
   <script type="patos/js">
-/* Passwords — a password manager for PatOS, plus the vault Patoogle uses to save and fill sign-ins.
-   Without a master password, logins are stored in this browser like other PatOS data. With a master
-   password, they are encrypted (AES-GCM, key from PBKDF2) and only readable after unlocking. */
+/* Passwords — a password manager for PatOS.
+   Passwords are never kept as plain text:
+   - without a master password they are encrypted (AES-GCM) with a key made for this device, which the
+     browser keeps and won't let anyone copy out. Anyone using this browser on this device can still open
+     them, so the app recommends a master password.
+   - with a master password they are encrypted with a key made from it (PBKDF2, 250,000 rounds) and stay
+     locked until it is typed. The vault locks again when PatOS locks or after 15 minutes without use. */
 (function () {
   'use strict';
   const { h } = PatOS;
@@ -10139,21 +10177,45 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   const unb64 = (s) => Uint8Array.from(atob(s), (c) => c.charCodeAt(0));
   const canCrypt = !!(window.crypto && crypto.subtle);
 
-  let vault = PatOS.store.get(KEY, null) || { v: 1, enc: false, items: [] };
-  let items = vault.enc ? null : vault.items; // decrypted items in memory
-  let aesKey = null;
+  let vault = PatOS.store.get(KEY, null) || { v: 2, enc: 'device', items: [] };
+  const master = () => vault.enc === true;
+  let items = vault.enc && vault.data ? null : (vault.items || []); // decrypted items in memory
+  let aesKey = null, unreadable = false;
+
+  /* the device key: made once, kept by the browser in the database, never readable as bytes */
+  async function deviceKey() {
+    const db = window.__IDB; if (!db || !canCrypt) return null;
+    const get = () => new Promise((res) => { try { const r = db.transaction('handles').objectStore('handles').get('pw-device-key'); r.onsuccess = () => res(r.result || null); r.onerror = () => res(null); } catch (e) { res(null); } });
+    let k = await get(); if (k) return k;
+    k = await crypto.subtle.generateKey({ name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    await new Promise((res) => { try { const tx = db.transaction('handles', 'readwrite'); tx.objectStore('handles').put(k, 'pw-device-key'); tx.oncomplete = res; tx.onerror = res; } catch (e) { res(); } });
+    return (await get()) || k;
+  }
+  const ready = (async () => {
+    if (vault.enc === 'device' && !vault.data) { items = vault.items || []; } // a new, empty vault
+    else if (vault.enc === 'device') {
+      try { const k = await deviceKey(); const data = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(vault.iv) }, k, unb64(vault.data)); items = JSON.parse(dec.decode(data)); }
+      catch (e) { unreadable = true; items = null; } // saved on another device or browser: its key isn't here
+    } else if (!vault.enc) { await persist(); } // older plain-text vault: encrypt it now
+    PatOS.emit('passwords');
+  })();
 
   async function deriveKey(pw, salt) {
     const base = await crypto.subtle.importKey('raw', enc.encode(pw), 'PBKDF2', false, ['deriveKey']);
     return crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 250000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
   }
   async function persist() {
-    if (vault.enc) {
+    if (!items) return;
+    const iv = crypto.getRandomValues && crypto.getRandomValues(new Uint8Array(12));
+    if (master()) {
       if (!aesKey) return;
-      const iv = crypto.getRandomValues(new Uint8Array(12));
       const data = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, aesKey, enc.encode(JSON.stringify(items)));
-      vault = { v: 1, enc: true, salt: vault.salt, iv: b64(iv), data: b64(data) };
-    } else vault = { v: 1, enc: false, items };
+      vault = { v: 2, enc: true, salt: vault.salt, iv: b64(iv), data: b64(data) };
+    } else {
+      const k = await deviceKey().catch(() => null);
+      if (k) { const data = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, k, enc.encode(JSON.stringify(items))); vault = { v: 2, enc: 'device', iv: b64(iv), data: b64(data) }; }
+      else vault = { v: 1, enc: false, items }; // this browser can't encrypt (very old, or no database)
+    }
     PatOS.store.set(KEY, vault);
     PatOS.emit('passwords');
   }
@@ -10163,8 +10225,13 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
   const P = PatOS.passwords = {
     hostOf, sameSite, canCrypt,
-    get locked() { return vault.enc && !items; },
-    get encrypted() { return !!vault.enc; },
+    get locked() { return !items; },
+    get encrypted() { return master(); },
+    get deviceOnly() { return vault.enc === 'device'; },
+    get plain() { return !vault.enc; },
+    get unreadable() { return unreadable; },
+    ready,
+    async startOver() { items = []; unreadable = false; vault = { v: 2, enc: 'device' }; await persist(); },
     all: () => (items || []).slice(),
     forSite: (site) => (items || []).filter((x) => sameSite(x.site, site)),
     has: (site, username, password) => (items || []).some((x) => sameSite(x.site, site) && x.username === username && (password == null || x.password === password)),
@@ -10183,12 +10250,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     addNever(site) { const l = P.never(); if (!l.includes(norm(site))) { l.push(norm(site)); PatOS.store.set('pwNever', l); } },
     removeNever(site) { PatOS.store.set('pwNever', P.never().filter((x) => x !== site)); },
     async unlock(pw) {
-      if (!vault.enc) return true;
+      if (!master()) return !!items;
       try { const k = await deriveKey(pw, unb64(vault.salt)); const data = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(vault.iv) }, k, unb64(vault.data)); items = JSON.parse(dec.decode(data)); aesKey = k; PatOS.emit('passwords'); return true; } catch (e) { return false; }
     },
-    lock() { if (vault.enc) { items = null; aesKey = null; PatOS.emit('passwords'); } },
-    async setMaster(pw) { if (!canCrypt || !items) return false; const salt = crypto.getRandomValues(new Uint8Array(16)); aesKey = await deriveKey(pw, salt); vault = { v: 1, enc: true, salt: b64(salt) }; await persist(); return true; },
-    async removeMaster() { if (!items) return false; vault = { v: 1, enc: false, items }; aesKey = null; await persist(); return true; },
+    lock() { if (master() && items) { items = null; aesKey = null; PatOS.emit('passwords'); } },
+    async setMaster(pw) { if (!canCrypt || !items) return false; const salt = crypto.getRandomValues(new Uint8Array(16)); aesKey = await deriveKey(pw, salt); vault = { v: 2, enc: true, salt: b64(salt) }; await persist(); return true; },
+    async removeMaster() { if (!items) return false; vault = { v: 2, enc: 'device' }; aesKey = null; await persist(); return true; },
     strength(pw) {
       pw = String(pw || ''); if (!pw) return { score: 0, label: '' };
       let s = 0; const kinds = [/[a-z]/, /[A-Z]/, /\d/, /[^A-Za-z0-9]/].filter((r) => r.test(pw)).length;
@@ -10217,6 +10284,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
   };
 
+  let lastInput = Date.now();
+  ['pointerdown', 'keydown'].forEach((ev) => addEventListener(ev, () => { lastInput = Date.now(); }, { capture: true, passive: true }));
+  setInterval(() => { if (master() && items && Date.now() - lastInput > 15 * 60000) P.lock(); }, 30000);
+  setTimeout(() => { const pw = PatOS.power; if (pw && pw.lock && !pw._pwWrapped) { const orig = pw.lock; pw.lock = function () { P.lock(); return orig.apply(this, arguments); }; pw._pwWrapped = true; } }, 0);
   const isFile = (site) => String(site).startsWith('file:');
   const label = (site) => (isFile(site) ? site.slice(5) : site);
   const fav = (site) => (isFile(site) ? 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#007aff"/><path d="M7 5h7l3 3v11H7z" fill="#fff"/></svg>') : 'https://www.google.com/s2/favicons?sz=64&domain=' + encodeURIComponent(site));
@@ -10264,6 +10335,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       }
       function renderList() {
         list.innerHTML = '';
+        // without a master password, say clearly who can see the passwords
+        if (!P.encrypted && P.all().length) list.appendChild(h('div', { class: 'pw-warn' }, h('span', {}, P.plain ? T('This browser can’t encrypt passwords. Anyone using it can see them.') : T('Encrypted on this device, but anyone using this browser can open them. Add a master password to lock them.')), canCrypt ? h('button', { class: 'btn', onclick: () => settings() }, T('Add a Master Password')) : null));
         const l = filtered();
         if (!l.length) { list.appendChild(h('div', { class: 'pw-empty' }, h('div', { class: 'pw-bigic', html: PatOS.iconHTML('passwords') }), h('b', {}, T(P.all().length ? 'No results' : 'No passwords yet')), P.all().length ? null : h('p', {}, T('Add one here, or sign in to a site in Patoogle and press Save when it asks.')), P.all().length ? null : h('button', { class: 'btn', onclick: () => PatOS.launch('browser', { html: P.practicePage(), title: T('Practice sign-in') }) }, T('Try it on a practice page')))); return; }
         let letter = '';
@@ -10336,8 +10409,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         const never = P.never();
         const layer = h('div', { class: 'pw-layer' }, h('div', { class: 'pw-modal' }, h('h3', {}, T('Settings')),
           h('b', {}, T('Master password')),
-          h('p', { class: 'pw-small' }, P.encrypted ? T('Your passwords are encrypted. You need the master password to see them after PatOS restarts.') : canCrypt ? T('Add a master password to encrypt your passwords. If you forget it, they can’t be recovered.') : T('Open PatOS from its website to use a master password.')),
-          P.encrypted ? h('div', { class: 'pw-dbtns' }, h('button', { class: 'btn', onclick: () => { P.lock(); layer.remove(); } }, T('Lock now')), h('button', { class: 'btn', onclick: async () => { if (await PatOS.confirmBox(T('Remove the master password?'), T('Your passwords will no longer be encrypted.'), { icon: 'passwords' })) { await P.removeMaster(); layer.remove(); } } }, T('Remove master password'))) : canCrypt ? h('button', { class: 'btn', onclick: async () => { const a = await PatOS.ask(T('New master password'), '', { icon: 'passwords', ok: T('Next'), password: true }); if (!a) return; if (a.length < 6) return PatOS.alertBox(T('Too short'), T('Use at least 6 characters.'), { icon: 'passwords' }); const b2 = await PatOS.ask(T('Type it again'), '', { icon: 'passwords', ok: T('Turn on'), password: true }); if (a !== b2) return PatOS.alertBox(T('They don’t match'), '', { icon: 'passwords' }); await P.setMaster(a); layer.remove(); OF.toast(win, T('Passwords encrypted')); } }, T('Add master password')) : null,
+          h('p', { class: 'pw-small' }, P.encrypted ? T('Your passwords are locked with your master password. They lock again when PatOS locks, or after 15 minutes without use.') : canCrypt ? T('Right now your passwords are encrypted with a key kept on this device, so anyone using this browser can open them. A master password locks them. If you forget it, they can’t be recovered.') : T('Open PatOS from its website to use a master password.')),
+          P.encrypted ? h('div', { class: 'pw-dbtns' }, h('button', { class: 'btn', onclick: () => { P.lock(); layer.remove(); } }, T('Lock now')), h('button', { class: 'btn', onclick: async () => { if (await PatOS.confirmBox(T('Remove the master password?'), T('Your passwords stay encrypted on this device, but anyone using this browser will be able to open them.'), { icon: 'passwords' })) { await P.removeMaster(); layer.remove(); } } }, T('Remove master password'))) : canCrypt ? h('button', { class: 'btn', onclick: async () => { const a = await PatOS.ask(T('New master password'), '', { icon: 'passwords', ok: T('Next'), password: true }); if (!a) return; if (a.length < 6) return PatOS.alertBox(T('Too short'), T('Use at least 6 characters.'), { icon: 'passwords' }); const b2 = await PatOS.ask(T('Type it again'), '', { icon: 'passwords', ok: T('Turn on'), password: true }); if (a !== b2) return PatOS.alertBox(T('They don’t match'), '', { icon: 'passwords' }); await P.setMaster(a); layer.remove(); OF.toast(win, T('Passwords encrypted')); } }, T('Add master password')) : null,
           h('b', {}, T('Never save for these sites')),
           never.length ? h('div', { class: 'pw-never' }, ...never.map((s) => h('div', {}, h('span', {}, s), h('button', { class: 'tbtn', onclick: (e) => { P.removeNever(s); e.currentTarget.parentNode.remove(); } }, '×')))) : h('p', { class: 'pw-small' }, T('None')),
           h('b', {}, T('Import and export')),
@@ -10364,6 +10437,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         const err = h('small', { class: 'pw-err' });
         const go = async () => { if (await P.unlock(inp.value)) return; err.textContent = T('That isn’t the master password.'); inp.select(); win.el.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(8px)' }, { transform: 'translateX(0)' }], { duration: 260 }); };
         inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
+        if (P.unreadable) {
+          win.body.appendChild(h('div', { class: 'pw-lock' }, h('div', { class: 'pw-bigic', html: PatOS.iconHTML('passwords') }), h('h2', {}, T('These passwords can’t be opened here')), h('p', {}, T('They were saved on another device or browser, and only that device has the key. Restore a backup made with a master password, or start a new empty list.')),
+            h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox(T('Start a new list?'), T('The passwords that can’t be opened will be replaced by an empty list.'), { ok: T('Start Over'), danger: true, icon: 'passwords' })) await P.startOver(); } }, T('Start a New List'))));
+          return;
+        }
+        if (!P.encrypted) { win.body.appendChild(h('div', { class: 'pw-lock' }, h('p', {}, T('Opening…')))); P.ready.then(() => render()); return; }
         win.body.appendChild(h('div', { class: 'pw-lock' }, h('div', { class: 'pw-bigic', html: PatOS.iconHTML('passwords') }), h('h2', {}, T('Passwords are locked')), h('p', {}, T('Enter your master password to see them.')), inp, err, h('button', { class: 'btn primary', onclick: go }, T('Unlock'))));
         setTimeout(() => inp.focus(), 50);
       }
@@ -10720,7 +10799,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
           results.appendChild(h('div', { class: 'pr-src' }, PatOS.t('Results from Wikipedia') + ' · ' + (j.query.searchinfo ? j.query.searchinfo.totalhits.toLocaleString() : '') + ' ' + PatOS.t('articles')));
           hits.forEach((hit) => {
             const url = `https://${lang}.wikipedia.org/wiki/` + encodeURIComponent(hit.title.replace(/ /g, '_'));
-            const a = h('div', { class: 'pr-hit' }, h('div', { class: 'pr-url' }, h('span', { class: 'pr-fav', html: PatOS.sym('doc') }), lang + '.wikipedia.org › ' + hit.title), h('a', { class: 'pr-title', href: url }, hit.title), h('p', { class: 'pr-snip', html: hit.snippet.replace(/<(?!\/?span)[^>]*>/g, '') + '…' }));
+            const a = h('div', { class: 'pr-hit' }, h('div', { class: 'pr-url' }, h('span', { class: 'pr-fav', html: PatOS.sym('doc') }), lang + '.wikipedia.org › ' + hit.title), h('a', { class: 'pr-title', href: url }, hit.title), h('p', { class: 'pr-snip', html: PatOS.sanitize(hit.snippet.replace(/<(?!\/?span)[^>]*>/g, '')) + '…' }));
             a.querySelector('a').addEventListener('click', (e) => { e.preventDefault(); navigate(url); });
             results.appendChild(a);
           });
@@ -11708,7 +11787,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
   // older notes used ☐ and ☑ characters; turn those lines into real checklist items
   function upgrade(html) {
     if (!/[☐☑]/.test(html)) return html;
-    const box = document.createElement('div'); box.innerHTML = html;
+    const box = PatOS.parseHTML(html);
     box.querySelectorAll(':scope > div').forEach((d) => {
       const m = /^\s*([☐☑])\s?/.exec(d.textContent); if (!m) return;
       d.classList.add('nt-chk'); if (m[1] === '☑') d.classList.add('done');
@@ -11775,7 +11854,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       const titleOf = (n) => { const t = plain(n.body).trim().split('\n')[0]; return t.slice(0, 60) || T('New Note'); };
       const inFolder = (n) => folder === 'deleted' ? !!n.deletedAt : !n.deletedAt && (folder === 'all' || (folder === 'notes' ? !n.folder : folder.startsWith('tag:') ? tagsOf(n).includes(folder.slice(4)) : n.folder === folder));
       // what other apps get: checklist items written as ☐ / ☑ so they still read as a checklist
-      const exportHTML = (html) => { const box = document.createElement('div'); box.innerHTML = html; box.querySelectorAll('.nt-chk').forEach((d) => { d.insertBefore(document.createTextNode(d.classList.contains('done') ? '☑ ' : '☐ '), d.firstChild); d.removeAttribute('class'); }); return box.innerHTML; };
+      const exportHTML = (html) => { const box = PatOS.parseHTML(PatOS.sanitize(html)); box.querySelectorAll('.nt-chk').forEach((d) => { d.insertBefore(document.createTextNode(d.classList.contains('done') ? '☑ ' : '☐ '), d.firstChild); d.removeAttribute('class'); }); return box.innerHTML; };
       const textOut = (html) => plain(exportHTML(html));
 
       /* ---------- sidebar: folders and tags ---------- */
@@ -11820,7 +11899,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
           let second = lines[1] || T('No additional text');
           if (ql) { const hit = lines.find((l, k) => k > 0 && fold(l).includes(ql)); if (hit) second = hit; }
           const img = (/<img[^>]+src="([^"]+)"/.exec(n.body) || [])[1];
-          const box = document.createElement('div'); box.innerHTML = n.body; const all = box.querySelectorAll('.nt-chk').length, done = box.querySelectorAll('.nt-chk.done').length;
+          const box = PatOS.parseHTML(n.body); const all = box.querySelectorAll('.nt-chk').length, done = box.querySelectorAll('.nt-chk.done').length;
           const el = h('div', { class: 'nt-item' + (cur && cur.id === n.id ? ' on' : '') + (n.pinned ? ' pinned' : ''), draggable: 'true', role: 'button', tabindex: '0' },
             h('div', { class: 'nt-txt' }, h('b', {}, markText(titleOf(n), ql)), h('div', {}, h('span', {}, new Date(n.mtime).toLocaleDateString(PatOS.locale, age < DAY ? undefined : { month: 'short', day: 'numeric' })), ' ', markText(second.slice(0, 70), ql)),
               all ? h('small', { class: 'nt-prog' + (done === all ? ' full' : '') }, done + '/' + all + ' ' + T('done')) : null),
@@ -11849,7 +11928,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         if (picked && PatOS.mobile && PatOS.mobile.detail) PatOS.mobile.detail(win, true, titleOf(n));
         cur = n; PatOS.remember && PatOS.remember(win, { id: n.id });
         const up = upgrade(n.body); if (up !== n.body) { n.body = up; save(); }
-        ed.innerHTML = n.body; ed.contentEditable = n.deletedAt ? 'false' : 'true';
+        ed.innerHTML = PatOS.sanitize(n.body); ed.contentEditable = n.deletedAt ? 'false' : 'true';
         updateMeta();
         empty.style.display = 'none'; ed.style.display = ''; meta.style.display = '';
         renderList(); highlightSearch();
@@ -15424,7 +15503,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     win.el.classList.add('has-toolbar');
     let raw = PatOS.fs.read(path) || '<p><br></p>';
     const page = h('div', { class: 'doc-page dx-page', contenteditable: 'true', spellcheck: 'true' });
-    page.innerHTML = raw;
+    page.innerHTML = PatOS.sanitize(raw); // a document file can't carry scripts or event handlers
     const baseName = () => PatOS.fs.basename(path).replace(/\.pdoc$/, '');
     const head = OF.header(win, {
       name: baseName(), icon: 'docs', getPath: () => path,
@@ -16411,7 +16490,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     const node = h('div', { class: 'sl-slide', style: { width: W + 'px', height: H + 'px', background: s.bg || t.bg, color: t.fg, fontFamily: t.font, transform: `scale(${scale})` } });
     s.els.forEach((el, i) => {
       const box = h('div', { class: 'sl-el ' + el.type + (opts.sel && opts.sel.includes(el) ? ' on' : ''), 'data-i': i, style: { left: el.x + 'px', top: el.y + 'px', width: el.w + 'px', height: el.h + 'px', opacity: el.opacity != null ? el.opacity : '' } });
-      if (el.type === 'text') { box.innerHTML = el.html; Object.assign(box.style, { fontSize: el.size + 'px', fontWeight: el.bold ? '700' : '400', fontStyle: el.italic ? 'italic' : '', textDecoration: el.underline ? 'underline' : '', textAlign: el.align || 'left', color: el.color || (el.accent ? t.accent : ''), fontFamily: el.role === 'title' ? t.head : '', background: el.fill || '' }); }
+      if (el.type === 'text') { box.innerHTML = PatOS.sanitize(el.html); Object.assign(box.style, { fontSize: el.size + 'px', fontWeight: el.bold ? '700' : '400', fontStyle: el.italic ? 'italic' : '', textDecoration: el.underline ? 'underline' : '', textAlign: el.align || 'left', color: el.color || (el.accent ? t.accent : ''), fontFamily: el.role === 'title' ? t.head : '', background: el.fill || '' }); }
       if (el.type === 'image') box.appendChild(h('img', { src: el.src, alt: '', draggable: 'false', style: { borderRadius: (el.radius || 0) + 'px' } }));
       if (el.type === 'shape') {
         const fill = el.fill === 'accent' ? t.accent : el.fill;
@@ -16771,7 +16850,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       function preview(f) {
         try {
           if (f.t[0] === 'docs') { const d = h('div', { class: 'dv-doc', html: String(f.n.content).replace(/<img[^>]*>/g, '') }); return d; }
-          if (f.t[0] === 'slides') { const deck = JSON.parse(f.n.content); const t = deck.slides[0] && deck.slides[0].els.find((e) => e.type === 'text'); return h('div', { class: 'dv-slide' }, t ? h('div', { html: t.html }) : ''); }
+          if (f.t[0] === 'slides') { const deck = JSON.parse(f.n.content); const t = deck.slides[0] && deck.slides[0].els.find((e) => e.type === 'text'); return h('div', { class: 'dv-slide' }, t ? h('div', { html: PatOS.sanitize(t.html) }) : ''); }
           if (f.t[0] === 'sheets') { const g = h('div', { class: 'dv-sheet' }); for (let i = 0; i < 24; i++) g.appendChild(h('span')); return g; }
           if (f.t[0] === 'forms') { const fm = JSON.parse(f.n.content); return h('div', { class: 'dv-form' }, h('b', {}, fm.title || 'Form'), h('small', {}, (fm.questions || []).length + ' questions')); }
         } catch (e) {}

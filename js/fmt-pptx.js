@@ -105,7 +105,7 @@
       return `<p:bg><p:bgPr><a:solidFill><a:srgbClr val="${colors[0] || 'FFFFFF'}"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>`;
     };
     function paragraphs(el) {
-      const wrap = document.createElement('div'); wrap.innerHTML = el.html || '';
+      const wrap = PatOS.parseHTML(el.html || '');
       const base = { sz: Math.round((el.size || 24) * 0.75 * 100), b: el.bold ? 1 : 0, i: el.italic ? 1 : 0, u: el.underline ? 1 : 0, color: hex6(el.color) || (el.accent ? accent : fgHex), font: el.role === 'title' ? t.head : t.font };
       const paras = []; let cur = []; let bullet = false;
       const flush = () => { paras.push({ runs: cur, bullet }); cur = []; bullet = false; };
