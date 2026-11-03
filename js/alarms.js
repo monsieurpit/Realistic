@@ -32,6 +32,10 @@
   // the beat can be late after the device sleeps; check right away when PatOS comes back
   document.addEventListener('visibilitychange', () => { if (!document.hidden) { lastBeat = 0; beat(); } });
 
+  // ring once PatOS has been unlocked in this session, including later on the lock screen (Alt+Esc)
+  let seenLogin = false;
+  const ready = () => (seenLogin = seenLogin || !!PatOS.loggedIn);
+
   /* ---------- scheduled one-time items (timers, snoozes, Focus) ---------- */
   const Q = 'alarmQueue';
   const queue = () => PatOS.store.get(Q, []) || [];
@@ -41,7 +45,7 @@
   }
   function cancel(id) { const q = queue(); const n = q.filter((x) => x.id !== id); if (n.length !== q.length) PatOS.store.set(Q, n); stop(id); }
   function checkQueue(t) {
-    if (!PatOS.loggedIn) return;
+    if (!ready()) return;
     const q = queue(); const due = q.filter((x) => x.at <= t); if (!due.length) return;
     PatOS.store.set(Q, q.filter((x) => x.at > t));
     due.forEach((x) => (t - x.at > 120000 ? missed(x) : fire(x)));
@@ -53,7 +57,7 @@
   // so an alarm never rings twice and alarms that came due while PatOS was closed can be reported
   let checked = 0, savedAt = 0;
   function checkClockAlarms(t) {
-    if (!PatOS.loggedIn) return;
+    if (!ready()) return;
     if (!checked) checked = PatOS.store.get('alarmsChecked', 0) || 0;
     let last = checked;
     if (!last || t - last > 7 * 864e5) { checked = savedAt = t; PatOS.store.set('alarmsChecked', t); return; }
@@ -80,7 +84,7 @@
 
   /* ---------- Reminders with a date and time ---------- */
   function checkReminders(t) {
-    if (!PatOS.loggedIn) return;
+    if (!ready()) return;
     const items = PatOS.store.get('reminders', null); if (!items) return; let changed = false;
     items.forEach((r) => {
       if (r.done || r.alerted || !r.due || !r.time) return;

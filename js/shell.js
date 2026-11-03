@@ -629,49 +629,195 @@
     return { text: m[1] + ' ' + m[2] + ' = ' + (+r.toPrecision(6)).toLocaleString() + ' ' + m[3], value: +r.toPrecision(6) };
   }
   PatOS.convertUnits = (q) => convert(q);
+  // "timer 5 min" in Spotlight: rung by PatOS.alarms, so it rings on time even in the background
   PatOS.quickTimer = function (secs, label) {
-    PatOS.notify({ title: PatOS.t('Timer started'), body: Math.round(secs / 60) >= 1 ? Math.round(secs / 60) + ' min' : secs + ' s', icon: 'clock' });
-    setTimeout(() => { PatOS.notify({ title: label || PatOS.t('Timer done'), body: PatOS.t('Your timer finished.'), icon: 'clock', duration: 12000 }); for (let i = 0; i < 5; i++) PatOS.sound.tone(880, 0.25, { delay: i * 0.45, vol: 0.2 }); if (PatOS.mobile && PatOS.mobile.islandAlert) PatOS.mobile.islandAlert(PatOS.t('Timer done'), 'clock'); }, secs * 1000);
+    const mins = Math.round(secs / 60);
+    const len = mins >= 1 ? mins + ' min' : secs + ' s';
+    if (PatOS.alarms) {
+      PatOS.alarms.askPermission();
+      PatOS.alarms.schedule({ id: 'quick-' + PatOS.uid(), kind: 'timer', at: Date.now() + secs * 1000, title: label || PatOS.t('Timer done'), body: len + ' · ' + PatOS.t('Timer'), icon: 'clock', app: 'clock' });
+    }
+    PatOS.notify({ title: PatOS.t('Timer started'), body: len, icon: 'clock' });
   };
-  function render(q) {
-    const box = $('.sp-results'); box.innerHTML = ''; spResults = []; spSel = 0;
-    q = q.trim();
-    $('.sp-icon').innerHTML = $('#mb-search').innerHTML;
-    if (!q) { $('#spotlight .sp-box').classList.remove('has'); const pv0 = $('.sp-preview'); if (pv0) pv0.remove(); return; }
-    const ql = q.toLowerCase();
-    const c = calc(q);
-    const cv = convert(q);
-    if (cv) spResults.push({ group: 'Conversion', label: cv.text, icon: 'calculator', preview: () => h('div', { class: 'sp-pv-big' }, String(cv.value)), run: () => { navigator.clipboard && navigator.clipboard.writeText(String(cv.value)).catch(() => {}); PatOS.notify({ title: PatOS.t('Copied'), body: cv.text, icon: 'calculator' }); } });
-    const tm = /^(?:timer|minuterie)\s+(\d+(?:[.,]\d+)?)\s*(s|sec|secs|seconds?|m|min|mins|minutes?|h|hours?)?$/i.exec(q);
-    if (tm) { const n = parseFloat(tm[1].replace(',', '.')); const u = (tm[2] || 'm')[0].toLowerCase(); const secs = Math.round(n * (u === 's' ? 1 : u === 'h' ? 3600 : 60)); spResults.push({ group: 'Timer', label: PatOS.t('Start a timer for') + ' ' + tm[1] + ' ' + (u === 's' ? 's' : u === 'h' ? 'h' : 'min'), icon: 'clock', run: () => PatOS.quickTimer(secs) }); }
-    if (c !== null) spResults.push({ group: 'Calculator', label: q + ' = ' + c, icon: 'calculator', run: () => { navigator.clipboard && navigator.clipboard.writeText(String(c)).catch(() => {}); PatOS.notify({ title: 'Copied', body: String(c), icon: 'calculator' }); } });
-    PatOS.appOrder.forEach((id) => {
-      const a = PatOS.apps[id];
-      if (a.hidden && (a.external || id === 'extweb')) return;
-      const nm = PatOS.t ? PatOS.t(a.name) : a.name;
-      if (a.name.toLowerCase().includes(ql) || nm.toLowerCase().includes(ql) || (a.keywords || '').includes(ql)) spResults.push({ group: 'Applications', appId: id, label: nm, icon: a.icon || id, score: a.name.toLowerCase().startsWith(ql) ? 0 : 1, run: () => PatOS.launch(id) });
-    });
-    spResults.sort((a, b) => (a.group === b.group ? (a.score || 0) - (b.score || 0) : 0));
-    let files = 0;
+
+  /* ---------- matching: ignores accents and case, ranks better matches first, forgives one typo ---------- */
+  const fold = (x) => String(x || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  function oneEdit(a, b) {
+    if (a === b) return true; if (Math.abs(a.length - b.length) > 1) return false;
+    let i = 0, j = 0, edits = 0;
+    while (i < a.length && j < b.length) {
+      if (a[i] === b[j]) { i++; j++; continue; }
+      if (++edits > 1) return false;
+      if (a.length > b.length) i++; else if (b.length > a.length) j++; else { i++; j++; }
+    }
+    return edits + (a.length - i) + (b.length - j) <= 1;
+  }
+  // strict: for long keyword lists, where loose letter-by-letter matching would match almost anything
+  function score(text, q, strict) {
+    const t = fold(text); if (!t || !q) return 0;
+    if (t === q) return 100;
+    if (t.startsWith(q)) return 92 - Math.min(12, (t.length - q.length) * 0.3);
+    const words = t.split(/[\s\-_./·,()]+/).filter(Boolean);
+    if (words.some((w) => w.startsWith(q))) return 78;
+    const i = t.indexOf(q); if (i >= 0) return 62 - Math.min(10, i * 0.1);
+    if (!strict && q.length >= 2 && words.length > 1 && words.map((w) => w[0]).join('').startsWith(q)) return 66; // "ss" = System Settings
+    if (q.length >= 4 && words.some((w) => oneEdit(w.slice(0, q.length), q) || oneEdit(w.slice(0, q.length + 1), q) || oneEdit(w.slice(0, q.length - 1), q))) return 40; // one typo
+    if (!strict && q.length >= 3 && t.length <= 40) { let j = 0; for (const ch of t) { if (ch === q[j]) j++; if (j === q.length) break; } if (j === q.length) return 22; } // letters in order
+    return 0;
+  }
+  // where in the original text the match is, for highlighting (same length after folding for Latin letters)
+  function markLabel(text, q) {
+    const t = fold(text); const i = q ? t.indexOf(q) : -1;
+    if (i < 0 || t.length !== String(text).length) return h('span', {}, text);
+    return h('span', {}, text.slice(0, i), h('mark', {}, text.slice(i, i + q.length)), text.slice(i + q.length));
+  }
+
+  /* ---------- what was opened from Spotlight, so it ranks higher next time ---------- */
+  const usage = () => PatOS.store.get('spUsage', {}) || {};
+  function used(key) {
+    const u = usage(); const e = u[key] || { n: 0, t: 0 }; e.n++; e.t = Date.now(); u[key] = e;
+    const keys = Object.keys(u); if (keys.length > 200) keys.sort((a, b) => u[a].t - u[b].t).slice(0, keys.length - 200).forEach((k) => delete u[k]);
+    PatOS.store.set('spUsage', u);
+  }
+  const boost = (u, key) => { const e = u[key]; if (!e) return 0; return Math.min(12, e.n * 2) + (Date.now() - e.t < 3 * 864e5 ? 6 : 0); };
+
+  /* ---------- the file index: built once, then kept up to date when files change ---------- */
+  let fileIndex = null;
+  const TEXTY = /\.(txt|md|js|css|html?|json|csv|py|xml|log|yml|yaml|ts|c|cpp|java|pdoc|psheet|pslides|pform)$/i;
+  function buildIndex() {
+    const out = [];
     PatOS.fs.walk('/', (p, n) => {
-      if (files > 8) return;
-      if (PatOS.fs.basename(p).toLowerCase().includes(ql) || (n.type === 'file' && !String(n.content).startsWith('data:') && String(n.content).toLowerCase().includes(ql))) {
-        files++; spResults.push({ group: 'Files', filePath: p, label: PatOS.fs.basename(p), sub: PatOS.fs.dirname(p), iconHTML: PatOS.fileIconHTML(p, n), run: () => PatOS.openFile(p) });
+      if (p === '/' || /\/\./.test(p)) return; // skip Trash and hidden folders
+      const name = PatOS.fs.basename(p);
+      let text = '';
+      if (n.type === 'file' && !n.blob && typeof n.content === 'string' && TEXTY.test(name) && !n.content.startsWith('data:')) {
+        text = n.content.length > 120000 ? n.content.slice(0, 120000) : n.content;
+        if (/\.(pdoc|psheet|pslides|pform|html?)$/i.test(name)) text = text.replace(/<[^>]+>/g, ' ').replace(/\\[nrt]|&nbsp;/g, ' ').replace(/["{}[\],:]+/g, ' ');
+        text = fold(text).replace(/\s+/g, ' ');
       }
+      out.push({ p, name, dir: n.type === 'dir', text });
     });
-    (PatOS.store.get('notes', []) || []).filter((n) => !n.deletedAt && (n.title + ' ' + n.body).toLowerCase().includes(ql)).slice(0, 4).forEach((n) =>
-      spResults.push({ group: 'Notes', label: n.title || 'Untitled', icon: 'notes', run: () => PatOS.launch('notes', { id: n.id }) }));
-    spResults.push({ group: 'Web', label: 'Search the web for “' + q + '”', icon: 'browser', run: () => PatOS.launch('browser', { url: q }) });
+    return out;
+  }
+  PatOS.on('fs', () => { fileIndex = null; });
+
+  /* ---------- quick actions ---------- */
+  const ACTIONS = [
+    { label: 'Lock Screen', kw: 'lock verrouiller ecran screen', icon: 'settings', run: () => PatOS.power.lock() },
+    { label: () => (PatOS.settings.theme === 'dark' ? 'Switch to Light Mode' : 'Switch to Dark Mode'), kw: 'dark light mode theme sombre clair mode nuit', icon: 'settings', run: () => PatOS.setSetting('theme', PatOS.settings.theme === 'dark' ? 'light' : 'dark') },
+    { label: () => (PatOS.focusMode ? 'Turn Off Do Not Disturb' : 'Turn On Do Not Disturb'), kw: 'do not disturb focus ne pas deranger concentration silence', icon: 'settings', run: () => { PatOS.focusMode = !PatOS.focusMode; PatOS.notify({ title: PatOS.t(PatOS.focusMode ? 'Do Not Disturb is on' : 'Do Not Disturb is off'), icon: 'settings' }); } },
+    { label: 'Empty Trash', kw: 'empty trash vider corbeille', icon: 'finder', run: async () => { if (await PatOS.confirmBox(PatOS.t('Empty Trash?'), PatOS.t('Items in the Trash will be deleted for good.'), { ok: PatOS.t('Empty'), danger: true, icon: 'finder' })) PatOS.fs.emptyTrash(); } },
+    { label: 'Record the Screen', kw: 'record screen enregistrer ecran capture video screenshot', icon: 'screenshot', run: () => PatOS.launch('screenshot') },
+    { label: () => (document.fullscreenElement ? 'Exit Full Screen' : 'Enter Full Screen'), kw: 'full screen plein ecran', icon: 'settings', run: () => { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else document.documentElement.requestFullscreen().catch(() => {}); } },
+    { label: 'Restart PatOS', kw: 'restart reload redemarrer recharger', icon: 'about', run: () => { PatOS._leaving = true; location.reload(); } }
+  ];
+  const actLabel = (a) => PatOS.t(typeof a.label === 'function' ? a.label() : a.label);
+
+  function webSearch(q) {
+    if (PatOS.isOffline && PatOS.isOffline()) return PatOS.launch('browser', { url: q });
+    PatOS.openExternal('https://www.google.com/search?q=' + encodeURIComponent(q) + '&hl=' + (PatOS.lang === 'fr' ? 'fr' : 'en'));
+  }
+
+  function search(raw) {
+    const q = fold(raw.trim()); const T = PatOS.t; const u = usage(); const out = [];
+    const add = (group, key, sc, r) => { if (sc > 0) out.push(Object.assign({ group, key, score: sc + boost(u, key) }, r)); };
+    // instant answers
+    const cv = convert(raw);
+    if (cv) out.push({ group: 'Conversion', key: 'cv', score: 1000, label: cv.text, icon: 'calculator', preview: () => h('div', { class: 'sp-pv-big' }, String(cv.value)), copy: String(cv.value), run: () => copyOut(String(cv.value), cv.text) });
+    const tm = /^(?:timer|minuterie|minuteur)\s+(\d+(?:[.,]\d+)?)\s*(s|sec|secs|seconds?|secondes?|m|min|mins|minutes?|h|hours?|heures?)?$/i.exec(raw.trim());
+    if (tm) { const n = parseFloat(tm[1].replace(',', '.')); const un = (tm[2] || 'm')[0].toLowerCase(); const secs = Math.round(n * (un === 's' ? 1 : un === 'h' ? 3600 : 60)); if (secs > 0) out.push({ group: 'Timer', key: 'tm', score: 1000, label: T('Start a timer for') + ' ' + tm[1] + ' ' + (un === 's' ? 's' : un === 'h' ? 'h' : 'min'), icon: 'clock', run: () => PatOS.quickTimer(secs) }); }
+    const c = calc(raw.trim());
+    if (c !== null) out.push({ group: 'Calculator', key: 'calc', score: 1000, label: raw.trim() + ' = ' + c, icon: 'calculator', preview: () => h('div', { class: 'sp-pv-big' }, String(c)), copy: String(c), run: () => copyOut(String(c), String(c)) });
+    const def = /^(?:define|definition|definir|définir|définition)\s+(.+)$/i.exec(raw.trim());
+    if (def && PatOS.apps.dictionary) out.push({ group: 'Dictionary', key: 'def', score: 1000, label: T('Look up') + ' “' + def[1] + '”', icon: 'dictionary', run: () => PatOS.launch('dictionary', { word: def[1] }) });
+    // apps
+    PatOS.appOrder.forEach((id) => {
+      const a = PatOS.apps[id]; if (!a || (a.hidden && (a.external || id === 'extweb'))) return;
+      const nm = T(a.name);
+      const sc = Math.max(score(nm, q), score(a.name, q), score(a.keywords || '', q, true) * 0.75);
+      add('Applications', 'app:' + id, sc, { appId: id, label: nm, icon: a.icon || id, run: () => PatOS.launch(id) });
+    });
+    // settings
+    if (PatOS.settingsIndex) PatOS.settingsIndex().forEach((st) => {
+      const sc = Math.max(score(T(st.label), q), score(st.label, q), score(st.keywords, q, true) * 0.8);
+      add('System Settings', 'set:' + st.pane, sc * 0.95, { label: T(st.label), sub: T('System Settings'), icon: 'settings', run: () => PatOS.launch('settings', { pane: st.pane }) });
+    });
+    // actions
+    ACTIONS.forEach((a, i) => { const lab = actLabel(a); add('Actions', 'act:' + i, Math.max(score(lab, q), score(a.kw, q, true) * 0.85), { label: lab, icon: a.icon, run: a.run }); });
+    // files: name first, then what's inside
+    if (!fileIndex) fileIndex = buildIndex();
+    const files = [];
+    for (const f of fileIndex) {
+      let sc = score(f.name, q), inText = -1;
+      if (sc < 40 && q.length >= 3 && f.text) { inText = f.text.indexOf(q); if (inText >= 0) sc = Math.max(sc, 35); }
+      if (sc > 0) files.push({ f, sc: sc + boost(u, 'file:' + f.p) + (f.dir ? -3 : 0), inText });
+    }
+    files.sort((a, b) => b.sc - a.sc).slice(0, 10).forEach(({ f, sc, inText }) => out.push({ group: f.dir ? 'Folders' : 'Files', key: 'file:' + f.p, score: sc, filePath: f.p, inText, label: f.name, sub: PatOS.fs.dirname(f.p), iconHTML: PatOS.fileIconHTML(f.p, PatOS.fs.get(f.p)), run: () => PatOS.openFile(f.p) }));
+    // notes, reminders, contacts
+    (PatOS.store.get('notes', []) || []).filter((n) => !n.deletedAt).forEach((n) => {
+      const sc = Math.max(score(n.title, q), q.length >= 3 && fold(n.body).includes(q) ? 35 : 0);
+      add('Notes', 'note:' + n.id, sc, { label: n.title || T('Untitled'), icon: 'notes', snippet: n.body, run: () => PatOS.launch('notes', { id: n.id }) });
+    });
+    (PatOS.store.get('reminders', []) || []).filter((r) => !r.done).forEach((r) => add('Reminders', 'rem:' + r.id, score(r.text, q), { label: r.text, sub: r.due ? r.due + (r.time ? ' ' + r.time : '') : '', icon: 'reminders', run: () => PatOS.launch('reminders') }));
+    (PatOS.store.get('contacts', []) || []).forEach((ct) => {
+      const name = ((ct.first || '') + ' ' + (ct.last || '')).trim() || ct.company || ct.email || '';
+      add('Contacts', 'ct:' + ct.id, Math.max(score(name, q), score(ct.email || '', q) * 0.8, score(ct.company || '', q) * 0.7), { label: name, sub: ct.email || ct.phone || '', icon: 'contacts', run: () => PatOS.launch('contacts', { id: ct.id }) });
+    });
+    // passwords: the site and the user name only, never the password
+    if (PatOS.passwords && !PatOS.passwords.locked) PatOS.passwords.all().forEach((pw) => add('Passwords', 'pw:' + pw.id, Math.max(score(pw.site, q), score(pw.username, q) * 0.8) * 0.9, { label: pw.site, sub: pw.username, icon: 'passwords', run: () => PatOS.launch('passwords', { site: pw.site }) }));
+    // Patoogle bookmarks and history
+    const seen = new Set();
+    [...(PatOS.store.get('bookmarks', []) || []).map((b) => ({ u: b.u, title: b.t })), ...(PatOS.store.get('browserHistory', []) || []).slice(0, 300)].forEach((x) => {
+      if (!x || !/^https?:/.test(x.u || '') || /igu=1/.test(x.u)) return; const k = x.u.replace(/[#?].*$/, ''); if (seen.has(k)) return; seen.add(k);
+      let host = ''; try { host = new URL(x.u).hostname.replace(/^www\./, ''); } catch (e) {}
+      add('Websites', 'web:' + k, Math.max(score(x.title || '', q), score(host, q)) * 0.85, { label: x.title && x.title !== host ? x.title : host, sub: host, icon: 'browser', run: () => PatOS.launch('browser', { url: x.u }) });
+    });
+    // groups in order of their best match; instant answers first; a "top hit" when one result clearly wins
+    const groups = {}; out.forEach((r) => (groups[r.group] = groups[r.group] || []).push(r));
+    const LIMIT = { Applications: 6, 'System Settings': 4, Actions: 3, Files: 8, Folders: 4, Notes: 4, Reminders: 3, Contacts: 3, Passwords: 3, Websites: 4 };
+    const ordered = Object.entries(groups).map(([g, list]) => { list.sort((a, b) => b.score - a.score); return [g, list.slice(0, LIMIT[g] || 4)]; }).sort((a, b) => b[1][0].score - a[1][0].score);
+    let res = [].concat(...ordered.map(([, l]) => l));
+    // leave out weak guesses when there are good matches
+    const top = res.length ? res[0].score : 0; if (top >= 60 && top < 1000) res = res.filter((r) => r.score >= top * 0.4);
+    const best = res[0];
+    if (best && best.score < 1000 && best.score >= 70) res = [Object.assign({}, best, { group: 'Top Hit' })].concat(res.filter((r) => r !== best));
+    res.push({ group: 'Web', key: 'web', label: T('Search Google for') + ' “' + raw.trim() + '”', icon: 'browser', run: () => webSearch(raw.trim()) });
+    return res;
+  }
+  function copyOut(text, shown) { (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).catch(() => {}); PatOS.notify({ title: PatOS.t('Copied'), body: shown, icon: 'calculator' }); }
+
+  let lastQ = '';
+  function render(qRaw) {
+    const box = $('.sp-results'); box.innerHTML = ''; spResults = []; spSel = 0;
+    lastQ = qRaw; const q = qRaw.trim();
+    $('.sp-icon').innerHTML = $('#mb-search').innerHTML;
+    const sb = $('#spotlight .sp-box');
+    if (!q) {
+      // nothing typed: what was opened recently from Spotlight
+      const u = usage(); const recent = Object.entries(u).sort((a, b) => b[1].t - a[1].t).map(([k]) => k).filter((k) => /^(app|file):/.test(k)).slice(0, 6);
+      recent.forEach((k) => {
+        if (k.startsWith('app:')) { const id = k.slice(4); const a = PatOS.apps[id]; if (a) spResults.push({ group: 'Recent', key: k, appId: id, label: PatOS.t(a.name), icon: a.icon || id, run: () => PatOS.launch(id) }); }
+        else { const p = k.slice(5); const n = PatOS.fs.get(p); if (n) spResults.push({ group: 'Recent', key: k, filePath: p, label: PatOS.fs.basename(p), sub: PatOS.fs.dirname(p), iconHTML: PatOS.fileIconHTML(p, n), run: () => PatOS.openFile(p) }); }
+      });
+      if (!spResults.length) { sb.classList.remove('has'); const pv0 = $('.sp-preview'); if (pv0) pv0.remove(); return; }
+    } else spResults = search(q);
+    const fq = fold(q);
     let lastG = '';
     spResults.forEach((r, i) => {
-      if (r.group !== lastG) { box.appendChild(h('div', { class: 'sp-group' }, r.group)); lastG = r.group; }
-      const row = h('div', { class: 'sp-res' + (i === 0 ? ' sel' : '') }, h('div', { class: 'sp-ri', html: r.iconHTML || PatOS.iconHTML(r.icon) }), h('span', {}, r.label), r.sub ? h('small', {}, r.sub) : null);
-      row.addEventListener('click', () => { PatOS.spotlight.hide(); r.run(); });
-      row.addEventListener('pointermove', () => setSel(i));
+      if (r.group !== lastG) { box.appendChild(h('div', { class: 'sp-group' }, PatOS.t(r.group))); lastG = r.group; }
+      const row = h('div', { class: 'sp-res' + (i === 0 ? ' sel' : ''), role: 'option' }, h('div', { class: 'sp-ri', html: r.iconHTML || PatOS.iconHTML(r.icon) }), markLabel(r.label, fq), r.sub ? h('small', {}, r.sub) : null);
+      row.addEventListener('click', () => go(r));
+      row.addEventListener('pointermove', () => { if (spSel !== i) setSel(i); });
       box.appendChild(row);
     });
-    $('#spotlight .sp-box').classList.add('has');
+    sb.classList.add('has');
     preview(spResults[0]);
+  }
+  function go(r, reveal) {
+    PatOS.spotlight.hide();
+    if (r.key && !/^(calc|cv|tm|web|def)$/.test(r.key)) used(r.key);
+    if (reveal && r.filePath) return PatOS.launch('finder', { path: PatOS.fs.dirname(r.filePath) });
+    r.run();
   }
   function setSel(i) {
     const rows = $$('.sp-res'); if (!rows.length) return;
@@ -680,29 +826,41 @@
     rows[spSel].scrollIntoView({ block: 'nearest' });
     preview(spResults[spSel]);
   }
+  // a few lines around the match, with the match marked
+  function snippet(text, q) {
+    const plain = String(text || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ');
+    const i = fold(plain).indexOf(q); if (i < 0) return h('pre', { class: 'sp-pv-text' }, plain.slice(0, 400));
+    const s0 = Math.max(0, i - 120), e0 = Math.min(plain.length, i + q.length + 260);
+    return h('pre', { class: 'sp-pv-text' }, (s0 ? '…' : '') + plain.slice(s0, i), h('mark', {}, plain.slice(i, i + q.length)), plain.slice(i + q.length, e0) + (e0 < plain.length ? '…' : ''));
+  }
   function preview(r) {
     let pv = $('.sp-preview'); if (!pv) { pv = h('div', { class: 'sp-preview' }); $('#spotlight .sp-box').appendChild(pv); }
     pv.innerHTML = ''; if (!r) return;
+    const fq = fold(lastQ.trim());
     if (r.appId) { const a = PatOS.apps[r.appId]; pv.append(h('div', { class: 'sp-pv-ic', html: PatOS.iconHTML(a.icon || r.appId) }), h('b', {}, PatOS.t(a.name)), h('p', {}, PatOS.t(a.about || a.category || 'Apps')), h('small', {}, PatOS.wm.isRunning(r.appId) ? PatOS.t('Open now') : PatOS.t(a.category || 'Apps'))); return; }
     if (r.filePath) {
       const n = PatOS.fs.get(r.filePath); if (!n) return;
       const kind = PatOS.fileKind(r.filePath, n);
-      if (kind === 'image') pv.appendChild(h('img', { class: 'sp-pv-img', src: n.content, alt: '' }));
+      if (kind === 'image' && !n.blob && String(n.content).startsWith('data:')) pv.appendChild(h('img', { class: 'sp-pv-img', src: n.content, alt: '' }));
       else pv.appendChild(h('div', { class: 'sp-pv-ic', html: PatOS.fileIconHTML(r.label, n) }));
-      pv.append(h('b', {}, r.label), h('small', {}, (r.filePath.startsWith('/') ? '~' + r.filePath : r.filePath) + ' · ' + PatOS.fmtBytes(PatOS.fs.size(n))));
-      if (n.type === 'file' && kind === 'text' && !String(n.content).startsWith('data:')) pv.appendChild(h('pre', { class: 'sp-pv-text' }, String(n.content).slice(0, 400)));
+      pv.append(h('b', {}, r.label), h('small', {}, '~' + r.filePath + (n.type === 'file' ? ' · ' + PatOS.fmtBytes(PatOS.fs.size(n)) : '')));
+      if (n.type === 'file' && !n.blob && typeof n.content === 'string' && !n.content.startsWith('data:') && TEXTY.test(r.label)) pv.appendChild(snippet(n.content.slice(0, 200000), fq));
+      pv.appendChild(h('small', { class: 'sp-pv-hint' }, PatOS.t('Enter to open · Alt+Enter to show in Finder')));
       return;
     }
+    if (r.snippet) { pv.append(h('div', { class: 'sp-pv-ic', html: PatOS.iconHTML(r.icon) }), h('b', {}, r.label), snippet(r.snippet, fq)); return; }
     if (r.preview) { pv.appendChild(r.preview()); pv.appendChild(h('small', {}, PatOS.t('Press Enter to copy'))); return; }
-    pv.append(h('div', { class: 'sp-pv-ic', html: r.iconHTML || PatOS.iconHTML(r.icon) }), h('b', {}, r.label));
+    pv.append(h('div', { class: 'sp-pv-ic', html: r.iconHTML || PatOS.iconHTML(r.icon) }), h('b', {}, r.label), r.sub ? h('small', {}, r.sub) : null);
   }
   function setupSpotlight() {
     const input = $('.sp-input');
-    input.addEventListener('input', () => render(input.value));
+    input.setAttribute('role', 'combobox'); input.setAttribute('aria-label', PatOS.t('Spotlight Search'));
+    let timer = null;
+    input.addEventListener('input', () => { clearTimeout(timer); const big = fileIndex && fileIndex.length > 400; if (big) timer = setTimeout(() => render(input.value), 60); else render(input.value); });
     input.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowDown') { e.preventDefault(); setSel(spSel + 1); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); setSel(spSel - 1); }
-      else if (e.key === 'Enter') { const r = spResults[spSel]; if (r) { PatOS.spotlight.hide(); r.run(); } }
+      else if (e.key === 'Enter') { e.preventDefault(); if (timer) { clearTimeout(timer); timer = null; if (input.value !== lastQ) render(input.value); } const r = spResults[spSel]; if (r) go(r, e.altKey); }
       else if (e.key === 'Escape') PatOS.spotlight.hide();
     });
     $('#spotlight').addEventListener('pointerdown', (e) => { if (e.target.id === 'spotlight') PatOS.spotlight.hide(); });

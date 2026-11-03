@@ -6,10 +6,10 @@
   PatOS.registerApp({
     id: 'contacts', name: 'Contacts', icon: 'contacts', width: 780, height: 540, keywords: 'people address book phone email friends',
     about: 'Keep your friends’ phone numbers, emails and birthdays.',
-    launch(win) {
+    launch(win, args) {
       win.el.classList.add('has-toolbar');
       let list = PatOS.store.get('contacts', []);
-      let cur = list[0] ? list[0].id : null, editing = false;
+      let cur = args && args.id && list.some((c) => c.id === args.id) ? args.id : list[0] ? list[0].id : null, editing = false;
       const save = () => PatOS.store.set('contacts', list);
       const q = h('input', { class: 'field', placeholder: 'Search', style: { width: '100%' } });
       const listEl = h('div', { class: 'ct-list' });
@@ -68,8 +68,10 @@
         { label: 'Export all as vCard', disabled: !list.length, action: () => PatOS.downloadFile('contacts.vcf', list.map((c) => ['BEGIN:VCARD', 'VERSION:3.0', 'N:' + (c.last || '') + ';' + (c.first || ''), 'FN:' + fullName(c), c.phone ? 'TEL:' + c.phone : '', c.email ? 'EMAIL:' + c.email : '', c.birthday ? 'BDAY:' + c.birthday : '', c.notes ? 'NOTE:' + c.notes : '', 'END:VCARD'].filter(Boolean).join('\n')).join('\n')) }
       ], r.left - 150, r.bottom + 4); };
       q.addEventListener('input', renderList);
+      win._show = (id) => { if (list.some((c) => c.id === id)) { cur = id; editing = false; render(); } };
       render();
-    }
+    },
+    onArgs(win, a) { if (a && a.id && win._show) win._show(a.id); }
   });
   /* birthday notifications */
   setTimeout(() => {

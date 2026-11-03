@@ -510,7 +510,8 @@ mark.dx-hit { background: #fff2a8; color: inherit; border-radius: 2px; } mark.dx
 .bb-note { font-size: 13px; color: var(--text3); min-height: 18px; }
 
 /* ===== Accessibility ===== */
-:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+/* keyboard focus ring on controls; text fields have their own focus styles (the setting below outlines everything) */
+:where(button, a, select, summary, [role="button"], [role="option"], [tabindex]:not(input):not(textarea):not([contenteditable])):focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 html.show-focus *:focus { outline: 3px solid var(--accent) !important; outline-offset: 2px !important; }
 html.bold-text body, html.bold-text .window, html.bold-text .menu, html.bold-text #menubar { font-weight: 600; }
 html.high-contrast { --border: rgba(255,255,255,.55); --border2: rgba(255,255,255,.65); --text2: var(--text); --text3: var(--text2); }
@@ -550,7 +551,7 @@ img.st-hero-ic { border-radius: 18px; }
 .nw-offbar { margin: 0 0 14px; padding: 9px 14px; border-radius: 10px; background: rgba(255,159,10,.14); color: var(--text); font-size: 12.5px; border: .5px solid rgba(255,159,10,.35); }
 
 /* ringing alarms and timers */
-#alarm-stack { position: fixed; top: 40px; left: 50%; transform: translateX(-50%); z-index: 100000; display: flex; flex-direction: column; gap: 10px; width: min(440px, calc(100vw - 32px)); pointer-events: none; }
+#alarm-stack { position: fixed; top: 40px; left: 50%; transform: translateX(-50%); z-index: 100001; display: flex; flex-direction: column; gap: 10px; width: min(440px, calc(100vw - 32px)); pointer-events: none; }
 .al-card { pointer-events: auto; display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 22px; background: var(--menu); color: var(--text); border: .5px solid var(--border2); box-shadow: var(--shadow); -webkit-backdrop-filter: blur(30px) saturate(1.8); backdrop-filter: blur(30px) saturate(1.8); opacity: 0; transform: translateY(-14px) scale(.97); transition: opacity .25s var(--ease), transform .35s var(--spring); }
 .al-card.in { opacity: 1; transform: none; animation: al-pulse 2s ease-in-out .4s infinite; }
 @keyframes al-pulse { 0%, 100% { box-shadow: var(--shadow); } 50% { box-shadow: var(--shadow), 0 0 0 4px rgba(255,159,10,.35); } }
@@ -566,3 +567,9 @@ img.st-hero-ic { border-radius: 18px; }
 .al-btn:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
 .reduce-motion .al-card.in, body.reduce-motion .al-card.in { animation: none; }
 .clk-presets.dim { opacity: .45; pointer-events: none; }
+
+/* Spotlight: matched letters, preview hint */
+.sp-res mark { background: none; color: inherit; font-weight: 700; }
+.sp-res.sel mark { color: inherit; }
+.sp-pv-text mark { background: rgba(255,214,10,.45); color: inherit; border-radius: 3px; padding: 0 1px; }
+.sp-pv-hint { display: block; margin-top: 10px; opacity: .7; }
