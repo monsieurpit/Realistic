@@ -30,3 +30,27 @@ test('Calculator: percent, repeated =, inverse trig, history', { skip: skipNoBro
   assert.deepEqual(errors, []);
   await page.close();
 });
+
+test('Clock: durations, half-hour time zones, a stopwatch that survives closing', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage(); const errors = await boot(page, srv.base, { fresh: true });
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise((res) => setTimeout(res, ms)); const out = {};
+    out.parse = ['7', '1:30', '1:30:00', '90s', '1h 20m', 'abc'].map(PatOS.parseDuration);
+    let w = PatOS.launch('clock', { tab: 0 }); await wait(300);
+    w.body.querySelector('.clk-wtop .btn').click(); await wait(100);
+    const q = w.body.querySelector('.clk-pick .field'); q.value = 'kolkata'; q.dispatchEvent(new Event('input')); await wait(50);
+    w.body.querySelector('.clk-prow').click(); await wait(1200);
+    out.kolkata = [...w.body.querySelectorAll('.clk-city')].map((c) => c.querySelector('.clk-sub').textContent).find((x) => /5:30/.test(x)) || null;
+    w._tab(2); await wait(100);
+    w.body.querySelector('.clk-btn.green').click(); await wait(250);
+    w.close(); await wait(300);
+    w = PatOS.launch('clock'); await wait(300);
+    out.running = PatOS.store.get('clockStopwatch').running && w.body.querySelector('.clk-big').textContent !== '00:00.00';
+    return out;
+  });
+  assert.deepEqual(r.parse, [420000, 90000, 5400000, 90000, 4800000, 0]);
+  assert.ok(r.kolkata && /\+5:30 h/.test(r.kolkata), r.kolkata);
+  assert.equal(r.running, true);
+  assert.deepEqual(errors, []);
+  await page.close();
+});
