@@ -228,6 +228,7 @@
       Downloads: d({}),
       Pictures: d({}),
       Music: d({}),
+      Videos: d({}),
       '.Trash': d({})
     });
   }
@@ -254,6 +255,7 @@
   }
 
   /* big file contents are saved as separate records, so a small edit doesn't re-save every picture */
+  if (!root.children.Videos) root.children.Videos = { type: 'dir', children: {}, mtime: now() };
   const FCLOAD = window.__FC || {};
   (function rehydrate(n) {
     if (n.type === 'dir') { Object.values(n.children).forEach(rehydrate); return; }
@@ -573,6 +575,8 @@
     const byExt = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms', pdf: 'preview' };
     if (byExt[ext]) return PatOS.launch(byExt[ext], { path });
     if (/^(mp4|webm|mov|m4v|ogv)$/.test(ext) && PatOS.apps.videos) return PatOS.launch('videos', { path });
+    if (/^(docx|xlsx|pptx)$/.test(ext) && PatOS.openOffice) return PatOS.openOffice(path);
+    if (ext === 'zip' && PatOS.openZip) return PatOS.openZip(path);
     if (kind === 'image') return PatOS.launch('photos', { path });
     if (kind === 'audio') return PatOS.launch('music', { path });
     if (kind === 'link') return PatOS.launch('browser', { url: n.content.trim() });

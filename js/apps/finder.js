@@ -4,12 +4,12 @@
   const { h, $$ } = PatOS;
   const PLACES = [
     { label: 'Desktop', path: '/Desktop', ic: 'desktop' }, { label: 'Documents', path: '/Documents', ic: 'doc' }, { label: 'Downloads', path: '/Downloads', ic: 'download' },
-    { label: 'Pictures', path: '/Pictures', ic: 'image' }, { label: 'Music', path: '/Music', ic: 'music' }, { label: 'Home', path: '/', ic: 'home' }
+    { label: 'Pictures', path: '/Pictures', ic: 'image' }, { label: 'Music', path: '/Music', ic: 'music' }, { label: 'Videos', path: '/Videos', ic: 'play' }, { label: 'Home', path: '/', ic: 'home' }
   ];
   const TAGS = { red: '#ff453a', orange: '#ff9f0a', yellow: '#ffd60a', green: '#32d74b', blue: '#0a84ff', purple: '#bf5af2', gray: '#8e8e93' };
   const TAG_NAMES = { red: 'Red', orange: 'Orange', yellow: 'Yellow', green: 'Green', blue: 'Blue', purple: 'Purple', gray: 'Gray' };
   const tagsOf = () => PatOS.store.get('fileTags', {});
-  const kindLabel = (it) => it.app ? 'Application' : it.type === 'dir' ? 'Folder' : ({ image: 'Image', audio: 'Audio', video: 'Video', pdf: 'PDF document', html: 'Web page', link: 'Web link' }[PatOS.fileKind(it.name, it)] || ({ pdoc: 'Document', psheet: 'Spreadsheet', csv: 'Spreadsheet', pslides: 'Presentation', pform: 'Form' }[PatOS.fs.ext(it.name)]) || 'Text document');
+  const kindLabel = (it) => it.app ? 'Application' : it.type === 'dir' ? 'Folder' : ({ image: 'Image', audio: 'Audio', video: 'Video', pdf: 'PDF document', html: 'Web page', link: 'Web link' }[PatOS.fileKind(it.name, it)] || ({ pdoc: 'Document', docx: 'Word document', psheet: 'Spreadsheet', xlsx: 'Excel spreadsheet', csv: 'Spreadsheet', pslides: 'Presentation', pptx: 'PowerPoint presentation', pform: 'Form', zip: 'Zip archive' }[PatOS.fs.ext(it.name)]) || 'Text document');
 
   /* ---------- Quick Look: press Space on a file to preview it ---------- */
   PatOS.quickLook = function (path, list) {
@@ -226,6 +226,8 @@
             { divider: true },
             sel.length === 1 ? { label: PatOS.t('Rename…'), shortcut: 'Enter', action: () => PatOS.renameInline(it.path) } : null,
             { label: PatOS.t('Duplicate'), action: () => sel.forEach((p) => PatOS.fs.copy(p, PatOS.fs.dirname(p))) },
+            { label: PatOS.t('Compress'), action: () => PatOS.compress(sel) },
+            it.type === 'file' && /\.zip$/i.test(it.name) ? { label: PatOS.t('Extract Here'), action: () => PatOS.openZip(it.path) } : null,
             it.type === 'file' && sel.length === 1 ? { label: PatOS.t('Save to This Chromebook…'), action: () => PatOS.device.saveCopy(it.path) } : null,
             it.type === 'dir' && sel.length === 1 && PatOS.device.supported ? { label: PatOS.t('Save Folder to This Chromebook…'), action: () => PatOS.device.exportFolder(it.path) } : null,
             it.type === 'dir' && PatOS.device.isLinked(it.path) ? { label: PatOS.t('Refresh from This Chromebook'), action: () => PatOS.device.refresh(it.path) } : null,

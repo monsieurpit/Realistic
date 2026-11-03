@@ -2609,6 +2609,42 @@ mark.dx-hit { background: #fff2a8; color: inherit; border-radius: 2px; } mark.dx
 .pw-err { color: #ff453a; min-height: 16px; }
 @media (max-width: 700px) { .pw-wrap { flex-direction: column; } .pw-side { width: auto; display: flex; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border); padding: 6px; } .pw-side hr { display: none; } .pw-si { width: auto; white-space: nowrap; } .pw-list { width: auto; max-height: 40%; border-right: 0; border-bottom: 1px solid var(--border); } }
 
+/* ===== Screen Recorder ===== */
+.rc { flex: 1; overflow-y: auto; padding: 18px 22px 24px; display: flex; flex-direction: column; gap: 14px; background: var(--win-solid); color: var(--text); }
+.rc-mode, .rc-src { align-self: center; }
+.rc-card { display: flex; flex-direction: column; gap: 4px; padding: 6px 14px; border-radius: 16px; background: var(--hover); }
+.rc-opt { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); }
+.rc-opt:last-of-type { border-bottom: 0; } .rc-opt b { font-size: 14px; font-weight: 600; display: block; } .rc-opt small { font-size: 12px; color: var(--text2); display: block; margin-top: 2px; }
+.rc-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; font-size: 14px; padding: 6px 0; }
+.rc-sub { display: flex; align-items: center; gap: 10px; padding: 0 0 10px; flex-wrap: wrap; } .rc-dev { flex: 1; min-width: 160px; max-width: 100%; }
+.rc-meter { flex: 1; min-width: 100px; height: 8px; border-radius: 8px; background: var(--hover2); overflow: hidden; } .rc-meter i { display: block; height: 100%; width: 0; background: linear-gradient(90deg, #30d158, #ffd60a 70%, #ff453a); transition: width .06s; }
+.rc-camprev { width: 100%; max-width: 280px; aspect-ratio: 4 / 3; object-fit: cover; border-radius: 14px; background: #000; transform: scaleX(-1); align-self: center; margin-bottom: 10px; }
+.rc-cornerbox { display: flex; align-items: center; gap: 8px; } .rc-cornerbox small { color: var(--text2); }
+.rc-corners { display: grid; grid-template-columns: 1fr 1fr; gap: 3px; width: 54px; height: 38px; padding: 3px; border-radius: 6px; background: var(--hover2); }
+.rc-corners button { border-radius: 3px; background: color-mix(in srgb, var(--text) 18%, transparent); } .rc-corners button.on { background: var(--accent); }
+.rc-corners button[data-c="tl"] { order: 1; } .rc-corners button[data-c="tr"] { order: 2; } .rc-corners button[data-c="bl"] { order: 3; } .rc-corners button[data-c="br"] { order: 4; }
+.rc-go { align-self: center; min-width: 240px; height: 64px; border-radius: 18px; display: flex; align-items: center; justify-content: center; gap: 14px; background: var(--accent); color: #fff; font-size: 16px; transition: transform .15s var(--spring, ease), box-shadow .2s; box-shadow: 0 6px 18px color-mix(in srgb, var(--accent) 40%, transparent); }
+.rc-go.rec { background: #ff453a; box-shadow: 0 6px 18px rgba(255,69,58,.35); } .rc-go:hover:not(:disabled) { transform: translateY(-2px); } .rc-go:disabled { opacity: .45; }
+.rc-go > span:first-child:not(.ss-dot) { width: 32px; height: 32px; } .rc-go .ss-dot { width: 22px; height: 22px; background: #fff; box-shadow: none; }
+.rc-warn, .rc-bad { font-size: 13px; color: #ff9f0a; text-align: center; margin: 0; } .rc-bad { color: #ff453a; }
+.rc-hint { font-size: 12.5px; color: var(--text2); text-align: center; margin: 0; }
+.rc-out { display: flex; flex-direction: column; align-items: center; gap: 8px; } .rc-out video, .rc-out img { max-width: 100%; max-height: 260px; border-radius: 12px; background: #000; }
+.rc-last { align-self: center; font-size: 12.5px; color: var(--accent); }
+.rc-live { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-top: 30px; } .rc-live .ss-dot { width: 18px; height: 18px; animation: hintPulse 1.2s infinite; } .rc-live b { font-size: 54px; font-weight: 200; font-variant-numeric: tabular-nums; } .rc-live small { color: var(--text2); }
+.rc-livebtns { display: flex; gap: 10px; justify-content: center; }
+.rc-count { position: fixed; inset: 0; z-index: 99998; display: grid; place-items: center; background: rgba(0,0,0,.35); backdrop-filter: blur(6px); pointer-events: none; }
+.rc-count b { font-size: 220px; font-weight: 200; color: #fff; text-shadow: 0 8px 40px rgba(0,0,0,.4); animation: rcPop 1s ease-out infinite; }
+@keyframes rcPop { 0% { transform: scale(1.4); opacity: 0; } 25% { opacity: 1; } 100% { transform: scale(.8); opacity: .2; } }
+.rc-pill { position: fixed; z-index: 99997; top: 38px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 6px 8px 6px 14px; border-radius: 99px; background: rgba(30,30,34,.92); color: #fff; box-shadow: 0 8px 28px rgba(0,0,0,.4); backdrop-filter: blur(16px); animation: ofPop .25s; }
+.rc-pdot { width: 10px; height: 10px; border-radius: 50%; background: #ff453a; animation: hintPulse 1.2s infinite; } .rc-pill.paused .rc-pdot { animation: none; background: #ffd60a; }
+.rc-ptime { font-variant-numeric: tabular-nums; font-size: 14px; min-width: 40px; }
+.rc-pb { width: 30px; height: 30px; border-radius: 50%; background: rgba(255,255,255,.14); position: relative; } .rc-pb:hover { background: rgba(255,255,255,.26); }
+.rc-pb::before { content: ''; position: absolute; left: 10px; top: 9px; width: 4px; height: 12px; background: #fff; border-radius: 1px; box-shadow: 7px 0 #fff; }
+.rc-pill.paused #rc-pause::before { left: 11px; top: 8px; width: 0; height: 0; background: none; box-shadow: none; border-left: 11px solid #fff; border-top: 7px solid transparent; border-bottom: 7px solid transparent; border-radius: 0; }
+.rc-pb.stop { background: #ff453a; } .rc-pb.stop::before { left: 10px; top: 10px; width: 10px; height: 10px; box-shadow: none; border-radius: 2px; }
+
+.of-import { margin-left: auto; white-space: nowrap; } .of-import + .of-ssearch { margin-left: 0; }
+
 </style>
   <style>
 /* ================= Liquid Glass ================= */
@@ -3091,6 +3127,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       Downloads: d({}),
       Pictures: d({}),
       Music: d({}),
+      Videos: d({}),
       '.Trash': d({})
     });
   }
@@ -3117,6 +3154,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   }
 
   /* big file contents are saved as separate records, so a small edit doesn't re-save every picture */
+  if (!root.children.Videos) root.children.Videos = { type: 'dir', children: {}, mtime: now() };
   const FCLOAD = window.__FC || {};
   (function rehydrate(n) {
     if (n.type === 'dir') { Object.values(n.children).forEach(rehydrate); return; }
@@ -3436,6 +3474,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const byExt = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms', pdf: 'preview' };
     if (byExt[ext]) return PatOS.launch(byExt[ext], { path });
     if (/^(mp4|webm|mov|m4v|ogv)$/.test(ext) && PatOS.apps.videos) return PatOS.launch('videos', { path });
+    if (/^(docx|xlsx|pptx)$/.test(ext) && PatOS.openOffice) return PatOS.openOffice(path);
+    if (ext === 'zip' && PatOS.openZip) return PatOS.openZip(path);
     if (kind === 'image') return PatOS.launch('photos', { path });
     if (kind === 'audio') return PatOS.launch('music', { path });
     if (kind === 'link') return PatOS.launch('browser', { url: n.content.trim() });
@@ -3674,6 +3714,697 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
   window.addEventListener('beforeunload', (e) => { if (waiting.size) { e.preventDefault(); e.returnValue = ''; } });
   PatOS.device = { supported, openFiles, linkFolder, refresh, touched, saveCopy, exportFolder, isLinked: (path) => { const n = PatOS.fs.get(path); return !!(n && n.link); } };
+})();
+
+</script>
+  <script type="patos/js">
+/* PatOS.zip — read and write .zip files (and Word, Excel, PowerPoint files, which are zips) with the
+   browser's own compression. No libraries. */
+(function () {
+  'use strict';
+  const te = new TextEncoder(), td = new TextDecoder();
+  let table = null;
+  function crc32(u8) {
+    if (!table) { table = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = c & 1 ? 0xedb88320 ^ (c >>> 1) : c >>> 1; table[n] = c >>> 0; } }
+    let c = 0xffffffff; for (let i = 0; i < u8.length; i++) c = table[(c ^ u8[i]) & 255] ^ (c >>> 8); return (c ^ 0xffffffff) >>> 0;
+  }
+  async function pipe(u8, stream) {
+    const out = new Blob([u8]).stream().pipeThrough(stream);
+    return new Uint8Array(await new Response(out).arrayBuffer());
+  }
+  const inflate = (u8) => pipe(u8, new DecompressionStream('deflate-raw'));
+  const deflate = (u8) => pipe(u8, new CompressionStream('deflate-raw'));
+  const toU8 = async (d) => (typeof d === 'string' ? te.encode(d) : d instanceof Uint8Array ? d : d instanceof Blob ? new Uint8Array(await d.arrayBuffer()) : new Uint8Array(d));
+
+  /* read: returns { names: [...], get(name) -> Promise<Uint8Array>, text(name) -> Promise<string>, has(name) } */
+  async function read(source) {
+    const buf = source instanceof Uint8Array ? source : new Uint8Array(source instanceof Blob ? await source.arrayBuffer() : source);
+    const dv = new DataView(buf.buffer, buf.byteOffset, buf.byteLength);
+    let eocd = -1;
+    for (let i = buf.length - 22; i >= Math.max(0, buf.length - 66000); i--) if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; }
+    if (eocd < 0) throw new Error('This isn’t a valid zip file.');
+    const count = dv.getUint16(eocd + 10, true); let p = dv.getUint32(eocd + 16, true);
+    const entries = {};
+    for (let i = 0; i < count; i++) {
+      if (dv.getUint32(p, true) !== 0x02014b50) break;
+      const method = dv.getUint16(p + 10, true), csize = dv.getUint32(p + 20, true), usize = dv.getUint32(p + 24, true);
+      const nl = dv.getUint16(p + 28, true), el = dv.getUint16(p + 30, true), cl = dv.getUint16(p + 32, true), off = dv.getUint32(p + 42, true);
+      const name = td.decode(buf.subarray(p + 46, p + 46 + nl));
+      entries[name] = { method, csize, usize, off };
+      p += 46 + nl + el + cl;
+    }
+    const get = async (name) => {
+      const e = entries[name]; if (!e) throw new Error('Missing ' + name);
+      const lh = e.off, nl = dv.getUint16(lh + 26, true), el = dv.getUint16(lh + 28, true), start = lh + 30 + nl + el;
+      const data = buf.subarray(start, start + e.csize);
+      return e.method === 0 ? data : e.method === 8 ? inflate(data) : Promise.reject(new Error('Unsupported zip compression'));
+    };
+    return { names: Object.keys(entries), has: (n) => n in entries, size: (n) => entries[n].usize, get, text: async (n) => td.decode(await get(n)) };
+  }
+
+  /* write: files is [{ name, data (string | Uint8Array | Blob), store? }] -> Blob */
+  async function write(files, mime) {
+    const parts = [], central = []; let offset = 0;
+    const now = new Date(); const dosTime = (now.getHours() << 11) | (now.getMinutes() << 5) | (now.getSeconds() >> 1), dosDate = ((now.getFullYear() - 1980) << 9) | ((now.getMonth() + 1) << 5) | now.getDate();
+    for (const f of files) {
+      const raw = await toU8(f.data); const nameB = te.encode(f.name);
+      const useStore = f.store || raw.length < 64; const data = useStore ? raw : await deflate(raw); const method = useStore ? 0 : 8; const crc = crc32(raw);
+      const lh = new DataView(new ArrayBuffer(30)); lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, method, true); lh.setUint16(10, dosTime, true); lh.setUint16(12, dosDate, true); lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, raw.length, true); lh.setUint16(26, nameB.length, true);
+      parts.push(new Uint8Array(lh.buffer), nameB, data);
+      const ch = new DataView(new ArrayBuffer(46)); ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, method, true); ch.setUint16(12, dosTime, true); ch.setUint16(14, dosDate, true); ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, raw.length, true); ch.setUint16(28, nameB.length, true); ch.setUint32(42, offset, true);
+      central.push(new Uint8Array(ch.buffer), nameB);
+      offset += 30 + nameB.length + data.length;
+    }
+    const csize = central.reduce((a, b) => a + b.length, 0);
+    const end = new DataView(new ArrayBuffer(22)); end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true); end.setUint32(12, csize, true); end.setUint32(16, offset, true);
+    return new Blob([...parts, ...central, new Uint8Array(end.buffer)], { type: mime || 'application/zip' });
+  }
+
+  /* zip a PatOS folder or files, and unzip into a folder */
+  async function zipPaths(paths, rootName) {
+    const files = [];
+    const add = async (path, prefix) => {
+      const n = PatOS.fs.get(path); if (!n) return;
+      const name = prefix + PatOS.fs.basename(path);
+      if (n.type === 'dir') { files.push({ name: name + '/', data: new Uint8Array(0), store: true }); for (const it of PatOS.fs.list(path)) await add(it.path, name + '/'); }
+      else files.push({ name, data: await PatOS.fs.getBlob(path) });
+    };
+    for (const p of paths) await add(p, rootName ? rootName + '/' : '');
+    return write(files);
+  }
+  async function unzipTo(path, destDir) {
+    const z = await read(await PatOS.fs.getBlob(path));
+    const base = PatOS.fs.basename(path).replace(/\.zip$/i, '') || 'Archive';
+    const root = destDir + '/' + PatOS.fs.uniqueName(destDir, base); PatOS.fs.mkdir(root);
+    let count = 0;
+    for (const name of z.names) {
+      if (name.includes('..') || name.startsWith('/') || name.startsWith('__MACOSX')) continue;
+      const parts = name.split('/').filter(Boolean); if (!parts.length) continue;
+      let dir = root; for (let i = 0; i < parts.length - (name.endsWith('/') ? 0 : 1); i++) { dir += '/' + parts[i]; if (!PatOS.fs.exists(dir)) PatOS.fs.mkdir(dir); }
+      if (name.endsWith('/')) continue;
+      const data = await z.get(name); const file = parts[parts.length - 1]; const ext = (file.split('.').pop() || '').toLowerCase();
+      const isText = /^(txt|md|js|css|html?|json|csv|py|xml|svg|yml|yaml|log|ts|psheet|pdoc|pslides|pform)$/.test(ext);
+      const dest = dir + '/' + file;
+      if (isText && data.length < 8e6) PatOS.fs.write(dest, td.decode(data));
+      else if (data.length > 8 * 1024 * 1024 || /^(mp4|webm|mov|m4v|ogv)$/.test(ext)) await PatOS.fs.writeBlob(dest, new Blob([data]));
+      else { const mime = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', mp3: 'audio/mpeg', wav: 'audio/wav', pdf: 'application/pdf' }[ext] || 'application/octet-stream'; PatOS.fs.write(dest, await dataURL(new Blob([data], { type: mime }))); }
+      count++;
+    }
+    return { path: root, count };
+  }
+  const dataURL = (blob) => new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
+  const b64 = (u8) => { let s = ''; for (let i = 0; i < u8.length; i += 0x8000) s += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000)); return btoa(s); };
+
+  PatOS.zip = { read, write, zipPaths, unzipTo, crc32, b64, toU8 };
+})();
+
+</script>
+  <script type="patos/js">
+/* Word (.docx): open Word files in Docs and save Docs as Word files. */
+(function () {
+  'use strict';
+  const xml = PatOS.xml = {
+    esc: (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/[\u0000-\u0008\u000b\u000c\u000e-\u001f]/g, ''),
+    parse(text) { const d = new DOMParser().parseFromString(text, 'application/xml'); if (d.querySelector('parsererror')) throw new Error('This file looks damaged.'); return d; },
+    kids: (el, name) => (el ? [...el.children].filter((c) => c.localName === name) : []),
+    kid: (el, name) => (el ? [...el.children].find((c) => c.localName === name) || null : null),
+    attr: (el, name) => { if (!el) return null; for (const a of el.attributes) if (a.localName === name) return a.value; return null; },
+    deep: (el, name) => (el ? [...el.getElementsByTagName('*')].filter((c) => c.localName === name) : [])
+  };
+  const { esc, kids, kid, attr } = xml;
+  const MIME = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', bmp: 'image/bmp', webp: 'image/webp', svg: 'image/svg+xml' };
+  const HL = { yellow: '#ffff00', green: '#00ff00', cyan: '#00ffff', magenta: '#ff00ff', blue: '#0000ff', red: '#ff0000', darkBlue: '#00008b', darkCyan: '#008b8b', darkGreen: '#006400', darkMagenta: '#8b008b', darkRed: '#8b0000', darkYellow: '#808000', darkGray: '#a9a9a9', lightGray: '#d3d3d3', black: '#000000', white: '#ffffff' };
+  const on = (el) => { if (!el) return false; const v = attr(el, 'val'); return v == null || !/^(0|false|off|none)$/i.test(v); };
+
+  /* ---------------- open ---------------- */
+  async function toHTML(blob) {
+    const z = await PatOS.zip.read(blob);
+    if (!z.has('word/document.xml')) throw new Error('This isn’t a Word (.docx) file.');
+    const doc = xml.parse(await z.text('word/document.xml'));
+    const rels = {};
+    if (z.has('word/_rels/document.xml.rels')) xml.deep(xml.parse(await z.text('word/_rels/document.xml.rels')).documentElement, 'Relationship').forEach((r) => { rels[r.getAttribute('Id')] = { target: r.getAttribute('Target'), type: r.getAttribute('Type'), ext: r.getAttribute('TargetMode') === 'External' }; });
+    const styles = {};
+    if (z.has('word/styles.xml')) xml.deep(xml.parse(await z.text('word/styles.xml')).documentElement, 'style').forEach((s) => { const nm = attr(kid(s, 'name'), 'val'); const sn = kid(kid(s, 'pPr'), 'numPr'); styles[attr(s, 'styleId')] = { name: (nm || '').toLowerCase(), outline: attr(kid(kid(s, 'pPr'), 'outlineLvl'), 'val'), based: attr(kid(s, 'basedOn'), 'val'), numId: sn ? attr(kid(sn, 'numId'), 'val') : null, ilvl: sn ? attr(kid(sn, 'ilvl'), 'val') : null }; });
+    const numFmt = {};
+    if (z.has('word/numbering.xml')) {
+      const nd = xml.parse(await z.text('word/numbering.xml')).documentElement; const abs = {};
+      kids(nd, 'abstractNum').forEach((a) => { abs[attr(a, 'abstractNumId')] = kids(a, 'lvl').map((l) => attr(kid(l, 'numFmt'), 'val') || 'decimal'); });
+      kids(nd, 'num').forEach((n) => { numFmt[attr(n, 'numId')] = abs[attr(kid(n, 'abstractNumId'), 'val')] || []; });
+    }
+    const media = {};
+    async function image(rid, cx) {
+      const r = rels[rid]; if (!r || r.ext) return '';
+      let p = r.target.replace(/^\//, ''); p = p.startsWith('word/') ? p : 'word/' + p; if (!z.has(p)) return '';
+      const ext = p.split('.').pop().toLowerCase(); if (!MIME[ext]) return '';
+      if (!media[p]) media[p] = 'data:' + MIME[ext] + ';base64,' + PatOS.zip.b64(await z.get(p));
+      const w = cx ? Math.round(cx / 9525) : 0;
+      return `<img src="${media[p]}" style="${w ? 'width:' + Math.min(w, 648) + 'px;' : ''}max-width:100%">`;
+    }
+    const styleLevel = (id) => {
+      let s = styles[id], n = 0; while (s && n++ < 6) { const m = /^(?:heading|titre|überschrift|título|rubrik)\s*(\d)/.exec(s.name); if (m) return +m[1]; if (/^(title|titre|titel|título)$/.test(s.name)) return 0; if (s.outline != null) return +s.outline + 1; s = styles[s.based]; }
+      return -1;
+    };
+    const styleNum = (id) => { let st = styles[id], n = 0; while (st && n++ < 6) { if (st.numId) return { numId: st.numId, ilvl: st.ilvl || '0' }; st = styles[st.based]; } return null; };
+    async function runs(p) {
+      let out = '';
+      for (const c of p.children) {
+        if (c.localName === 'r') out += await run(c);
+        else if (c.localName === 'hyperlink') { const inner = (await Promise.all(kids(c, 'r').map(run))).join(''); const rid = c.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id') || attr(c, 'id'); const rel = rels[rid]; out += rel && rel.ext ? `<a href="${esc(rel.target)}">${inner}</a>` : inner; }
+        else if (c.localName === 'sdt') { const content = kid(c, 'sdtContent'); if (content) out += await runs(content); }
+        else if (c.localName === 'smartTag' || c.localName === 'ins') out += await runs(c);
+      }
+      return out;
+    }
+    async function run(r) {
+      const pr = kid(r, 'rPr'); let inner = '';
+      for (const c of r.children) {
+        if (c.localName === 't') inner += esc(c.textContent);
+        else if (c.localName === 'tab') inner += '&emsp;';
+        else if (c.localName === 'br') inner += attr(c, 'type') === 'page' ? '</p><div class="dx-pb" contenteditable="false"></div><p>' : '<br>';
+        else if (c.localName === 'noBreakHyphen') inner += '‑';
+        else if (c.localName === 'drawing') { const blip = xml.deep(c, 'blip')[0]; const ext = xml.deep(c, 'extent')[0]; if (blip) { const rid = blip.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'embed') || [...blip.attributes].find((a) => a.localName === 'embed')?.value; inner += await image(rid, ext ? +ext.getAttribute('cx') : 0); } }
+      }
+      if (!inner) return '';
+      if (pr) {
+        const css = []; const col = attr(kid(pr, 'color'), 'val'); if (col && col !== 'auto' && /^[0-9a-f]{6}$/i.test(col)) css.push('color:#' + col);
+        const hl = attr(kid(pr, 'highlight'), 'val'); if (hl && HL[hl]) css.push('background-color:' + HL[hl]); const shd = attr(kid(pr, 'shd'), 'fill'); if (shd && /^[0-9a-f]{6}$/i.test(shd)) css.push('background-color:#' + shd);
+        const sz = attr(kid(pr, 'sz'), 'val'); if (sz && +sz !== 22 && +sz > 0) css.push('font-size:' + Math.round(+sz / 2 * 1.333) + 'px');
+        const ff = attr(kid(pr, 'rFonts'), 'ascii'); if (ff) css.push('font-family:"' + ff.replace(/"/g, '') + '"');
+        if (css.length) inner = `<span style="${css.join(';')}">${inner}</span>`;
+        if (on(kid(pr, 'b'))) inner = `<b>${inner}</b>`; if (on(kid(pr, 'i'))) inner = `<i>${inner}</i>`;
+        const u = kid(pr, 'u'); if (u && on(u)) inner = `<u>${inner}</u>`; if (on(kid(pr, 'strike'))) inner = `<s>${inner}</s>`;
+        const va = attr(kid(pr, 'vertAlign'), 'val'); if (va === 'superscript') inner = `<sup>${inner}</sup>`; if (va === 'subscript') inner = `<sub>${inner}</sub>`;
+      }
+      return inner;
+    }
+    async function block(body) {
+      let html = ''; const stack = []; // open lists
+      const closeLists = (to) => { while (stack.length > to) html += '</li></' + stack.pop() + '>'; };
+      for (const el of body.children) {
+        if (el.localName === 'p') {
+          const pp = kid(el, 'pPr'); const num = kid(pp, 'numPr'); const sid = attr(kid(pp, 'pStyle'), 'val'); const lvl = sid ? styleLevel(sid) : -1;
+          const content = await runs(el);
+          const jc = attr(kid(pp, 'jc'), 'val'); const align = { center: 'center', right: 'right', end: 'right', both: 'justify' }[jc];
+          const sNum = !num && sid ? styleNum(sid) : null;
+          const nid = num ? attr(kid(num, 'numId'), 'val') : sNum && sNum.numId;
+          if ((num || sNum) && nid && nid !== '0') {
+            const il = +((num ? attr(kid(num, 'ilvl'), 'val') : sNum.ilvl) || 0), fmt = (numFmt[nid] || [])[il] || 'bullet', tag = fmt === 'bullet' || fmt === 'none' ? 'ul' : 'ol';
+            while (stack.length > il + 1) html += '</li></' + stack.pop() + '>';
+            if (stack.length === il + 1 && stack[il] !== tag) { html += '</li></' + stack.pop() + '>'; }
+            if (stack.length === il + 1) html += '</li><li>'; else { while (stack.length < il + 1) { html += (stack.length ? '' : '') + '<' + tag + '><li>'; stack.push(tag); } }
+            html += content || '<br>';
+            continue;
+          }
+          closeLists(0);
+          const st = align ? ` style="text-align:${align}"` : '';
+          if (lvl === 0) html += `<h1${st}>${content || '<br>'}</h1>`;
+          else if (lvl >= 1) html += `<h${Math.min(4, lvl + 1)}${st}>${content || '<br>'}</h${Math.min(4, lvl + 1)}>`;
+          else html += `<p${st}>${content || '<br>'}</p>`;
+        } else if (el.localName === 'tbl') {
+          closeLists(0);
+          let t = '<table class="doc-table"><tbody>';
+          for (const tr of kids(el, 'tr')) {
+            t += '<tr>';
+            for (const tc of kids(tr, 'tc')) {
+              const span = attr(kid(kid(tc, 'tcPr'), 'gridSpan'), 'val'); const parts = [];
+              for (const p of kids(tc, 'p')) parts.push(await runs(p));
+              const shd = attr(kid(kid(tc, 'tcPr'), 'shd'), 'fill');
+              t += `<td${span ? ' colspan="' + span + '"' : ''}${shd && /^[0-9a-f]{6}$/i.test(shd) ? ' style="background:#' + shd + '"' : ''}>${parts.join('<br>') || '<br>'}</td>`;
+            }
+            t += '</tr>';
+          }
+          html += t + '</tbody></table><p><br></p>';
+        } else if (el.localName === 'sdt') { const c = kid(el, 'sdtContent'); if (c) html += await block(c); }
+      }
+      closeLists(0);
+      return html;
+    }
+    let html = await block(kid(doc.documentElement, 'body'));
+    html = html.replace(/<p><\/p>/g, '').replace(/<p><br><\/p>(?=<div class="dx-pb")/g, '');
+    return html || '<p><br></p>';
+  }
+
+  /* ---------------- save ---------------- */
+  const px2hp = (px) => Math.round(px * 0.75 * 2);
+  const hex = (c) => { if (!c) return null; c = String(c).trim(); const m = /^#([0-9a-f]{3}|[0-9a-f]{6})$/i.exec(c); if (m) return (m[1].length === 3 ? m[1].replace(/./g, '$&$&') : m[1]).toUpperCase(); const r = /rgba?\((\d+),\s*(\d+),\s*(\d+)(?:,\s*([\d.]+))?\)/.exec(c); if (r && (r[4] == null || +r[4] > 0)) return [r[1], r[2], r[3]].map((n) => (+n).toString(16).padStart(2, '0')).join('').toUpperCase(); return null; };
+  const SIZE_PT = [0, 8, 10, 12, 14, 18, 24, 36];
+
+  async function fromElement(root, opts) {
+    opts = opts || {};
+    const media = []; const hyper = []; const numDefs = []; // ordered list instances
+    let rid = 100, docPr = 1;
+    const dataBytes = (url) => { const m = /^data:([^;,]+)(;base64)?,(.*)$/s.exec(url); if (!m) return null; const bin = m[2] ? atob(m[3]) : decodeURIComponent(m[3]); const u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); return { mime: m[1], bytes: u8 }; };
+    function imageXml(img) {
+      const d = dataBytes(img.getAttribute('src') || ''); if (!d) return '';
+      let ext = { 'image/png': 'png', 'image/jpeg': 'jpeg', 'image/gif': 'gif', 'image/bmp': 'bmp' }[d.mime]; if (!ext) return '';
+      const id = 'rId' + rid++; const name = 'image' + (media.length + 1) + '.' + ext; media.push({ id, name, bytes: d.bytes });
+      const nw = img.naturalWidth || 400, nh = img.naturalHeight || 300; const sw = img.style.width; let wpx = /%$/.test(sw) ? 648 * parseFloat(sw) / 100 : /px$/.test(sw) ? parseFloat(sw) : Math.min(nw, 648); wpx = Math.min(648, wpx || nw);
+      const cx = Math.round(wpx * 9525), cy = Math.round(wpx * (nh / nw) * 9525); const n = docPr++;
+      return `<w:r><w:drawing><wp:inline distT="0" distB="0" distL="0" distR="0"><wp:extent cx="${cx}" cy="${cy}"/><wp:docPr id="${n}" name="Picture ${n}"/><a:graphic><a:graphicData uri="http://schemas.openxmlformats.org/drawingml/2006/picture"><pic:pic><pic:nvPicPr><pic:cNvPr id="${n}" name="${name}"/><pic:cNvPicPr/></pic:nvPicPr><pic:blipFill><a:blip r:embed="${id}"/><a:stretch><a:fillRect/></a:stretch></pic:blipFill><pic:spPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="${cx}" cy="${cy}"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></pic:spPr></pic:pic></a:graphicData></a:graphic></wp:inline></w:drawing></w:r>`;
+    }
+    function rpr(st) {
+      let s = ''; if (st.font) s += `<w:rFonts w:ascii="${esc(st.font)}" w:hAnsi="${esc(st.font)}" w:cs="${esc(st.font)}"/>`;
+      if (st.b) s += '<w:b/>'; if (st.i) s += '<w:i/>'; if (st.s) s += '<w:strike/>';
+      if (st.color) s += `<w:color w:val="${st.color}"/>`; if (st.sz) s += `<w:sz w:val="${st.sz}"/><w:szCs w:val="${st.sz}"/>`;
+      if (st.u) s += '<w:u w:val="single"/>'; if (st.bg) s += `<w:shd w:val="clear" w:color="auto" w:fill="${st.bg}"/>`; if (st.sup) s += '<w:vertAlign w:val="superscript"/>'; if (st.sub) s += '<w:vertAlign w:val="subscript"/>';
+      if (st.link) s = '<w:rStyle w:val="Hyperlink"/>' + s;
+      return s ? `<w:rPr>${s}</w:rPr>` : '';
+    }
+    function inline(node, st, pre) {
+      let out = '';
+      node.childNodes.forEach((c) => {
+        if (c.nodeType === 3) { let t = c.textContent; if (!pre) t = t.replace(/[\n\r\t ]+/g, ' '); if (t) out += `<w:r>${rpr(st)}<w:t xml:space="preserve">${esc(t)}</w:t></w:r>`; return; }
+        if (c.nodeType !== 1) return;
+        const tag = c.tagName.toLowerCase(); const s2 = Object.assign({}, st); const cs = c.style || {};
+        if (tag === 'br') { out += '<w:r><w:br/></w:r>'; return; }
+        if (tag === 'img') { out += imageXml(c); return; }
+        if (/^(b|strong)$/.test(tag)) s2.b = 1; if (/^(i|em)$/.test(tag)) s2.i = 1; if (tag === 'u') s2.u = 1; if (/^(s|strike|del)$/.test(tag)) s2.s = 1; if (tag === 'sup') s2.sup = 1; if (tag === 'sub') s2.sub = 1;
+        if (tag === 'font') { const col = hex(c.getAttribute('color')); if (col) s2.color = col; const sz = SIZE_PT[+c.getAttribute('size')]; if (sz) s2.sz = sz * 2; const f = c.getAttribute('face'); if (f) s2.font = f.split(',')[0].replace(/["']/g, '').trim(); }
+        if (cs.fontWeight === 'bold' || +cs.fontWeight >= 600) s2.b = 1; if (cs.fontStyle === 'italic') s2.i = 1;
+        const td = cs.textDecorationLine || cs.textDecoration || ''; if (/underline/.test(td)) s2.u = 1; if (/line-through/.test(td)) s2.s = 1;
+        if (cs.color) { const h = hex(cs.color); if (h) s2.color = h; } if (cs.backgroundColor) { const h = hex(cs.backgroundColor); if (h) s2.bg = h; }
+        if (cs.fontSize && /px$/.test(cs.fontSize)) s2.sz = px2hp(parseFloat(cs.fontSize)); if (cs.fontFamily) s2.font = cs.fontFamily.split(',')[0].replace(/["']/g, '').trim();
+        if (tag === 'a' && c.getAttribute('href')) {
+          const href = c.getAttribute('href'); if (/^https?:|^mailto:/.test(href)) { const id = 'rId' + rid++; hyper.push({ id, href }); out += `<w:hyperlink r:id="${id}">${inline(c, Object.assign(s2, { link: 1, u: 1, color: s2.color || '0563C1' }), pre)}</w:hyperlink>`; return; }
+        }
+        out += inline(c, s2, pre || tag === 'pre');
+      });
+      return out;
+    }
+    const jcOf = (el) => { const a = el.style && el.style.textAlign; return { center: 'center', right: 'right', justify: 'both' }[a] ? `<w:jc w:val="${{ center: 'center', right: 'right', justify: 'both' }[a]}"/>` : ''; };
+    const lineOf = (el) => { const lh = el.style && parseFloat(el.style.lineHeight); return lh ? `<w:spacing w:line="${Math.round(lh * 240)}" w:lineRule="auto"/>` : ''; };
+    const para = (ppr, inner) => `<w:p>${ppr ? `<w:pPr>${ppr}</w:pPr>` : ''}${inner}</w:p>`;
+    function list(el, lvl, kind) {
+      const ordered = el.tagName.toLowerCase() === 'ol'; const check = el.classList && el.classList.contains('dx-check');
+      let numId = ordered ? 0 : 1; if (ordered) { numDefs.push(1); numId = 100 + numDefs.length; }
+      let out = '';
+      [...el.children].forEach((li) => {
+        if (li.tagName.toLowerCase() !== 'li') return;
+        const clone = li.cloneNode(true); clone.querySelectorAll('ul,ol').forEach((n) => n.remove());
+        let inner = inline(clone, {});
+        if (check) inner = `<w:r><w:t xml:space="preserve">${li.classList.contains('done') ? '☑ ' : '☐ '}</w:t></w:r>` + inner;
+        out += para((check ? '' : `<w:numPr><w:ilvl w:val="${lvl}"/><w:numId w:val="${numId}"/></w:numPr>`) + (check ? '<w:ind w:left="360"/>' : '') + jcOf(li), inner);
+        li.querySelectorAll(':scope > ul, :scope > ol').forEach((sub) => { out += list(sub, Math.min(lvl + 1, 2)); });
+      });
+      return out;
+    }
+    function table(el) {
+      const rows = [...el.querySelectorAll('tr')]; const cols = Math.max(1, ...rows.map((r) => r.children.length));
+      let t = '<w:tbl><w:tblPr><w:tblStyle w:val="TableGrid"/><w:tblW w:w="5000" w:type="pct"/><w:tblBorders>' + ['top', 'left', 'bottom', 'right', 'insideH', 'insideV'].map((s) => `<w:${s} w:val="single" w:sz="4" w:space="0" w:color="BBBBBB"/>`).join('') + '</w:tblBorders></w:tblPr><w:tblGrid>' + Array.from({ length: cols }, () => `<w:gridCol w:w="${Math.floor(9360 / cols)}"/>`).join('') + '</w:tblGrid>';
+      rows.forEach((r, ri) => {
+        t += '<w:tr>';
+        [...r.children].forEach((c) => {
+          const span = +c.getAttribute('colspan') || 1; const th = c.tagName.toLowerCase() === 'th'; const bg = hex(c.style && c.style.backgroundColor) || (th ? 'F2F2F7' : null);
+          t += `<w:tc><w:tcPr><w:tcW w:w="${Math.floor(9360 / cols) * span}" w:type="dxa"/>${span > 1 ? `<w:gridSpan w:val="${span}"/>` : ''}${bg ? `<w:shd w:val="clear" w:color="auto" w:fill="${bg}"/>` : ''}</w:tcPr>`;
+          const segs = []; let cur = document.createElement('div'); c.childNodes.forEach((n) => { if (n.nodeType === 1 && n.tagName.toLowerCase() === 'br') { segs.push(cur); cur = document.createElement('div'); } else cur.appendChild(n.cloneNode(true)); }); segs.push(cur);
+          t += segs.map((s) => para(jcOf(c), inline(s, th ? { b: 1 } : {}))).join('') || para('', ''); t += '</w:tc>';
+        });
+        t += '</w:tr>';
+      });
+      return t + '</w:tbl>' + para('', '');
+    }
+    function blocks(parent) {
+      let out = '';
+      parent.childNodes.forEach((el) => {
+        if (el.nodeType === 3) { if (el.textContent.trim()) out += para('', inline({ childNodes: [el] }, {})); return; }
+        if (el.nodeType !== 1) return;
+        const tag = el.tagName.toLowerCase(); const cls = el.classList;
+        if (cls.contains('dx-pb')) out += para('', '<w:r><w:br w:type="page"/></w:r>');
+        else if (cls.contains('dx-toc')) return;
+        else if (/^h[1-4]$/.test(tag)) out += para(`<w:pStyle w:val="${['Title', 'Heading1', 'Heading2', 'Heading3'][+tag[1] - 1]}"/>` + jcOf(el), inline(el, {}));
+        else if (tag === 'ul' || tag === 'ol') out += list(el, 0);
+        else if (tag === 'table') out += table(el);
+        else if (tag === 'blockquote') out += para('<w:pBdr><w:left w:val="single" w:sz="18" w:space="8" w:color="C7C7CC"/></w:pBdr><w:ind w:left="480"/>', inline(el, { i: 1, color: '555555' }));
+        else if (tag === 'pre') out += para('<w:shd w:val="clear" w:color="auto" w:fill="F4F4F6"/>', inline(el, { font: 'Courier New', sz: 20 }, true));
+        else if (tag === 'hr') out += para('<w:pBdr><w:bottom w:val="single" w:sz="6" w:space="1" w:color="999999"/></w:pBdr>', '');
+        else if (tag === 'img') out += para('', imageXml(el));
+        else if ((tag === 'div' || tag === 'section') && [...el.children].some((c) => /^(p|div|h[1-4]|ul|ol|table|blockquote|pre)$/i.test(c.tagName))) out += blocks(el);
+        else out += para(jcOf(el) + lineOf(el), inline(el, {}) || '');
+      });
+      return out;
+    }
+    const body = blocks(root);
+    const ns = 'xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships" xmlns:wp="http://schemas.openxmlformats.org/drawingml/2006/wordprocessingDrawing" xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:pic="http://schemas.openxmlformats.org/drawingml/2006/picture"';
+    const docXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:document ${ns}><w:body>${body || para('', '')}<w:sectPr><w:pgSz w:w="12240" w:h="15840"/><w:pgMar w:top="1440" w:right="1440" w:bottom="1440" w:left="1440" w:header="720" w:footer="720" w:gutter="0"/></w:sectPr></w:body></w:document>`;
+    const H = (id, name, size, extra) => `<w:style w:type="paragraph" w:styleId="${id}"><w:name w:val="${name}"/><w:basedOn w:val="Normal"/><w:next w:val="Normal"/><w:qFormat/><w:pPr><w:keepNext/><w:spacing w:before="${extra}" w:after="120"/></w:pPr><w:rPr><w:b/><w:sz w:val="${size}"/><w:szCs w:val="${size}"/></w:rPr></w:style>`;
+    const styles = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:styles xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:docDefaults><w:rPrDefault><w:rPr><w:rFonts w:ascii="Calibri" w:hAnsi="Calibri" w:eastAsia="Calibri" w:cs="Calibri"/><w:sz w:val="22"/><w:szCs w:val="22"/><w:lang w:val="en-US"/></w:rPr></w:rPrDefault><w:pPrDefault><w:pPr><w:spacing w:after="160" w:line="259" w:lineRule="auto"/></w:pPr></w:pPrDefault></w:docDefaults><w:style w:type="paragraph" w:default="1" w:styleId="Normal"><w:name w:val="Normal"/><w:qFormat/></w:style>${H('Title', 'Title', 56, 0)}${H('Heading1', 'heading 1', 40, 240)}${H('Heading2', 'heading 2', 32, 200)}${H('Heading3', 'heading 3', 26, 160)}<w:style w:type="character" w:styleId="Hyperlink"><w:name w:val="Hyperlink"/><w:rPr><w:color w:val="0563C1"/><w:u w:val="single"/></w:rPr></w:style><w:style w:type="table" w:styleId="TableGrid"><w:name w:val="Table Grid"/><w:tblPr><w:tblBorders><w:top w:val="single" w:sz="4" w:space="0" w:color="auto"/><w:left w:val="single" w:sz="4" w:space="0" w:color="auto"/><w:bottom w:val="single" w:sz="4" w:space="0" w:color="auto"/><w:right w:val="single" w:sz="4" w:space="0" w:color="auto"/><w:insideH w:val="single" w:sz="4" w:space="0" w:color="auto"/><w:insideV w:val="single" w:sz="4" w:space="0" w:color="auto"/></w:tblBorders></w:tblPr></w:style></w:styles>`;
+    const lv = (fmt, txt, i) => `<w:lvl w:ilvl="${i}"><w:start w:val="1"/><w:numFmt w:val="${fmt}"/><w:lvlText w:val="${txt}"/><w:lvlJc w:val="left"/><w:pPr><w:ind w:left="${720 + i * 360}" w:hanging="360"/></w:pPr>${fmt === 'bullet' ? '<w:rPr><w:rFonts w:ascii="Symbol" w:hAnsi="Symbol" w:hint="default"/></w:rPr>' : ''}</w:lvl>`;
+    const numbering = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><w:numbering xmlns:w="http://schemas.openxmlformats.org/wordprocessingml/2006/main"><w:abstractNum w:abstractNumId="0"><w:multiLevelType w:val="hybridMultilevel"/>${[0, 1, 2].map((i) => lv('bullet', '', i)).join('')}</w:abstractNum><w:abstractNum w:abstractNumId="1"><w:multiLevelType w:val="hybridMultilevel"/>${[0, 1, 2].map((i) => lv('decimal', '%' + (i + 1) + '.', i)).join('')}</w:abstractNum><w:num w:numId="1"><w:abstractNumId w:val="0"/></w:num>${numDefs.map((_, k) => `<w:num w:numId="${101 + k}"><w:abstractNumId w:val="1"/><w:lvlOverride w:ilvl="0"><w:startOverride w:val="1"/></w:lvlOverride></w:num>`).join('')}</w:numbering>`;
+    const rels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/numbering" Target="numbering.xml"/>${media.map((m) => `<Relationship Id="${m.id}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="media/${m.name}"/>`).join('')}${hyper.map((h) => `<Relationship Id="${h.id}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="${esc(h.href)}" TargetMode="External"/>`).join('')}</Relationships>`;
+    const types = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Default Extension="jpeg" ContentType="image/jpeg"/><Default Extension="gif" ContentType="image/gif"/><Default Extension="bmp" ContentType="image/bmp"/><Override PartName="/word/document.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.document.main+xml"/><Override PartName="/word/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.styles+xml"/><Override PartName="/word/numbering.xml" ContentType="application/vnd.openxmlformats-officedocument.wordprocessingml.numbering+xml"/><Override PartName="/docProps/core.xml" ContentType="application/vnd.openxmlformats-package.core-properties+xml"/></Types>`;
+    const core = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><cp:coreProperties xmlns:cp="http://schemas.openxmlformats.org/package/2006/metadata/core-properties" xmlns:dc="http://purl.org/dc/elements/1.1/" xmlns:dcterms="http://purl.org/dc/terms/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"><dc:title>${esc(opts.title || '')}</dc:title><dc:creator>${esc((PatOS.settings && PatOS.settings.userName) || 'PatOS')}</dc:creator><dcterms:created xsi:type="dcterms:W3CDTF">${new Date().toISOString().replace(/\.\d+Z$/, 'Z')}</dcterms:created></cp:coreProperties>`;
+    return PatOS.zip.write([
+      { name: '[Content_Types].xml', data: types }, { name: '_rels/.rels', data: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="word/document.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/package/2006/relationships/metadata/core-properties" Target="docProps/core.xml"/></Relationships>` },
+      { name: 'docProps/core.xml', data: core }, { name: 'word/document.xml', data: docXml }, { name: 'word/styles.xml', data: styles }, { name: 'word/numbering.xml', data: numbering }, { name: 'word/_rels/document.xml.rels', data: rels },
+      ...media.map((m) => ({ name: 'word/media/' + m.name, data: m.bytes, store: true }))
+    ], 'application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+  }
+
+  PatOS.docx = { toHTML, fromElement };
+})();
+
+</script>
+  <script type="patos/js">
+/* Excel (.xlsx): open Excel files in Sheets and save Sheets as Excel files. */
+(function () {
+  'use strict';
+  const { esc, kids, kid, attr, deep, parse } = PatOS.xml;
+  const COLS = 26;
+  const colIdx = (s) => { let n = 0; for (const ch of s) n = n * 26 + ch.charCodeAt(0) - 64; return n - 1; };
+  const colName = (c) => { let s = ''; c++; while (c > 0) { const m = (c - 1) % 26; s = String.fromCharCode(65 + m) + s; c = Math.floor((c - 1) / 26); } return s; };
+  const BUILTIN = { 1: 'num', 2: 'dec', 3: 'num', 4: 'dec', 5: 'cur', 6: 'cur', 7: 'cur', 8: 'cur', 9: 'pct', 10: 'pct', 11: 'dec', 14: 'date', 15: 'date', 16: 'date', 17: 'date', 22: 'date', 37: 'num', 38: 'num', 39: 'dec', 40: 'dec', 44: 'cur' };
+  const fmtKind = (code) => { code = String(code || ''); if (/%/.test(code)) return 'pct'; if (/[$€£¥]|\[\$/.test(code)) return 'cur'; if (/[dmyhs]/i.test(code.replace(/"[^"]*"|\[[^\]]*\]/g, '')) && /[dy]/i.test(code.replace(/"[^"]*"/g, ''))) return 'date'; if (/0\.0/.test(code)) return 'dec'; if (/^#,##0$|^0$/.test(code)) return 'num'; return null; };
+  const rgb = (c) => { if (!c) return null; const v = attr(c, 'rgb'); if (v && /^[0-9a-f]{8}$/i.test(v)) return '#' + v.slice(2).toLowerCase(); if (v && /^[0-9a-f]{6}$/i.test(v)) return '#' + v.toLowerCase(); return null; };
+
+  /* ---------------- open ---------------- */
+  async function toBook(blob) {
+    const z = await PatOS.zip.read(blob);
+    if (!z.has('xl/workbook.xml')) throw new Error('This isn’t an Excel (.xlsx) file.');
+    const wb = parse(await z.text('xl/workbook.xml')).documentElement;
+    const rels = {}; deep(parse(await z.text('xl/_rels/workbook.xml.rels')).documentElement, 'Relationship').forEach((r) => { rels[r.getAttribute('Id')] = r.getAttribute('Target'); });
+    const shared = [];
+    if (z.has('xl/sharedStrings.xml')) deep(parse(await z.text('xl/sharedStrings.xml')).documentElement, 'si').forEach((si) => { shared.push(deep(si, 't').filter((t) => !(t.parentNode.localName === 'rPh')).map((t) => t.textContent).join('')); });
+    // styles: number formats, bold, italic, fills, font colours, alignment
+    const xfs = [];
+    if (z.has('xl/styles.xml')) {
+      const st = parse(await z.text('xl/styles.xml')).documentElement;
+      const nf = {}; deep(kid(st, 'numFmts'), 'numFmt').forEach((n) => { nf[attr(n, 'numFmtId')] = attr(n, 'formatCode'); });
+      const fonts = kids(kid(st, 'fonts'), 'font').map((f) => ({ b: !!kid(f, 'b') && attr(kid(f, 'b'), 'val') !== '0', i: !!kid(f, 'i') && attr(kid(f, 'i'), 'val') !== '0', fg: rgb(kid(f, 'color')), fs: parseFloat(attr(kid(f, 'sz'), 'val')) || 0 }));
+      const fills = kids(kid(st, 'fills'), 'fill').map((f) => { const p = kid(f, 'patternFill'); return p && attr(p, 'patternType') === 'solid' ? rgb(kid(p, 'fgColor')) : null; });
+      kids(kid(st, 'cellXfs'), 'xf').forEach((x) => {
+        const id = attr(x, 'numFmtId'); const al = kid(x, 'alignment'); const f = fonts[+attr(x, 'fontId')] || {};
+        const o = {}; const kind = BUILTIN[id] || (nf[id] ? fmtKind(nf[id]) : null); if (kind) o.nf = kind;
+        const dp = nf[id] ? (/\.(0+)/.exec(nf[id]) || [])[1] : null; if (dp != null && kind) o.dp = dp.length;
+        if (f.b) o.b = 1; if (f.i) o.i = 1; if (f.fg && f.fg !== '#000000') o.fg = f.fg; if (f.fs && Math.abs(f.fs - 11) > 0.5) o.fs = Math.round(f.fs * 1.333);
+        const bg = fills[+attr(x, 'fillId')]; if (bg) o.bg = bg;
+        const h = al && attr(al, 'horizontal'); if (h === 'center' || h === 'right' || h === 'left') o.al = h; if (al && attr(al, 'wrapText') === '1') o.w = 1;
+        xfs.push(o);
+      });
+    }
+    const sheets = [];
+    for (const s of kids(kid(wb, 'sheets'), 'sheet')) {
+      const rid = [...s.attributes].find((a) => a.localName === 'id' && a.prefix === 'r')?.value;
+      let target = rels[rid]; if (!target) continue; target = target.replace(/^\//, ''); const path = target.startsWith('xl/') ? target : 'xl/' + target; if (!z.has(path)) continue;
+      const sd = parse(await z.text(path)).documentElement; const cells = {}; const colW = {}; let maxR = 0, skipped = 0;
+      deep(kid(sd, 'cols'), 'col').forEach((c) => { const w = Math.round((parseFloat(attr(c, 'width')) || 8.43) * 7 + 5); for (let k = +attr(c, 'min') - 1; k <= Math.min(+attr(c, 'max') - 1, COLS - 1); k++) if (w !== 100) colW[k] = w; });
+      deep(kid(sd, 'sheetData'), 'c').forEach((c) => {
+        const ref = attr(c, 'r'); const m = /^([A-Z]+)(\d+)$/.exec(ref); if (!m) return; if (colIdx(m[1]) >= COLS) { skipped++; return; }
+        const t = attr(c, 't'); const f = kid(c, 'f'); const v = kid(c, 'v'); const is = kid(c, 'is');
+        let val = '';
+        if (f && f.textContent) val = '=' + f.textContent;
+        else if (t === 's' && v) val = shared[+v.textContent] ?? '';
+        else if (t === 'inlineStr' && is) val = deep(is, 't').map((x) => x.textContent).join('');
+        else if (t === 'b' && v) val = v.textContent === '1' ? 'TRUE' : 'FALSE';
+        else if (t === 'e' && v) val = v.textContent;
+        else if (v) val = v.textContent;
+        const s = xfs[+(attr(c, 's') || 0)] || {}; const o = Object.assign({}, s);
+        if (val === '' && !Object.keys(o).length) return;
+        o.v = String(val); cells[ref] = o; maxR = Math.max(maxR, +m[2]);
+      });
+      sheets.push({ name: attr(s, 'name') || 'Sheet', cells, colW, rows: Math.max(100, maxR + 20), skipped });
+    }
+    return { sheets, active: 0 };
+  }
+
+  /* ---------------- save ---------------- */
+  const hexOf = (c) => (c && /^#[0-9a-f]{6}$/i.test(c) ? 'FF' + c.slice(1).toUpperCase() : null);
+  async function fromBook(book, evalSheet) {
+    const fonts = ['<font><sz val="11"/><name val="Calibri"/><family val="2"/></font>'], fills = ['<fill><patternFill patternType="none"/></fill>', '<fill><patternFill patternType="gray125"/></fill>'], borders = ['<border><left/><right/><top/><bottom/><diagonal/></border>'], numFmts = [], xfs = ['<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'];
+    const reg = new Map(); const nfId = {};
+    const intern = (arr, x) => { let i = arr.indexOf(x); if (i < 0) { arr.push(x); i = arr.length - 1; } return i; };
+    const numFmtOf = (d) => {
+      const dp = d.dp; const k = d.nf; if (!k) return 0;
+      const code = k === 'cur' ? `"$"#,##0.${'0'.repeat(dp ?? 2)}` : k === 'pct' ? (dp === 0 ? '0%' : '0.' + '0'.repeat(dp ?? 1) + '%') : k === 'dec' ? '#,##0.' + '0'.repeat(dp ?? 2) : k === 'num' ? (dp ? '#,##0.' + '0'.repeat(dp) : '#,##0') : k === 'date' ? 'yyyy-mm-dd' : k === 'text' ? '@' : null;
+      if (!code) return 0; if (!(code in nfId)) { nfId[code] = 164 + numFmts.length; numFmts.push(`<numFmt numFmtId="${nfId[code]}" formatCode="${esc(code)}"/>`); } return nfId[code];
+    };
+    function style(d) {
+      const key = JSON.stringify([d.b, d.i, d.s, d.fg, d.bg, d.nf, d.dp, d.al, d.w, d.fs, d.bd]); if (reg.has(key)) return reg.get(key);
+      const fa = []; if (d.b) fa.push('<b/>'); if (d.i) fa.push('<i/>'); if (d.s) fa.push('<strike/>'); fa.push(`<sz val="${d.fs ? Math.round(d.fs * 0.75) : 11}"/>`); if (hexOf(d.fg)) fa.push(`<color rgb="${hexOf(d.fg)}"/>`); fa.push('<name val="Calibri"/><family val="2"/>');
+      const fontId = intern(fonts, '<font>' + fa.join('') + '</font>');
+      const fillId = hexOf(d.bg) ? intern(fills, `<fill><patternFill patternType="solid"><fgColor rgb="${hexOf(d.bg)}"/><bgColor indexed="64"/></patternFill></fill>`) : 0;
+      let borderId = 0; if (d.bd) { const all = d.bd === 'all'; const sd = (s, ch) => (all || d.bd.includes(ch) ? `<${s} style="thin"><color rgb="FF5F6368"/></${s}>` : `<${s}/>`); borderId = intern(borders, `<border>${sd('left', 'l')}${sd('right', 'r')}${sd('top', 't')}${sd('bottom', 'b')}<diagonal/></border>`); }
+      const nid = numFmtOf(d); const al = d.al || d.w ? `<alignment${d.al ? ` horizontal="${d.al}"` : ''}${d.w ? ' wrapText="1"' : ''} vertical="top"/>` : '';
+      xfs.push(`<xf numFmtId="${nid}" fontId="${fontId}" fillId="${fillId}" borderId="${borderId}" xfId="0"${nid ? ' applyNumberFormat="1"' : ''}${fontId ? ' applyFont="1"' : ''}${fillId ? ' applyFill="1"' : ''}${borderId ? ' applyBorder="1"' : ''}${al ? ' applyAlignment="1">' + al + '</xf>' : '/>'}`);
+      reg.set(key, xfs.length - 1); return xfs.length - 1;
+    }
+    const sheetXml = [];
+    for (let si = 0; si < book.sheets.length; si++) {
+      const sh = book.sheets[si]; const value = evalSheet(si); const rows = {};
+      Object.keys(sh.cells).forEach((ref) => { const m = /^([A-Z])(\d+)$/.exec(ref); if (m) (rows[+m[2]] = rows[+m[2]] || []).push([m[1].charCodeAt(0) - 65, ref, sh.cells[ref]]); });
+      let sd = '';
+      Object.keys(rows).map(Number).sort((a, b) => a - b).forEach((r) => {
+        sd += `<row r="${r}">`;
+        rows[r].sort((a, b) => a[0] - b[0]).forEach(([c, ref, d]) => {
+          const raw = d.v == null ? '' : String(d.v); const s = style(d); const sa = s ? ` s="${s}"` : '';
+          if (raw === '' ) { if (s) sd += `<c r="${ref}"${sa}/>`; return; }
+          if (raw[0] === '=') {
+            const v = value(ref); const f = esc(raw.slice(1));
+            if (typeof v === 'number') sd += `<c r="${ref}"${sa}><f>${f}</f><v>${v}</v></c>`;
+            else if (typeof v === 'boolean') sd += `<c r="${ref}"${sa} t="b"><f>${f}</f><v>${v ? 1 : 0}</v></c>`;
+            else if (typeof v === 'string' && /^#[A-Z/0!?]+$/.test(v)) sd += `<c r="${ref}"${sa} t="e"><f>${f}</f><v>${esc(v === '#ERROR!' ? '#VALUE!' : v)}</v></c>`;
+            else sd += `<c r="${ref}"${sa} t="str"><f>${f}</f><v>${esc(v == null ? '' : v)}</v></c>`;
+          } else if (raw !== '' && !isNaN(+raw) && d.nf !== 'text') sd += `<c r="${ref}"${sa}><v>${+raw}</v></c>`;
+          else if (raw === 'TRUE' || raw === 'FALSE') sd += `<c r="${ref}"${sa} t="b"><v>${raw === 'TRUE' ? 1 : 0}</v></c>`;
+          else sd += `<c r="${ref}"${sa} t="inlineStr"><is><t xml:space="preserve">${esc(raw)}</t></is></c>`;
+        });
+        sd += '</row>';
+      });
+      const cols = Object.keys(sh.colW || {}).map(Number).sort((a, b) => a - b).map((c) => `<col min="${c + 1}" max="${c + 1}" width="${Math.max(2, (sh.colW[c] - 5) / 7).toFixed(2)}" customWidth="1"/>`).join('');
+      sheetXml.push(`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetViews><sheetView workbookViewId="0"${si === 0 ? ' tabSelected="1"' : ''}/></sheetViews><sheetFormatPr defaultRowHeight="15"/>${cols ? '<cols>' + cols + '</cols>' : ''}<sheetData>${sd}</sheetData></worksheet>`);
+    }
+    const stylesXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">${numFmts.length ? `<numFmts count="${numFmts.length}">${numFmts.join('')}</numFmts>` : ''}<fonts count="${fonts.length}">${fonts.join('')}</fonts><fills count="${fills.length}">${fills.join('')}</fills><borders count="${borders.length}">${borders.join('')}</borders><cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="${xfs.length}">${xfs.join('')}</cellXfs><cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>`;
+    const names = book.sheets.map((s, i) => { let n = String(s.name || 'Sheet' + (i + 1)).replace(/[\[\]:*?\/\\]/g, ' ').slice(0, 31).trim() || 'Sheet' + (i + 1); return n; });
+    const uniq = []; names.forEach((n) => { let m = n, k = 2; while (uniq.includes(m)) m = n.slice(0, 28) + ' ' + k++; uniq.push(m); });
+    const wbXml = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView activeTab="${book.active || 0}"/></bookViews><sheets>${uniq.map((n, i) => `<sheet name="${esc(n)}" sheetId="${i + 1}" r:id="rId${i + 1}"/>`).join('')}</sheets></workbook>`;
+    const wbRels = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${uniq.map((n, i) => `<Relationship Id="rId${i + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet${i + 1}.xml"/>`).join('')}<Relationship Id="rId${uniq.length + 1}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>`;
+    const types = `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>${uniq.map((n, i) => `<Override PartName="/xl/worksheets/sheet${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>`).join('')}<Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/></Types>`;
+    return PatOS.zip.write([
+      { name: '[Content_Types].xml', data: types }, { name: '_rels/.rels', data: '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>' },
+      { name: 'xl/workbook.xml', data: wbXml }, { name: 'xl/_rels/workbook.xml.rels', data: wbRels }, { name: 'xl/styles.xml', data: stylesXml },
+      ...sheetXml.map((x, i) => ({ name: `xl/worksheets/sheet${i + 1}.xml`, data: x }))
+    ], 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  }
+  PatOS.xlsx = { toBook, fromBook, colName };
+})();
+
+</script>
+  <script type="patos/js">
+/* PowerPoint (.pptx): open PowerPoint files in Slides and save Slides as PowerPoint files. */
+(function () {
+  'use strict';
+  const { esc, kids, kid, attr, deep, parse } = PatOS.xml;
+  const W = 960, H = 540, EMU = 9525;
+  const MIME = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', gif: 'image/gif', webp: 'image/webp', svg: 'image/svg+xml', bmp: 'image/bmp' };
+  const NS_R = 'http://schemas.openxmlformats.org/officeDocument/2006/relationships';
+  const rattr = (el, name) => (el ? el.getAttributeNS(NS_R, name) || [...el.attributes].find((a) => a.localName === name && a.prefix === 'r')?.value || null : null);
+
+  /* ---------------- open ---------------- */
+  async function toDeck(blob) {
+    const z = await PatOS.zip.read(blob);
+    if (!z.has('ppt/presentation.xml')) throw new Error('This isn’t a PowerPoint (.pptx) file.');
+    const relsOf = async (part) => { const dir = part.slice(0, part.lastIndexOf('/') + 1), rp = dir + '_rels/' + part.slice(dir.length) + '.rels'; const out = {}; if (z.has(rp)) deep(parse(await z.text(rp)).documentElement, 'Relationship').forEach((r) => { let t = r.getAttribute('Target'); if (!/^https?:/.test(t)) { const parts = (t.startsWith('/') ? t.slice(1) : dir + t).split('/'); const st = []; parts.forEach((p) => { if (p === '..') st.pop(); else if (p !== '.') st.push(p); }); t = st.join('/'); } out[r.getAttribute('Id')] = { target: t, type: r.getAttribute('Type') }; }); return out; };
+    const pres = parse(await z.text('ppt/presentation.xml')).documentElement;
+    const sz = kid(pres, 'sldSz'); const SW = +attr(sz, 'cx') || 9144000, SH = +attr(sz, 'cy') || 5143500; const sc = W / SW, scy = H / SH;
+    const prel = await relsOf('ppt/presentation.xml');
+    // theme colours
+    const themeFile = Object.values(prel).find((r) => /theme$/.test(r.type));
+    const theme = {};
+    if (themeFile && z.has(themeFile.target)) { const cs = deep(parse(await z.text(themeFile.target)).documentElement, 'clrScheme')[0]; kids(cs, 'dk1 lt1 dk2 lt2 accent1 accent2 accent3 accent4 accent5 accent6 hlink'.split(' ').length ? null : null); if (cs) [...cs.children].forEach((c) => { const v = c.firstElementChild; theme[c.localName] = v ? (attr(v, 'val') && attr(v, 'val').length === 6 ? attr(v, 'val') : attr(v, 'lastClr') || '000000') : '000000'; }); }
+    const mapSch = { tx1: 'dk1', bg1: 'lt1', tx2: 'dk2', bg2: 'lt2' };
+    const color = (el) => {
+      if (!el) return null; const c = [...el.children].find((x) => /^(srgbClr|schemeClr|sysClr|prstClr)$/.test(x.localName)); if (!c) return null;
+      let hex = null; if (c.localName === 'srgbClr') hex = attr(c, 'val'); else if (c.localName === 'schemeClr') hex = theme[mapSch[attr(c, 'val')] || attr(c, 'val')]; else if (c.localName === 'sysClr') hex = attr(c, 'lastClr') || '000000'; else hex = { black: '000000', white: 'FFFFFF' }[attr(c, 'val')];
+      if (!hex) return null; const lm = attr(kid(c, 'lumMod'), 'val'), lo = attr(kid(c, 'lumOff'), 'val');
+      if (lm) { const n = [0, 2, 4].map((i) => parseInt(hex.substr(i, 2), 16)); const f = +lm / 100000, off = lo ? +lo / 100000 : 0; hex = n.map((v) => Math.max(0, Math.min(255, Math.round(v * f + 255 * off))).toString(16).padStart(2, '0')).join(''); }
+      return '#' + hex.toLowerCase();
+    };
+    const slideIds = kids(kid(pres, 'sldIdLst'), 'sldId').map((s) => rattr(s, 'id')); const deck = { theme: 'Simple', transition: 'fade', slides: [] };
+    let skippedMedia = 0;
+    for (const id of slideIds) {
+      const part = prel[id] && prel[id].target; if (!part || !z.has(part)) continue;
+      const sld = parse(await z.text(part)).documentElement; const srel = await relsOf(part);
+      // layout placeholders give positions to shapes that don't have their own
+      const layoutPos = {};
+      const layout = Object.values(srel).find((r) => /slideLayout$/.test(r.type));
+      for (const lp of [layout && layout.target].filter(Boolean)) {
+        if (!z.has(lp)) continue; const ld = parse(await z.text(lp)).documentElement;
+        const lrel = await relsOf(lp); const master = Object.values(lrel).find((r) => /slideMaster$/.test(r.type));
+        const grab = (doc) => deep(doc, 'sp').forEach((sp) => { const ph = deep(kid(kid(sp, 'nvSpPr'), 'nvPr'), 'ph')[0]; const x = deep(kid(sp, 'spPr'), 'xfrm')[0]; if (ph && x) { const key = (attr(ph, 'type') || 'body') + ':' + (attr(ph, 'idx') || '0'); const off = kid(x, 'off'), ext = kid(x, 'ext'); layoutPos[key] = layoutPos[key] || { x: +attr(off, 'x'), y: +attr(off, 'y'), cx: +attr(ext, 'cx'), cy: +attr(ext, 'cy') }; if (!layoutPos[attr(ph, 'type') || 'body']) layoutPos[attr(ph, 'type') || 'body'] = layoutPos[key]; } });
+        grab(ld); if (master && z.has(master.target)) grab(parse(await z.text(master.target)).documentElement);
+      }
+      const els = []; let bg;
+      const bgEl = deep(kid(sld, 'cSld'), 'bg')[0]; if (bgEl) { const sf = deep(bgEl, 'solidFill')[0]; if (sf) bg = color(sf); }
+      const tree = kid(kid(sld, 'cSld'), 'spTree');
+      const walkTree = async (parent) => {
+        for (const sp of parent.children) {
+          if (sp.localName === 'grpSp') { await walkTree(sp); continue; }
+          if (!/^(sp|pic)$/.test(sp.localName)) continue;
+          const nv = kid(sp, sp.localName === 'pic' ? 'nvPicPr' : 'nvSpPr'); const ph = deep(kid(nv, 'nvPr'), 'ph')[0];
+          let xf = deep(kid(sp, 'spPr'), 'xfrm')[0]; let pos = null;
+          if (xf) { const off = kid(xf, 'off'), ext = kid(xf, 'ext'); pos = { x: +attr(off, 'x'), y: +attr(off, 'y'), cx: +attr(ext, 'cx'), cy: +attr(ext, 'cy') }; }
+          else if (ph) pos = layoutPos[(attr(ph, 'type') || 'body') + ':' + (attr(ph, 'idx') || '0')] || layoutPos[attr(ph, 'type') || 'body'];
+          if (!pos) continue;
+          const box = { x: Math.round(pos.x * sc), y: Math.round(pos.y * scy), w: Math.max(10, Math.round(pos.cx * sc)), h: Math.max(10, Math.round(pos.cy * scy)) };
+          if (sp.localName === 'pic') {
+            const blip = deep(sp, 'blip')[0]; const rid = rattr(blip, 'embed'); const mt = srel[rid] && srel[rid].target; if (!mt || !z.has(mt)) continue;
+            const ext = mt.split('.').pop().toLowerCase(); if (!MIME[ext]) { skippedMedia++; continue; }
+            els.push(Object.assign({ type: 'image', src: 'data:' + MIME[ext] + ';base64,' + PatOS.zip.b64(await z.get(mt)) }, box)); continue;
+          }
+          const tx = kid(sp, 'txBody'); const spPr = kid(sp, 'spPr'); const fill = deep(spPr, 'solidFill').filter((f) => f.parentNode === spPr)[0]; const geom = attr(deep(spPr, 'prstGeom')[0], 'prst');
+          const text = tx ? [...kids(tx, 'p')].map((p) => ({ p, t: deep(p, 't').map((t) => t.textContent).join('') })) : []; const has = text.some((x) => x.t.trim());
+          if (!has && (fill || geom)) { const col = color(fill) || '#cccccc'; els.push(Object.assign({ type: 'shape', shape: { ellipse: 'circle', roundRect: 'rounded', triangle: 'triangle', rightArrow: 'arrow', star5: 'star', line: 'line', straightConnector1: 'line', wedgeRectCallout: 'bubble' }[geom] || 'rect', fill: col }, box)); continue; }
+          if (!has) continue;
+          let html = '', size = 0, bold = 0, col = null, italic = 0, align; let inList = false;
+          text.forEach(({ p }) => {
+            const pPr = kid(p, 'pPr'); const bullet = pPr && (kid(pPr, 'buChar') || kid(pPr, 'buAutoNum')); const al = attr(pPr, 'algn'); if (al && !align) align = { ctr: 'center', r: 'right', just: 'justify' }[al];
+            let inner = '';
+            kids(p, 'r').forEach((r) => {
+              const rp = kid(r, 'rPr'); let t = esc(deep(r, 't').map((x) => x.textContent).join(''));
+              if (!t) return;
+              const szv = rp && attr(rp, 'sz'); if (szv && !size) size = Math.round(+szv / 100 * 12700 * sc); if (rp && attr(rp, 'b') === '1') { if (text.length === 1) bold = 1; else t = '<b>' + t + '</b>'; }
+              if (rp && attr(rp, 'i') === '1') { if (text.length === 1) italic = 1; else t = '<i>' + t + '</i>'; }
+              const c = rp && color(kid(rp, 'solidFill')); if (c && !col) col = c;
+              inner += t;
+            });
+            kids(p, 'br').forEach(() => { inner += '<br>'; });
+            if (bullet) { if (!inList) { html += '<ul>'; inList = true; } html += '<li>' + (inner || '<br>') + '</li>'; } else { if (inList) { html += '</ul>'; inList = false; } html += inner + '<br>'; }
+          });
+          if (inList) html += '</ul>'; html = html.replace(/(<br>)+$/, '');
+          if (!size) { const dsz = deep(tx, 'defRPr')[0]; size = dsz && attr(dsz, 'sz') ? Math.round(+attr(dsz, 'sz') / 100 * 12700 * sc) : (attr(ph, 'type') === 'title' || attr(ph, 'type') === 'ctrTitle' ? 40 : 24); }
+          els.push(Object.assign({ type: 'text', html, size: Math.max(10, Math.min(120, size || 24)), bold, italic, align, color: col || undefined, role: ph && /^(title|ctrTitle)$/.test(attr(ph, 'type') || '') ? 'title' : undefined, fill: fill && !has ? color(fill) : undefined }, box));
+        }
+      };
+      await walkTree(tree);
+      let notes = ''; const nrel = Object.values(srel).find((r) => /notesSlide$/.test(r.type));
+      if (nrel && z.has(nrel.target)) { const nd = parse(await z.text(nrel.target)).documentElement; notes = deep(nd, 'sp').filter((sp) => deep(sp, 'ph')[0] && attr(deep(sp, 'ph')[0], 'type') === 'body').map((sp) => deep(sp, 'p').map((p) => deep(p, 't').map((t) => t.textContent).join('')).join('\n')).join('\n').trim(); }
+      deck.slides.push({ els, bg, notes: notes || undefined });
+    }
+    // light slides need dark text: use the plain white theme, dark ones keep text colours from the file
+    deck.warn = skippedMedia;
+    return deck;
+  }
+
+  /* ---------------- save ---------------- */
+  const hex6 = (c) => { if (!c) return null; const m = /^#([0-9a-f]{6})$/i.exec(c); if (m) return m[1].toUpperCase(); const m3 = /^#([0-9a-f]{3})$/i.exec(c); if (m3) return m3[1].replace(/./g, '$&$&').toUpperCase(); const r = /rgba?\((\d+),\s*(\d+),\s*(\d+)/.exec(c); return r ? [r[1], r[2], r[3]].map((n) => (+n).toString(16).padStart(2, '0')).join('').toUpperCase() : null; };
+  const PRST = { rect: 'rect', rounded: 'roundRect', circle: 'ellipse', triangle: 'triangle', arrow: 'rightArrow', star: 'star5', line: 'line', bubble: 'wedgeRectCallout' };
+  async function fromDeck(deck, THEMES) {
+    const t = THEMES[deck.theme] || THEMES.Simple; const media = []; let rid;
+    const fgHex = hex6(t.fg) || '000000', accent = hex6(t.accent) || '0A84FF';
+    const bgXml = (bg) => {
+      const css = bg || t.bg; const colors = (String(css).match(/#[0-9a-f]{6}|#[0-9a-f]{3}\b/gi) || []).map(hex6).filter(Boolean);
+      if (/gradient/.test(css) && colors.length > 1) return `<p:bg><p:bgPr><a:gradFill rotWithShape="1"><a:gsLst>${colors.map((c, i) => `<a:gs pos="${Math.round(i / (colors.length - 1) * 100000)}"><a:srgbClr val="${c}"/></a:gs>`).join('')}</a:gsLst><a:lin ang="2700000" scaled="0"/></a:gradFill><a:effectLst/></p:bgPr></p:bg>`;
+      return `<p:bg><p:bgPr><a:solidFill><a:srgbClr val="${colors[0] || 'FFFFFF'}"/></a:solidFill><a:effectLst/></p:bgPr></p:bg>`;
+    };
+    function paragraphs(el) {
+      const wrap = document.createElement('div'); wrap.innerHTML = el.html || '';
+      const base = { sz: Math.round((el.size || 24) * 0.75 * 100), b: el.bold ? 1 : 0, i: el.italic ? 1 : 0, u: el.underline ? 1 : 0, color: hex6(el.color) || (el.accent ? accent : fgHex), font: el.role === 'title' ? t.head : t.font };
+      const paras = []; let cur = []; let bullet = false;
+      const flush = () => { paras.push({ runs: cur, bullet }); cur = []; bullet = false; };
+      const walk = (node, st) => {
+        node.childNodes.forEach((c) => {
+          if (c.nodeType === 3) { if (c.textContent) cur.push({ t: c.textContent, st }); return; }
+          const tag = c.tagName.toLowerCase(); const s2 = Object.assign({}, st);
+          if (tag === 'br') { flush(); return; } if (tag === 'b' || tag === 'strong') s2.b = 1; if (tag === 'i' || tag === 'em') s2.i = 1; if (tag === 'u') s2.u = 1;
+          if (tag === 'ul' || tag === 'ol') { [...c.children].forEach((li) => { if (cur.length) flush(); bullet = true; walk(li, s2); flush(); }); return; }
+          if (tag === 'div' || tag === 'p') { if (cur.length) flush(); walk(c, s2); if (cur.length) flush(); return; }
+          if (c.style && c.style.color) { const h = hex6(c.style.color); if (h) s2.color = h; }
+          walk(c, s2);
+        });
+      };
+      walk(wrap, base); if (cur.length || !paras.length) flush();
+      return paras.map((p) => `<a:p><a:pPr algn="${{ center: 'ctr', right: 'r', justify: 'just' }[el.align] || 'l'}"${p.bullet ? ' marL="342900" indent="-342900"' : ''}>${p.bullet ? '<a:buFont typeface="Arial"/><a:buChar char="•"/>' : '<a:buNone/>'}</a:pPr>${p.runs.map((r) => `<a:r><a:rPr lang="en-US" sz="${r.st.sz}"${r.st.b ? ' b="1"' : ''}${r.st.i ? ' i="1"' : ''}${r.st.u ? ' u="sng"' : ''} dirty="0"><a:solidFill><a:srgbClr val="${r.st.color}"/></a:solidFill><a:latin typeface="${esc(String(r.st.font).split(',')[0].replace(/["']/g, '').trim())}"/></a:rPr><a:t>${esc(r.t)}</a:t></a:r>`).join('')}${p.runs.length ? '' : `<a:endParaRPr lang="en-US" sz="${base.sz}"/>`}</a:p>`).join('');
+    }
+    const slideFiles = [];
+    for (let i = 0; i < deck.slides.length; i++) {
+      const s = deck.slides[i]; const rels = []; let id = 2; let shapes = '';
+      for (const el of s.els) {
+        const off = `<a:xfrm><a:off x="${Math.round(el.x * EMU)}" y="${Math.round(el.y * EMU)}"/><a:ext cx="${Math.round(el.w * EMU)}" cy="${Math.round(el.h * EMU)}"/></a:xfrm>`; const n = id++;
+        if (el.type === 'text') shapes += `<p:sp><p:nvSpPr><p:cNvPr id="${n}" name="${el.role === 'title' ? 'Title' : 'TextBox'} ${n}"/><p:cNvSpPr txBox="1"/><p:nvPr/></p:nvSpPr><p:spPr>${off}<a:prstGeom prst="rect"><a:avLst/></a:prstGeom>${el.fill ? `<a:solidFill><a:srgbClr val="${hex6(el.fill) || 'FFFFFF'}"/></a:solidFill>` : '<a:noFill/>'}</p:spPr><p:txBody><a:bodyPr wrap="square" lIns="91440" tIns="45720" rIns="91440" bIns="45720" rtlCol="0" anchor="t"><a:noAutofit/></a:bodyPr><a:lstStyle/>${paragraphs(el)}</p:txBody></p:sp>`;
+        else if (el.type === 'shape') { const fill = hex6(el.fill === 'accent' ? t.accent : el.fill) || accent; shapes += el.shape === 'line' ? `<p:cxnSp><p:nvCxnSpPr><p:cNvPr id="${n}" name="Line ${n}"/><p:cNvCxnSpPr/><p:nvPr/></p:nvCxnSpPr><p:spPr><a:xfrm><a:off x="${Math.round(el.x * EMU)}" y="${Math.round(el.y * EMU)}"/><a:ext cx="${Math.round(el.w * EMU)}" cy="0"/></a:xfrm><a:prstGeom prst="line"><a:avLst/></a:prstGeom><a:ln w="${Math.round((el.stroke || 4) * EMU)}"><a:solidFill><a:srgbClr val="${fill}"/></a:solidFill></a:ln></p:spPr></p:cxnSp>` : `<p:sp><p:nvSpPr><p:cNvPr id="${n}" name="Shape ${n}"/><p:cNvSpPr/><p:nvPr/></p:nvSpPr><p:spPr>${off}<a:prstGeom prst="${PRST[el.shape] || 'rect'}"><a:avLst/></a:prstGeom><a:solidFill><a:srgbClr val="${fill}"/></a:solidFill><a:ln><a:noFill/></a:ln></p:spPr><p:txBody><a:bodyPr rtlCol="0" anchor="ctr"/><a:lstStyle/><a:p><a:endParaRPr lang="en-US"/></a:p></p:txBody></p:sp>`; }
+        else if (el.type === 'image') {
+          const m = /^data:([^;,]+);base64,(.*)$/s.exec(el.src || ''); if (!m) continue; const ext = { 'image/png': 'png', 'image/jpeg': 'jpeg', 'image/gif': 'gif' }[m[1]]; if (!ext) continue;
+          const bin = atob(m[2]); const u8 = new Uint8Array(bin.length); for (let k = 0; k < bin.length; k++) u8[k] = bin.charCodeAt(k);
+          const name = 'image' + (media.length + 1) + '.' + ext; media.push({ name, bytes: u8 }); rid = 'rId' + (rels.length + 2); rels.push(`<Relationship Id="${rid}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/image" Target="../media/${name}"/>`);
+          shapes += `<p:pic><p:nvPicPr><p:cNvPr id="${n}" name="Picture ${n}"/><p:cNvPicPr><a:picLocks noChangeAspect="1"/></p:cNvPicPr><p:nvPr/></p:nvPicPr><p:blipFill><a:blip r:embed="${rid}"/><a:stretch><a:fillRect/></a:stretch></p:blipFill><p:spPr>${off}<a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:pic>`;
+        }
+      }
+      const hasNotes = !!(s.notes && s.notes.trim());
+      if (hasNotes) rels.push(`<Relationship Id="rId${rels.length + 2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesSlide" Target="../notesSlides/notesSlide${i + 1}.xml"/>`);
+      slideFiles.push({ xml: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><p:sld xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="${NS_R}" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"><p:cSld>${bgXml(s.bg)}<p:spTree><p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>${shapes}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sld>`, rels: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>${rels.join('')}</Relationships>`, notes: hasNotes ? s.notes : null });
+    }
+    const P = 'xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" xmlns:r="' + NS_R + '" xmlns:p="http://schemas.openxmlformats.org/presentationml/2006/main"';
+    const XML = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>';
+    const REL = (items) => `${XML}<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${items.join('')}</Relationships>`;
+    const grp = '<p:nvGrpSpPr><p:cNvPr id="1" name=""/><p:cNvGrpSpPr/><p:nvPr/></p:nvGrpSpPr><p:grpSpPr><a:xfrm><a:off x="0" y="0"/><a:ext cx="0" cy="0"/><a:chOff x="0" y="0"/><a:chExt cx="0" cy="0"/></a:xfrm></p:grpSpPr>';
+    const hasNotes = slideFiles.some((f) => f.notes);
+    const files = [];
+    files.push({ name: '[Content_Types].xml', data: `${XML}<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/><Default Extension="png" ContentType="image/png"/><Default Extension="jpeg" ContentType="image/jpeg"/><Default Extension="gif" ContentType="image/gif"/><Override PartName="/ppt/presentation.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.presentation.main+xml"/><Override PartName="/ppt/slideMasters/slideMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideMaster+xml"/><Override PartName="/ppt/slideLayouts/slideLayout1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slideLayout+xml"/><Override PartName="/ppt/theme/theme1.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>${hasNotes ? '<Override PartName="/ppt/notesMasters/notesMaster1.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesMaster+xml"/><Override PartName="/ppt/theme/theme2.xml" ContentType="application/vnd.openxmlformats-officedocument.theme+xml"/>' : ''}${slideFiles.map((f, i) => `<Override PartName="/ppt/slides/slide${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.slide+xml"/>${f.notes ? `<Override PartName="/ppt/notesSlides/notesSlide${i + 1}.xml" ContentType="application/vnd.openxmlformats-officedocument.presentationml.notesSlide+xml"/>` : ''}`).join('')}</Types>` });
+    files.push({ name: '_rels/.rels', data: REL(['<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="ppt/presentation.xml"/>']) });
+    const presRels = ['<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="slideMasters/slideMaster1.xml"/>', ...slideFiles.map((f, i) => `<Relationship Id="rId${i + 2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="slides/slide${i + 1}.xml"/>`), `<Relationship Id="rId${slideFiles.length + 2}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="theme/theme1.xml"/>`];
+    if (hasNotes) presRels.push(`<Relationship Id="rId${slideFiles.length + 3}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster" Target="notesMasters/notesMaster1.xml"/>`);
+    files.push({ name: 'ppt/_rels/presentation.xml.rels', data: REL(presRels) });
+    files.push({ name: 'ppt/presentation.xml', data: `${XML}<p:presentation ${P}><p:sldMasterIdLst><p:sldMasterId id="2147483648" r:id="rId1"/></p:sldMasterIdLst>${hasNotes ? `<p:notesMasterIdLst><p:notesMasterId r:id="rId${slideFiles.length + 3}"/></p:notesMasterIdLst>` : ''}<p:sldIdLst>${slideFiles.map((f, i) => `<p:sldId id="${256 + i}" r:id="rId${i + 2}"/>`).join('')}</p:sldIdLst><p:sldSz cx="9144000" cy="5143500"/><p:notesSz cx="6858000" cy="9144000"/></p:presentation>` });
+    const txStyle = '<p:txStyles><p:titleStyle><a:lvl1pPr><a:defRPr sz="4400"/></a:lvl1pPr></p:titleStyle><p:bodyStyle><a:lvl1pPr><a:defRPr sz="2800"/></a:lvl1pPr></p:bodyStyle><p:otherStyle><a:lvl1pPr><a:defRPr sz="1800"/></a:lvl1pPr></p:otherStyle></p:txStyles>';
+    files.push({ name: 'ppt/slideMasters/slideMaster1.xml', data: `${XML}<p:sldMaster ${P}><p:cSld><p:bg><p:bgRef idx="1001"><a:schemeClr val="bg1"/></p:bgRef></p:bg><p:spTree>${grp}</p:spTree></p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/><p:sldLayoutIdLst><p:sldLayoutId id="2147483649" r:id="rId1"/></p:sldLayoutIdLst>${txStyle}</p:sldMaster>` });
+    files.push({ name: 'ppt/slideMasters/_rels/slideMaster1.xml.rels', data: REL(['<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideLayout" Target="../slideLayouts/slideLayout1.xml"/>', '<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="../theme/theme1.xml"/>']) });
+    files.push({ name: 'ppt/slideLayouts/slideLayout1.xml', data: `${XML}<p:sldLayout ${P} type="blank" preserve="1"><p:cSld name="Blank"><p:spTree>${grp}</p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:sldLayout>` });
+    files.push({ name: 'ppt/slideLayouts/_rels/slideLayout1.xml.rels', data: REL(['<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slideMaster" Target="../slideMasters/slideMaster1.xml"/>']) });
+    const themeXml = (name) => `${XML}<a:theme xmlns:a="http://schemas.openxmlformats.org/drawingml/2006/main" name="${name}"><a:themeElements><a:clrScheme name="${name}"><a:dk1><a:srgbClr val="000000"/></a:dk1><a:lt1><a:srgbClr val="FFFFFF"/></a:lt1><a:dk2><a:srgbClr val="1F2937"/></a:dk2><a:lt2><a:srgbClr val="F3F4F6"/></a:lt2><a:accent1><a:srgbClr val="${accent}"/></a:accent1><a:accent2><a:srgbClr val="FF375F"/></a:accent2><a:accent3><a:srgbClr val="32D74B"/></a:accent3><a:accent4><a:srgbClr val="FF9F0A"/></a:accent4><a:accent5><a:srgbClr val="BF5AF2"/></a:accent5><a:accent6><a:srgbClr val="64D2FF"/></a:accent6><a:hlink><a:srgbClr val="0563C1"/></a:hlink><a:folHlink><a:srgbClr val="954F72"/></a:folHlink></a:clrScheme><a:fontScheme name="${name}"><a:majorFont><a:latin typeface="Calibri"/><a:ea typeface=""/><a:cs typeface=""/></a:majorFont><a:minorFont><a:latin typeface="Calibri"/><a:ea typeface=""/><a:cs typeface=""/></a:minorFont></a:fontScheme><a:fmtScheme name="${name}"><a:fillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:fillStyleLst><a:lnStyleLst><a:ln w="6350"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln><a:ln w="12700"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln><a:ln w="19050"><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:ln></a:lnStyleLst><a:effectStyleLst><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle><a:effectStyle><a:effectLst/></a:effectStyle></a:effectStyleLst><a:bgFillStyleLst><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill><a:solidFill><a:schemeClr val="phClr"/></a:solidFill></a:bgFillStyleLst></a:fmtScheme></a:themeElements></a:theme>`;
+    files.push({ name: 'ppt/theme/theme1.xml', data: themeXml('PatOS') });
+    if (hasNotes) {
+      files.push({ name: 'ppt/theme/theme2.xml', data: themeXml('PatOS Notes') });
+      files.push({ name: 'ppt/notesMasters/notesMaster1.xml', data: `${XML}<p:notesMaster ${P}><p:cSld><p:bg><p:bgRef idx="1001"><a:schemeClr val="bg1"/></p:bgRef></p:bg><p:spTree>${grp}<p:sp><p:nvSpPr><p:cNvPr id="2" name="Slide Image Placeholder 1"/><p:cNvSpPr><a:spLocks noGrp="1" noRot="1" noChangeAspect="1"/></p:cNvSpPr><p:nvPr><p:ph type="sldImg" idx="2"/></p:nvPr></p:nvSpPr><p:spPr><a:xfrm><a:off x="685800" y="1143000"/><a:ext cx="5486400" cy="3086100"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr></p:sp><p:sp><p:nvSpPr><p:cNvPr id="3" name="Notes Placeholder 2"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph type="body" sz="quarter" idx="3"/></p:nvPr></p:nvSpPr><p:spPr><a:xfrm><a:off x="685800" y="4400550"/><a:ext cx="5486400" cy="3600450"/></a:xfrm><a:prstGeom prst="rect"><a:avLst/></a:prstGeom></p:spPr><p:txBody><a:bodyPr/><a:lstStyle/><a:p><a:endParaRPr lang="en-US"/></a:p></p:txBody></p:sp></p:spTree></p:cSld><p:clrMap bg1="lt1" tx1="dk1" bg2="lt2" tx2="dk2" accent1="accent1" accent2="accent2" accent3="accent3" accent4="accent4" accent5="accent5" accent6="accent6" hlink="hlink" folHlink="folHlink"/></p:notesMaster>` });
+      files.push({ name: 'ppt/notesMasters/_rels/notesMaster1.xml.rels', data: REL(['<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/theme" Target="../theme/theme2.xml"/>']) });
+    }
+    slideFiles.forEach((f, i) => {
+      files.push({ name: `ppt/slides/slide${i + 1}.xml`, data: f.xml }, { name: `ppt/slides/_rels/slide${i + 1}.xml.rels`, data: f.rels });
+      if (f.notes) {
+        files.push({ name: `ppt/notesSlides/notesSlide${i + 1}.xml`, data: `${XML}<p:notes ${P}><p:cSld><p:spTree>${grp}<p:sp><p:nvSpPr><p:cNvPr id="2" name="Slide Image Placeholder 1"/><p:cNvSpPr><a:spLocks noGrp="1" noRot="1" noChangeAspect="1"/></p:cNvSpPr><p:nvPr><p:ph type="sldImg"/></p:nvPr></p:nvSpPr><p:spPr/></p:sp><p:sp><p:nvSpPr><p:cNvPr id="3" name="Notes Placeholder 2"/><p:cNvSpPr><a:spLocks noGrp="1"/></p:cNvSpPr><p:nvPr><p:ph type="body" idx="1"/></p:nvPr></p:nvSpPr><p:spPr/><p:txBody><a:bodyPr/><a:lstStyle/>${f.notes.split('\n').map((l) => `<a:p><a:r><a:rPr lang="en-US"/><a:t>${esc(l)}</a:t></a:r></a:p>`).join('')}</p:txBody></p:sp></p:spTree></p:cSld><p:clrMapOvr><a:masterClrMapping/></p:clrMapOvr></p:notes>` });
+        files.push({ name: `ppt/notesSlides/_rels/notesSlide${i + 1}.xml.rels`, data: REL(['<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/notesMaster" Target="../notesMasters/notesMaster1.xml"/>', `<Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/slide" Target="../slides/slide${i + 1}.xml"/>`]) });
+      }
+    });
+    media.forEach((m) => files.push({ name: 'ppt/media/' + m.name, data: m.bytes, store: true }));
+    return PatOS.zip.write(files, 'application/vnd.openxmlformats-officedocument.presentationml.presentation');
+  }
+  PatOS.pptx = { toDeck, fromDeck };
+})();
+
+</script>
+  <script type="patos/js">
+/* Opening Word, Excel, PowerPoint and zip files from Finder, and the shared download helper. */
+(function () {
+  'use strict';
+  const T = (s) => PatOS.t(s);
+  PatOS.downloadBlob = function (name, blob) {
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+    setTimeout(() => URL.revokeObjectURL(a.href), 8000);
+  };
+  const KIND = { docx: 'Word', xlsx: 'Excel', pptx: 'PowerPoint' };
+  /* turn an Office file into a PatOS document and return where it went */
+  PatOS.importOffice = async function (blob, name, dest) {
+    dest = dest || '/Documents'; const ext = name.split('.').pop().toLowerCase(); const base = name.replace(/\.[^.]+$/, '') || T('Imported');
+    if (ext === 'docx') { const html = await PatOS.docx.toHTML(blob); const p = dest + '/' + PatOS.fs.uniqueName(dest, base + '.pdoc'); PatOS.fs.write(p, html); return { app: 'docs', path: p }; }
+    if (ext === 'xlsx') { const book = await PatOS.xlsx.toBook(blob); const p = dest + '/' + PatOS.fs.uniqueName(dest, base + '.psheet'); PatOS.fs.write(p, JSON.stringify(book)); const skipped = book.sheets.reduce((n, s) => n + (s.skipped || 0), 0); if (skipped) PatOS.notify({ title: T('Some cells were skipped'), body: skipped + ' ' + T('cells are past column Z, which Sheets doesn’t have yet.'), icon: 'sheets' }); return { app: 'sheets', path: p }; }
+    if (ext === 'pptx') { const deck = await PatOS.pptx.toDeck(blob); const p = dest + '/' + PatOS.fs.uniqueName(dest, base + '.pslides'); PatOS.fs.write(p, JSON.stringify(deck)); if (deck.warn) PatOS.notify({ title: T('Some pictures were skipped'), body: deck.warn + ' ' + T('pictures are in a format Slides can’t show.'), icon: 'slides' }); return { app: 'slides', path: p }; }
+    throw new Error(T('PatOS can open .docx, .xlsx and .pptx files. Older .doc, .xls and .ppt files need to be saved as the newer type first.'));
+  };
+  PatOS.openOffice = async function (path) {
+    const name = PatOS.fs.basename(path); const ext = PatOS.fs.ext(path);
+    PatOS.notify({ title: T('Opening') + ' ' + name + '…', body: T('Making a copy you can edit in') + ' ' + { docx: 'Docs', xlsx: 'Sheets', pptx: 'Slides' }[ext], icon: { docx: 'docs', xlsx: 'sheets', pptx: 'slides' }[ext] });
+    try { const blob = await PatOS.fs.getBlob(path); const r = await PatOS.importOffice(blob, name, PatOS.fs.dirname(path)); PatOS.launch(r.app, { path: r.path }); }
+    catch (e) { PatOS.alertBox(T('Couldn’t open this file'), e.message || String(e), { icon: 'finder' }); }
+  };
+  PatOS.openZip = async function (path) {
+    try { PatOS.notify({ title: T('Extracting…'), body: PatOS.fs.basename(path), icon: 'finder' }); const r = await PatOS.zip.unzipTo(path, PatOS.fs.dirname(path)); PatOS.notify({ title: T('Extracted'), body: r.count + ' ' + T('files'), icon: 'finder' }); PatOS.launch('finder', { path: r.path }); }
+    catch (e) { PatOS.alertBox(T('Couldn’t extract this file'), e.message || String(e), { icon: 'finder' }); }
+  };
+  PatOS.compress = async function (paths) {
+    try {
+      const dir = PatOS.fs.dirname(paths[0]); const base = paths.length === 1 ? PatOS.fs.basename(paths[0]).replace(/\.[^.]+$/, '') : T('Archive');
+      const blob = await PatOS.zip.zipPaths(paths); const name = PatOS.fs.uniqueName(dir, base + '.zip'); await PatOS.fs.writeBlob(dir + '/' + name, blob);
+      PatOS.notify({ title: T('Compressed'), body: name, icon: 'finder' });
+    } catch (e) { PatOS.alertBox(T('Couldn’t compress'), e.message || String(e), { icon: 'finder' }); }
+  };
 })();
 
 </script>
@@ -4925,7 +5656,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     }
     if (kind === 'audio') return PatOS.iconHTML('audiofile');
     if (kind === 'video') return PatOS.iconHTML('videos');
-    const docIc = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms', pdf: 'preview' }[PatOS.fs.ext(name)];
+    const docIc = { pdoc: 'docs', docx: 'docs', psheet: 'sheets', xlsx: 'sheets', csv: 'sheets', pslides: 'slides', pptx: 'slides', pform: 'forms', pdf: 'preview' }[PatOS.fs.ext(name)];
     if (docIc) return PatOS.iconHTML(docIc);
     if (kind === 'link') return PatOS.iconHTML('linkfile');
     return PatOS.iconHTML('file', PatOS.fs.ext(name) || 'txt');
@@ -7134,12 +7865,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   const { h, $$ } = PatOS;
   const PLACES = [
     { label: 'Desktop', path: '/Desktop', ic: 'desktop' }, { label: 'Documents', path: '/Documents', ic: 'doc' }, { label: 'Downloads', path: '/Downloads', ic: 'download' },
-    { label: 'Pictures', path: '/Pictures', ic: 'image' }, { label: 'Music', path: '/Music', ic: 'music' }, { label: 'Home', path: '/', ic: 'home' }
+    { label: 'Pictures', path: '/Pictures', ic: 'image' }, { label: 'Music', path: '/Music', ic: 'music' }, { label: 'Videos', path: '/Videos', ic: 'play' }, { label: 'Home', path: '/', ic: 'home' }
   ];
   const TAGS = { red: '#ff453a', orange: '#ff9f0a', yellow: '#ffd60a', green: '#32d74b', blue: '#0a84ff', purple: '#bf5af2', gray: '#8e8e93' };
   const TAG_NAMES = { red: 'Red', orange: 'Orange', yellow: 'Yellow', green: 'Green', blue: 'Blue', purple: 'Purple', gray: 'Gray' };
   const tagsOf = () => PatOS.store.get('fileTags', {});
-  const kindLabel = (it) => it.app ? 'Application' : it.type === 'dir' ? 'Folder' : ({ image: 'Image', audio: 'Audio', video: 'Video', pdf: 'PDF document', html: 'Web page', link: 'Web link' }[PatOS.fileKind(it.name, it)] || ({ pdoc: 'Document', psheet: 'Spreadsheet', csv: 'Spreadsheet', pslides: 'Presentation', pform: 'Form' }[PatOS.fs.ext(it.name)]) || 'Text document');
+  const kindLabel = (it) => it.app ? 'Application' : it.type === 'dir' ? 'Folder' : ({ image: 'Image', audio: 'Audio', video: 'Video', pdf: 'PDF document', html: 'Web page', link: 'Web link' }[PatOS.fileKind(it.name, it)] || ({ pdoc: 'Document', docx: 'Word document', psheet: 'Spreadsheet', xlsx: 'Excel spreadsheet', csv: 'Spreadsheet', pslides: 'Presentation', pptx: 'PowerPoint presentation', pform: 'Form', zip: 'Zip archive' }[PatOS.fs.ext(it.name)]) || 'Text document');
 
   /* ---------- Quick Look: press Space on a file to preview it ---------- */
   PatOS.quickLook = function (path, list) {
@@ -7356,6 +8087,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
             { divider: true },
             sel.length === 1 ? { label: PatOS.t('Rename…'), shortcut: 'Enter', action: () => PatOS.renameInline(it.path) } : null,
             { label: PatOS.t('Duplicate'), action: () => sel.forEach((p) => PatOS.fs.copy(p, PatOS.fs.dirname(p))) },
+            { label: PatOS.t('Compress'), action: () => PatOS.compress(sel) },
+            it.type === 'file' && /\.zip$/i.test(it.name) ? { label: PatOS.t('Extract Here'), action: () => PatOS.openZip(it.path) } : null,
             it.type === 'file' && sel.length === 1 ? { label: PatOS.t('Save to This Chromebook…'), action: () => PatOS.device.saveCopy(it.path) } : null,
             it.type === 'dir' && sel.length === 1 && PatOS.device.supported ? { label: PatOS.t('Save Folder to This Chromebook…'), action: () => PatOS.device.exportFolder(it.path) } : null,
             it.type === 'dir' && PatOS.device.isLinked(it.path) ? { label: PatOS.t('Refresh from This Chromebook'), action: () => PatOS.device.refresh(it.path) } : null,
@@ -7560,7 +8293,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     };
     q.oninput = draw;
     const wrap = h('div', { class: 'of-start' },
-      h('div', { class: 'of-shead' }, h('div', { class: 'of-slogo', html: PatOS.iconHTML(o.icon) }, h('b', {}, PatOS.t(o.title))), q),
+      h('div', { class: 'of-shead' }, h('div', { class: 'of-slogo', html: PatOS.iconHTML(o.icon) }, h('b', {}, PatOS.t(o.title))), o.onImportFile ? h('button', { class: 'btn of-import', onclick: () => { const i = h('input', { type: 'file', accept: o.importAccept || '' }); i.onchange = async () => { const f = i.files[0]; if (!f) return; try { const p = await o.onImportFile(f); win.el.classList.remove('of-starting'); wrap.remove(); o.onOpen(p); } catch (e) { PatOS.alertBox(PatOS.t('Couldn’t open this file'), e.message || String(e), { icon: o.icon }); } }; i.click(); } }, PatOS.t(o.importLabel || 'Open a file…')) : null, q),
       h('div', { class: 'of-sband' }, h('h3', {}, PatOS.t('Start something new')), tpl),
       h('div', { class: 'of-slist' }, h('h3', {}, PatOS.t('Recent')), list));
     win.body.appendChild(wrap);
@@ -12096,7 +12829,8 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       O().startScreen(win, {
         title: 'Docs', icon: 'docs', ext: ['pdoc'], templates: TEMPLATES,
         onCreate: (t) => { const p = PatOS.newDocPath('/Documents', t.name === 'Blank document' ? 'Untitled document' : t.name, 'pdoc'); PatOS.fs.write(p, t.html()); openDoc(win, p); },
-        onOpen: (p) => openDoc(win, p)
+        onOpen: (p) => openDoc(win, p),
+        importLabel: 'Open a Word file…', importAccept: '.docx', onImportFile: async (file) => { if (/\.csv$/i.test(file.name)) { const p = '/Documents/' + PatOS.fs.uniqueName('/Documents', file.name); PatOS.fs.write(p, await file.text()); return p; } return (await PatOS.importOffice(file, file.name)).path; }
       });
     }
   });
@@ -12402,7 +13136,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       const r = (anchor || toolbar).getBoundingClientRect();
       PatOS.menu([
         { label: T('PDF (print, then Save as PDF)'), action: printDoc },
-        { label: T('Word document (.doc)'), action: () => PatOS.downloadFile(baseName() + '.doc', docHTML()) },
+        { label: T('Word (.docx)'), action: async () => { try { clearMarks(); PatOS.downloadBlob(baseName() + '.docx', await PatOS.docx.fromElement(page, { title: baseName() })); } catch (err) { PatOS.alertBox(T('Couldn’t save'), err.message, { icon: 'docs' }); } } },
         { label: T('Web page (.html)'), action: () => PatOS.downloadFile(baseName() + '.html', docHTML()) },
         { label: 'Markdown (.md)', action: () => PatOS.downloadFile(baseName() + '.md', toMarkdown()) },
         { label: T('Plain text (.txt)'), action: () => PatOS.downloadFile(baseName() + '.txt', page.innerText) }
@@ -12553,6 +13287,27 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     }))).join('');
   }
 
+  /* a standalone evaluator, used when saving as Excel (works on any sheet, not just the open one) */
+  function makeEvaluator(cells) {
+    const cache = {}; const raw = (ref) => (cells[ref] ? cells[ref].v ?? '' : '');
+    function value(ref, stack) {
+      if (ref in cache) return cache[ref];
+      const v = raw(ref);
+      if (typeof v !== 'string' || v[0] !== '=') { cache[ref] = v === '' ? '' : v === 'TRUE' ? true : v === 'FALSE' ? false : isNaN(+v) || (cells[ref] && cells[ref].nf === 'text') ? v : +v; return cache[ref]; }
+      stack = stack || new Set(); if (stack.has(ref)) return '#CIRCULAR'; stack.add(ref);
+      let out;
+      try {
+        const f = compile(v.slice(1));
+        const R = (a, b) => { const p = parseRef(a), q = parseRef(b); const res = []; for (let r = Math.min(p.r, q.r); r <= Math.max(p.r, q.r); r++) for (let c = Math.min(p.c, q.c); c <= Math.max(p.c, q.c); c++) res.push(value(refName(c, r), stack)); res._w = Math.abs(q.c - p.c) + 1; return res; };
+        out = f(R, (x) => value(x, stack), FN);
+        if (typeof out === 'number' && !isFinite(out)) out = '#DIV/0!';
+        if (Array.isArray(out)) out = out[0];
+      } catch (e) { out = e.message === 'fn' ? '#NAME?' : '#ERROR!'; }
+      stack.delete(ref); cache[ref] = out; return out;
+    }
+    return value;
+  }
+
   const TEMPLATES = [
     { name: 'Blank spreadsheet', cells: () => ({}), preview: '<s></s>' },
     { name: 'Budget', sub: 'Income and spending', cells: () => ({ A1: { v: T('Monthly budget'), b: 1, fs: 16 }, A3: { v: T('Category'), b: 1, bg: '#e6f4ea' }, B3: { v: T('Planned'), b: 1, bg: '#e6f4ea' }, C3: { v: T('Actual'), b: 1, bg: '#e6f4ea' }, D3: { v: T('Difference'), b: 1, bg: '#e6f4ea' }, A4: { v: T('Food') }, B4: { v: '200', nf: 'cur' }, C4: { v: '185', nf: 'cur' }, D4: { v: '=B4-C4', nf: 'cur' }, A5: { v: T('Transport') }, B5: { v: '60', nf: 'cur' }, C5: { v: '72', nf: 'cur' }, D5: { v: '=B5-C5', nf: 'cur' }, A6: { v: T('Fun') }, B6: { v: '80', nf: 'cur' }, C6: { v: '64', nf: 'cur' }, D6: { v: '=B6-C6', nf: 'cur' }, A7: { v: T('Savings') }, B7: { v: '100', nf: 'cur' }, C7: { v: '100', nf: 'cur' }, D7: { v: '=B7-C7', nf: 'cur' }, A8: { v: T('Total'), b: 1 }, B8: { v: '=SUM(B4:B7)', b: 1, nf: 'cur' }, C8: { v: '=SUM(C4:C7)', b: 1, nf: 'cur' }, D8: { v: '=SUM(D4:D7)', b: 1, nf: 'cur' } }), preview: '<b>$</b><em></em><em></em><em></em>' },
@@ -12571,7 +13326,8 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       PatOS.office.startScreen(win, {
         title: 'Sheets', icon: 'sheets', ext: ['psheet', 'csv'], templates: TEMPLATES,
         onCreate: (t) => { const p = PatOS.newDocPath('/Documents', t.name === 'Blank spreadsheet' ? 'Untitled spreadsheet' : t.name, 'psheet'); PatOS.fs.write(p, JSON.stringify({ sheets: [{ name: T('Sheet') + ' 1', cells: t.cells(), colW: {} }], active: 0 })); openSheet(win, p); },
-        onOpen: (p) => openSheet(win, p)
+        onOpen: (p) => openSheet(win, p),
+        importLabel: 'Open an Excel file…', importAccept: '.xlsx,.csv', onImportFile: async (file) => { if (/\.csv$/i.test(file.name)) { const p = '/Documents/' + PatOS.fs.uniqueName('/Documents', file.name); PatOS.fs.write(p, await file.text()); return p; } return (await PatOS.importOffice(file, file.name)).path; }
       });
     }
   });
@@ -12917,7 +13673,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       const r = anchorEl.getBoundingClientRect();
       PatOS.menu([
         { label: T('CSV (this sheet)'), action: () => PatOS.downloadFile(baseName() + '.csv', toCSV()) },
-        { label: T('Excel-compatible table (.xls)'), action: () => { let last = lastRow(); let html = '<table border="1">'; for (let rr = 0; rr <= last; rr++) { html += '<tr>'; for (let c = 0; c < COLS; c++) html += '<td>' + PatOS.esc(show(value(refName(c, rr)), data[refName(c, rr)])) + '</td>'; html += '</tr>'; } PatOS.downloadFile(baseName() + '.xls', '<html><meta charset="utf-8"><body>' + html + '</table></body></html>'); } },
+        { label: T('Excel (.xlsx)'), action: async () => { try { PatOS.downloadBlob(baseName() + '.xlsx', await PatOS.xlsx.fromBook(book, (si) => makeEvaluator(book.sheets[si].cells))); } catch (err) { PatOS.alertBox(T('Couldn’t save'), err.message, { icon: 'sheets' }); } } },
         { label: T('Import CSV into this sheet…'), action: importCSV }
       ], r.left - 120, r.bottom + 4);
     }
@@ -13025,7 +13781,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     buildGrid(); renderTabs(); renderAll();
     setTimeout(() => grid.focus({ preventScroll: true }), 60);
   }
-  PatOS.sheetsEngine = { compile, FN, shiftRefs };
+  PatOS.sheetsEngine = { compile, FN, shiftRefs, makeEvaluator };
 })();
 
 </script>
@@ -13063,6 +13819,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
   const CLIP = { triangle: 'polygon(50% 0, 100% 100%, 0 100%)', arrow: 'polygon(0 30%, 62% 30%, 62% 0, 100% 50%, 62% 100%, 62% 70%, 0 70%)', star: 'polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)', bubble: 'polygon(0 0, 100% 0, 100% 75%, 35% 75%, 18% 100%, 20% 75%, 0 75%)' };
   const ANIMS = [['', 'None'], ['fade', 'Fade in'], ['fly', 'Fly in'], ['zoom', 'Zoom in'], ['pop', 'Pop']];
 
+  PatOS.slideThemes = THEMES;
   function slideNode(deck, s, scale, opts) {
     opts = opts || {};
     const t = THEMES[deck.theme] || THEMES.Simple;
@@ -13094,7 +13851,8 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       const ss = PatOS.office.startScreen(win, {
         title: 'Slides', icon: 'slides', ext: ['pslides'], templates,
         onCreate: (t) => { const deck = { theme: t.theme, transition: 'fade', slides: [{ els: LAYOUTS.title.els() }, { els: LAYOUTS.content.els() }] }; deck.slides[0].els[0].html = T('My Presentation'); deck.slides[0].els[1].html = PatOS.settings.userName || T('Subtitle'); const p = PatOS.newDocPath('/Documents', 'Untitled presentation', 'pslides'); PatOS.fs.write(p, JSON.stringify(deck)); openDeck(win, p); },
-        onOpen: (p) => openDeck(win, p)
+        onOpen: (p) => openDeck(win, p),
+        importLabel: 'Open a PowerPoint file…', importAccept: '.pptx', onImportFile: async (file) => { if (/\.csv$/i.test(file.name)) { const p = '/Documents/' + PatOS.fs.uniqueName('/Documents', file.name); PatOS.fs.write(p, await file.text()); return p; } return (await PatOS.importOffice(file, file.name)).path; }
       });
       // live theme previews on the template cards
       ss.querySelectorAll('.of-tplprev').forEach((pv, i) => {
@@ -13123,7 +13881,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     win.setTitle(baseName());
     const bPresent = h('button', { class: 'btn primary of-share', html: OF.icon('play', 15) + '<span>' + T('Present') + '</span>' });
     const bPresentMenu = h('button', { class: 'btn of-share', title: T('More ways to present'), html: OF.icon('more', 15) });
-    head.right.append(h('button', { class: 'btn of-share', onclick: printDeck, title: T('Download as PDF'), html: OF.icon('download', 15) }), bPresentMenu, bPresent);
+    head.right.append(h('button', { class: 'btn of-share', onclick: (e) => { const r = e.currentTarget.getBoundingClientRect(); PatOS.menu([{ label: T('PowerPoint (.pptx)'), action: async () => { try { PatOS.downloadBlob(baseName() + '.pptx', await PatOS.pptx.fromDeck(deck, THEMES)); } catch (err) { PatOS.alertBox(T('Couldn’t save'), err.message, { icon: 'slides' }); } } }, { label: T('PDF (print, then Save as PDF)'), action: printDeck }], r.left - 100, r.bottom + 4); }, title: T('Download'), html: OF.icon('download', 15) }), bPresentMenu, bPresent);
 
     /* ---------- toolbar ---------- */
     const B = OF.btn;
@@ -14183,57 +14941,263 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
 
 </script>
   <script type="patos/js">
-/* Screenshot — capture your screen as a picture or record it as a video (real screen capture) */
+/* Screen Recorder — pictures and videos of your screen, with your microphone, system sound and camera.
+   Screen: pick a tab, window or the whole screen. Your camera can sit in a corner of the video, and the
+   microphone and the sound of what you share are mixed together. Recordings are saved in Videos. */
 (function () {
   'use strict';
   const { h } = PatOS;
+  const T = (s) => PatOS.t(s);
+  const CORNERS = [['br', 'Bottom right'], ['bl', 'Bottom left'], ['tr', 'Top right'], ['tl', 'Top left']];
+  const QUALITY = { src: ['Original', 0, 6e6], '1080': ['1080p', 1080, 5e6], '720': ['720p', 720, 2.5e6], '480': ['480p', 480, 1.2e6] };
+  const stamp = () => { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + '.' + p(d.getMinutes()) + '.' + p(d.getSeconds()); };
+  const fmtT = (s) => { const hh = Math.floor(s / 3600), mm = Math.floor(s % 3600 / 60), ss = s % 60; return (hh ? hh + ':' + String(mm).padStart(2, '0') : mm) + ':' + String(ss).padStart(2, '0'); };
+  const errText = (e, what) => {
+    const n = e && e.name;
+    if (n === 'NotAllowedError' || n === 'PermissionDeniedError') return what === 'screen' ? T('Screen sharing was cancelled, or this browser blocked it.') : T('Chrome blocked the') + ' ' + T(what) + '. ' + T('Click the lock icon next to the address, then allow it.');
+    if (n === 'NotFoundError' || n === 'OverconstrainedError') return T('No') + ' ' + T(what) + ' ' + T('was found on this device.');
+    if (n === 'NotReadableError') return T('The') + ' ' + T(what) + ' ' + T('is being used by another app.');
+    return (e && e.message) || String(e);
+  };
+
+  let session = null; // one recording at a time, even if the window is closed
+
   PatOS.registerApp({
-    id: 'screenshot', name: 'Screenshot', icon: 'screenshot', width: 560, height: 470, category: 'Utilities', keywords: 'screen capture record video picture snap',
-    about: 'Take a picture of your screen or record it as a video.',
+    id: 'screenshot', name: 'Screen Recorder', icon: 'screenshot', width: 640, height: 640, category: 'Utilities', keywords: 'screen capture record video picture snap screenshot camera microphone mic webcam',
+    about: 'Record your screen with your microphone and camera, or take a picture of it.',
     launch(win) {
-      let rec = null, stream = null, chunks = [], t0 = 0, timer = 0;
-      const canCapture = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
-      const delaySel = h('select', { class: 'field' }, h('option', { value: '0' }, 'No delay'), h('option', { value: '3' }, '3 seconds'), h('option', { value: '5' }, '5 seconds'));
-      const bShot = h('button', { class: 'ss-big' }, h('span', { html: PatOS.iconHTML('screenshot') }), h('b', {}, 'Take Screenshot'));
-      const bRec = h('button', { class: 'ss-big rec' }, h('span', { class: 'ss-dot' }), h('b', {}, 'Record Screen'));
-      const msg = h('div', { class: 'ss-msg' });
-      const out = h('div', { class: 'ss-out' });
-      win.body.appendChild(h('div', { class: 'ss' }, h('div', { class: 'ss-row' }, bShot, bRec), h('label', { class: 'ss-delay' }, 'Delay ', delaySel), msg, out));
-      if (!canCapture) { msg.textContent = PatOS.t('This device doesn’t allow screen capture (iPhones and iPads don’t).'); bShot.disabled = bRec.disabled = true; }
-      async function getStream(video) {
-        try { return await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: video ? 30 : 5 }, audio: video }); }
-        catch (e) { msg.textContent = e.name === 'NotAllowedError' ? PatOS.t('Screen capture was cancelled.') : e.message; return null; }
+      const cfg = Object.assign({ mode: 'video', source: 'screen', mic: false, sysAudio: true, cam: false, corner: 'br', quality: '1080', countdown: 3, micId: '', camId: '' }, PatOS.store.get('recorderCfg', {}));
+      const save = () => PatOS.store.set('recorderCfg', cfg);
+      const canScreen = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia);
+      const canMedia = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia);
+      if (!canScreen && cfg.source === 'screen') cfg.source = 'camera';
+      const body = h('div', { class: 'rc' }); win.body.appendChild(body);
+      let previewStream = null, meterRaf = 0, meterCtx = null;
+
+      function toggle(label, key, hint, onchange) {
+        const s = h('button', { class: 'switch' + (cfg[key] ? ' on' : ''), role: 'switch', 'aria-checked': cfg[key] ? 'true' : 'false' });
+        s.onclick = () => { cfg[key] = !cfg[key]; s.classList.toggle('on', cfg[key]); s.setAttribute('aria-checked', cfg[key]); save(); if (onchange) onchange(cfg[key]); };
+        return h('label', { class: 'rc-opt' }, h('div', {}, h('b', {}, T(label)), hint ? h('small', {}, T(hint)) : null), s);
       }
-      bShot.onclick = async () => {
-        const d = +delaySel.value;
-        const s = await getStream(false); if (!s) return;
-        for (let i = d; i > 0; i--) { msg.textContent = i + '…'; await new Promise((r) => setTimeout(r, 1000)); }
-        const v = h('video', { muted: true, playsinline: true }); v.srcObject = s; await v.play();
-        await new Promise((r) => setTimeout(r, 250));
-        const c = document.createElement('canvas'); const sc = Math.min(1, 1600 / v.videoWidth); c.width = v.videoWidth * sc; c.height = v.videoHeight * sc;
+      const stopPreview = () => { if (previewStream) previewStream.getTracks().forEach((t) => t.stop()); previewStream = null; cancelAnimationFrame(meterRaf); if (meterCtx) { try { meterCtx.close(); } catch (e) {} meterCtx = null; } };
+
+      function render() {
+        stopPreview();
+        body.innerHTML = '';
+        if (session) return renderRecording();
+        const mode = h('div', { class: 'seg rc-mode' }, ...[['video', 'Record Video'], ['picture', 'Take Picture']].map(([k, l]) => h('button', { class: 'tab' + (cfg.mode === k ? ' on' : ''), onclick: () => { cfg.mode = k; save(); render(); } }, T(l))));
+        body.appendChild(mode);
+        if (cfg.mode === 'picture') {
+          const delay = h('select', { class: 'field' }, ...[['0', 'No delay'], ['3', '3 seconds'], ['5', '5 seconds'], ['10', '10 seconds']].map(([v, l]) => h('option', { value: v }, T(l))));
+          const bShot = h('button', { class: 'rc-go' }, h('span', { html: PatOS.iconHTML('screenshot') }), h('b', {}, T('Take Screenshot')));
+          bShot.disabled = !canScreen;
+          bShot.onclick = () => picture(+delay.value);
+          body.append(bShot, h('label', { class: 'rc-row' }, T('Delay'), delay));
+          if (!canScreen) body.appendChild(h('p', { class: 'rc-warn' }, T('This device doesn’t allow screen capture (iPhones and iPads don’t).')));
+          body.appendChild(h('div', { class: 'rc-out', id: 'rc-out' }));
+          return;
+        }
+        // video options
+        const src = h('div', { class: 'seg rc-src' }, ...[['screen', 'Screen'], ['camera', 'Camera only']].map(([k, l]) => { const b = h('button', { class: 'tab' + (cfg.source === k ? ' on' : ''), onclick: () => { cfg.source = k; save(); render(); } }, T(l)); if (k === 'screen' && !canScreen) b.disabled = true; return b; }));
+        const card = h('div', { class: 'rc-card' });
+        card.appendChild(toggle('Microphone', 'mic', 'Record your voice', () => render()));
+        if (cfg.mic) {
+          const sel = h('select', { class: 'field rc-dev' }, h('option', { value: '' }, T('Default microphone')));
+          const meter = h('div', { class: 'rc-meter' }, h('i'));
+          card.append(h('div', { class: 'rc-sub' }, sel, meter));
+          startMicPreview(sel, meter);
+        }
+        if (cfg.source === 'screen') card.appendChild(toggle('Sound from the screen', 'sysAudio', 'Pick “Share tab audio” or “Share system audio” in Chrome’s window'));
+        card.appendChild(toggle('Camera', 'cam', cfg.source === 'screen' ? 'Shows you in a corner of the video' : 'Records your camera', () => render()));
+        if (cfg.cam) {
+          const sel = h('select', { class: 'field rc-dev' }, h('option', { value: '' }, T('Default camera')));
+          const pv = h('video', { class: 'rc-camprev', muted: true, playsinline: true, autoplay: true });
+          const sub = h('div', { class: 'rc-sub' }, sel);
+          if (cfg.source === 'screen') {
+            const cs = h('div', { class: 'rc-corners' }, ...CORNERS.map(([k, l]) => h('button', { class: cfg.corner === k ? 'on' : '', title: T(l), 'data-c': k, onclick: () => { cfg.corner = k; save(); [...cs.children].forEach((x) => x.classList.toggle('on', x.dataset.c === k)); } })));
+            sub.appendChild(h('div', { class: 'rc-cornerbox' }, h('small', {}, T('Corner')), cs));
+          }
+          card.append(sub, pv);
+          startCamPreview(sel, pv);
+        }
+        const q = h('select', { class: 'field' }, ...Object.entries(QUALITY).map(([k, v]) => h('option', { value: k }, T(v[0])))); q.value = cfg.quality; q.onchange = () => { cfg.quality = q.value; save(); };
+        const cd = h('select', { class: 'field' }, ...[0, 3, 5].map((n) => h('option', { value: n }, n ? n + ' ' + T('seconds') : T('No countdown')))); cd.value = String(cfg.countdown); cd.onchange = () => { cfg.countdown = +cd.value; save(); };
+        card.append(h('label', { class: 'rc-row' }, T('Quality'), q), h('label', { class: 'rc-row' }, T('Countdown'), cd));
+        const go = h('button', { class: 'rc-go rec' }, h('span', { class: 'ss-dot' }), h('b', {}, T('Start Recording')));
+        go.disabled = cfg.source === 'screen' ? !canScreen : !canMedia;
+        go.onclick = () => start(go);
+        body.append(src, card, go, h('div', { class: 'rc-out', id: 'rc-out' }));
+        if (cfg.source === 'screen' && !canScreen) body.appendChild(h('p', { class: 'rc-warn' }, T('This device doesn’t allow screen capture (iPhones and iPads don’t). Use Camera only.')));
+        const last = PatOS.fs.list('/Videos').filter((f) => /^(Screen|Camera|Audio) Recording|^Enregistrement/.test(f.name)).sort((a, b) => (b.mtime || 0) - (a.mtime || 0))[0];
+        if (last) body.appendChild(h('button', { class: 'rc-last', onclick: () => PatOS.launch('videos', { path: last.path }) }, T('Last recording') + ': ' + last.name.replace(/\.webm$/, '')));
+      }
+
+      /* ----- device lists + live previews (so you can see the mic and camera work before you start) ----- */
+      async function fillDevices(sel, kind, key) {
+        try {
+          const list = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === kind);
+          list.forEach((d, i) => sel.appendChild(h('option', { value: d.deviceId }, d.label || (kind === 'audioinput' ? T('Microphone') : T('Camera')) + ' ' + (i + 1))));
+          sel.value = list.some((d) => d.deviceId === cfg[key]) ? cfg[key] : '';
+        } catch (e) {}
+        sel.onchange = () => { cfg[key] = sel.value; save(); render(); };
+      }
+      async function startMicPreview(sel, meter) {
+        if (!canMedia) { meter.parentNode.textContent = T('This device has no microphone access.'); return; }
+        try {
+          const s = await navigator.mediaDevices.getUserMedia({ audio: cfg.micId ? { deviceId: { exact: cfg.micId } } : true });
+          if (!body.isConnected || !cfg.mic) { s.getTracks().forEach((t) => t.stop()); return; }
+          if (previewStream) previewStream.getTracks().forEach((t) => t.stop());
+          previewStream = previewStream ? new MediaStream([...previewStream.getVideoTracks(), ...s.getTracks()]) : s;
+          await fillDevices(sel, 'audioinput', 'micId');
+          meterCtx = new (window.AudioContext || window.webkitAudioContext)(); const an = meterCtx.createAnalyser(); an.fftSize = 512; meterCtx.createMediaStreamSource(s).connect(an);
+          const buf = new Uint8Array(an.fftSize); const bar = meter.firstChild;
+          const tick = () => { an.getByteTimeDomainData(buf); let m = 0; for (let i = 0; i < buf.length; i++) m = Math.max(m, Math.abs(buf[i] - 128)); bar.style.width = Math.min(100, m / 90 * 100) + '%'; meterRaf = requestAnimationFrame(tick); };
+          tick();
+        } catch (e) { meter.parentNode.replaceChildren(h('span', { class: 'rc-bad' }, errText(e, 'microphone'))); }
+      }
+      async function startCamPreview(sel, video) {
+        if (!canMedia) { video.replaceWith(h('span', { class: 'rc-bad' }, T('This device has no camera access.'))); return; }
+        try {
+          const s = await navigator.mediaDevices.getUserMedia({ video: cfg.camId ? { deviceId: { exact: cfg.camId } } : { width: 640, height: 480 } });
+          if (!body.isConnected || !cfg.cam) { s.getTracks().forEach((t) => t.stop()); return; }
+          if (previewStream) s.getTracks().forEach((t) => previewStream.addTrack(t)); else previewStream = s;
+          video.srcObject = s; video.play().catch(() => {});
+          await fillDevices(sel, 'videoinput', 'camId');
+        } catch (e) { video.replaceWith(h('span', { class: 'rc-bad' }, errText(e, 'camera'))); }
+      }
+
+      /* ----- picture ----- */
+      async function picture(delay) {
+        const out = body.querySelector('#rc-out'); const msg = h('div', { class: 'ss-msg' }); out.innerHTML = ''; out.appendChild(msg);
+        let s; try { s = await navigator.mediaDevices.getDisplayMedia({ video: { frameRate: 5 }, audio: false }); } catch (e) { msg.textContent = errText(e, 'screen'); return; }
+        for (let i = delay; i > 0; i--) { msg.textContent = i + '…'; await new Promise((r) => setTimeout(r, 1000)); }
+        const v = h('video', { muted: true, playsinline: true }); v.srcObject = s; await v.play(); await new Promise((r) => setTimeout(r, 250));
+        const c = document.createElement('canvas'); const sc = Math.min(1, 2000 / v.videoWidth); c.width = v.videoWidth * sc; c.height = v.videoHeight * sc;
         c.getContext('2d').drawImage(v, 0, 0, c.width, c.height); s.getTracks().forEach((t) => t.stop());
-        const url = c.toDataURL('image/jpeg', 0.85);
-        const nm = PatOS.fs.uniqueName('/Pictures', PatOS.t('Screenshot') + ' ' + new Date().toLocaleString().replace(/[\/:]/g, '-') + '.jpg');
+        const url = c.toDataURL('image/jpeg', 0.88);
+        const nm = PatOS.fs.uniqueName('/Pictures', T('Screenshot') + ' ' + stamp() + '.jpg');
         PatOS.fs.write('/Pictures/' + nm, url); PatOS.sound.tone(1800, 0.08, { vol: 0.12, type: 'square' });
-        msg.textContent = ''; out.innerHTML = ''; out.append(h('img', { src: url, alt: '' }), h('div', { class: 'ss-btns' }, h('button', { class: 'btn', onclick: () => PatOS.launch('photos', { path: '/Pictures/' + nm }) }, 'Open in Photos'), h('button', { class: 'btn', onclick: () => PatOS.downloadFile(nm, url) }, 'Download')));
-      };
-      bRec.onclick = async () => {
-        if (rec) { rec.stop(); return; }
-        stream = await getStream(true); if (!stream) return;
-        chunks = []; rec = new MediaRecorder(stream, { mimeType: MediaRecorder.isTypeSupported('video/webm;codecs=vp9') ? 'video/webm;codecs=vp9' : 'video/webm' });
-        rec.ondataavailable = (e) => e.data.size && chunks.push(e.data);
-        rec.onstop = () => {
-          clearInterval(timer); stream.getTracks().forEach((t) => t.stop());
-          const blob = new Blob(chunks, { type: 'video/webm' }); const url = URL.createObjectURL(blob);
-          bRec.classList.remove('on'); bRec.querySelector('b').textContent = PatOS.t('Record Screen'); msg.textContent = PatOS.fmtBytes(blob.size);
-          out.innerHTML = ''; out.append(h('video', { src: url, controls: true }), h('div', { class: 'ss-btns' }, h('button', { class: 'btn primary', onclick: () => { const a = document.createElement('a'); a.href = url; a.download = 'Screen recording.webm'; document.body.appendChild(a); a.click(); a.remove(); } }, 'Save Video to Computer')));
-          rec = null;
+        out.innerHTML = ''; out.append(h('img', { src: url, alt: '' }), h('div', { class: 'ss-btns' }, h('button', { class: 'btn', onclick: () => PatOS.launch('photos', { path: '/Pictures/' + nm }) }, T('Open in Photos')), h('button', { class: 'btn', onclick: () => PatOS.device.saveCopy('/Pictures/' + nm) }, T('Save to This Chromebook…'))));
+      }
+
+      /* ----- video ----- */
+      async function start(btn) {
+        stopPreview();
+        const msg = h('div', { class: 'rc-bad' }); const out = body.querySelector('#rc-out'); out.innerHTML = ''; out.appendChild(msg);
+        const sources = []; let screen = null, mic = null, cam = null;
+        try {
+          if (cfg.source === 'screen') {
+            const q = QUALITY[cfg.quality];
+            screen = await navigator.mediaDevices.getDisplayMedia({ video: Object.assign({ frameRate: 30 }, q[1] ? { height: { ideal: q[1] } } : {}), audio: cfg.sysAudio ? { echoCancellation: false, noiseSuppression: false } : false });
+          }
+        } catch (e) { msg.textContent = errText(e, 'screen'); return; }
+        try { if (cfg.mic) mic = await navigator.mediaDevices.getUserMedia({ audio: Object.assign({ echoCancellation: true, noiseSuppression: true }, cfg.micId ? { deviceId: { exact: cfg.micId } } : {}) }); }
+        catch (e) { msg.textContent = errText(e, 'microphone') + ' ' + T('Recording without it.'); mic = null; }
+        try { if (cfg.cam) cam = await navigator.mediaDevices.getUserMedia({ video: Object.assign({ width: { ideal: 1280 }, height: { ideal: 720 }, facingMode: 'user' }, cfg.camId ? { deviceId: { exact: cfg.camId } } : {}) }); }
+        catch (e) { msg.textContent = errText(e, 'camera') + ' ' + T('Recording without it.'); cam = null; }
+        if (!screen && !cam && !mic) return;
+        if (cfg.source === 'camera' && !cam && !mic) { msg.textContent = T('Turn on the camera or the microphone to record.'); return; }
+        // 3, 2, 1
+        if (cfg.countdown) await countdown(cfg.countdown);
+        try { await begin({ screen, mic, cam }); } catch (e) { [screen, mic, cam].forEach((s) => s && s.getTracks().forEach((t) => t.stop())); PatOS.alertBox(T('Couldn’t start recording'), e.message || String(e), { icon: 'screenshot' }); render(); }
+      }
+      function countdown(n) {
+        return new Promise((res) => {
+          const layer = h('div', { class: 'rc-count' }); document.body.appendChild(layer);
+          const tick = () => { if (n <= 0) { layer.remove(); return res(); } layer.innerHTML = '<b>' + n + '</b>'; PatOS.sound.tone(660 + (3 - n) * 110, 0.1, { vol: 0.15 }); n--; setTimeout(tick, 1000); };
+          tick();
+        });
+      }
+      async function begin({ screen, mic, cam }) {
+        const q = QUALITY[cfg.quality];
+        const tracks = []; const cleanup = [];
+        let videoTrack, w = 1280, hgt = 720;
+        const stopAll = () => { [screen, mic, cam].forEach((s) => s && s.getTracks().forEach((t) => t.stop())); cleanup.forEach((f) => { try { f(); } catch (e) {} }); };
+        // ----- video -----
+        if (screen) {
+          const st = screen.getVideoTracks()[0].getSettings(); w = st.width || 1280; hgt = st.height || 720;
+          if (cam) {
+            const sv = h('video', { muted: true, playsinline: true }); sv.srcObject = screen; await sv.play();
+            const cv = h('video', { muted: true, playsinline: true }); cv.srcObject = cam; await cv.play();
+            const canvas = document.createElement('canvas'); canvas.width = sv.videoWidth || w; canvas.height = sv.videoHeight || hgt; const ctx = canvas.getContext('2d');
+            const camH = Math.round(canvas.height * 0.26), camW = Math.round(camH * (cv.videoWidth / cv.videoHeight || 4 / 3)), r = Math.round(camH / 2), pad = Math.round(canvas.height * 0.03);
+            const cx = cfg.corner.endsWith('l') ? pad + camH / 2 : canvas.width - pad - camH / 2, cy = cfg.corner.startsWith('t') ? pad + camH / 2 : canvas.height - pad - camH / 2;
+            const draw = () => {
+              ctx.drawImage(sv, 0, 0, canvas.width, canvas.height);
+              ctx.save(); ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.closePath(); ctx.clip();
+              const sc = camH / Math.min(cv.videoWidth, cv.videoHeight); const dw = cv.videoWidth * sc, dh = cv.videoHeight * sc;
+              ctx.translate(cx, cy); ctx.scale(-1, 1); ctx.drawImage(cv, -dw / 2, -dh / 2, dw, dh); ctx.restore();
+              ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.lineWidth = Math.max(3, camH * 0.025); ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.stroke();
+            };
+            // a Worker keeps time even when PatOS is hidden behind the window you are recording
+            const wk = new Worker(URL.createObjectURL(new Blob(['setInterval(function(){postMessage(0)},33)'], { type: 'text/javascript' })));
+            wk.onmessage = draw; cleanup.push(() => wk.terminate());
+            videoTrack = canvas.captureStream(30).getVideoTracks()[0]; draw();
+          } else videoTrack = screen.getVideoTracks()[0];
+        } else if (cam) { videoTrack = cam.getVideoTracks()[0]; const st = videoTrack.getSettings(); w = st.width || 1280; hgt = st.height || 720; }
+        if (videoTrack) tracks.push(videoTrack);
+        // ----- audio: mix the microphone and the sound of the shared screen -----
+        const audioSources = []; if (mic) audioSources.push(mic); if (screen && screen.getAudioTracks().length) audioSources.push(new MediaStream(screen.getAudioTracks()));
+        if (audioSources.length) {
+          const ac = new (window.AudioContext || window.webkitAudioContext)(); await ac.resume(); const dest = ac.createMediaStreamDestination();
+          audioSources.forEach((s) => { const g = ac.createGain(); g.gain.value = 1; ac.createMediaStreamSource(s).connect(g); g.connect(dest); });
+          cleanup.push(() => ac.close()); tracks.push(...dest.stream.getAudioTracks());
+        }
+        if (!tracks.length) throw new Error(T('Nothing to record.'));
+        const stream = new MediaStream(tracks);
+        const mime = ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm'].find((m) => MediaRecorder.isTypeSupported(m)) || '';
+        const rec = new MediaRecorder(stream, Object.assign({ videoBitsPerSecond: videoTrack ? q[2] : undefined, audioBitsPerSecond: 128000 }, mime ? { mimeType: mime } : {}));
+        const chunks = []; rec.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+        const s = session = { rec, chunks, t0: Date.now(), paused: 0, pausedAt: 0, kind: cfg.source === 'screen' ? 'Screen Recording' : videoTrack ? 'Camera Recording' : 'Audio Recording', hasVideo: !!videoTrack, stopAll, listeners: new Set(), result: null, mime: mime || 'video/webm' };
+        rec.onstop = async () => {
+          stopAll(); clearInterval(s.timer); hidePill();
+          const blob = new Blob(chunks, { type: s.hasVideo ? 'video/webm' : 'audio/webm' });
+          const ext = 'webm'; if (!PatOS.fs.exists('/Videos')) PatOS.fs.mkdir('/Videos');
+          const dir = '/Videos';
+          const nm = PatOS.fs.uniqueName(dir, T(s.kind) + ' ' + stamp() + '.' + ext);
+          try { await PatOS.fs.writeBlob(dir + '/' + nm, blob); s.result = { path: dir + '/' + nm, size: blob.size, blob }; PatOS.notify({ title: T('Recording saved'), body: nm, icon: 'screenshot' }); PatOS.sound.tone(880, 0.12, { vol: 0.15 }); }
+          catch (e) { s.result = { error: e.message || 'Not enough storage space.', blob }; }
+          session = null; s.listeners.forEach((f) => f()); win.el.isConnected && render(); if (s.result) showResult(s.result);
         };
-        stream.getVideoTracks()[0].addEventListener('ended', () => rec && rec.stop());
-        rec.start(500); t0 = Date.now(); bRec.classList.add('on');
-        timer = setInterval(() => { const s = Math.floor((Date.now() - t0) / 1000); bRec.querySelector('b').textContent = PatOS.t('Stop') + '  ' + Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); }, 250);
-      };
-      win.on('closed', () => { if (rec) rec.stop(); clearInterval(timer); });
+        if (screen) screen.getVideoTracks()[0].addEventListener('ended', () => { if (session === s && rec.state !== 'inactive') rec.stop(); });
+        rec.start(1000);
+        showPill(s); s.timer = setInterval(() => updatePill(s), 500);
+        render();
+        if (cfg.source === 'screen') win.minimize();
+      }
+      function elapsed(s) { return Math.floor((Date.now() - s.t0 - s.paused - (s.pausedAt ? Date.now() - s.pausedAt : 0)) / 1000); }
+
+      /* ----- the little control pill that floats over PatOS while recording ----- */
+      function showPill(s) {
+        hidePill();
+        const pill = h('div', { class: 'rc-pill', id: 'rc-pill' },
+          h('span', { class: 'rc-pdot' }), h('b', { class: 'rc-ptime' }, '0:00'),
+          h('button', { class: 'rc-pb', title: T('Pause'), id: 'rc-pause', onclick: () => { if (s.rec.state === 'recording') { s.rec.pause(); s.pausedAt = Date.now(); } else if (s.rec.state === 'paused') { s.rec.resume(); s.paused += Date.now() - s.pausedAt; s.pausedAt = 0; } updatePill(s); } }),
+          h('button', { class: 'rc-pb stop', title: T('Stop'), onclick: () => s.rec.state !== 'inactive' && s.rec.stop() }));
+        document.body.appendChild(pill);
+      }
+      function updatePill(s) { const p = document.getElementById('rc-pill'); if (!p) return; p.querySelector('.rc-ptime').textContent = fmtT(elapsed(s)); p.classList.toggle('paused', s.rec.state === 'paused'); const pb = document.getElementById('rc-pause'); if (pb) pb.title = T(s.rec.state === 'paused' ? 'Resume' : 'Pause'); const t = body.querySelector('.rc-time'); if (t) t.textContent = fmtT(elapsed(s)); const pa = body.querySelector('.rc-pause'); if (pa) pa.textContent = T(s.rec.state === 'paused' ? 'Resume' : 'Pause'); }
+      function hidePill() { const p = document.getElementById('rc-pill'); if (p) p.remove(); }
+      function renderRecording() {
+        const s = session;
+        body.append(h('div', { class: 'rc-live' }, h('span', { class: 'ss-dot' }), h('b', { class: 'rc-time' }, fmtT(elapsed(s))), h('small', {}, T(s.kind))),
+          h('div', { class: 'rc-livebtns' }, h('button', { class: 'btn rc-pause', onclick: () => document.getElementById('rc-pause').click() }, T('Pause')), h('button', { class: 'btn danger', onclick: () => s.rec.state !== 'inactive' && s.rec.stop() }, T('Stop and save'))),
+          h('p', { class: 'rc-hint' }, T('To stop from another window, use Chrome’s “Stop sharing” bar, or the red timer at the top of PatOS.')));
+        s.listeners.add(() => { if (win.el.isConnected) render(); });
+      }
+      function showResult(r) {
+        if (!win.el.isConnected) return;
+        const out = body.querySelector('#rc-out'); if (!out) return; out.innerHTML = '';
+        if (r.error) { out.appendChild(h('p', { class: 'rc-bad' }, T('Couldn’t save the recording') + ': ' + r.error)); out.appendChild(h('button', { class: 'btn', onclick: () => { const a = document.createElement('a'); a.href = URL.createObjectURL(r.blob); a.download = 'recording.webm'; a.click(); } }, T('Download it instead'))); return; }
+        const v = h('video', { controls: true, src: URL.createObjectURL(r.blob) });
+        out.append(v, h('div', { class: 'ss-msg' }, PatOS.fs.basename(r.path) + ' · ' + PatOS.fmtBytes(r.size)), h('div', { class: 'ss-btns' },
+          h('button', { class: 'btn primary', onclick: () => PatOS.launch('videos', { path: r.path }) }, T('Open')),
+          h('button', { class: 'btn', onclick: () => PatOS.device.saveCopy(r.path) }, T('Save to This Chromebook…')),
+          h('button', { class: 'btn', onclick: () => PatOS.launch('finder', { path: PatOS.fs.dirname(r.path) }) }, T('Show in Finder'))));
+      }
+      win.on('closed', () => { stopPreview(); });
+      if (session) session.listeners.add(() => {});
+      render();
     }
   });
 })();

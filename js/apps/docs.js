@@ -31,7 +31,8 @@
       O().startScreen(win, {
         title: 'Docs', icon: 'docs', ext: ['pdoc'], templates: TEMPLATES,
         onCreate: (t) => { const p = PatOS.newDocPath('/Documents', t.name === 'Blank document' ? 'Untitled document' : t.name, 'pdoc'); PatOS.fs.write(p, t.html()); openDoc(win, p); },
-        onOpen: (p) => openDoc(win, p)
+        onOpen: (p) => openDoc(win, p),
+        importLabel: 'Open a Word file…', importAccept: '.docx', onImportFile: async (file) => { if (/\.csv$/i.test(file.name)) { const p = '/Documents/' + PatOS.fs.uniqueName('/Documents', file.name); PatOS.fs.write(p, await file.text()); return p; } return (await PatOS.importOffice(file, file.name)).path; }
       });
     }
   });
@@ -337,7 +338,7 @@
       const r = (anchor || toolbar).getBoundingClientRect();
       PatOS.menu([
         { label: T('PDF (print, then Save as PDF)'), action: printDoc },
-        { label: T('Word document (.doc)'), action: () => PatOS.downloadFile(baseName() + '.doc', docHTML()) },
+        { label: T('Word (.docx)'), action: async () => { try { clearMarks(); PatOS.downloadBlob(baseName() + '.docx', await PatOS.docx.fromElement(page, { title: baseName() })); } catch (err) { PatOS.alertBox(T('Couldn’t save'), err.message, { icon: 'docs' }); } } },
         { label: T('Web page (.html)'), action: () => PatOS.downloadFile(baseName() + '.html', docHTML()) },
         { label: 'Markdown (.md)', action: () => PatOS.downloadFile(baseName() + '.md', toMarkdown()) },
         { label: T('Plain text (.txt)'), action: () => PatOS.downloadFile(baseName() + '.txt', page.innerText) }

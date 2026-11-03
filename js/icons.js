@@ -191,7 +191,7 @@
     }
     if (kind === 'audio') return PatOS.iconHTML('audiofile');
     if (kind === 'video') return PatOS.iconHTML('videos');
-    const docIc = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms', pdf: 'preview' }[PatOS.fs.ext(name)];
+    const docIc = { pdoc: 'docs', docx: 'docs', psheet: 'sheets', xlsx: 'sheets', csv: 'sheets', pslides: 'slides', pptx: 'slides', pform: 'forms', pdf: 'preview' }[PatOS.fs.ext(name)];
     if (docIc) return PatOS.iconHTML(docIc);
     if (kind === 'link') return PatOS.iconHTML('linkfile');
     return PatOS.iconHTML('file', PatOS.fs.ext(name) || 'txt');

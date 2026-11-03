@@ -88,6 +88,27 @@
     }))).join('');
   }
 
+  /* a standalone evaluator, used when saving as Excel (works on any sheet, not just the open one) */
+  function makeEvaluator(cells) {
+    const cache = {}; const raw = (ref) => (cells[ref] ? cells[ref].v ?? '' : '');
+    function value(ref, stack) {
+      if (ref in cache) return cache[ref];
+      const v = raw(ref);
+      if (typeof v !== 'string' || v[0] !== '=') { cache[ref] = v === '' ? '' : v === 'TRUE' ? true : v === 'FALSE' ? false : isNaN(+v) || (cells[ref] && cells[ref].nf === 'text') ? v : +v; return cache[ref]; }
+      stack = stack || new Set(); if (stack.has(ref)) return '#CIRCULAR'; stack.add(ref);
+      let out;
+      try {
+        const f = compile(v.slice(1));
+        const R = (a, b) => { const p = parseRef(a), q = parseRef(b); const res = []; for (let r = Math.min(p.r, q.r); r <= Math.max(p.r, q.r); r++) for (let c = Math.min(p.c, q.c); c <= Math.max(p.c, q.c); c++) res.push(value(refName(c, r), stack)); res._w = Math.abs(q.c - p.c) + 1; return res; };
+        out = f(R, (x) => value(x, stack), FN);
+        if (typeof out === 'number' && !isFinite(out)) out = '#DIV/0!';
+        if (Array.isArray(out)) out = out[0];
+      } catch (e) { out = e.message === 'fn' ? '#NAME?' : '#ERROR!'; }
+      stack.delete(ref); cache[ref] = out; return out;
+    }
+    return value;
+  }
+
   const TEMPLATES = [
     { name: 'Blank spreadsheet', cells: () => ({}), preview: '<s></s>' },
     { name: 'Budget', sub: 'Income and spending', cells: () => ({ A1: { v: T('Monthly budget'), b: 1, fs: 16 }, A3: { v: T('Category'), b: 1, bg: '#e6f4ea' }, B3: { v: T('Planned'), b: 1, bg: '#e6f4ea' }, C3: { v: T('Actual'), b: 1, bg: '#e6f4ea' }, D3: { v: T('Difference'), b: 1, bg: '#e6f4ea' }, A4: { v: T('Food') }, B4: { v: '200', nf: 'cur' }, C4: { v: '185', nf: 'cur' }, D4: { v: '=B4-C4', nf: 'cur' }, A5: { v: T('Transport') }, B5: { v: '60', nf: 'cur' }, C5: { v: '72', nf: 'cur' }, D5: { v: '=B5-C5', nf: 'cur' }, A6: { v: T('Fun') }, B6: { v: '80', nf: 'cur' }, C6: { v: '64', nf: 'cur' }, D6: { v: '=B6-C6', nf: 'cur' }, A7: { v: T('Savings') }, B7: { v: '100', nf: 'cur' }, C7: { v: '100', nf: 'cur' }, D7: { v: '=B7-C7', nf: 'cur' }, A8: { v: T('Total'), b: 1 }, B8: { v: '=SUM(B4:B7)', b: 1, nf: 'cur' }, C8: { v: '=SUM(C4:C7)', b: 1, nf: 'cur' }, D8: { v: '=SUM(D4:D7)', b: 1, nf: 'cur' } }), preview: '<b>$</b><em></em><em></em><em></em>' },
@@ -106,7 +127,8 @@
       PatOS.office.startScreen(win, {
         title: 'Sheets', icon: 'sheets', ext: ['psheet', 'csv'], templates: TEMPLATES,
         onCreate: (t) => { const p = PatOS.newDocPath('/Documents', t.name === 'Blank spreadsheet' ? 'Untitled spreadsheet' : t.name, 'psheet'); PatOS.fs.write(p, JSON.stringify({ sheets: [{ name: T('Sheet') + ' 1', cells: t.cells(), colW: {} }], active: 0 })); openSheet(win, p); },
-        onOpen: (p) => openSheet(win, p)
+        onOpen: (p) => openSheet(win, p),
+        importLabel: 'Open an Excel file…', importAccept: '.xlsx,.csv', onImportFile: async (file) => { if (/\.csv$/i.test(file.name)) { const p = '/Documents/' + PatOS.fs.uniqueName('/Documents', file.name); PatOS.fs.write(p, await file.text()); return p; } return (await PatOS.importOffice(file, file.name)).path; }
       });
     }
   });
@@ -452,7 +474,7 @@
       const r = anchorEl.getBoundingClientRect();
       PatOS.menu([
         { label: T('CSV (this sheet)'), action: () => PatOS.downloadFile(baseName() + '.csv', toCSV()) },
-        { label: T('Excel-compatible table (.xls)'), action: () => { let last = lastRow(); let html = '<table border="1">'; for (let rr = 0; rr <= last; rr++) { html += '<tr>'; for (let c = 0; c < COLS; c++) html += '<td>' + PatOS.esc(show(value(refName(c, rr)), data[refName(c, rr)])) + '</td>'; html += '</tr>'; } PatOS.downloadFile(baseName() + '.xls', '<html><meta charset="utf-8"><body>' + html + '</table></body></html>'); } },
+        { label: T('Excel (.xlsx)'), action: async () => { try { PatOS.downloadBlob(baseName() + '.xlsx', await PatOS.xlsx.fromBook(book, (si) => makeEvaluator(book.sheets[si].cells))); } catch (err) { PatOS.alertBox(T('Couldn’t save'), err.message, { icon: 'sheets' }); } } },
         { label: T('Import CSV into this sheet…'), action: importCSV }
       ], r.left - 120, r.bottom + 4);
     }
@@ -560,5 +582,5 @@
     buildGrid(); renderTabs(); renderAll();
     setTimeout(() => grid.focus({ preventScroll: true }), 60);
   }
-  PatOS.sheetsEngine = { compile, FN, shiftRefs };
+  PatOS.sheetsEngine = { compile, FN, shiftRefs, makeEvaluator };
 })();

@@ -31,6 +31,7 @@
   const CLIP = { triangle: 'polygon(50% 0, 100% 100%, 0 100%)', arrow: 'polygon(0 30%, 62% 30%, 62% 0, 100% 50%, 62% 100%, 62% 70%, 0 70%)', star: 'polygon(50% 0, 61% 35%, 98% 35%, 68% 57%, 79% 91%, 50% 70%, 21% 91%, 32% 57%, 2% 35%, 39% 35%)', bubble: 'polygon(0 0, 100% 0, 100% 75%, 35% 75%, 18% 100%, 20% 75%, 0 75%)' };
   const ANIMS = [['', 'None'], ['fade', 'Fade in'], ['fly', 'Fly in'], ['zoom', 'Zoom in'], ['pop', 'Pop']];
 
+  PatOS.slideThemes = THEMES;
   function slideNode(deck, s, scale, opts) {
     opts = opts || {};
     const t = THEMES[deck.theme] || THEMES.Simple;
@@ -62,7 +63,8 @@
       const ss = PatOS.office.startScreen(win, {
         title: 'Slides', icon: 'slides', ext: ['pslides'], templates,
         onCreate: (t) => { const deck = { theme: t.theme, transition: 'fade', slides: [{ els: LAYOUTS.title.els() }, { els: LAYOUTS.content.els() }] }; deck.slides[0].els[0].html = T('My Presentation'); deck.slides[0].els[1].html = PatOS.settings.userName || T('Subtitle'); const p = PatOS.newDocPath('/Documents', 'Untitled presentation', 'pslides'); PatOS.fs.write(p, JSON.stringify(deck)); openDeck(win, p); },
-        onOpen: (p) => openDeck(win, p)
+        onOpen: (p) => openDeck(win, p),
+        importLabel: 'Open a PowerPoint file…', importAccept: '.pptx', onImportFile: async (file) => { if (/\.csv$/i.test(file.name)) { const p = '/Documents/' + PatOS.fs.uniqueName('/Documents', file.name); PatOS.fs.write(p, await file.text()); return p; } return (await PatOS.importOffice(file, file.name)).path; }
       });
       // live theme previews on the template cards
       ss.querySelectorAll('.of-tplprev').forEach((pv, i) => {
@@ -91,7 +93,7 @@
     win.setTitle(baseName());
     const bPresent = h('button', { class: 'btn primary of-share', html: OF.icon('play', 15) + '<span>' + T('Present') + '</span>' });
     const bPresentMenu = h('button', { class: 'btn of-share', title: T('More ways to present'), html: OF.icon('more', 15) });
-    head.right.append(h('button', { class: 'btn of-share', onclick: printDeck, title: T('Download as PDF'), html: OF.icon('download', 15) }), bPresentMenu, bPresent);
+    head.right.append(h('button', { class: 'btn of-share', onclick: (e) => { const r = e.currentTarget.getBoundingClientRect(); PatOS.menu([{ label: T('PowerPoint (.pptx)'), action: async () => { try { PatOS.downloadBlob(baseName() + '.pptx', await PatOS.pptx.fromDeck(deck, THEMES)); } catch (err) { PatOS.alertBox(T('Couldn’t save'), err.message, { icon: 'slides' }); } } }, { label: T('PDF (print, then Save as PDF)'), action: printDeck }], r.left - 100, r.bottom + 4); }, title: T('Download'), html: OF.icon('download', 15) }), bPresentMenu, bPresent);
 
     /* ---------- toolbar ---------- */
     const B = OF.btn;
