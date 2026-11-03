@@ -63,8 +63,9 @@ self.addEventListener('fetch', (e) => {
   }
   if (e.request.method !== 'GET' || url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
   // Python's files never change for a given version, so they are kept apart and survive PatOS updates
-  if (url.pathname.startsWith('/pyodide/')) {
-    e.respondWith(caches.open('patos-data-pyodide').then((c) => c.match(e.request, { ignoreSearch: true }).then((m) => m || fetch(e.request).then((r) => { if (r.ok && r.status === 200) c.put(e.request, r.clone()); return r; }))));
+  if (url.pathname.startsWith('/pyodide/') || url.pathname.startsWith('/vendor/pdf/')) {
+    // the PDF tools are fetched the first time a PDF is opened; the cache name carries their version
+    e.respondWith(caches.open(url.pathname.startsWith('/pyodide/') ? 'patos-data-pyodide' : 'patos-data-pdf-3.11.174').then((c) => c.match(e.request, { ignoreSearch: true }).then((m) => m || fetch(e.request).then((r) => { if (r.ok && r.status === 200) c.put(e.request, r.clone()); return r; }))));
     return;
   }
   // saved copy first: PatOS opens instantly and works offline. A new version is picked up the next time PatOS loads.
