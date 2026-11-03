@@ -1401,6 +1401,8 @@
     'Find…': 'Rechercher…',
     'Find and Replace…': 'Rechercher et remplacer…',
     'Write plain text and code. Find and replace, word wrap, a Markdown preview, and drafts that are never lost.': 'Écrivez du texte et du code. Rechercher et remplacer, retour à la ligne, aperçu Markdown, et des brouillons jamais perdus.',
+    'Your calculations will show up here.': 'Vos calculs s’afficheront ici.',
+    'Use this result': 'Utiliser ce résultat',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 
