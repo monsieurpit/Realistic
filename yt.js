@@ -3,25 +3,37 @@
    channels, and sends back simple JSON. Videos themselves still play in the official YouTube player
    in the visitor's browser, so nothing here streams video. */
 'use strict';
+const { sendJSON } = require('./http-util.js');
 
 const BASE = 'https://www.youtube.com/youtubei/v1/';
 const VERSION = '2.20250101.00.00';
-const cache = new Map();
+const cache = new Map(), inflight = new Map();
+const FRESH = 10 * 60 * 1000, STALE = 6 * 60 * 60 * 1000;
 
+async function fetchUp(endpoint, body, hl, gl) {
+  const ctl = new AbortController(); const tm = setTimeout(() => ctl.abort(), 9000);
+  try {
+    const r = await fetch(BASE + endpoint + '?prettyPrint=false', {
+      method: 'POST', signal: ctl.signal,
+      headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36', 'Accept-Language': hl },
+      body: JSON.stringify(Object.assign({ context: { client: { clientName: 'WEB', clientVersion: VERSION, hl, gl } } }, body))
+    });
+    if (!r.ok) throw new Error('YouTube answered ' + r.status);
+    return await r.json();
+  } catch (e) { throw e.name === 'AbortError' ? new Error('YouTube took too long to answer.') : e; }
+  finally { clearTimeout(tm); }
+}
+function refresh(key, endpoint, body, hl, gl) {
+  if (inflight.has(key)) return inflight.get(key);
+  const p = fetchUp(endpoint, body, hl, gl).then((v) => { cache.set(key, { t: Date.now(), v }); if (cache.size > 800) cache.delete(cache.keys().next().value); return v; }).finally(() => inflight.delete(key));
+  inflight.set(key, p); return p;
+}
+/* fresh for 10 minutes; after that the old answer is sent at once while a new one is fetched in the background */
 async function call(endpoint, body, hl, gl) {
-  const key = endpoint + JSON.stringify(body) + hl + gl;
-  const hit = cache.get(key);
-  if (hit && Date.now() - hit.t < 10 * 60 * 1000) return hit.v;
-  const r = await fetch(BASE + endpoint + '?prettyPrint=false', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json', 'User-Agent': 'Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36', 'Accept-Language': hl },
-    body: JSON.stringify(Object.assign({ context: { client: { clientName: 'WEB', clientVersion: VERSION, hl, gl } } }, body))
-  });
-  if (!r.ok) throw new Error('YouTube answered ' + r.status);
-  const v = await r.json();
-  cache.set(key, { t: Date.now(), v });
-  if (cache.size > 300) cache.delete(cache.keys().next().value);
-  return v;
+  const key = endpoint + JSON.stringify(body) + hl + gl; const hit = cache.get(key); const age = hit ? Date.now() - hit.t : Infinity;
+  if (age < FRESH) return hit.v;
+  if (age < STALE) { refresh(key, endpoint, body, hl, gl).catch(() => {}); return hit.v; }
+  return refresh(key, endpoint, body, hl, gl);
 }
 
 const text = (x) => !x ? '' : typeof x === 'string' ? x : x.simpleText || x.content || (x.runs ? x.runs.map((r) => r.text).join('') : '');
@@ -94,11 +106,20 @@ async function search(q, hl, gl, cont) {
 }
 
 async function home(topics, hl, gl) {
-  const lists = await Promise.all(topics.slice(0, 6).map((t) => search(t, hl, gl).then((r) => r.items.filter((x) => x.type === 'video' && !x.live)).catch(() => [])));
+  const list = topics.slice(0, 4);
+  const [lists, shorts] = await Promise.all([
+    Promise.all(list.map((t) => search(t, hl, gl).then((r) => r.items.filter((x) => x.type === 'video' && !x.live)).catch(() => []))),
+    search(list[0] + ' #shorts', hl, gl).then((r) => r.items.filter((x) => x.type === 'short').slice(0, 10)).catch(() => [])
+  ]);
   const out = [], seen = new Set();
   for (let i = 0; i < 12; i++) for (const l of lists) { const v = l[i]; if (v && !seen.has(v.id)) { seen.add(v.id); out.push(v); } }
-  const shorts = await search(topics[0] + ' #shorts', hl, gl).then((r) => r.items.filter((x) => x.type === 'short').slice(0, 10)).catch(() => []);
   return { items: out, shorts };
+}
+/* keep the first screen of YouTube ready so it opens instantly */
+function warm() {
+  const sets = [['music', 'gaming', 'science', 'comedy'], ['musique', 'jeux vidéo', 'science', 'humour']];
+  const run = () => { home(sets[0], 'en', 'CA').catch(() => {}); home(sets[1], 'fr', 'CA').catch(() => {}); };
+  run(); const t = setInterval(run, 8 * 60 * 1000); if (t.unref) t.unref();
 }
 
 async function video(id, hl, gl) {
@@ -183,7 +204,7 @@ async function handle(req, res, url) {
   const p = url.searchParams;
   const hl = /^[a-z]{2}(-[A-Z]{2})?$/.test(p.get('hl') || '') ? p.get('hl') : 'en';
   const gl = /^[A-Z]{2}$/.test(p.get('gl') || '') ? p.get('gl') : 'CA';
-  const send = (code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*' }); res.end(JSON.stringify(obj)); };
+  const send = (code, obj) => sendJSON(req, res, code, obj);
   const id = p.get('id') || '';
   try {
     const what = url.pathname.replace('/api/yt/', '');
@@ -200,4 +221,4 @@ async function handle(req, res, url) {
   }
 }
 
-module.exports = { handle, search, video, comments, channel, home, suggest, more };
+module.exports = { warm, handle, search, video, comments, channel, home, suggest, more };

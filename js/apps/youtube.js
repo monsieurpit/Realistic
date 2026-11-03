@@ -35,7 +35,17 @@
   PatOS.resetServer = () => { serverOK = null; };
   const hl = () => (PatOS.lang === 'fr' ? 'fr' : 'en');
   const gl = () => ((navigator.language || 'en-CA').split('-')[1] || 'CA').toUpperCase().slice(0, 2);
-  async function get(path, params) {
+  /* answers are remembered for a few minutes, so going back, hovering and re-searching are instant */
+  const memo = new Map();
+  function get(path, params) {
+    const key = path + JSON.stringify(params || {}); const hit = memo.get(key); const ttl = path === 'suggest' ? 120000 : 300000;
+    if (hit && Date.now() - hit.t < ttl) return hit.p;
+    const p = rawGet(path, params); memo.set(key, { t: Date.now(), p });
+    p.catch(() => { if (memo.get(key) && memo.get(key).p === p) memo.delete(key); });
+    if (memo.size > 120) memo.delete(memo.keys().next().value);
+    return p;
+  }
+  async function rawGet(path, params) {
     const base = await server();
     if (base) {
       const r = await fetch(base + '/api/yt/' + path + '?' + new URLSearchParams(Object.assign({ hl: hl(), gl: gl() }, params)));
@@ -60,6 +70,19 @@
     if (path === 'comments') { const j = await call('commentThreads', { part: 'snippet', videoId: p.token.slice(4), maxResults: 20, order: 'relevance', textFormat: 'plainText' }); return { items: j.items.map((c) => { const s = c.snippet.topLevelComment.snippet; return { author: s.authorDisplayName, avatar: s.authorProfileImageUrl, text: s.textDisplay, published: new Date(s.publishedAt).toLocaleDateString(), likes: n(s.likeCount) }; }), cont: '' }; }
     if (path === 'channel') { const j = await call('channels', { part: 'snippet,statistics,brandingSettings', id: p.id }); const c = j.items[0]; const s = await call('search', { part: 'snippet', channelId: p.id, order: 'date', type: 'video', maxResults: 24 }); return { id: p.id, title: c.snippet.title, desc: c.snippet.description, avatar: c.snippet.thumbnails.medium.url, banner: c.brandingSettings && c.brandingSettings.image && c.brandingSettings.image.bannerExternalUrl, subs: n(c.statistics.subscriberCount) + ' subscribers', handle: c.snippet.customUrl, items: await vids(s.items.map((i) => i.id.videoId).filter(Boolean)) }; }
     return { items: [] };
+  }
+
+  /* wake the PatOS server and have YouTube's first screen ready before it is opened */
+  if (/^https?:/.test(location.protocol) && !PatOS.sandboxed) {
+    const warm = async () => {
+      try {
+        const base = await server(); if (!base) return;
+        const topicsNow = (hl() === 'fr' ? ['musique', 'jeux vidéo', 'science', 'humour'] : ['music', 'gaming', 'science', 'comedy']);
+        const j = await get('home', { topics: topicsNow.join(',') });
+        if (j && j.items && !PatOS.store.get('ytHome:' + hl(), null)) PatOS.store.set('ytHome:' + hl(), { items: j.items, shorts: j.shorts });
+      } catch (e) {}
+    };
+    setTimeout(() => (window.requestIdleCallback ? requestIdleCallback(warm, { timeout: 6000 }) : warm()), 1500);
   }
 
   PatOS.registerApp({
@@ -122,6 +145,7 @@
 
       /* ---------- bits ---------- */
       const spinner = () => h('div', { class: 'ytx-load' }, h('div', { class: 'ytx-spin' }));
+      const skeleton = (n, rows) => h('div', { class: rows ? 'ytx-results' : 'ytx-grid' }, ...Array.from({ length: n }, () => h('div', { class: 'ytx-card ytx-sk' + (rows ? ' row' : '') }, h('div', { class: 'ytx-th' }), h('div', { class: 'ytx-ci' }, rows ? null : h('div', { class: 'ytx-av' }), h('div', { class: 'ytx-ct' }, h('b', {}), h('small', {}), h('small', {}))))));
       function problem(e, retry) {
         const box = h('div', { class: 'ytx-msg' });
         if (e.message === 'noserver') {
@@ -142,6 +166,8 @@
           h('div', { class: 'ytx-ci' }, mode === 'row' || mode === 'side' ? null : avatar(v.avatar, v.channel),
             h('div', { class: 'ytx-ct' }, h('b', {}, v.title), mode === 'row' ? h('small', {}, meta) : null, mode === 'row' ? h('div', { class: 'ytx-rowch' }, v.avatar ? avatar(v.avatar, v.channel, 'xs') : null, chan) : chan, mode === 'row' ? null : h('small', {}, meta), mode === 'row' && v.desc ? h('p', {}, v.desc) : null)));
         c.onclick = () => go({ key: 'watch', id: v.id, v });
+        let pre = 0; c.addEventListener('pointerenter', () => { if (!pre) pre = setTimeout(() => { get('video', { id: v.id }).catch(() => {}); }, 120); }); c.addEventListener('pointerleave', () => { clearTimeout(pre); pre = 0; });
+        c.addEventListener('touchstart', () => { get('video', { id: v.id }).catch(() => {}); }, { passive: true });
         c.oncontextmenu = (e) => { e.preventDefault(); PatOS.menu([{ label: PatOS.t('Save to Watch later'), action: () => toggleList('later', v, true) }, { label: PatOS.t('Copy link'), action: () => copyLink(v.id) }], e.clientX, e.clientY); };
         return c;
       }
@@ -166,20 +192,27 @@
       function topics() {
         const fromHist = lib.history.slice(0, 4).map((v) => v.channel).filter(Boolean);
         const base = PatOS.lang === 'fr' ? ['musique', 'jeux vidéo', 'science', 'humour', 'sport'] : ['music', 'gaming', 'science', 'comedy', 'sports'];
-        return [...new Set([...fromHist.slice(0, 2), ...base])].slice(0, 6);
+        return [...new Set([...fromHist.slice(0, 1), ...base])].slice(0, 4);
       }
       function home(r) {
         win.setTitle('YouTube');
         const chips = h('div', { class: 'ytx-chips' }, ...CHIPS.map(([l, t]) => h('button', { class: (r.chip || '') === t ? 'on' : '', onclick: () => go({ key: 'home', chip: t }, true) }, PatOS.t(l))));
-        main.append(chips); const box = h('div'); main.appendChild(box); box.appendChild(spinner());
-        const p = r.chip ? get('search', { q: r.chip }).then((j) => ({ items: j.items.filter((x) => x.type === 'video'), shorts: j.items.filter((x) => x.type === 'short'), cont: j.cont, q: r.chip })) : get('home', { topics: topics().join(',') });
-        p.then((j) => {
-          box.innerHTML = '';
-          const g = grid(j.items.slice(0, 12)); box.appendChild(g);
+        main.append(chips); const box = h('div'); main.appendChild(box);
+        const cacheKey = 'ytHome:' + hl() + (r.chip || '');
+        const paint = (j) => {
+          if (route !== r) return;
+          const top = main.scrollTop; box.innerHTML = '';
+          box.appendChild(grid(j.items.slice(0, 12)));
           if (j.shorts && j.shorts.length) box.appendChild(shelf(j.shorts));
           if (j.items.length > 12) box.appendChild(grid(j.items.slice(12)));
           if (j.cont) moreSearch(box, j.q, j.cont);
-        }).catch((e) => { box.innerHTML = ''; box.appendChild(problem(e, () => render())); });
+          main.scrollTop = top;
+        };
+        const cached = PatOS.store.get(cacheKey, null);
+        if (cached && cached.items && cached.items.length) paint(cached); else box.appendChild(skeleton(12));
+        const p = r.chip ? get('search', { q: r.chip }).then((j) => ({ items: j.items.filter((x) => x.type === 'video'), shorts: j.items.filter((x) => x.type === 'short'), cont: j.cont, q: r.chip })) : get('home', { topics: topics().join(',') });
+        p.then((j) => { if (!(cached && cached.items && JSON.stringify(cached.items.slice(0, 6).map((x) => x.id)) === JSON.stringify(j.items.slice(0, 6).map((x) => x.id)))) paint(j); PatOS.store.set(cacheKey, { items: j.items, shorts: j.shorts, cont: j.cont, q: j.q }); })
+          .catch((e) => { if (cached && cached.items && cached.items.length) return; box.innerHTML = ''; box.appendChild(problem(e, () => render())); });
       }
       function moreSearch(box, text, cont, rows) {
         scrollMore = () => {
@@ -194,7 +227,7 @@
       }
       function search(r) {
         win.setTitle(r.q + ' - YouTube'); q.value = r.q;
-        const box = h('div', { class: 'ytx-results' }); main.appendChild(box); box.appendChild(spinner());
+        const box = h('div', { class: 'ytx-results' }); main.appendChild(box); box.appendChild(skeleton(6, true));
         get('search', { q: r.q }).then((j) => {
           box.innerHTML = '';
           if (!j.items.length) { box.appendChild(h('div', { class: 'ytx-msg' }, h('h2', {}, PatOS.t('No results found')), h('p', {}, PatOS.t('Try different keywords.')))); return; }

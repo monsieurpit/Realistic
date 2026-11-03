@@ -35,13 +35,17 @@ fs.writeFileSync(path.join(root, 'sw.js'), `/* PatOS service worker (generated b
 const CACHE = 'patos-${version}';
 const FILES = ${JSON.stringify(assets, null, 0)};
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting())); });
-self.addEventListener('activate', (e) => { e.waitUntil(caches.keys().then((ks) => Promise.all(ks.filter((k) => k !== CACHE).map((k) => caches.delete(k)))).then(() => self.clients.claim())); });
+self.addEventListener('activate', (e) => { e.waitUntil((async () => {
+  const keys = await caches.keys(); const hadOld = keys.some((k) => k.startsWith('patos-') && k !== CACHE);
+  await Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)));
+  await self.clients.claim();
+  if (hadOld) (await self.clients.matchAll()).forEach((c) => c.postMessage({ patosUpdate: true }));
+})()); });
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (e.request.method !== 'GET' || url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
-  // network first so updates appear right away; the saved copy is used when offline
-  e.respondWith(fetch(e.request).then((r) => { if (r.ok) { const copy = r.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); } return r; })
-    .catch(() => caches.match(e.request, { ignoreSearch: true }).then((m) => m || caches.match('index.html'))));
+  // saved copy first: PatOS opens instantly and works offline. A new version is picked up the next time PatOS loads.
+  e.respondWith(caches.match(e.request, { ignoreSearch: true }).then((m) => m || fetch(e.request).then((r) => { if (r.ok) { const copy = r.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); } return r; }).catch(() => caches.match('index.html'))));
 });
 `);
 console.log('Wrote sw.js (' + assets.length + ' files, version ' + version + ')');

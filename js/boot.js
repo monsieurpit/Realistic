@@ -133,6 +133,13 @@
     });
     boot();
     // offline support / installable app when served over http(s)
-    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !PatOS.singleFile) navigator.serviceWorker.register('sw.js').catch(() => {});
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !PatOS.singleFile) {
+      navigator.serviceWorker.register('sw.js').catch(() => {});
+      let told = false;
+      navigator.serviceWorker.addEventListener('message', (e) => {
+        if (!e.data || !e.data.patosUpdate || told) return; told = true;
+        PatOS.notify({ title: 'PatOS has a new version', body: 'Click here to restart and use it.', icon: 'about', duration: 12000, onClick: () => { PatOS._leaving = true; location.reload(); } });
+      });
+    }
   });
 })();

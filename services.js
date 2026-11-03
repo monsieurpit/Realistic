@@ -1,6 +1,7 @@
 /* Small data services for PatOS apps (News and Books). Each one only talks to a fixed list of sites,
    so this is not a general web proxy. */
 'use strict';
+const { sendJSON } = require('./http-util.js');
 
 const FEEDS = {
   top: ['Top stories', 'https://feeds.npr.org/1001/rss.xml', 'NPR'],
@@ -80,7 +81,7 @@ async function suggest(q, hl) {
 }
 
 async function handle(req, res, url) {
-  const send = (code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*' }); res.end(JSON.stringify(obj)); };
+  const send = (code, obj) => sendJSON(req, res, code, obj);
   const p = url.searchParams;
   try {
     if (url.pathname === '/api/suggest') return send(200, await suggest((p.get('q') || '').slice(0, 120), /^[a-z]{2}$/.test(p.get('hl') || '') ? p.get('hl') : 'en'));

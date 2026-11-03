@@ -499,3 +499,8 @@ mark.dx-hit { background: #fff2a8; color: inherit; border-radius: 2px; } mark.dx
 .rc-pb.stop { background: #ff453a; } .rc-pb.stop::before { left: 10px; top: 10px; width: 10px; height: 10px; box-shadow: none; border-radius: 2px; }
 
 .of-import { margin-left: auto; white-space: nowrap; } .of-import + .of-ssearch { margin-left: 0; }
+
+/* YouTube loading skeletons */
+.ytx-sk { pointer-events: none; } .ytx-sk .ytx-th, .ytx-sk .ytx-av, .ytx-sk b, .ytx-sk small { background: linear-gradient(90deg, var(--yb2) 25%, var(--yb3) 37%, var(--yb2) 63%); background-size: 400% 100%; animation: ytxSk 1.3s ease infinite; border-radius: 8px; }
+.ytx-sk .ytx-av { border-radius: 50%; } .ytx-sk b { display: block; height: 16px; width: 90%; } .ytx-sk small { display: block; height: 12px; width: 55%; margin-top: 4px; }
+@keyframes ytxSk { 0% { background-position: 100% 50%; } 100% { background-position: 0 50%; } }

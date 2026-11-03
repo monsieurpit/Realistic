@@ -597,6 +597,8 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         else if (e.key === 'F5') { e.preventDefault(); bReload.click(); }
       });
       renderBM();
+      // load Google's page in the background once, so the first search opens faster (its files are then already saved)
+      if (!PatOS.sandboxed && engine() === 'google' && !sessionStorage.getItem('pbWarm')) { try { sessionStorage.setItem('pbWarm', '1'); } catch (e) {} setTimeout(() => { const wf = h('iframe', { src: 'https://www.google.com/webhp?igu=1&hl=' + glang(), style: { position: 'fixed', width: '1px', height: '1px', left: '-10px', top: '-10px', border: '0', opacity: '0', pointerEvents: 'none' }, sandbox: 'allow-scripts allow-same-origin', 'aria-hidden': 'true', tabindex: '-1' }); document.body.appendChild(wf); setTimeout(() => wf.remove(), 9000); }, 1200); }
       const session = PatOS.store.get('browserSession', null);
       if (args.html) newTab(null, args.html, args.title);
       else if (args.url) newTab(args.url);
