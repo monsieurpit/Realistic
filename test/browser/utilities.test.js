@@ -54,3 +54,15 @@ test('Clock: durations, half-hour time zones, a stopwatch that survives closing'
   assert.deepEqual(errors, []);
   await page.close();
 });
+
+test('Reminders: quick add understands dates, times, priority and lists', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage(); const errors = await boot(page, srv.base, { fresh: true });
+  const r = await page.evaluate(() => {
+    const now = new Date(2026, 10, 3, 10, 0); const lists = [{ id: 'h', name: 'Homework' }];
+    return ['Math test friday at 3pm !!', 'Devoir de français demain 15h', 'Read chapter 5', 'Essay due nov 12 #Homework', 'Gym 6:30am']
+      .map((t) => { const p = PatOS.parseReminder(t, lists, now); return [p.text, p.due || '', p.time || '', p.prio || 0, p.list || ''].join('|'); });
+  });
+  assert.deepEqual(r, ['Math test|2026-11-06|15:00|2|', 'Devoir de français|2026-11-04|15:00|0|', 'Read chapter 5|||0|', 'Essay due|2026-11-12||0|h', 'Gym|2026-11-04|06:30|0|']);
+  assert.deepEqual(errors, []);
+  await page.close();
+});
