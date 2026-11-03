@@ -98,6 +98,8 @@
     tryThenStore(intent, 'market://details?id=' + c.pkg, 3000);
   }
   function openOnComputer(c, forceWindow) {
+    // Google apps open in a normal browser tab, where the school Google account is already signed in
+    if (c.cat === 'Google' && !forceWindow) { PatOS.openExternal(c.web); return; }
     if (c.frame && !forceWindow && !PatOS.sandboxed) return PatOS.launch('extweb', { app: c.id });
     const w = Math.min(1200, screen.availWidth - 80), hh = Math.min(820, screen.availHeight - 80);
     const left = Math.max(0, (screen.availWidth - w) / 2), top = Math.max(0, (screen.availHeight - hh) / 2);
@@ -124,6 +126,50 @@
     PatOS.iconDefs['x-' + id] = { bg: '#fff', svg: () => `<img class="ext-ic" src="${art || fav}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${fav}'">` };
     PatOS.registerApp({ id: 'x-' + id, name, icon: 'x-' + id, category: 'Apps', keywords: (name + ' ' + cat + ' phone app').toLowerCase(), hidden: !installed.has(id), external: c, about: cat, action: () => open(id) });
   });
+
+  /* ---------- Google: one Dock icon with a grid of Google apps ---------- */
+  const GOOGLE = [['gclassroom', 'Classroom'], ['gdocs', 'Docs'], ['gsheets', 'Sheets'], ['gslides', 'Slides'], ['gdrive', 'Drive'], ['gkeep', 'Keep'], ['gtranslate', 'Translate'], ['gphotos', 'Photos'], ['gmaps', 'Maps'], ['gearth', 'Earth']];
+  let gPop = null;
+  const gOutside = (e) => { if (gPop && !gPop.contains(e.target) && !e.target.closest('[data-app="google"]')) closeGoogle(); };
+  const gKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); closeGoogle(); } };
+  function closeGoogle() {
+    if (!gPop) return; const el = gPop; gPop = null; el.classList.remove('in'); setTimeout(() => el.remove(), 180);
+    document.removeEventListener('pointerdown', gOutside, true); document.removeEventListener('keydown', gKey, true);
+  }
+  function showGoogle() {
+    if (gPop) return closeGoogle();
+    const d = device();
+    const grid = h('div', { class: 'gg-grid' }, ...GOOGLE.filter(([id]) => byId[id]).map(([id, label]) => {
+      const b = h('button', { class: 'gg-app', title: byId[id].name }, h('div', { class: 'gg-ic', html: PatOS.iconHTML('x-' + id) }), h('span', {}, PatOS.t(label)));
+      b.onclick = () => { closeGoogle(); open(id); };
+      return b;
+    }));
+    gPop = h('div', { class: 'gg-pop', role: 'dialog', 'aria-label': 'Google' },
+      h('div', { class: 'gg-head' }, h('b', {}, 'Google'), h('small', {}, PatOS.t(d.kind === 'computer' ? 'Opens in your browser, signed in with your Google account' : 'Opens the Google app on this phone'))),
+      grid);
+    document.body.appendChild(gPop);
+    const W = gPop.offsetWidth, H = gPop.offsetHeight;
+    const r = PatOS.dock && PatOS.dock.iconRect && PatOS.dock.iconRect('google');
+    const dockEl = document.getElementById('dock');
+    if (r && !PatOS.isMobile) { const top = dockEl ? dockEl.getBoundingClientRect().top : r.top; gPop.style.left = Math.max(8, Math.min(innerWidth - W - 8, r.left + r.width / 2 - W / 2)) + 'px'; gPop.style.top = Math.max(36, top - H - 12) + 'px'; }
+    else { gPop.style.left = Math.max(8, (innerWidth - W) / 2) + 'px'; gPop.style.top = Math.max(40, (innerHeight - H) / 2) + 'px'; }
+    requestAnimationFrame(() => gPop && gPop.classList.add('in'));
+    setTimeout(() => { document.addEventListener('pointerdown', gOutside, true); document.addEventListener('keydown', gKey, true); const f = gPop && gPop.querySelector('.gg-app'); if (f) f.focus(); }, 0);
+  }
+  PatOS.iconDefs.google = { bg: '#ffffff', svg: () => {
+    const c = ['#4285f4', '#ea4335', '#fbbc04', '#34a853', '#4285f4', '#ea4335', '#fbbc04', '#34a853', '#4285f4'];
+    let g = ''; c.forEach((col, i) => { g += `<circle cx="${17.5 + (i % 3) * 14.5}" cy="${17.5 + Math.floor(i / 3) * 14.5}" r="5.2" fill="${col}"/>`; });
+    return `<svg viewBox="0 0 64 64" width="100%" height="100%">${g}</svg>`;
+  } };
+  // fetch the Google icons quietly after login, so the grid appears complete right away
+  PatOS.on('wm:ready', () => setTimeout(() => { if (navigator.onLine === false) return; GOOGLE.forEach(([id]) => { const c = byId[id]; if (c && c.art) { const im = new Image(); im.referrerPolicy = 'no-referrer'; im.src = c.art; } }); }, 4000));
+  PatOS.registerApp({ id: 'google', name: 'Google', icon: 'google', category: 'Apps', keywords: 'google classroom docs sheets slides drive keep translate photos maps earth school ecole école', about: 'Your Google apps, one click away. They open in your browser, signed in with your Google account.', action: () => showGoogle() });
+  // put Google in the Dock once, right after Patoogle (it can be removed or moved like any Dock icon)
+  if (!PatOS.store.get('googleDock1', false)) {
+    PatOS.store.set('googleDock1', true);
+    const dk = (PatOS.settings.dockPinned || []).slice();
+    if (!dk.includes('google')) { const i = dk.indexOf('browser'); dk.splice(i >= 0 ? i + 1 : Math.max(0, dk.length - 1), 0, 'google'); PatOS.setSetting('dockPinned', dk); }
+  }
 
   /* window used on computers for sites that can show inside PatOS (or when a popup was blocked) */
   PatOS.registerApp({

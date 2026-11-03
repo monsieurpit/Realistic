@@ -732,7 +732,8 @@
     if (def && PatOS.apps.dictionary) out.push({ group: 'Dictionary', key: 'def', score: 1000, label: T('Look up') + ' “' + def[1] + '”', icon: 'dictionary', run: () => PatOS.launch('dictionary', { word: def[1] }) });
     // apps
     PatOS.appOrder.forEach((id) => {
-      const a = PatOS.apps[id]; if (!a || (a.hidden && (a.external || id === 'extweb'))) return;
+      // hidden phone/web apps stay out of results, except Google's, which open with one click
+      const a = PatOS.apps[id]; if (!a || (a.hidden && (id === 'extweb' || (a.external && a.external.cat !== 'Google')))) return;
       const nm = T(a.name);
       const sc = Math.max(score(nm, q), score(a.name, q), score(a.keywords || '', q, true) * 0.75);
       add('Applications', 'app:' + id, sc, { appId: id, label: nm, icon: a.icon || id, run: () => PatOS.launch(id) });
