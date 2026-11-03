@@ -141,3 +141,16 @@ build.js            makes the single-file versions in dist/
 - Screen Recorder: screen with optional microphone, system sound and camera bubble; saves to Videos.
 - Python (Pyodide, served by `/pyodide/*`) in Code Studio and Terminal (`python`, `node`).
 - `/api/frameable` tells Patoogle whether a site allows being shown inside PatOS; if not, it opens in its own window.
+
+## Using PatOS as your main system (added)
+- **Install as an app**: Settings › Install & Start Up. Opens in its own window; the Chromebook's Files app can "Open with › PatOS"; shelf shortcuts.
+- **Offline**: Docs, Sheets, Slides, Notes, Code Studio (Python too), Files, PDFs, books you opened, saved news and weather.
+- **Alarms, timers, reminders** ring on time in the background, with Chrome notifications (Stop / Snooze).
+- **Spotlight** (Ctrl+Space): apps, settings, files and their contents, notes, reminders, contacts, passwords, websites, quick actions.
+- **Google** in the Dock: Classroom, Docs, Drive and more open in the real browser.
+- **Preview** reads and annotates PDFs (highlight, pen, text, export). **Scanner** turns photos of pages into a PDF.
+- **Notes** with real checklists, drawings and #tags. **Grapher** is a full graphing calculator. **Games** (2048, Snake, Minesweeper, Breakout, Connect Four, Memory). **Music** with playlists, a queue and album art.
+- **Windows come back** after a reload or a crash; **updates are safe**: if a new version doesn't start, PatOS goes back to the previous one.
+- **Phones**: on a real iPhone or Android phone PatOS uses the phone's own status bar and safe areas, has an app bar with Home/Back, list → detail screens, and works with the back button.
+
+Third-party files: `vendor/pdf/` holds pdf.js 3.11.174 (Apache-2.0) and pdf-lib 1.17.1 (MIT), with their licenses.
