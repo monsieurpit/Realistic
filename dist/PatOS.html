@@ -2698,6 +2698,13 @@ html.big-targets .btn, html.big-targets .tbtn, html.big-targets .ob, html.big-ta
 .st-code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; padding: 3px 8px; border-radius: 6px; background: rgba(127,127,127,.12); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle; }
 img.st-hero-ic { border-radius: 18px; }
 
+/* "You're offline" card, shared by every app that needs the internet */
+.pos-offline { display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; gap: 6px; padding: 48px 24px; min-height: 240px; height: 100%; box-sizing: border-box; color: var(--text); }
+.pos-offline .pos-off-ic { width: 72px; height: 72px; border-radius: 50%; display: grid; place-items: center; background: var(--card); border: .5px solid var(--border); color: var(--text2); margin-bottom: 8px; }
+.pos-offline h2 { margin: 0; font-size: 18px; font-weight: 650; }
+.pos-offline p { margin: 0 0 10px; max-width: 360px; color: var(--text2); font-size: 13px; line-height: 1.5; }
+.nw-offbar { margin: 0 0 14px; padding: 9px 14px; border-radius: 10px; background: rgba(255,159,10,.14); color: var(--text); font-size: 12.5px; border: .5px solid rgba(255,159,10,.35); }
+
 </style>
   <style>
 /* ================= Liquid Glass ================= */
@@ -2990,7 +2997,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   PatOS.clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   PatOS.uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
   PatOS.debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
-  PatOS.fmtBytes = (n) => n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(2) + ' MB';
+  PatOS.fmtBytes = (n) => { n = Math.max(0, Math.round(+n || 0)); const fr = PatOS.lang === 'fr'; const u = fr ? ['o', 'Ko', 'Mo', 'Go'] : ['B', 'KB', 'MB', 'GB']; const f = (v, d) => { const x = v.toFixed(d); return fr ? x.replace('.', ',') : x; }; return n < 1024 ? n + ' ' + u[0] : n < 1048576 ? f(n / 1024, 1) + ' ' + u[1] : n < 1073741824 ? f(n / 1048576, n < 10485760 ? 2 : 1) + ' ' + u[2] : f(n / 1073741824, 1) + ' ' + u[3]; };
 
   /* ---------- storage ----------
      PatOS keeps every setting and file in memory and saves them to the browser's database (IndexedDB),
@@ -4625,7 +4632,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
   async function baseURL() {
     const srv = PatOS.server && !PatOS.sandboxed ? await PatOS.server() : null;
-    return srv ? srv + '/pyodide/' : CDN;
+    if (srv) return srv + '/pyodide/';
+    // offline: PatOS's own copy, which the service worker kept the first time Python was used
+    if (PatOS.isOffline && PatOS.isOffline() && /^https?:$/.test(location.protocol) && !PatOS.sandboxed && !PatOS.singleFile) return location.origin + '/pyodide/';
+    return CDN;
   }
   function start() {
     if (ready) return ready;
@@ -5777,6 +5787,29 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Shortcuts': 'Raccourcis',
     'Right-click the PatOS icon in the shelf to jump straight to Finder, Docs, Notes or Code Studio.': 'Faites un clic droit sur l’icône de PatOS dans l’étagère pour aller directement à Finder, Docs, Notes ou Code Studio.',
     'Couldn’t open the file': 'Impossible d’ouvrir le fichier',
+    'Back online': 'De retour en ligne',
+    'Apps that need the internet work again.': 'Les applications qui ont besoin d’Internet fonctionnent à nouveau.',
+    'You’re offline': 'Vous êtes hors ligne',
+    'Your files, Docs, Sheets, Slides, Notes and Code Studio keep working. Apps that need the internet will wait.': 'Vos fichiers, Docs, Sheets, Slides, Notes et Code Studio continuent de fonctionner. Les applications qui ont besoin d’Internet attendront.',
+    'This needs the internet. It will load by itself when you’re back online.': 'Ceci a besoin d’Internet. Ça se chargera tout seul quand vous serez de retour en ligne.',
+    'Try again': 'Réessayer',
+    'YouTube needs the internet. Videos you were watching will load by themselves when you’re back online.': 'YouTube a besoin d’Internet. Les vidéos se chargeront toutes seules quand vous serez de retour en ligne.',
+    'The PatOS server didn’t answer': 'Le serveur PatOS n’a pas répondu',
+    'It may be waking up, which can take up to a minute. Try again in a moment.': 'Il est peut-être en train de se réveiller, ce qui peut prendre jusqu’à une minute. Réessayez dans un instant.',
+    'The news needs the internet. Your saved stories are still here, in Library.': 'Les actualités ont besoin d’Internet. Vos articles enregistrés sont toujours là, dans Bibliothèque.',
+    'You’re offline. These headlines are from': 'Vous êtes hors ligne. Ces manchettes datent de',
+    'This book hasn’t been opened on this device yet, so it needs the internet the first time. Books you have opened before work offline.': 'Ce livre n’a pas encore été ouvert sur cet appareil, il a donc besoin d’Internet la première fois. Les livres déjà ouverts fonctionnent hors ligne.',
+    'Searching for books needs the internet. Books you have opened before are in Continue reading.': 'La recherche de livres a besoin d’Internet. Les livres déjà ouverts sont dans Continuer la lecture.',
+    'Live radio needs the internet. Stations will load by themselves when you’re back online.': 'La radio en direct a besoin d’Internet. Les stations se chargeront toutes seules quand vous serez de retour en ligne.',
+    'Maps need the internet. The map will load by itself when you’re back online.': 'Plans a besoin d’Internet. La carte se chargera toute seule quand vous serez de retour en ligne.',
+    'Search needs an internet connection.': 'La recherche a besoin d’une connexion Internet.',
+    'Looking up a new word needs the internet. Words you looked up before work offline.': 'Chercher un nouveau mot a besoin d’Internet. Les mots déjà cherchés fonctionnent hors ligne.',
+    'No definition found': 'Aucune définition trouvée',
+    'Check the spelling and try again.': 'Vérifiez l’orthographe et réessayez.',
+    'This website needs the internet. The page will load by itself when you’re back online.': 'Ce site a besoin d’Internet. La page se chargera toute seule quand vous serez de retour en ligne.',
+    'Searching needs the internet. Connect to Wi-Fi, then press Try again.': 'La recherche a besoin d’Internet. Connectez-vous au Wi-Fi, puis appuyez sur Réessayer.',
+    'The weather needs the internet. It will load by itself when you’re back online.': 'La météo a besoin d’Internet. Elle se chargera toute seule quand vous serez de retour en ligne.',
+    'You’re offline. This forecast is from': 'Vous êtes hors ligne. Ces prévisions datent de',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 'Offline': 'Hors ligne', 'Connected': 'Connecté',
@@ -6943,6 +6976,23 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     setTimeout(() => { t.classList.remove('in'); setTimeout(() => t.remove(), 400); }, n.duration || 4500);
   };
 
+  /* One look for "you're offline" everywhere. retry() runs by itself when the connection comes back,
+     as long as the card is still on screen (unless opts.auto is false, for things that need a click). */
+  PatOS.offlineCard = function (retry, opts) {
+    opts = opts || {};
+    const card = h('div', { class: 'pos-offline', role: 'status' },
+      h('div', { class: 'pos-off-ic', html: '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2 8.8a15 15 0 0 1 4.2-2.6M9.6 5.2A15 15 0 0 1 22 8.8M5 12.5a10 10 0 0 1 4-2.2M14.5 10.4A10 10 0 0 1 19 12.5M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/><path d="M3 3l18 18"/></svg>' }),
+      h('h2', {}, PatOS.t(opts.title || 'You’re offline')),
+      h('p', {}, PatOS.t(opts.body || 'This needs the internet. It will load by itself when you’re back online.')),
+      retry ? h('button', { class: 'btn', onclick: () => retry() }, PatOS.t('Try again')) : null);
+    if (retry && opts.auto !== false) {
+      const back = () => { window.removeEventListener('online', back); if (card.isConnected) setTimeout(retry, 600); };
+      window.addEventListener('online', back);
+    }
+    return card;
+  };
+  PatOS.isOffline = () => navigator.onLine === false;
+
   /* =========================== MENU BAR =========================== */
   function activeAppId() { const w = PatOS.wm.active; return w ? w.app.id : 'finder'; }
   function appMenus(appId) {
@@ -7084,6 +7134,21 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       $('#mb-wifi').classList.toggle('off', !navigator.onLine);
     }
     tick(); setInterval(tick, 1000);
+
+    // going offline or back online: say so once the change has lasted a moment (Wi-Fi can flicker)
+    let netTimer = null, netShown = navigator.onLine;
+    const netChange = () => {
+      $('#mb-wifi').classList.toggle('off', !navigator.onLine);
+      clearTimeout(netTimer);
+      netTimer = setTimeout(() => {
+        if (navigator.onLine === netShown) return; netShown = navigator.onLine;
+        if (netShown) PatOS.notify({ title: PatOS.t('Back online'), body: PatOS.t('Apps that need the internet work again.'), icon: 'settings', duration: 3500 });
+        else PatOS.notify({ title: PatOS.t('You’re offline'), body: PatOS.t('Your files, Docs, Sheets, Slides, Notes and Code Studio keep working. Apps that need the internet will wait.'), icon: 'settings', duration: 7000 });
+      }, 1500);
+    };
+    window.addEventListener('online', netChange); window.addEventListener('offline', netChange);
+    // PatOS started without internet: say so once, after the welcome
+    if (!navigator.onLine) { netShown = false; setTimeout(() => { if (!navigator.onLine) PatOS.notify({ title: PatOS.t('You’re offline'), body: PatOS.t('Your files, Docs, Sheets, Slides, Notes and Code Studio keep working. Apps that need the internet will wait.'), icon: 'settings', duration: 7000 }); }, 2500); }
 
     // battery (Chromebooks support the Battery API)
     const bat = $('#mb-battery');
@@ -9212,6 +9277,12 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         if (raw && !/^(patos|https?):\/\//i.test(raw) && !(/^[\w-]+(\.[\w-]+)+(:\d+)?(\/.*)?$/.test(raw) && !raw.includes(' '))) gq = raw;
         else if (/^https?:\/\/(www\.)?(google\.[a-z.]+\/search|bing\.com\/search)\?/i.test(raw)) { try { gq = new URL(raw).searchParams.get('q'); } catch (e) {} }
         else if (/^patos:\/\/(google|search)\?/.test(raw)) { try { gq = new URL(raw.replace('patos://', 'http://x/')).searchParams.get('q'); } catch (e) {} }
+        if (gq && !noHist && PatOS.isOffline()) {
+          if (t.web) { webTabs--; t.web = false; }
+          t.pane.innerHTML = ''; t.frame = null; t.loading = false; t.title = gq; t.url = 'patos://newtab';
+          t.pane.appendChild(PatOS.offlineCard(() => navigate(raw, t), { auto: false, body: 'Searching needs the internet. Connect to Wi-Fi, then press Try again.' }));
+          syncUI(); return;
+        }
         if (gq && !noHist) {
           const H = PatOS.store.get('browserHistory', []); H.unshift({ u: 'https://www.google.com/search?q=' + encodeURIComponent(gq), t: Date.now(), title: gq }); PatOS.store.set('browserHistory', H.slice(0, 300));
           PatOS.openExternal(engine() === 'bing' ? bingURL(gq) : 'https://www.google.com/search?q=' + encodeURIComponent(gq) + '&hl=' + glang());
@@ -9230,6 +9301,10 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         else if (url.startsWith('patos://google-setup')) { t.title = 'Google'; t.pane.appendChild(googleSetup(new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || '')); }
         else if (url.startsWith('patos://search')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Patoogle'; t.pane.appendChild(patoogleResults(q)); }
         else if (url.startsWith('patos://google')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Google'; if (googleCx()) t.pane.appendChild(googlePage(t, q)); else { setTimeout(() => navigate(q ? googleURL(q) : 'https://www.google.com/webhp?igu=1&hl=' + glang(), t, true), 0); } }
+        else if (/^https?:/.test(url) && PatOS.isOffline()) {
+          if (t.web) { webTabs--; t.web = false; }
+          t.title = host(url); t.pane.appendChild(PatOS.offlineCard(() => { if (t.url === url) navigate(url, t, true); }, { body: 'This website needs the internet. The page will load by itself when you’re back online.' }));
+        }
         else if (isBlocked(url)) { t.title = host(url); t.pane.appendChild(blockedPage(url)); autoOpen(url, t); }
         else {
           const gq = isGoogleFrame(url) ? new URL(url).searchParams.get('q') : null;
@@ -9695,11 +9770,11 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         bG.onclick = () => PatOS.openExternal('https://www.google.com/maps'); bLoc.style.display = 'none';
         return;
       }
-      function show(z) {
+      let show = function (z) {
         const d = z || 0.06;
         frame.src = `https://www.openstreetmap.org/export/embed.html?bbox=${lon - d * 1.6}%2C${lat - d}%2C${lon + d * 1.6}%2C${lat + d}&layer=mapnik&marker=${lat}%2C${lon}`;
         info.textContent = label; info.classList.remove('hidden');
-      }
+      };
       q.addEventListener('keydown', async (e) => {
         if (e.key !== 'Enter' || !q.value.trim()) return;
         try {
@@ -9707,11 +9782,19 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
           const j = await r.json();
           if (!j.length) { info.textContent = 'No place found for “' + q.value + '”'; info.classList.remove('hidden'); return; }
           lat = +j[0].lat; lon = +j[0].lon; label = j[0].display_name.split(',').slice(0, 3).join(','); show(0.03);
-        } catch (er) { info.textContent = 'Search needs an internet connection.'; info.classList.remove('hidden'); }
+        } catch (er) { if (PatOS.isOffline()) return start(); info.textContent = PatOS.t('Search needs an internet connection.'); info.classList.remove('hidden'); }
       });
       bLoc.onclick = () => navigator.geolocation && navigator.geolocation.getCurrentPosition((p) => { lat = p.coords.latitude; lon = p.coords.longitude; label = 'Your location'; show(0.01); }, () => PatOS.notify({ title: 'Location unavailable', body: 'PatOS could not get your location.', icon: 'maps' }));
       bG.onclick = () => PatOS.openExternal(`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`);
-      show();
+      // maps come from the internet: offline, say so instead of showing an empty frame, and load when back
+      let offCard = null;
+      const start = (z) => {
+        if (offCard) { offCard.remove(); offCard = null; }
+        if (PatOS.isOffline()) { frame.style.display = 'none'; info.classList.add('hidden'); offCard = PatOS.offlineCard(() => start(z), { body: 'Maps need the internet. The map will load by itself when you’re back online.' }); win.body.appendChild(offCard); return; }
+        frame.style.display = ''; show(z);
+      };
+      const _show = show; show = (z) => { if (PatOS.isOffline()) return start(z); _show(z); };
+      start();
     }
   });
 })();
@@ -9742,17 +9825,22 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
   const LOGO = '<svg viewBox="0 0 100 20" width="100" height="20"><rect x="0" y="1" width="28" height="19" rx="5" fill="#ff0033"/><path d="M11 6v9l8-4.5z" fill="#fff"/><text x="31" y="16" font-family="system-ui,-apple-system,Roboto,sans-serif" font-size="16" font-weight="700" letter-spacing="-.6" fill="currentColor">YouTube</text></svg>';
 
   /* ---------- where the data comes from ---------- */
-  let serverOK = null;
+  // A found server is remembered. A failure is remembered for 30 seconds only, and not at all while offline,
+  // so apps start working again by themselves when the Wi-Fi comes back.
+  let serverOK = null, failAt = 0;
   async function server() {
     if (PatOS.sandboxed) return null;
     const custom = (PatOS.store.get('patosServer', '') || '').trim().replace(/\/+$/, '');
-    if (serverOK !== null) return serverOK;
+    if (serverOK) return serverOK;
+    if (navigator.onLine && failAt && Date.now() - failAt < 30000) return null;
     const tryBase = async (b) => { try { const r = await fetch(b + '/api/ping', { cache: 'no-store' }); const j = await r.json(); return j && j.patos ? b : null; } catch (e) { return null; } };
     serverOK = (/^https?:/.test(location.protocol) && await tryBase(location.origin)) || (custom && await tryBase(custom)) || null;
+    failAt = serverOK || !navigator.onLine ? 0 : Date.now();
     return serverOK;
   }
+  window.addEventListener('online', () => { failAt = 0; });
   PatOS.server = server;
-  PatOS.resetServer = () => { serverOK = null; };
+  PatOS.resetServer = () => { serverOK = null; failAt = 0; };
   const hl = () => (PatOS.lang === 'fr' ? 'fr' : 'en');
   const gl = () => ((navigator.language || 'en-CA').split('-')[1] || 'CA').toUpperCase().slice(0, 2);
   /* answers are remembered for a few minutes, so going back, hovering and re-searching are instant */
@@ -9867,8 +9955,12 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       const spinner = () => h('div', { class: 'ytx-load' }, h('div', { class: 'ytx-spin' }));
       const skeleton = (n, rows) => h('div', { class: rows ? 'ytx-results' : 'ytx-grid' }, ...Array.from({ length: n }, () => h('div', { class: 'ytx-card ytx-sk' + (rows ? ' row' : '') }, h('div', { class: 'ytx-th' }), h('div', { class: 'ytx-ci' }, rows ? null : h('div', { class: 'ytx-av' }), h('div', { class: 'ytx-ct' }, h('b', {}), h('small', {}), h('small', {}))))));
       function problem(e, retry) {
+        if (PatOS.isOffline()) return PatOS.offlineCard(retry, { body: 'YouTube needs the internet. Videos you were watching will load by themselves when you’re back online.' });
         const box = h('div', { class: 'ytx-msg' });
-        if (e.message === 'noserver') {
+        if (e.message === 'noserver' && /^https?:/.test(location.protocol) && !PatOS.sandboxed && !PatOS.store.get('ytKey', '')) {
+          box.append(h('div', { class: 'ytx-bigic', html: PatOS.iconHTML('youtube') }), h('h2', {}, PatOS.t('The PatOS server didn’t answer')),
+            h('p', {}, PatOS.t('It may be waking up, which can take up to a minute. Try again in a moment.')), retry ? h('button', { class: 'ytx-btn', onclick: () => { PatOS.resetServer(); retry(); } }, PatOS.t('Try again')) : null);
+        } else if (e.message === 'noserver') {
           box.append(h('div', { class: 'ytx-bigic', html: PatOS.iconHTML('youtube') }), h('h2', {}, PatOS.t('YouTube needs the PatOS website')),
             h('p', {}, PatOS.sandboxed ? PatOS.t('This copy of PatOS runs inside a Claude Artifact, which blocks YouTube. Open PatOS from its website (your Render link) and YouTube works there.') : PatOS.t('This copy of PatOS was opened as a file, so it has no server to ask YouTube for videos. Open PatOS from its website (your Render link), or type that link in Settings so this copy can use it.')),
             h('button', { class: 'ytx-btn', onclick: () => go({ key: 'settings' }) }, PatOS.t('Settings')));
@@ -11207,13 +11299,34 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         bUnit.textContent = '°' + unit;
         try {
           const url = `https://api.open-meteo.com/v1/forecast?latitude=${place.lat}&longitude=${place.lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=auto&forecast_days=7`;
+          const ck = place.lat.toFixed(2) + ',' + place.lon.toFixed(2) + ',' + unit;
+          const cache = PatOS.store.get('wxCache', {});
+          if (PatOS.isOffline() && cache[ck]) return drawSaved(cache[ck]);
+          if (PatOS.isOffline()) throw new Error('offline');
           const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status);
-          draw(await r.json());
+          const j = await r.json();
+          // keep the last forecast for each place (only the 6 most recent), for when the device is offline
+          cache[ck] = { t: Date.now(), j }; const ks = Object.keys(cache); if (ks.length > 6) ks.sort((a, b) => cache[a].t - cache[b].t).slice(0, ks.length - 6).forEach((k) => delete cache[k]);
+          PatOS.store.set('wxCache', cache);
+          draw(j);
         } catch (e) {
+          if (PatOS.isOffline()) {
+            const c = PatOS.store.get('wxCache', {})[place.lat.toFixed(2) + ',' + place.lon.toFixed(2) + ',' + unit];
+            if (c) return drawSaved(c);
+            main.innerHTML = ''; main.appendChild(PatOS.offlineCard(load, { body: 'The weather needs the internet. It will load by itself when you’re back online.' })); return;
+          }
           main.innerHTML = '';
           main.appendChild(h('div', { class: 'wx-loading' }, 'Can’t get the weather right now.', h('br'), h('small', {}, PatOS.sandboxed ? 'Claude Artifacts block live data. Open PatOS from its own website to see the weather.' : 'Check your internet connection (some school networks block it).'), h('br'), h('button', { class: 'btn', onclick: load, style: { marginTop: '12px' } }, 'Try again')));
           setMode('cloud');
         }
+      }
+      function drawSaved(c) {
+        draw(c.j);
+        const when = new Date(c.t).toLocaleString(PatOS.locale, { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+        const bar = h('div', { class: 'nw-offbar wx-offbar' }, PatOS.t('You’re offline. This forecast is from') + ' ' + when + '.');
+        main.insertBefore(bar, main.firstChild);
+        const back = () => { window.removeEventListener('online', back); if (bar.isConnected) setTimeout(load, 600); };
+        window.addEventListener('online', back);
       }
       function chart(d, nowIdx) {
         const cv = h('canvas', { class: 'wx-chart', width: 720, height: 150 });
@@ -13465,10 +13578,20 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       async function look(word) {
         word = word.trim().toLowerCase(); if (!word) return; q.value = word;
         main.innerHTML = '<div class="dc-loading">Looking up…</div>';
+        // words looked up before are kept on the device, so they open instantly and work offline
+        const cache = PatOS.store.get('dictCache', {});
         try {
-          const r = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word));
-          if (r.status === 404) { main.innerHTML = ''; main.appendChild(h('div', { class: 'dc-home' }, h('h2', {}, 'No definition found'), h('p', {}, 'Check the spelling of “' + word + '” and try again.'))); return; }
-          const j = await r.json(); const e = j[0];
+          let j = cache[word] && cache[word].d;
+          if (!j) {
+            if (PatOS.isOffline()) { main.innerHTML = ''; main.appendChild(PatOS.offlineCard(() => look(word), { body: 'Looking up a new word needs the internet. Words you looked up before work offline.' })); return; }
+            const r = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word));
+            if (r.status === 404) { main.innerHTML = ''; main.appendChild(h('div', { class: 'dc-home' }, h('h2', {}, PatOS.t('No definition found')), h('p', {}, PatOS.t('Check the spelling and try again.') + ' (' + word + ')'))); return; }
+            j = await r.json();
+            cache[word] = { t: Date.now(), d: j };
+            const keys = Object.keys(cache); if (keys.length > 300) keys.sort((a, b) => cache[a].t - cache[b].t).slice(0, keys.length - 300).forEach((k) => delete cache[k]);
+            PatOS.store.set('dictCache', cache);
+          }
+          const e = j[0];
           const i = recent.indexOf(word); if (i >= 0) recent.splice(i, 1); recent.unshift(word); recent.length = Math.min(recent.length, 10); PatOS.store.set('dictRecent', recent);
           main.innerHTML = '';
           const audio = (e.phonetics || []).find((p) => p.audio);
@@ -13483,6 +13606,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
           }));
           win.setTitle('Dictionary — ' + e.word);
         } catch (er) {
+          if (PatOS.isOffline()) { main.innerHTML = ''; main.appendChild(PatOS.offlineCard(() => look(word))); return; }
           main.innerHTML = ''; main.appendChild(h('div', { class: 'dc-home' }, h('h2', {}, 'Can’t reach the dictionary'), h('p', {}, PatOS.sandboxed ? 'Claude Artifacts block live data. Open PatOS from its own website to use Dictionary.' : 'Check your internet connection and try again.')));
         }
       }
@@ -14862,7 +14986,9 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
           const b = h('button', { class: 'dv-si' + (filter === k ? ' on' : '') }, h('span', {}, ic), l); b.onclick = () => { filter = k; render(); }; side.appendChild(b);
         });
         const used = PatOS.store.usage();
-        side.append(h('div', { class: 'dv-storage' }, h('div', { class: 'fd-bar' }, h('span', { style: { width: Math.min(100, used / (5 * 1048576) * 100) + '%' } })), h('small', {}, PatOS.fmtBytes(used) + ' of about 5 MB used')));
+        const sbar = h('span', { style: { width: '2%' } }), stxt = h('small', {}, PatOS.fmtBytes(used));
+        side.append(h('div', { class: 'dv-storage' }, h('div', { class: 'fd-bar' }, sbar), stxt));
+        PatOS.storageInfo().then((i) => { sbar.style.width = Math.max(2, Math.min(100, i.used / i.quota * 100)) + '%'; stxt.textContent = PatOS.fmtBytes(i.used) + ' ' + PatOS.t('used of') + ' ' + PatOS.fmtBytes(i.quota); }).catch(() => {});
         main.innerHTML = '';
         const list = files().filter((f) => (filter === 'all' || f.t[0] === filter) && (!q || PatOS.fs.basename(f.p).toLowerCase().includes(q)));
         const quick = h('div', { class: 'dv-quick' }, ...[['docs', 'Blank document'], ['sheets', 'Blank spreadsheet'], ['slides', 'Blank presentation'], ['forms', 'Blank form']].map(([id, l]) => {
@@ -16549,13 +16675,29 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       }
       async function load() {
         main.innerHTML = ''; main.appendChild(h('div', { class: 'nw-empty' }, PatOS.t('Loading…')));
+        const offline = () => {
+          // show the last headlines loaded for this section, if there are any
+          const c = PatOS.store.get('newsCache:' + feed, null);
+          if (c && c.items && c.items.length) {
+            items = c.items; show(items, PatOS.t(NAMES[feed]));
+            const when = new Date(c.t).toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+            main.insertBefore(h('div', { class: 'nw-offbar' }, PatOS.t('You’re offline. These headlines are from') + ' ' + when + '.'), main.firstChild);
+            const back = () => { window.removeEventListener('online', back); if (main.querySelector('.nw-offbar')) setTimeout(load, 600); };
+            window.addEventListener('online', back);
+            return;
+          }
+          main.innerHTML = ''; main.appendChild(PatOS.offlineCard(load, { body: 'The news needs the internet. Your saved stories are still here, in Library.' }));
+        };
+        if (PatOS.isOffline()) return offline();
         const base = PatOS.server && await PatOS.server();
+        if (!base && PatOS.isOffline()) return offline();
         if (!base) { main.innerHTML = ''; main.appendChild(h('div', { class: 'nw-empty' }, h('h2', {}, PatOS.t('News needs the PatOS website')), h('p', {}, PatOS.sandboxed ? PatOS.t('This copy of PatOS runs inside a Claude Artifact, which blocks live news. Open PatOS from its website.') : PatOS.t('Open PatOS from its website (your Render link) to read the news.')))); return; }
         try {
           const r = await fetch(base + '/api/news?feed=' + feed); const j = await r.json(); if (j.error) throw new Error(j.error);
           items = j.items.map((x) => Object.assign(x, { source: j.source }));
+          PatOS.store.set('newsCache:' + feed, { t: Date.now(), items: items.slice(0, 40) });
           show(items, PatOS.t(NAMES[feed]));
-        } catch (e) { main.innerHTML = ''; main.appendChild(h('div', { class: 'nw-empty' }, h('h2', {}, PatOS.t('The news didn’t load')), h('p', {}, e.message), h('button', { class: 'btn', onclick: load }, PatOS.t('Try again')))); }
+        } catch (e) { if (PatOS.isOffline()) return offline(); main.innerHTML = ''; main.appendChild(h('div', { class: 'nw-empty' }, h('h2', {}, PatOS.t('The news didn’t load')), h('p', {}, e.message), h('button', { class: 'btn', onclick: load }, PatOS.t('Try again')))); }
       }
       q.oninput = () => show(feed === 'saved' ? saved : items, feed === 'saved' ? PatOS.t('Saved stories') : PatOS.t(NAMES[feed]));
       bRefresh.onclick = load;
@@ -16599,9 +16741,14 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         const g = h('div', { class: 'bk-grid' }); FEATURED.forEach(([id, title, author]) => g.appendChild(bookCard({ id, title, author }))); main.appendChild(g);
         main.appendChild(h('p', { class: 'bk-note' }, PatOS.t('Books come from Project Gutenberg, a free library of books whose copyright has expired.')));
       }
+      // books that were opened once are kept on the device (they never change), so they open instantly and offline
+      const BOOKS = 'patos-data-books';
+      async function savedText(id) { try { if (!window.caches) return null; const r = await (await caches.open(BOOKS)).match('/patos-books/' + id); return r ? await r.text() : null; } catch (e) { return null; } }
+      async function saveText(id, text) { try { if (window.caches) await (await caches.open(BOOKS)).put('/patos-books/' + id, new Response(text, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } })); } catch (e) {} }
       async function base() { const b = PatOS.server && await PatOS.server(); if (!b) throw new Error(PatOS.sandboxed ? PatOS.t('This copy of PatOS runs inside a Claude Artifact, which blocks this. Open PatOS from its website.') : PatOS.t('Open PatOS from its website (your Render link) to search and read books.')); return b; }
       async function search(text) {
         main.innerHTML = ''; main.appendChild(h('div', { class: 'bk-msg' }, PatOS.t('Searching…'))); win.setTitle(text);
+        if (PatOS.isOffline()) { main.innerHTML = ''; main.appendChild(PatOS.offlineCard(() => search(text), { body: 'Searching for books needs the internet. Books you have opened before are in Continue reading.' })); return; }
         try {
           const b = await base(); const r = await fetch(b + '/api/books/search?q=' + encodeURIComponent(text)); const j = await r.json(); if (j.error) throw new Error(j.error);
           main.innerHTML = ''; main.appendChild(h('h2', {}, PatOS.t('Results for') + ' “' + text + '”'));
@@ -16611,9 +16758,12 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       }
       async function read(b) {
         main.innerHTML = ''; main.appendChild(h('div', { class: 'bk-msg' }, PatOS.t('Opening the book…'))); win.setTitle(b.title);
-        let text;
-        try { const base0 = await base(); const r = await fetch(base0 + '/api/books/text?id=' + b.id); const j = await r.json(); if (j.error) throw new Error(j.error); text = j.text; }
-        catch (e) { main.innerHTML = ''; main.appendChild(h('div', { class: 'bk-msg' }, e.message)); return; }
+        let text = await savedText(b.id);
+        if (text == null) {
+          if (PatOS.isOffline()) { main.innerHTML = ''; main.appendChild(PatOS.offlineCard(() => read(b), { body: 'This book hasn’t been opened on this device yet, so it needs the internet the first time. Books you have opened before work offline.' })); return; }
+          try { const base0 = await base(); const r = await fetch(base0 + '/api/books/text?id=' + b.id); const j = await r.json(); if (j.error) throw new Error(j.error); text = j.text; saveText(b.id, text); }
+          catch (e) { main.innerHTML = ''; main.appendChild(PatOS.isOffline() ? PatOS.offlineCard(() => read(b)) : h('div', { class: 'bk-msg' }, e.message)); return; }
+        }
         const paras = text.replace(/\r/g, '').split(/\n\s*\n/).map((p) => p.replace(/\s*\n\s*/g, ' ').replace(/_([^_]+)_/g, '$1').trim()).filter(Boolean);
         const entry = lib[b.id] || (lib[b.id] = { title: b.title, author: b.author, page: 0 }); entry.opened = Date.now(); saveLib();
         main.innerHTML = '';
@@ -16714,7 +16864,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
           list.innerHTML = '';
           if (!res.length) { list.appendChild(h('div', { class: 'rd-msg' }, PatOS.t(view === 'favs' ? 'Press ☆ on a station to keep it here.' : 'No stations found.'))); return; }
           res.forEach((s) => list.appendChild(row(s)));
-        } catch (e) { list.innerHTML = ''; list.appendChild(h('div', { class: 'rd-msg' }, PatOS.sandboxed ? PatOS.t('Claude Artifacts block live radio. Open PatOS from its website.') : PatOS.t('Radio stations couldn’t load. Your network may block them.'))); }
+        } catch (e) { list.innerHTML = ''; if (PatOS.isOffline()) { list.appendChild(PatOS.offlineCard(() => load(), { body: 'Live radio needs the internet. Stations will load by themselves when you’re back online.' })); return; } list.appendChild(h('div', { class: 'rd-msg' }, PatOS.sandboxed ? PatOS.t('Claude Artifacts block live radio. Open PatOS from its website.') : PatOS.t('Radio stations couldn’t load. Your network may block them.'))); }
       }
       function paintNow() {
         now.innerHTML = '';

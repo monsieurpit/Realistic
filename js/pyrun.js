@@ -48,7 +48,10 @@
 
   async function baseURL() {
     const srv = PatOS.server && !PatOS.sandboxed ? await PatOS.server() : null;
-    return srv ? srv + '/pyodide/' : CDN;
+    if (srv) return srv + '/pyodide/';
+    // offline: PatOS's own copy, which the service worker kept the first time Python was used
+    if (PatOS.isOffline && PatOS.isOffline() && /^https?:$/.test(location.protocol) && !PatOS.sandboxed && !PatOS.singleFile) return location.origin + '/pyodide/';
+    return CDN;
   }
   function start() {
     if (ready) return ready;

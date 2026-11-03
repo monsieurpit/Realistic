@@ -53,13 +53,34 @@
         bUnit.textContent = '°' + unit;
         try {
           const url = `https://api.open-meteo.com/v1/forecast?latitude=${place.lat}&longitude=${place.lon}&current=temperature_2m,apparent_temperature,relative_humidity_2m,weather_code,wind_speed_10m,is_day&hourly=temperature_2m,weather_code,precipitation_probability&daily=weather_code,temperature_2m_max,temperature_2m_min,sunrise,sunset,uv_index_max&timezone=auto&forecast_days=7`;
+          const ck = place.lat.toFixed(2) + ',' + place.lon.toFixed(2) + ',' + unit;
+          const cache = PatOS.store.get('wxCache', {});
+          if (PatOS.isOffline() && cache[ck]) return drawSaved(cache[ck]);
+          if (PatOS.isOffline()) throw new Error('offline');
           const r = await fetch(url); if (!r.ok) throw new Error('HTTP ' + r.status);
-          draw(await r.json());
+          const j = await r.json();
+          // keep the last forecast for each place (only the 6 most recent), for when the device is offline
+          cache[ck] = { t: Date.now(), j }; const ks = Object.keys(cache); if (ks.length > 6) ks.sort((a, b) => cache[a].t - cache[b].t).slice(0, ks.length - 6).forEach((k) => delete cache[k]);
+          PatOS.store.set('wxCache', cache);
+          draw(j);
         } catch (e) {
+          if (PatOS.isOffline()) {
+            const c = PatOS.store.get('wxCache', {})[place.lat.toFixed(2) + ',' + place.lon.toFixed(2) + ',' + unit];
+            if (c) return drawSaved(c);
+            main.innerHTML = ''; main.appendChild(PatOS.offlineCard(load, { body: 'The weather needs the internet. It will load by itself when you’re back online.' })); return;
+          }
           main.innerHTML = '';
           main.appendChild(h('div', { class: 'wx-loading' }, 'Can’t get the weather right now.', h('br'), h('small', {}, PatOS.sandboxed ? 'Claude Artifacts block live data. Open PatOS from its own website to see the weather.' : 'Check your internet connection (some school networks block it).'), h('br'), h('button', { class: 'btn', onclick: load, style: { marginTop: '12px' } }, 'Try again')));
           setMode('cloud');
         }
+      }
+      function drawSaved(c) {
+        draw(c.j);
+        const when = new Date(c.t).toLocaleString(PatOS.locale, { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+        const bar = h('div', { class: 'nw-offbar wx-offbar' }, PatOS.t('You’re offline. This forecast is from') + ' ' + when + '.');
+        main.insertBefore(bar, main.firstChild);
+        const back = () => { window.removeEventListener('online', back); if (bar.isConnected) setTimeout(load, 600); };
+        window.addEventListener('online', back);
       }
       function chart(d, nowIdx) {
         const cv = h('canvas', { class: 'wx-chart', width: 720, height: 150 });

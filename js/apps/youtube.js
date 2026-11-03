@@ -22,17 +22,22 @@
   const LOGO = '<svg viewBox="0 0 100 20" width="100" height="20"><rect x="0" y="1" width="28" height="19" rx="5" fill="#ff0033"/><path d="M11 6v9l8-4.5z" fill="#fff"/><text x="31" y="16" font-family="system-ui,-apple-system,Roboto,sans-serif" font-size="16" font-weight="700" letter-spacing="-.6" fill="currentColor">YouTube</text></svg>';
 
   /* ---------- where the data comes from ---------- */
-  let serverOK = null;
+  // A found server is remembered. A failure is remembered for 30 seconds only, and not at all while offline,
+  // so apps start working again by themselves when the Wi-Fi comes back.
+  let serverOK = null, failAt = 0;
   async function server() {
     if (PatOS.sandboxed) return null;
     const custom = (PatOS.store.get('patosServer', '') || '').trim().replace(/\/+$/, '');
-    if (serverOK !== null) return serverOK;
+    if (serverOK) return serverOK;
+    if (navigator.onLine && failAt && Date.now() - failAt < 30000) return null;
     const tryBase = async (b) => { try { const r = await fetch(b + '/api/ping', { cache: 'no-store' }); const j = await r.json(); return j && j.patos ? b : null; } catch (e) { return null; } };
     serverOK = (/^https?:/.test(location.protocol) && await tryBase(location.origin)) || (custom && await tryBase(custom)) || null;
+    failAt = serverOK || !navigator.onLine ? 0 : Date.now();
     return serverOK;
   }
+  window.addEventListener('online', () => { failAt = 0; });
   PatOS.server = server;
-  PatOS.resetServer = () => { serverOK = null; };
+  PatOS.resetServer = () => { serverOK = null; failAt = 0; };
   const hl = () => (PatOS.lang === 'fr' ? 'fr' : 'en');
   const gl = () => ((navigator.language || 'en-CA').split('-')[1] || 'CA').toUpperCase().slice(0, 2);
   /* answers are remembered for a few minutes, so going back, hovering and re-searching are instant */
@@ -147,8 +152,12 @@
       const spinner = () => h('div', { class: 'ytx-load' }, h('div', { class: 'ytx-spin' }));
       const skeleton = (n, rows) => h('div', { class: rows ? 'ytx-results' : 'ytx-grid' }, ...Array.from({ length: n }, () => h('div', { class: 'ytx-card ytx-sk' + (rows ? ' row' : '') }, h('div', { class: 'ytx-th' }), h('div', { class: 'ytx-ci' }, rows ? null : h('div', { class: 'ytx-av' }), h('div', { class: 'ytx-ct' }, h('b', {}), h('small', {}), h('small', {}))))));
       function problem(e, retry) {
+        if (PatOS.isOffline()) return PatOS.offlineCard(retry, { body: 'YouTube needs the internet. Videos you were watching will load by themselves when you’re back online.' });
         const box = h('div', { class: 'ytx-msg' });
-        if (e.message === 'noserver') {
+        if (e.message === 'noserver' && /^https?:/.test(location.protocol) && !PatOS.sandboxed && !PatOS.store.get('ytKey', '')) {
+          box.append(h('div', { class: 'ytx-bigic', html: PatOS.iconHTML('youtube') }), h('h2', {}, PatOS.t('The PatOS server didn’t answer')),
+            h('p', {}, PatOS.t('It may be waking up, which can take up to a minute. Try again in a moment.')), retry ? h('button', { class: 'ytx-btn', onclick: () => { PatOS.resetServer(); retry(); } }, PatOS.t('Try again')) : null);
+        } else if (e.message === 'noserver') {
           box.append(h('div', { class: 'ytx-bigic', html: PatOS.iconHTML('youtube') }), h('h2', {}, PatOS.t('YouTube needs the PatOS website')),
             h('p', {}, PatOS.sandboxed ? PatOS.t('This copy of PatOS runs inside a Claude Artifact, which blocks YouTube. Open PatOS from its website (your Render link) and YouTube works there.') : PatOS.t('This copy of PatOS was opened as a file, so it has no server to ask YouTube for videos. Open PatOS from its website (your Render link), or type that link in Settings so this copy can use it.')),
             h('button', { class: 'ytx-btn', onclick: () => go({ key: 'settings' }) }, PatOS.t('Settings')));

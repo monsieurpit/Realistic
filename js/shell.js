@@ -76,6 +76,23 @@
     setTimeout(() => { t.classList.remove('in'); setTimeout(() => t.remove(), 400); }, n.duration || 4500);
   };
 
+  /* One look for "you're offline" everywhere. retry() runs by itself when the connection comes back,
+     as long as the card is still on screen (unless opts.auto is false, for things that need a click). */
+  PatOS.offlineCard = function (retry, opts) {
+    opts = opts || {};
+    const card = h('div', { class: 'pos-offline', role: 'status' },
+      h('div', { class: 'pos-off-ic', html: '<svg viewBox="0 0 24 24" width="40" height="40" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round"><path d="M2 8.8a15 15 0 0 1 4.2-2.6M9.6 5.2A15 15 0 0 1 22 8.8M5 12.5a10 10 0 0 1 4-2.2M14.5 10.4A10 10 0 0 1 19 12.5M8.5 16a5 5 0 0 1 7 0"/><circle cx="12" cy="19.5" r="1" fill="currentColor"/><path d="M3 3l18 18"/></svg>' }),
+      h('h2', {}, PatOS.t(opts.title || 'You’re offline')),
+      h('p', {}, PatOS.t(opts.body || 'This needs the internet. It will load by itself when you’re back online.')),
+      retry ? h('button', { class: 'btn', onclick: () => retry() }, PatOS.t('Try again')) : null);
+    if (retry && opts.auto !== false) {
+      const back = () => { window.removeEventListener('online', back); if (card.isConnected) setTimeout(retry, 600); };
+      window.addEventListener('online', back);
+    }
+    return card;
+  };
+  PatOS.isOffline = () => navigator.onLine === false;
+
   /* =========================== MENU BAR =========================== */
   function activeAppId() { const w = PatOS.wm.active; return w ? w.app.id : 'finder'; }
   function appMenus(appId) {
@@ -217,6 +234,21 @@
       $('#mb-wifi').classList.toggle('off', !navigator.onLine);
     }
     tick(); setInterval(tick, 1000);
+
+    // going offline or back online: say so once the change has lasted a moment (Wi-Fi can flicker)
+    let netTimer = null, netShown = navigator.onLine;
+    const netChange = () => {
+      $('#mb-wifi').classList.toggle('off', !navigator.onLine);
+      clearTimeout(netTimer);
+      netTimer = setTimeout(() => {
+        if (navigator.onLine === netShown) return; netShown = navigator.onLine;
+        if (netShown) PatOS.notify({ title: PatOS.t('Back online'), body: PatOS.t('Apps that need the internet work again.'), icon: 'settings', duration: 3500 });
+        else PatOS.notify({ title: PatOS.t('You’re offline'), body: PatOS.t('Your files, Docs, Sheets, Slides, Notes and Code Studio keep working. Apps that need the internet will wait.'), icon: 'settings', duration: 7000 });
+      }, 1500);
+    };
+    window.addEventListener('online', netChange); window.addEventListener('offline', netChange);
+    // PatOS started without internet: say so once, after the welcome
+    if (!navigator.onLine) { netShown = false; setTimeout(() => { if (!navigator.onLine) PatOS.notify({ title: PatOS.t('You’re offline'), body: PatOS.t('Your files, Docs, Sheets, Slides, Notes and Code Studio keep working. Apps that need the internet will wait.'), icon: 'settings', duration: 7000 }); }, 2500); }
 
     // battery (Chromebooks support the Battery API)
     const bat = $('#mb-battery');

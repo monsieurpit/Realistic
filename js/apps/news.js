@@ -56,13 +56,29 @@
       }
       async function load() {
         main.innerHTML = ''; main.appendChild(h('div', { class: 'nw-empty' }, PatOS.t('Loading…')));
+        const offline = () => {
+          // show the last headlines loaded for this section, if there are any
+          const c = PatOS.store.get('newsCache:' + feed, null);
+          if (c && c.items && c.items.length) {
+            items = c.items; show(items, PatOS.t(NAMES[feed]));
+            const when = new Date(c.t).toLocaleString(undefined, { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+            main.insertBefore(h('div', { class: 'nw-offbar' }, PatOS.t('You’re offline. These headlines are from') + ' ' + when + '.'), main.firstChild);
+            const back = () => { window.removeEventListener('online', back); if (main.querySelector('.nw-offbar')) setTimeout(load, 600); };
+            window.addEventListener('online', back);
+            return;
+          }
+          main.innerHTML = ''; main.appendChild(PatOS.offlineCard(load, { body: 'The news needs the internet. Your saved stories are still here, in Library.' }));
+        };
+        if (PatOS.isOffline()) return offline();
         const base = PatOS.server && await PatOS.server();
+        if (!base && PatOS.isOffline()) return offline();
         if (!base) { main.innerHTML = ''; main.appendChild(h('div', { class: 'nw-empty' }, h('h2', {}, PatOS.t('News needs the PatOS website')), h('p', {}, PatOS.sandboxed ? PatOS.t('This copy of PatOS runs inside a Claude Artifact, which blocks live news. Open PatOS from its website.') : PatOS.t('Open PatOS from its website (your Render link) to read the news.')))); return; }
         try {
           const r = await fetch(base + '/api/news?feed=' + feed); const j = await r.json(); if (j.error) throw new Error(j.error);
           items = j.items.map((x) => Object.assign(x, { source: j.source }));
+          PatOS.store.set('newsCache:' + feed, { t: Date.now(), items: items.slice(0, 40) });
           show(items, PatOS.t(NAMES[feed]));
-        } catch (e) { main.innerHTML = ''; main.appendChild(h('div', { class: 'nw-empty' }, h('h2', {}, PatOS.t('The news didn’t load')), h('p', {}, e.message), h('button', { class: 'btn', onclick: load }, PatOS.t('Try again')))); }
+        } catch (e) { if (PatOS.isOffline()) return offline(); main.innerHTML = ''; main.appendChild(h('div', { class: 'nw-empty' }, h('h2', {}, PatOS.t('The news didn’t load')), h('p', {}, e.message), h('button', { class: 'btn', onclick: load }, PatOS.t('Try again')))); }
       }
       q.oninput = () => show(feed === 'saved' ? saved : items, feed === 'saved' ? PatOS.t('Saved stories') : PatOS.t(NAMES[feed]));
       bRefresh.onclick = load;

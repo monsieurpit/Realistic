@@ -32,7 +32,9 @@
           const b = h('button', { class: 'dv-si' + (filter === k ? ' on' : '') }, h('span', {}, ic), l); b.onclick = () => { filter = k; render(); }; side.appendChild(b);
         });
         const used = PatOS.store.usage();
-        side.append(h('div', { class: 'dv-storage' }, h('div', { class: 'fd-bar' }, h('span', { style: { width: Math.min(100, used / (5 * 1048576) * 100) + '%' } })), h('small', {}, PatOS.fmtBytes(used) + ' of about 5 MB used')));
+        const sbar = h('span', { style: { width: '2%' } }), stxt = h('small', {}, PatOS.fmtBytes(used));
+        side.append(h('div', { class: 'dv-storage' }, h('div', { class: 'fd-bar' }, sbar), stxt));
+        PatOS.storageInfo().then((i) => { sbar.style.width = Math.max(2, Math.min(100, i.used / i.quota * 100)) + '%'; stxt.textContent = PatOS.fmtBytes(i.used) + ' ' + PatOS.t('used of') + ' ' + PatOS.fmtBytes(i.quota); }).catch(() => {});
         main.innerHTML = '';
         const list = files().filter((f) => (filter === 'all' || f.t[0] === filter) && (!q || PatOS.fs.basename(f.p).toLowerCase().includes(q)));
         const quick = h('div', { class: 'dv-quick' }, ...[['docs', 'Blank document'], ['sheets', 'Blank spreadsheet'], ['slides', 'Blank presentation'], ['forms', 'Blank form']].map(([id, l]) => {

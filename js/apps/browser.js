@@ -218,6 +218,12 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         if (raw && !/^(patos|https?):\/\//i.test(raw) && !(/^[\w-]+(\.[\w-]+)+(:\d+)?(\/.*)?$/.test(raw) && !raw.includes(' '))) gq = raw;
         else if (/^https?:\/\/(www\.)?(google\.[a-z.]+\/search|bing\.com\/search)\?/i.test(raw)) { try { gq = new URL(raw).searchParams.get('q'); } catch (e) {} }
         else if (/^patos:\/\/(google|search)\?/.test(raw)) { try { gq = new URL(raw.replace('patos://', 'http://x/')).searchParams.get('q'); } catch (e) {} }
+        if (gq && !noHist && PatOS.isOffline()) {
+          if (t.web) { webTabs--; t.web = false; }
+          t.pane.innerHTML = ''; t.frame = null; t.loading = false; t.title = gq; t.url = 'patos://newtab';
+          t.pane.appendChild(PatOS.offlineCard(() => navigate(raw, t), { auto: false, body: 'Searching needs the internet. Connect to Wi-Fi, then press Try again.' }));
+          syncUI(); return;
+        }
         if (gq && !noHist) {
           const H = PatOS.store.get('browserHistory', []); H.unshift({ u: 'https://www.google.com/search?q=' + encodeURIComponent(gq), t: Date.now(), title: gq }); PatOS.store.set('browserHistory', H.slice(0, 300));
           PatOS.openExternal(engine() === 'bing' ? bingURL(gq) : 'https://www.google.com/search?q=' + encodeURIComponent(gq) + '&hl=' + glang());
@@ -236,6 +242,10 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         else if (url.startsWith('patos://google-setup')) { t.title = 'Google'; t.pane.appendChild(googleSetup(new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || '')); }
         else if (url.startsWith('patos://search')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Patoogle'; t.pane.appendChild(patoogleResults(q)); }
         else if (url.startsWith('patos://google')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Google'; if (googleCx()) t.pane.appendChild(googlePage(t, q)); else { setTimeout(() => navigate(q ? googleURL(q) : 'https://www.google.com/webhp?igu=1&hl=' + glang(), t, true), 0); } }
+        else if (/^https?:/.test(url) && PatOS.isOffline()) {
+          if (t.web) { webTabs--; t.web = false; }
+          t.title = host(url); t.pane.appendChild(PatOS.offlineCard(() => { if (t.url === url) navigate(url, t, true); }, { body: 'This website needs the internet. The page will load by itself when you’re back online.' }));
+        }
         else if (isBlocked(url)) { t.title = host(url); t.pane.appendChild(blockedPage(url)); autoOpen(url, t); }
         else {
           const gq = isGoogleFrame(url) ? new URL(url).searchParams.get('q') : null;

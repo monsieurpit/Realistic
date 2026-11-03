@@ -31,9 +31,14 @@
         const g = h('div', { class: 'bk-grid' }); FEATURED.forEach(([id, title, author]) => g.appendChild(bookCard({ id, title, author }))); main.appendChild(g);
         main.appendChild(h('p', { class: 'bk-note' }, PatOS.t('Books come from Project Gutenberg, a free library of books whose copyright has expired.')));
       }
+      // books that were opened once are kept on the device (they never change), so they open instantly and offline
+      const BOOKS = 'patos-data-books';
+      async function savedText(id) { try { if (!window.caches) return null; const r = await (await caches.open(BOOKS)).match('/patos-books/' + id); return r ? await r.text() : null; } catch (e) { return null; } }
+      async function saveText(id, text) { try { if (window.caches) await (await caches.open(BOOKS)).put('/patos-books/' + id, new Response(text, { headers: { 'Content-Type': 'text/plain; charset=utf-8' } })); } catch (e) {} }
       async function base() { const b = PatOS.server && await PatOS.server(); if (!b) throw new Error(PatOS.sandboxed ? PatOS.t('This copy of PatOS runs inside a Claude Artifact, which blocks this. Open PatOS from its website.') : PatOS.t('Open PatOS from its website (your Render link) to search and read books.')); return b; }
       async function search(text) {
         main.innerHTML = ''; main.appendChild(h('div', { class: 'bk-msg' }, PatOS.t('Searching…'))); win.setTitle(text);
+        if (PatOS.isOffline()) { main.innerHTML = ''; main.appendChild(PatOS.offlineCard(() => search(text), { body: 'Searching for books needs the internet. Books you have opened before are in Continue reading.' })); return; }
         try {
           const b = await base(); const r = await fetch(b + '/api/books/search?q=' + encodeURIComponent(text)); const j = await r.json(); if (j.error) throw new Error(j.error);
           main.innerHTML = ''; main.appendChild(h('h2', {}, PatOS.t('Results for') + ' “' + text + '”'));
@@ -43,9 +48,12 @@
       }
       async function read(b) {
         main.innerHTML = ''; main.appendChild(h('div', { class: 'bk-msg' }, PatOS.t('Opening the book…'))); win.setTitle(b.title);
-        let text;
-        try { const base0 = await base(); const r = await fetch(base0 + '/api/books/text?id=' + b.id); const j = await r.json(); if (j.error) throw new Error(j.error); text = j.text; }
-        catch (e) { main.innerHTML = ''; main.appendChild(h('div', { class: 'bk-msg' }, e.message)); return; }
+        let text = await savedText(b.id);
+        if (text == null) {
+          if (PatOS.isOffline()) { main.innerHTML = ''; main.appendChild(PatOS.offlineCard(() => read(b), { body: 'This book hasn’t been opened on this device yet, so it needs the internet the first time. Books you have opened before work offline.' })); return; }
+          try { const base0 = await base(); const r = await fetch(base0 + '/api/books/text?id=' + b.id); const j = await r.json(); if (j.error) throw new Error(j.error); text = j.text; saveText(b.id, text); }
+          catch (e) { main.innerHTML = ''; main.appendChild(PatOS.isOffline() ? PatOS.offlineCard(() => read(b)) : h('div', { class: 'bk-msg' }, e.message)); return; }
+        }
         const paras = text.replace(/\r/g, '').split(/\n\s*\n/).map((p) => p.replace(/\s*\n\s*/g, ' ').replace(/_([^_]+)_/g, '$1').trim()).filter(Boolean);
         const entry = lib[b.id] || (lib[b.id] = { title: b.title, author: b.author, page: 0 }); entry.opened = Date.now(); saveLib();
         main.innerHTML = '';

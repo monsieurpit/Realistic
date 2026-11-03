@@ -36,8 +36,10 @@ const CACHE = 'patos-${version}';
 const FILES = ${JSON.stringify(assets, null, 0)};
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting())); });
 self.addEventListener('activate', (e) => { e.waitUntil((async () => {
-  const keys = await caches.keys(); const hadOld = keys.some((k) => k.startsWith('patos-') && k !== CACHE);
-  await Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)));
+  // caches named patos-data-… hold things people downloaded (Python, books) and survive updates
+  const keys = await caches.keys(); const isData = (k) => k.startsWith('patos-data-');
+  const hadOld = keys.some((k) => k.startsWith('patos-') && !isData(k) && k !== CACHE);
+  await Promise.all(keys.filter((k) => k !== CACHE && !isData(k)).map((k) => caches.delete(k)));
   await self.clients.claim();
   if (hadOld) (await self.clients.matchAll()).forEach((c) => c.postMessage({ patosUpdate: true }));
 })()); });
@@ -51,6 +53,11 @@ self.addEventListener('fetch', (e) => {
     return;
   }
   if (e.request.method !== 'GET' || url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
+  // Python's files never change for a given version, so they are kept apart and survive PatOS updates
+  if (url.pathname.startsWith('/pyodide/')) {
+    e.respondWith(caches.open('patos-data-pyodide').then((c) => c.match(e.request, { ignoreSearch: true }).then((m) => m || fetch(e.request).then((r) => { if (r.ok && r.status === 200) c.put(e.request, r.clone()); return r; }))));
+    return;
+  }
   // saved copy first: PatOS opens instantly and works offline. A new version is picked up the next time PatOS loads.
   e.respondWith(caches.match(e.request, { ignoreSearch: true }).then((m) => m || fetch(e.request).then((r) => { if (r.ok) { const copy = r.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); } return r; }).catch(() => caches.match('index.html'))));
 });

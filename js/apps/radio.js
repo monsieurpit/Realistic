@@ -54,7 +54,7 @@
           list.innerHTML = '';
           if (!res.length) { list.appendChild(h('div', { class: 'rd-msg' }, PatOS.t(view === 'favs' ? 'Press ☆ on a station to keep it here.' : 'No stations found.'))); return; }
           res.forEach((s) => list.appendChild(row(s)));
-        } catch (e) { list.innerHTML = ''; list.appendChild(h('div', { class: 'rd-msg' }, PatOS.sandboxed ? PatOS.t('Claude Artifacts block live radio. Open PatOS from its website.') : PatOS.t('Radio stations couldn’t load. Your network may block them.'))); }
+        } catch (e) { list.innerHTML = ''; if (PatOS.isOffline()) { list.appendChild(PatOS.offlineCard(() => load(), { body: 'Live radio needs the internet. Stations will load by themselves when you’re back online.' })); return; } list.appendChild(h('div', { class: 'rd-msg' }, PatOS.sandboxed ? PatOS.t('Claude Artifacts block live radio. Open PatOS from its website.') : PatOS.t('Radio stations couldn’t load. Your network may block them.'))); }
       }
       function paintNow() {
         now.innerHTML = '';

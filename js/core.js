@@ -35,7 +35,7 @@
   PatOS.clamp = (v, a, b) => Math.max(a, Math.min(b, v));
   PatOS.uid = () => Math.random().toString(36).slice(2, 10) + Date.now().toString(36).slice(-4);
   PatOS.debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
-  PatOS.fmtBytes = (n) => n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(2) + ' MB';
+  PatOS.fmtBytes = (n) => { n = Math.max(0, Math.round(+n || 0)); const fr = PatOS.lang === 'fr'; const u = fr ? ['o', 'Ko', 'Mo', 'Go'] : ['B', 'KB', 'MB', 'GB']; const f = (v, d) => { const x = v.toFixed(d); return fr ? x.replace('.', ',') : x; }; return n < 1024 ? n + ' ' + u[0] : n < 1048576 ? f(n / 1024, 1) + ' ' + u[1] : n < 1073741824 ? f(n / 1048576, n < 10485760 ? 2 : 1) + ' ' + u[2] : f(n / 1073741824, 1) + ' ' + u[3]; };
 
   /* ---------- storage ----------
      PatOS keeps every setting and file in memory and saves them to the browser's database (IndexedDB),

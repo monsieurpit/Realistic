@@ -18,10 +18,20 @@
       async function look(word) {
         word = word.trim().toLowerCase(); if (!word) return; q.value = word;
         main.innerHTML = '<div class="dc-loading">Looking up…</div>';
+        // words looked up before are kept on the device, so they open instantly and work offline
+        const cache = PatOS.store.get('dictCache', {});
         try {
-          const r = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word));
-          if (r.status === 404) { main.innerHTML = ''; main.appendChild(h('div', { class: 'dc-home' }, h('h2', {}, 'No definition found'), h('p', {}, 'Check the spelling of “' + word + '” and try again.'))); return; }
-          const j = await r.json(); const e = j[0];
+          let j = cache[word] && cache[word].d;
+          if (!j) {
+            if (PatOS.isOffline()) { main.innerHTML = ''; main.appendChild(PatOS.offlineCard(() => look(word), { body: 'Looking up a new word needs the internet. Words you looked up before work offline.' })); return; }
+            const r = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word));
+            if (r.status === 404) { main.innerHTML = ''; main.appendChild(h('div', { class: 'dc-home' }, h('h2', {}, PatOS.t('No definition found')), h('p', {}, PatOS.t('Check the spelling and try again.') + ' (' + word + ')'))); return; }
+            j = await r.json();
+            cache[word] = { t: Date.now(), d: j };
+            const keys = Object.keys(cache); if (keys.length > 300) keys.sort((a, b) => cache[a].t - cache[b].t).slice(0, keys.length - 300).forEach((k) => delete cache[k]);
+            PatOS.store.set('dictCache', cache);
+          }
+          const e = j[0];
           const i = recent.indexOf(word); if (i >= 0) recent.splice(i, 1); recent.unshift(word); recent.length = Math.min(recent.length, 10); PatOS.store.set('dictRecent', recent);
           main.innerHTML = '';
           const audio = (e.phonetics || []).find((p) => p.audio);
@@ -36,6 +46,7 @@
           }));
           win.setTitle('Dictionary — ' + e.word);
         } catch (er) {
+          if (PatOS.isOffline()) { main.innerHTML = ''; main.appendChild(PatOS.offlineCard(() => look(word))); return; }
           main.innerHTML = ''; main.appendChild(h('div', { class: 'dc-home' }, h('h2', {}, 'Can’t reach the dictionary'), h('p', {}, PatOS.sandboxed ? 'Claude Artifacts block live data. Open PatOS from its own website to use Dictionary.' : 'Check your internet connection and try again.')));
         }
       }
