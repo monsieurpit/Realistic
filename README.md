@@ -131,7 +131,7 @@ Plain HTML, CSS and JavaScript with no npm dependencies. `build.js` only makes t
 
 ## Updates
 
-`updates.json` lists every version, newest first, with what changed (English and French). `npm run build` turns it into `js/version.js`. While PatOS is open it checks the server every few minutes: you get "Update available", then "Ready to install", which opens Settings › Software Update with the version and its notes. Restart PatOS installs it on PatOS's own boot screen and brings your windows back. To publish an update: add an entry at the top of `updates.json`, run `npm run build`, push, and let Railway deploy.
+`updates.json` lists every version, newest first, with what changed (English and French). `npm run build` turns it into `js/version.js`. While PatOS is open it checks the server every few minutes: you get "Update available", then "Ready to install", which opens Settings › Software Update with the version and its notes. Restart PatOS installs it on PatOS's own boot screen and brings your windows back. To publish an update: add an entry at the top of `updates.json`, run `npm run build`, push, and let Railway deploy. A release being built has a `"beta": N` number: raise N with each push and add its notes; only people with Settings › Software Update › Beta updates on are told about it (everyone gets the files, since there is one website). When it is ready, delete `"beta"` and push: everyone gets the normal update.
 
 ## Tests
 

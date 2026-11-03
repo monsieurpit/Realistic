@@ -101,7 +101,7 @@
     const clock = h('div', { class: 'mw mw-clock' }, h('canvas', { width: 220, height: 220 }));
     PatOS.drawAnalog(clock.firstChild, d);
     clock.onclick = () => PatOS.launch('clock');
-    const events = (PatOS.store.get('calendar', {})[PatOS.dateKey ? PatOS.dateKey(d) : ''] || []);
+    const events = PatOS.calendarOn ? PatOS.calendarOn(d) : (PatOS.store.get('calendar', {})[PatOS.dateKey ? PatOS.dateKey(d) : ''] || []);
     const rem = PatOS.store.get('reminders', []).filter((r) => !r.done);
     const cal = h('div', { class: 'mw mw-cal' },
       h('div', { class: 'mw-day' }, d.toLocaleDateString(undefined, { weekday: 'long' }).toUpperCase()),

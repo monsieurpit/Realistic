@@ -66,3 +66,25 @@ test('Reminders: quick add understands dates, times, priority and lists', { skip
   assert.deepEqual(errors, []);
   await page.close();
 });
+
+test('Calendar: repeating events, quick add, alerts and .ics', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage(); const errors = await boot(page, srv.base, { fresh: true });
+  const r = await page.evaluate(async () => {
+    const d = (n) => { const x = new Date(); x.setDate(x.getDate() + n); return PatOS.dateKey(x); };
+    const soon = new Date(Date.now() + 20 * 60000); const hm = String(soon.getHours()).padStart(2, '0') + ':' + String(soon.getMinutes()).padStart(2, '0');
+    PatOS.store.set('calendar', { [d(0)]: [{ id: 'w', title: 'Math class', time: hm, repeat: 'weekly', alert: '10', skip: [d(14)] }] });
+    const w = PatOS.launch('calendar'); await new Promise((res) => setTimeout(res, 300));
+    const week = [0, 7, 14, 3].map((n) => PatOS.calendarOn(d(n)).length);
+    const quick = PatOS.calendarQuick('Piano every tuesday 4pm');
+    const alerts = (PatOS.store.get('alarmQueue') || []).filter((x) => String(x.id).startsWith('cal:')).length;
+    const back = PatOS.ics.fromICS(PatOS.ics.toICS(PatOS.store.get('calendar')))[0].ev;
+    w.close();
+    return { week, quick: [quick.text, quick.time, quick.repeat, new Date(quick.key + 'T12:00').getDay()], alerts, back: [back.title, back.repeat, back.alert, back.skip.length] };
+  });
+  assert.deepEqual(r.week, [1, 1, 0, 0]);
+  assert.deepEqual(r.quick, ['Piano', '16:00', 'weekly', 2]);
+  assert.equal(r.alerts, 1);
+  assert.deepEqual(r.back, ['Math class', 'weekly', '10', 1]);
+  assert.deepEqual(errors, []);
+  await page.close();
+});

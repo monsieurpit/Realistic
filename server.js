@@ -24,7 +24,10 @@ const server = http.createServer((req, res) => {
   if (p.startsWith('/pyodide/')) return sendPyodide(req, res, p).then((ok) => { if (!ok) { res.writeHead(404); res.end('Not found'); } });
   if (p === '/api/config') return sendJSON(req, res, 200, { googleCx: (process.env.GOOGLE_CX || '').trim() });
   // the list of PatOS versions and what changed in each (read fresh, so a running PatOS can see the newest one)
-  if (p === '/api/updates') { let list = []; try { list = JSON.parse(fs.readFileSync(path.join(ROOT, 'updates.json'), 'utf8')); } catch (e) {} return sendJSON(req, res, 200, list); }
+  if (p === '/api/updates' || p === '/api/updates/beta') {
+    let all = []; try { all = JSON.parse(fs.readFileSync(path.join(ROOT, 'updates.json'), 'utf8')); } catch (e) {}
+    return sendJSON(req, res, 200, p === '/api/updates' ? all.filter((r) => !r.beta) : all.find((r) => r.beta) || null); // releases, or the beta being built
+  }
   if (p === '/api/ping') { res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }); return res.end('{"patos":true}'); }
   if (p.endsWith('/')) p += 'index.html';
   const file = path.normalize(path.join(ROOT, p));

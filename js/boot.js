@@ -123,26 +123,54 @@
   const SOFT = 'patos-soft';
   let soft = null; try { soft = JSON.parse(localStorage.getItem(SOFT) || 'null'); localStorage.removeItem(SOFT); if (soft && Date.now() - soft.t > 60000) soft = null; } catch (e) { soft = null; }
   const relText = (r, k) => (r && r[k] ? (typeof r[k] === 'string' ? r[k] : r[k][PatOS.lang === 'fr' ? 'fr' : 'en'] || r[k].en) : '');
+  /* Versions: the normal releases, plus a beta being built (a "beta" number in updates.json). People with
+     Settings › Software Update › Beta updates on are told about each beta; everyone else only about normal
+     releases. There is one website, so everyone receives the same files: the switch decides what you are told. */
+  const betaOn = () => !!PatOS.settings.betaUpdates;
+  const idOf = (r) => (r ? r.version + (r.beta ? 'b' + r.beta : '') : '');
+  const label = (r) => (r ? 'PatOS ' + r.version + (r.beta ? ' ' + PatOS.t('beta') + ' ' + r.beta : '') : 'PatOS');
+  PatOS.versionLabel = label;
+  // what this copy of PatOS is: the beta (when Beta updates is on and this code has one) or the release
+  const runningRel = () => (betaOn() && PatOS.beta ? PatOS.beta : (PatOS.releases && PatOS.releases[0]) || { version: PatOS.version });
   function setupUpdates() {
     let reg = null, lastCheck = 0, told = 0;
     const U = PatOS.update = {
       state: 'idle', // idle · checking · downloading · ready · uptodate · offline
-      newest: null, // the newest release the server knows about
+      newest: null, // the newest normal release on the server
+      newestBeta: null, // the beta being built on the server, if any
       releases: PatOS.releases || [],
-      current: PatOS.version,
-      relText,
-      async fetchReleases() { try { const r = await fetch('/api/updates', { cache: 'no-store' }); const l = await r.json(); if (Array.isArray(l) && l.length) { U.releases = l; U.newest = l[0]; } } catch (e) {} return U.releases; },
+      get current() { return runningRel(); },
+      get target() { const b = U.newestBeta, n = U.newest; return betaOn() && b && (!n || n.version !== b.version) ? b : n; }, // what you should be on
+      get newer() { return !!U.target && idOf(U.target) !== idOf(U.current); },
+      betaOn, label, relText,
+      async fetchReleases() {
+        try { const r = await fetch('/api/updates', { cache: 'no-store' }); const l = await r.json(); if (Array.isArray(l) && l.length) { U.releases = l; U.newest = l[0]; } } catch (e) {}
+        try { const r = await fetch('/api/updates/beta', { cache: 'no-store' }); U.newestBeta = r.ok ? await r.json() : null; } catch (e) {}
+        return U.releases;
+      },
       check: (force) => check(force !== false),
+      setBeta(on) { PatOS.setSetting('betaUpdates', !!on); U.state = 'idle'; check(true); },
       restart
     };
     const set = (st) => { U.state = st; PatOS.emit('update', U); };
     const openPane = () => PatOS.launch('settings', { pane: 'update' });
+    const tellReady = () => {
+      told = Date.now(); const n = U.target;
+      PatOS.notify({ title: PatOS.t('Update ready to install'), body: label(n) + (relText(n, 'title') ? ': ' + relText(n, 'title') : '') + '. ' + PatOS.t('Click to see what’s new and install it.'), icon: 'about', duration: 30000, onClick: openPane });
+    };
+    const ready = async () => {
+      if (U.state === 'ready') return; await U.fetchReleases();
+      // nothing new for you (a beta while Beta updates is off): the new files are simply used the next time PatOS starts
+      if (!U.newer) { if (U.state === 'downloading' || U.state === 'checking') set('uptodate'); return; }
+      set('ready'); tellReady();
+    };
     navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((r) => {
       reg = r;
       r.addEventListener('updatefound', async () => {
         if (!navigator.serviceWorker.controller || U.state === 'ready') return; // the very first install is not an update
-        set('downloading'); await U.fetchReleases();
-        PatOS.notify({ title: PatOS.t('Update available'), body: (U.newest ? 'PatOS ' + U.newest.version + ' · ' : '') + PatOS.t('Downloading…'), icon: 'about', duration: 8000, onClick: openPane });
+        await U.fetchReleases(); if (!U.newer) return;
+        set('downloading');
+        PatOS.notify({ title: PatOS.t('Update available'), body: label(U.target) + ' · ' + PatOS.t('Downloading…'), icon: 'about', duration: 8000, onClick: openPane });
       });
     }).catch(() => {});
     async function check(force) {
@@ -152,22 +180,19 @@
       lastCheck = Date.now(); set('checking');
       try { await reg.update(); } catch (e) {}
       await U.fetchReleases();
+      // already downloaded earlier, quietly (for example a beta before Beta updates was turned on): a restart installs it
+      if (U.newer && !reg.installing && U.state === 'checking') { set('ready'); tellReady(); return U.state; }
       setTimeout(() => { if (U.state === 'checking') set('uptodate'); }, 2500);
       return U.state;
     }
     setInterval(() => { if (!document.hidden) check(true); }, 3 * 60000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) check(false); });
     window.addEventListener('focus', () => check(false)); window.addEventListener('online', () => check(true));
-    const ready = async () => {
-      if (U.state === 'ready') return; await U.fetchReleases(); set('ready'); told = Date.now();
-      const n = U.newest;
-      PatOS.notify({ title: PatOS.t('Update ready to install'), body: (n ? 'PatOS ' + n.version + (relText(n, 'title') ? ': ' + relText(n, 'title') : '') + '. ' : '') + PatOS.t('Click to see what’s new and install it.'), icon: 'about', duration: 30000, onClick: openPane });
-    };
     navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.patosUpdate) ready(); });
     // a gentle reminder every 20 minutes until it is installed
-    setInterval(() => { if (U.state === 'ready' && !document.hidden && PatOS.loggedIn && Date.now() - told > 20 * 60000) { told = Date.now(); PatOS.notify({ title: PatOS.t('Update ready to install'), body: PatOS.t('Click to see what’s new and install it.'), icon: 'about', duration: 12000, onClick: openPane }); } }, 30000);
+    setInterval(() => { if (U.state === 'ready' && !document.hidden && PatOS.loggedIn && Date.now() - told > 20 * 60000) tellReady(); }, 30000);
     // just updated
-    if (soft && soft.update) setTimeout(() => PatOS.notify({ title: PatOS.t('PatOS was updated'), body: 'PatOS ' + PatOS.version + (relText(PatOS.releases && PatOS.releases[0], 'title') ? ': ' + relText(PatOS.releases[0], 'title') : ''), icon: 'about', duration: 7000, onClick: openPane }), 1800);
+    if (soft && soft.update) setTimeout(() => { const c = runningRel(); PatOS.notify({ title: PatOS.t('PatOS was updated'), body: label(c) + (relText(c, 'title') ? ': ' + relText(c, 'title') : ''), icon: 'about', duration: 7000, onClick: openPane }); }, 1800);
   }
   /* restart PatOS itself: its boot screen comes up, your work is saved, and it starts again with your windows */
   async function restart(opts) {

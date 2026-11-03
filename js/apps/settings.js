@@ -39,36 +39,46 @@
         update() {
           const out = h('div', { class: 'su' });
           const U = PatOS.update;
-          const rt = (r, k) => (U ? U.relText(r, k) : r && r[k] && (r[k][PatOS.lang === 'fr' ? 'fr' : 'en'] || r[k].en)) || '';
+          const lang = PatOS.lang === 'fr' ? 'fr' : 'en';
+          const rt = (r, k) => (r && r[k] ? (typeof r[k] === 'string' ? r[k] : r[k][lang] || r[k].en) : '');
+          const label = PatOS.versionLabel || ((r) => 'PatOS ' + (r ? r.version : PatOS.version));
           const fmtDate = (d) => { try { return new Date(d + 'T12:00').toLocaleDateString(PatOS.lang === 'fr' ? 'fr-CA' : undefined, { year: 'numeric', month: 'long', day: 'numeric' }); } catch (e) { return d; } };
-          const notesOf = (r) => h('ul', { class: 'su-notes' }, ...((r && r.notes && (r.notes[PatOS.lang === 'fr' ? 'fr' : 'en'] || r.notes.en)) || []).map((n) => h('li', {}, n)));
+          const notesOf = (r) => h('ul', { class: 'su-notes' }, ...((r && r.notes && (r.notes[lang] || r.notes.en)) || []).map((n) => h('li', {}, n)));
+          const badge = (r) => (r && r.beta ? h('span', { class: 'su-beta' }, T('Beta')) : null);
           const paint = () => {
             out.innerHTML = '';
-            const st = U ? U.state : 'none', n = U && U.newest, cur = PatOS.version;
-            const newer = st === 'ready' && n && n.version !== cur;
-            const status = { idle: T('PatOS checks for updates by itself every few minutes while it is open.'), checking: T('Checking for updates…'), downloading: T('Downloading') + (n ? ' PatOS ' + n.version : '') + '…', ready: newer ? T('A new version is ready to install.') : T('An update is ready to install.'), uptodate: T('PatOS is up to date.'), offline: T('You’re offline. PatOS checks again when the internet is back.'), none: T('Updates come with the PatOS website. This copy of PatOS is a single file.') }[st];
-            out.append(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('about') }), h('div', {}, h('h2', {}, 'PatOS ' + cur), h('p', { class: 'su-status' + (st === 'ready' ? ' ready' : '') }, status))));
-            if (st === 'ready') {
-              const r = n || {};
+            const st = U ? U.state : 'none';
+            const cur = U ? U.current : (PatOS.releases && PatOS.releases[0]) || { version: PatOS.version };
+            const tgt = U && U.target, newer = U && U.newer;
+            const status = { idle: T('PatOS checks for updates by itself every few minutes while it is open.'), checking: T('Checking for updates…'), downloading: T('Downloading') + ' ' + label(tgt) + '…', ready: T('A new version is ready to install.'), uptodate: T('PatOS is up to date.'), offline: T('You’re offline. PatOS checks again when the internet is back.'), none: T('Updates come with the PatOS website. This copy of PatOS is a single file.') }[st];
+            out.append(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('about') }), h('div', {}, h('h2', {}, label(cur), ' ', badge(cur)), h('p', { class: 'su-status' + (st === 'ready' ? ' ready' : '') }, status))));
+            if (st === 'ready' && tgt && newer) {
               out.appendChild(h('div', { class: 'su-card' },
-                h('div', { class: 'su-chead' }, h('b', {}, 'PatOS ' + (r.version || T('update'))), r.date ? h('small', {}, fmtDate(r.date)) : null),
-                rt(r, 'title') ? h('div', { class: 'su-title' }, rt(r, 'title')) : null, notesOf(r),
+                h('div', { class: 'su-chead' }, h('b', {}, label(tgt), ' ', badge(tgt)), tgt.date ? h('small', {}, fmtDate(tgt.date)) : null),
+                rt(tgt, 'title') ? h('div', { class: 'su-title' }, rt(tgt, 'title')) : null, notesOf(tgt),
+                tgt.beta ? h('p', { class: 'su-small' }, T('This is a beta: it has the newest features, and maybe a few bugs.')) : null,
                 h('p', { class: 'su-small' }, T('PatOS restarts in a few seconds. Your work is saved and your windows come back.')),
                 h('div', { class: 'su-btns' }, h('button', { class: 'btn primary', onclick: () => U.restart() }, T('Restart PatOS to Update')))));
             } else if (U) {
               out.appendChild(group(row(T('Check for updates'), h('button', { class: 'btn', disabled: st === 'checking' || st === 'downloading', onclick: () => U.check(true) }, T(st === 'checking' ? 'Checking…' : 'Check Now')), T('Updates are found and downloaded on their own. You choose when to install.'))));
             }
+            // the beta switch
+            if (U) {
+              const sw = h('button', { class: 'switch' + (U.betaOn() ? ' on' : ''), role: 'switch', 'aria-checked': String(U.betaOn()), 'aria-label': T('Beta updates') });
+              sw.onclick = () => { U.setBeta(!U.betaOn()); paint(); };
+              const nb = U.newestBeta;
+              out.appendChild(group(row(T('Beta updates'), sw, U.betaOn() ? (nb ? T('You get each beta as soon as it is ready. Now testing:') + ' ' + label(nb) + '.' : T('You get each beta as soon as it is ready. There is no beta right now.')) : T('Try new features before everyone else. Betas can have bugs.'))));
+            }
             // what's in the version you have, and the ones before
-            const list = (U && U.releases && U.releases.length ? U.releases : PatOS.releases) || [];
-            const mine = list.find((x) => x.version === cur) || (PatOS.releases || [])[0];
-            if (mine) out.append(h('h3', {}, T('What’s new in') + ' PatOS ' + mine.version), h('div', { class: 'su-card' }, h('div', { class: 'su-chead' }, h('b', {}, rt(mine, 'title')), h('small', {}, fmtDate(mine.date))), notesOf(mine)));
-            const older = list.filter((x) => x !== mine && x.version !== (newer ? n.version : ''));
-            if (older.length) {
+            if (cur && cur.notes) out.append(h('h3', {}, T('What’s new in') + ' ' + label(cur)), h('div', { class: 'su-card' }, h('div', { class: 'su-chead' }, h('b', {}, rt(cur, 'title'), ' ', badge(cur)), cur.date ? h('small', {}, fmtDate(cur.date)) : null), notesOf(cur)));
+            const list = ((U && U.releases && U.releases.length ? U.releases : PatOS.releases) || []).filter((x) => idOf(x) !== idOf(cur) && !(newer && tgt && idOf(x) === idOf(tgt)));
+            if (list.length) {
               out.appendChild(h('h3', {}, T('Update history')));
-              out.appendChild(h('div', { class: 'su-history' }, ...older.map((r) => h('details', { class: 'su-old' }, h('summary', {}, h('b', {}, 'PatOS ' + r.version), h('span', {}, rt(r, 'title')), h('small', {}, fmtDate(r.date))), notesOf(r)))));
+              out.appendChild(h('div', { class: 'su-history' }, ...list.map((r) => h('details', { class: 'su-old' }, h('summary', {}, h('b', {}, label(r)), h('span', {}, rt(r, 'title')), h('small', {}, fmtDate(r.date))), notesOf(r)))));
             }
             out.appendChild(group(row(T('Something wrong after an update?'), h('button', { class: 'btn', onclick: () => { pane = 'system'; renderMain(); drawSide(); } }, T('Go Back to the Previous Version…')))));
           };
+          const idOf = (r) => (r ? r.version + (r.beta ? 'b' + r.beta : '') : '');
           if (U) { const on = () => { if (pane === 'update' && out.isConnected) paint(); }; const off = PatOS.on('update', on); win.on('closed', off); U.fetchReleases().then(on); if (U.state === 'idle' || U.state === 'uptodate') U.check(false); }
           paint(); return [out];
         },

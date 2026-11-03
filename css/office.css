@@ -1002,3 +1002,28 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 .su-old summary span { flex: 1; color: var(--text2); }
 .su-old summary small { color: var(--text3); }
 .su, .su-card, .su-notes, .su-old { text-align: left; }
+/* Calendar */
+.cal-search { width: 150px; height: 28px; margin: 0 6px; }
+.cal-cell.drop { box-shadow: inset 0 0 0 2px var(--accent); }
+.cw.one .cw-col { flex: 1; }
+.cw-day { cursor: pointer; }
+.cal-year { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 18px 22px; padding: 18px 22px; overflow-y: auto; height: 100%; align-content: start; }
+.cy-name { font-weight: 700; color: #ff453a; font-size: 15px; padding: 2px 0 6px; text-align: left; }
+.cy-g { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+.cy-dn { font-size: 10px; color: var(--text3); }
+.cy-d { font-size: 11.5px; height: 24px; border-radius: 50%; position: relative; color: var(--text); }
+.cy-d:hover { background: var(--hover); }
+.cy-d.today { background: #ff453a; color: #fff; font-weight: 700; }
+.cy-d.busy::after { content: ''; position: absolute; left: 50%; bottom: 1px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--accent); }
+.cy-d.today.busy::after { background: #fff; }
+.cal-qa { margin-top: 14px; }
+.cal-quick { width: 100%; height: 32px; font-size: 13px; }
+.cal-qhint { font-size: 12px; color: var(--accent); min-height: 16px; padding: 4px 2px 0; }
+.cal-ed .field { width: 100%; }
+.dlg-btns.col { flex-direction: column; align-items: stretch; gap: 8px; width: 100%; }
+.mobile .cal-search { width: 110px; }
+.mobile .cal-year { grid-template-columns: repeat(2, 1fr); padding: 12px; gap: 12px; }
+.cal-year { flex: 1 1 auto; width: 100%; min-width: 0; box-sizing: border-box; }
+.cy-m { min-width: 0; }
+.cy-d { padding: 0; min-width: 0; width: 100%; }
+.su-beta { display: inline-block; vertical-align: middle; font-size: 11px; font-weight: 700; letter-spacing: .4px; text-transform: uppercase; color: #fff; background: #ff9f0a; border-radius: 6px; padding: 2px 7px; margin-left: 4px; }

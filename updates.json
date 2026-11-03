@@ -1,8 +1,28 @@
 [
   {
+    "version": "1.7.0",
+    "date": "2026-11-03",
+    "title": {
+      "en": "Better apps",
+      "fr": "De meilleures apps"
+    },
+    "notes": {
+      "en": [
+        "Calendar: Day and Year views, repeating events with an end date, alerts before events (even with Calendar closed), quick add in plain words (“Math class monday 9am weekly”), search, drag events to another day, and .ics import and export (Google Calendar)"
+      ],
+      "fr": [
+        "Calendrier : vues Jour et Année, événements récurrents avec date de fin, alertes avant les événements (même avec Calendrier fermé), ajout rapide en mots simples (« Cours de maths lundi 9h chaque semaine »), recherche, glisser les événements vers un autre jour, et import et export .ics (Google Agenda)"
+      ]
+    },
+    "beta": 1
+  },
+  {
     "version": "1.6.0",
     "date": "2026-11-03",
-    "title": { "en": "Software Update", "fr": "Mise à jour de logiciels" },
+    "title": {
+      "en": "Software Update",
+      "fr": "Mise à jour de logiciels"
+    },
     "notes": {
       "en": [
         "New Settings › Software Update: see your version, what changed, and install updates",
@@ -19,7 +39,10 @@
   {
     "version": "1.5.0",
     "date": "2026-11-03",
-    "title": { "en": "iPhone swipe up, Reminders in plain words", "fr": "Balayage sur iPhone, Rappels en mots simples" },
+    "title": {
+      "en": "iPhone swipe up, Reminders in plain words",
+      "fr": "Balayage sur iPhone, Rappels en mots simples"
+    },
     "notes": {
       "en": [
         "iPhone: swipe up from the bar at the bottom to leave an app, swipe up and pause for the app switcher",
@@ -36,7 +59,10 @@
   {
     "version": "1.4.0",
     "date": "2026-11-03",
-    "title": { "en": "Clock and Calculator", "fr": "Horloge et Calculatrice" },
+    "title": {
+      "en": "Clock and Calculator",
+      "fr": "Horloge et Calculatrice"
+    },
     "notes": {
       "en": [
         "Clock: add any city, a stopwatch that keeps running when closed, a timer with hours and a name, editable alarms",
@@ -51,7 +77,10 @@
   {
     "version": "1.3.0",
     "date": "2026-11-03",
-    "title": { "en": "Finder and TextEdit", "fr": "Finder et TextEdit" },
+    "title": {
+      "en": "Finder and TextEdit",
+      "fr": "Finder et TextEdit"
+    },
     "notes": {
       "en": [
         "Finder: copy, cut and paste files, drag a box to select, drop files from your computer",
@@ -66,7 +95,10 @@
   {
     "version": "1.2.0",
     "date": "2026-11-03",
-    "title": { "en": "Faster start, smoother 3D", "fr": "Démarrage plus rapide, 3D plus fluide" },
+    "title": {
+      "en": "Faster start, smoother 3D",
+      "fr": "Démarrage plus rapide, 3D plus fluide"
+    },
     "notes": {
       "en": [
         "PatOS starts in about a second instead of several",
@@ -81,7 +113,10 @@
   {
     "version": "1.1.0",
     "date": "2026-11-03",
-    "title": { "en": "Security", "fr": "Sécurité" },
+    "title": {
+      "en": "Security",
+      "fr": "Sécurité"
+    },
     "notes": {
       "en": [
         "Passwords are always encrypted, and lock with your master password",

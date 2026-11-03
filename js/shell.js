@@ -346,7 +346,7 @@
     drawAnalog(clock.firstChild, d);
     clock.addEventListener('click', () => PatOS.launch('clock'));
     // events
-    const events = (PatOS.store.get('calendar', {})[PatOS.dateKey ? PatOS.dateKey(d) : ''] || []);
+    const events = PatOS.calendarOn ? PatOS.calendarOn(d) : (PatOS.store.get('calendar', {})[PatOS.dateKey ? PatOS.dateKey(d) : ''] || []);
     const up = h('div', { class: 'widget w-up' }, h('b', {}, 'Today'),
       events.length ? events.map((e) => h('div', { class: 'w-ev' }, e.time ? e.time + ' · ' : '', e.title)) : h('div', { class: 'w-muted' }, 'No events today'));
     const rem = PatOS.store.get('reminders', []).filter((r) => !r.done).slice(0, 4);
