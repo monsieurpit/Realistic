@@ -2105,6 +2105,25 @@ html[data-theme="dark"] .ytx { --yb: #0f0f0f; --yb2: #272727; --yb3: #3f3f3f; --
 }
 @media (max-width: 700px) { .ytx-sitem .ytx-perr { padding: 20px 76px 20px 16px; } .ytx-sitem .ytx-perr b { font-size: 15px; } }
 
+/* ---------- Phone & web apps ---------- */
+.icon-tile .ext-ic { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; border-radius: inherit; display: block; }
+.icon-tile:has(.ext-ic) { position: relative; overflow: hidden; }
+.as-get.loading { position: relative; min-width: 64px; min-height: 26px; }
+.as-get.loading::after { content: ''; position: absolute; left: 50%; top: 50%; width: 14px; height: 14px; margin: -9px 0 0 -9px; border-radius: 50%; border: 2px solid currentColor; border-right-color: transparent; animation: spin .7s linear infinite; }
+.as-note { color: var(--text2); font-size: 13px; margin: -4px 0 8px; }
+.as-how { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 12px; }
+.as-how div { padding: 10px 12px; border-radius: 12px; background: var(--card, var(--hover)); display: flex; flex-direction: column; gap: 3px; box-shadow: inset 0 0 0 .5px var(--border2); }
+.as-how b { font-size: 13px; }
+.as-how small { color: var(--text2); font-size: 12px; overflow-wrap: anywhere; }
+@media (max-width: 700px) { .as-how { grid-template-columns: 1fr; } }
+.xw-title { display: flex; align-items: center; gap: 8px; font-weight: 600; font-size: 13px; }
+.xw-title .icon-tile { width: 20px; height: 20px; border-radius: 5px; }
+.xw-frame { flex: 1; width: 100%; height: 100%; border: 0; background: #fff; }
+.xw-card { margin: auto; max-width: 420px; padding: 30px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.xw-card p { color: var(--text2); line-height: 1.5; margin: 0; }
+.xw-card small { color: var(--text3); }
+.xw-ic, .xw-ic .icon-tile { width: 88px; height: 88px; border-radius: 22px; }
+
 </style>
   <style>
 /* ================= Liquid Glass ================= */
@@ -3306,6 +3325,35 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'YouTube wants to check that you’re not a robot before it plays videos inside other apps on this network.': 'YouTube veut vérifier que vous n’êtes pas un robot avant de lire des vidéos dans d’autres applis sur ce réseau.',
     'This usually happens when the browser blocks YouTube’s sign-in inside other sites (common on school Chromebooks). Signing in to YouTube in this browser often fixes it. You can always watch on youtube.com.': 'Ça arrive quand le navigateur bloque la connexion YouTube dans d’autres sites (fréquent sur les Chromebooks scolaires). Se connecter à YouTube dans ce navigateur règle souvent le problème. Vous pouvez toujours regarder sur youtube.com.',
     'Lots of videos are failing in a row. Your school or network may limit YouTube on this device.': 'Plusieurs vidéos échouent de suite. Votre école ou votre réseau limite peut-être YouTube sur cet appareil.',
+    'Phone & Web': 'Téléphone et Web',
+    'Social': 'Réseaux sociaux',
+    'Chat': 'Messagerie',
+    'Video': 'Vidéo',
+    'Games': 'Jeux',
+    'Productivity': 'Productivité',
+    'Travel': 'Déplacements',
+    'is installed': 'est installé',
+    'Find it on your Home Screen or in Launchpad.': 'Il est sur votre écran d’accueil et dans le Launchpad.',
+    'On your': 'Sur votre',
+    'opens the app, or the App Store if it isn’t installed.': 'ouvre l’app, ou l’App Store si elle n’est pas installée.',
+    'opens the app, or Google Play if it isn’t installed.': 'ouvre l’app, ou Google Play si elle n’est pas installée.',
+    'opens the website inside PatOS.': 'ouvre le site Web dans PatOS.',
+    'opens the website in its own app window.': 'ouvre le site Web dans sa propre fenêtre.',
+    'The app, or its App Store page': 'L’app, ou sa page App Store',
+    'The app, or its Google Play page': 'L’app, ou sa page Google Play',
+    'See on the App Store': 'Voir sur l’App Store',
+    'See on Google Play': 'Voir sur Google Play',
+    'You’re on': 'Vous êtes sur',
+    'These apps open their websites. On a phone they open the real apps.': 'Ces apps ouvrent leurs sites Web. Sur un téléphone, elles ouvrent les vraies apps.',
+    'These open the real apps on your phone, or the store page if you don’t have them yet.': 'Elles ouvrent les vraies apps sur votre téléphone, ou la page du magasin si vous ne les avez pas encore.',
+    'Installed': 'Installées',
+    'Popular on phones': 'Populaires sur téléphone',
+    'See all phone & web apps': 'Voir toutes les apps téléphone et Web',
+    'Opened in its own window.': 'Ouvert dans sa propre fenêtre.',
+    'Open in its own window': 'Ouvrir dans sa propre fenêtre',
+    'This copy of PatOS runs inside a Claude Artifact, which can’t open other websites. Open PatOS from its website.': 'Cette copie de PatOS tourne dans un artefact Claude, qui ne peut pas ouvrir d’autres sites. Ouvrez PatOS depuis son site.',
+    'Your browser blocked the new window. Press the button to open it.': 'Votre navigateur a bloqué la nouvelle fenêtre. Appuyez sur le bouton pour l’ouvrir.',
+    'This website doesn’t allow being shown inside other apps, so it opens in its own window.': 'Ce site n’accepte pas d’être affiché dans d’autres applis, il s’ouvre donc dans sa propre fenêtre.',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 'Offline': 'Hors ligne', 'Connected': 'Connecté',
@@ -4878,6 +4926,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (c !== null) spResults.push({ group: 'Calculator', label: q + ' = ' + c, icon: 'calculator', run: () => { navigator.clipboard && navigator.clipboard.writeText(String(c)).catch(() => {}); PatOS.notify({ title: 'Copied', body: String(c), icon: 'calculator' }); } });
     PatOS.appOrder.forEach((id) => {
       const a = PatOS.apps[id];
+      if (a.hidden && (a.external || id === 'extweb')) return;
       const nm = PatOS.t ? PatOS.t(a.name) : a.name;
       if (a.name.toLowerCase().includes(ql) || nm.toLowerCase().includes(ql) || (a.keywords || '').includes(ql)) spResults.push({ group: 'Applications', appId: id, label: nm, icon: a.icon || id, score: a.name.toLowerCase().startsWith(ql) ? 0 : 1, run: () => PatOS.launch(id) });
     });
@@ -9361,11 +9410,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   const GRADS = ['linear-gradient(135deg,#3a1c71,#d76d77,#ffaf7b)', 'linear-gradient(135deg,#0b0130,#ff2fa3)', 'linear-gradient(135deg,#1e1e2e,#5b5bd6)', 'linear-gradient(135deg,#0bbf3a,#00a6fb)'];
   PatOS.registerApp({
     id: 'appstore', name: 'App Store', icon: 'appstore', width: 940, height: 640, category: 'Utilities', keywords: 'apps install store download',
-    launch(win) {
+    launch(win, args) {
       win.el.classList.add('has-toolbar');
       let tab = 'discover', q = '';
       const seg = h('div', { class: 'seg' });
-      [['discover', 'Discover'], ['office', 'Office'], ['games', '3D & Games'], ['all', 'All Apps']].forEach(([k, l]) => seg.appendChild(h('button', { class: 'tab', 'data-k': k, onclick: () => { tab = k; render(); } }, l)));
+      [['discover', 'Discover'], ['phone', 'Phone & Web'], ['office', 'Office'], ['games', '3D & Games'], ['all', 'All Apps']].forEach(([k, l]) => seg.appendChild(h('button', { class: 'tab', 'data-k': k, onclick: () => { tab = k; render(); } }, l)));
       const search = h('input', { class: 'field', placeholder: 'Search apps', style: { width: '170px' } });
       search.oninput = () => { q = search.value.toLowerCase(); render(); };
       win.toolbar.append(seg, h('div', { style: { flex: 1 } }), search);
@@ -9399,11 +9448,71 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           h('p', { class: 'as-desc' }, BLURB[id] || a.about || 'Part of PatOS.'),
           a.keywords ? h('div', { class: 'as-tags' }, ...a.keywords.split(' ').slice(0, 6).map((k) => h('span', {}, k))) : null);
       }
+      /* ---------- phone & web apps (Snapchat, Instagram, ...) ---------- */
+      const X = PatOS.extApps;
+      function howItOpens(c) {
+        const d = X.device();
+        if (d.kind === 'ios') return PatOS.t('On your') + ' ' + d.name + ': ' + PatOS.t('opens the app, or the App Store if it isn’t installed.');
+        if (d.kind === 'android') return PatOS.t('On your') + ' ' + d.name + ': ' + PatOS.t('opens the app, or Google Play if it isn’t installed.');
+        return PatOS.t('On your') + ' ' + d.name + ': ' + (c.frame ? PatOS.t('opens the website inside PatOS.') : PatOS.t('opens the website in its own app window.'));
+      }
+      function getBtn(c, after) {
+        const b = h('button', { class: 'as-get' }, X.isInstalled(c.id) ? PatOS.t('OPEN') : PatOS.t('GET'));
+        b.onclick = (e) => {
+          e.stopPropagation();
+          if (X.isInstalled(c.id)) { X.open(c.id); return; }
+          b.disabled = true; b.classList.add('loading'); b.textContent = '';
+          setTimeout(() => { X.install(c.id); PatOS.sound.pop(); b.disabled = false; b.classList.remove('loading'); b.textContent = PatOS.t('OPEN'); PatOS.notify({ title: c.name + ' ' + PatOS.t('is installed'), body: PatOS.t('Find it on your Home Screen or in Launchpad.'), icon: 'x-' + c.id }); if (after) after(); }, 900);
+        };
+        return b;
+      }
+      function xrow(c) {
+        const el = h('div', { class: 'as-row' }, h('div', { class: 'as-ic', html: PatOS.iconHTML('x-' + c.id) }), h('div', { class: 'as-txt' }, h('b', {}, c.name), h('small', {}, PatOS.t(c.cat))), getBtn(c));
+        el.onclick = () => xdetail(c);
+        return el;
+      }
+      function xdetail(c) {
+        main.innerHTML = '';
+        const id = 'x-' + c.id;
+        const btns = h('div', { class: 'as-btns' });
+        const paint = () => {
+          btns.innerHTML = '';
+          btns.appendChild(getBtn(c, paint));
+          if (X.isInstalled(c.id)) {
+            const dockBtn = h('button', { class: 'btn' }, inDock(id) ? PatOS.t('Remove from Dock') : PatOS.t('Add to Dock'));
+            dockBtn.onclick = () => { const key = PatOS.isMobile ? 'mobileDock' : 'dockPinned'; let l = PatOS.settings[key].slice(); if (l.includes(id)) l = l.filter((x) => x !== id); else { if (key === 'mobileDock' && l.length >= 4) l.pop(); l.push(id); } PatOS.setSetting(key, l); paint(); };
+            btns.append(dockBtn, h('button', { class: 'btn danger', onclick: () => { X.uninstall(c.id); paint(); } }, PatOS.t('Remove')));
+          }
+        };
+        paint();
+        const d = X.device();
+        main.append(h('button', { class: 'btn as-back', onclick: render }, '‹ ' + PatOS.t('Back')),
+          h('div', { class: 'as-detail' }, h('div', { class: 'as-dic', html: PatOS.iconHTML(id) }), h('div', {}, h('h1', {}, c.name), h('p', { class: 'as-cat' }, PatOS.t(c.cat)), btns)),
+          h('p', { class: 'as-desc' }, howItOpens(c)),
+          h('div', { class: 'as-how' },
+            h('div', {}, h('b', {}, 'iPhone / iPad'), h('small', {}, PatOS.t('The app, or its App Store page'))),
+            h('div', {}, h('b', {}, 'Android / Samsung'), h('small', {}, PatOS.t('The app, or its Google Play page'))),
+            h('div', {}, h('b', {}, PatOS.t('Computer')), h('small', {}, c.web.replace(/^https:\/\//, '').replace(/\/$/, '')))),
+          d.kind === 'computer' ? h('div', { class: 'as-btns', style: { marginTop: '10px' } },
+            h('button', { class: 'btn', onclick: () => PatOS.openExternal('https://apps.apple.com/app/id' + c.appStore) }, PatOS.t('See on the App Store')),
+            h('button', { class: 'btn', onclick: () => PatOS.openExternal('https://play.google.com/store/apps/details?id=' + c.pkg) }, PatOS.t('See on Google Play'))) : null);
+      }
+      function phoneTab() {
+        const d = X.device();
+        main.appendChild(h('h1', { class: 'as-h1' }, PatOS.t('Phone & Web')));
+        main.appendChild(h('p', { class: 'as-note' }, PatOS.t('You’re on') + ' ' + (d.kind === 'computer' ? PatOS.t('a') + ' ' + d.name : d.name) + '. ' + (d.kind === 'computer' ? PatOS.t('These apps open their websites. On a phone they open the real apps.') : PatOS.t('These open the real apps on your phone, or the store page if you don’t have them yet.'))));
+        const list = X.list().filter((c) => !q || (c.name + ' ' + c.cat).toLowerCase().includes(q));
+        const mine = list.filter((c) => X.isInstalled(c.id));
+        if (mine.length) { main.appendChild(h('h2', {}, PatOS.t('Installed'))); const g = h('div', { class: 'as-list' }); mine.forEach((c) => g.appendChild(xrow(c))); main.appendChild(g); }
+        const cats = [...new Set(list.map((c) => c.cat))];
+        cats.forEach((cat) => { const items = list.filter((c) => c.cat === cat && !X.isInstalled(c.id)); if (!items.length) return; main.appendChild(h('h2', {}, PatOS.t(cat))); const g = h('div', { class: 'as-list' }); items.forEach((c) => g.appendChild(xrow(c))); main.appendChild(g); });
+      }
       function render() {
         [...seg.children].forEach((b) => b.classList.toggle('on', b.dataset.k === tab));
         main.innerHTML = '';
         const ids = PatOS.appOrder.filter((id) => !PatOS.apps[id].hidden && id !== 'appstore');
-        if (q) { main.appendChild(h('h2', {}, 'Results')); const g = h('div', { class: 'as-list' }); ids.filter((id) => (PatOS.apps[id].name + ' ' + (PatOS.apps[id].keywords || '')).toLowerCase().includes(q)).forEach((id) => g.appendChild(row(id))); main.appendChild(g); return; }
+        if (q && tab !== 'phone') { if (X) { const xs = X.list().filter((c) => (c.name + ' ' + c.cat).toLowerCase().includes(q)); if (xs.length) { main.appendChild(h('h2', {}, PatOS.t('Phone & Web'))); const gx = h('div', { class: 'as-list' }); xs.forEach((c) => gx.appendChild(xrow(c))); main.appendChild(gx); } } main.appendChild(h('h2', {}, 'Results')); const g = h('div', { class: 'as-list' }); ids.filter((id) => (PatOS.apps[id].name + ' ' + (PatOS.apps[id].keywords || '')).toLowerCase().includes(q)).forEach((id) => g.appendChild(row(id))); main.appendChild(g); return; }
+        if (tab === 'phone' && X) { phoneTab(); return; }
         if (tab === 'discover') {
           const hero = h('div', { class: 'as-hero' });
           FEATURED.filter((id) => PatOS.apps[id]).forEach((id, i) => {
@@ -9413,6 +9522,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           });
           main.append(h('h1', { class: 'as-h1' }, 'Discover'), hero, h('h2', {}, 'Essentials'));
           const g = h('div', { class: 'as-list' }); ['browser', 'youtube', 'news', 'books', 'radio', 'docs', 'focus', 'grapher', 'elements', 'solitaire', 'chess', 'sudoku'].filter((id) => PatOS.apps[id]).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
+          if (X) { main.appendChild(h('h2', {}, PatOS.t('Popular on phones'))); const gx = h('div', { class: 'as-list' }); ['snapchat', 'instagram', 'tiktok', 'spotify', 'roblox', 'whatsapp'].map((k) => X.list().find((c) => c.id === k)).filter(Boolean).forEach((c) => gx.appendChild(xrow(c))); main.appendChild(gx); main.appendChild(h('button', { class: 'btn', onclick: () => { tab = 'phone'; render(); } }, PatOS.t('See all phone & web apps'))); }
           const hidden = PatOS.settings.hiddenApps || [];
           if (hidden.length) { main.appendChild(h('h2', {}, 'Hidden Apps')); const g2 = h('div', { class: 'as-list' }); hidden.filter((id) => PatOS.apps[id]).forEach((id) => g2.appendChild(row(id))); main.appendChild(g2); }
           return;
@@ -9422,9 +9532,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         const g = h('div', { class: 'as-list' }); ids.filter((id) => !cat || PatOS.apps[id].category === cat).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
       }
       win._detail = detail;
+      win._tab = (t) => { tab = t; render(); };
+      if (args && args.tab) tab = args.tab;
       render();
     },
-    onArgs(win, a) { if (a.app && win._detail) win._detail(a.app); }
+    onArgs(win, a) { if (a.app && win._detail) win._detail(a.app); if (a.tab && win._tab) win._tab(a.tab); }
   });
 })();
 
@@ -12137,6 +12249,165 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       render();
     }
   });
+})();
+
+</script>
+  <script>
+/* Phone & web apps: install Snapchat, Instagram, TikTok and more.
+   Opening one does the right thing for the device you're on:
+   - iPhone / iPad: opens the real app, or the App Store page if it isn't installed
+   - Android (Samsung, Pixel and others): opens the real app, or its Google Play page
+   - Computer (Chromebook, Windows, Mac): opens the app's website, inside PatOS when the
+     site allows it, otherwise in its own app window */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  // id, name, App Store id, URL scheme, Android package, website, category, icon, website can show inside PatOS
+  const CATALOG = [
+    ["snapchat", "Snapchat", 447188370, "snapchat", "com.snapchat.android", "https://www.snapchat.com/web", "Social", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/bf/73/37/bf7337b7-c382-5539-1180-d282ae58119c/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/256x256bb.jpg", 0],
+    ["instagram", "Instagram", 389801252, "instagram", "com.instagram.android", "https://www.instagram.com/", "Social", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/65/b4/b1/65b4b1e1-9891-0b84-4d9a-6370410bfbf4/Prod-0-0-1x_U007epad-0-1-0-sRGB-85-220.png/256x256bb.jpg", 0],
+    ["tiktok", "TikTok", 835599320, "snssdk1233", "com.zhiliaoapp.musically", "https://www.tiktok.com/", "Social", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/4b/af/40/4baf40d2-5fec-a1fe-da33-cafd0c87f18b/TikTok_AppIcon26-0-0-1x_U007epad-0-1-0-85-220.png/256x256bb.jpg", 0],
+    ["whatsapp", "WhatsApp", 310633997, "whatsapp", "com.whatsapp", "https://web.whatsapp.com/", "Chat", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/15/eb/39/15eb3965-bec3-4737-950a-9d9df5303e93/AppIcon-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-85-220.png/256x256bb.jpg", 0],
+    ["spotify", "Spotify", 324684580, "spotify", "com.spotify.music", "https://open.spotify.com/", "Music", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/8b/f2/6a/8bf26ab9-3ced-cb5c-a2b3-19f65e7f5cc6/AppIcon-0-0-1x_U007epad-0-1-0-0-85-220.png/256x256bb.jpg", 0],
+    ["discord", "Discord", 985746746, "discord", "com.discord", "https://discord.com/app", "Chat", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/65/9c/e0/659ce065-5dd8-eb35-378f-217d9658f6d9/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/256x256bb.jpg", 0],
+    ["netflix", "Netflix", 363590051, "nflx", "com.netflix.mediaclient", "https://www.netflix.com/", "Video", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/73/dd/0e/73dd0eae-8fc8-94cc-da59-2512616c784f/AppIcon-0-0-1x_U007epad-0-1-0-sRGB-0-85-220.png/256x256bb.jpg", 0],
+    ["x", "X", 333903271, "twitter", "com.twitter.android", "https://x.com/", "Social", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/e3/b3/93/e3b393f1-101b-5e94-d31e-38f6ddabce76/ProductionAppIcon-0-0-1x_U007emarketing-0-8-0-0-0-85-220.png/256x256bb.jpg", 0],
+    ["facebook", "Facebook", 284882215, "fb", "com.facebook.katana", "https://www.facebook.com/", "Social", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/77/5b/7b/775b7b40-4e22-ba5e-2255-668c2473048c/Icon-Production-0-0-1x_U007epad-0-1-0-sRGB-85-220.png/256x256bb.jpg", 0],
+    ["messenger", "Messenger", 454638411, "fb-messenger", "com.facebook.orca", "https://www.messenger.com/", "Chat", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/49/bf/d5/49bfd562-f165-a59c-c82d-49d20cd98931/AppIcon-0-0-1x_U007epad-0-1-0-sRGB-85-220.png/256x256bb.jpg", 0],
+    ["pinterest", "Pinterest", 429047995, "pinterest", "com.pinterest", "https://www.pinterest.com/", "Social", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/f0/8e/3d/f08e3d30-65df-7233-d2e5-a9cb133c6af1/AppIcon-0-0-1x_U007epad-0-1-0-0-0-85-220.png/256x256bb.jpg", 0],
+    ["reddit", "Reddit", 1064216828, "reddit", "com.reddit.frontpage", "https://www.reddit.com/", "Social", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/a1/74/9d/a1749d85-1061-a0ac-0731-6ea329d668cf/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/256x256bb.jpg", 0],
+    ["roblox", "Roblox", 431946152, "roblox", "com.roblox.client", "https://www.roblox.com/", "Games", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/c4/73/78/c4737895-ef0a-5de8-35b0-67b9bd2f55d8/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/256x256bb.jpg", 0],
+    ["minecraft", "Minecraft", 479516143, "minecraft", "com.mojang.minecraftpe", "https://www.minecraft.net/", "Games", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/72/09/34/720934b1-4519-6661-cc9c-075075d54a38/AppIcon-0-0-1x_U007emarketing-0-10-0-85-220.png/256x256bb.jpg", 0],
+    ["duolingo", "Duolingo", 570060128, "duolingo", "com.duolingo", "https://www.duolingo.com/", "School", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/8d/11/e8/8d11e8e6-8040-7512-d03e-ea56124d3eef/AppIcon-0-0-1x_U007epad-0-1-85-220.png/256x256bb.jpg", 0],
+    ["twitch", "Twitch", 460177396, "twitch", "tv.twitch.android.app", "https://www.twitch.tv/", "Video", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/d5/af/88/d5af88c1-ef7a-2d28-90c0-1f3335b21efe/TwitchAppIcon-0-0-1x_U007epad-0-1-0-0-sRGB-0-0-0-85-220.png/256x256bb.jpg", 0],
+    ["telegram", "Telegram", 686449807, "tg", "org.telegram.messenger", "https://web.telegram.org/", "Chat", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/ce/41/d8/ce41d807-350e-69f1-f31e-16be42b6ebfb/Telegram-0-0-1x_U007epad-0-1-0-85-220.png/256x256bb.jpg", 0],
+    ["gmail", "Gmail", 422689480, "googlegmail", "com.google.android.gm", "https://mail.google.com/", "Productivity", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/83/a9/eb/83a9eb0a-ab2b-da1f-41a9-8357822787a8/gmail_2026_ios-0-0-1x_U007epad-0-0-0-1-0-0-0-0-85-220.png/256x256bb.jpg", 0],
+    ["gmaps", "Google Maps", 585027354, "comgooglemaps", "com.google.android.apps.maps", "https://www.google.com/maps", "Travel", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/f8/76/ce/f876ce27-b7c2-e674-5c9d-8d0fcb041673/maps_2025-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-0-85-220.png/256x256bb.jpg", 0],
+    ["threads", "Threads", 6446901002, "barcelona", "com.instagram.barcelona", "https://www.threads.net/", "Social", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/41/ae/77/41ae77b4-ea15-2bbf-dc7d-3b67e887209e/Prod-0-0-1x_U007ephone-0-0-0-1-0-0-sRGB-85-220.png/256x256bb.jpg", 0],
+    ["bereal", "BeReal", 1459645446, "bereal", "com.bereal.ft", "https://bere.al/", "Social", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/84/c4/21/84c421ef-2540-bf4b-7d69-d239181d02f0/AppIcon-0-0-1x_U007emarketing-0-6-0-85-220.png/256x256bb.jpg", 1],
+    ["shazam", "Shazam", 284993459, "shazam", "com.shazam.android", "https://www.shazam.com/", "Music", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/a6/e3/8a/a6e38a72-31d3-fa19-8733-d71f38edcf62/AppIcon-0-0-1x_U007epad-0-1-85-220.png/256x256bb.jpg", 0],
+    ["disneyplus", "Disney+", 1446075923, "disneyplus", "com.disney.disneyplus", "https://www.disneyplus.com/", "Video", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/3f/7f/cb/3f7fcb64-82d5-7f5d-e453-6532b9e497d4/AppIcon-0-0-1x_U007emarketing-0-8-0-0-0-85-220.png/256x256bb.jpg", 1],
+    ["primevideo", "Prime Video", 545519333, "aiv", "com.amazon.avod.thirdpartyclient", "https://www.primevideo.com/", "Video", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/8d/b6/ab/8db6ab2a-de8d-c581-d1be-6f408bf4d921/AppIcon-0-0-1x_U007epad-0-1-0-0-85-220.png/256x256bb.jpg", 0],
+    ["zoom", "Zoom", 546505307, "zoomus", "us.zoom.videomeetings", "https://app.zoom.us/wc", "Productivity", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/fc/d0/96/fcd09664-56c3-f856-4311-da9dcbae1fd2/AppIcon-0-0-1x_U007epad-0-1-0-0-85-220.png/256x256bb.jpg", 0],
+    ["teams", "Microsoft Teams", 1113153706, "msteams", "com.microsoft.teams", "https://teams.microsoft.com/", "Productivity", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/48/42/d4/4842d4b9-5d20-be03-d72d-6e81c1035773/AppIcon-0-0-1x_U007epad-0-1-0-0-85-220.png/256x256bb.jpg", 0],
+    ["canva", "Canva", 897446215, "canva", "com.canva.editor", "https://www.canva.com/", "Productivity", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/3f/a0/78/3fa078f4-ab6d-c5b7-ac83-873fc19a4685/AppIcon-0-0-1x_U007epad-0-11-0-85-220.png/256x256bb.jpg", 0],
+    ["quizlet", "Quizlet", 546473125, "quizlet", "com.quizlet.quizletandroid", "https://quizlet.com/", "School", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/89/63/1a/89631ab3-341a-541e-f7d9-cb8fdff31b60/AppIcon-production-0-0-1x_U007emarketing-0-8-0-85-220.png/256x256bb.jpg", 0],
+    ["kahoot", "Kahoot!", 1131203560, "kahoot", "no.mobitroll.kahoot.android", "https://kahoot.it/", "School", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/06/5c/1f/065c1f2b-fef6-5fcd-f111-c90bbb9e4f65/AppIcon-0-0-1x_U007epad-0-1-0-0-sRGB-85-220.png/256x256bb.jpg", 1],
+    ["chatgpt", "ChatGPT", 6448311069, "chatgpt", "com.openai.chatgpt", "https://chatgpt.com/", "Productivity", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/72/2d/27/722d272a-9d6f-d186-8a92-6a884107df8f/AppIcon-0-0-1x_U007epad-0-0-0-1-0-85-220.png/256x256bb.jpg", 0],
+    ["claude", "Claude", 6473753684, "claude", "com.anthropic.claude", "https://claude.ai/", "Productivity", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/d7/d6/f1/d7d6f168-f3ce-ee3c-e8fd-0563019400d4/AppIcon-0-0-1x_U007epad-0-1-85-220.png/256x256bb.jpg", 0],
+    ["brawlstars", "Brawl Stars", 1229016807, "brawlstars", "com.supercell.brawlstars", "https://supercell.com/en/games/brawlstars/", "Games", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/27/98/dd/2798dd4e-f772-d93b-0a82-588d3fb55302/AppIcon-0-0-1x_U007epad-0-1-85-220.png/256x256bb.jpg", 1],
+    ["clashroyale", "Clash Royale", 1053012308, "clashroyale", "com.supercell.clashroyale", "https://supercell.com/en/games/clashroyale/", "Games", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/82/9e/a7/829ea73c-c333-1953-f5fb-c16ea2ed80e3/AppIcon-0-0-1x_U007emarketing-0-7-0-85-220.png/256x256bb.jpg", 1],
+    ["capcut", "CapCut", 1500855883, "capcut", "com.lemon.lvoverseas", "https://www.capcut.com/", "Video", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/31/d8/5b/31d85b5d-7785-5789-df84-1b052afd2e43/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/256x256bb.jpg", 0],
+    ["soundcloud", "SoundCloud", 336353151, "soundcloud", "com.soundcloud.android", "https://soundcloud.com/", "Music", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/1b/03/50/1b035022-a482-798c-e754-798b78331c9b/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/256x256bb.jpg", 0],
+    ["waze", "Waze", 323229106, "waze", "com.waze", "https://www.waze.com/live-map", "Travel", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/a9/b3/57/a9b35786-b96f-9fe4-3cc5-6bce1b9a7e40/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/256x256bb.jpg", 0],
+    ["ytofficial", "YouTube (official app)", 544007664, "youtube", "com.google.android.youtube", "https://www.youtube.com/", "Video", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/82/43/be/8243be7f-17c3-33ae-720a-ffcde48bed61/logo_youtube_2024_q4_color-0-0-1x_U007emarketing-0-0-0-7-0-0-0-85-220.png/256x256bb.jpg", 0]
+  ];
+
+  const ua = navigator.userAgent || '';
+  function device() {
+    const ios = /iPhone|iPad|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1);
+    const android = /Android/i.test(ua);
+    if (ios) return { kind: 'ios', name: /iPad|Macintosh/.test(ua) ? 'iPad' : 'iPhone', store: 'App Store' };
+    if (android) {
+      const samsung = /SamsungBrowser|SM-[A-Z0-9]+|Samsung/i.test(ua);
+      const m = ua.match(/Android[^;]*;\s*([^;)]+?)(?:\s+Build|\))/);
+      return { kind: 'android', name: samsung ? 'Samsung Galaxy' : (m && !/^K$|wv/.test(m[1]) ? m[1].trim() : 'Android phone'), store: 'Google Play' };
+    }
+    return { kind: 'computer', name: /CrOS/.test(ua) ? 'Chromebook' : /Windows/.test(ua) ? 'Windows PC' : /Mac/.test(ua) ? 'Mac' : 'computer', store: '' };
+  }
+  const installed = new Set(PatOS.store.get('extInstalled', []));
+  const saveInstalled = () => PatOS.store.set('extInstalled', [...installed]);
+  const byId = {};
+  const refresh = () => PatOS.setSetting('hiddenApps', (PatOS.settings.hiddenApps || []).slice()); // redraws Home Screen / Launchpad
+  const popups = {};
+
+  /* ---------- opening ---------- */
+  /* If the app opens, this page goes to the background. If it is still showing a moment later, the app
+     isn't installed, so go to its store page. Timers are paused while the page is in the background,
+     so a late timer means the app did open. */
+  const go = (u) => { if (PatOS.extApps && PatOS.extApps._nav) PatOS.extApps._nav(u); else window.location.href = u; };
+  function tryThenStore(target, store, wait) {
+    let left = false; const t0 = Date.now();
+    const mark = () => { if (document.hidden) left = true; };
+    document.addEventListener('visibilitychange', mark); window.addEventListener('pagehide', mark);
+    try { go(target); } catch (e) {}
+    setTimeout(() => {
+      document.removeEventListener('visibilitychange', mark); window.removeEventListener('pagehide', mark);
+      if (!left && !document.hidden && Date.now() - t0 < wait + 1500) go(store);
+    }, wait);
+  }
+  function openOnIOS(c) { tryThenStore(c.scheme + '://', 'itms-apps://apps.apple.com/app/id' + c.appStore, 2500); }
+  function openOnAndroid(c) {
+    const play = 'https://play.google.com/store/apps/details?id=' + c.pkg;
+    // Android opens the app if it's installed; if not, the browser follows the fallback to Google Play
+    const intent = 'intent://open#Intent;scheme=' + c.scheme + ';package=' + c.pkg + ';S.browser_fallback_url=' + encodeURIComponent(play) + ';end';
+    tryThenStore(intent, 'market://details?id=' + c.pkg, 3000);
+  }
+  function openOnComputer(c, forceWindow) {
+    if (c.frame && !forceWindow && !PatOS.sandboxed) return PatOS.launch('extweb', { app: c.id });
+    const w = Math.min(1200, screen.availWidth - 80), hh = Math.min(820, screen.availHeight - 80);
+    const left = Math.max(0, (screen.availWidth - w) / 2), top = Math.max(0, (screen.availHeight - hh) / 2);
+    let win = popups[c.id];
+    if (win && !win.closed) { try { win.focus(); return; } catch (e) {} }
+    try { win = window.open(c.web, 'patos_' + c.id, `popup=yes,width=${w},height=${hh},left=${left},top=${top}`); } catch (e) { win = null; }
+    if (win) { popups[c.id] = win; PatOS.notify({ title: c.name, body: PatOS.t('Opened in its own window.'), icon: 'x-' + c.id }); }
+    else PatOS.launch('extweb', { app: c.id, blocked: true });
+  }
+  function open(id, opts) {
+    const c = byId[id]; if (!c) return;
+    const d = device();
+    PatOS.emit('app:launch', 'x-' + id);
+    if (d.kind === 'ios') return openOnIOS(c);
+    if (d.kind === 'android') return openOnAndroid(c);
+    return openOnComputer(c, opts && opts.window);
+  }
+
+  /* ---------- registry ---------- */
+  CATALOG.forEach(([id, name, appStore, scheme, pkg, web, cat, art, frame]) => {
+    const c = { id, name, appStore, scheme, pkg, web, cat, art, frame: !!frame };
+    byId[id] = c;
+    const fav = 'https://www.google.com/s2/favicons?sz=128&domain=' + new URL(web).hostname;
+    PatOS.iconDefs['x-' + id] = { bg: '#fff', svg: () => `<img class="ext-ic" src="${art || fav}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.onerror=null;this.src='${fav}'">` };
+    PatOS.registerApp({ id: 'x-' + id, name, icon: 'x-' + id, category: 'Apps', keywords: (name + ' ' + cat + ' phone app').toLowerCase(), hidden: !installed.has(id), external: c, about: cat, action: () => open(id) });
+  });
+
+  /* window used on computers for sites that can show inside PatOS (or when a popup was blocked) */
+  PatOS.registerApp({
+    id: 'extweb', name: 'Web App', icon: 'browser', hidden: true, single: false, width: 1100, height: 720, category: 'Apps',
+    launch(win, args) {
+      const c = byId[args && args.app]; if (!c) return win.close();
+      win.setTitle(c.name);
+      win.el.classList.add('has-toolbar');
+      const bReload = h('button', { class: 'tbtn', title: 'Reload' }, '↻');
+      const bOwn = h('button', { class: 'btn' }, PatOS.t('Open in its own window'));
+      win.toolbar.append(h('span', { class: 'xw-title', html: PatOS.iconHTML('x-' + c.id) }, c.name), h('div', { style: { flex: 1 } }), bReload, bOwn);
+      win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
+      bOwn.onclick = () => openOnComputer(c, true);
+      if (args.blocked || !c.frame || PatOS.sandboxed) {
+        const card = h('div', { class: 'xw-card' }, h('div', { class: 'xw-ic', html: PatOS.iconHTML('x-' + c.id) }), h('h2', {}, c.name),
+          h('p', {}, PatOS.t(PatOS.sandboxed ? 'This copy of PatOS runs inside a Claude Artifact, which can’t open other websites. Open PatOS from its website.' : args.blocked ? 'Your browser blocked the new window. Press the button to open it.' : 'This website doesn’t allow being shown inside other apps, so it opens in its own window.')),
+          h('button', { class: 'btn primary', onclick: () => openOnComputer(c, true) }, PatOS.t('Open') + ' ' + c.name),
+          h('small', {}, c.web.replace(/^https:\/\//, '').replace(/\/$/, '')));
+        win.body.appendChild(card); bReload.style.display = 'none'; return;
+      }
+      const f = h('iframe', { src: c.web, class: 'xw-frame', allow: 'camera; microphone; autoplay; fullscreen; clipboard-write; encrypted-media', referrerpolicy: 'strict-origin-when-cross-origin' });
+      bReload.onclick = () => { f.src = c.web; };
+      win.body.appendChild(f);
+    }
+  });
+
+  PatOS.extApps = {
+    list: () => CATALOG.map((x) => byId[x[0]]),
+    device,
+    isInstalled: (id) => installed.has(id),
+    install(id) { installed.add(id); saveInstalled(); PatOS.apps['x-' + id].hidden = false; refresh(); },
+    uninstall(id) {
+      installed.delete(id); saveInstalled(); PatOS.apps['x-' + id].hidden = true;
+      ['dockPinned', 'mobileDock'].forEach((k) => { const l = PatOS.settings[k] || []; if (l.includes('x-' + id)) PatOS.setSetting(k, l.filter((x) => x !== 'x-' + id)); });
+      refresh();
+    },
+    open
+  };
 })();
 
 </script>

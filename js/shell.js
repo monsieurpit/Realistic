@@ -543,6 +543,7 @@
     if (c !== null) spResults.push({ group: 'Calculator', label: q + ' = ' + c, icon: 'calculator', run: () => { navigator.clipboard && navigator.clipboard.writeText(String(c)).catch(() => {}); PatOS.notify({ title: 'Copied', body: String(c), icon: 'calculator' }); } });
     PatOS.appOrder.forEach((id) => {
       const a = PatOS.apps[id];
+      if (a.hidden && (a.external || id === 'extweb')) return;
       const nm = PatOS.t ? PatOS.t(a.name) : a.name;
       if (a.name.toLowerCase().includes(ql) || nm.toLowerCase().includes(ql) || (a.keywords || '').includes(ql)) spResults.push({ group: 'Applications', appId: id, label: nm, icon: a.icon || id, score: a.name.toLowerCase().startsWith(ql) ? 0 : 1, run: () => PatOS.launch(id) });
     });

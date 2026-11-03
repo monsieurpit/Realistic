@@ -82,6 +82,7 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 | Books | 70,000 free classics from Project Gutenberg in a page-turning reader (text size, themes, remembers your page) |
 | Radio | thousands of live radio stations from around the world, by country or genre, with favorites |
 | Videos | play your own video files with speed control and Picture in Picture |
+| Phone & Web apps | install Snapchat, Instagram, TikTok, WhatsApp, Spotify, Discord, Roblox and 30 more from the App Store. On iPhone/iPad they open the real app (or its App Store page), on Android/Samsung the real app (or Google Play), and on a computer the app's website (inside PatOS when the site allows it, otherwise in its own window) |
 | Solitaire | classic Klondike: drag or tap, draw 1 or 3, undo, auto-finish, stats |
 
 ## Keyboard shortcuts
