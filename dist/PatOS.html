@@ -2687,6 +2687,17 @@ html.big-targets .btn, html.big-targets .tbtn, html.big-targets .ob, html.big-ta
 .cs-pyin { display: flex; gap: 0; align-items: center; } .cs-pyin input { flex: 1; background: transparent; border: 0; outline: 0; color: #8ab4ff; font: inherit; }
 .cs-pymode .cs-right { flex: 1.1; }
 
+/* Settings › Install & Start Up */
+.st-h3 { font-size: 13px; font-weight: 600; margin: 18px 4px 6px; color: var(--text); }
+.st-steps { margin: 0 0 6px; padding: 10px 14px 10px 34px; background: var(--card); border: .5px solid var(--border); border-radius: 12px; font-size: 13px; line-height: 1.55; }
+.st-steps li { margin: 3px 0; padding-left: 2px; }
+.st-steps li::marker { color: var(--accent); font-weight: 600; }
+.st-badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; }
+.st-badge.ok { background: rgba(50,215,75,.16); color: #1f9d3a; }
+:root[data-theme="dark"] .st-badge.ok { color: #32d74b; }
+.st-code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; padding: 3px 8px; border-radius: 6px; background: rgba(127,127,127,.12); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle; }
+img.st-hero-ic { border-radius: 18px; }
+
 </style>
   <style>
 /* ================= Liquid Glass ================= */
@@ -2876,6 +2887,8 @@ html.reduce-transparency.lg-on :is(#dock, .mh-dock, .menu, #control-center, .toa
    gigabytes of files instead of the 5 MB that localStorage allows. */
 (function () {
   'use strict';
+  // Chrome may offer to install PatOS before the rest of PatOS has loaded; keep that offer for later
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__installPrompt = e; });
   var started = false;
   function start() {
     if (started) return; started = true;
@@ -3621,8 +3634,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   const SKIP_DIR = /^(\.|node_modules$|__pycache__$)/;
 
   const tx = (store, mode, fn) => new Promise((res, rej) => { if (!db) return res(null); try { const t = db.transaction(store, mode); const r = fn(t.objectStore(store)); t.oncomplete = () => res(r && r.result); t.onerror = t.onabort = () => rej(t.error); } catch (e) { res(null); } });
-  const putHandle = async (h) => { const id = PatOS.uid() + PatOS.uid(); await tx('handles', 'readwrite', (s) => s.put(h, id)); return id; };
-  const getHandle = (id) => tx('handles', 'readonly', (s) => s.get(id));
+  const memo = new Map(); // handles used during this session, so they don't have to be read back from the database
+  const putHandle = async (h) => { const id = PatOS.uid() + PatOS.uid(); memo.set(id, h); await tx('handles', 'readwrite', (s) => s.put(h, id)); return id; };
+  const getHandle = async (id) => { if (memo.has(id)) return memo.get(id); const h = await tx('handles', 'readonly', (s) => s.get(id)); if (h) memo.set(id, h); return h; };
   async function perm(handle, write, ask) {
     const o = { mode: write ? 'readwrite' : 'read' };
     try { if ((await handle.queryPermission(o)) === 'granted') return true; if (!ask) return false; return (await handle.requestPermission(o)) === 'granted'; } catch (e) { return false; }
@@ -3643,14 +3657,35 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     dest = dest || '/Documents';
     if (!supported) return PatOS.importFiles(dest);
     let handles; try { handles = await showOpenFilePicker({ multiple: true }); } catch (e) { return []; }
+    return importHandles(handles, dest);
+  }
+  // files handed to PatOS by the Chromebook (Files app › Open with › PatOS) or picked by the person
+  async function importHandles(handles, dest) {
+    dest = dest || '/Documents';
     const out = [];
     for (const h of handles) {
+      if (!h || h.kind !== 'file') continue;
       try {
-        const file = await h.getFile(); const name = PatOS.fs.uniqueName(dest, file.name); const p = dest + '/' + name;
+        const file = await h.getFile();
+        // the same real file opened again: refresh the copy PatOS already has instead of making a second one
+        const same = await findSame(dest, h, file.name);
+        const p = same || dest + '/' + PatOS.fs.uniqueName(dest, file.name);
         await importFile(p, h, file); out.push(p);
       } catch (e) { notify(T('Couldn’t open the file'), e.message); }
     }
     return out;
+  }
+  async function findSame(dest, handle, fileName) {
+    const dir = PatOS.fs.get(dest); if (!dir || dir.type !== 'dir' || !handle.isSameEntry) return null;
+    // only copies with the same name (or the same name plus a number, like “report 2.txt”) can be the same file
+    const dot = fileName.lastIndexOf('.'); const base = dot > 0 ? fileName.slice(0, dot) : fileName; const ext = dot > 0 ? fileName.slice(dot) : '';
+    const esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp('^' + esc(base) + '( \\(?\\d+\\)?)?' + esc(ext) + '$', 'i');
+    for (const [name, n] of Object.entries(dir.children || {})) {
+      if (!n || !n.link || n.type === 'dir' || !re.test(name)) continue;
+      try { const other = await getHandle(n.link); if (other && (await other.isSameEntry(handle))) return dest + '/' + name; } catch (e) {}
+    }
+    return null;
   }
 
   async function scan(dirHandle, dirPath, state) {
@@ -3758,7 +3793,93 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   }
 
   window.addEventListener('beforeunload', (e) => { if (waiting.size) { e.preventDefault(); e.returnValue = ''; } });
-  PatOS.device = { supported, openFiles, linkFolder, refresh, touched, saveCopy, exportFolder, isLinked: (path) => { const n = PatOS.fs.get(path); return !!(n && n.link); } };
+  PatOS.device = { supported, openFiles, importHandles, linkFolder, refresh, touched, saveCopy, exportFolder, isLinked: (path) => { const n = PatOS.fs.get(path); return !!(n && n.link); } };
+})();
+
+</script>
+  <script type="patos/js">
+/* PatOS.install — PatOS as a real app on the Chromebook.
+   - Install: Chrome's own install prompt (PatOS then opens in its own window, with its own icon in the shelf)
+   - Files: once installed, the Files app can open documents with PatOS (Open with › PatOS)
+   - Shortcuts: right-click the PatOS icon in the shelf to jump straight to Finder, Docs, Notes or Code Studio */
+(function () {
+  'use strict';
+  const T = (s) => (PatOS.t ? PatOS.t(s) : s);
+  let promptEvent = window.__installPrompt || null;
+  const listeners = new Set();
+  const changed = () => listeners.forEach((fn) => { try { fn(); } catch (e) {} });
+
+  // only app windows count: Chrome's own full screen (F11, or PatOS asking at login) also matches "fullscreen"
+  const standalone = () => {
+    try { return ['standalone', 'minimal-ui', 'window-controls-overlay'].some((m) => matchMedia('(display-mode: ' + m + ')').matches) || navigator.standalone === true; } catch (e) { return false; }
+  };
+  const supported = () => /^https?:$/.test(location.protocol) && !PatOS.singleFile && 'serviceWorker' in navigator;
+
+  window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); promptEvent = e; window.__installPrompt = e; changed(); });
+  window.addEventListener('appinstalled', () => {
+    promptEvent = null; window.__installPrompt = null; PatOS.store.set('appInstalled', true); changed();
+    PatOS.notify({ title: T('PatOS is installed'), body: T('Find it in your Launcher. Right-click its icon in the shelf and choose Pin to keep it there.'), icon: 'about', duration: 9000 });
+  });
+
+  async function prompt() {
+    const ev = promptEvent; if (!ev) return 'unavailable';
+    try { ev.prompt(); const r = await ev.userChoice; promptEvent = null; window.__installPrompt = null; const ok = r && r.outcome === 'accepted'; if (ok) PatOS.store.set('appInstalled', true); changed(); return ok ? 'accepted' : 'dismissed'; } catch (e) { return 'unavailable'; }
+  }
+
+  /* ---------- launches: files from the Files app, and shelf shortcuts ---------- */
+  const pending = [];
+  let ready = false;
+  function whenReady(fn) { if (ready) fn(); else pending.push(fn); }
+  PatOS.on('wm:ready', () => {
+    // wait for the first-time setup to finish before opening anything
+    const go = () => { if (document.getElementById('setup')) return setTimeout(go, 500); ready = true; pending.splice(0).forEach((fn) => { try { fn(); } catch (e) {} }); };
+    go();
+  });
+
+  let lastURL = '', lastAt = 0;
+  function handleURL(u) {
+    let url; try { url = new URL(u, location.href); } catch (e) { return; }
+    const app = url.searchParams.get('app');
+    if (!app || !/^[\w-]{1,32}$/.test(app)) return;
+    // the page address and Chrome's launch notice can both report the same launch
+    if (url.href === lastURL && Date.now() - lastAt < 5000) return; lastURL = url.href; lastAt = Date.now();
+    whenReady(() => { if (PatOS.apps[app]) PatOS.launch(app); });
+  }
+  async function openHandles(handles) {
+    if (!handles || !handles.length) return;
+    if (!PatOS.device || !PatOS.device.importHandles) return;
+    whenReady(async () => {
+      const paths = await PatOS.device.importHandles(handles, '/Documents');
+      paths.forEach((p, i) => setTimeout(() => PatOS.openFile(p), i * 250));
+      if (paths.length > 1) PatOS.notify({ title: T('Files opened'), body: paths.length + ' ' + T('files are in Documents. Saving in PatOS saves the real files too.'), icon: 'finder' });
+    });
+  }
+  handleURL(location.href);
+  if ('launchQueue' in window && window.launchQueue && window.launchQueue.setConsumer) {
+    window.launchQueue.setConsumer((params) => {
+      if (params.targetURL) handleURL(params.targetURL);
+      if (params.files && params.files.length) openHandles(params.files);
+    });
+  }
+  // tidy the address so a reload doesn't reopen the same thing
+  try { if (/[?&](app|open|source)=/.test(location.search)) history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}
+
+  /* ---------- a friendly offer, once, after PatOS has been used a little ---------- */
+  const sessions = (PatOS.store.get('sessions', 0) || 0) + 1; PatOS.store.set('sessions', sessions);
+  whenReady(() => setTimeout(() => {
+    if (standalone() || PatOS.isMobile || PatOS.store.get('installOffered', false) || sessions < 2) return;
+    if (!promptEvent) return;
+    PatOS.store.set('installOffered', true);
+    PatOS.notify({ title: T('Install PatOS as an app'), body: T('It opens in its own window with no browser bars, and gets an icon in your shelf. Click here to install.'), icon: 'about', duration: 12000, onClick: () => prompt() });
+  }, 6000));
+
+  PatOS.install = {
+    standalone, supported, prompt,
+    canPrompt: () => !!promptEvent,
+    fileHandling: () => 'launchQueue' in window,
+    onChange: (fn) => { listeners.add(fn); return () => listeners.delete(fn); },
+    address: () => location.origin + location.pathname
+  };
 })();
 
 </script>
@@ -5621,6 +5742,41 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Link a Folder…': 'Lier un dossier…',
     'Compress': 'Compresser',
     'Extract Here': 'Extraire ici',
+    'Install & Start Up': 'Installation et démarrage',
+    'Permissions': 'Autorisations',
+    'Open Install & Start Up': 'Ouvrir Installation et démarrage',
+    'PatOS is installed': 'PatOS est installé',
+    'Find it in your Launcher. Right-click its icon in the shelf and choose Pin to keep it there.': 'Trouvez-le dans le lanceur. Faites un clic droit sur son icône dans l’étagère et choisissez Épingler pour l’y garder.',
+    'Files opened': 'Fichiers ouverts',
+    'files are in Documents. Saving in PatOS saves the real files too.': 'fichiers sont dans Documents. Enregistrer dans PatOS enregistre aussi les vrais fichiers.',
+    'Install PatOS as an app': 'Installer PatOS comme application',
+    'It opens in its own window with no browser bars, and gets an icon in your shelf. Click here to install.': 'Il s’ouvre dans sa propre fenêtre, sans les barres du navigateur, et a son icône dans l’étagère. Cliquez ici pour l’installer.',
+    'PatOS app': 'Application PatOS',
+    'You are using the PatOS app. It has its own window and its own icon in the shelf.': 'Vous utilisez l’application PatOS. Elle a sa propre fenêtre et sa propre icône dans l’étagère.',
+    'Installing needs PatOS to be opened from its website (not from a saved file or a preview).': 'Pour l’installer, PatOS doit être ouvert depuis son site web (pas depuis un fichier enregistré ou un aperçu).',
+    'PatOS is installed on this Chromebook. Open it from the Launcher or the shelf to use it as an app.': 'PatOS est installé sur ce Chromebook. Ouvrez-le depuis le lanceur ou l’étagère pour l’utiliser comme application.',
+    'Install PatOS to open it in its own window, with no browser bars, like a real app.': 'Installez PatOS pour l’ouvrir dans sa propre fenêtre, sans les barres du navigateur, comme une vraie application.',
+    'Chrome hasn’t offered to install PatOS yet. You can install it from Chrome’s menu (see below).': 'Chrome n’a pas encore proposé d’installer PatOS. Vous pouvez l’installer depuis le menu de Chrome (voir plus bas).',
+    'Install from Chrome': 'Installer depuis Chrome',
+    'Click the three dots (⋮) at the top right of Chrome.': 'Cliquez sur les trois points (⋮) en haut à droite de Chrome.',
+    'Choose “Cast, save and share”, then “Install page as app…”. On some versions it is “Install PatOS…” directly in the menu.': 'Choisissez « Caster, enregistrer et partager », puis « Installer la page en tant qu’application… ». Sur certaines versions, c’est « Installer PatOS… » directement dans le menu.',
+    'Click Install.': 'Cliquez sur Installer.',
+    'Open PatOS when your Chromebook starts': 'Ouvrir PatOS au démarrage du Chromebook',
+    'Install PatOS (above).': 'Installez PatOS (plus haut).',
+    'Right-click the PatOS icon in the shelf at the bottom of the screen and choose Pin.': 'Faites un clic droit sur l’icône de PatOS dans l’étagère en bas de l’écran et choisissez Épingler.',
+    'Open the Chromebook’s Settings, search for “Restore apps on startup” and choose Always. If PatOS is open when you shut down, it opens again when you sign in.': 'Ouvrez les Paramètres du Chromebook, cherchez « Restaurer les applications au démarrage » et choisissez Toujours. Si PatOS est ouvert quand vous éteignez, il se rouvre quand vous vous connectez.',
+    'Only using Chrome? In Chrome Settings › On startup, choose “Open a specific page or set of pages” and add the PatOS address below.': 'Vous utilisez seulement Chrome ? Dans Paramètres de Chrome › Au démarrage, choisissez « Ouvrir une page ou un ensemble de pages spécifiques » et ajoutez l’adresse de PatOS ci-dessous.',
+    'School Chromebooks may lock some of these settings. If you can’t change one, that is your school’s choice.': 'Les Chromebooks d’école peuvent bloquer certains de ces paramètres. Si vous ne pouvez pas en changer un, c’est le choix de votre école.',
+    'Copied': 'Copié',
+    'Copy': 'Copier',
+    'PatOS address': 'Adresse de PatOS',
+    'PatOS asks Chrome for full screen when you log in, so nothing else is on screen.': 'PatOS demande le plein écran à Chrome quand vous vous connectez, pour que rien d’autre ne soit à l’écran.',
+    'Open your Chromebook’s files with PatOS': 'Ouvrir les fichiers du Chromebook avec PatOS',
+    'Once PatOS is installed, right-click a file in the Chromebook’s Files app and choose Open with › PatOS. Word, Excel, PowerPoint, PDF, text, code, pictures, music and videos all work. When you save in PatOS, the real file is saved too.': 'Une fois PatOS installé, faites un clic droit sur un fichier dans l’application Fichiers du Chromebook et choisissez Ouvrir avec › PatOS. Word, Excel, PowerPoint, PDF, texte, code, images, musique et vidéos fonctionnent. Quand vous enregistrez dans PatOS, le vrai fichier est aussi enregistré.',
+    'This browser can’t hand files to PatOS. Use Finder › Open Files… instead.': 'Ce navigateur ne peut pas donner de fichiers à PatOS. Utilisez plutôt Finder › Ouvrir des fichiers….',
+    'Shortcuts': 'Raccourcis',
+    'Right-click the PatOS icon in the shelf to jump straight to Finder, Docs, Notes or Code Studio.': 'Faites un clic droit sur l’icône de PatOS dans l’étagère pour aller directement à Finder, Docs, Notes ou Code Studio.',
+    'Couldn’t open the file': 'Impossible d’ouvrir le fichier',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 'Offline': 'Hors ligne', 'Connected': 'Connecté',
@@ -11916,7 +12072,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
   const ACCENTS = ['#0a84ff', '#bf5af2', '#ff375f', '#ff453a', '#ff9f0a', '#ffd60a', '#32d74b', '#64d2ff', '#8e8e93'];
   const PANES = [
     ['general', 'General', '⚙️'], ['appearance', 'Appearance', '🎨'], ['accessibility', 'Accessibility', '♿'], ['wallpaper', 'Wallpaper', '🖼'], ['dock', 'Home Screen & Dock', '🧭'],
-    ['display', 'Displays & 3D', '🖥'], ['sound', 'Sound', '🔊'], ['lock', 'Lock Screen', '🔒'], ['network', 'Network', '📶'], ['permissions', 'Permissions & Install', '🛡'], ['system', 'This Device', '💻'],
+    ['display', 'Displays & 3D', '🖥'], ['sound', 'Sound', '🔊'], ['lock', 'Lock Screen', '🔒'], ['network', 'Network', '📶'], ['startup', 'Install & Start Up', '🚀'], ['permissions', 'Permissions', '🛡'], ['system', 'This Device', '💻'],
     ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾']
   ];
   PatOS.registerApp({
@@ -12033,17 +12189,51 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
             box.append(group(...g));
             const sys = h('button', { class: 'switch' + (S().systemNotifications !== false ? ' on' : '') }); sys.onclick = () => { PatOS.setSetting('systemNotifications', S().systemNotifications === false); sys.classList.toggle('on'); };
             box.append(group(row(T('Show PatOS notifications when this tab is in the background'), sys, T('Needs the Notifications permission above.'))));
-            // install
-            const inst = h('div', { class: 'st-inline' });
-            const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
-            if (standalone) inst.appendChild(h('span', { class: 'st-val', style: { color: '#32d74b' } }, T('Installed')));
-            else if (window.__installPrompt) inst.appendChild(h('button', { class: 'btn primary', onclick: async () => { const ev = window.__installPrompt; ev.prompt(); await ev.userChoice; window.__installPrompt = null; paint(); } }, T('Install PatOS')));
-            else inst.appendChild(h('span', { class: 'st-val' }, T('Use Chrome’s menu: Cast, save and share › Install page as app')));
             const pers = h('span', { class: 'st-val' }, '…'); PatOS.storageInfo().then((i) => { pers.textContent = i.persisted ? T('Protected from clean-up') : T('Browser may clear it when space is low'); });
-            box.append(group(row(T('Install as an app'), inst, T('Runs in its own window, opens faster and works offline.')), row(T('Your saved data'), pers)),
-              h('p', { class: 'st-note' }, T('Tip: to open PatOS when Chrome starts, go to Chrome Settings › On startup › Open a specific page, and add this page.')));
+            box.append(group(row(T('Your saved data'), pers), row(T('Install as an app'), h('button', { class: 'btn', onclick: () => { pane = 'startup'; renderMain(); drawSide(); } }, T('Open Install & Start Up')))));
           };
           paint(); return [box];
+        },
+        startup() {
+          const I = PatOS.install; const box = h('div', {});
+          const steps = (...items) => h('ol', { class: 'st-steps' }, ...items.map((x) => h('li', {}, x)));
+          const paint = () => {
+            box.innerHTML = '';
+            const installed = I && I.standalone();
+            const canInstall = I && I.supported();
+            let action;
+            if (installed) action = h('span', { class: 'st-badge ok' }, T('Installed'));
+            else if (I && I.canPrompt()) action = h('button', { class: 'btn primary', onclick: async () => { await I.prompt(); paint(); } }, T('Install PatOS'));
+            else action = null;
+            const status = installed ? T('You are using the PatOS app. It has its own window and its own icon in the shelf.')
+              : !canInstall ? T('Installing needs PatOS to be opened from its website (not from a saved file or a preview).')
+              : PatOS.store.get('appInstalled', false) ? T('PatOS is installed on this Chromebook. Open it from the Launcher or the shelf to use it as an app.')
+              : I && I.canPrompt() ? T('Install PatOS to open it in its own window, with no browser bars, like a real app.')
+              : T('Chrome hasn’t offered to install PatOS yet. You can install it from Chrome’s menu (see below).');
+            box.append(h('div', { class: 'st-hero' }, h('img', { class: 'st-hero-ic', src: 'assets/icon-192.png', alt: '' }), h('div', {}, h('h2', {}, T('PatOS app')), h('p', {}, status), action ? h('div', { style: { marginTop: '10px' } }, action) : null)));
+            if (!installed && canInstall && !(I && I.canPrompt())) {
+              box.append(h('h3', { class: 'st-h3' }, T('Install from Chrome')), steps(T('Click the three dots (⋮) at the top right of Chrome.'), T('Choose “Cast, save and share”, then “Install page as app…”. On some versions it is “Install PatOS…” directly in the menu.'), T('Click Install.')));
+            }
+            box.append(h('h3', { class: 'st-h3' }, T('Open PatOS when your Chromebook starts')),
+              steps(T('Install PatOS (above).'),
+                T('Right-click the PatOS icon in the shelf at the bottom of the screen and choose Pin.'),
+                T('Open the Chromebook’s Settings, search for “Restore apps on startup” and choose Always. If PatOS is open when you shut down, it opens again when you sign in.')),
+              h('p', { class: 'st-note' }, T('Only using Chrome? In Chrome Settings › On startup, choose “Open a specific page or set of pages” and add the PatOS address below.')),
+              h('p', { class: 'st-note' }, T('School Chromebooks may lock some of these settings. If you can’t change one, that is your school’s choice.')));
+            const addr = I ? I.address() : location.href;
+            const copyBtn = h('button', { class: 'btn', onclick: () => { (navigator.clipboard ? navigator.clipboard.writeText(addr) : Promise.reject()).then(() => { copyBtn.textContent = T('Copied'); setTimeout(() => (copyBtn.textContent = T('Copy')), 1500); }).catch(() => PatOS.ask(T('PatOS address'), addr, { icon: 'settings' })); } }, T('Copy'));
+            box.append(group(row(T('PatOS address'), h('div', { class: 'st-inline' }, h('code', { class: 'st-code' }, addr), copyBtn)),
+              row(T('Ask for full screen at login'), toggle('askFullscreen'), T('PatOS asks Chrome for full screen when you log in, so nothing else is on screen.'))));
+            box.append(h('h3', { class: 'st-h3' }, T('Open your Chromebook’s files with PatOS')),
+              h('p', { class: 'st-note' }, I && I.fileHandling()
+                ? T('Once PatOS is installed, right-click a file in the Chromebook’s Files app and choose Open with › PatOS. Word, Excel, PowerPoint, PDF, text, code, pictures, music and videos all work. When you save in PatOS, the real file is saved too.')
+                : T('This browser can’t hand files to PatOS. Use Finder › Open Files… instead.')),
+              h('h3', { class: 'st-h3' }, T('Shortcuts')),
+              h('p', { class: 'st-note' }, T('Right-click the PatOS icon in the shelf to jump straight to Finder, Docs, Notes or Code Studio.')));
+          };
+          paint();
+          const off = I ? I.onChange(paint) : null; if (off) win.on('closed', off);
+          return [box];
         },
         accessibility() {
           return [
@@ -12075,7 +12265,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
               row(T('Erase all content and settings'), h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox(T('Erase PatOS?'), T('Everything in PatOS will be erased and it will start fresh. This cannot be undone.'), { ok: T('Erase'), danger: true, icon: 'settings' })) { await PatOS.store.clearAll(); PatOS._leaving = true; location.reload(); } } }, T('Erase PatOS…'))))];
         }
       };
-      const KW = { general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications install permissions installer', system: 'device battery memory processor system appareil batterie mémoire' };
+      const KW = { general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
       let filter = '';
       const sq = h('input', { class: 'field st-search', placeholder: 'Search', spellcheck: 'false' });
       sq.addEventListener('input', () => { filter = sq.value.trim().toLowerCase(); drawSide(); const hits = PANES.filter(match); if (filter && hits.length && !hits.some((p) => p[0] === pane)) { pane = hits[0][0]; renderMain(); drawSide(); } });
@@ -17113,7 +17303,6 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         off.addEventListener('pointerdown', () => (PatOS._leaving = true, location.reload()), { once: true });
       }
     });
-    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.__installPrompt = e; });
     boot();
     // offline support / installable app when served over http(s)
     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !PatOS.singleFile) {

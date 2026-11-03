@@ -530,3 +530,14 @@ html.big-targets .btn, html.big-targets .tbtn, html.big-targets .ob, html.big-ta
 .cs-pystatus { color: #8e8e93; font-style: italic; min-height: 1.5em; }
 .cs-pyin { display: flex; gap: 0; align-items: center; } .cs-pyin input { flex: 1; background: transparent; border: 0; outline: 0; color: #8ab4ff; font: inherit; }
 .cs-pymode .cs-right { flex: 1.1; }
+
+/* Settings › Install & Start Up */
+.st-h3 { font-size: 13px; font-weight: 600; margin: 18px 4px 6px; color: var(--text); }
+.st-steps { margin: 0 0 6px; padding: 10px 14px 10px 34px; background: var(--card); border: .5px solid var(--border); border-radius: 12px; font-size: 13px; line-height: 1.55; }
+.st-steps li { margin: 3px 0; padding-left: 2px; }
+.st-steps li::marker { color: var(--accent); font-weight: 600; }
+.st-badge { display: inline-block; font-size: 12px; font-weight: 600; padding: 4px 10px; border-radius: 999px; }
+.st-badge.ok { background: rgba(50,215,75,.16); color: #1f9d3a; }
+:root[data-theme="dark"] .st-badge.ok { color: #32d74b; }
+.st-code { font: 12px ui-monospace, SFMono-Regular, Menlo, monospace; padding: 3px 8px; border-radius: 6px; background: rgba(127,127,127,.12); max-width: 260px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; display: inline-block; vertical-align: middle; }
+img.st-hero-ic { border-radius: 18px; }

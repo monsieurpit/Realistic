@@ -3,6 +3,8 @@
    gigabytes of files instead of the 5 MB that localStorage allows. */
 (function () {
   'use strict';
+  // Chrome may offer to install PatOS before the rest of PatOS has loaded; keep that offer for later
+  window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__installPrompt = e; });
   var started = false;
   function start() {
     if (started) return; started = true;

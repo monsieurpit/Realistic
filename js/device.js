@@ -13,8 +13,9 @@
   const SKIP_DIR = /^(\.|node_modules$|__pycache__$)/;
 
   const tx = (store, mode, fn) => new Promise((res, rej) => { if (!db) return res(null); try { const t = db.transaction(store, mode); const r = fn(t.objectStore(store)); t.oncomplete = () => res(r && r.result); t.onerror = t.onabort = () => rej(t.error); } catch (e) { res(null); } });
-  const putHandle = async (h) => { const id = PatOS.uid() + PatOS.uid(); await tx('handles', 'readwrite', (s) => s.put(h, id)); return id; };
-  const getHandle = (id) => tx('handles', 'readonly', (s) => s.get(id));
+  const memo = new Map(); // handles used during this session, so they don't have to be read back from the database
+  const putHandle = async (h) => { const id = PatOS.uid() + PatOS.uid(); memo.set(id, h); await tx('handles', 'readwrite', (s) => s.put(h, id)); return id; };
+  const getHandle = async (id) => { if (memo.has(id)) return memo.get(id); const h = await tx('handles', 'readonly', (s) => s.get(id)); if (h) memo.set(id, h); return h; };
   async function perm(handle, write, ask) {
     const o = { mode: write ? 'readwrite' : 'read' };
     try { if ((await handle.queryPermission(o)) === 'granted') return true; if (!ask) return false; return (await handle.requestPermission(o)) === 'granted'; } catch (e) { return false; }
@@ -35,14 +36,35 @@
     dest = dest || '/Documents';
     if (!supported) return PatOS.importFiles(dest);
     let handles; try { handles = await showOpenFilePicker({ multiple: true }); } catch (e) { return []; }
+    return importHandles(handles, dest);
+  }
+  // files handed to PatOS by the Chromebook (Files app › Open with › PatOS) or picked by the person
+  async function importHandles(handles, dest) {
+    dest = dest || '/Documents';
     const out = [];
     for (const h of handles) {
+      if (!h || h.kind !== 'file') continue;
       try {
-        const file = await h.getFile(); const name = PatOS.fs.uniqueName(dest, file.name); const p = dest + '/' + name;
+        const file = await h.getFile();
+        // the same real file opened again: refresh the copy PatOS already has instead of making a second one
+        const same = await findSame(dest, h, file.name);
+        const p = same || dest + '/' + PatOS.fs.uniqueName(dest, file.name);
         await importFile(p, h, file); out.push(p);
       } catch (e) { notify(T('Couldn’t open the file'), e.message); }
     }
     return out;
+  }
+  async function findSame(dest, handle, fileName) {
+    const dir = PatOS.fs.get(dest); if (!dir || dir.type !== 'dir' || !handle.isSameEntry) return null;
+    // only copies with the same name (or the same name plus a number, like “report 2.txt”) can be the same file
+    const dot = fileName.lastIndexOf('.'); const base = dot > 0 ? fileName.slice(0, dot) : fileName; const ext = dot > 0 ? fileName.slice(dot) : '';
+    const esc = (x) => x.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+    const re = new RegExp('^' + esc(base) + '( \\(?\\d+\\)?)?' + esc(ext) + '$', 'i');
+    for (const [name, n] of Object.entries(dir.children || {})) {
+      if (!n || !n.link || n.type === 'dir' || !re.test(name)) continue;
+      try { const other = await getHandle(n.link); if (other && (await other.isSameEntry(handle))) return dest + '/' + name; } catch (e) {}
+    }
+    return null;
   }
 
   async function scan(dirHandle, dirPath, state) {
@@ -150,5 +172,5 @@
   }
 
   window.addEventListener('beforeunload', (e) => { if (waiting.size) { e.preventDefault(); e.returnValue = ''; } });
-  PatOS.device = { supported, openFiles, linkFolder, refresh, touched, saveCopy, exportFolder, isLinked: (path) => { const n = PatOS.fs.get(path); return !!(n && n.link); } };
+  PatOS.device = { supported, openFiles, importHandles, linkFolder, refresh, touched, saveCopy, exportFolder, isLinked: (path) => { const n = PatOS.fs.get(path); return !!(n && n.link); } };
 })();
