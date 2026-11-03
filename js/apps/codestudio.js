@@ -94,7 +94,7 @@
       bSave.onclick = async () => { if (tab === 'py') return savePy(); const nm = await PatOS.ask('Save project as', 'my-page.html', { icon: 'code', ok: 'Save', text: 'Saved in Documents. Double-click it to open it in Patoogle.' }); if (!nm) return; PatOS.fs.write('/Documents/' + (nm.endsWith('.html') ? nm : nm + '.html'), doc()); PatOS.notify({ title: 'Project saved', body: nm, icon: 'code' }); };
       bOpen.onclick = () => PatOS.launch('browser', { html: doc(), title: 'Code Studio preview' });
       win.on('closed', () => { window.removeEventListener('message', onMsg); if (PatOS.python && PatOS.python.busy) PatOS.python.stop(); });
-      win._openPath = (p) => { if (/\.py$/i.test(p)) { proj.py = PatOS.fs.read(p) || ''; pyPath = p; tab = 'py'; sync(); } };
+      win._openPath = (p) => { if (/\.py$/i.test(p)) { proj.py = PatOS.fs.read(p) || ''; pyPath = p; PatOS.remember && PatOS.remember(win, { path: p }); tab = 'py'; sync(); } };
       sync(); if (tab !== 'py') run(); else setTimeout(() => PatOS.python && PatOS.python.preload(), 300);
     },
     onArgs(win, a) { if (a && a.path && win._openPath) win._openPath(a.path); }

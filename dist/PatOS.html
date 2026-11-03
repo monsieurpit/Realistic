@@ -3444,6 +3444,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     reduceTransparency: false,
     quality3d: 'auto',       // low | auto | high
     askFullscreen: true,
+    reopenWindows: true,
     clock24: false,
     showSeconds: false,
     desktopPositions: {},
@@ -6431,6 +6432,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Repeat all': 'Tout répéter',
     'Repeat one': 'Répéter un',
     'Repeat': 'Répéter',
+    'Reopen windows when PatOS starts': 'Rouvrir les fenêtres au démarrage de PatOS',
+    'Your open apps and files come back after a reload or a crash.': 'Vos applications et fichiers ouverts reviennent après un rechargement ou un plantage.',
+    'Your windows are back': 'Vos fenêtres sont de retour',
+    'window was reopened.': 'fenêtre a été rouverte.',
+    'windows were reopened.': 'fenêtres ont été rouvertes.',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 'Offline': 'Hors ligne', 'Connected': 'Connecté',
@@ -9251,6 +9257,72 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 </script>
   <script type="patos/js">
+/* Windows come back after a reload or a crash: PatOS keeps a small snapshot of the open windows
+   (which app, which file or note, where it was, its size, maximized or minimized) and reopens them
+   after login. Apps keep the snapshot right by calling PatOS.remember(win, { path }) when they switch
+   to another file. Settings › General › "Reopen windows when PatOS starts" turns it off. */
+(function () {
+  'use strict';
+  const KEY = 'session';
+  // apps that restore themselves, or that should never come back on their own
+  const SKIP = new Set(['screenshot', 'extweb', 'stickies', 'setup']);
+  const OWN = new Set(['browser', 'music']); // reopened without arguments: they bring back their own tabs and queue
+  const T = (s) => PatOS.t(s);
+  let restoring = false, ready = false;
+
+  PatOS.remember = (win, args) => { if (win) win.args = Object.assign({}, args || {}); snapshotSoon(); };
+
+  function clean(args) {
+    const out = {};
+    Object.entries(args || {}).forEach(([k, v]) => { if (['path', 'id', 'url', 'pane', 'game', 'site', 'word', 'q', 'app', 'draft'].includes(k) && (typeof v === 'string' || typeof v === 'number') && String(v).length < 2000) out[k] = v; });
+    return out;
+  }
+  function snapshot() {
+    if (restoring || !ready) return;
+    const list = PatOS.wm.windows.slice().filter((w) => !SKIP.has(w.app.id) && !w.app.noRestore)
+      .sort((a, b) => (+a.el.style.zIndex || 0) - (+b.el.style.zIndex || 0))
+      .map((w) => { const r = w.maximized || w.fullscreen ? (w.prevRect || w.rect()) : w.rect(); return { app: w.app.id, args: OWN.has(w.app.id) ? {} : clean(w.args), x: r.x, y: r.y, w: r.w, h: r.h, max: !!w.maximized, min: !!w.minimized, active: PatOS.wm.active === w }; });
+    PatOS.store.set(KEY, { t: Date.now(), wins: list });
+  }
+  const snapshotSoon = PatOS.debounce(snapshot, 800);
+  ['wm:open', 'wm:close', 'wm:focus', 'wm:title'].forEach((ev) => PatOS.on(ev, snapshotSoon));
+  // moving and resizing don't send events, so look again every few seconds (it is cheap)
+  setInterval(() => { if (ready && !document.hidden) snapshot(); }, 4000);
+  window.addEventListener('pagehide', snapshot);
+  document.addEventListener('visibilitychange', () => { if (document.hidden) snapshot(); });
+
+  async function restore() {
+    const s = PatOS.store.get(KEY, null);
+    if (PatOS.settings.reopenWindows === false || !s || !Array.isArray(s.wins) || !s.wins.length) { ready = true; return; }
+    // windows the person already opened (a file from the Files app, a shelf shortcut) win over the snapshot
+    restoring = true; let n = 0; let focusMe = null;
+    const area = { w: innerWidth, h: innerHeight };
+    for (const it of s.wins) {
+      const app = PatOS.apps[it.app]; if (!app || app.action || SKIP.has(it.app)) continue;
+      if (it.args && it.args.path && !PatOS.fs.get(it.args.path)) continue; // the file is gone
+      if (app.single !== false && PatOS.wm.isRunning(it.app)) continue;
+      let w = null; try { w = PatOS.launch(it.app, it.args || {}); } catch (e) { w = null; }
+      if (!w) continue; n++;
+      if (!PatOS.isMobile) {
+        const W = Math.max(320, Math.min(it.w || 600, area.w)), H = Math.max(200, Math.min(it.h || 400, area.h - 28));
+        const X = Math.max(0, Math.min(it.x || 0, area.w - 120)), Y = Math.max(28, Math.min(it.y || 28, area.h - 80));
+        Object.assign(w.el.style, { left: X + 'px', top: Y + 'px', width: W + 'px', height: H + 'px' });
+        if (it.max && !w.maximized) { w.prevRect = { x: X, y: Y, w: W, h: H }; w.toggleMax(); }
+      }
+      if (it.min) setTimeout(() => w.minimize(), 300);
+      if (it.active) focusMe = w;
+      await new Promise((r) => setTimeout(r, 40));
+    }
+    if (focusMe && !focusMe.minimized) focusMe.focus();
+    restoring = false; ready = true; snapshot();
+    if (n) PatOS.notify({ title: T('Your windows are back'), body: n + ' ' + T(n === 1 ? 'window was reopened.' : 'windows were reopened.'), icon: 'about', duration: 4000 });
+  }
+  PatOS.on('wm:ready', () => setTimeout(() => { if (document.getElementById('setup')) { ready = true; return; } restore(); }, 150));
+  PatOS.session = { snapshot, restore };
+})();
+
+</script>
+  <script type="patos/js">
 /* Setup Assistant — runs the first time PatOS starts */
 (function () {
   'use strict';
@@ -9440,7 +9512,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         paths.forEach((src) => { try { if (path === '/.Trash') { PatOS.fs.remove(src); } else if (PatOS.fs.dirname(src) !== path) PatOS.fs.move(src, path); } catch (er) { PatOS.notify({ title: PatOS.t('Cannot move'), body: er.message, icon: 'finder' }); } });
         if (path === '/.Trash') PatOS.sound.trash();
       }
-      function go(path, noHist) { if (!noHist && path !== cwd) { back.push(cwd); fwd.length = 0; } cwd = path; selected.clear(); anchor = null; search.value = ''; render(); }
+      function go(path, noHist) { if (!noHist && path !== cwd) { back.push(cwd); fwd.length = 0; } cwd = path; PatOS.remember && PatOS.remember(win, { path }); selected.clear(); anchor = null; search.value = ''; render(); }
       bBack.onclick = () => { if (back.length) { fwd.push(cwd); go(back.pop(), true); } };
       bFwd.onclick = () => { if (fwd.length) { back.push(cwd); go(fwd.pop(), true); } };
       bGrid.onclick = () => { view = 'grid'; PatOS.store.set('finderView', view); render(); };
@@ -11487,7 +11559,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         meta.textContent = new Date(cur.mtime).toLocaleString(PatOS.locale, { dateStyle: 'long', timeStyle: 'short' }) + ' · ' + words + ' ' + T(words === 1 ? 'word' : 'words') + (cur.deletedAt ? ' · ' + T('In Recently Deleted') : '');
       }
       function open(n) {
-        cur = n;
+        cur = n; PatOS.remember && PatOS.remember(win, { id: n.id });
         const up = upgrade(n.body); if (up !== n.body) { n.body = up; save(); }
         ed.innerHTML = n.body; ed.contentEditable = n.deletedAt ? 'false' : 'true';
         updateMeta();
@@ -11642,6 +11714,11 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     launch(win, args) {
       win.el.classList.add('has-toolbar');
       let path = args.path || null; let dirty = false;
+      // untitled text is kept as a draft, so it comes back after a reload or a crash
+      let draft = !path && args.draft ? String(args.draft) : null;
+      const DK = () => 'teDraft:' + draft;
+      const saveDraft = PatOS.debounce(() => { if (path) return; if (!ta.value.trim()) { if (draft) PatOS.store.remove(DK()); return; } if (!draft) { draft = PatOS.uid(); PatOS.remember && PatOS.remember(win, { draft }); } PatOS.store.set(DK(), ta.value); }, 500);
+      const dropDraft = () => { if (draft) { PatOS.store.remove(DK()); draft = null; } };
       let size = PatOS.store.get('teSize', 15); let mono = false;
       const ta = h('textarea', { class: 'te-area', spellcheck: 'true', placeholder: 'Start typing…' });
       const status = h('div', { class: 'te-status' });
@@ -11666,7 +11743,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         bPrev.style.display = path && /\.html?$/i.test(path) ? '' : 'none';
       }
       function load(p) {
-        path = p; const c = PatOS.fs.read(p); ta.value = c == null ? '' : c; dirty = false;
+        path = p; PatOS.remember && PatOS.remember(win, { path: p }); const c = PatOS.fs.read(p); ta.value = c == null ? '' : c; dirty = false;
         mono = /\.(js|css|html?|json|py|md)$/i.test(p); apply(); label();
       }
       async function save(as) {
@@ -11675,10 +11752,10 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
           if (!nm) return false;
           path = nm.includes('/') ? PatOS.fs.norm(nm) : '/Documents/' + nm;
         }
-        try { PatOS.fs.write(path, ta.value); dirty = false; label(); return true; }
+        try { PatOS.fs.write(path, ta.value); dirty = false; dropDraft(); PatOS.remember && PatOS.remember(win, { path }); label(); return true; }
         catch (e) { PatOS.notify({ title: 'Could not save', body: e.message, icon: 'textedit' }); return false; }
       }
-      ta.addEventListener('input', () => { dirty = true; label(); if (path) autosave(); });
+      ta.addEventListener('input', () => { dirty = true; label(); if (path) autosave(); else saveDraft(); });
       const autosave = PatOS.debounce(() => { if (path && dirty) save(); }, 1200);
       ta.addEventListener('keydown', (e) => {
         if (e.key === 'Tab') { e.preventDefault(); document.execCommand('insertText', false, '  '); }
@@ -11692,8 +11769,10 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       bDl.onclick = () => PatOS.downloadFile(path ? PatOS.fs.basename(path) : 'Untitled.txt', ta.value);
       let closing = false;
       win.on('beforeclose', (ev) => { if (!closing && dirty && !path && ta.value.trim()) { ev.cancel(); PatOS.confirmBox('Close without saving?', 'Your text will be lost.', { ok: 'Close', danger: true, icon: 'textedit' }).then((y) => { if (y) { closing = true; win.close(); } }); } });
+      // closed on purpose: the draft isn't needed any more (a reload or a crash never gets here)
+      win.on('closed', () => { if (closing || !ta.value.trim() || path) dropDraft(); });
       win._save = save;
-      if (path) load(path); else { apply(); label(); }
+      if (path) load(path); else { if (draft) { const t = PatOS.store.get(DK(), null); if (t != null) { ta.value = t; dirty = true; } else draft = null; } apply(); label(); }
       setTimeout(() => ta.focus(), 50);
     },
     menus(win) {
@@ -13577,7 +13656,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
           const name = h('input', { class: 'field', value: S().userName, style: { width: '180px' } });
           name.onchange = () => PatOS.setSetting('userName', name.value.trim() || 'Pat');
           return [h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('about') }), h('div', {}, h('h2', {}, 'PatOS ' + PatOS.version), h('p', {}, 'A full desktop that runs in your browser, even on a school Chromebook.'))),
-            group(row('Your name', name), row('Language', (() => { const s2 = h('select', { class: 'field' }, ...[['auto', 'Automatic (device language)'], ['en', 'English'], ['fr', 'French']].map(([v, l]) => h('option', { value: v, selected: (S().language || 'auto') === v }, l))); s2.onchange = async () => { const v = s2.value; if (await PatOS.confirmBox(PatOS.t('Language'), PatOS.t('PatOS restarts to change the language.'), { ok: PatOS.t('Restart'), icon: 'settings' })) { PatOS.setSetting('language', v); setTimeout(() => (PatOS._leaving = true, location.reload()), 200); } else s2.value = S().language || 'auto'; }; return s2; })(), PatOS.lang === 'fr' ? 'Langue de l’appareil : ' + (PatOS.deviceLang === 'fr' ? 'français' : 'anglais') : 'Device language: ' + (PatOS.deviceLang === 'fr' ? 'French' : 'English')), row('Layout', select('deviceMode', [['auto', 'Automatic (phone or computer)'], ['desktop', 'Computer'], ['mobile', 'Phone']]), 'Automatic uses the phone layout on small touch screens'), row('Ask for full screen at login', toggle('askFullscreen'), 'Makes PatOS feel like a real OS'), row('24-hour clock', toggle('clock24')), row('Show seconds in menu bar', toggle('showSeconds'))),
+            group(row('Your name', name), row('Language', (() => { const s2 = h('select', { class: 'field' }, ...[['auto', 'Automatic (device language)'], ['en', 'English'], ['fr', 'French']].map(([v, l]) => h('option', { value: v, selected: (S().language || 'auto') === v }, l))); s2.onchange = async () => { const v = s2.value; if (await PatOS.confirmBox(PatOS.t('Language'), PatOS.t('PatOS restarts to change the language.'), { ok: PatOS.t('Restart'), icon: 'settings' })) { PatOS.setSetting('language', v); setTimeout(() => (PatOS._leaving = true, location.reload()), 200); } else s2.value = S().language || 'auto'; }; return s2; })(), PatOS.lang === 'fr' ? 'Langue de l’appareil : ' + (PatOS.deviceLang === 'fr' ? 'français' : 'anglais') : 'Device language: ' + (PatOS.deviceLang === 'fr' ? 'French' : 'English')), row('Layout', select('deviceMode', [['auto', 'Automatic (phone or computer)'], ['desktop', 'Computer'], ['mobile', 'Phone']]), 'Automatic uses the phone layout on small touch screens'), row('Ask for full screen at login', toggle('askFullscreen'), 'Makes PatOS feel like a real OS'), row(T('Reopen windows when PatOS starts'), toggle('reopenWindows'), T('Your open apps and files come back after a reload or a crash.')), row('24-hour clock', toggle('clock24')), row('Show seconds in menu bar', toggle('showSeconds'))),
             group(row('About this computer', h('button', { class: 'btn', onclick: () => PatOS.launch('about') }, 'About PatOS…')))];
         },
         appearance() {
@@ -13767,6 +13846,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         renderMain();
       }
       function renderMain() {
+        PatOS.remember && PatOS.remember(win, { pane });
         main.innerHTML = '';
         main.append(h('h1', {}, PANES.find((p) => p[0] === pane)[1]), ...panes[pane]());
         win.setTitle(PANES.find((p) => p[0] === pane)[1]);
@@ -14586,7 +14666,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       bSave.onclick = async () => { if (tab === 'py') return savePy(); const nm = await PatOS.ask('Save project as', 'my-page.html', { icon: 'code', ok: 'Save', text: 'Saved in Documents. Double-click it to open it in Patoogle.' }); if (!nm) return; PatOS.fs.write('/Documents/' + (nm.endsWith('.html') ? nm : nm + '.html'), doc()); PatOS.notify({ title: 'Project saved', body: nm, icon: 'code' }); };
       bOpen.onclick = () => PatOS.launch('browser', { html: doc(), title: 'Code Studio preview' });
       win.on('closed', () => { window.removeEventListener('message', onMsg); if (PatOS.python && PatOS.python.busy) PatOS.python.stop(); });
-      win._openPath = (p) => { if (/\.py$/i.test(p)) { proj.py = PatOS.fs.read(p) || ''; pyPath = p; tab = 'py'; sync(); } };
+      win._openPath = (p) => { if (/\.py$/i.test(p)) { proj.py = PatOS.fs.read(p) || ''; pyPath = p; PatOS.remember && PatOS.remember(win, { path: p }); tab = 'py'; sync(); } };
       sync(); if (tab !== 'py') run(); else setTimeout(() => PatOS.python && PatOS.python.preload(), 300);
     },
     onArgs(win, a) { if (a && a.path && win._openPath) win._openPath(a.path); }
@@ -15029,6 +15109,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
   });
 
   function openDoc(win, path) {
+    PatOS.remember && PatOS.remember(win, { path });
     const OF = O();
     win.el.classList.add('has-toolbar');
     let raw = PatOS.fs.read(path) || '<p><br></p>';
@@ -15037,7 +15118,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     const baseName = () => PatOS.fs.basename(path).replace(/\.pdoc$/, '');
     const head = OF.header(win, {
       name: baseName(), icon: 'docs', getPath: () => path,
-      onRename: (nn) => { nn = (nn || T('Untitled document')).replace(/[\/]/g, '-'); try { const old = path; path = PatOS.fs.rename(path, PatOS.fs.uniqueName(PatOS.fs.dirname(path), nn + '.pdoc')); moveVersions(old, path); } catch (e) {} head.name.value = baseName(); win.setTitle(baseName()); }
+      onRename: (nn) => { nn = (nn || T('Untitled document')).replace(/[\/]/g, '-'); try { const old = path; path = PatOS.fs.rename(path, PatOS.fs.uniqueName(PatOS.fs.dirname(path), nn + '.pdoc')); PatOS.remember && PatOS.remember(win, { path }); moveVersions(old, path); } catch (e) {} head.name.value = baseName(); win.setTitle(baseName()); }
     });
     win.toolbar.append(head.el); win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
     win.setTitle(baseName());
@@ -15528,6 +15609,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
   function splitCSV(line) { const out = []; let cur = '', q = false; for (let i = 0; i < line.length; i++) { const ch = line[i]; if (q) { if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; } else if (ch === '"') q = false; else cur += ch; } else if (ch === '"') q = true; else if (ch === ',') { out.push(cur); cur = ''; } else cur += ch; } out.push(cur); return out; }
 
   function openSheet(win, path) {
+    PatOS.remember && PatOS.remember(win, { path });
     const OF = PatOS.office;
     win.el.classList.add('has-toolbar');
     const isCSV = /\.csv$/i.test(path);
@@ -15542,7 +15624,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     const baseName = () => PatOS.fs.basename(path).replace(/\.(psheet|csv)$/, '');
     const head = OF.header(win, {
       name: baseName(), icon: 'sheets', getPath: () => path,
-      onRename: (nn) => { nn = (nn || T('Untitled spreadsheet')).replace(/[\/]/g, '-'); try { path = PatOS.fs.rename(path, PatOS.fs.uniqueName(PatOS.fs.dirname(path), nn + (isCSV ? '.csv' : '.psheet'))); } catch (e) {} head.name.value = baseName(); win.setTitle(baseName()); }
+      onRename: (nn) => { nn = (nn || T('Untitled spreadsheet')).replace(/[\/]/g, '-'); try { path = PatOS.fs.rename(path, PatOS.fs.uniqueName(PatOS.fs.dirname(path), nn + (isCSV ? '.csv' : '.psheet'))); PatOS.remember && PatOS.remember(win, { path }); } catch (e) {} head.name.value = baseName(); win.setTitle(baseName()); }
     });
     win.toolbar.append(head.el); win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
     win.setTitle(baseName());
@@ -16059,6 +16141,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
   });
 
   function openDeck(win, path) {
+    PatOS.remember && PatOS.remember(win, { path });
     const OF = PatOS.office;
     win.el.classList.add('has-toolbar');
     let deck; try { deck = JSON.parse(PatOS.fs.read(path)); } catch (e) { deck = null; }
@@ -16068,7 +16151,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     const baseName = () => PatOS.fs.basename(path).replace(/\.pslides$/, '');
     const head = OF.header(win, {
       name: baseName(), icon: 'slides', getPath: () => path,
-      onRename: (nn) => { nn = (nn || T('Untitled presentation')).replace(/[\/]/g, '-'); try { path = PatOS.fs.rename(path, PatOS.fs.uniqueName(PatOS.fs.dirname(path), nn + '.pslides')); } catch (e) {} head.name.value = baseName(); win.setTitle(baseName()); }
+      onRename: (nn) => { nn = (nn || T('Untitled presentation')).replace(/[\/]/g, '-'); try { path = PatOS.fs.rename(path, PatOS.fs.uniqueName(PatOS.fs.dirname(path), nn + '.pslides')); PatOS.remember && PatOS.remember(win, { path }); } catch (e) {} head.name.value = baseName(); win.setTitle(baseName()); }
     });
     win.toolbar.append(head.el); win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
     win.setTitle(baseName());
@@ -16425,6 +16508,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
   });
 
   function openForm(win, path) {
+    PatOS.remember && PatOS.remember(win, { path });
     const OF = PatOS.office;
     win.el.classList.add('has-toolbar');
     let form; try { form = JSON.parse(PatOS.fs.read(path)); } catch (e) { form = null; }
@@ -16433,7 +16517,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     const baseName = () => PatOS.fs.basename(path).replace(/\.pform$/, '');
     const head = OF.header(win, {
       name: baseName(), icon: 'forms', getPath: () => path,
-      onRename: (nn) => { nn = (nn || T('Untitled form')).replace(/[\/]/g, '-'); try { path = PatOS.fs.rename(path, PatOS.fs.uniqueName(PatOS.fs.dirname(path), nn + '.pform')); } catch (e) {} head.name.value = baseName(); win.setTitle(baseName()); }
+      onRename: (nn) => { nn = (nn || T('Untitled form')).replace(/[\/]/g, '-'); try { path = PatOS.fs.rename(path, PatOS.fs.uniqueName(PatOS.fs.dirname(path), nn + '.pform')); PatOS.remember && PatOS.remember(win, { path }); } catch (e) {} head.name.value = baseName(); win.setTitle(baseName()); }
     });
     win.toolbar.append(head.el); win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
     win.setTitle(baseName());
@@ -17331,7 +17415,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       function importFile() { PatOS.importFiles('/Documents', 'application/pdf,image/*').then((ps) => { if (ps[0]) open(ps[0]); }); }
       function bar() { win.toolbar.innerHTML = ''; win.toolbar.append(bOpen, h('div', { style: { flex: 1 } }), bOut, bIn, bFit, bRot); }
       async function open(p) {
-        path = p; const data = PatOS.fs.read(p) || ''; view.innerHTML = ''; zoom = 1; rot = 0;
+        path = p; PatOS.remember && PatOS.remember(win, { path: p }); const data = PatOS.fs.read(p) || ''; view.innerHTML = ''; zoom = 1; rot = 0;
         if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
         win.setTitle(PatOS.fs.basename(p)); bar();
         const node = PatOS.fs.get(p);

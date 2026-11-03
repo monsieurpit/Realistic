@@ -38,6 +38,7 @@
   });
 
   function openDoc(win, path) {
+    PatOS.remember && PatOS.remember(win, { path });
     const OF = O();
     win.el.classList.add('has-toolbar');
     let raw = PatOS.fs.read(path) || '<p><br></p>';
@@ -46,7 +47,7 @@
     const baseName = () => PatOS.fs.basename(path).replace(/\.pdoc$/, '');
     const head = OF.header(win, {
       name: baseName(), icon: 'docs', getPath: () => path,
-      onRename: (nn) => { nn = (nn || T('Untitled document')).replace(/[\/]/g, '-'); try { const old = path; path = PatOS.fs.rename(path, PatOS.fs.uniqueName(PatOS.fs.dirname(path), nn + '.pdoc')); moveVersions(old, path); } catch (e) {} head.name.value = baseName(); win.setTitle(baseName()); }
+      onRename: (nn) => { nn = (nn || T('Untitled document')).replace(/[\/]/g, '-'); try { const old = path; path = PatOS.fs.rename(path, PatOS.fs.uniqueName(PatOS.fs.dirname(path), nn + '.pdoc')); PatOS.remember && PatOS.remember(win, { path }); moveVersions(old, path); } catch (e) {} head.name.value = baseName(); win.setTitle(baseName()); }
     });
     win.toolbar.append(head.el); win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
     win.setTitle(baseName());

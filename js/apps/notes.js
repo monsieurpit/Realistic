@@ -153,7 +153,7 @@
         meta.textContent = new Date(cur.mtime).toLocaleString(PatOS.locale, { dateStyle: 'long', timeStyle: 'short' }) + ' · ' + words + ' ' + T(words === 1 ? 'word' : 'words') + (cur.deletedAt ? ' · ' + T('In Recently Deleted') : '');
       }
       function open(n) {
-        cur = n;
+        cur = n; PatOS.remember && PatOS.remember(win, { id: n.id });
         const up = upgrade(n.body); if (up !== n.body) { n.body = up; save(); }
         ed.innerHTML = n.body; ed.contentEditable = n.deletedAt ? 'false' : 'true';
         updateMeta();

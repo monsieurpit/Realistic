@@ -149,6 +149,7 @@
     reduceTransparency: false,
     quality3d: 'auto',       // low | auto | high
     askFullscreen: true,
+    reopenWindows: true,
     clock24: false,
     showSeconds: false,
     desktopPositions: {},

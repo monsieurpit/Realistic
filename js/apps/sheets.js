@@ -136,6 +136,7 @@
   function splitCSV(line) { const out = []; let cur = '', q = false; for (let i = 0; i < line.length; i++) { const ch = line[i]; if (q) { if (ch === '"' && line[i + 1] === '"') { cur += '"'; i++; } else if (ch === '"') q = false; else cur += ch; } else if (ch === '"') q = true; else if (ch === ',') { out.push(cur); cur = ''; } else cur += ch; } out.push(cur); return out; }
 
   function openSheet(win, path) {
+    PatOS.remember && PatOS.remember(win, { path });
     const OF = PatOS.office;
     win.el.classList.add('has-toolbar');
     const isCSV = /\.csv$/i.test(path);
@@ -150,7 +151,7 @@
     const baseName = () => PatOS.fs.basename(path).replace(/\.(psheet|csv)$/, '');
     const head = OF.header(win, {
       name: baseName(), icon: 'sheets', getPath: () => path,
-      onRename: (nn) => { nn = (nn || T('Untitled spreadsheet')).replace(/[\/]/g, '-'); try { path = PatOS.fs.rename(path, PatOS.fs.uniqueName(PatOS.fs.dirname(path), nn + (isCSV ? '.csv' : '.psheet'))); } catch (e) {} head.name.value = baseName(); win.setTitle(baseName()); }
+      onRename: (nn) => { nn = (nn || T('Untitled spreadsheet')).replace(/[\/]/g, '-'); try { path = PatOS.fs.rename(path, PatOS.fs.uniqueName(PatOS.fs.dirname(path), nn + (isCSV ? '.csv' : '.psheet'))); PatOS.remember && PatOS.remember(win, { path }); } catch (e) {} head.name.value = baseName(); win.setTitle(baseName()); }
     });
     win.toolbar.append(head.el); win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
     win.setTitle(baseName());

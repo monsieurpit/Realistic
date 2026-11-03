@@ -23,7 +23,7 @@
       function importFile() { PatOS.importFiles('/Documents', 'application/pdf,image/*').then((ps) => { if (ps[0]) open(ps[0]); }); }
       function bar() { win.toolbar.innerHTML = ''; win.toolbar.append(bOpen, h('div', { style: { flex: 1 } }), bOut, bIn, bFit, bRot); }
       async function open(p) {
-        path = p; const data = PatOS.fs.read(p) || ''; view.innerHTML = ''; zoom = 1; rot = 0;
+        path = p; PatOS.remember && PatOS.remember(win, { path: p }); const data = PatOS.fs.read(p) || ''; view.innerHTML = ''; zoom = 1; rot = 0;
         if (blobUrl) { URL.revokeObjectURL(blobUrl); blobUrl = null; }
         win.setTitle(PatOS.fs.basename(p)); bar();
         const node = PatOS.fs.get(p);

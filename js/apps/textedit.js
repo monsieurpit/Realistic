@@ -7,6 +7,11 @@
     launch(win, args) {
       win.el.classList.add('has-toolbar');
       let path = args.path || null; let dirty = false;
+      // untitled text is kept as a draft, so it comes back after a reload or a crash
+      let draft = !path && args.draft ? String(args.draft) : null;
+      const DK = () => 'teDraft:' + draft;
+      const saveDraft = PatOS.debounce(() => { if (path) return; if (!ta.value.trim()) { if (draft) PatOS.store.remove(DK()); return; } if (!draft) { draft = PatOS.uid(); PatOS.remember && PatOS.remember(win, { draft }); } PatOS.store.set(DK(), ta.value); }, 500);
+      const dropDraft = () => { if (draft) { PatOS.store.remove(DK()); draft = null; } };
       let size = PatOS.store.get('teSize', 15); let mono = false;
       const ta = h('textarea', { class: 'te-area', spellcheck: 'true', placeholder: 'Start typing…' });
       const status = h('div', { class: 'te-status' });
@@ -31,7 +36,7 @@
         bPrev.style.display = path && /\.html?$/i.test(path) ? '' : 'none';
       }
       function load(p) {
-        path = p; const c = PatOS.fs.read(p); ta.value = c == null ? '' : c; dirty = false;
+        path = p; PatOS.remember && PatOS.remember(win, { path: p }); const c = PatOS.fs.read(p); ta.value = c == null ? '' : c; dirty = false;
         mono = /\.(js|css|html?|json|py|md)$/i.test(p); apply(); label();
       }
       async function save(as) {
@@ -40,10 +45,10 @@
           if (!nm) return false;
           path = nm.includes('/') ? PatOS.fs.norm(nm) : '/Documents/' + nm;
         }
-        try { PatOS.fs.write(path, ta.value); dirty = false; label(); return true; }
+        try { PatOS.fs.write(path, ta.value); dirty = false; dropDraft(); PatOS.remember && PatOS.remember(win, { path }); label(); return true; }
         catch (e) { PatOS.notify({ title: 'Could not save', body: e.message, icon: 'textedit' }); return false; }
       }
-      ta.addEventListener('input', () => { dirty = true; label(); if (path) autosave(); });
+      ta.addEventListener('input', () => { dirty = true; label(); if (path) autosave(); else saveDraft(); });
       const autosave = PatOS.debounce(() => { if (path && dirty) save(); }, 1200);
       ta.addEventListener('keydown', (e) => {
         if (e.key === 'Tab') { e.preventDefault(); document.execCommand('insertText', false, '  '); }
@@ -57,8 +62,10 @@
       bDl.onclick = () => PatOS.downloadFile(path ? PatOS.fs.basename(path) : 'Untitled.txt', ta.value);
       let closing = false;
       win.on('beforeclose', (ev) => { if (!closing && dirty && !path && ta.value.trim()) { ev.cancel(); PatOS.confirmBox('Close without saving?', 'Your text will be lost.', { ok: 'Close', danger: true, icon: 'textedit' }).then((y) => { if (y) { closing = true; win.close(); } }); } });
+      // closed on purpose: the draft isn't needed any more (a reload or a crash never gets here)
+      win.on('closed', () => { if (closing || !ta.value.trim() || path) dropDraft(); });
       win._save = save;
-      if (path) load(path); else { apply(); label(); }
+      if (path) load(path); else { if (draft) { const t = PatOS.store.get(DK(), null); if (t != null) { ta.value = t; dirty = true; } else draft = null; } apply(); label(); }
       setTimeout(() => ta.focus(), 50);
     },
     menus(win) {

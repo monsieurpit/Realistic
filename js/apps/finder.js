@@ -116,7 +116,7 @@
         paths.forEach((src) => { try { if (path === '/.Trash') { PatOS.fs.remove(src); } else if (PatOS.fs.dirname(src) !== path) PatOS.fs.move(src, path); } catch (er) { PatOS.notify({ title: PatOS.t('Cannot move'), body: er.message, icon: 'finder' }); } });
         if (path === '/.Trash') PatOS.sound.trash();
       }
-      function go(path, noHist) { if (!noHist && path !== cwd) { back.push(cwd); fwd.length = 0; } cwd = path; selected.clear(); anchor = null; search.value = ''; render(); }
+      function go(path, noHist) { if (!noHist && path !== cwd) { back.push(cwd); fwd.length = 0; } cwd = path; PatOS.remember && PatOS.remember(win, { path }); selected.clear(); anchor = null; search.value = ''; render(); }
       bBack.onclick = () => { if (back.length) { fwd.push(cwd); go(back.pop(), true); } };
       bFwd.onclick = () => { if (fwd.length) { back.push(cwd); go(fwd.pop(), true); } };
       bGrid.onclick = () => { view = 'grid'; PatOS.store.set('finderView', view); render(); };

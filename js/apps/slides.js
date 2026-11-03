@@ -78,6 +78,7 @@
   });
 
   function openDeck(win, path) {
+    PatOS.remember && PatOS.remember(win, { path });
     const OF = PatOS.office;
     win.el.classList.add('has-toolbar');
     let deck; try { deck = JSON.parse(PatOS.fs.read(path)); } catch (e) { deck = null; }
@@ -87,7 +88,7 @@
     const baseName = () => PatOS.fs.basename(path).replace(/\.pslides$/, '');
     const head = OF.header(win, {
       name: baseName(), icon: 'slides', getPath: () => path,
-      onRename: (nn) => { nn = (nn || T('Untitled presentation')).replace(/[\/]/g, '-'); try { path = PatOS.fs.rename(path, PatOS.fs.uniqueName(PatOS.fs.dirname(path), nn + '.pslides')); } catch (e) {} head.name.value = baseName(); win.setTitle(baseName()); }
+      onRename: (nn) => { nn = (nn || T('Untitled presentation')).replace(/[\/]/g, '-'); try { path = PatOS.fs.rename(path, PatOS.fs.uniqueName(PatOS.fs.dirname(path), nn + '.pslides')); PatOS.remember && PatOS.remember(win, { path }); } catch (e) {} head.name.value = baseName(); win.setTitle(baseName()); }
     });
     win.toolbar.append(head.el); win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
     win.setTitle(baseName());

@@ -31,6 +31,7 @@
   });
 
   function openForm(win, path) {
+    PatOS.remember && PatOS.remember(win, { path });
     const OF = PatOS.office;
     win.el.classList.add('has-toolbar');
     let form; try { form = JSON.parse(PatOS.fs.read(path)); } catch (e) { form = null; }
@@ -39,7 +40,7 @@
     const baseName = () => PatOS.fs.basename(path).replace(/\.pform$/, '');
     const head = OF.header(win, {
       name: baseName(), icon: 'forms', getPath: () => path,
-      onRename: (nn) => { nn = (nn || T('Untitled form')).replace(/[\/]/g, '-'); try { path = PatOS.fs.rename(path, PatOS.fs.uniqueName(PatOS.fs.dirname(path), nn + '.pform')); } catch (e) {} head.name.value = baseName(); win.setTitle(baseName()); }
+      onRename: (nn) => { nn = (nn || T('Untitled form')).replace(/[\/]/g, '-'); try { path = PatOS.fs.rename(path, PatOS.fs.uniqueName(PatOS.fs.dirname(path), nn + '.pform')); PatOS.remember && PatOS.remember(win, { path }); } catch (e) {} head.name.value = baseName(); win.setTitle(baseName()); }
     });
     win.toolbar.append(head.el); win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px';
     win.setTitle(baseName());
