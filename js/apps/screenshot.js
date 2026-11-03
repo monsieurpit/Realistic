@@ -18,6 +18,7 @@
   };
 
   let session = null; // one recording at a time, even if the window is closed
+  PatOS.isRecording = () => !!session;
 
   PatOS.registerApp({
     id: 'screenshot', name: 'Screen Recorder', icon: 'screenshot', width: 640, height: 640, category: 'Utilities', keywords: 'screen capture record video picture snap screenshot camera microphone mic webcam',

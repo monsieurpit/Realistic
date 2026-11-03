@@ -296,9 +296,16 @@
         M.front.el.style.transform = g.tf; M.front.el.style.borderRadius = Math.min(44, dy / 3) + 'px';
       }
     });
+    // a tap (no swipe) on the bar goes to whatever is under it, so the bottom of the app still works
+    const passTap = (e) => {
+      ind.style.pointerEvents = 'none'; const el = document.elementFromPoint(e.clientX, e.clientY); ind.style.pointerEvents = '';
+      if (!el || el === ind || ind.contains(el)) return;
+      if (el.matches('input, textarea, select, [contenteditable]')) el.focus(); else el.click();
+    };
     const end = (e) => {
       if (!g) return;
       const dy = Math.max(0, g.y - e.clientY); const s = g; g = null;
+      if (e.type === 'pointerup' && dy < 8 && Math.abs(e.clientX - s.x) < 10 && Date.now() - s.t < 400) { if (M.front) { M.front.el.style.transform = ''; M.front.el.style.borderRadius = ''; } passTap(e); return; }
       const front = M.front;
       if (!front) { if (dy > 60) openSwitcher(); return; }
       front.el.style.transition = '';

@@ -1241,7 +1241,13 @@ html.mobile, html.mobile body { overscroll-behavior: none; touch-action: manipul
    computer, PatOS draws its own status bar, so the bar starts below that. */
 html.mobile { --app-top: calc(var(--mtop) + 26px); --app-bottom: var(--sab); }
 html.real-phone { --mtop: var(--sat); --app-top: var(--sat); }
-.real-phone #m-status, .real-phone #m-indicator { display: none !important; }
+.real-phone #m-status { display: none !important; }
+/* the swipe-up bar on a real phone: iOS keeps the very bottom edge for its own home bar (it leaves PatOS),
+   so PatOS's bar sits just above it, across the whole width, like the iPhone's own */
+.real-phone #m-indicator { bottom: var(--sab); height: 34px; padding-bottom: 9px; }
+.real-phone.m-in-app { --app-bottom: calc(var(--sab) + 20px); }
+.mobile.m-kb #m-indicator, .mobile:not(.m-in-app) #m-indicator { pointer-events: none; }
+.mobile.m-kb #m-indicator span { opacity: 0 !important; }
 html.mobile.m-kb { --app-bottom: 0px; }
 
 /* Home Screen */
@@ -6831,6 +6837,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Tip: write the date and time in the reminder, like “Science project friday at 3pm !!” or “Lire le chapitre 4 demain 19h”.': 'Astuce : écrivez la date et l’heure dans le rappel, comme « Lire le chapitre 4 demain 19h » ou « Projet de sciences vendredi à 15h !! ».',
     'Next time:': 'Prochaine fois :',
     'To-do lists with due dates and alerts. Type “Math test friday at 3pm !!” and Reminders fills in the date, time and priority.': 'Des listes de tâches avec échéances et alertes. Écrivez « Examen de maths vendredi à 15h !! » et Rappels remplit la date, l’heure et la priorité.',
+    'PatOS has a new version': 'PatOS a une nouvelle version',
+    'Click to restart and use it. Your windows come back.': 'Cliquez pour redémarrer et l’utiliser. Vos fenêtres reviennent.',
+    'PatOS was updated': 'PatOS a été mis à jour',
+    'It restarted while you were away. Everything is where you left it.': 'Il a redémarré pendant votre absence. Tout est où vous l’avez laissé.',
+    'You’re on the newest version.': 'Vous avez la version la plus récente.',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 
@@ -9444,9 +9455,16 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         M.front.el.style.transform = g.tf; M.front.el.style.borderRadius = Math.min(44, dy / 3) + 'px';
       }
     });
+    // a tap (no swipe) on the bar goes to whatever is under it, so the bottom of the app still works
+    const passTap = (e) => {
+      ind.style.pointerEvents = 'none'; const el = document.elementFromPoint(e.clientX, e.clientY); ind.style.pointerEvents = '';
+      if (!el || el === ind || ind.contains(el)) return;
+      if (el.matches('input, textarea, select, [contenteditable]')) el.focus(); else el.click();
+    };
     const end = (e) => {
       if (!g) return;
       const dy = Math.max(0, g.y - e.clientY); const s = g; g = null;
+      if (e.type === 'pointerup' && dy < 8 && Math.abs(e.clientX - s.x) < 10 && Date.now() - s.t < 400) { if (M.front) { M.front.el.style.transform = ''; M.front.el.style.borderRadius = ''; } passTap(e); return; }
       const front = M.front;
       if (!front) { if (dy > 60) openSwitcher(); return; }
       front.el.style.transition = '';
@@ -18973,6 +18991,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
   };
 
   let session = null; // one recording at a time, even if the window is closed
+  PatOS.isRecording = () => !!session;
 
   PatOS.registerApp({
     id: 'screenshot', name: 'Screen Recorder', icon: 'screenshot', width: 640, height: 640, category: 'Utilities', keywords: 'screen capture record video picture snap screenshot camera microphone mic webcam',
@@ -21452,6 +21471,50 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       .catch(() => {})
       .then(() => setTimeout(() => { fill.style.width = '100%'; setTimeout(showLock, 250); }, Math.max(0, minMs - (performance.now() - t0))));
   }
+  /* ---------- updates without refreshing ----------
+     The browser only looks for a new PatOS when the page loads. So PatOS asks the server itself every few
+     minutes, and when you come back to it. A new version downloads in the background; then PatOS either
+     tells you (Restart now) or, when you're away and nothing would be interrupted, restarts on its own.
+     Open windows come back after the restart (js/session.js), and your work is saved first. */
+  function setupUpdates() {
+    let reg = null, ready = false, told = 0, hiddenSince = document.hidden ? Date.now() : 0, lastCheck = 0;
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((r) => { reg = r; }).catch(() => {});
+    const check = (force) => { if (!reg || ready || !navigator.onLine) return; if (!force && Date.now() - lastCheck < 30000) return; lastCheck = Date.now(); reg.update().catch(() => {}); };
+    setInterval(() => { if (!document.hidden) check(true); }, 3 * 60000);
+    document.addEventListener('visibilitychange', () => { hiddenSince = document.hidden ? Date.now() : 0; if (!document.hidden) check(); });
+    window.addEventListener('focus', () => check()); window.addEventListener('online', () => check(true));
+    const busy = () => {
+      if (PatOS.isRecording && PatOS.isRecording()) return true;
+      if ([...document.querySelectorAll('video, audio')].some((m) => !m.paused && !m.ended)) return true;
+      const np = PatOS.music && PatOS.music.nowPlaying && PatOS.music.nowPlaying(); if (np && np.playing) return true;
+      return PatOS.wm.windows.some((w) => ['youtube', 'videos', 'screenshot', 'extweb', 'code'].includes(w.app.id));
+    };
+    const restart = async (auto) => {
+      PatOS._leaving = true;
+      try { PatOS.session && PatOS.session.snapshot(); await PatOS.flush(); } catch (e) {}
+      try { localStorage.setItem('patos-updated', auto ? 'auto' : 'yes'); } catch (e) {}
+      location.reload();
+    };
+    PatOS.update = { get ready() { return ready; }, check: () => check(true), restart: () => restart(false) };
+    const tell = () => {
+      told = Date.now();
+      PatOS.notify({ title: PatOS.t('PatOS has a new version'), body: PatOS.t('Click to restart and use it. Your windows come back.'), icon: 'about', duration: 30000, onClick: () => restart(false) });
+    };
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      if (!e.data || !e.data.patosUpdate || ready) return;
+      ready = true; tell(); PatOS.emit('update:ready');
+    });
+    // remind every 20 minutes; restart by itself when PatOS has been hidden (or locked) for a while and nothing is playing
+    setInterval(() => {
+      if (!ready) return;
+      const away = (hiddenSince && Date.now() - hiddenSince > 60000) || (!PatOS.loggedIn && !document.querySelector('#setup'));
+      if (away && !busy()) return restart(true);
+      if (!document.hidden && Date.now() - told > 20 * 60000) tell();
+    }, 15000);
+    // after an update
+    let was = null; try { was = localStorage.getItem('patos-updated'); localStorage.removeItem('patos-updated'); } catch (e) {}
+    if (was) setTimeout(() => PatOS.notify({ title: PatOS.t('PatOS was updated'), body: PatOS.t(was === 'auto' ? 'It restarted while you were away. Everything is where you left it.' : 'You’re on the newest version.'), icon: 'about', duration: 6000 }), 2500);
+  }
   PatOS.boot = { showLock, login };
 
   (document.readyState === 'loading' ? (fn) => document.addEventListener('DOMContentLoaded', fn) : (fn) => fn())(() => {
@@ -21484,14 +21547,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
     });
     boot();
     // offline support / installable app when served over http(s)
-    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !PatOS.singleFile) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-      let told = false;
-      navigator.serviceWorker.addEventListener('message', (e) => {
-        if (!e.data || !e.data.patosUpdate || told) return; told = true;
-        PatOS.notify({ title: 'PatOS has a new version', body: 'Click here to restart and use it.', icon: 'about', duration: 12000, onClick: () => { PatOS._leaving = true; location.reload(); } });
-      });
-    }
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !PatOS.singleFile) setupUpdates();
   });
 })();
 

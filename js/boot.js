@@ -113,6 +113,50 @@
       .catch(() => {})
       .then(() => setTimeout(() => { fill.style.width = '100%'; setTimeout(showLock, 250); }, Math.max(0, minMs - (performance.now() - t0))));
   }
+  /* ---------- updates without refreshing ----------
+     The browser only looks for a new PatOS when the page loads. So PatOS asks the server itself every few
+     minutes, and when you come back to it. A new version downloads in the background; then PatOS either
+     tells you (Restart now) or, when you're away and nothing would be interrupted, restarts on its own.
+     Open windows come back after the restart (js/session.js), and your work is saved first. */
+  function setupUpdates() {
+    let reg = null, ready = false, told = 0, hiddenSince = document.hidden ? Date.now() : 0, lastCheck = 0;
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((r) => { reg = r; }).catch(() => {});
+    const check = (force) => { if (!reg || ready || !navigator.onLine) return; if (!force && Date.now() - lastCheck < 30000) return; lastCheck = Date.now(); reg.update().catch(() => {}); };
+    setInterval(() => { if (!document.hidden) check(true); }, 3 * 60000);
+    document.addEventListener('visibilitychange', () => { hiddenSince = document.hidden ? Date.now() : 0; if (!document.hidden) check(); });
+    window.addEventListener('focus', () => check()); window.addEventListener('online', () => check(true));
+    const busy = () => {
+      if (PatOS.isRecording && PatOS.isRecording()) return true;
+      if ([...document.querySelectorAll('video, audio')].some((m) => !m.paused && !m.ended)) return true;
+      const np = PatOS.music && PatOS.music.nowPlaying && PatOS.music.nowPlaying(); if (np && np.playing) return true;
+      return PatOS.wm.windows.some((w) => ['youtube', 'videos', 'screenshot', 'extweb', 'code'].includes(w.app.id));
+    };
+    const restart = async (auto) => {
+      PatOS._leaving = true;
+      try { PatOS.session && PatOS.session.snapshot(); await PatOS.flush(); } catch (e) {}
+      try { localStorage.setItem('patos-updated', auto ? 'auto' : 'yes'); } catch (e) {}
+      location.reload();
+    };
+    PatOS.update = { get ready() { return ready; }, check: () => check(true), restart: () => restart(false) };
+    const tell = () => {
+      told = Date.now();
+      PatOS.notify({ title: PatOS.t('PatOS has a new version'), body: PatOS.t('Click to restart and use it. Your windows come back.'), icon: 'about', duration: 30000, onClick: () => restart(false) });
+    };
+    navigator.serviceWorker.addEventListener('message', (e) => {
+      if (!e.data || !e.data.patosUpdate || ready) return;
+      ready = true; tell(); PatOS.emit('update:ready');
+    });
+    // remind every 20 minutes; restart by itself when PatOS has been hidden (or locked) for a while and nothing is playing
+    setInterval(() => {
+      if (!ready) return;
+      const away = (hiddenSince && Date.now() - hiddenSince > 60000) || (!PatOS.loggedIn && !document.querySelector('#setup'));
+      if (away && !busy()) return restart(true);
+      if (!document.hidden && Date.now() - told > 20 * 60000) tell();
+    }, 15000);
+    // after an update
+    let was = null; try { was = localStorage.getItem('patos-updated'); localStorage.removeItem('patos-updated'); } catch (e) {}
+    if (was) setTimeout(() => PatOS.notify({ title: PatOS.t('PatOS was updated'), body: PatOS.t(was === 'auto' ? 'It restarted while you were away. Everything is where you left it.' : 'You’re on the newest version.'), icon: 'about', duration: 6000 }), 2500);
+  }
   PatOS.boot = { showLock, login };
 
   (document.readyState === 'loading' ? (fn) => document.addEventListener('DOMContentLoaded', fn) : (fn) => fn())(() => {
@@ -145,13 +189,6 @@
     });
     boot();
     // offline support / installable app when served over http(s)
-    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !PatOS.singleFile) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-      let told = false;
-      navigator.serviceWorker.addEventListener('message', (e) => {
-        if (!e.data || !e.data.patosUpdate || told) return; told = true;
-        PatOS.notify({ title: 'PatOS has a new version', body: 'Click here to restart and use it.', icon: 'about', duration: 12000, onClick: () => { PatOS._leaving = true; location.reload(); } });
-      });
-    }
+    if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !PatOS.singleFile) setupUpdates();
   });
 })();

@@ -170,7 +170,13 @@ html.mobile, html.mobile body { overscroll-behavior: none; touch-action: manipul
    computer, PatOS draws its own status bar, so the bar starts below that. */
 html.mobile { --app-top: calc(var(--mtop) + 26px); --app-bottom: var(--sab); }
 html.real-phone { --mtop: var(--sat); --app-top: var(--sat); }
-.real-phone #m-status, .real-phone #m-indicator { display: none !important; }
+.real-phone #m-status { display: none !important; }
+/* the swipe-up bar on a real phone: iOS keeps the very bottom edge for its own home bar (it leaves PatOS),
+   so PatOS's bar sits just above it, across the whole width, like the iPhone's own */
+.real-phone #m-indicator { bottom: var(--sab); height: 34px; padding-bottom: 9px; }
+.real-phone.m-in-app { --app-bottom: calc(var(--sab) + 20px); }
+.mobile.m-kb #m-indicator, .mobile:not(.m-in-app) #m-indicator { pointer-events: none; }
+.mobile.m-kb #m-indicator span { opacity: 0 !important; }
 html.mobile.m-kb { --app-bottom: 0px; }
 
 /* Home Screen */
