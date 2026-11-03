@@ -9044,6 +9044,17 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
 
       function navigate(input, t, noHist) {
         t = t || cur;
+        // searches go to the Chromebook's own browser (Chrome, Safari, Edge...), where every site works
+        const raw = String(input || '').trim();
+        let gq = null;
+        if (raw && !/^(patos|https?):\/\//i.test(raw) && !(/^[\w-]+(\.[\w-]+)+(:\d+)?(\/.*)?$/.test(raw) && !raw.includes(' '))) gq = raw;
+        else if (/^https?:\/\/(www\.)?(google\.[a-z.]+\/search|bing\.com\/search)\?/i.test(raw)) { try { gq = new URL(raw).searchParams.get('q'); } catch (e) {} }
+        else if (/^patos:\/\/(google|search)\?/.test(raw)) { try { gq = new URL(raw.replace('patos://', 'http://x/')).searchParams.get('q'); } catch (e) {} }
+        if (gq && !noHist) {
+          const H = PatOS.store.get('browserHistory', []); H.unshift({ u: 'https://www.google.com/search?q=' + encodeURIComponent(gq), t: Date.now(), title: gq }); PatOS.store.set('browserHistory', H.slice(0, 300));
+          PatOS.openExternal(engine() === 'bing' ? bingURL(gq) : 'https://www.google.com/search?q=' + encodeURIComponent(gq) + '&hl=' + glang());
+          setTimeout(() => win.close(), 50); return;
+        }
         let url = fixGoogle(toURL(input));
         const yt = ytEmbed(url);
         if (yt || /(^|\.)youtube\.com$/.test(host(url).replace(/^m\./, ''))) { const vid = yt && yt.match(/embed\/([\w-]{11})/); PatOS.launch('youtube', vid ? { id: vid[1] } : (new URL(url).searchParams.get('search_query') ? { q: new URL(url).searchParams.get('search_query') } : {})); if (t.url === 'patos://newtab' || !t.hist.length) { t.hist = []; t.idx = -1; } return; }
@@ -9427,7 +9438,8 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       }
       // real sign-in pages: we can't read what is typed there, so offer to remember the login ourselves
       function checkLogin() {
-        bar(null);
+        bar(null); return; // logins are typed by the person; the Passwords app keeps them
+        /* eslint-disable no-unreachable */
         if (!cur || !/^https?:/.test(cur.url) || isBlocked(cur.url) || PatOS.passwords.locked) return;
         let path = ''; try { const u = new URL(cur.url); path = u.pathname + u.search; } catch (e) {}
         if (!LOGIN_RE.test(path)) return;
@@ -9449,6 +9461,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         const t = tabs.find((x) => x.frame && x.frame.contentWindow === e.source); if (!t || !t.url.startsWith('patos://file')) return;
         const site = siteOf(t);
         if (t !== cur) return;
+        return; // no automatic saving or filling
         if (d.patosPw === 'submit') offerSave(site, String(d.username || '').slice(0, 200), String(d.password || '').slice(0, 500));
         if (d.patosPw === 'form') offerFill(site, false);
       };
