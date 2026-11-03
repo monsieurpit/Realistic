@@ -129,12 +129,10 @@
   const isFile = (site) => String(site).startsWith('file:');
   const label = (site) => (isFile(site) ? site.slice(5) : site);
   const fav = (site) => (isFile(site) ? 'data:image/svg+xml,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><rect width="24" height="24" rx="6" fill="#007aff"/><path d="M7 5h7l3 3v11H7z" fill="#fff"/></svg>') : 'https://www.google.com/s2/favicons?sz=64&domain=' + encodeURIComponent(site));
-  /* a practice sign-in page so you can see Patoogle save and fill a password */
-  P.practicePage = () => `<!doctype html><html><head><meta charset="utf-8"><title>Practice sign-in</title><style>body{font-family:system-ui,sans-serif;background:linear-gradient(135deg,#e0e7ff,#fce7f3);min-height:100vh;margin:0;display:grid;place-items:center}form{background:#fff;padding:32px;border-radius:18px;box-shadow:0 20px 60px rgba(0,0,0,.15);width:min(340px,86vw);display:flex;flex-direction:column;gap:12px}h1{margin:0 0 4px;font-size:24px}p{margin:0 0 8px;color:#666;font-size:14px}input{height:42px;border-radius:10px;border:1px solid #ccc;padding:0 12px;font-size:15px}button{height:44px;border:0;border-radius:10px;background:#4f46e5;color:#fff;font-size:15px;font-weight:600;cursor:pointer}.ok{display:none;text-align:center}.ok.on{display:block}</style></head><body><form id="f"><h1>${PatOS.lang === 'fr' ? 'Connexion d’essai' : 'Practice sign-in'}</h1><p>${PatOS.lang === 'fr' ? 'Une page pour essayer l’enregistrement et le remplissage des mots de passe. Rien n’est envoyé.' : 'A page to try saving and filling passwords. Nothing is sent anywhere.'}</p><input name="email" type="email" autocomplete="username" placeholder="Email"><input name="password" type="password" autocomplete="current-password" placeholder="${PatOS.lang === 'fr' ? 'Mot de passe' : 'Password'}"><button>${PatOS.lang === 'fr' ? 'Se connecter' : 'Sign in'}</button><div class="ok" id="ok">✓ ${PatOS.lang === 'fr' ? 'Connecté (pour de faux)' : 'Signed in (pretend)'}</div></form><script>document.getElementById('f').addEventListener('submit',function(e){e.preventDefault();document.getElementById('ok').classList.add('on');});</script></body></html>`;
 
   PatOS.registerApp({
     id: 'passwords', name: 'Passwords', icon: 'passwords', width: 900, height: 600, category: 'Utilities', keywords: 'password manager keychain login vault mots de passe security',
-    about: 'Keep your passwords in one place. Patoogle can save and fill them.',
+    about: 'Keep your passwords in one place, encrypted. Copy a login when you need it, or fill it into your own HTML pages in Patoogle.',
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'pw-win');
       const OF = PatOS.office;
@@ -176,7 +174,7 @@
         // without a master password, say clearly who can see the passwords
         if (!P.encrypted && P.all().length) list.appendChild(h('div', { class: 'pw-warn' }, h('span', {}, P.plain ? T('This browser can’t encrypt passwords. Anyone using it can see them.') : T('Encrypted on this device, but anyone using this browser can open them. Add a master password to lock them.')), canCrypt ? h('button', { class: 'btn', onclick: () => settings() }, T('Add a Master Password')) : null));
         const l = filtered();
-        if (!l.length) { list.appendChild(h('div', { class: 'pw-empty' }, h('div', { class: 'pw-bigic', html: PatOS.iconHTML('passwords') }), h('b', {}, T(P.all().length ? 'No results' : 'No passwords yet')), P.all().length ? null : h('p', {}, T('Add one here, or sign in to a site in Patoogle and press Save when it asks.')), P.all().length ? null : h('button', { class: 'btn', onclick: () => PatOS.launch('browser', { html: P.practicePage(), title: T('Practice sign-in') }) }, T('Try it on a practice page')))); return; }
+        if (!l.length) { list.appendChild(h('div', { class: 'pw-empty' }, h('div', { class: 'pw-bigic', html: PatOS.iconHTML('passwords') }), h('b', {}, T(P.all().length ? 'No results' : 'No passwords yet')), P.all().length ? null : h('p', {}, T('Press + to add a login, or import the list you exported from Chrome, Safari or another password app.')))); return; }
         let letter = '';
         l.forEach((x) => {
           const L = label(x.site)[0] ? label(x.site)[0].toUpperCase() : '#'; if (L !== letter) { letter = L; list.appendChild(h('div', { class: 'pw-letter' }, L)); }

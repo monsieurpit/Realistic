@@ -4,7 +4,7 @@
   const { h } = PatOS;
   PatOS.registerApp({
     id: 'preview', name: 'Preview', icon: 'preview', single: false, width: 980, height: 700, category: 'Utilities', keywords: 'pdf viewer image picture open document reader',
-    about: 'Open PDF files and pictures.',
+    about: 'Read PDF files and pictures. Highlight, draw and add text to a PDF, then save it.',
     launch(win, args) {
       win.el.classList.add('has-toolbar');
       let path = args.path || null, zoom = 1, rot = 0, blobUrl = null;

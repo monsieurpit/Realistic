@@ -44,13 +44,12 @@
     if (/^[\w-]+(\.[\w-]+)+(:\d+)?(\/.*)?$/.test(q) && !q.includes(' ')) return 'https://' + q;
     return searchURL(q);
   }
-  /* Searching. Real Google loads right inside Patoogle (Google's embeddable results page). With a
-     Programmable Search ID (from the person, or set on the PatOS server) Patoogle shows Google's
-     official search box instead, which looks like today's Google. Patoogle's own Wikipedia results
-     and Bing stay available as other engines. */
+  /* Searching. A search typed in Patoogle opens in the device's own browser (Chrome, Safari…) with
+     Google or Bing, and Patoogle closes: Google doesn't allow its results page inside other apps, and
+     the real browser keeps your Google account, history and extensions. */
   let serverCx = '';
   const googleCx = () => (PatOS.store.get('googleCx', '') || '').trim() || serverCx;
-  const engine = () => { const e = PatOS.store.get('searchEngine', 'google'); return e === 'cse' && !googleCx() ? 'google' : e; };
+  const engine = () => (PatOS.store.get('searchEngine', 'google') === 'bing' ? 'bing' : 'google');
   const glang = () => (PatOS.lang === 'fr' ? 'fr' : 'en');
   function googleURL(q) { return 'https://www.google.com/search?igu=1&hl=' + glang() + '&q=' + encodeURIComponent(q); }
   function searchURL(q) {
@@ -97,21 +96,16 @@
     document.body.appendChild(a); a.click(); a.remove();
   };
 
-  /* ---------- password helper injected into pages PatOS creates (HTML files, practice page) ----------
-     It can see those pages because PatOS made them. Real websites shown in a frame belong to another
-     site, and browsers don't let any page read or type into them, so for those Patoogle offers to
-     copy the saved login instead. */
+  /* ---------- password helper added to pages PatOS makes itself (your own HTML files) ----------
+     It only listens for one thing: when you press Fill in Patoogle's key menu, it types your saved login
+     into that page. It never reads or sends what you type. Real websites belong to another site and
+     browsers don't let any page type into them, so for those the key menu copies the login instead. */
   const PW_HELPER = `<script>(function(){var P=parent;function f(){var p=document.querySelector('input[type=password]');if(!p)return null;var form=p.form||document;var u=form.querySelector('input[type=email],input[autocomplete=username],input[name*=user i],input[name*=mail i],input[type=text]');return{p:p,u:u}}
-var sent='';function grab(){var x=f();if(!x||!x.p.value)return;var k=(x.u?x.u.value:'')+'\\u0000'+x.p.value;if(k===sent)return;sent=k;P.postMessage({patosPw:'submit',username:x.u?x.u.value:'',password:x.p.value},'*')}
-document.addEventListener('submit',grab,true);document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('button,input[type=submit]'))setTimeout(grab,0)},true);
-document.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.type==='password')setTimeout(grab,0)},true);
-window.addEventListener('message',function(e){var d=e.data||{};if(d.patosPw!=='fill')return;var x=f();if(!x)return;function set(el,v){if(!el)return;el.focus();el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));el.style.background='#fff8c5';setTimeout(function(){el.style.background=''},1200)}set(x.u,d.username);set(x.p,d.password)});
-function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readyState!=='loading')ready();else document.addEventListener('DOMContentLoaded',ready);})();<\/script>`;
-  const LOGIN_RE = /(^|[\/._-])(log-?in|sign-?in|signon|auth|account(s)?\/(login|signin)|connexion|se-connecter|identification|sso)([\/._?#-]|$)/i;
+window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.data||{};if(d.patosPw!=='fill')return;var x=f();if(!x)return;function set(el,v){if(!el)return;el.focus();el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));el.style.background='#fff8c5';setTimeout(function(){el.style.background=''},1200)}set(x.u,d.username);set(x.p,d.password)});})();<\/script>`;
 
   PatOS.registerApp({
     id: 'browser', name: 'Patoogle', icon: 'browser', single: true, width: 1100, height: 720, keywords: 'chrome safari web internet browser google',
-    about: 'A web browser with tabs that searches with Google, right inside PatOS.',
+    about: 'A web browser with tabs, bookmarks and history. Searches open in your device’s own browser.',
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'browser-win', 'pb-win');
       const OF = PatOS.office;
@@ -350,33 +344,14 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         }).catch(() => { results.innerHTML = ''; results.appendChild(h('div', { class: 'pg-status' }, PatOS.sandboxed ? PatOS.t('Search can’t run inside a Claude Artifact. Open PatOS from its website.') : PatOS.t('Search couldn’t reach Wikipedia. Check the internet connection, or your school may block it.'))); });
         return page;
       }
-      function googleSetup(q) {
+      function googleSetup() {
         const cur = engine();
-        const opt = (id, title, desc) => { const r = h('label', { class: 'pg-eng' + (cur === id ? ' on' : '') }, h('input', { type: 'radio', name: 'eng', value: id }), h('div', {}, h('b', {}, PatOS.t(title)), h('small', {}, PatOS.t(desc)))); r.querySelector('input').checked = cur === id; r.querySelector('input').onchange = () => { if (id === 'cse' && !googleCx()) { cseBox.classList.add('on'); inp.focus(); return; } PatOS.store.set('searchEngine', id); navigate(q ? searchURL(q) : 'patos://newtab'); }; return r; };
-        const inp = h('input', { class: 'field pg-cx', placeholder: 'Search engine ID (looks like a1b2c3d4e5f6g7h8i)', value: PatOS.store.get('googleCx', ''), spellcheck: 'false' });
-        const save = () => {
-          let v = inp.value.trim(); const m = v.match(/cx=([\w:-]+)/); if (m) v = m[1];
-          PatOS.store.set('googleCx', v);
-          if (cseState && v && cseState.cx !== v) { PatOS.alertBox(PatOS.t('Saved'), PatOS.t('Close and reopen PatOS to use your new Search engine ID.'), { icon: 'browser' }); return; }
-          PatOS.store.set('searchEngine', v || serverCx ? 'cse' : 'google');
-          navigate(q ? searchURL(q) : 'patos://newtab');
-        };
-        inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(); });
-        const cseBox = h('div', { class: 'pg-csebox' + (cur === 'cse' ? ' on' : '') },
-          h('p', {}, PatOS.t('Google’s official search box for apps looks just like google.com today. It needs a free ID, made once:')),
-          h('ol', {},
-            h('li', {}, PatOS.t('Go to programmablesearchengine.google.com and sign in.')),
-            h('li', {}, PatOS.t('Click Add, give it any name, and choose “Search the entire web”.')),
-            h('li', {}, PatOS.t('Click Create, then copy the Search engine ID.')),
-            h('li', {}, PatOS.t('Paste it here. If you run PatOS on Render, you can also add it there as GOOGLE_CX so it works for everyone.'))),
-          h('div', { class: 'pg-row' }, inp, h('button', { class: 'btn primary', onclick: save }, 'Save')));
+        const opt = (id, title, desc) => { const r = h('label', { class: 'pg-eng' + (cur === id ? ' on' : '') }, h('input', { type: 'radio', name: 'eng', value: id }), h('div', {}, h('b', {}, PatOS.t(title)), h('small', {}, PatOS.t(desc)))); const i = r.querySelector('input'); i.checked = cur === id; i.onchange = () => { PatOS.store.set('searchEngine', id); navigate('patos://newtab'); OF.toast(win, PatOS.t('Search engine') + ': ' + title); }; return r; };
         return h('div', { class: 'pg-setup' },
           h('div', { class: 'pg-logo big' }, 'Patoogle'),
           h('h2', {}, PatOS.t('Search engine')),
-          opt('google', 'Google', 'Real Google results, right inside Patoogle. Works with no setup.'),
-          opt('cse', 'Google (official search box)', serverCx ? 'Set up on this PatOS website. Looks like today’s google.com.' : 'Looks like today’s google.com. Needs a free ID (see below).'),
-          cseBox,
-          opt('patoogle', 'Patoogle', 'Wikipedia articles with instant answers for math, conversions and definitions.'),
+          h('p', {}, PatOS.t('When you search, Patoogle opens the results in your device’s own browser and closes itself.')),
+          opt('google', 'Google', 'The usual Google, with your account and history.'),
           opt('bing', 'Bing', 'Some school networks block Bing.'));
       }
       function loadHTML(t, html, title) {
@@ -566,7 +541,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       bPw.onclick = () => PatOS.launch('passwords', cur && siteOf(cur) ? { site: siteOf(cur) } : {});
       bKey.onclick = () => keyPop(bKey);
 
-      /* ---------- passwords: save, fill, and the key popover ---------- */
+      /* ---------- passwords: the key menu (fill your own HTML pages, copy for real sites) ---------- */
       function copy(text, what) { (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(() => OF.toast(win, what + ' ' + T('copied'))).catch(() => {}); }
       function keyPop(anchor) {
         const site = cur && siteOf(cur); if (!site) return;
@@ -587,65 +562,9 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         infobar.appendChild(h('div', { class: 'pb-ibar ' + (kind || '') }, h('span', { class: 'pb-iic', html: OF.icon('key', 18) }), ...content, h('button', { class: 'tbtn pb-ix', title: T('Close'), onclick: () => bar(null) }, '×')));
         infobar.classList.add('on');
       }
-      // ask to save, but only for a login we don't already have, and never for sites the person said no to
-      function offerSave(site, username, password, frameUrl) {
-        if (!password || PatOS.passwords.locked) return;
-        if (PatOS.passwords.never().includes(site.replace(/^www\./, ''))) return;
-        if (PatOS.passwords.has(site, username, password)) return;
-        const existing = PatOS.passwords.forSite(site).find((x) => x.username === username);
-        const label = site.startsWith('file:') ? site.slice(5) : site;
-        bar([h('span', { class: 'pb-itext' }, h('b', {}, T(existing ? 'Update the saved password?' : 'Save this password?')), ' ' + label + (username ? ' · ' + username : '')),
-          h('button', { class: 'btn', onclick: () => { PatOS.passwords.addNever(site); bar(null); OF.toast(win, T('Patoogle won’t ask again for this site')); } }, T('Never for this site')),
-          h('button', { class: 'btn', onclick: () => bar(null) }, T('Not now')),
-          h('button', { class: 'btn primary', onclick: async () => { await PatOS.passwords.save({ url: site.startsWith('file:') ? site : frameUrl || 'https://' + site, site, username, password }); bar(null); syncUI(); OF.toast(win, T(existing ? 'Password updated' : 'Password saved')); } }, T(existing ? 'Update' : 'Save'))], 'save');
-      }
-      function offerFill(site, real) {
-        if (PatOS.passwords.locked) return;
-        const list = PatOS.passwords.forSite(site); if (!list.length) return;
-        const x = list.slice().sort((a, b) => (b.used || 0) - (a.used || 0))[0];
-        if (!real) {
-          bar([h('span', { class: 'pb-itext' }, h('b', {}, T('Sign in as') + ' ' + (x.username || T('saved login')) + '?'), ' ' + T('Fill in your saved email and password.')),
-            list.length > 1 ? h('button', { class: 'btn', onclick: () => keyPop(bKey.style.display === 'none' ? lockIc : bKey) }, T('Other accounts')) : null,
-            h('button', { class: 'btn', onclick: () => bar(null) }, T('No thanks')),
-            h('button', { class: 'btn primary', onclick: () => { fill(x); bar(null); } }, T('Fill'))], 'fill');
-        } else {
-          bar([h('span', { class: 'pb-itext' }, h('b', {}, T('You have a saved login for') + ' ' + site + '.'), ' ' + T('This site belongs to another company, so Patoogle can’t type into it. Copy your login, then paste it into the page.')),
-            h('button', { class: 'btn', onclick: () => copy(x.username, T('Username')) }, T('Copy email')),
-            h('button', { class: 'btn primary', onclick: () => { copy(x.password, T('Password')); PatOS.passwords.used(x.id); } }, T('Copy password'))], 'fill');
-        }
-      }
-      // real sign-in pages: we can't read what is typed there, so offer to remember the login ourselves
-      function checkLogin() {
-        bar(null); return; // logins are typed by the person; the Passwords app keeps them
-        /* eslint-disable no-unreachable */
-        if (!cur || !/^https?:/.test(cur.url) || isBlocked(cur.url) || PatOS.passwords.locked) return;
-        let path = ''; try { const u = new URL(cur.url); path = u.pathname + u.search; } catch (e) {}
-        if (!LOGIN_RE.test(path)) return;
-        const site = siteOf(cur);
-        if (PatOS.passwords.forSite(site).length) return offerFill(site, true);
-        if (PatOS.passwords.never().includes(site)) return;
-        bar([h('span', { class: 'pb-itext' }, h('b', {}, T('Signing in to') + ' ' + site + '?'), ' ' + T('Patoogle can remember the email and password you use here.')),
-          h('button', { class: 'btn', onclick: () => { PatOS.passwords.addNever(site); bar(null); } }, T('Never for this site')),
-          h('button', { class: 'btn', onclick: () => bar(null) }, T('Not now')),
-          h('button', { class: 'btn primary', onclick: async () => {
-            const u = await PatOS.ask(T('Email or username for') + ' ' + site, '', { icon: 'passwords', ok: T('Next') }); if (u === null) return;
-            const pw = await PatOS.ask(T('Password for') + ' ' + site, '', { icon: 'passwords', ok: T('Save'), password: true }); if (!pw) return;
-            if (PatOS.passwords.has(site, u, pw)) { bar(null); return OF.toast(win, T('Already saved')); }
-            await PatOS.passwords.save({ url: cur.url, site, username: u, password: pw }); bar(null); syncUI(); OF.toast(win, T('Password saved'));
-          } }, T('Save my login'))], 'save');
-      }
-      const onMsg = (e) => {
-        const d = e.data; if (!d || typeof d !== 'object' || !d.patosPw) return;
-        const t = tabs.find((x) => x.frame && x.frame.contentWindow === e.source); if (!t || !t.url.startsWith('patos://file')) return;
-        const site = siteOf(t);
-        if (t !== cur) return;
-        return; // no automatic saving or filling
-        if (d.patosPw === 'submit') offerSave(site, String(d.username || '').slice(0, 200), String(d.password || '').slice(0, 500));
-        if (d.patosPw === 'form') offerFill(site, false);
-      };
-      window.addEventListener('message', onMsg);
+      function checkLogin() { bar(null); } // nothing is saved or filled on its own: you choose Fill or Copy in the key menu
       const onPw = () => syncUI(); PatOS.on('passwords', onPw);
-      win.on('closed', () => { window.removeEventListener('message', onMsg); PatOS.off('passwords', onPw); tabs.forEach((t) => { if (t.web) { webTabs--; t.web = false; } }); });
+      win.on('closed', () => { PatOS.off('passwords', onPw); tabs.forEach((t) => { if (t.web) { webTabs--; t.web = false; } }); });
 
       bBack.onclick = () => { if (cur.idx > 0) { cur.idx--; navigate(cur.hist[cur.idx], cur, true); } };
       bFwd.onclick = () => { if (cur.idx < cur.hist.length - 1) { cur.idx++; navigate(cur.hist[cur.idx], cur, true); } };

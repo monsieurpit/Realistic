@@ -27,7 +27,7 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 
 **English and French**
 - PatOS uses French when your device is in French, English otherwise; change it in System Settings › General › Language
-- Pat in Messages understands French too ("ouvre calculatrice", "raconte une blague")
+- Pat in Messages understands its commands in French too ("ouvre calculatrice", "raconte une blague")
 
 **On iPhone (and other phones)**
 - PatOS switches to a phone layout automatically (or pick it in System Settings › General › Device style)
@@ -43,26 +43,29 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 | | |
 |---|---|
 | Finder | icon and list views, sorting, path bar, multi-select, color tags, info panel, Quick Look (Space), keyboard navigation, Trash, import from your computer |
-| Patoogle | tabbed web browser with bookmarks, site icons and history. Searches show real Google results right inside PatOS (no setup). Optional: Google's official search box (free ID, or `GOOGLE_CX` on Render), Patoogle's Wikipedia results, or Bing. YouTube links open in the YouTube app |
+| Patoogle | tabbed web browser with bookmarks, site icons and history. Sites that allow it open inside PatOS; the others open in their own window. A search opens in your device's real browser (Google or Bing) and Patoogle closes. YouTube links open in the YouTube app |
 | Calendar | month and week views, event editor (time, color, notes), upcoming events, reminders |
-| Notes | folders, pinned notes, pictures (paste or insert), checklists, tables, Recently Deleted, export to text or Docs |
+| Notes | folders, pinned notes, #tags, checklists, drawings, pictures, tables, Recently Deleted, export to text or Docs |
 | Reminders | lists with colors, due dates and times with alerts, priorities, flags, smart lists (Today, Scheduled, Flagged, All, Completed) |
-| TextEdit | plain text and code editor |
+| TextEdit | plain text and code editor; untitled text is kept as a draft if PatOS closes |
 | Calculator (basic and scientific), Clock (world clock, alarms, stopwatch, timer), Weather (live forecast, saved cities, 24-hour chart, air quality) | |
-| Music | songs composed live by your computer, a 3D visualizer, your own MP3s, shuffle and repeat, and your device's media controls (Chromebook media keys, iPhone lock screen) |
+| Music | your own songs with playlists, a queue and album art, songs composed live by your computer, a visualizer, and your device's media controls (Chromebook media keys, iPhone lock screen) |
 | Photos | albums, favorites, slideshow, and an editor with filters, brightness, contrast, color, warmth, vignette, crop and rotate |
 | Paint, Photo Booth | |
 | Terminal | pipes (`|`), `&&`, `>` redirects; `ls -l`, `grep`, `wc`, `head`, `tail`, `sort`, `find`, `curl`, `ping`, `weather`, `todo`, `neofetch`, `matrix` and more |
 | Galaxy | 3D galaxy generator (three.js) |
 | Orb Runner | original 3D neon runner game (three.js) |
 | 3D Studio | build a 3D scene with shapes and materials (three.js) |
-| Messages | chat with Pat, the built-in assistant (opens apps, does math, adds reminders and notes, tells jokes) |
+| Messages | type commands to Pat: open apps, do math, add reminders and notes, tell a joke. Pat is a command helper with a fixed list of commands, not an AI |
+| Passwords | encrypted password list (a device key, or your master password), strength check, generator, leak check, CSV import/export. Copy a login into a site; PatOS never saves or fills passwords on its own |
 | App Store | browse every app, open it, add it to the Dock, hide or show it |
 | Code Studio | HTML/CSS/JS editor with live preview and a console |
 | Piano, Flashcards, Typing Trainer, Voice Memos, Stickies, Dictionary | |
 | Contacts | address book with photos, favorites, birthdays and vCard import/export |
 | Freeform | endless whiteboard: drawing, sticky notes, text, shapes, pictures, several boards |
-| Preview | opens PDFs and pictures |
+| Preview | reads PDFs and pictures; highlight, draw, add text and export the annotated PDF |
+| Scanner | take a photo of a page, straighten it, clean it up and save it as a PDF |
+| Games | 2048, Snake, Minesweeper, Breakout, Connect Four and Memory, all offline |
 | Chess | full rules against the computer (3 levels) or a friend |
 | Screenshot | real screen pictures and screen recordings (on computers) |
 | Tic-Tac-Toe, Maps, System Settings, Activity Monitor | |
@@ -72,7 +75,7 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 | Drive | every document, spreadsheet, presentation and form in one place |
 | Forms | surveys and graded quizzes with a results view |
 | Translate | 20 languages (MyMemory, needs internet) with read-aloud |
-| Grapher | plot several functions (y = x², sin(x), ln(x)…), pan, zoom, trace values, save the graph as a picture |
+| Grapher | graphing calculator: functions, points, inequalities, polar curves, sliders, roots, highs and lows, crossing points, tables of values, save as a picture |
 | Elements | the full periodic table with details on all 118 elements, category filters and a molar mass calculator |
 | Focus | study timer (25/5/15) with your task, rain or noise sounds, a daily goal, streaks and a 7-day chart |
 | Journal | one page a day with your mood, a writing prompt, word count, streak and search |
@@ -106,9 +109,9 @@ Chromebooks reserve most Ctrl shortcuts, so PatOS uses **Alt**:
 **Locally:** open `index.html`, or run `npm start` and go to http://localhost:3000.
 
 **On Render (Web Service):**
-- Build Command: leave empty (or `npm install`)
-- Start Command: `npm start`
-- Environment variables: none needed. Render sets `PORT` itself. Optional: `GOOGLE_CX` (a Google Programmable Search ID) to give everyone Google's official search box in Patoogle.
+- Build Command: `yarn install; yarn build` (or `npm install && npm run build`)
+- Start Command: `yarn start` (or `npm start`)
+- Environment variables: none needed. Render sets `PORT` itself.
 
 YouTube, News and Books get their data through the PatOS server (`yt.js`, `services.js`), so they work on the website. The single-file and Claude Artifact versions have no server, so those apps ask you to open the website.
 
@@ -118,7 +121,17 @@ Once it's on a real website, Chrome can install it as an app (⋮ menu → Insta
 
 ## How it's built
 
-Plain HTML, CSS and JavaScript with no build step and no dependencies. three.js r160 is in `vendor/` so it loads even when school Wi-Fi blocks CDNs. Your files, notes and settings are saved in the browser's local storage (about 5 MB); System Settings › Storage can back them up to a file.
+Plain HTML, CSS and JavaScript with no npm dependencies. `build.js` only makes the single-file versions and the offline service worker. three.js r160, pdf.js and pdf-lib are in `vendor/` so they load even when school Wi-Fi blocks CDNs. Your files, notes and settings are saved in the browser's database (IndexedDB), which can hold gigabytes; System Settings › Storage can back them up to a file.
+
+## Security
+
+- Documents, notes, slides and pasted text are cleaned before they are shown, so a file can't run scripts inside PatOS.
+- Passwords are always encrypted. Without a master password the key belongs to this browser on this device (anyone using it can open them, so a master password is recommended). With one, the list stays locked until you type it, and locks again when PatOS locks or after 15 minutes without use.
+- The PatOS server only checks public websites for Patoogle (no private or local network addresses, re-checked after every redirect), and never serves its own source, tests or `node_modules`.
+
+## Tests
+
+`npm test` runs everything: server tests, then browser tests in Chromium through Playwright (file system, saving, every app in English, French and on an iPhone, file formats, offline start, crash recovery, timers, Spotlight, security). Browser tests are skipped when Playwright isn't installed. See `test/README.md`.
 
 ```
 index.html          the page

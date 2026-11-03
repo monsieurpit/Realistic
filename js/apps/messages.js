@@ -1,4 +1,6 @@
-/* Messages — chat with Pat, the built-in assistant */
+/* Messages — chat with Pat, a command helper built into PatOS.
+   Pat is not an AI: it recognizes a fixed list of commands (open an app, math, reminders, notes,
+   time and date, a few settings) and answers from that list. Everything runs on the device. */
 (function () {
   'use strict';
   const { h } = PatOS;
@@ -53,7 +55,7 @@
     if (/wallpaper/.test(l)) { const all = [...Object.keys(PatOS.wallpaper.live), ...Object.keys(PatOS.wallpaper.palettes)]; const next = all[(all.indexOf(PatOS.settings.wallpaper) + 1) % all.length]; PatOS.setSetting('wallpaper', next); return L('New wallpaper: ', 'Nouveau fond d’écran : ') + PatOS.t((PatOS.wallpaper.live[next] || PatOS.wallpaper.palettes[next]).name) + '.'; }
     if (/play (some )?music|play a song/.test(l)) { PatOS.launch('music'); setTimeout(() => PatOS.music && !PatOS.music.nowPlaying() && PatOS.music.toggle(), 600); return L('Putting on a song.', 'Je mets une chanson.'); }
     if (/weather/.test(l)) { setTimeout(() => PatOS.launch('weather'), 400); return L('Here’s the weather.', 'Voici la météo.'); }
-    if (/who are you|your name/.test(l)) return L('I’m Pat. I live inside PatOS on your device, so I work even without internet.', 'Moi c’est Pat. Je vis dans PatOS sur ton appareil, alors je marche même sans Internet.');
+    if (/who are you|your name/.test(l)) return L('I’m Pat, a command helper. I’m not an AI: I understand a fixed list of commands (type "help" to see them), and I run on your device, so I work without internet.', 'Moi c’est Pat, un assistant à commandes. Je ne suis pas une IA : je comprends une liste fixe de commandes (écris « aide » pour la voir), et je fonctionne sur ton appareil, même sans Internet.');
     if (/thank/.test(l)) return L('Anytime.', 'Avec plaisir.');
     if (/how are you/.test(l)) return L('Pretty good, thanks. How about you?', 'Ça va bien, merci. Et toi?');
     const expr = t.replace(/[x×]/g, '*').replace(/÷/g, '/').replace(/what is|what's|calculate|=|\?/gi, '').replace(/,/g, '.').trim();
@@ -65,11 +67,11 @@
   PatOS.assistantReply = reply;
 
   PatOS.registerApp({
-    id: 'messages', name: 'Messages', icon: 'messages', width: 760, height: 560, keywords: 'chat assistant bot pat siri ai text',
-    about: 'Chat with Pat, the assistant built into PatOS.',
+    id: 'messages', name: 'Messages', icon: 'messages', width: 760, height: 560, keywords: 'chat assistant bot pat commands text',
+    about: 'Type commands to Pat: open apps, do math, add reminders and notes. Pat follows a fixed list of commands, it is not an AI.',
     launch(win) {
       let log = PatOS.store.get('chatLog', null) || [{ from: 'pat', text: PatOS.lang === 'fr' ? `Salut ${PatOS.settings.userName}, moi c’est Pat. Demande-moi d’ouvrir une app, de faire un calcul ou d’ajouter un rappel. Écris « aide » si tu veux la liste.` : `Hi ${PatOS.settings.userName}, I’m Pat. Ask me to open an app, do some math or add a reminder. Type "help" if you want the list.`, t: Date.now() }];
-      const side = h('div', { class: 'msg-side' }, h('div', { class: 'msg-conv on' }, h('div', { class: 'msg-av' }, 'P'), h('div', {}, h('b', {}, 'Pat'), h('small', {}, 'PatOS Assistant'))));
+      const side = h('div', { class: 'msg-side' }, h('div', { class: 'msg-conv on' }, h('div', { class: 'msg-av' }, 'P'), h('div', {}, h('b', {}, 'Pat'), h('small', {}, 'Command helper'))));
       const list = h('div', { class: 'msg-list' });
       const input = h('input', { class: 'msg-in', placeholder: 'iMessage', spellcheck: 'true' });
       const send = h('button', { class: 'msg-send', 'aria-label': 'Send' }, '↑');
