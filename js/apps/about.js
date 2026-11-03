@@ -3,12 +3,12 @@
   'use strict';
   const { h } = PatOS;
   PatOS.registerApp({
-    id: 'about', name: 'About PatOS', icon: 'about', width: 520, height: 400, resizable: false, category: 'Utilities', keywords: 'info version system',
+    needs3D: true, id: 'about', name: 'About PatOS', icon: 'about', width: 520, height: 400, resizable: false, category: 'Utilities', keywords: 'info version system',
     launch(win) {
       const canvas = h('canvas', { class: 'ab-canvas', width: 200, height: 200 });
       const ua = navigator.userAgent;
       const info = [['Version', 'PatOS ' + PatOS.version + ' “Nebula”'], ['Device', ua.includes('CrOS') ? 'Chromebook' : (navigator.platform || 'Computer')], ['Browser', (ua.match(/(Chrome|Firefox|Safari|Edg)\/[\d]+/) || ['Web browser'])[0].replace('/', ' ')],
-        ['Graphics', PatOS.has3D ? 'WebGL · three.js r' + THREE.REVISION : 'No WebGL'], ['Display', screen.width + ' × ' + screen.height], ['Apps', PatOS.appOrder.length + ' installed'], ['Storage', PatOS.fmtBytes(PatOS.store.usage()) + ' used']];
+        ['Graphics', PatOS.has3D ? 'WebGL · three.js r' + THREE.REVISION : PatOS.webgl ? 'WebGL' : 'No WebGL'], ['Display', screen.width + ' × ' + screen.height], ['Apps', PatOS.appOrder.length + ' installed'], ['Storage', PatOS.fmtBytes(PatOS.store.usage()) + ' used']];
       win.body.appendChild(h('div', { class: 'ab' }, canvas, h('div', { class: 'ab-info' }, h('h1', {}, 'PatOS'), h('div', { class: 'ab-ver' }, 'Version ' + PatOS.version),
         ...info.map(([k, v]) => h('div', { class: 'ab-row' }, h('span', {}, k), h('b', {}, v))),
         h('div', { class: 'ab-btns' }, h('button', { class: 'btn', onclick: () => PatOS.launch('settings') }, 'System Settings…'), h('button', { class: 'btn', onclick: () => PatOS.launch('activity') }, 'Activity…')),
@@ -24,7 +24,7 @@
       const l1 = new THREE.PointLight(0x7d5cff, 60, 20); l1.position.set(-3, 2, 4); scene.add(l1);
       const l2 = new THREE.PointLight(0xff4fa0, 60, 20); l2.position.set(3, -2, 4); scene.add(l2);
       scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-      let raf; const loop = () => { raf = requestAnimationFrame(loop); mesh.rotation.y += 0.015; mesh.rotation.x = Math.sin(Date.now() / 1200) * 0.2; r.render(scene, cam); };
+      let raf; const loop = () => { raf = requestAnimationFrame(loop); mesh.rotation.y += 0.015; mesh.rotation.x = Math.sin(Date.now() / 1200) * 0.2; r.paced(scene, cam); };
       loop(); win.on('closed', () => { cancelAnimationFrame(raf); r.dispose(); geo.dispose(); });
     }
   });

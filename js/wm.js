@@ -122,10 +122,17 @@
     focusWindow(win);
     openAnim(win);
 
-    try { app.launch(win, win.args); } catch (e) {
-      console.error(e);
-      body.innerHTML = '<div class="app-error">This app ran into a problem.<br><small>' + PatOS.esc(e.message) + '</small></div>';
-    }
+    const run = () => {
+      try { app.launch(win, win.args); } catch (e) {
+        console.error(e);
+        body.innerHTML = '<div class="app-error">This app ran into a problem.<br><small>' + PatOS.esc(e.message) + '</small></div>';
+      }
+    };
+    // 3D apps wait for three.js, which PatOS only loads when it is needed
+    if (app.needs3D && !window.THREE && PatOS.webgl) {
+      const wait = document.createElement('div'); wait.className = 'app-loading'; wait.innerHTML = '<div class="spinner"></div>'; body.appendChild(wait);
+      PatOS.load3D().then(() => { wait.remove(); if (wins.includes(win)) run(); });
+    } else run();
     const ro = new ResizeObserver(() => win.emit('resize', win.rect()));
     ro.observe(body);
     win.on('closed', () => ro.disconnect());

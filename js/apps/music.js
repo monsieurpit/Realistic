@@ -482,7 +482,10 @@
         const stage = h('div', { class: 'mu-stage' }); const canvas = h('canvas', { class: 'mu-canvas' }); stage.appendChild(canvas);
         const card = h('div', { class: 'mu-nowcard' }, s && s.art ? h('img', { src: s.art, alt: '' }) : h('div', { class: 'mu-ph big', style: { background: s ? s.color : '#333' } }, '♫'), h('b', {}, s ? s.title : T('Not Playing')), h('small', {}, s ? s.artist : ''));
         main.append(stage, card);
-        if (!PatOS.has3D || vizStop) return;
+        if (vizStop) return;
+        if (!window.THREE) { if (PatOS.webgl) PatOS.load3D().then((ok) => { if (ok && stage.isConnected && !vizStop) build3D(); }); return; }
+        build3D();
+        function build3D() {
         const renderer = PatOS.makeRenderer(canvas);
         const scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x05010d, 0.035);
         const cam = new THREE.PerspectiveCamera(55, 1, 0.1, 200); cam.position.set(0, 6, 16); cam.lookAt(0, 0, 0);
@@ -504,10 +507,11 @@
           bars.forEach((b, i) => { const v = data[Math.floor((i < N / 2 ? i : N - i) * 2.5) + 2] / 255; b.scale.y = 0.15 + v * 7 + (E.playing ? 0 : Math.sin(t * 2 + i * 0.3) * 0.1 + 0.1); const c = new THREE.Color().setHSL((hue + i / N * 0.25) % 1, 0.85, 0.45 + v * 0.3); b.material.color.copy(c); b.material.emissive.copy(c).multiplyScalar(v * 0.8); });
           const p = sphere.geometry.attributes.position; for (let i = 0; i < p.count; i++) { const k = i * 3; const n = 1 + bass * 0.35 * Math.sin(i * 0.7 + t * 4) + (data[i % 64] / 255) * 0.18; p.array[k] = basePos[k] * n; p.array[k + 1] = basePos[k + 1] * n; p.array[k + 2] = basePos[k + 2] * n; } p.needsUpdate = true;
           sphere.rotation.y += 0.004 + bass * 0.03; sphere.rotation.x += 0.002; sphere.material.color.setHSL((hue + 0.5) % 1, 0.8, 0.6); group.rotation.y += 0.002; pl.color.setHSL(hue, 0.9, 0.6);
-          orb.update(); renderer.render(scene, cam);
+          orb.update(); renderer.paced(scene, cam);
         };
         loop();
         vizStop = () => { cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); };
+        }
       }
 
       win.on('closed', () => { E.listeners.delete(sync); clearInterval(ti); PatOS.off('setting:volume', onVol); if (vizStop) vizStop(); });

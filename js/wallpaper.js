@@ -84,8 +84,11 @@
     cancelAnimationFrame(three.raf);
     three.dispose && three.dispose();
     three.renderer.dispose();
+    // give the graphics memory back right away instead of waiting for the browser to clean up
+    try { three.renderer.forceContextLoss(); } catch (e) {}
     three = null;
-    $('#wallpaper3d').classList.remove('on');
+    // a canvas whose context was let go can't draw again, so the next start gets a fresh one
+    const old = $('#wallpaper3d'); if (old) { const fresh = old.cloneNode(false); fresh.classList.remove('on'); old.replaceWith(fresh); }
   }
   function start3D(id) {
     stop3D();
@@ -225,7 +228,8 @@
     resize(); window.addEventListener('resize', resize);
     canvas.classList.add('on');
     let last = performance.now(), t = 0, acc = 0;
-    const frameMs = low ? 1000 / 30 : 0;
+    // 30 frames a second on low quality, and on weaker devices with Balanced quality (saves battery)
+    const frameMs = low || (PatOS.settings.quality3d !== 'high' && PatOS.weakDevice) ? 1000 / 30 : 0;
     three = { renderer, raf: 0, paused: false };
     const loop = (now) => {
       three.raf = requestAnimationFrame(loop);
@@ -234,7 +238,8 @@
       if (frameMs) { acc += dt * 1000; if (acc < frameMs) return; acc = 0; }
       mouse.x += (mouse.tx - mouse.x) * 0.05; mouse.y += (mouse.ty - mouse.y) * 0.05;
       t += PatOS.settings.reduceMotion ? dt * 0.2 : dt;
-      update(t, dt); renderer.render(scene, camera);
+      if (!renderer.gpuReady()) return; // the graphics chip is still busy with the last frame
+      update(t, dt); renderer.paced(scene, camera);
     };
     three.raf = requestAnimationFrame(loop);
     three.dispose = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('resize', resize); disposables.forEach((d) => d.dispose()); };
@@ -253,23 +258,46 @@
       };
       img.src = PatOS.settings.customWallpaper; return;
     }
-    paint(c, LIVE[id] ? LIVE[id].fallback : id, Math.max(320, Math.round(innerWidth * scale)), Math.max(200, Math.round(innerHeight * scale)));
+    const src = LIVE[id] ? LIVE[id].fallback : id, w = Math.max(320, Math.round(innerWidth * scale)), hh = Math.max(200, Math.round(innerHeight * scale));
+    // the painting is the same every time for a given size, so the last one is kept and shown again
+    const key = src + '|' + w + 'x' + hh, saved = PatOS.store.get('wpCache', null);
+    if (saved && saved.key === key && saved.url) {
+      c.width = w; c.height = hh; const img = new Image(); const mine = ++drawN;
+      img.onload = () => { if (mine === drawN) c.getContext('2d').drawImage(img, 0, 0, w, hh); };
+      img.onerror = () => { if (mine === drawN) { PatOS.store.remove('wpCache'); paint(c, src, w, hh); } };
+      img.src = saved.url; return;
+    }
+    ++drawN; paint(c, src, w, hh);
+    const keep = () => { try { PatOS.store.set('wpCache', { key, url: c.toDataURL('image/jpeg', 0.88) }); } catch (e) {} };
+    if (window.requestIdleCallback) requestIdleCallback(keep, { timeout: 4000 }); else setTimeout(keep, 1500);
   }
+  let drawN = 0;
 
   function apply() {
     let id = PatOS.settings.wallpaper;
     if (!PALETTES[id] && !LIVE[id] && id !== 'custom') id = 'sonora';
     drawStatic(id);
-    if (LIVE[id] && PatOS.settings.live3d) { if (!start3D(id)) stop3D(); }
-    else stop3D();
+    if (LIVE[id] && PatOS.settings.live3d) {
+      if (window.THREE) { if (!start3D(id)) stop3D(); }
+      else if (PatOS.webgl) {
+        // the flat picture shows right away; three.js loads once PatOS has finished starting
+        stop3D(); const want = id;
+        const go = () => PatOS.load3D().then((ok) => { if (ok && PatOS.settings.wallpaper === want && PatOS.settings.live3d && !three) start3D(want); });
+        if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 2500 }); else setTimeout(go, 800);
+      }
+    } else stop3D();
     const lockBg = $('.lock-bg');
     if (lockBg) lockBg.style.backgroundImage = `url(${id === 'custom' && PatOS.settings.customWallpaper ? PatOS.settings.customWallpaper : thumbLarge(id)})`;
   }
   let lockCache = {};
   function thumbLarge(id) {
     if (lockCache[id]) return lockCache[id];
+    const saved = PatOS.store.get('wpLockCache', null);
+    if (saved && saved.id === id && saved.url) return (lockCache[id] = saved.url);
     const c = document.createElement('canvas'); paint(c, LIVE[id] ? LIVE[id].fallback : id, 640, 400);
-    return (lockCache[id] = c.toDataURL('image/jpeg', 0.8));
+    lockCache[id] = c.toDataURL('image/jpeg', 0.8);
+    PatOS.store.set('wpLockCache', { id, url: lockCache[id] });
+    return lockCache[id];
   }
 
   PatOS.wallpaper = {

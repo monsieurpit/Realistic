@@ -3131,6 +3131,9 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 .pw-warn { display: flex; align-items: center; gap: 10px; margin: 8px 10px; padding: 10px 12px; border-radius: 10px; background: rgba(255,159,10,.14); border: .5px solid rgba(255,159,10,.4); font-size: 12.5px; line-height: 1.4; }
 .pw-warn span { flex: 1; }
 .pw-warn .btn { flex: none; white-space: nowrap; }
+/* an app waiting for three.js */
+.app-loading { position: absolute; inset: 0; display: grid; place-items: center; }
+.app-loading .spinner { width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--hover2, rgba(127,127,127,.25)); border-top-color: var(--accent, #0a84ff); animation: spin .7s linear infinite; }
 
 </style>
   <style>
@@ -3411,7 +3414,7 @@ html.reduce-transparency.lg-on :is(#dock, .mh-dock, .menu, #control-center, .toa
 })();
 
 </script>
-  <script type="patos/js">
+  <script type="patos/3d">
 console.warn('Scripts "build/three.js" and "build/three.min.js" are deprecated with r150+, and will be removed with r160. Please use ES Modules or alternatives: https://threejs.org/docs/index.html#manual/en/introduction/Installation'),
 /**
  * @license
@@ -4117,19 +4120,59 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   };
 
   /* ---------- 3D helpers ---------- */
-  PatOS.has3D = (function () {
-    try { const c = document.createElement('canvas'); return !!(window.THREE && (c.getContext('webgl2') || c.getContext('webgl'))); } catch (e) { return false; }
+  /* three.js (670 KB) is only loaded when something 3D is about to show: a live wallpaper, Galaxy,
+     Orb Runner, 3D Studio, the Music visualizer. PatOS.webgl says whether the device can draw 3D at all;
+     PatOS.has3D says whether three.js is ready; PatOS.load3D() loads it once and resolves true or false. */
+  PatOS.webgl = (function () {
+    try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; }
+  })();
+  Object.defineProperty(PatOS, 'has3D', { get: () => PatOS.webgl && !!window.THREE });
+  let three3D = null;
+  PatOS.load3D = function () {
+    if (window.THREE) return Promise.resolve(PatOS.webgl);
+    if (!PatOS.webgl) return Promise.resolve(false);
+    if (three3D) return three3D;
+    three3D = new Promise((res) => {
+      const tag = document.querySelector('script[type="patos/3d"]');
+      const s = document.createElement('script');
+      const done = () => { if (!window.THREE) three3D = null; res(PatOS.has3D); };
+      if (tag && !tag.getAttribute('src')) { s.text = tag.textContent; document.head.appendChild(s); return setTimeout(done, 0); } // single-file PatOS: it is already inside
+      s.src = (tag && tag.getAttribute('src')) || 'vendor/three.min.js'; s.onload = done; s.onerror = done;
+      document.head.appendChild(s);
+    });
+    return three3D;
+  };
+  /* weaker devices (2-4 cores, little memory, phones) get lighter 3D when quality is "Balanced" */
+  PatOS.weakDevice = (function () {
+    const c = navigator.hardwareConcurrency || 4, m = navigator.deviceMemory || 8;
+    return c <= 4 || m <= 4;
   })();
   PatOS.pixelRatio = function () {
     const q = PatOS.settings.quality3d;
     const dpr = window.devicePixelRatio || 1;
     if (q === 'low') return Math.min(dpr, 1) * 0.75;
     if (q === 'high') return Math.min(dpr, 2);
-    return Math.min(dpr, 1.25);
+    return PatOS.weakDevice ? Math.min(dpr, 1) : Math.min(dpr, 1.25);
   };
   PatOS.makeRenderer = function (canvas, opts) {
     const r = new THREE.WebGLRenderer(Object.assign({ canvas, antialias: PatOS.settings.quality3d !== 'low', alpha: true, powerPreference: 'high-performance' }, opts || {}));
     r.setPixelRatio(PatOS.pixelRatio());
+    /* GPU pacing: animation loops call r.paced(scene, camera) instead of r.render. A new frame is only
+       drawn once the graphics chip has finished the last one (checked without waiting, with a WebGL2
+       fence), so a slow GPU gets fewer frames instead of a growing queue that makes everything lag. */
+    const gl = r.getContext(); const canFence = !!(gl && typeof gl.fenceSync === 'function');
+    let fence = null;
+    r.gpuReady = () => {
+      if (!fence) return true;
+      try { if (gl.isContextLost() || gl.getSyncParameter(fence, gl.SYNC_STATUS) === gl.SIGNALED) { gl.deleteSync(fence); fence = null; return true; } } catch (e) { fence = null; return true; }
+      return false;
+    };
+    r.paced = (scene, camera) => {
+      if (!r.gpuReady()) return false;
+      r.render(scene, camera);
+      if (canFence) { try { fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0); gl.flush(); } catch (e) { fence = null; } }
+      return true;
+    };
     return r;
   };
   /* simple drag-to-orbit camera controller used by 3D apps */
@@ -7155,10 +7198,17 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     focusWindow(win);
     openAnim(win);
 
-    try { app.launch(win, win.args); } catch (e) {
-      console.error(e);
-      body.innerHTML = '<div class="app-error">This app ran into a problem.<br><small>' + PatOS.esc(e.message) + '</small></div>';
-    }
+    const run = () => {
+      try { app.launch(win, win.args); } catch (e) {
+        console.error(e);
+        body.innerHTML = '<div class="app-error">This app ran into a problem.<br><small>' + PatOS.esc(e.message) + '</small></div>';
+      }
+    };
+    // 3D apps wait for three.js, which PatOS only loads when it is needed
+    if (app.needs3D && !window.THREE && PatOS.webgl) {
+      const wait = document.createElement('div'); wait.className = 'app-loading'; wait.innerHTML = '<div class="spinner"></div>'; body.appendChild(wait);
+      PatOS.load3D().then(() => { wait.remove(); if (wins.includes(win)) run(); });
+    } else run();
     const ro = new ResizeObserver(() => win.emit('resize', win.rect()));
     ro.observe(body);
     win.on('closed', () => ro.disconnect());
@@ -7494,8 +7544,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     cancelAnimationFrame(three.raf);
     three.dispose && three.dispose();
     three.renderer.dispose();
+    // give the graphics memory back right away instead of waiting for the browser to clean up
+    try { three.renderer.forceContextLoss(); } catch (e) {}
     three = null;
-    $('#wallpaper3d').classList.remove('on');
+    // a canvas whose context was let go can't draw again, so the next start gets a fresh one
+    const old = $('#wallpaper3d'); if (old) { const fresh = old.cloneNode(false); fresh.classList.remove('on'); old.replaceWith(fresh); }
   }
   function start3D(id) {
     stop3D();
@@ -7635,7 +7688,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     resize(); window.addEventListener('resize', resize);
     canvas.classList.add('on');
     let last = performance.now(), t = 0, acc = 0;
-    const frameMs = low ? 1000 / 30 : 0;
+    // 30 frames a second on low quality, and on weaker devices with Balanced quality (saves battery)
+    const frameMs = low || (PatOS.settings.quality3d !== 'high' && PatOS.weakDevice) ? 1000 / 30 : 0;
     three = { renderer, raf: 0, paused: false };
     const loop = (now) => {
       three.raf = requestAnimationFrame(loop);
@@ -7644,7 +7698,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       if (frameMs) { acc += dt * 1000; if (acc < frameMs) return; acc = 0; }
       mouse.x += (mouse.tx - mouse.x) * 0.05; mouse.y += (mouse.ty - mouse.y) * 0.05;
       t += PatOS.settings.reduceMotion ? dt * 0.2 : dt;
-      update(t, dt); renderer.render(scene, camera);
+      if (!renderer.gpuReady()) return; // the graphics chip is still busy with the last frame
+      update(t, dt); renderer.paced(scene, camera);
     };
     three.raf = requestAnimationFrame(loop);
     three.dispose = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('resize', resize); disposables.forEach((d) => d.dispose()); };
@@ -7663,23 +7718,46 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       };
       img.src = PatOS.settings.customWallpaper; return;
     }
-    paint(c, LIVE[id] ? LIVE[id].fallback : id, Math.max(320, Math.round(innerWidth * scale)), Math.max(200, Math.round(innerHeight * scale)));
+    const src = LIVE[id] ? LIVE[id].fallback : id, w = Math.max(320, Math.round(innerWidth * scale)), hh = Math.max(200, Math.round(innerHeight * scale));
+    // the painting is the same every time for a given size, so the last one is kept and shown again
+    const key = src + '|' + w + 'x' + hh, saved = PatOS.store.get('wpCache', null);
+    if (saved && saved.key === key && saved.url) {
+      c.width = w; c.height = hh; const img = new Image(); const mine = ++drawN;
+      img.onload = () => { if (mine === drawN) c.getContext('2d').drawImage(img, 0, 0, w, hh); };
+      img.onerror = () => { if (mine === drawN) { PatOS.store.remove('wpCache'); paint(c, src, w, hh); } };
+      img.src = saved.url; return;
+    }
+    ++drawN; paint(c, src, w, hh);
+    const keep = () => { try { PatOS.store.set('wpCache', { key, url: c.toDataURL('image/jpeg', 0.88) }); } catch (e) {} };
+    if (window.requestIdleCallback) requestIdleCallback(keep, { timeout: 4000 }); else setTimeout(keep, 1500);
   }
+  let drawN = 0;
 
   function apply() {
     let id = PatOS.settings.wallpaper;
     if (!PALETTES[id] && !LIVE[id] && id !== 'custom') id = 'sonora';
     drawStatic(id);
-    if (LIVE[id] && PatOS.settings.live3d) { if (!start3D(id)) stop3D(); }
-    else stop3D();
+    if (LIVE[id] && PatOS.settings.live3d) {
+      if (window.THREE) { if (!start3D(id)) stop3D(); }
+      else if (PatOS.webgl) {
+        // the flat picture shows right away; three.js loads once PatOS has finished starting
+        stop3D(); const want = id;
+        const go = () => PatOS.load3D().then((ok) => { if (ok && PatOS.settings.wallpaper === want && PatOS.settings.live3d && !three) start3D(want); });
+        if (window.requestIdleCallback) requestIdleCallback(go, { timeout: 2500 }); else setTimeout(go, 800);
+      }
+    } else stop3D();
     const lockBg = $('.lock-bg');
     if (lockBg) lockBg.style.backgroundImage = `url(${id === 'custom' && PatOS.settings.customWallpaper ? PatOS.settings.customWallpaper : thumbLarge(id)})`;
   }
   let lockCache = {};
   function thumbLarge(id) {
     if (lockCache[id]) return lockCache[id];
+    const saved = PatOS.store.get('wpLockCache', null);
+    if (saved && saved.id === id && saved.url) return (lockCache[id] = saved.url);
     const c = document.createElement('canvas'); paint(c, LIVE[id] ? LIVE[id].fallback : id, 640, 400);
-    return (lockCache[id] = c.toDataURL('image/jpeg', 0.8));
+    lockCache[id] = c.toDataURL('image/jpeg', 0.8);
+    PatOS.store.set('wpLockCache', { id, url: lockCache[id] });
+    return lockCache[id];
   }
 
   PatOS.wallpaper = {
@@ -12285,7 +12363,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
             `<span class="ty">Shell</span>: patsh 1.0`,
             `<span class="ty">Resolution</span>: ${screen.width}x${screen.height}`,
             `<span class="ty">Theme</span>: ${PatOS.settings.theme}`,
-            `<span class="ty">GPU</span>: ${PatOS.has3D ? 'WebGL (three.js r' + THREE.REVISION + ')' : 'none'}`,
+            `<span class="ty">GPU</span>: ${PatOS.has3D ? 'WebGL (three.js r' + THREE.REVISION + ')' : PatOS.webgl ? 'WebGL' : 'none'}`,
             `<span class="ty">CPU</span>: ${navigator.hardwareConcurrency || '?'} cores`,
             `<span class="ty">Memory</span>: ${navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'unknown'}`,
             `<span class="ty">Apps</span>: ${PatOS.appOrder.length}`,
@@ -13418,7 +13496,10 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         const stage = h('div', { class: 'mu-stage' }); const canvas = h('canvas', { class: 'mu-canvas' }); stage.appendChild(canvas);
         const card = h('div', { class: 'mu-nowcard' }, s && s.art ? h('img', { src: s.art, alt: '' }) : h('div', { class: 'mu-ph big', style: { background: s ? s.color : '#333' } }, '♫'), h('b', {}, s ? s.title : T('Not Playing')), h('small', {}, s ? s.artist : ''));
         main.append(stage, card);
-        if (!PatOS.has3D || vizStop) return;
+        if (vizStop) return;
+        if (!window.THREE) { if (PatOS.webgl) PatOS.load3D().then((ok) => { if (ok && stage.isConnected && !vizStop) build3D(); }); return; }
+        build3D();
+        function build3D() {
         const renderer = PatOS.makeRenderer(canvas);
         const scene = new THREE.Scene(); scene.fog = new THREE.FogExp2(0x05010d, 0.035);
         const cam = new THREE.PerspectiveCamera(55, 1, 0.1, 200); cam.position.set(0, 6, 16); cam.lookAt(0, 0, 0);
@@ -13440,10 +13521,11 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           bars.forEach((b, i) => { const v = data[Math.floor((i < N / 2 ? i : N - i) * 2.5) + 2] / 255; b.scale.y = 0.15 + v * 7 + (E.playing ? 0 : Math.sin(t * 2 + i * 0.3) * 0.1 + 0.1); const c = new THREE.Color().setHSL((hue + i / N * 0.25) % 1, 0.85, 0.45 + v * 0.3); b.material.color.copy(c); b.material.emissive.copy(c).multiplyScalar(v * 0.8); });
           const p = sphere.geometry.attributes.position; for (let i = 0; i < p.count; i++) { const k = i * 3; const n = 1 + bass * 0.35 * Math.sin(i * 0.7 + t * 4) + (data[i % 64] / 255) * 0.18; p.array[k] = basePos[k] * n; p.array[k + 1] = basePos[k + 1] * n; p.array[k + 2] = basePos[k + 2] * n; } p.needsUpdate = true;
           sphere.rotation.y += 0.004 + bass * 0.03; sphere.rotation.x += 0.002; sphere.material.color.setHSL((hue + 0.5) % 1, 0.8, 0.6); group.rotation.y += 0.002; pl.color.setHSL(hue, 0.9, 0.6);
-          orb.update(); renderer.render(scene, cam);
+          orb.update(); renderer.paced(scene, cam);
         };
         loop();
         vizStop = () => { cancelAnimationFrame(raf); ro.disconnect(); renderer.dispose(); };
+        }
       }
 
       win.on('closed', () => { E.listeners.delete(sync); clearInterval(ti); PatOS.off('setting:volume', onVol); if (vizStop) vizStop(); });
@@ -13965,7 +14047,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           const grid = (ids, src) => { const g = h('div', { class: 'st-wps' }); ids.forEach((id) => { const b = h('button', { class: 'st-wp' + (S().wallpaper === id ? ' on' : '') }, h('img', { src: PatOS.wallpaper.thumb(id), alt: '' }), h('span', {}, src[id].name + (src[id].live ? ' ✦' : ''))); b.onclick = () => { PatOS.setSetting('wallpaper', id); if (src[id].live && !S().live3d) PatOS.setSetting('live3d', true); render(); }; g.appendChild(b); }); return g; };
           const upload = h('button', { class: 'btn', onclick: () => { const i = h('input', { type: 'file', accept: 'image/*' }); i.onchange = () => { const f = i.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { const img = new Image(); img.onload = () => { const c = document.createElement('canvas'); const s = Math.min(1, 1920 / img.width); c.width = img.width * s; c.height = img.height * s; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); PatOS.setSetting('customWallpaper', c.toDataURL('image/jpeg', 0.82)); PatOS.setSetting('wallpaper', 'custom'); render(); }; img.src = r.result; }; r.readAsDataURL(f); }; i.click(); } }, 'Choose a Photo…');
           return [h('h3', {}, 'Live 3D Wallpapers'), h('p', { class: 'st-note' }, 'Animated with three.js. They react to your mouse!'), grid(Object.keys(PatOS.wallpaper.live), PatOS.wallpaper.live),
-            group(row('Animate 3D wallpaper', toggle('live3d'), PatOS.has3D ? 'Turn off to save battery' : 'WebGL is not available on this device')),
+            group(row('Animate 3D wallpaper', toggle('live3d'), PatOS.webgl ? 'Turn off to save battery' : 'WebGL is not available on this device')),
             h('h3', {}, 'Pictures'), grid(Object.keys(PatOS.wallpaper.palettes), PatOS.wallpaper.palettes), group(row('Your own picture', upload))];
         },
         dock() {
@@ -14217,7 +14299,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
   'use strict';
   const { h } = PatOS;
   PatOS.registerApp({
-    id: 'galaxy', name: 'Galaxy', icon: 'galaxy', width: 960, height: 620, dark: true, category: '3D & Games', keywords: '3d space stars three',
+    needs3D: true, id: 'galaxy', name: 'Galaxy', icon: 'galaxy', width: 960, height: 620, dark: true, category: '3D & Games', keywords: '3d space stars three',
     launch(win) {
       win.el.classList.add('has-toolbar');
       const canvas = h('canvas', { class: 'g3d' });
@@ -14299,7 +14381,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           nv.pts.geometry.attributes.position.needsUpdate = true; nv.life -= dt * 0.4; nv.pts.material.opacity = Math.max(0, nv.life);
           if (nv.life <= 0) { scene.remove(nv.pts); nv.pts.geometry.dispose(); nv.pts.material.dispose(); novas.splice(i, 1); }
         }
-        orb.update(); renderer.render(scene, cam);
+        orb.update(); renderer.paced(scene, cam);
       };
       build(); render(); resize(); loop();
       win.on('closed', () => { cancelAnimationFrame(raf); geo && geo.dispose(); renderer.dispose(); });
@@ -14314,7 +14396,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
   'use strict';
   const { h } = PatOS;
   PatOS.registerApp({
-    id: 'orbrunner', name: 'Orb Runner', icon: 'orbrunner', width: 900, height: 600, dark: true, category: '3D & Games', keywords: 'game 3d play racing runner',
+    needs3D: true, id: 'orbrunner', name: 'Orb Runner', icon: 'orbrunner', width: 900, height: 600, dark: true, category: '3D & Games', keywords: 'game 3d play racing runner',
     launch(win) {
       const canvas = h('canvas', { class: 'g3d' });
       const hud = h('div', { class: 'or-hud' });
@@ -14446,7 +14528,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         cam.lookAt(S.x * 0.3, 1, -10);
         cam.fov = 65 + (S.speed - 18) * 0.4; cam.updateProjectionMatrix();
         hud.innerHTML = playing || S.state === 'pause' ? `<b>${S.score}</b><span>${PatOS.sym('gem')} ${S.gems}</span><span>${PatOS.sym('bolt')} ${Math.round(S.speed * 3.6)} km/h</span>` : '';
-        renderer.render(scene, cam);
+        renderer.paced(scene, cam);
       };
       resize(); showOverlay('menu'); loop();
       setTimeout(() => stage.focus(), 100);
@@ -14462,7 +14544,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
   'use strict';
   const { h } = PatOS;
   PatOS.registerApp({
-    id: 'studio', name: '3D Studio', icon: 'studio', width: 980, height: 620, dark: true, category: '3D & Games', keywords: '3d model shapes three editor',
+    needs3D: true, id: 'studio', name: '3D Studio', icon: 'studio', width: 980, height: 620, dark: true, category: '3D & Games', keywords: '3d model shapes three editor',
     launch(win) {
       win.el.classList.add('has-toolbar');
       const canvas = h('canvas', { class: 'g3d' });
@@ -14536,7 +14618,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         raf = requestAnimationFrame(loop); if (win.minimized || document.hidden) return; t += 0.016;
         objects.forEach((o) => { if (o.userData.spin) { o.rotation.y += 0.02; o.rotation.x += 0.01; } });
         if (sel) outline.setFromObject(sel);
-        orb.update(); renderer.render(scene, cam);
+        orb.update(); renderer.paced(scene, cam);
       };
       resize(); loop();
       win.on('closed', () => { cancelAnimationFrame(raf); renderer.dispose(); });
@@ -20528,12 +20610,12 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
   'use strict';
   const { h } = PatOS;
   PatOS.registerApp({
-    id: 'about', name: 'About PatOS', icon: 'about', width: 520, height: 400, resizable: false, category: 'Utilities', keywords: 'info version system',
+    needs3D: true, id: 'about', name: 'About PatOS', icon: 'about', width: 520, height: 400, resizable: false, category: 'Utilities', keywords: 'info version system',
     launch(win) {
       const canvas = h('canvas', { class: 'ab-canvas', width: 200, height: 200 });
       const ua = navigator.userAgent;
       const info = [['Version', 'PatOS ' + PatOS.version + ' “Nebula”'], ['Device', ua.includes('CrOS') ? 'Chromebook' : (navigator.platform || 'Computer')], ['Browser', (ua.match(/(Chrome|Firefox|Safari|Edg)\/[\d]+/) || ['Web browser'])[0].replace('/', ' ')],
-        ['Graphics', PatOS.has3D ? 'WebGL · three.js r' + THREE.REVISION : 'No WebGL'], ['Display', screen.width + ' × ' + screen.height], ['Apps', PatOS.appOrder.length + ' installed'], ['Storage', PatOS.fmtBytes(PatOS.store.usage()) + ' used']];
+        ['Graphics', PatOS.has3D ? 'WebGL · three.js r' + THREE.REVISION : PatOS.webgl ? 'WebGL' : 'No WebGL'], ['Display', screen.width + ' × ' + screen.height], ['Apps', PatOS.appOrder.length + ' installed'], ['Storage', PatOS.fmtBytes(PatOS.store.usage()) + ' used']];
       win.body.appendChild(h('div', { class: 'ab' }, canvas, h('div', { class: 'ab-info' }, h('h1', {}, 'PatOS'), h('div', { class: 'ab-ver' }, 'Version ' + PatOS.version),
         ...info.map(([k, v]) => h('div', { class: 'ab-row' }, h('span', {}, k), h('b', {}, v))),
         h('div', { class: 'ab-btns' }, h('button', { class: 'btn', onclick: () => PatOS.launch('settings') }, 'System Settings…'), h('button', { class: 'btn', onclick: () => PatOS.launch('activity') }, 'Activity…')),
@@ -20549,7 +20631,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       const l1 = new THREE.PointLight(0x7d5cff, 60, 20); l1.position.set(-3, 2, 4); scene.add(l1);
       const l2 = new THREE.PointLight(0xff4fa0, 60, 20); l2.position.set(3, -2, 4); scene.add(l2);
       scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-      let raf; const loop = () => { raf = requestAnimationFrame(loop); mesh.rotation.y += 0.015; mesh.rotation.x = Math.sin(Date.now() / 1200) * 0.2; r.render(scene, cam); };
+      let raf; const loop = () => { raf = requestAnimationFrame(loop); mesh.rotation.y += 0.015; mesh.rotation.x = Math.sin(Date.now() / 1200) * 0.2; r.paced(scene, cam); };
       loop(); win.on('closed', () => { cancelAnimationFrame(raf); r.dispose(); geo.dispose(); });
     }
   });
@@ -20633,7 +20715,8 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
 
   /* particle intro: dots fly in and form the P logo */
   function bootParticles() {
-    const holder = $('.boot-logo'); if (!holder || PatOS.settings.reduceMotion) return;
+    // returning users only see the boot screen for a moment, so they get the plain logo
+    const holder = $('.boot-logo'); if (!holder || PatOS.settings.reduceMotion || PatOS.store.get('seenWelcome', false)) return;
     const S = 150, dpr = Math.min(2, window.devicePixelRatio || 1);
     const c = h('canvas', { class: 'boot-canvas' }); c.width = c.height = S * dpr; holder.innerHTML = ''; holder.appendChild(c);
     const off = document.createElement('canvas'); off.width = off.height = S; const o = off.getContext('2d');
@@ -20658,19 +20741,19 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
   }
   const { h } = PatOS;
 
+  /* The bar follows real work: by now every script and the saved data are loaded, so it waits only
+     for the fonts and the first frame of the wallpaper. Returning users see it for under half a second;
+     the first start keeps a little more time for the intro. */
   function boot() {
     bootParticles();
-    const fill = $('.boot-fill'); let p = 0;
-    const fast = PatOS.store.get('seenWelcome', false);
-    const step = () => {
-      p += (fast ? 9 : 4) + Math.random() * (fast ? 14 : 9);
-      fill.style.width = Math.min(100, p) + '%';
-      if (p < 100) setTimeout(step, 60 + Math.random() * 120);
-      else setTimeout(showLock, 350);
-    };
-    setTimeout(step, fast ? 700 : 1300);
+    const fill = $('.boot-fill');
+    const minMs = PatOS.store.get('seenWelcome', false) ? 400 : 1500, t0 = performance.now();
+    fill.style.width = '35%';
+    const fonts = document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]) : Promise.resolve();
+    fonts.then(() => { fill.style.width = '75%'; return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))); })
+      .catch(() => {})
+      .then(() => setTimeout(() => { fill.style.width = '100%'; setTimeout(showLock, 250); }, Math.max(0, minMs - (performance.now() - t0))));
   }
-
   PatOS.boot = { showLock, login };
 
   (document.readyState === 'loading' ? (fn) => document.addEventListener('DOMContentLoaded', fn) : (fn) => fn())(() => {

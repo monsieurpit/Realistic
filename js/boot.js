@@ -74,7 +74,8 @@
 
   /* particle intro: dots fly in and form the P logo */
   function bootParticles() {
-    const holder = $('.boot-logo'); if (!holder || PatOS.settings.reduceMotion) return;
+    // returning users only see the boot screen for a moment, so they get the plain logo
+    const holder = $('.boot-logo'); if (!holder || PatOS.settings.reduceMotion || PatOS.store.get('seenWelcome', false)) return;
     const S = 150, dpr = Math.min(2, window.devicePixelRatio || 1);
     const c = h('canvas', { class: 'boot-canvas' }); c.width = c.height = S * dpr; holder.innerHTML = ''; holder.appendChild(c);
     const off = document.createElement('canvas'); off.width = off.height = S; const o = off.getContext('2d');
@@ -99,19 +100,19 @@
   }
   const { h } = PatOS;
 
+  /* The bar follows real work: by now every script and the saved data are loaded, so it waits only
+     for the fonts and the first frame of the wallpaper. Returning users see it for under half a second;
+     the first start keeps a little more time for the intro. */
   function boot() {
     bootParticles();
-    const fill = $('.boot-fill'); let p = 0;
-    const fast = PatOS.store.get('seenWelcome', false);
-    const step = () => {
-      p += (fast ? 9 : 4) + Math.random() * (fast ? 14 : 9);
-      fill.style.width = Math.min(100, p) + '%';
-      if (p < 100) setTimeout(step, 60 + Math.random() * 120);
-      else setTimeout(showLock, 350);
-    };
-    setTimeout(step, fast ? 700 : 1300);
+    const fill = $('.boot-fill');
+    const minMs = PatOS.store.get('seenWelcome', false) ? 400 : 1500, t0 = performance.now();
+    fill.style.width = '35%';
+    const fonts = document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]) : Promise.resolve();
+    fonts.then(() => { fill.style.width = '75%'; return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))); })
+      .catch(() => {})
+      .then(() => setTimeout(() => { fill.style.width = '100%'; setTimeout(showLock, 250); }, Math.max(0, minMs - (performance.now() - t0))));
   }
-
   PatOS.boot = { showLock, login };
 
   (document.readyState === 'loading' ? (fn) => document.addEventListener('DOMContentLoaded', fn) : (fn) => fn())(() => {

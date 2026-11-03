@@ -121,7 +121,7 @@ Once it's on a real website, Chrome can install it as an app (⋮ menu → Insta
 
 ## How it's built
 
-Plain HTML, CSS and JavaScript with no npm dependencies. `build.js` only makes the single-file versions and the offline service worker. three.js r160, pdf.js and pdf-lib are in `vendor/` so they load even when school Wi-Fi blocks CDNs. Your files, notes and settings are saved in the browser's database (IndexedDB), which can hold gigabytes; System Settings › Storage can back them up to a file.
+Plain HTML, CSS and JavaScript with no npm dependencies. `build.js` only makes the single-file versions and the offline service worker. three.js r160, pdf.js and pdf-lib are in `vendor/` so they load even when school Wi-Fi blocks CDNs. three.js is only loaded when something 3D is about to show (a live wallpaper or a 3D app), and every 3D animation waits for the graphics chip to finish a frame before drawing the next, so slower Chromebooks get fewer frames instead of lag. Your files, notes and settings are saved in the browser's database (IndexedDB), which can hold gigabytes; System Settings › Storage can back them up to a file.
 
 ## Security
 

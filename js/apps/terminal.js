@@ -103,7 +103,7 @@
             `<span class="ty">Shell</span>: patsh 1.0`,
             `<span class="ty">Resolution</span>: ${screen.width}x${screen.height}`,
             `<span class="ty">Theme</span>: ${PatOS.settings.theme}`,
-            `<span class="ty">GPU</span>: ${PatOS.has3D ? 'WebGL (three.js r' + THREE.REVISION + ')' : 'none'}`,
+            `<span class="ty">GPU</span>: ${PatOS.has3D ? 'WebGL (three.js r' + THREE.REVISION + ')' : PatOS.webgl ? 'WebGL' : 'none'}`,
             `<span class="ty">CPU</span>: ${navigator.hardwareConcurrency || '?'} cores`,
             `<span class="ty">Memory</span>: ${navigator.deviceMemory ? navigator.deviceMemory + ' GB' : 'unknown'}`,
             `<span class="ty">Apps</span>: ${PatOS.appOrder.length}`,

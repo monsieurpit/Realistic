@@ -3,7 +3,7 @@
   'use strict';
   const { h } = PatOS;
   PatOS.registerApp({
-    id: 'studio', name: '3D Studio', icon: 'studio', width: 980, height: 620, dark: true, category: '3D & Games', keywords: '3d model shapes three editor',
+    needs3D: true, id: 'studio', name: '3D Studio', icon: 'studio', width: 980, height: 620, dark: true, category: '3D & Games', keywords: '3d model shapes three editor',
     launch(win) {
       win.el.classList.add('has-toolbar');
       const canvas = h('canvas', { class: 'g3d' });
@@ -77,7 +77,7 @@
         raf = requestAnimationFrame(loop); if (win.minimized || document.hidden) return; t += 0.016;
         objects.forEach((o) => { if (o.userData.spin) { o.rotation.y += 0.02; o.rotation.x += 0.01; } });
         if (sel) outline.setFromObject(sel);
-        orb.update(); renderer.render(scene, cam);
+        orb.update(); renderer.paced(scene, cam);
       };
       resize(); loop();
       win.on('closed', () => { cancelAnimationFrame(raf); renderer.dispose(); });

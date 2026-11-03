@@ -884,3 +884,6 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 .pw-warn { display: flex; align-items: center; gap: 10px; margin: 8px 10px; padding: 10px 12px; border-radius: 10px; background: rgba(255,159,10,.14); border: .5px solid rgba(255,159,10,.4); font-size: 12.5px; line-height: 1.4; }
 .pw-warn span { flex: 1; }
 .pw-warn .btn { flex: none; white-space: nowrap; }
+/* an app waiting for three.js */
+.app-loading { position: absolute; inset: 0; display: grid; place-items: center; }
+.app-loading .spinner { width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--hover2, rgba(127,127,127,.25)); border-top-color: var(--accent, #0a84ff); animation: spin .7s linear infinite; }

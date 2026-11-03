@@ -3,7 +3,7 @@
   'use strict';
   const { h } = PatOS;
   PatOS.registerApp({
-    id: 'orbrunner', name: 'Orb Runner', icon: 'orbrunner', width: 900, height: 600, dark: true, category: '3D & Games', keywords: 'game 3d play racing runner',
+    needs3D: true, id: 'orbrunner', name: 'Orb Runner', icon: 'orbrunner', width: 900, height: 600, dark: true, category: '3D & Games', keywords: 'game 3d play racing runner',
     launch(win) {
       const canvas = h('canvas', { class: 'g3d' });
       const hud = h('div', { class: 'or-hud' });
@@ -135,7 +135,7 @@
         cam.lookAt(S.x * 0.3, 1, -10);
         cam.fov = 65 + (S.speed - 18) * 0.4; cam.updateProjectionMatrix();
         hud.innerHTML = playing || S.state === 'pause' ? `<b>${S.score}</b><span>${PatOS.sym('gem')} ${S.gems}</span><span>${PatOS.sym('bolt')} ${Math.round(S.speed * 3.6)} km/h</span>` : '';
-        renderer.render(scene, cam);
+        renderer.paced(scene, cam);
       };
       resize(); showOverlay('menu'); loop();
       setTimeout(() => stage.focus(), 100);

@@ -3,7 +3,7 @@
   'use strict';
   const { h } = PatOS;
   PatOS.registerApp({
-    id: 'galaxy', name: 'Galaxy', icon: 'galaxy', width: 960, height: 620, dark: true, category: '3D & Games', keywords: '3d space stars three',
+    needs3D: true, id: 'galaxy', name: 'Galaxy', icon: 'galaxy', width: 960, height: 620, dark: true, category: '3D & Games', keywords: '3d space stars three',
     launch(win) {
       win.el.classList.add('has-toolbar');
       const canvas = h('canvas', { class: 'g3d' });
@@ -85,7 +85,7 @@
           nv.pts.geometry.attributes.position.needsUpdate = true; nv.life -= dt * 0.4; nv.pts.material.opacity = Math.max(0, nv.life);
           if (nv.life <= 0) { scene.remove(nv.pts); nv.pts.geometry.dispose(); nv.pts.material.dispose(); novas.splice(i, 1); }
         }
-        orb.update(); renderer.render(scene, cam);
+        orb.update(); renderer.paced(scene, cam);
       };
       build(); render(); resize(); loop();
       win.on('closed', () => { cancelAnimationFrame(raf); geo && geo.dispose(); renderer.dispose(); });

@@ -693,19 +693,59 @@
   };
 
   /* ---------- 3D helpers ---------- */
-  PatOS.has3D = (function () {
-    try { const c = document.createElement('canvas'); return !!(window.THREE && (c.getContext('webgl2') || c.getContext('webgl'))); } catch (e) { return false; }
+  /* three.js (670 KB) is only loaded when something 3D is about to show: a live wallpaper, Galaxy,
+     Orb Runner, 3D Studio, the Music visualizer. PatOS.webgl says whether the device can draw 3D at all;
+     PatOS.has3D says whether three.js is ready; PatOS.load3D() loads it once and resolves true or false. */
+  PatOS.webgl = (function () {
+    try { const c = document.createElement('canvas'); return !!(c.getContext('webgl2') || c.getContext('webgl')); } catch (e) { return false; }
+  })();
+  Object.defineProperty(PatOS, 'has3D', { get: () => PatOS.webgl && !!window.THREE });
+  let three3D = null;
+  PatOS.load3D = function () {
+    if (window.THREE) return Promise.resolve(PatOS.webgl);
+    if (!PatOS.webgl) return Promise.resolve(false);
+    if (three3D) return three3D;
+    three3D = new Promise((res) => {
+      const tag = document.querySelector('script[type="patos/3d"]');
+      const s = document.createElement('script');
+      const done = () => { if (!window.THREE) three3D = null; res(PatOS.has3D); };
+      if (tag && !tag.getAttribute('src')) { s.text = tag.textContent; document.head.appendChild(s); return setTimeout(done, 0); } // single-file PatOS: it is already inside
+      s.src = (tag && tag.getAttribute('src')) || 'vendor/three.min.js'; s.onload = done; s.onerror = done;
+      document.head.appendChild(s);
+    });
+    return three3D;
+  };
+  /* weaker devices (2-4 cores, little memory, phones) get lighter 3D when quality is "Balanced" */
+  PatOS.weakDevice = (function () {
+    const c = navigator.hardwareConcurrency || 4, m = navigator.deviceMemory || 8;
+    return c <= 4 || m <= 4;
   })();
   PatOS.pixelRatio = function () {
     const q = PatOS.settings.quality3d;
     const dpr = window.devicePixelRatio || 1;
     if (q === 'low') return Math.min(dpr, 1) * 0.75;
     if (q === 'high') return Math.min(dpr, 2);
-    return Math.min(dpr, 1.25);
+    return PatOS.weakDevice ? Math.min(dpr, 1) : Math.min(dpr, 1.25);
   };
   PatOS.makeRenderer = function (canvas, opts) {
     const r = new THREE.WebGLRenderer(Object.assign({ canvas, antialias: PatOS.settings.quality3d !== 'low', alpha: true, powerPreference: 'high-performance' }, opts || {}));
     r.setPixelRatio(PatOS.pixelRatio());
+    /* GPU pacing: animation loops call r.paced(scene, camera) instead of r.render. A new frame is only
+       drawn once the graphics chip has finished the last one (checked without waiting, with a WebGL2
+       fence), so a slow GPU gets fewer frames instead of a growing queue that makes everything lag. */
+    const gl = r.getContext(); const canFence = !!(gl && typeof gl.fenceSync === 'function');
+    let fence = null;
+    r.gpuReady = () => {
+      if (!fence) return true;
+      try { if (gl.isContextLost() || gl.getSyncParameter(fence, gl.SYNC_STATUS) === gl.SIGNALED) { gl.deleteSync(fence); fence = null; return true; } } catch (e) { fence = null; return true; }
+      return false;
+    };
+    r.paced = (scene, camera) => {
+      if (!r.gpuReady()) return false;
+      r.render(scene, camera);
+      if (canFence) { try { fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0); gl.flush(); } catch (e) { fence = null; } }
+      return true;
+    };
     return r;
   };
   /* simple drag-to-orbit camera controller used by 3D apps */
