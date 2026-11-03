@@ -129,6 +129,10 @@ Plain HTML, CSS and JavaScript with no npm dependencies. `build.js` only makes t
 - Passwords are always encrypted. Without a master password the key belongs to this browser on this device (anyone using it can open them, so a master password is recommended). With one, the list stays locked until you type it, and locks again when PatOS locks or after 15 minutes without use.
 - The PatOS server only checks public websites for Patoogle (no private or local network addresses, re-checked after every redirect), and never serves its own source, tests or `node_modules`.
 
+## Updates
+
+`updates.json` lists every version, newest first, with what changed (English and French). `npm run build` turns it into `js/version.js`. While PatOS is open it checks the server every few minutes: you get "Update available", then "Ready to install", which opens Settings › Software Update with the version and its notes. Restart PatOS installs it on PatOS's own boot screen and brings your windows back. To publish an update: add an entry at the top of `updates.json`, run `npm run build`, push, and let Railway deploy.
+
 ## Tests
 
 `npm test` runs everything: server tests, then browser tests in Chromium through Playwright (file system, saving, every app in English, French and on an iPhone, file formats, offline start, crash recovery, timers, Spotlight, security). Browser tests are skipped when Playwright isn't installed. See `test/README.md`.

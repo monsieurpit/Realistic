@@ -34,6 +34,7 @@
     $('.lock-hint').textContent = PatOS.isMobile ? (s.password ? 'Swipe up, then enter your password' : 'Swipe up to open') : (s.password ? '' : 'No password set. You can add one in System Settings › Lock Screen.');
     lock.classList.remove('need-pass');
     lockClock(); clearInterval(lockTimer); lockTimer = setInterval(lockClock, 1000);
+    if (soft && soft.wasIn && !s.password && !(PatOS.setup && document.getElementById('setup'))) { const was = soft; soft = Object.assign({}, was, { wasIn: false }); setTimeout(() => login(), 60); }
     setTimeout(() => pass.focus(), 300);
   }
 
@@ -50,7 +51,7 @@
     if (!shellReady) { PatOS.shell.init(); PatOS.mobile && PatOS.mobile.init(); shellReady = true; if (!(PatOS.setup && PatOS.setup.maybeShow())) firstRun(); else setTimeout(() => PatOS.emit('wm:ready'), 1200); }
     setTimeout(() => lock.classList.add('hidden'), 500);
     PatOS.loggedIn = true;
-    PatOS.sound.startup();
+    if (!soft) PatOS.sound.startup();
     if (PatOS.isMobile && PatOS.isIOS && !navigator.standalone && !PatOS.store.get('iosHint', false)) {
       PatOS.store.set('iosHint', true);
       setTimeout(() => PatOS.notify({ title: 'Make PatOS full screen', body: 'In Safari tap Share, then “Add to Home Screen”. PatOS then opens like a real app.', icon: 'about', duration: 9000 }), 8000);
@@ -63,6 +64,7 @@
   function firstRun() {
     setTimeout(() => PatOS.emit('wm:ready'), 1200);
     const seen = PatOS.store.get('seenWelcome', false);
+    if (soft) return; // back from a restart: no welcome again
     setTimeout(() => {
       const body = PatOS.isMobile
         ? (seen ? 'Tap Search above the Dock to find anything. Press and hold an app for more.' : 'Tap Search above the Dock to find anything. Press and hold an app for more. The ⊞ button in an app takes you home.')
@@ -104,59 +106,86 @@
      for the fonts and the first frame of the wallpaper. Returning users see it for under half a second;
      the first start keeps a little more time for the intro. */
   function boot() {
-    bootParticles();
     const fill = $('.boot-fill');
-    const minMs = PatOS.store.get('seenWelcome', false) ? 400 : 1500, t0 = performance.now();
-    fill.style.width = '35%';
+    if (soft) { const m = h('div', { class: 'boot-msg' }, PatOS.t(soft.update ? 'Updating PatOS…' : 'Restarting…')); $('#boot').appendChild(m); fill.style.transition = 'none'; fill.style.width = '45%'; } else bootParticles();
+    const minMs = soft ? 250 : PatOS.store.get('seenWelcome', false) ? 400 : 1500, t0 = performance.now();
+    requestAnimationFrame(() => { fill.style.transition = ''; fill.style.width = soft ? '70%' : '35%'; });
     const fonts = document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]) : Promise.resolve();
     fonts.then(() => { fill.style.width = '75%'; return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))); })
       .catch(() => {})
       .then(() => setTimeout(() => { fill.style.width = '100%'; setTimeout(showLock, 250); }, Math.max(0, minMs - (performance.now() - t0))));
   }
-  /* ---------- updates without refreshing ----------
-     The browser only looks for a new PatOS when the page loads. So PatOS asks the server itself every few
-     minutes, and when you come back to it. A new version downloads in the background; then PatOS either
-     tells you (Restart now) or, when you're away and nothing would be interrupted, restarts on its own.
-     Open windows come back after the restart (js/session.js), and your work is saved first. */
+  /* ---------- Software Update ----------
+     The browser only looks for a new PatOS when the page loads, so PatOS asks the server itself every few
+     minutes and whenever you come back to it. When a new version is found you get "Update available"; once
+     it is downloaded, "Ready to install", which opens Settings › Software Update (version, what changed,
+     Restart PatOS). Installing restarts PatOS on its own boot screen and brings your windows back. */
+  const SOFT = 'patos-soft';
+  let soft = null; try { soft = JSON.parse(localStorage.getItem(SOFT) || 'null'); localStorage.removeItem(SOFT); if (soft && Date.now() - soft.t > 60000) soft = null; } catch (e) { soft = null; }
+  const relText = (r, k) => (r && r[k] ? (typeof r[k] === 'string' ? r[k] : r[k][PatOS.lang === 'fr' ? 'fr' : 'en'] || r[k].en) : '');
   function setupUpdates() {
-    let reg = null, ready = false, told = 0, hiddenSince = document.hidden ? Date.now() : 0, lastCheck = 0;
-    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((r) => { reg = r; }).catch(() => {});
-    const check = (force) => { if (!reg || ready || !navigator.onLine) return; if (!force && Date.now() - lastCheck < 30000) return; lastCheck = Date.now(); reg.update().catch(() => {}); };
+    let reg = null, lastCheck = 0, told = 0;
+    const U = PatOS.update = {
+      state: 'idle', // idle · checking · downloading · ready · uptodate · offline
+      newest: null, // the newest release the server knows about
+      releases: PatOS.releases || [],
+      current: PatOS.version,
+      relText,
+      async fetchReleases() { try { const r = await fetch('/api/updates', { cache: 'no-store' }); const l = await r.json(); if (Array.isArray(l) && l.length) { U.releases = l; U.newest = l[0]; } } catch (e) {} return U.releases; },
+      check: (force) => check(force !== false),
+      restart
+    };
+    const set = (st) => { U.state = st; PatOS.emit('update', U); };
+    const openPane = () => PatOS.launch('settings', { pane: 'update' });
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((r) => {
+      reg = r;
+      r.addEventListener('updatefound', async () => {
+        if (!navigator.serviceWorker.controller || U.state === 'ready') return; // the very first install is not an update
+        set('downloading'); await U.fetchReleases();
+        PatOS.notify({ title: PatOS.t('Update available'), body: (U.newest ? 'PatOS ' + U.newest.version + ' · ' : '') + PatOS.t('Downloading…'), icon: 'about', duration: 8000, onClick: openPane });
+      });
+    }).catch(() => {});
+    async function check(force) {
+      if (!reg || U.state === 'ready' || U.state === 'downloading') return U.state;
+      if (!force && Date.now() - lastCheck < 30000) return U.state;
+      if (!navigator.onLine) { set('offline'); return U.state; }
+      lastCheck = Date.now(); set('checking');
+      try { await reg.update(); } catch (e) {}
+      await U.fetchReleases();
+      setTimeout(() => { if (U.state === 'checking') set('uptodate'); }, 2500);
+      return U.state;
+    }
     setInterval(() => { if (!document.hidden) check(true); }, 3 * 60000);
-    document.addEventListener('visibilitychange', () => { hiddenSince = document.hidden ? Date.now() : 0; if (!document.hidden) check(); });
-    window.addEventListener('focus', () => check()); window.addEventListener('online', () => check(true));
-    const busy = () => {
-      if (PatOS.isRecording && PatOS.isRecording()) return true;
-      if ([...document.querySelectorAll('video, audio')].some((m) => !m.paused && !m.ended)) return true;
-      const np = PatOS.music && PatOS.music.nowPlaying && PatOS.music.nowPlaying(); if (np && np.playing) return true;
-      return PatOS.wm.windows.some((w) => ['youtube', 'videos', 'screenshot', 'extweb', 'code'].includes(w.app.id));
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) check(false); });
+    window.addEventListener('focus', () => check(false)); window.addEventListener('online', () => check(true));
+    const ready = async () => {
+      if (U.state === 'ready') return; await U.fetchReleases(); set('ready'); told = Date.now();
+      const n = U.newest;
+      PatOS.notify({ title: PatOS.t('Update ready to install'), body: (n ? 'PatOS ' + n.version + (relText(n, 'title') ? ': ' + relText(n, 'title') : '') + '. ' : '') + PatOS.t('Click to see what’s new and install it.'), icon: 'about', duration: 30000, onClick: openPane });
     };
-    const restart = async (auto) => {
-      PatOS._leaving = true;
-      try { PatOS.session && PatOS.session.snapshot(); await PatOS.flush(); } catch (e) {}
-      try { localStorage.setItem('patos-updated', auto ? 'auto' : 'yes'); } catch (e) {}
-      location.reload();
-    };
-    PatOS.update = { get ready() { return ready; }, check: () => check(true), restart: () => restart(false) };
-    const tell = () => {
-      told = Date.now();
-      PatOS.notify({ title: PatOS.t('PatOS has a new version'), body: PatOS.t('Click to restart and use it. Your windows come back.'), icon: 'about', duration: 30000, onClick: () => restart(false) });
-    };
-    navigator.serviceWorker.addEventListener('message', (e) => {
-      if (!e.data || !e.data.patosUpdate || ready) return;
-      ready = true; tell(); PatOS.emit('update:ready');
-    });
-    // remind every 20 minutes; restart by itself when PatOS has been hidden (or locked) for a while and nothing is playing
-    setInterval(() => {
-      if (!ready) return;
-      const away = (hiddenSince && Date.now() - hiddenSince > 60000) || (!PatOS.loggedIn && !document.querySelector('#setup'));
-      if (away && !busy()) return restart(true);
-      if (!document.hidden && Date.now() - told > 20 * 60000) tell();
-    }, 15000);
-    // after an update
-    let was = null; try { was = localStorage.getItem('patos-updated'); localStorage.removeItem('patos-updated'); } catch (e) {}
-    if (was) setTimeout(() => PatOS.notify({ title: PatOS.t('PatOS was updated'), body: PatOS.t(was === 'auto' ? 'It restarted while you were away. Everything is where you left it.' : 'You’re on the newest version.'), icon: 'about', duration: 6000 }), 2500);
+    navigator.serviceWorker.addEventListener('message', (e) => { if (e.data && e.data.patosUpdate) ready(); });
+    // a gentle reminder every 20 minutes until it is installed
+    setInterval(() => { if (U.state === 'ready' && !document.hidden && PatOS.loggedIn && Date.now() - told > 20 * 60000) { told = Date.now(); PatOS.notify({ title: PatOS.t('Update ready to install'), body: PatOS.t('Click to see what’s new and install it.'), icon: 'about', duration: 12000, onClick: openPane }); } }, 30000);
+    // just updated
+    if (soft && soft.update) setTimeout(() => PatOS.notify({ title: PatOS.t('PatOS was updated'), body: 'PatOS ' + PatOS.version + (relText(PatOS.releases && PatOS.releases[0], 'title') ? ': ' + relText(PatOS.releases[0], 'title') : ''), icon: 'about', duration: 7000, onClick: openPane }), 1800);
   }
+  /* restart PatOS itself: its boot screen comes up, your work is saved, and it starts again with your windows */
+  async function restart(opts) {
+    opts = opts || {};
+    const boot = $('#boot'), fill = $('.boot-fill');
+    let msg = boot.querySelector('.boot-msg'); if (!msg) { msg = h('div', { class: 'boot-msg' }); boot.appendChild(msg); }
+    msg.textContent = PatOS.t(opts.update === false ? 'Restarting…' : 'Updating PatOS…');
+    $('.boot-logo').innerHTML = '<span>P</span>';
+    fill.style.transition = 'none'; fill.style.width = '0%';
+    boot.classList.remove('hidden'); boot.classList.add('boot-over');
+    requestAnimationFrame(() => { fill.style.transition = ''; fill.style.width = '45%'; });
+    PatOS._leaving = true;
+    try { PatOS.session && PatOS.session.snapshot(); await PatOS.flush(); } catch (e) {}
+    try { localStorage.setItem(SOFT, JSON.stringify({ t: Date.now(), wasIn: !!PatOS.loggedIn, update: opts.update !== false })); } catch (e) {}
+    await new Promise((r) => setTimeout(r, 450));
+    location.reload();
+  }
+  PatOS.restartPatOS = restart;
   PatOS.boot = { showLock, login };
 
   (document.readyState === 'loading' ? (fn) => document.addEventListener('DOMContentLoaded', fn) : (fn) => fn())(() => {

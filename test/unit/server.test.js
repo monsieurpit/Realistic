@@ -58,3 +58,12 @@ test('the frame check still reads a real site (when there is internet)', async (
   const j = await (await fetch(srv.base + '/api/frameable?url=' + encodeURIComponent('https://www.google.com/'))).json();
   assert.ok(j.unknown || typeof j.frameable === 'boolean', JSON.stringify(j));
 });
+
+test('/api/updates lists the versions, newest first, matching js/version.js', async () => {
+  const fs = require('fs'); const path = require('path');
+  const r = await fetch(srv.base + '/api/updates'); assert.equal(r.status, 200);
+  const list = await r.json(); assert.ok(Array.isArray(list) && list.length);
+  const v = fs.readFileSync(path.join(__dirname, '..', '..', 'js', 'version.js'), 'utf8').match(/PatOS\.version = "([^"]+)"/)[1];
+  assert.equal(list[0].version, v, 'run npm run build after adding a version to updates.json');
+  list.forEach((x) => { assert.ok(x.version && x.date && x.title && x.title.en && x.notes && x.notes.en && x.notes.fr, JSON.stringify(x).slice(0, 80)); });
+});

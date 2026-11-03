@@ -2,7 +2,7 @@
 (function () {
   'use strict';
   const PatOS = (window.PatOS = window.PatOS || {});
-  PatOS.version = '1.0';
+  PatOS.version = '1.0'; // the real number comes from js/version.js, which build.js writes from updates.json
   /* Inside a Claude Artifact the page runs in a locked-down frame: no iframes of other sites, no downloads, no camera. */
   PatOS.singleFile = !!window.PATOS_SINGLE_FILE;
   PatOS.sandboxed = (function () { try { return window.top !== window.self && /claude|anthropic/i.test(document.referrer + location.hostname); } catch (e) { return true; } })();

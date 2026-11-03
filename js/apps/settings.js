@@ -5,11 +5,11 @@
   const T = (x) => PatOS.t(x);
   const ACCENTS = ['#0a84ff', '#bf5af2', '#ff375f', '#ff453a', '#ff9f0a', '#ffd60a', '#32d74b', '#64d2ff', '#8e8e93'];
   const PANES = [
-    ['general', 'General', '⚙️'], ['appearance', 'Appearance', '🎨'], ['accessibility', 'Accessibility', '♿'], ['wallpaper', 'Wallpaper', '🖼'], ['dock', 'Home Screen & Dock', '🧭'],
+    ['general', 'General', '⚙️'], ['update', 'Software Update', '⬇️'], ['appearance', 'Appearance', '🎨'], ['accessibility', 'Accessibility', '♿'], ['wallpaper', 'Wallpaper', '🖼'], ['dock', 'Home Screen & Dock', '🧭'],
     ['display', 'Displays & 3D', '🖥'], ['sound', 'Sound', '🔊'], ['lock', 'Lock Screen', '🔒'], ['network', 'Network', '📶'], ['startup', 'Install & Start Up', '🚀'], ['permissions', 'Permissions', '🛡'], ['system', 'This Device', '💻'],
     ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾']
   ];
-  const KW = { general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
+  const KW = { update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
   // Spotlight searches Settings with this list
   PatOS.settingsIndex = () => PANES.map(([k, l]) => ({ pane: k, label: l, keywords: KW[k] || '' }));
   PatOS.registerApp({
@@ -35,6 +35,42 @@
           return [h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('about') }), h('div', {}, h('h2', {}, 'PatOS ' + PatOS.version), h('p', {}, 'A full desktop that runs in your browser, even on a school Chromebook.'))),
             group(row('Your name', name), row('Language', (() => { const s2 = h('select', { class: 'field' }, ...[['auto', 'Automatic (device language)'], ['en', 'English'], ['fr', 'French']].map(([v, l]) => h('option', { value: v, selected: (S().language || 'auto') === v }, l))); s2.onchange = async () => { const v = s2.value; if (await PatOS.confirmBox(PatOS.t('Language'), PatOS.t('PatOS restarts to change the language.'), { ok: PatOS.t('Restart'), icon: 'settings' })) { PatOS.setSetting('language', v); setTimeout(() => (PatOS._leaving = true, location.reload()), 200); } else s2.value = S().language || 'auto'; }; return s2; })(), PatOS.lang === 'fr' ? 'Langue de l’appareil : ' + (PatOS.deviceLang === 'fr' ? 'français' : 'anglais') : 'Device language: ' + (PatOS.deviceLang === 'fr' ? 'French' : 'English')), row('Layout', select('deviceMode', [['auto', 'Automatic (phone or computer)'], ['desktop', 'Computer'], ['mobile', 'Phone']]), 'Automatic uses the phone layout on small touch screens'), row('Ask for full screen at login', toggle('askFullscreen'), 'Makes PatOS feel like a real OS'), row(T('Reopen windows when PatOS starts'), toggle('reopenWindows'), T('Your open apps and files come back after a reload or a crash.')), row('24-hour clock', toggle('clock24')), row('Show seconds in menu bar', toggle('showSeconds'))),
             group(row('About this computer', h('button', { class: 'btn', onclick: () => PatOS.launch('about') }, 'About PatOS…')))];
+        },
+        update() {
+          const out = h('div', { class: 'su' });
+          const U = PatOS.update;
+          const rt = (r, k) => (U ? U.relText(r, k) : r && r[k] && (r[k][PatOS.lang === 'fr' ? 'fr' : 'en'] || r[k].en)) || '';
+          const fmtDate = (d) => { try { return new Date(d + 'T12:00').toLocaleDateString(PatOS.lang === 'fr' ? 'fr-CA' : undefined, { year: 'numeric', month: 'long', day: 'numeric' }); } catch (e) { return d; } };
+          const notesOf = (r) => h('ul', { class: 'su-notes' }, ...((r && r.notes && (r.notes[PatOS.lang === 'fr' ? 'fr' : 'en'] || r.notes.en)) || []).map((n) => h('li', {}, n)));
+          const paint = () => {
+            out.innerHTML = '';
+            const st = U ? U.state : 'none', n = U && U.newest, cur = PatOS.version;
+            const newer = st === 'ready' && n && n.version !== cur;
+            const status = { idle: T('PatOS checks for updates by itself every few minutes while it is open.'), checking: T('Checking for updates…'), downloading: T('Downloading') + (n ? ' PatOS ' + n.version : '') + '…', ready: newer ? T('A new version is ready to install.') : T('An update is ready to install.'), uptodate: T('PatOS is up to date.'), offline: T('You’re offline. PatOS checks again when the internet is back.'), none: T('Updates come with the PatOS website. This copy of PatOS is a single file.') }[st];
+            out.append(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('about') }), h('div', {}, h('h2', {}, 'PatOS ' + cur), h('p', { class: 'su-status' + (st === 'ready' ? ' ready' : '') }, status))));
+            if (st === 'ready') {
+              const r = n || {};
+              out.appendChild(h('div', { class: 'su-card' },
+                h('div', { class: 'su-chead' }, h('b', {}, 'PatOS ' + (r.version || T('update'))), r.date ? h('small', {}, fmtDate(r.date)) : null),
+                rt(r, 'title') ? h('div', { class: 'su-title' }, rt(r, 'title')) : null, notesOf(r),
+                h('p', { class: 'su-small' }, T('PatOS restarts in a few seconds. Your work is saved and your windows come back.')),
+                h('div', { class: 'su-btns' }, h('button', { class: 'btn primary', onclick: () => U.restart() }, T('Restart PatOS to Update')))));
+            } else if (U) {
+              out.appendChild(group(row(T('Check for updates'), h('button', { class: 'btn', disabled: st === 'checking' || st === 'downloading', onclick: () => U.check(true) }, T(st === 'checking' ? 'Checking…' : 'Check Now')), T('Updates are found and downloaded on their own. You choose when to install.'))));
+            }
+            // what's in the version you have, and the ones before
+            const list = (U && U.releases && U.releases.length ? U.releases : PatOS.releases) || [];
+            const mine = list.find((x) => x.version === cur) || (PatOS.releases || [])[0];
+            if (mine) out.append(h('h3', {}, T('What’s new in') + ' PatOS ' + mine.version), h('div', { class: 'su-card' }, h('div', { class: 'su-chead' }, h('b', {}, rt(mine, 'title')), h('small', {}, fmtDate(mine.date))), notesOf(mine)));
+            const older = list.filter((x) => x !== mine && x.version !== (newer ? n.version : ''));
+            if (older.length) {
+              out.appendChild(h('h3', {}, T('Update history')));
+              out.appendChild(h('div', { class: 'su-history' }, ...older.map((r) => h('details', { class: 'su-old' }, h('summary', {}, h('b', {}, 'PatOS ' + r.version), h('span', {}, rt(r, 'title')), h('small', {}, fmtDate(r.date))), notesOf(r)))));
+            }
+            out.appendChild(group(row(T('Something wrong after an update?'), h('button', { class: 'btn', onclick: () => { pane = 'system'; renderMain(); drawSide(); } }, T('Go Back to the Previous Version…')))));
+          };
+          if (U) { const on = () => { if (pane === 'update' && out.isConnected) paint(); }; const off = PatOS.on('update', on); win.on('closed', off); U.fetchReleases().then(on); if (U.state === 'idle' || U.state === 'uptodate') U.check(false); }
+          paint(); return [out];
         },
         appearance() {
           const modes = h('div', { class: 'st-modes' });
