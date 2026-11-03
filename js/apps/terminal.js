@@ -42,7 +42,7 @@
            ['mkdir <dir>', 'make a folder'], ['rm <path>', 'move to Trash'], ['mv <src> <dir>', 'move'], ['cp <src> <dir>', 'copy'], ['echo <text> [> file]', 'print or write text'],
            ['tree', 'show folder tree'], ['open <app|file>', 'open an app or file'], ['apps', 'list apps'], ['calc <expr>', 'calculator'], ['date', 'current date'], ['whoami', 'your name'],
            ['neofetch', 'system info'], ['theme dark|light', 'change appearance'], ['wallpaper <name>', 'change wallpaper'], ['matrix', 'enter the matrix (press any key to stop)'],
-           ['grep / wc / head / tail', 'filter text (works with |)'], ['sort / uniq / rev / seq', 'more text tools'], ['find [dir] -name <pattern>', 'find files'], ['ls -l', 'detailed list'], ['curl <url>', 'download a web page'], ['ping <host>', 'check a website'], ['weather', 'current weather'], ['todo [text]', 'list or add reminders'], ['cmd > file', 'save output to a file'], ['cmd1 && cmd2', 'run one after another'], ['cowsay <text>', 'a talking cow'], ['fortune', 'a random message'], ['history', 'command history'], ['clear', 'clear screen'], ['exit', 'close terminal']]
+           ['grep / wc / head / tail', 'filter text (works with |)'], ['sort / uniq / rev / seq', 'more text tools'], ['find [dir] -name <pattern>', 'find files'], ['ls -l', 'detailed list'], ['python <file.py>', 'run a Python program (also python -c "code")'], ['node <file.js>', 'run a JavaScript file'], ['curl <url>', 'download a web page'], ['ping <host>', 'check a website'], ['weather', 'current weather'], ['todo [text]', 'list or add reminders'], ['cmd > file', 'save output to a file'], ['cmd1 && cmd2', 'run one after another'], ['cowsay <text>', 'a talking cow'], ['fortune', 'a random message'], ['history', 'command history'], ['clear', 'clear screen'], ['exit', 'close terminal']]
             .forEach(([c, d]) => print(`  <span class="ty">${esc(c.padEnd(22))}</span>${esc(d)}`));
         },
         ls(a) {
@@ -168,6 +168,30 @@
         },
         du(a) { const p = resolve(a[0]); const n = PatOS.fs.get(p); if (!n) return text('du: no such file', 'err'); text(PatOS.fmtBytes(PatOS.fs.size(n)) + '\t' + (a[0] || '.')); },
         rmdir(a) { const p = resolve(a[0]); if (!PatOS.fs.isDir(p)) return text('rmdir: not a folder', 'err'); if (PatOS.fs.list(p).length) return text('rmdir: folder is not empty', 'err'); PatOS.fs.remove(p); },
+        async python(a) {
+          if (!PatOS.python) return text('python: not available here', 'err');
+          const ci = a.indexOf('-c'); let code, name = 'main.py';
+          if (ci >= 0) code = a.slice(ci + 1).join(' ');
+          else { const f = a.find((x) => !x.startsWith('-')); if (!f) return text('usage: python <file.py>   or   python -c "print(1+1)"', 'err'); const n = PatOS.fs.get(resolve(f)); if (!n || n.type !== 'file') return text('python: can’t open file ' + f + ': No such file', 'err'); code = n.content; name = PatOS.fs.basename(f); }
+          let buf = ''; const flush = (t, cls) => { buf += t; let i; while ((i = buf.indexOf('\n')) >= 0) { text(buf.slice(0, i), cls); buf = buf.slice(i + 1); } };
+          try {
+            const r = await PatOS.python.run(code, { name, onOut: (t) => flush(t), onErr: (t) => flush(t, 'err'), onStatus: () => {},
+              onInput: async () => { const prompt = buf; buf = ''; const v = await PatOS.ask(prompt || 'input()', '', { icon: 'terminal', ok: 'Enter' }); text(prompt + (v == null ? '' : v), 'tm'); PatOS.python.sendInput(v == null ? '' : v); } });
+            if (buf) text(buf);
+            if (r.written.length) text('(saved: ' + r.written.map((p) => p.replace(/^\/(Documents|Desktop|Downloads)\//, '')).join(', ') + ')', 'tm');
+          } catch (e) { text('python: ' + e.message, 'err'); }
+        },
+        async node(a) {
+          const ei = a.indexOf('-e'); let code;
+          if (ei >= 0) code = a.slice(ei + 1).join(' ');
+          else { const f = a.find((x) => !x.startsWith('-')); if (!f) return text('usage: node <file.js>   or   node -e "console.log(1+1)"', 'err'); const n = PatOS.fs.get(resolve(f)); if (!n || n.type !== 'file') return text('node: Cannot find module ' + f, 'err'); code = n.content; }
+          const src = 'const fmt=(x)=>{try{return typeof x==="string"?x:typeof x==="object"&&x!==null?JSON.stringify(x,null,1):String(x)}catch(e){return String(x)}};const send=(t,a)=>postMessage({t,m:a.map(fmt).join(" ")});self.console={log:(...a)=>send("out",a),info:(...a)=>send("out",a),warn:(...a)=>send("out",a),error:(...a)=>send("err",a)};onmessage=async(e)=>{try{await(0,eval)("(async()=>{"+e.data+"\\n})()")}catch(err){send("err",[err&&err.stack?String(err.stack).split("\\n")[0]:err])}postMessage({t:"done"})};';
+          await new Promise((res) => {
+            const w = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' }))); const to = setTimeout(() => { w.terminate(); text('node: stopped after 15 seconds', 'err'); res(); }, 15000);
+            w.onmessage = (e) => { if (e.data.t === 'done') { clearTimeout(to); w.terminate(); res(); } else text(e.data.m, e.data.t === 'err' ? 'err' : undefined); };
+            w.onerror = (e) => { text('node: ' + e.message, 'err'); clearTimeout(to); w.terminate(); res(); }; w.postMessage(code);
+          });
+        },
         async curl(a) {
           const u = a.find((x) => !x.startsWith('-')); if (!u) return text('usage: curl <url>', 'err');
           const url = /^https?:/.test(u) ? u : 'https://' + u; const t0 = performance.now();
@@ -200,7 +224,7 @@
       const oldHist = cmds.history; cmds.history = (a) => { if (flag(a, '-c')) { hist.length = 0; PatOS.store.set('termHist', hist); return text('History cleared.', 'tm'); } oldHist(a); };
       const oldMv = cmds.mv; cmds.mv = (a) => { if (a.length === 2 && !PatOS.fs.isDir(resolve(a[1])) && PatOS.fs.dirname(resolve(a[1])) === PatOS.fs.dirname(resolve(a[0]))) { try { PatOS.fs.rename(resolve(a[0]), PatOS.fs.basename(resolve(a[1]))); } catch (e) { text('mv: ' + e.message, 'err'); } return; } oldMv(a); };
       const oldCat = cmds.cat; cmds.cat = (a) => { if (!a.length && stdin != null) return text(stdin); if (a.length > 1) return a.forEach((f) => oldCat([f])); oldCat(a); };
-      cmds.dir = cmds.ls; cmds.cls = cmds.clear; cmds.man = cmds.help; cmds.say = cmds.echo;
+      cmds.python3 = cmds.python; cmds.py = cmds.python; cmds.dir = cmds.ls; cmds.cls = cmds.clear; cmds.man = cmds.help; cmds.say = cmds.echo;
 
       const splitTop = (s, sep) => { const out = []; let cur = '', q = null; for (let i = 0; i < s.length; i++) { const c = s[i]; if (q) { if (c === q) q = null; cur += c; } else if (c === '"' || c === "'") { q = c; cur += c; } else if (s.startsWith(sep, i)) { out.push(cur); cur = ''; i += sep.length - 1; } else cur += c; } out.push(cur); return out.map((x) => x.trim()).filter(Boolean); };
       async function exec1(seg, inData, capt) {

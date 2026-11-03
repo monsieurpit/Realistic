@@ -41,8 +41,15 @@ self.addEventListener('activate', (e) => { e.waitUntil((async () => {
   await self.clients.claim();
   if (hadOld) (await self.clients.matchAll()).forEach((c) => c.postMessage({ patosUpdate: true }));
 })()); });
+// input() for Python: the Python worker waits on /__stdin/<run id> until PatOS sends it a line
+const stdin = {};
+self.addEventListener('message', (e) => { const d = e.data; if (d && d.patosStdin) { const st = stdin[d.id] = stdin[d.id] || { q: [], w: [] }; if (st.w.length) st.w.shift()(d.text); else st.q.push(d.text); } });
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
+  if (url.pathname.startsWith('/__stdin/')) {
+    e.respondWith(new Promise((res) => { const id = url.pathname.split('/')[2]; const st = stdin[id] = stdin[id] || { q: [], w: [] }; const ans = (t) => res(t == null ? new Response('', { status: 204 }) : new Response(t)); if (st.q.length) ans(st.q.shift()); else st.w.push(ans); }));
+    return;
+  }
   if (e.request.method !== 'GET' || url.origin !== location.origin || url.pathname.startsWith('/api/')) return;
   // saved copy first: PatOS opens instantly and works offline. A new version is picked up the next time PatOS loads.
   e.respondWith(caches.match(e.request, { ignoreSearch: true }).then((m) => m || fetch(e.request).then((r) => { if (r.ok) { const copy = r.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); } return r; }).catch(() => caches.match('index.html'))));

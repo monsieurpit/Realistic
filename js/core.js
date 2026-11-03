@@ -578,6 +578,7 @@
     if (/^(mp4|webm|mov|m4v|ogv)$/.test(ext) && PatOS.apps.videos) return PatOS.launch('videos', { path });
     if (/^(docx|xlsx|pptx)$/.test(ext) && PatOS.openOffice) return PatOS.openOffice(path);
     if (ext === 'zip' && PatOS.openZip) return PatOS.openZip(path);
+    if (ext === 'py' && PatOS.apps.code) return PatOS.launch('code', { path });
     if (kind === 'image') return PatOS.launch('photos', { path });
     if (kind === 'audio') return PatOS.launch('music', { path });
     if (kind === 'link') return PatOS.launch('browser', { url: n.content.trim() });

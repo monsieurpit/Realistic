@@ -520,3 +520,13 @@ html.high-contrast .btn, html.high-contrast .tbtn, html.high-contrast .field { o
 html.big-targets .btn, html.big-targets .tbtn, html.big-targets .ob, html.big-targets .of-b, html.big-targets .st-si, html.big-targets .fd-si, html.big-targets .menu-item { min-height: 40px; min-width: 40px; }
 .st-note { font-size: 12.5px; color: var(--text2); line-height: 1.5; margin: 10px 4px; }
 .st-inline { display: flex; align-items: center; gap: 10px; } .st-wrapval { white-space: normal; text-align: right; max-width: 320px; }
+
+/* Code Studio: Python */
+.cs-pymode .cs-frame { display: none; } .cs-pymode .cs-console { display: none; }
+.cs-pybox { display: none; flex: 1; overflow-y: auto; padding: 10px 14px; font: 13px/1.55 var(--mono, monospace); background: #0f0f13; color: #e5e5ea; }
+.cs-pymode .cs-pybox { display: block; }
+.cs-pybox .cs-log.error { color: #ff6b6b; white-space: pre-wrap; } .cs-pybox .cs-log.ok { color: #6bd68a; } .cs-pybox .cs-log.warn { color: #ffb454; } .cs-pybox .cs-log.in { color: #8ab4ff; }
+.cs-pybox .cs-log { white-space: pre-wrap; word-break: break-word; min-height: 1.55em; }
+.cs-pystatus { color: #8e8e93; font-style: italic; min-height: 1.5em; }
+.cs-pyin { display: flex; gap: 0; align-items: center; } .cs-pyin input { flex: 1; background: transparent; border: 0; outline: 0; color: #8ab4ff; font: inherit; }
+.cs-pymode .cs-right { flex: 1.1; }

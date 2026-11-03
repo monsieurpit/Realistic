@@ -2672,6 +2672,16 @@ html.big-targets .btn, html.big-targets .tbtn, html.big-targets .ob, html.big-ta
 .st-note { font-size: 12.5px; color: var(--text2); line-height: 1.5; margin: 10px 4px; }
 .st-inline { display: flex; align-items: center; gap: 10px; } .st-wrapval { white-space: normal; text-align: right; max-width: 320px; }
 
+/* Code Studio: Python */
+.cs-pymode .cs-frame { display: none; } .cs-pymode .cs-console { display: none; }
+.cs-pybox { display: none; flex: 1; overflow-y: auto; padding: 10px 14px; font: 13px/1.55 var(--mono, monospace); background: #0f0f13; color: #e5e5ea; }
+.cs-pymode .cs-pybox { display: block; }
+.cs-pybox .cs-log.error { color: #ff6b6b; white-space: pre-wrap; } .cs-pybox .cs-log.ok { color: #6bd68a; } .cs-pybox .cs-log.warn { color: #ffb454; } .cs-pybox .cs-log.in { color: #8ab4ff; }
+.cs-pybox .cs-log { white-space: pre-wrap; word-break: break-word; min-height: 1.55em; }
+.cs-pystatus { color: #8e8e93; font-style: italic; min-height: 1.5em; }
+.cs-pyin { display: flex; gap: 0; align-items: center; } .cs-pyin input { flex: 1; background: transparent; border: 0; outline: 0; color: #8ab4ff; font: inherit; }
+.cs-pymode .cs-right { flex: 1.1; }
+
 </style>
   <style>
 /* ================= Liquid Glass ================= */
@@ -3504,6 +3514,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (/^(mp4|webm|mov|m4v|ogv)$/.test(ext) && PatOS.apps.videos) return PatOS.launch('videos', { path });
     if (/^(docx|xlsx|pptx)$/.test(ext) && PatOS.openOffice) return PatOS.openOffice(path);
     if (ext === 'zip' && PatOS.openZip) return PatOS.openZip(path);
+    if (ext === 'py' && PatOS.apps.code) return PatOS.launch('code', { path });
     if (kind === 'image') return PatOS.launch('photos', { path });
     if (kind === 'audio') return PatOS.launch('music', { path });
     if (kind === 'link') return PatOS.launch('browser', { url: n.content.trim() });
@@ -4432,6 +4443,132 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       const blob = await PatOS.zip.zipPaths(paths); const name = PatOS.fs.uniqueName(dir, base + '.zip'); await PatOS.fs.writeBlob(dir + '/' + name, blob);
       PatOS.notify({ title: T('Compressed'), body: name, icon: 'finder' });
     } catch (e) { PatOS.alertBox(T('Couldn’t compress'), e.message || String(e), { icon: 'finder' }); }
+  };
+})();
+
+</script>
+  <script type="patos/js">
+/* Real Python in PatOS (Pyodide, which is CPython compiled for the browser). It runs in a Worker, so a
+   loop that never ends can't freeze PatOS, and Stop really stops it. input() works through the service
+   worker. Files in Documents, Desktop and Downloads are copied in before a run, and new or changed files are
+   copied back out. */
+(function () {
+  'use strict';
+  const CDN = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
+  const WORKER = `
+    let py = null, base = '', runId = '';
+    const post = (type, data) => postMessage({ type, data });
+    async function init() {
+      importScripts(base + 'pyodide.js');
+      py = await loadPyodide({ indexURL: base });
+      py.setStdin({ stdin: () => {
+        post('need-input'); const x = new XMLHttpRequest();
+        try { x.open('GET', self.location.origin + '/__stdin/' + runId + '?t=' + Date.now(), false); x.send(); } catch (e) { return null; }
+        return x.status === 200 ? x.responseText : null;
+      } });
+      const dec = new TextDecoder(), dec2 = new TextDecoder();
+      py.setStdout({ write: (b) => { post('out', dec.decode(b, { stream: true })); return b.length; } });
+      py.setStderr({ write: (b) => { post('err', dec2.decode(b, { stream: true })); return b.length; } });
+    }
+    const cleanTrace = (m) => String(m).split('\\n').filter((l, i, a) => !/_pyodide|pyodide\\/|\\/lib\\/python3\\d+\\.zip\\/_|importlib/.test(l)).join('\\n').replace(/^PythonError: /, '').trim();
+    onmessage = async (e) => {
+      const m = e.data;
+      try {
+        if (m.type === 'init') { base = m.base; post('status', 'Starting Python…'); await init(); post('ready'); return; }
+        if (m.type === 'run') {
+          runId = m.id; post('status', 'Running…');
+          try { py.FS.mkdirTree('/PatOS/Documents'); } catch (e2) {}
+          const before = {};
+          for (const [p, c] of Object.entries(m.files || {})) { const full = '/PatOS' + p; try { py.FS.mkdirTree(full.slice(0, full.lastIndexOf('/'))); py.FS.writeFile(full, c); before[full] = c; } catch (e3) {} }
+          py.runPython("import os, sys; os.chdir('/PatOS/Documents'); sys.argv = ['" + String(m.name || 'main.py').replace(/'/g, '') + "']");
+          let ok = true;
+          try {
+            await py.loadPackagesFromImports(m.code, { messageCallback: (t) => post('status', t), errorCallback: (t) => post('err', t + '\\n') });
+            post('status', 'Running…');
+            await py.runPythonAsync(m.code);
+          } catch (err) { ok = false; post('err', cleanTrace(err && err.message ? err.message : err) + '\\n'); }
+          const changed = {};
+          (function walk(dir) { let names = []; try { names = py.FS.readdir(dir); } catch (e4) {} names.forEach((n) => { if (n === '.' || n === '..') return; const full = dir + '/' + n; let st; try { st = py.FS.stat(full); } catch (e5) { return; } if (py.FS.isDir(st.mode)) walk(full); else { try { const d = py.FS.readFile(full, { encoding: 'utf8' }); if (before[full] !== d && d.length < 2000000) changed[full.slice(6)] = d; } catch (e6) {} } }); })('/PatOS');
+          post('done', { ok, changed }); return;
+        }
+      } catch (err) { post('fatal', String(err && err.message || err)); }
+    };`;
+  let worker = null, ready = null, runInfo = null, uid = 0;
+  const handlers = { out: null, err: null, status: null, input: null };
+
+  async function baseURL() {
+    const srv = PatOS.server && !PatOS.sandboxed ? await PatOS.server() : null;
+    return srv ? srv + '/pyodide/' : CDN;
+  }
+  function start() {
+    if (ready) return ready;
+    ready = (async () => {
+      const base = await baseURL();
+      const url = URL.createObjectURL(new Blob([WORKER], { type: 'text/javascript' }));
+      worker = new Worker(url);
+      await new Promise((res, rej) => {
+        const to = setTimeout(() => rej(new Error('Python took too long to start. Your network may be blocking it.')), 90000);
+        worker.onmessage = (e) => {
+          const m = e.data;
+          if (m.type === 'ready') { clearTimeout(to); res(); }
+          else if (m.type === 'status' && handlers.status) handlers.status(m.data);
+          else if (m.type === 'fatal') { clearTimeout(to); rej(new Error(m.data)); }
+        };
+        worker.onerror = (e) => { clearTimeout(to); rej(new Error(e.message || 'Python couldn’t start.')); };
+        worker.postMessage({ type: 'init', base });
+      });
+      worker.onmessage = (e) => {
+        const m = e.data;
+        if (m.type === 'out') handlers.out && handlers.out(m.data);
+        else if (m.type === 'err') handlers.err && handlers.err(m.data);
+        else if (m.type === 'status') handlers.status && handlers.status(m.data);
+        else if (m.type === 'need-input') handlers.input && handlers.input();
+        else if (m.type === 'done' && runInfo) { const r = runInfo; runInfo = null; r.res(m.data); }
+        else if (m.type === 'fatal' && runInfo) { const r = runInfo; runInfo = null; r.rej(new Error(m.data)); }
+      };
+      return worker;
+    })().catch((e) => { ready = null; if (worker) { worker.terminate(); worker = null; } throw e; });
+    return ready;
+  }
+  function collectFiles() {
+    const files = {}; let n = 0, total = 0;
+    ['/Documents', '/Desktop', '/Downloads'].forEach((d) => PatOS.fs.walk(d, (p, node) => {
+      if (node.type === 'dir' || node.blob || n > 250) return; const ext = PatOS.fs.ext(p);
+      if (/^(txt|md|py|csv|json|js|html?|css|xml|log|yml|yaml)$/.test(ext) && typeof node.content === 'string' && !node.content.startsWith('data:') && node.content.length < 1e6 && total < 6e6) { files[p] = node.content; n++; total += node.content.length; }
+    }));
+    return files;
+  }
+  async function run(code, opts) {
+    opts = opts || {}; Object.assign(handlers, { out: opts.onOut, err: opts.onErr, status: opts.onStatus, input: opts.onInput });
+    if (opts.onStatus) opts.onStatus(worker ? '' : 'Loading Python (first time takes a moment)…');
+    await start();
+    const id = 'r' + (++uid) + Date.now().toString(36);
+    runInfo = { id };
+    const done = new Promise((res, rej) => { runInfo.res = res; runInfo.rej = rej; });
+    runInfo.sid = id;
+    worker.postMessage({ type: 'run', id, code, name: opts.name, files: opts.files || collectFiles() });
+    const r = await done; runInfo = null;
+    if (opts.onStatus) opts.onStatus('');
+    // bring new and changed files back into PatOS
+    const written = [];
+    if (opts.writeBack !== false) Object.entries(r.changed || {}).forEach(([p, c]) => { try { const dir = PatOS.fs.dirname(p); if (!PatOS.fs.exists(dir)) { let acc = ''; dir.split('/').filter(Boolean).forEach((seg) => { acc += '/' + seg; if (!PatOS.fs.exists(acc)) PatOS.fs.mkdir(acc); }); } PatOS.fs.write(p, c); written.push(p); } catch (e) {} });
+    return { ok: r.ok, written };
+  }
+  function sendInput(text) {
+    const id = runInfo && runInfo.id; if (!id) return;
+    const msg = { patosStdin: 1, id, text: text == null ? null : String(text) + '\n' };
+    if (navigator.serviceWorker && navigator.serviceWorker.controller) navigator.serviceWorker.controller.postMessage(msg);
+  }
+  function stop() {
+    if (runInfo) { try { sendInput(null); } catch (e) {} const r = runInfo; runInfo = null; r.rej && r.rej(new Error('Stopped.')); }
+    if (worker) { worker.terminate(); worker = null; } ready = null;
+  }
+  PatOS.python = {
+    run, stop, sendInput,
+    get busy() { return !!runInfo; },
+    get loaded() { return !!worker; },
+    canInput: () => !!(navigator.serviceWorker && navigator.serviceWorker.controller),
+    preload: () => start().catch(() => {})
   };
 })();
 
@@ -5460,6 +5597,24 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'big files (videos and recordings) are not in the backup. Save them from Finder with “Save to This Chromebook…”.': 'gros fichiers (vidéos et enregistrements) ne sont pas dans la sauvegarde. Enregistrez-les depuis le Finder avec « Enregistrer sur ce Chromebook… ».',
     'That file is not a PatOS backup': 'Ce fichier n’est pas une sauvegarde PatOS',
     'Choose a PatOS-backup.json file.': 'Choisissez un fichier PatOS-backup.json.',
+    'Stopped': 'Arrêté',
+    'Saved to your files': 'Enregistré dans vos fichiers',
+    'Save Python file as': 'Enregistrer le fichier Python sous',
+    'Saved in Documents.': 'Enregistré dans Documents.',
+    'Done': 'Terminé',
+    'Stopped because of an error': 'Arrêté à cause d’une erreur',
+    'input() needs PatOS to be opened from its website and reloaded once.': 'input() exige que PatOS soit ouvert depuis son site web et rechargé une fois.',
+    'Loading Python (first time takes a moment)…': 'Chargement de Python (la première fois prend un moment)…',
+    'Starting Python…': 'Démarrage de Python…',
+    'Running…': 'Exécution…',
+    'Record Video': 'Enregistrer une vidéo',
+    'Take Picture': 'Prendre une photo',
+    'Start Recording': 'Démarrer l’enregistrement',
+    'This Chromebook': 'Ce Chromebook',
+    'Open Files…': 'Ouvrir des fichiers…',
+    'Link a Folder…': 'Lier un dossier…',
+    'Compress': 'Compresser',
+    'Extract Here': 'Extraire ici',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 'Offline': 'Hors ligne', 'Connected': 'Connecté',
@@ -10310,7 +10465,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
            ['mkdir <dir>', 'make a folder'], ['rm <path>', 'move to Trash'], ['mv <src> <dir>', 'move'], ['cp <src> <dir>', 'copy'], ['echo <text> [> file]', 'print or write text'],
            ['tree', 'show folder tree'], ['open <app|file>', 'open an app or file'], ['apps', 'list apps'], ['calc <expr>', 'calculator'], ['date', 'current date'], ['whoami', 'your name'],
            ['neofetch', 'system info'], ['theme dark|light', 'change appearance'], ['wallpaper <name>', 'change wallpaper'], ['matrix', 'enter the matrix (press any key to stop)'],
-           ['grep / wc / head / tail', 'filter text (works with |)'], ['sort / uniq / rev / seq', 'more text tools'], ['find [dir] -name <pattern>', 'find files'], ['ls -l', 'detailed list'], ['curl <url>', 'download a web page'], ['ping <host>', 'check a website'], ['weather', 'current weather'], ['todo [text]', 'list or add reminders'], ['cmd > file', 'save output to a file'], ['cmd1 && cmd2', 'run one after another'], ['cowsay <text>', 'a talking cow'], ['fortune', 'a random message'], ['history', 'command history'], ['clear', 'clear screen'], ['exit', 'close terminal']]
+           ['grep / wc / head / tail', 'filter text (works with |)'], ['sort / uniq / rev / seq', 'more text tools'], ['find [dir] -name <pattern>', 'find files'], ['ls -l', 'detailed list'], ['python <file.py>', 'run a Python program (also python -c "code")'], ['node <file.js>', 'run a JavaScript file'], ['curl <url>', 'download a web page'], ['ping <host>', 'check a website'], ['weather', 'current weather'], ['todo [text]', 'list or add reminders'], ['cmd > file', 'save output to a file'], ['cmd1 && cmd2', 'run one after another'], ['cowsay <text>', 'a talking cow'], ['fortune', 'a random message'], ['history', 'command history'], ['clear', 'clear screen'], ['exit', 'close terminal']]
             .forEach(([c, d]) => print(`  <span class="ty">${esc(c.padEnd(22))}</span>${esc(d)}`));
         },
         ls(a) {
@@ -10436,6 +10591,30 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         },
         du(a) { const p = resolve(a[0]); const n = PatOS.fs.get(p); if (!n) return text('du: no such file', 'err'); text(PatOS.fmtBytes(PatOS.fs.size(n)) + '\t' + (a[0] || '.')); },
         rmdir(a) { const p = resolve(a[0]); if (!PatOS.fs.isDir(p)) return text('rmdir: not a folder', 'err'); if (PatOS.fs.list(p).length) return text('rmdir: folder is not empty', 'err'); PatOS.fs.remove(p); },
+        async python(a) {
+          if (!PatOS.python) return text('python: not available here', 'err');
+          const ci = a.indexOf('-c'); let code, name = 'main.py';
+          if (ci >= 0) code = a.slice(ci + 1).join(' ');
+          else { const f = a.find((x) => !x.startsWith('-')); if (!f) return text('usage: python <file.py>   or   python -c "print(1+1)"', 'err'); const n = PatOS.fs.get(resolve(f)); if (!n || n.type !== 'file') return text('python: can’t open file ' + f + ': No such file', 'err'); code = n.content; name = PatOS.fs.basename(f); }
+          let buf = ''; const flush = (t, cls) => { buf += t; let i; while ((i = buf.indexOf('\n')) >= 0) { text(buf.slice(0, i), cls); buf = buf.slice(i + 1); } };
+          try {
+            const r = await PatOS.python.run(code, { name, onOut: (t) => flush(t), onErr: (t) => flush(t, 'err'), onStatus: () => {},
+              onInput: async () => { const prompt = buf; buf = ''; const v = await PatOS.ask(prompt || 'input()', '', { icon: 'terminal', ok: 'Enter' }); text(prompt + (v == null ? '' : v), 'tm'); PatOS.python.sendInput(v == null ? '' : v); } });
+            if (buf) text(buf);
+            if (r.written.length) text('(saved: ' + r.written.map((p) => p.replace(/^\/(Documents|Desktop|Downloads)\//, '')).join(', ') + ')', 'tm');
+          } catch (e) { text('python: ' + e.message, 'err'); }
+        },
+        async node(a) {
+          const ei = a.indexOf('-e'); let code;
+          if (ei >= 0) code = a.slice(ei + 1).join(' ');
+          else { const f = a.find((x) => !x.startsWith('-')); if (!f) return text('usage: node <file.js>   or   node -e "console.log(1+1)"', 'err'); const n = PatOS.fs.get(resolve(f)); if (!n || n.type !== 'file') return text('node: Cannot find module ' + f, 'err'); code = n.content; }
+          const src = 'const fmt=(x)=>{try{return typeof x==="string"?x:typeof x==="object"&&x!==null?JSON.stringify(x,null,1):String(x)}catch(e){return String(x)}};const send=(t,a)=>postMessage({t,m:a.map(fmt).join(" ")});self.console={log:(...a)=>send("out",a),info:(...a)=>send("out",a),warn:(...a)=>send("out",a),error:(...a)=>send("err",a)};onmessage=async(e)=>{try{await(0,eval)("(async()=>{"+e.data+"\\n})()")}catch(err){send("err",[err&&err.stack?String(err.stack).split("\\n")[0]:err])}postMessage({t:"done"})};';
+          await new Promise((res) => {
+            const w = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' }))); const to = setTimeout(() => { w.terminate(); text('node: stopped after 15 seconds', 'err'); res(); }, 15000);
+            w.onmessage = (e) => { if (e.data.t === 'done') { clearTimeout(to); w.terminate(); res(); } else text(e.data.m, e.data.t === 'err' ? 'err' : undefined); };
+            w.onerror = (e) => { text('node: ' + e.message, 'err'); clearTimeout(to); w.terminate(); res(); }; w.postMessage(code);
+          });
+        },
         async curl(a) {
           const u = a.find((x) => !x.startsWith('-')); if (!u) return text('usage: curl <url>', 'err');
           const url = /^https?:/.test(u) ? u : 'https://' + u; const t0 = performance.now();
@@ -10468,7 +10647,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       const oldHist = cmds.history; cmds.history = (a) => { if (flag(a, '-c')) { hist.length = 0; PatOS.store.set('termHist', hist); return text('History cleared.', 'tm'); } oldHist(a); };
       const oldMv = cmds.mv; cmds.mv = (a) => { if (a.length === 2 && !PatOS.fs.isDir(resolve(a[1])) && PatOS.fs.dirname(resolve(a[1])) === PatOS.fs.dirname(resolve(a[0]))) { try { PatOS.fs.rename(resolve(a[0]), PatOS.fs.basename(resolve(a[1]))); } catch (e) { text('mv: ' + e.message, 'err'); } return; } oldMv(a); };
       const oldCat = cmds.cat; cmds.cat = (a) => { if (!a.length && stdin != null) return text(stdin); if (a.length > 1) return a.forEach((f) => oldCat([f])); oldCat(a); };
-      cmds.dir = cmds.ls; cmds.cls = cmds.clear; cmds.man = cmds.help; cmds.say = cmds.echo;
+      cmds.python3 = cmds.python; cmds.py = cmds.python; cmds.dir = cmds.ls; cmds.cls = cmds.clear; cmds.man = cmds.help; cmds.say = cmds.echo;
 
       const splitTop = (s, sep) => { const out = []; let cur = '', q = null; for (let i = 0; i < s.length; i++) { const c = s[i]; if (q) { if (c === q) q = null; cur += c; } else if (c === '"' || c === "'") { q = c; cur += c; } else if (s.startsWith(sep, i)) { out.push(cur); cur = ''; i += sep.length - 1; } else cur += c; } out.push(cur); return out.map((x) => x.trim()).filter(Boolean); };
       async function exec1(seg, inData, capt) {
@@ -11848,7 +12027,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
           paint(); return [box];
         },
         accessibility() {
-          return [h('h3', {}, T('Accessibility')),
+          return [
             group(row(T('Reduce motion'), toggle('reduceMotion'), T('Fewer animations.')), row(T('Reduce transparency'), toggle('reduceTransparency'), T('Solid backgrounds instead of glass.')), row(T('High contrast'), toggle('highContrast'), T('Stronger borders and text.')), row(T('Bold text'), toggle('boldText')), row(T('Always show keyboard focus'), toggle('showFocus'), T('Draws an outline around the item you are on when you press Tab.')), row(T('Larger click targets'), toggle('bigTargets'), T('Bigger buttons, good for touch screens.'))),
             group(row(T('Read notifications aloud to screen readers'), toggle('srAnnounce'))),
             h('p', { class: 'st-note' }, T('To make everything bigger, press Ctrl and + (and Ctrl and 0 to reset). PatOS rearranges itself to fit. On a Chromebook you can also use ChromeVox, the built-in screen reader (Ctrl+Alt+Z).'))];
@@ -12628,19 +12807,25 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     'Hello World': { html: '<h1>Hello, PatOS!</h1>\n<p>Edit the code on the left. The page updates as you type.</p>\n<button id="btn">Click me</button>', css: 'body { font-family: system-ui; padding: 30px; background: linear-gradient(135deg, #7d5cff, #ff4fa0); color: white; min-height: 100vh; margin: 0; }\nh1 { font-size: 48px; margin: 0 0 10px; }\nbutton { font-size: 18px; padding: 10px 22px; border: 0; border-radius: 12px; cursor: pointer; }', js: "let n = 0;\ndocument.getElementById('btn').onclick = (e) => {\n  n++;\n  e.target.textContent = 'Clicked ' + n + (n === 1 ? ' time' : ' times');\n};" },
     'Bouncing Balls': { html: '<canvas id="c"></canvas>', css: 'body { margin: 0; background: #0b0b14; overflow: hidden; }\ncanvas { display: block; }', js: "const c = document.getElementById('c'), x = c.getContext('2d');\nconst fit = () => { c.width = innerWidth; c.height = innerHeight; }; fit(); onresize = fit;\nconst balls = Array.from({ length: 40 }, () => ({ x: Math.random() * c.width, y: Math.random() * c.height, vx: (Math.random() - .5) * 6, vy: (Math.random() - .5) * 6, r: 6 + Math.random() * 18, h: Math.random() * 360 }));\n(function loop() {\n  x.fillStyle = 'rgba(11,11,20,.25)'; x.fillRect(0, 0, c.width, c.height);\n  for (const b of balls) {\n    b.x += b.vx; b.y += b.vy;\n    if (b.x < b.r || b.x > c.width - b.r) b.vx *= -1;\n    if (b.y < b.r || b.y > c.height - b.r) b.vy *= -1;\n    x.fillStyle = `hsl(${b.h},90%,60%)`; x.beginPath(); x.arc(b.x, b.y, b.r, 0, 7); x.fill();\n  }\n  requestAnimationFrame(loop);\n})();" },
     'To-Do App': { html: '<h2>My To-Do List</h2>\n<form id="f"><input id="t" placeholder="Add a task"><button>Add</button></form>\n<ul id="list"></ul>', css: 'body { font-family: system-ui; max-width: 420px; margin: 30px auto; padding: 0 16px; }\ninput { padding: 8px; width: 70%; }\nli { padding: 8px 0; cursor: pointer; }\nli.done { text-decoration: line-through; opacity: .5; }', js: "const list = document.getElementById('list');\ndocument.getElementById('f').onsubmit = (e) => {\n  e.preventDefault();\n  const t = document.getElementById('t');\n  if (!t.value) return;\n  const li = document.createElement('li');\n  li.textContent = t.value;\n  li.onclick = () => li.classList.toggle('done');\n  list.appendChild(li); t.value = '';\n};" },
+    'Python: Hello': { html: '', css: '', js: '', py: "name = input('What is your name? ')\nprint('Nice to meet you,', name + '!')\n\nfor i in range(1, 6):\n    print(i, 'squared is', i * i)\n", start: 'py' },
+    'Python: Guess the Number': { html: '', css: '', js: '', py: "import random\n\nsecret = random.randint(1, 20)\nprint('I am thinking of a number from 1 to 20.')\nwhile True:\n    guess = int(input('Your guess: '))\n    if guess < secret:\n        print('Too low')\n    elif guess > secret:\n        print('Too high')\n    else:\n        print('You got it!')\n        break\n", start: 'py' },
+    'Python: Save a File': { html: '', css: '', js: '', py: "# Files you make here show up in your Documents folder\nwith open('notes.txt', 'w') as f:\n    f.write('Written by Python!\\n')\n    f.write('2 + 2 = ' + str(2 + 2) + '\\n')\nprint(open('notes.txt').read())\n", start: 'py' },
+    'Python: Math & Data': { html: '', css: '', js: '', py: "import statistics\n\nscores = [88, 92, 79, 95, 84]\nprint('Average:', statistics.mean(scores))\nprint('Median:', statistics.median(scores))\nprint('Best:', max(scores))\n", start: 'py' },
     'Blank': { html: '', css: '', js: '' }
   };
   PatOS.registerApp({
     id: 'code', name: 'Code Studio', icon: 'code', width: 1080, height: 660, dark: true, category: 'Utilities', keywords: 'programming html css javascript coding editor ide',
-    about: 'A live HTML, CSS and JavaScript playground.',
+    about: 'Write HTML, CSS, JavaScript and real Python. Python runs right in PatOS.',
     launch(win, args) {
       win.el.classList.add('has-toolbar');
       let proj = PatOS.store.get('codeProject', null) || Object.assign({}, TEMPLATES['Hello World']);
-      let tab = 'html';
+      if (proj.py == null) proj.py = "print('Hello from Python!')\nname = input('What is your name? ')\nprint('Nice to meet you,', name)\n";
+      let tab = 'html', pyPath = null;
+      if (args.path && /\.py$/i.test(args.path)) { proj.py = PatOS.fs.read(args.path) || ''; tab = 'py'; pyPath = args.path; }
       const seg = h('div', { class: 'seg' });
-      ['html', 'css', 'js'].forEach((k) => seg.appendChild(h('button', { class: 'tab', 'data-k': k, onclick: () => { tab = k; sync(); } }, k.toUpperCase())));
+      ['html', 'css', 'js', 'py'].forEach((k) => seg.appendChild(h('button', { class: 'tab', 'data-k': k, onclick: () => { tab = k; sync(); } }, k === 'py' ? 'Python' : k.toUpperCase())));
       const tpl = h('select', { class: 'field' }, h('option', { value: '' }, 'Templates…'), ...Object.keys(TEMPLATES).map((k) => h('option', { value: k }, k)));
-      tpl.onchange = () => { if (!tpl.value) return; proj = Object.assign({}, TEMPLATES[tpl.value]); tpl.value = ''; sync(); run(); save(); };
+      tpl.onchange = () => { if (!tpl.value) return; const t = TEMPLATES[tpl.value]; proj = Object.assign({ py: proj.py }, t); tab = t.start || (tab === 'py' ? 'html' : tab); tpl.value = ''; pyPath = null; sync(); if (tab !== 'py') run(); save(); };
       const bRun = h('button', { class: 'btn primary' }, '▶ Run');
       const bSave = h('button', { class: 'tbtn', title: 'Save as .html in Documents' }, '💾');
       const bOpen = h('button', { class: 'tbtn', title: 'Open the page in Patoogle' }, '↗');
@@ -12652,11 +12837,12 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       const editor = h('div', { class: 'cs-editor' }, gutter, ta);
       const frame = h('iframe', { class: 'cs-frame', sandbox: 'allow-scripts allow-modals allow-forms' });
       const consoleEl = h('div', { class: 'cs-console' });
-      const right = h('div', { class: 'cs-right' }, frame, consoleEl);
+      const pyBox = h('div', { class: 'cs-pybox' });
+      const right = h('div', { class: 'cs-right' }, frame, consoleEl, pyBox);
       win.body.appendChild(h('div', { class: 'cs-wrap' }, editor, right));
       const save = PatOS.debounce(() => PatOS.store.set('codeProject', proj), 400);
       function lines() { const n = ta.value.split('\n').length; gutter.textContent = Array.from({ length: n }, (_, i) => i + 1).join('\n'); }
-      function sync() { [...seg.children].forEach((b) => b.classList.toggle('on', b.dataset.k === tab)); ta.value = proj[tab]; lines(); }
+      function sync() { [...seg.children].forEach((b) => b.classList.toggle('on', b.dataset.k === tab)); ta.value = proj[tab] || ''; lines(); win.el.classList.toggle('cs-pymode', tab === 'py'); bRun.textContent = PatOS.python && PatOS.python.busy ? '■ ' + 'Stop' : '▶ Run'; auto.style.display = tab === 'py' ? 'none' : ''; bOpen.style.display = tab === 'py' ? 'none' : ''; }
       function doc() {
         const hook = `<script>(function(){const send=(t,a)=>parent.postMessage({patosConsole:1,t,m:[].map.call(a,x=>{try{return typeof x==='object'?JSON.stringify(x):String(x)}catch(e){return String(x)}}).join(' ')},'*');['log','warn','error','info'].forEach(k=>{const o=console[k];console[k]=function(){send(k,arguments);o.apply(console,arguments)}});addEventListener('error',e=>send('error',[e.message+' (line '+e.lineno+')']));})();<\/script>`;
         return `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width">${hook}<style>${proj.css}</style></head><body>${proj.html}<script>${proj.js.replace(/<\/script/gi, '<\\/script')}<\/script></body></html>`;
@@ -12664,7 +12850,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       function run() { consoleEl.innerHTML = ''; frame.srcdoc = doc(); }
       const onMsg = (e) => { if (e.source === frame.contentWindow && e.data && e.data.patosConsole) { consoleEl.appendChild(h('div', { class: 'cs-log ' + e.data.t }, (e.data.t === 'error' ? '✖ ' : '› ') + e.data.m)); consoleEl.scrollTop = 1e9; } };
       window.addEventListener('message', onMsg);
-      const live = PatOS.debounce(() => { if (auto.firstChild.checked) run(); }, 600);
+      const live = PatOS.debounce(() => { if (tab !== 'py' && auto.firstChild.checked) run(); }, 600);
       ta.addEventListener('input', () => { proj[tab] = ta.value; lines(); save(); live(); });
       ta.addEventListener('scroll', () => { gutter.scrollTop = ta.scrollTop; });
       ta.addEventListener('keydown', (e) => {
@@ -12672,14 +12858,47 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         const pairs = { '(': ')', '[': ']', '{': '}', '"': '"', "'": "'", '`': '`' };
         if (pairs[e.key] && ta.selectionStart === ta.selectionEnd) { e.preventDefault(); document.execCommand('insertText', false, e.key + pairs[e.key]); ta.selectionStart = ta.selectionEnd = ta.selectionStart - 1; }
         if (e.key === 'Enter') { const before = ta.value.slice(0, ta.selectionStart); const indent = (before.split('\n').pop().match(/^\s*/) || [''])[0]; const extra = /[{([>]$/.test(before.trim()) ? '  ' : ''; e.preventDefault(); document.execCommand('insertText', false, '\n' + indent + extra); }
-        if ((e.ctrlKey || e.altKey) && e.key === 'Enter') { e.preventDefault(); run(); }
+        if ((e.ctrlKey || e.altKey) && e.key === 'Enter') { e.preventDefault(); runAny(); }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 's' && tab === 'py') { e.preventDefault(); savePy(); }
       });
-      bRun.onclick = run;
-      bSave.onclick = async () => { const nm = await PatOS.ask('Save project as', 'my-page.html', { icon: 'code', ok: 'Save', text: 'Saved in Documents. Double-click it to open it in Patoogle.' }); if (!nm) return; PatOS.fs.write('/Documents/' + (nm.endsWith('.html') ? nm : nm + '.html'), doc()); PatOS.notify({ title: 'Project saved', body: nm, icon: 'code' }); };
+      /* ----- Python ----- */
+      function pyLine(text, cls) { const d = h('div', { class: 'cs-log ' + (cls || '') }); d.textContent = text; pyBox.insertBefore(d, pyBox.querySelector('.cs-pyin')); pyBox.scrollTop = pyBox.scrollHeight; return d; }
+      async function runPython() {
+        if (!PatOS.python) return;
+        if (PatOS.python.busy) { PatOS.python.stop(); bRun.textContent = '▶ Run'; pyLine('— ' + PatOS.t('Stopped') + ' —', 'warn'); const ip = pyBox.querySelector('.cs-pyin'); if (ip) ip.remove(); return; }
+        pyBox.innerHTML = ''; bRun.textContent = '■ ' + PatOS.t('Stop');
+        const status = h('div', { class: 'cs-pystatus' }); pyBox.appendChild(status);
+        let buf = ''; const flush = (t, cls) => { buf += t; let i; while ((i = buf.indexOf('\n')) >= 0) { pyLine(buf.slice(0, i), cls); buf = buf.slice(i + 1); } };
+        try {
+          const r = await PatOS.python.run(proj.py, {
+            name: pyPath ? PatOS.fs.basename(pyPath) : 'main.py',
+            onOut: (t) => flush(t), onErr: (t) => flush(t, 'error'), onStatus: (t) => { status.textContent = t ? PatOS.t(t) : ''; },
+            onInput: () => {
+              if (!PatOS.python.canInput()) { pyLine(PatOS.t('input() needs PatOS to be opened from its website and reloaded once.'), 'error'); return; }
+              const prev = buf; buf = ''; const row = h('div', { class: 'cs-pyin' }, h('span', {}, prev), h('input', { spellcheck: 'false', autocomplete: 'off' }));
+              pyBox.appendChild(row); const inp = row.querySelector('input'); inp.focus(); pyBox.scrollTop = pyBox.scrollHeight;
+              inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const v = inp.value; row.remove(); pyLine(prev + v, 'in'); PatOS.python.sendInput(v); } e.stopPropagation(); });
+            }
+          });
+          if (buf) { pyLine(buf, ''); buf = ''; }
+          if (r.written.length) pyLine('— ' + PatOS.t('Saved to your files') + ': ' + r.written.map((p) => PatOS.fs.basename(p)).join(', ') + ' —', 'ok'); else pyLine('— ' + PatOS.t(r.ok ? 'Done' : 'Stopped because of an error') + ' —', r.ok ? 'ok' : 'warn');
+        } catch (e) { if (e.message !== 'Stopped.') pyLine(e.message, 'error'); }
+        status.remove(); bRun.textContent = '▶ Run'; const ip = pyBox.querySelector('.cs-pyin'); if (ip) ip.remove();
+      }
+      const runAny = () => (tab === 'py' ? runPython() : run());
+      bRun.onclick = runAny;
+      async function savePy() {
+        if (pyPath) { PatOS.fs.write(pyPath, proj.py); PatOS.notify({ title: PatOS.t('Saved'), body: PatOS.fs.basename(pyPath), icon: 'code' }); return; }
+        const nm = await PatOS.ask(PatOS.t('Save Python file as'), 'my-script.py', { icon: 'code', ok: PatOS.t('Save'), text: PatOS.t('Saved in Documents.') }); if (!nm) return;
+        const name = PatOS.fs.uniqueName('/Documents', /\.py$/i.test(nm) ? nm : nm + '.py'); PatOS.fs.write('/Documents/' + name, proj.py); pyPath = '/Documents/' + name; PatOS.notify({ title: PatOS.t('Saved'), body: name, icon: 'code' });
+      }
+      bSave.onclick = async () => { if (tab === 'py') return savePy(); const nm = await PatOS.ask('Save project as', 'my-page.html', { icon: 'code', ok: 'Save', text: 'Saved in Documents. Double-click it to open it in Patoogle.' }); if (!nm) return; PatOS.fs.write('/Documents/' + (nm.endsWith('.html') ? nm : nm + '.html'), doc()); PatOS.notify({ title: 'Project saved', body: nm, icon: 'code' }); };
       bOpen.onclick = () => PatOS.launch('browser', { html: doc(), title: 'Code Studio preview' });
-      win.on('closed', () => window.removeEventListener('message', onMsg));
-      sync(); run();
-    }
+      win.on('closed', () => { window.removeEventListener('message', onMsg); if (PatOS.python && PatOS.python.busy) PatOS.python.stop(); });
+      win._openPath = (p) => { if (/\.py$/i.test(p)) { proj.py = PatOS.fs.read(p) || ''; pyPath = p; tab = 'py'; sync(); } };
+      sync(); if (tab !== 'py') run(); else setTimeout(() => PatOS.python && PatOS.python.preload(), 300);
+    },
+    onArgs(win, a) { if (a && a.path && win._openPath) win._openPath(a.path); }
   });
 })();
 

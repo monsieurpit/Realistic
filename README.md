@@ -133,3 +133,11 @@ yt.js               YouTube data for the YouTube app (no API key)
 services.js         News and Books data
 build.js            makes the single-file versions in dist/
 ```
+
+## Storage, files and code (added)
+- Everything is stored in IndexedDB (large quota, survives reloads). Old localStorage data migrates once.
+- Real files: open files from the Chromebook or link a folder (File System Access API), save copies back.
+- Real formats: Docs/Sheets/Slides import and export .docx/.xlsx/.pptx; zip compress/extract.
+- Screen Recorder: screen with optional microphone, system sound and camera bubble; saves to Videos.
+- Python (Pyodide, served by `/pyodide/*`) in Code Studio and Terminal (`python`, `node`).
+- `/api/frameable` tells Patoogle whether a site allows being shown inside PatOS; if not, it opens in its own window.
