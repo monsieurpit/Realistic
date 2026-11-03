@@ -43,6 +43,15 @@ self.addEventListener('activate', (e) => { e.waitUntil((async () => {
   await self.clients.claim();
   if (hadOld) (await self.clients.matchAll()).forEach((c) => c.postMessage({ patosUpdate: true }));
 })()); });
+// buttons on PatOS's Chrome notifications (Stop, Snooze): tell the open PatOS, or open it
+self.addEventListener('notificationclick', (e) => {
+  const n = e.notification; const d = n.data || {}; const action = e.action || 'open'; n.close();
+  e.waitUntil((async () => {
+    const cs = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    if (cs.length) { cs.forEach((c) => c.postMessage({ patosNotif: true, id: d.id, action })); if (action === 'open') { try { await cs[0].focus(); } catch (er) {} } }
+    else if (action === 'open' && self.clients.openWindow) await self.clients.openWindow('./');
+  })());
+});
 // input() for Python: the Python worker waits on /__stdin/<run id> until PatOS sends it a line
 const stdin = {};
 self.addEventListener('message', (e) => { const d = e.data; if (d && d.patosStdin) { const st = stdin[d.id] = stdin[d.id] || { q: [], w: [] }; if (st.w.length) st.w.shift()(d.text); else st.q.push(d.text); } });

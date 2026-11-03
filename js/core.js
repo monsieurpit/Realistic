@@ -519,7 +519,8 @@
   ['pointerdown', 'touchend', 'keydown', 'click'].forEach((ev) => window.addEventListener(ev, unlockAudio, { capture: true, passive: true }));
   document.addEventListener('visibilitychange', () => { if (!document.hidden && actx && actx.state !== 'running') actx.resume().catch(() => {}); });
   function tone(freq, dur, opts) {
-    if (!PatOS.settings.uiSounds) return;
+    // force: alarms and timers, which ring even when interface sounds are off
+    if (!PatOS.settings.uiSounds && !(opts && opts.force)) return;
     const a = PatOS.audio(); if (!a) return;
     if (a.ctx.state !== 'running') {
       // wait for the audio engine to wake up instead of scheduling into a frozen clock
@@ -534,7 +535,11 @@
     if (opts.slide) o.frequency.exponentialRampToValueAtTime(opts.slide, t + dur);
     g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(opts.vol || 0.15, t + 0.01);
     g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-    o.connect(g); g.connect(a.out); o.start(t); o.stop(t + dur + 0.05);
+    if (opts.force && PatOS.settings.volume < 0.35) {
+      // an alarm must be heard: never quieter than about a third of full volume
+      const lift = a.ctx.createGain(); lift.gain.value = 0.35; o.connect(g); g.connect(lift); lift.connect(a.ctx.destination);
+    } else { o.connect(g); g.connect(a.out); }
+    o.start(t); o.stop(t + dur + 0.05);
   }
   PatOS.sound = {
     tone,

@@ -99,6 +99,7 @@
         if (cfg.auto) start();
       }
       function start() {
+        if (PatOS.alarms) PatOS.alarms.askPermission();
         running = true; endAt = Date.now() + left * 1000;
         if (mode === 'focus') startNoise(cfg.sound);
         paint();
@@ -107,7 +108,9 @@
       bReset.onclick = () => { setMode(mode); stopNoise(); };
       bSkip.onclick = () => { const was = running; left = 0; running = true; endAt = Date.now(); finish(true); if (!was && !cfg.auto) paint(); };
       timer = setInterval(tick, 250);
-      win.on('closed', () => { clearInterval(timer); stopNoise(); });
+      // the background beat keeps the session on time when PatOS is hidden (Chrome slows page timers then)
+      const offBeat = PatOS.alarms ? PatOS.alarms.onTick(tick) : () => {};
+      win.on('closed', () => { clearInterval(timer); offBeat(); stopNoise(); });
       win.body.tabIndex = 0;
       win.body.addEventListener('keydown', (e) => { if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return; if (e.key === ' ') { e.preventDefault(); bStart.click(); } if (e.key === 'r') bReset.click(); });
 

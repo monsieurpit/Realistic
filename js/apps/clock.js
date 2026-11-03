@@ -6,19 +6,13 @@
   const inTZ = (tz) => tz ? new Date(new Date().toLocaleString('en-US', { timeZone: tz })) : new Date();
   const fmt = (ms, cs) => { const m = Math.floor(ms / 60000), s = Math.floor(ms / 1000) % 60, c = Math.floor(ms / 10) % 100; return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0') + (cs ? '.' + String(c).padStart(2, '0') : ''); };
 
-  /* alarms ring while PatOS is open, even when Clock is closed */
-  let lastMin = '';
-  setInterval(() => {
-    if (!PatOS.loggedIn) return;
-    const d = new Date(); const hm = String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-    if (hm === lastMin) return; lastMin = hm;
-    (PatOS.store.get('alarms', []) || []).forEach((a) => {
-      if (!a.on || a.time !== hm) return;
-      PatOS.notify({ title: a.label || PatOS.t('Alarm'), body: d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }), icon: 'clock', duration: 15000 });
-      for (let i = 0; i < 8; i++) { PatOS.sound.tone(880, 0.18, { delay: i * 0.5, vol: 0.25, type: 'square' }); PatOS.sound.tone(1100, 0.18, { delay: i * 0.5 + 0.22, vol: 0.2, type: 'square' }); }
-      if (PatOS.mobile && PatOS.mobile.islandAlert) PatOS.mobile.islandAlert(a.label || PatOS.t('Alarm'), 'clock');
-    });
-  }, 5000);
+  /* Alarms and the timer are rung by PatOS.alarms, so they work with Clock closed and in the background.
+     The timer is saved, so it keeps going when Clock is closed or PatOS is reloaded. */
+  const TM = 'clockTimer';
+  const tmState = () => Object.assign({ running: false, end: 0, left: 5 * 60000, total: 5 * 60000 }, PatOS.store.get(TM, null) || {});
+  const tmSave = (tm) => PatOS.store.set(TM, tm);
+  PatOS.on('alarm:fire', (x) => { if (x.id === 'clock-timer') { const tm = tmState(); tm.running = false; tm.left = tm.total; tmSave(tm); PatOS.emit('clock:timer'); } });
+  const REPEATS = [['daily', 'Every day'], ['weekdays', 'Weekdays'], ['weekends', 'Weekends'], ['once', 'Once']];
 
   PatOS.registerApp({
     id: 'clock', name: 'Clock', icon: 'clock', width: 720, height: 500, dark: true, category: 'Utilities', keywords: 'time stopwatch timer alarm world',
@@ -30,12 +24,12 @@
       tabs.forEach((t, i) => seg.appendChild(h('button', { class: 'tab', onclick: () => { tab = i; render(); } }, t)));
       win.toolbar.style.justifyContent = 'center'; win.toolbar.append(seg);
       const body = h('div', { class: 'clk' }); win.body.appendChild(body);
-      let timers = [];
-      const clearTimers = () => { timers.forEach(clearInterval); timers = []; };
+      let timers = [], cleanups = [];
+      const clearTimers = () => { timers.forEach(clearInterval); timers = []; cleanups.forEach((f) => f()); cleanups = []; };
 
       // stopwatch state persists across tab switches
       const sw = { running: false, start: 0, acc: 0, laps: [] };
-      const tm = { running: false, end: 0, left: 5 * 60000, total: 5 * 60000 };
+
 
       function render() {
         clearTimers(); body.innerHTML = '';
@@ -69,13 +63,16 @@
           list.sort((a, b) => a.time.localeCompare(b.time)).forEach((a) => {
             const sw = h('button', { class: 'switch' + (a.on ? ' on' : '') }); sw.onclick = () => { a.on = !a.on; save(); draw(); };
             const [hh, mm] = a.time.split(':').map(Number); const d = new Date(); d.setHours(hh, mm, 0, 0);
-            wrap.appendChild(h('div', { class: 'clk-alarm' + (a.on ? '' : ' off') }, h('div', {}, h('div', { class: 'clk-at' }, d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })), h('small', {}, a.label || PatOS.t('Alarm'))), h('div', { style: { flex: 1 } }), h('button', { class: 'tbtn', title: 'Delete', onclick: () => { list.splice(list.indexOf(a), 1); save(); draw(); } }, '🗑'), sw));
+            wrap.appendChild(h('div', { class: 'clk-alarm' + (a.on ? '' : ' off') }, h('div', {}, h('div', { class: 'clk-at' }, d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' })), h('small', {}, (a.label || PatOS.t('Alarm')) + ' · ' + PatOS.t((REPEATS.find((r) => r[0] === (a.repeat || 'daily')) || REPEATS[0])[1]))), h('div', { style: { flex: 1 } }), h('button', { class: 'tbtn', title: 'Delete', onclick: () => { list.splice(list.indexOf(a), 1); save(); draw(); } }, '🗑'), sw));
           });
         };
         const tIn = h('input', { type: 'time', class: 'field', value: '07:00' });
-        const lIn = h('input', { class: 'field', placeholder: 'Label', style: { width: '140px' } });
-        const add = h('button', { class: 'btn primary', onclick: () => { if (!tIn.value) return; list.push({ id: PatOS.uid(), time: tIn.value, label: lIn.value.trim(), on: true }); lIn.value = ''; save(); draw(); } }, 'Add Alarm');
-        body.append(h('div', { class: 'clk-addalarm' }, tIn, lIn, add), wrap);
+        const lIn = h('input', { class: 'field', placeholder: PatOS.t('Label'), style: { width: '140px' } });
+        const rIn = h('select', { class: 'field' }, ...REPEATS.map(([v, l]) => h('option', { value: v }, PatOS.t(l))));
+        const add = h('button', { class: 'btn primary', onclick: () => { if (!tIn.value) return; PatOS.alarms.askPermission(); list.push({ id: PatOS.uid(), time: tIn.value, label: lIn.value.trim(), repeat: rIn.value, on: true }); lIn.value = ''; save(); draw(); } }, PatOS.t('Add Alarm'));
+        body.append(h('div', { class: 'clk-addalarm' }, tIn, lIn, rIn, add), wrap);
+        const onAl = () => { const fresh = PatOS.store.get('alarms', []); list.splice(0, list.length, ...fresh); draw(); };
+        PatOS.on('alarms', onAl); cleanups.push(() => PatOS.off('alarms', onAl));
         draw();
       }
       function stopwatch() {
@@ -98,21 +95,35 @@
         const ring = h('canvas', { width: 260, height: 260, class: 'clk-ring' });
         const disp = h('div', { class: 'clk-tdisp' });
         const presets = h('div', { class: 'clk-presets' });
-        [1, 3, 5, 10, 15, 25].forEach((m) => presets.appendChild(h('button', { class: 'btn', onclick: () => { tm.running = false; tm.left = tm.total = m * 60000; upd(); } }, m + ' min')));
-        const bS = h('button', { class: 'clk-btn' }); const bC = h('button', { class: 'clk-btn gray' }, 'Cancel');
-        const left = () => tm.running ? Math.max(0, tm.end - Date.now()) : tm.left;
+        const set = (ms) => { const tm = tmState(); if (tm.running) return; tm.left = tm.total = ms; tmSave(tm); upd(); };
+        [1, 3, 5, 10, 15, 25].forEach((m) => presets.appendChild(h('button', { class: 'btn', onclick: () => set(m * 60000) }, m + ' min')));
+        const custom = h('input', { type: 'number', class: 'field', min: 1, max: 600, placeholder: PatOS.t('Minutes'), style: { width: '90px' } });
+        custom.addEventListener('keydown', (e) => { if (e.key === 'Enter' && +custom.value > 0) { set(Math.min(600, +custom.value) * 60000); custom.value = ''; } });
+        presets.appendChild(custom);
+        const bS = h('button', { class: 'clk-btn' }); const bC = h('button', { class: 'clk-btn gray' }, PatOS.t('Cancel'));
+        const left = (tm) => tm.running ? Math.max(0, tm.end - Date.now()) : tm.left;
         const upd = () => {
-          const l = left();
+          const tm = tmState(); const l = left(tm);
           disp.textContent = fmt(Math.ceil(l / 1000) * 1000);
-          bS.textContent = tm.running ? 'Pause' : 'Start'; bS.className = 'clk-btn ' + (tm.running ? 'orange' : 'green');
+          bS.textContent = PatOS.t(tm.running ? 'Pause' : l < tm.total ? 'Resume' : 'Start'); bS.className = 'clk-btn ' + (tm.running ? 'orange' : 'green');
+          presets.classList.toggle('dim', tm.running);
           const x = ring.getContext('2d'); x.clearRect(0, 0, 260, 260); x.lineWidth = 10; x.lineCap = 'round';
           x.strokeStyle = 'rgba(255,255,255,.12)'; x.beginPath(); x.arc(130, 130, 118, 0, Math.PI * 2); x.stroke();
           x.strokeStyle = '#ff9f0a'; x.beginPath(); x.arc(130, 130, 118, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (l / tm.total)); x.stroke();
-          if (tm.running && l <= 0) { tm.running = false; tm.left = tm.total; PatOS.notify({ title: 'Timer done!', body: fmt(tm.total) + ' timer finished', icon: 'clock' }); [0, 0.4, 0.8].forEach((d) => PatOS.sound.tone(880, 0.3, { delay: d, vol: 0.2 })); }
         };
-        bS.onclick = () => { if (tm.running) { tm.left = left(); tm.running = false; } else { tm.end = Date.now() + tm.left; tm.running = true; } upd(); };
-        bC.onclick = () => { tm.running = false; tm.left = tm.total; upd(); };
+        bS.onclick = () => {
+          const tm = tmState();
+          if (tm.running) { tm.left = left(tm); tm.running = false; PatOS.alarms.cancel('clock-timer'); }
+          else {
+            PatOS.alarms.askPermission();
+            tm.end = Date.now() + tm.left; tm.running = true;
+            PatOS.alarms.schedule({ id: 'clock-timer', kind: 'timer', at: tm.end, title: PatOS.t('Timer done'), body: fmt(tm.total) + ' · ' + PatOS.t('Timer'), icon: 'clock', app: 'clock' });
+          }
+          tmSave(tm); upd();
+        };
+        bC.onclick = () => { const tm = tmState(); tm.running = false; tm.left = tm.total; tmSave(tm); PatOS.alarms.cancel('clock-timer'); upd(); };
         body.append(h('div', { class: 'clk-timer' }, ring, disp), h('div', { class: 'clk-row' }, bC, bS), presets);
+        PatOS.on('clock:timer', upd); cleanups.push(() => PatOS.off('clock:timer', upd));
         upd(); timers.push(setInterval(upd, 200));
       }
       win.on('closed', clearTimers);

@@ -89,7 +89,7 @@
         layer.appendChild(h('div', { class: 'dlg ce' }, h('b', {}, r.text),
           h('label', { class: 'ce-row' }, h('span', {}, PatOS.t('Date')), fDue), h('label', { class: 'ce-row' }, h('span', {}, PatOS.t('Time')), fTime),
           h('label', { class: 'ce-row' }, h('span', {}, PatOS.t('Priority')), fPrio), h('label', { class: 'ce-row' }, h('span', {}, PatOS.t('List')), fList), h('label', { class: 'ce-row' }, h('span', {}, PatOS.t('Flagged')), fFlag), fNotes,
-          h('div', { class: 'dlg-btns' }, h('button', { class: 'btn danger', onclick: () => { items = items.filter((x) => x !== r); save(); close(); render(); } }, 'Delete'), h('button', { class: 'btn primary', onclick: () => { r.due = fDue.value || null; r.time = fDue.value ? fTime.value || null : null; r.prio = +fPrio.value; r.list = fList.value; r.flag = fFlag.checked; r.notes = fNotes.value.trim(); delete r.alerted; save(); close(); render(); } }, 'Done'))));
+          h('div', { class: 'dlg-btns' }, h('button', { class: 'btn danger', onclick: () => { items = items.filter((x) => x !== r); save(); close(); render(); } }, 'Delete'), h('button', { class: 'btn primary', onclick: () => { r.due = fDue.value || null; r.time = fDue.value ? fTime.value || null : null; if (r.time) PatOS.alarms.askPermission(); r.prio = +fPrio.value; r.list = fList.value; r.flag = fFlag.checked; r.notes = fNotes.value.trim(); delete r.alerted; save(); close(); render(); } }, 'Done'))));
         layer.addEventListener('pointerdown', (e) => { if (e.target === layer) close(); });
         document.body.appendChild(layer);
       }
@@ -98,12 +98,5 @@
       render();
     }
   });
-  /* alerts at the due time, while PatOS is open */
-  setInterval(() => {
-    if (!PatOS.loggedIn) return;
-    const items = PatOS.store.get('reminders', []); let changed = false;
-    const now = new Date(), k = PatOS.dateKey(now), hm = now.toTimeString().slice(0, 5);
-    items.forEach((r) => { if (!r.done && !r.alerted && r.due === k && r.time && r.time <= hm) { r.alerted = true; changed = true; PatOS.notify({ title: r.text, body: PatOS.t('Reminder'), icon: 'reminders', duration: 10000 }); } });
-    if (changed) { PatOS.store.set('reminders', items); PatOS.emit('reminders'); }
-  }, 20000);
+  /* alerts at the due time are sent by PatOS.alarms (js/alarms.js), so they arrive on time in the background */
 })();
