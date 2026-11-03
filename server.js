@@ -18,7 +18,7 @@ http.createServer((req, res) => {
   let p;
   try { p = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch (e) { res.writeHead(400); return res.end('Bad request'); }
   if (p.startsWith('/api/yt/')) return yt.handle(req, res, new URL(req.url, 'http://x'));
-  if (p.startsWith('/api/news') || p.startsWith('/api/books/')) return services.handle(req, res, new URL(req.url, 'http://x'));
+  if (p.startsWith('/api/news') || p.startsWith('/api/books/') || p === '/api/suggest') return services.handle(req, res, new URL(req.url, 'http://x'));
   if (p === '/api/config') { res.writeHead(200, { 'Content-Type': 'application/json', 'Cache-Control': 'no-store' }); return res.end(JSON.stringify({ googleCx: (process.env.GOOGLE_CX || '').trim() })); }
   if (p === '/api/ping') { res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }); return res.end('{"patos":true}'); }
   if (p.endsWith('/')) p += 'index.html';

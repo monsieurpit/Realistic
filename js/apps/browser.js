@@ -1,7 +1,8 @@
-/* Patoogle — tabbed web browser */
+/* Patoogle — tabbed web browser with Google search, suggestions, history, and saved passwords */
 (function () {
   'use strict';
   const { h, esc } = PatOS;
+  const T = (s) => PatOS.t(s);
   const BLOCKED = ['youtube.com', 'mail.google.com', 'docs.google.com', 'drive.google.com', 'classroom.google.com', 'meet.google.com', 'calendar.google.com', 'accounts.google.com',
     'facebook.com', 'instagram.com', 'twitter.com', 'x.com', 'github.com', 'reddit.com', 'amazon.', 'netflix.com', 'tiktok.com', 'discord.com', 'chatgpt.com', 'openai.com', 'claude.ai',
     'microsoft.com', 'office.com', 'live.com', 'outlook.', 'linkedin.com', 'spotify.com', 'twitch.tv', 'apple.com', 'stackoverflow.com', 'canva.com', 'quizlet.com', 'kahoot', 'khanacademy.org', 'duckduckgo.com', 'roblox.com', 'scratch.mit.edu', 'pinterest.', 'translate.google.com', 'photos.google.com', 'keep.google.com', 'forms.google.com'];
@@ -95,84 +96,131 @@
     document.body.appendChild(a); a.click(); a.remove();
   };
 
+  /* ---------- password helper injected into pages PatOS creates (HTML files, practice page) ----------
+     It can see those pages because PatOS made them. Real websites shown in a frame belong to another
+     site, and browsers don't let any page read or type into them, so for those Patoogle offers to
+     copy the saved login instead. */
+  const PW_HELPER = `<script>(function(){var P=parent;function f(){var p=document.querySelector('input[type=password]');if(!p)return null;var form=p.form||document;var u=form.querySelector('input[type=email],input[autocomplete=username],input[name*=user i],input[name*=mail i],input[type=text]');return{p:p,u:u}}
+var sent='';function grab(){var x=f();if(!x||!x.p.value)return;var k=(x.u?x.u.value:'')+'\\u0000'+x.p.value;if(k===sent)return;sent=k;P.postMessage({patosPw:'submit',username:x.u?x.u.value:'',password:x.p.value},'*')}
+document.addEventListener('submit',grab,true);document.addEventListener('click',function(e){if(e.target.closest&&e.target.closest('button,input[type=submit]'))setTimeout(grab,0)},true);
+document.addEventListener('keydown',function(e){if(e.key==='Enter'&&e.target.type==='password')setTimeout(grab,0)},true);
+window.addEventListener('message',function(e){var d=e.data||{};if(d.patosPw!=='fill')return;var x=f();if(!x)return;function set(el,v){if(!el)return;el.focus();el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}));el.style.background='#fff8c5';setTimeout(function(){el.style.background=''},1200)}set(x.u,d.username);set(x.p,d.password)});
+function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readyState!=='loading')ready();else document.addEventListener('DOMContentLoaded',ready);})();<\/script>`;
+  const LOGIN_RE = /(^|[\/._-])(log-?in|sign-?in|signon|auth|account(s)?\/(login|signin)|connexion|se-connecter|identification|sso)([\/._?#-]|$)/i;
+
   PatOS.registerApp({
-    id: 'browser', name: 'Patoogle', icon: 'browser', single: true, width: 1040, height: 680, keywords: 'chrome safari web internet browser google',
+    id: 'browser', name: 'Patoogle', icon: 'browser', single: true, width: 1100, height: 720, keywords: 'chrome safari web internet browser google',
     about: 'A web browser with tabs that searches with Google, right inside PatOS.',
     launch(win, args) {
-      win.el.classList.add('has-toolbar', 'browser-win');
-      const tabs = []; let cur = null;
+      win.el.classList.add('has-toolbar', 'browser-win', 'pb-win');
+      const OF = PatOS.office;
+      const tabs = []; let cur = null; const closed = [];
       let bookmarks = PatOS.store.get('bookmarks', DEFAULT_BM).map((b) => (/google\.com\/webhp(?!\?igu)/.test(b.u) || /^https:\/\/www\.bing\.com\/?$/.test(b.u) ? { t: 'Patoogle', u: 'patos://newtab' } : b));
       if (!bookmarks.some((b) => /google\.com\/webhp\?igu/.test(b.u))) bookmarks.splice(1, 0, { t: 'Google', u: 'https://www.google.com/webhp?igu=1' });
-      const tabStrip = h('div', { class: 'br-tabs' });
-      const addTab = h('button', { class: 'br-newtab', title: 'New tab' }, '+');
+      const tabStrip = h('div', { class: 'br-tabs pb-tabs' });
+      const addTab = h('button', { class: 'br-newtab pb-newtab', title: T('New tab') + ' (Alt+T)' }, '+');
       win.toolbar.append(tabStrip, addTab);
-      win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '64px';
-      win.titlebar.style.height = '38px';
+      win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '72px';
+      win.titlebar.style.height = '40px';
 
-      const bBack = h('button', { class: 'tbtn', title: 'Back' }, '‹');
-      const bFwd = h('button', { class: 'tbtn', title: 'Forward' }, '›');
-      const bReload = h('button', { class: 'tbtn', title: 'Reload' }, '↻');
-      const bHome = h('button', { class: 'tbtn', title: 'Home' }, '⌂');
-      const omni = h('input', { class: 'br-omni', placeholder: 'Search Patoogle or type a web address', spellcheck: 'false' });
-      const lockIc = h('span', { class: 'br-lock', html: PatOS.sym('lock') });
-      const bStar = h('button', { class: 'tbtn', title: 'Bookmark this page' }, '☆');
-      const bExt = h('button', { class: 'tbtn', title: 'Open in a real browser tab' }, '↗');
-      const bHist = h('button', { class: 'tbtn', title: 'History' }, '🕘');
-      const nav = h('div', { class: 'br-nav' }, bBack, bFwd, bReload, bHome, h('div', { class: 'br-omniwrap' }, lockIc, omni), bStar, bHist, bExt);
+      const ic = (n) => OF.icon(n, 17);
+      const bBack = h('button', { class: 'tbtn', title: T('Back') + ' (Alt+←)', html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>' });
+      const bFwd = h('button', { class: 'tbtn', title: T('Forward') + ' (Alt+→)', html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>' });
+      const bReload = h('button', { class: 'tbtn', title: T('Reload'), html: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg>' });
+      const bHome = h('button', { class: 'tbtn', title: T('Home'), html: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5V20h-5.5v-6h-5v6H4z"/></svg>' });
+      const omni = h('input', { class: 'br-omni', placeholder: T('Search Google or type a web address'), spellcheck: 'false', autocomplete: 'off' });
+      const lockIc = h('button', { class: 'br-lock pb-site', title: T('Site information'), html: PatOS.sym('lock') });
+      const bKey = h('button', { class: 'pb-key', title: T('Saved passwords for this site'), html: ic('key') });
+      const zoomTag = h('button', { class: 'pb-zoomtag', title: T('Reset zoom') });
+      const bStar = h('button', { class: 'pb-star', title: T('Bookmark this page'), html: ic('star') });
+      const sugg = h('div', { class: 'pb-sugg' });
+      const omniWrap = h('div', { class: 'br-omniwrap pb-omni' }, lockIc, omni, zoomTag, bKey, bStar, sugg);
+      const bPw = h('button', { class: 'tbtn', title: T('Passwords'), html: ic('key') });
+      const bMenu = h('button', { class: 'tbtn', title: T('Menu'), html: ic('more') });
+      const nav = h('div', { class: 'br-nav pb-nav' }, bBack, bFwd, bReload, bHome, omniWrap, bPw, bMenu);
       const bmBar = h('div', { class: 'br-bm' });
+      const infobar = h('div', { class: 'pb-info' });
       const view = h('div', { class: 'br-view' });
-      win.body.append(nav, bmBar, view);
+      win.body.append(nav, bmBar, infobar, view);
 
       function renderBM() {
         bmBar.innerHTML = '';
         bookmarks.forEach((b, i) => {
-          const el = h('button', { class: 'br-bmi', title: b.u }, favicon(b.u) ? h('img', { class: 'br-fav img', src: favicon(b.u), alt: '', onerror: (e) => { e.target.replaceWith(h('span', { class: 'br-fav' }, (b.t[0] || '?').toUpperCase())); } }) : h('span', { class: 'br-fav' }, (b.t[0] || '?').toUpperCase()), b.t);
-          el.onclick = () => navigate(b.u);
-          el.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); PatOS.menu([{ label: 'Open in New Tab', action: () => newTab(b.u) }, { label: 'Delete Bookmark', action: () => { bookmarks.splice(i, 1); PatOS.store.set('bookmarks', bookmarks); renderBM(); } }], e.clientX, e.clientY); };
+          const el = h('button', { class: 'br-bmi', title: b.u, draggable: 'true' }, favicon(b.u) ? h('img', { class: 'br-fav img', src: favicon(b.u), alt: '', onerror: (e) => { e.target.replaceWith(h('span', { class: 'br-fav' }, (b.t[0] || '?').toUpperCase())); } }) : h('span', { class: 'br-fav' }, (b.t[0] || '?').toUpperCase()), b.t);
+          el.onclick = (e) => (e.ctrlKey || e.metaKey ? newTab(b.u, null, null, true) : navigate(b.u));
+          el.onauxclick = (e) => { if (e.button === 1) newTab(b.u, null, null, true); };
+          el.oncontextmenu = (e) => { e.preventDefault(); e.stopPropagation(); PatOS.menu([{ label: T('Open in New Tab'), action: () => newTab(b.u) }, { label: T('Rename…'), action: async () => { const n = await PatOS.ask(T('Rename'), b.t, { icon: 'browser', ok: T('Rename') }); if (n) { b.t = n; saveBM(); } } }, { label: T('Delete Bookmark'), action: () => { bookmarks.splice(i, 1); saveBM(); } }], e.clientX, e.clientY); };
+          el.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/bm', i));
+          el.addEventListener('dragover', (e) => e.preventDefault());
+          el.addEventListener('drop', (e) => { e.preventDefault(); const from = +e.dataTransfer.getData('text/bm'); if (isNaN(from) || from === i) return; bookmarks.splice(i, 0, bookmarks.splice(from, 1)[0]); saveBM(); });
           bmBar.appendChild(el);
         });
       }
-      function newTab(url, html, title) {
-        const t = { id: PatOS.uid(), url: 'patos://newtab', title: 'New Tab', hist: [], idx: -1, pane: h('div', { class: 'br-pane' }), tabEl: null };
-        t.tabEl = h('div', { class: 'tab br-tab' }, h('span', { class: 'br-tic none' }), h('span', { class: 'br-tt' }, 'New Tab'), h('button', { class: 'br-tx', title: 'Close tab' }, '×'));
+      function saveBM() { PatOS.store.set('bookmarks', bookmarks); renderBM(); syncUI(); }
+
+      /* ---------- tabs ---------- */
+      function newTab(url, html, title, background, at) {
+        const t = { id: PatOS.uid(), url: 'patos://newtab', title: T('New Tab'), hist: [], idx: -1, pane: h('div', { class: 'br-pane' }), tabEl: null, zoom: 1, loading: false };
+        t.tabEl = h('div', { class: 'tab br-tab pb-tab', draggable: 'true' }, h('span', { class: 'br-tic none' }), h('span', { class: 'br-tt' }, T('New Tab')), h('button', { class: 'br-tx', title: T('Close tab') }, '×'));
         t.tabEl.addEventListener('click', (e) => { if (e.target.classList.contains('br-tx')) closeTab(t); else select(t); });
         t.tabEl.addEventListener('auxclick', (e) => { if (e.button === 1) closeTab(t); });
-        tabStrip.appendChild(t.tabEl); view.appendChild(t.pane); tabs.push(t);
-        select(t);
+        t.tabEl.addEventListener('contextmenu', (e) => { e.preventDefault(); PatOS.menu([{ label: T('New tab'), action: () => newTab() }, { label: T('Reload'), action: () => navigate(t.url, t, true) }, { label: T('Duplicate'), action: () => newTab(t.url, null, null, false, tabs.indexOf(t) + 1) }, { divider: true }, { label: T('Close tab'), action: () => closeTab(t) }, { label: T('Close other tabs'), disabled: tabs.length < 2, action: () => tabs.slice().forEach((x) => x !== t && closeTab(x)) }, { label: T('Reopen closed tab'), disabled: !closed.length, action: reopen }], e.clientX, e.clientY); });
+        t.tabEl.addEventListener('dragstart', (e) => { e.dataTransfer.setData('text/tab', t.id); t.tabEl.classList.add('dragging'); });
+        t.tabEl.addEventListener('dragend', () => t.tabEl.classList.remove('dragging'));
+        t.tabEl.addEventListener('dragover', (e) => e.preventDefault());
+        t.tabEl.addEventListener('drop', (e) => { e.preventDefault(); const id = e.dataTransfer.getData('text/tab'); const from = tabs.findIndex((x) => x.id === id); const to = tabs.indexOf(t); if (from < 0 || from === to) return; const [m] = tabs.splice(from, 1); tabs.splice(to, 0, m); tabStrip.insertBefore(m.tabEl, from < to ? t.tabEl.nextSibling : t.tabEl); saveSession(); });
+        if (at != null && tabs[at]) { tabStrip.insertBefore(t.tabEl, tabs[at].tabEl); tabs.splice(at, 0, t); } else { tabStrip.appendChild(t.tabEl); tabs.push(t); }
+        view.appendChild(t.pane);
+        requestAnimationFrame(() => t.tabEl.classList.add('in'));
+        if (!background || !cur) select(t); else t.pane.style.display = 'none';
         if (html) loadHTML(t, html, title); else navigate(url || 'patos://newtab', t);
         return t;
       }
       function closeTab(t) {
-        const i = tabs.indexOf(t); tabs.splice(i, 1); t.tabEl.remove(); t.pane.remove(); if (t.web) { webTabs--; t.web = false; }
+        const i = tabs.indexOf(t); if (i < 0) return;
+        if (t.url !== 'patos://newtab' && !t.url.startsWith('patos://file')) { closed.push({ url: t.url, at: i }); if (closed.length > 20) closed.shift(); }
+        if (t.web) { webTabs--; t.web = false; }
+        tabs.splice(i, 1); t.pane.remove();
+        t.tabEl.classList.remove('in'); t.tabEl.classList.add('out'); setTimeout(() => t.tabEl.remove(), 180);
         if (!tabs.length) { win.close(); return; }
         if (cur === t) select(tabs[Math.min(i, tabs.length - 1)]);
+        saveSession();
       }
+      function reopen() { const c = closed.pop(); if (c) newTab(c.url, null, null, false, c.at); }
       function select(t) {
         cur = t; tabs.forEach((x) => { x.tabEl.classList.toggle('on', x === t); x.pane.style.display = x === t ? '' : 'none'; });
-        syncUI();
+        syncUI(); checkLogin();
       }
       function syncUI() {
         if (!cur) return;
-        omni.value = cur.url === 'patos://newtab' ? '' : cur.url;
-        lockIc.innerHTML = PatOS.sym(cur.url.startsWith('https') ? 'lock' : cur.url.startsWith('patos') ? 'search' : 'warn');
+        if (document.activeElement !== omni) omni.value = cur.url === 'patos://newtab' ? '' : cur.url.startsWith('patos://file') ? '' : cur.url;
+        const secure = cur.url.startsWith('https'), internal = cur.url.startsWith('patos');
+        lockIc.innerHTML = internal ? '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>' : PatOS.sym(secure ? 'lock' : 'warn');
+        lockIc.classList.toggle('warn', !secure && !internal);
         bBack.disabled = cur.idx <= 0; bFwd.disabled = cur.idx >= cur.hist.length - 1;
-        bStar.textContent = bookmarks.some((b) => b.u === cur.url) ? '★' : '☆';
+        const starred = bookmarks.some((b) => b.u === cur.url); bStar.classList.toggle('on', starred); bStar.style.display = internal ? 'none' : '';
+        const site = siteOf(cur); const n = site && !PatOS.passwords.locked ? PatOS.passwords.forSite(site).length : 0;
+        bKey.style.display = n ? '' : 'none'; bKey.dataset.n = n;
+        zoomTag.textContent = cur.zoom !== 1 ? Math.round(cur.zoom * 100) + '%' : ''; zoomTag.style.display = cur.zoom !== 1 ? '' : 'none';
         cur.tabEl.querySelector('.br-tt').textContent = cur.title;
-        const ic = cur.tabEl.querySelector('.br-tic'); const f = favicon(cur.url); if (ic) { ic.style.backgroundImage = f ? `url(${f})` : ''; ic.classList.toggle('none', !f); }
+        tabs.forEach((t) => { const icn = t.tabEl.querySelector('.br-tic'); const f = favicon(t.url); icn.style.backgroundImage = f && !t.loading ? `url(${f})` : ''; icn.classList.toggle('none', !f && !t.loading); icn.classList.toggle('spin', t.loading); t.tabEl.title = t.title; });
         win.setTitle(cur.title);
       }
+      const siteOf = (t) => (t.url.startsWith('patos://file') ? 'file:' + (t.fileKey || t.title) : /^https?:/.test(t.url) ? PatOS.passwords.hostOf(t.url) : null);
+      const saveSession = PatOS.debounce(() => { PatOS.store.set('browserSession', { tabs: tabs.filter((t) => /^(https?|patos):/.test(t.url) && !t.url.startsWith('patos://file')).map((t) => t.url).slice(0, 12), active: Math.max(0, tabs.indexOf(cur)) }); }, 300);
+
       function navigate(input, t, noHist) {
         t = t || cur;
         let url = fixGoogle(toURL(input));
         const yt = ytEmbed(url);
         if (yt || /(^|\.)youtube\.com$/.test(host(url).replace(/^m\./, ''))) { const vid = yt && yt.match(/embed\/([\w-]{11})/); PatOS.launch('youtube', vid ? { id: vid[1] } : (new URL(url).searchParams.get('search_query') ? { q: new URL(url).searchParams.get('search_query') } : {})); if (t.url === 'patos://newtab' || !t.hist.length) { t.hist = []; t.idx = -1; } return; }
         if (!noHist) { t.hist = t.hist.slice(0, t.idx + 1); t.hist.push(url); t.idx = t.hist.length - 1; }
-        if (/^https?:/.test(url)) { const H = PatOS.store.get('browserHistory', []); if (!H[0] || H[0].u !== url) { H.unshift({ u: url, t: Date.now() }); PatOS.store.set('browserHistory', H.slice(0, 100)); } }
+        if (/^https?:/.test(url)) { const H = PatOS.store.get('browserHistory', []); if (!H[0] || H[0].u !== url) { H.unshift({ u: url, t: Date.now(), title: host(url) }); PatOS.store.set('browserHistory', H.slice(0, 300)); } }
         if (t.web) { webTabs--; t.web = false; }
         if (/^https?:/.test(url) && !isBlocked(url)) { webTabs++; t.web = true; }
-        t.url = url;
-        t.pane.innerHTML = '';
-        if (url === 'patos://newtab') { t.title = 'New Tab'; t.pane.appendChild(newTabPage()); }
+        t.url = url; t.pane.innerHTML = ''; t.loading = false; t.frame = null;
+        if (url === 'patos://newtab') { t.title = T('New Tab'); t.pane.appendChild(newTabPage()); }
+        else if (url.startsWith('patos://history')) { t.title = T('History'); t.pane.appendChild(historyPage()); }
         else if (url.startsWith('patos://google-setup')) { t.title = 'Google'; t.pane.appendChild(googleSetup(new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || '')); }
         else if (url.startsWith('patos://search')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Patoogle'; t.pane.appendChild(patoogleResults(q)); }
         else if (url.startsWith('patos://google')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Google'; if (googleCx()) t.pane.appendChild(googlePage(t, q)); else { setTimeout(() => navigate(q ? googleURL(q) : 'https://www.google.com/webhp?igu=1&hl=' + glang(), t, true), 0); } }
@@ -180,19 +228,19 @@
         else {
           const gq = isGoogleFrame(url) ? new URL(url).searchParams.get('q') : null;
           t.title = /bing\.com\/search/.test(url) ? new URL(url).searchParams.get('q') : gq ? gq + ' - Google' : isGoogleFrame(url) ? 'Google' : host(url);
-          const loader = h('div', { class: 'br-loading' });
+          const bar = h('div', { class: 'pb-load' });
           const attrs = { src: url, allow: 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write; geolocation', referrerpolicy: 'no-referrer-when-downgrade', allowfullscreen: true };
-          // Google pages can't take over the whole PatOS tab; links that open new windows still work
           if (isGoogleFrame(url)) attrs.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-top-navigation-by-user-activation allow-storage-access-by-user-activation';
-          const frame = h('iframe', attrs);
-          frame.addEventListener('load', () => { loader.remove(); try { const d = frame.contentDocument; if (d && d.title) { t.title = d.title; syncUI(); } } catch (e) {} });
-          t.pane.append(loader, frame);
-          if (isGoogleFrame(url)) {
-            t.pane.insertBefore(h('div', { class: 'pg-banner g' }, h('span', {}, PatOS.t('If a page says it refused to connect, that site doesn’t allow being shown inside other apps.')), h('button', { class: 'pg-link', onclick: () => PatOS.openExternal(url.replace('igu=1&', '').replace('?igu=1', '?')) }, 'Open this search in a new tab'), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup' + (gq ? '?q=' + encodeURIComponent(gq) : '')) }, 'Search settings')), frame);
-          }
-          setTimeout(() => loader.remove(), 8000);
+          const frame = h('iframe', attrs); t.frame = frame;
+          t.loading = true;
+          frame.addEventListener('load', () => { t.loading = false; bar.classList.add('done'); setTimeout(() => bar.remove(), 400); try { const d = frame.contentDocument; if (d && d.title) t.title = d.title; } catch (e) {} if (t === cur) syncUI(); });
+          t.pane.append(bar, frame);
+          applyZoom(t);
+          if (isGoogleFrame(url)) t.pane.insertBefore(h('div', { class: 'pg-banner g' }, h('span', {}, T('If a page says it refused to connect, that site doesn’t allow being shown inside other apps.')), h('button', { class: 'pg-link', onclick: () => PatOS.openExternal(url.replace('igu=1&', '').replace('?igu=1', '?')) }, T('Open this search in a new tab')), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup' + (gq ? '?q=' + encodeURIComponent(gq) : '')) }, T('Search settings'))), bar);
+          setTimeout(() => { if (t.loading) { t.loading = false; bar.remove(); if (t === cur) syncUI(); } }, 12000);
         }
-        if (t === cur) syncUI(); else t.tabEl.querySelector('.br-tt').textContent = t.title;
+        if (t === cur) { syncUI(); checkLogin(); } else t.tabEl.querySelector('.br-tt').textContent = t.title;
+        saveSession();
       }
       function googlePage(t, q) {
         const box = h('input', { class: 'pg-q', value: q, spellcheck: 'false', placeholder: 'Search Google' });
@@ -297,27 +345,64 @@
           opt('bing', 'Bing', 'Some school networks block Bing.'));
       }
       function loadHTML(t, html, title) {
-        t.url = 'patos://file'; t.title = title || 'Document'; t.hist = [t.url]; t.idx = 0;
-        t.pane.innerHTML = ''; t.pane.appendChild(h('iframe', { srcdoc: html, sandbox: 'allow-scripts allow-forms allow-modals' })); syncUI();
+        t.url = 'patos://file'; t.title = title || T('Document'); t.fileKey = title || 'file'; t.hist = [t.url]; t.idx = 0; t.loading = false;
+        t.pane.innerHTML = '';
+        const withHelper = /<head[^>]*>/i.test(html) ? html.replace(/<head[^>]*>/i, (m) => m + PW_HELPER) : PW_HELPER + html;
+        const f = h('iframe', { srcdoc: withHelper, sandbox: 'allow-scripts allow-forms allow-modals allow-popups' });
+        t.frame = f; t.pane.appendChild(f); syncUI(); checkLogin();
+      }
+
+      /* ---------- new tab page ---------- */
+      function shortcuts() {
+        const pinned = PatOS.store.get('browserShortcuts', null);
+        if (pinned) return pinned;
+        return SHORTCUTS.map((s) => ({ t: s.t, u: s.u, app: s.app, i: s.i }));
       }
       function newTabPage() {
-        const q = h('input', { class: 'nt-search', placeholder: 'Search Patoogle or type a web address', spellcheck: 'false' });
-        q.addEventListener('keydown', (e) => { if (e.key === 'Enter') navigate(q.value); });
+        const q = h('input', { class: 'nt-search', placeholder: T('Search Google or type a web address'), spellcheck: 'false', autocomplete: 'off' });
+        q.addEventListener('keydown', (e) => { if (e.key === 'Enter' && q.value.trim()) navigate(q.value); });
+        q.addEventListener('input', () => { omni.value = q.value; showSugg(q); });
         const ENG = { google: 'Google', cse: 'Google', patoogle: 'Patoogle', bing: 'Bing' };
-        const engineRow = h('div', { class: 'nt-engine' }, h('span', {}, PatOS.t('Searching with') + ' ' + ENG[engine()]), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup') }, 'Change'));
+        const engineRow = h('div', { class: 'nt-engine' }, h('span', {}, T('Searching with') + ' ' + ENG[engine()]), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup') }, T('Change')));
         const grid = h('div', { class: 'nt-grid' });
-        SHORTCUTS.forEach((s) => {
-          const tile = h('button', { class: 'nt-tile' }, h('div', { class: 'nt-ic', html: PatOS.iconDefs[s.i] ? PatOS.iconHTML(s.i) : `<div class="nt-letter">${esc(s.i)}</div>` }), h('span', {}, s.t));
-          tile.onclick = () => (s.app ? PatOS.launch(s.app) : navigate(s.u)); grid.appendChild(tile);
+        const list = shortcuts();
+        list.forEach((s, i) => {
+          const tile = h('button', { class: 'nt-tile' }, h('div', { class: 'nt-ic', html: s.i && PatOS.iconDefs[s.i] ? PatOS.iconHTML(s.i) : favicon(s.u || '') ? `<img src="${favicon(s.u)}" alt="" class="nt-favimg">` : `<div class="nt-letter">${esc((s.t || '?')[0])}</div>` }), h('span', {}, s.t));
+          tile.onclick = () => (s.app ? PatOS.launch(s.app) : navigate(s.u));
+          tile.oncontextmenu = (e) => { e.preventDefault(); PatOS.menu([{ label: T('Remove shortcut'), action: () => { const l = shortcuts(); l.splice(i, 1); PatOS.store.set('browserShortcuts', l); navigate('patos://newtab', cur, true); } }], e.clientX, e.clientY); };
+          grid.appendChild(tile);
         });
+        if (list.length < 12) { const add = h('button', { class: 'nt-tile nt-addtile' }, h('div', { class: 'nt-ic' }, h('div', { class: 'nt-letter' }, '+')), h('span', {}, T('Add shortcut'))); add.onclick = async () => { const u = await PatOS.ask(T('Website address'), 'https://', { icon: 'browser', ok: T('Next') }); if (!u || u === 'https://') return; const n = await PatOS.ask(T('Name'), host(toURL(u)), { icon: 'browser', ok: T('Add') }); const l = shortcuts(); l.push({ t: n || host(toURL(u)), u: toURL(u) }); PatOS.store.set('browserShortcuts', l); navigate('patos://newtab', cur, true); }; grid.appendChild(add); }
         const hour = new Date().getHours();
-        const greet = hour < 12 ? 'Good morning' : hour < 18 ? 'Good afternoon' : 'Good evening';
+        const greet = hour < 12 ? T('Good morning') : hour < 18 ? T('Good afternoon') : T('Good evening');
+        const recent = PatOS.store.get('browserHistory', []).filter((x, i, a) => a.findIndex((y) => host(y.u) === host(x.u)) === i).slice(0, 5);
         setTimeout(() => q.focus(), 50);
-        return h('div', { class: 'nt-page' },
+        return h('div', { class: 'nt-page pb-nt' },
           h('div', { class: 'nt-logo' }, 'Patoogle'),
           h('div', { class: 'nt-greet' }, greet + ', ' + PatOS.settings.userName),
-          q, engineRow, grid,
-          h('div', { class: 'nt-tip' }, 'Most sites open right here. A few big ones, like Gmail, won’t load inside other apps, so use the PatOS app for those.'));
+          h('div', { class: 'pb-ntsearch' }, q), engineRow, grid,
+          recent.length ? h('div', { class: 'pb-recent' }, h('b', {}, T('Continue where you left off')), ...recent.map((r) => h('button', { onclick: () => navigate(r.u) }, favicon(r.u) ? h('img', { src: favicon(r.u), alt: '' }) : null, h('span', {}, host(r.u))))) : null,
+          h('div', { class: 'nt-tip' }, T('Most sites open right here. A few big ones, like Gmail, won’t load inside other apps, so use the PatOS app for those.')));
+      }
+      function historyPage() {
+        const q = h('input', { class: 'field pb-hsearch', placeholder: T('Search history') });
+        const box = h('div', { class: 'pb-hlist' });
+        const draw = () => {
+          box.innerHTML = '';
+          const H = PatOS.store.get('browserHistory', []); const ql = q.value.trim().toLowerCase();
+          let day = '';
+          const rows = H.filter((x) => !ql || x.u.toLowerCase().includes(ql) || (x.title || '').toLowerCase().includes(ql));
+          if (!rows.length) { box.appendChild(h('p', { class: 'pb-hnone' }, T(ql ? 'No results' : 'No history yet'))); return; }
+          rows.forEach((x) => {
+            const d = new Date(x.t).toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' });
+            if (d !== day) { day = d; box.appendChild(h('h3', {}, d)); }
+            const row = h('div', { class: 'pb-hrow' }, h('small', {}, new Date(x.t).toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' })), favicon(x.u) ? h('img', { src: favicon(x.u), alt: '' }) : h('span'), h('a', { href: '#' }, x.title && x.title !== host(x.u) ? x.title : x.u), h('span', { class: 'pb-hhost' }, host(x.u)), h('button', { class: 'tbtn', title: T('Remove'), onclick: (e) => { e.stopPropagation(); const all = PatOS.store.get('browserHistory', []); PatOS.store.set('browserHistory', all.filter((y) => !(y.t === x.t && y.u === x.u))); draw(); } }, '×'));
+            row.querySelector('a').onclick = (e) => { e.preventDefault(); navigate(x.u); };
+            box.appendChild(row);
+          });
+        };
+        q.oninput = draw; draw();
+        return h('div', { class: 'pb-history' }, h('div', { class: 'pb-hhead' }, h('h1', {}, T('History')), q, h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox(T('Clear browsing history?'), '', { danger: true, ok: T('Clear'), icon: 'browser' })) { PatOS.store.set('browserHistory', []); draw(); } } }, T('Clear browsing data'))), box);
       }
       function blockedPage(url) {
         return h('div', { class: 'br-blocked' },
@@ -326,39 +411,205 @@
           h('p', {}, PatOS.sandboxed ? 'PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead. PatOS stays open in this one.' : 'This site doesn’t let other apps show it, so it won’t open in Patoogle. You can search for it instead, or use the PatOS app that does the same thing (YouTube, Docs, Drive, Maps or Translate).'),
           h('div', { class: 'br-alts' }, h('button', { class: 'btn primary', onclick: () => navigate(searchURL(host(url))) }, PatOS.t('Search Google for') + ' ' + host(url))), h('a', { class: 'br-ext', href: url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '').replace('?igu=1', ''), target: '_blank', rel: 'noopener noreferrer' }, 'Open outside PatOS'));
       }
-      omni.addEventListener('keydown', (e) => { if (e.key === 'Enter') { navigate(omni.value); omni.blur(); } });
+      /* ---------- address bar suggestions ---------- */
+      let sIdx = -1, sTimer = null, sItems = [];
+      function showSugg(input) {
+        const v = input.value.trim();
+        clearTimeout(sTimer);
+        if (!v) { hideSugg(); return; }
+        const vl = v.toLowerCase();
+        const local = [];
+        bookmarks.forEach((b) => { if ((b.t + ' ' + b.u).toLowerCase().includes(vl)) local.push({ kind: 'bm', text: b.t, sub: b.u, go: b.u }); });
+        const seen = new Set(local.map((x) => x.go));
+        PatOS.store.get('browserHistory', []).forEach((x) => { if (local.length < 5 && !seen.has(x.u) && x.u.toLowerCase().includes(vl)) { seen.add(x.u); local.push({ kind: 'hist', text: x.title && x.title !== host(x.u) ? x.title : host(x.u), sub: x.u, go: x.u }); } });
+        const looksUrl = /^[\w-]+(\.[\w-]+)+/.test(v) && !v.includes(' ');
+        const first = looksUrl ? { kind: 'url', text: toURL(v), sub: T('Go to site'), go: toURL(v) } : { kind: 'search', text: v, sub: T('Search Google'), go: v };
+        paintSugg([first, ...local.slice(0, 5)], input);
+        if (looksUrl) return;
+        sTimer = setTimeout(async () => {
+          let list = [];
+          try { const base = PatOS.server && await PatOS.server(); if (base) { const r = await fetch(base + '/api/suggest?hl=' + (PatOS.lang === 'fr' ? 'fr' : 'en') + '&q=' + encodeURIComponent(v)); list = await r.json(); } } catch (e) {}
+          if (input.value.trim() !== v || !Array.isArray(list)) return;
+          const g = list.filter((s) => s.toLowerCase() !== vl).slice(0, 6).map((s) => ({ kind: 'search', text: s, go: s }));
+          paintSugg([first, ...local.slice(0, 3), ...g], input);
+        }, 140);
+      }
+      function paintSugg(items, input) {
+        sItems = items; sIdx = -1; sugg.innerHTML = '';
+        if (!items.length || document.activeElement !== input) return hideSugg();
+        const icons = { search: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>', hist: OF.icon('history', 15), bm: OF.icon('star', 15), url: '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3.5 3 14.5 0 18M12 3c-3 3.5-3 14.5 0 18"/></svg>' };
+        items.forEach((it, i) => { const b = h('button', { class: 'pb-si', html: icons[it.kind] + '<span class="pb-st"></span>' + (it.sub ? '<small></small>' : '') }); b.querySelector('.pb-st').textContent = it.text; if (it.sub) b.querySelector('small').textContent = it.sub; b.onmousedown = (e) => { e.preventDefault(); hideSugg(); input.blur(); navigate(it.go); }; sugg.appendChild(b); });
+        // place under whichever box is being typed in
+        const r = input.getBoundingClientRect(), wr = win.body.getBoundingClientRect();
+        if (input === omni) { sugg.style.cssText = ''; } else { sugg.style.cssText = `position:fixed;left:${r.left}px;top:${r.bottom + 4}px;width:${r.width}px;`; }
+        sugg.classList.add('on');
+      }
+      function hideSugg() { sugg.classList.remove('on'); sItems = []; sIdx = -1; }
+      function suggKey(e, input) {
+        if (!sugg.classList.contains('on') || !sItems.length) return false;
+        if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); sIdx = (sIdx + (e.key === 'ArrowDown' ? 1 : -1) + sItems.length + 1) % (sItems.length + 1) - 0; if (sIdx === sItems.length) sIdx = -1; [...sugg.children].forEach((b, i) => b.classList.toggle('sel', i === sIdx)); if (sIdx >= 0) input.value = sItems[sIdx].kind === 'search' ? sItems[sIdx].text : sItems[sIdx].go; return true; }
+        if (e.key === 'Escape') { hideSugg(); return true; }
+        return false;
+      }
+      omni.addEventListener('input', () => showSugg(omni));
+      omni.addEventListener('keydown', (e) => { if (suggKey(e, omni)) return; if (e.key === 'Enter') { const v = sIdx >= 0 ? sItems[sIdx].go : omni.value; hideSugg(); navigate(v); omni.blur(); } if (e.key === 'Escape') { omni.value = cur.url === 'patos://newtab' ? '' : cur.url; omni.blur(); } });
       omni.addEventListener('focus', () => omni.select());
+      omni.addEventListener('blur', () => setTimeout(() => { hideSugg(); syncUI(); }, 120));
+      win.body.addEventListener('keydown', (e) => { if (e.target.classList && e.target.classList.contains('nt-search')) { if (suggKey(e, e.target)) return; if (e.key === 'Enter' && sIdx >= 0) { e.preventDefault(); e.stopPropagation(); const go = sItems[sIdx].go; hideSugg(); navigate(go); } } }, true);
+      win.body.addEventListener('focusout', (e) => { if (e.target.classList && e.target.classList.contains('nt-search')) setTimeout(hideSugg, 120); });
+
+      /* ---------- zoom ---------- */
+      function applyZoom(t) { if (t.frame) { t.frame.style.zoom = t.zoom; } const p = t.pane.firstElementChild; if (!t.frame && p) p.style.zoom = t.zoom; }
+      function zoom(d) { if (!cur) return; cur.zoom = d === 0 ? 1 : Math.max(0.3, Math.min(3, Math.round((cur.zoom + d) * 10) / 10)); applyZoom(cur); syncUI(); }
+      zoomTag.onclick = () => zoom(0);
+
+      /* ---------- site info, bookmarks, menu ---------- */
+      lockIc.onclick = () => {
+        if (!cur) return; const secure = cur.url.startsWith('https'), internal = cur.url.startsWith('patos');
+        const site = siteOf(cur); const n = site && !PatOS.passwords.locked ? PatOS.passwords.forSite(site).length : 0;
+        const p = OF.pop(lockIc, h('div', { class: 'pb-siteinfo' },
+          h('b', {}, internal ? 'Patoogle' : host(cur.url)),
+          h('p', {}, internal ? T('This is a page inside PatOS.') : secure ? T('Connection is secure. Information you send to this site is private.') : T('Connection is not secure. Don’t enter passwords or card numbers here.')),
+          !internal ? h('button', { class: 'of-listbtn', onclick: () => { p.close(); PatOS.launch('passwords', { site }); } }, OF.icon('key', 15), ' ' + n + ' ' + T(n === 1 ? 'saved password' : 'saved passwords')) : null,
+          !internal ? h('button', { class: 'of-listbtn', onclick: () => { p.close(); PatOS.openExternal(cur.url); } }, T('Open in a real browser tab')) : null));
+      };
+      bStar.onclick = () => {
+        if (!cur || cur.url.startsWith('patos')) return;
+        const i = bookmarks.findIndex((b) => b.u === cur.url);
+        if (i >= 0) bookmarks.splice(i, 1); else { bookmarks.push({ t: cur.title.slice(0, 24), u: cur.url }); bStar.animate([{ transform: 'scale(1)' }, { transform: 'scale(1.4)' }, { transform: 'scale(1)' }], { duration: 300 }); }
+        saveBM();
+      };
+      bMenu.onclick = () => {
+        const r = bMenu.getBoundingClientRect();
+        PatOS.menu([
+          { label: T('New tab'), shortcut: 'Alt+T', action: () => newTab() },
+          { label: T('Reopen closed tab'), shortcut: 'Alt+Shift+T', disabled: !closed.length, action: reopen },
+          { divider: true },
+          { label: T('History'), shortcut: 'Alt+Y', action: () => newTab('patos://history') },
+          { label: T('Passwords'), action: () => PatOS.launch('passwords') },
+          { label: T('Bookmark this page'), disabled: !cur || cur.url.startsWith('patos'), action: () => bStar.click() },
+          { divider: true },
+          { label: T('Zoom in'), shortcut: 'Ctrl +', action: () => zoom(0.1) }, { label: T('Zoom out'), shortcut: 'Ctrl -', action: () => zoom(-0.1) }, { label: T('Actual size'), shortcut: 'Ctrl 0', action: () => zoom(0) },
+          { divider: true },
+          { label: T('Search engine…'), action: () => navigate('patos://google-setup') },
+          { label: (PatOS.store.get('browserRestore', false) ? '✓ ' : '') + T('Reopen my tabs next time'), action: () => PatOS.store.set('browserRestore', !PatOS.store.get('browserRestore', false)) },
+          { label: T('Open in a real browser tab'), disabled: !cur || cur.url.startsWith('patos'), action: () => PatOS.openExternal(cur.url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '').replace('?igu=1', '?')) }
+        ], r.right - 230, r.bottom + 4);
+      };
+      bPw.onclick = () => PatOS.launch('passwords', cur && siteOf(cur) ? { site: siteOf(cur) } : {});
+      bKey.onclick = () => keyPop(bKey);
+
+      /* ---------- passwords: save, fill, and the key popover ---------- */
+      function copy(text, what) { (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).then(() => OF.toast(win, what + ' ' + T('copied'))).catch(() => {}); }
+      function keyPop(anchor) {
+        const site = cur && siteOf(cur); if (!site) return;
+        if (PatOS.passwords.locked) { PatOS.launch('passwords'); return; }
+        const list = PatOS.passwords.forSite(site);
+        const canFill = cur.url.startsWith('patos://file');
+        const p = OF.pop(anchor, h('div', { class: 'pb-keypop' },
+          h('b', {}, T('Saved passwords for') + ' ' + (site.startsWith('file:') ? site.slice(5) : site)),
+          ...list.map((x) => h('div', { class: 'pb-krow' }, h('div', {}, h('span', {}, x.username || T('(no username)')), h('small', {}, '••••••••')),
+            canFill ? h('button', { class: 'btn primary', onclick: () => { fill(x); p.close(); } }, T('Fill')) : null,
+            h('button', { class: 'btn', onclick: () => copy(x.username, T('Username')) }, T('Copy username')),
+            h('button', { class: 'btn', onclick: () => { copy(x.password, T('Password')); PatOS.passwords.used(x.id); } }, T('Copy password')))),
+          h('button', { class: 'of-listbtn', onclick: () => { p.close(); PatOS.launch('passwords', { site }); } }, T('Manage passwords'))), { alignRight: true });
+      }
+      function fill(x) { if (cur && cur.frame && cur.frame.contentWindow) { cur.frame.contentWindow.postMessage({ patosPw: 'fill', username: x.username, password: x.password }, '*'); PatOS.passwords.used(x.id); } }
+      function bar(content, kind) {
+        infobar.innerHTML = ''; if (!content) { infobar.classList.remove('on'); return; }
+        infobar.appendChild(h('div', { class: 'pb-ibar ' + (kind || '') }, h('span', { class: 'pb-iic', html: OF.icon('key', 18) }), ...content, h('button', { class: 'tbtn pb-ix', title: T('Close'), onclick: () => bar(null) }, '×')));
+        infobar.classList.add('on');
+      }
+      // ask to save, but only for a login we don't already have, and never for sites the person said no to
+      function offerSave(site, username, password, frameUrl) {
+        if (!password || PatOS.passwords.locked) return;
+        if (PatOS.passwords.never().includes(site.replace(/^www\./, ''))) return;
+        if (PatOS.passwords.has(site, username, password)) return;
+        const existing = PatOS.passwords.forSite(site).find((x) => x.username === username);
+        const label = site.startsWith('file:') ? site.slice(5) : site;
+        bar([h('span', { class: 'pb-itext' }, h('b', {}, T(existing ? 'Update the saved password?' : 'Save this password?')), ' ' + label + (username ? ' · ' + username : '')),
+          h('button', { class: 'btn', onclick: () => { PatOS.passwords.addNever(site); bar(null); OF.toast(win, T('Patoogle won’t ask again for this site')); } }, T('Never for this site')),
+          h('button', { class: 'btn', onclick: () => bar(null) }, T('Not now')),
+          h('button', { class: 'btn primary', onclick: async () => { await PatOS.passwords.save({ url: site.startsWith('file:') ? site : frameUrl || 'https://' + site, site, username, password }); bar(null); syncUI(); OF.toast(win, T(existing ? 'Password updated' : 'Password saved')); } }, T(existing ? 'Update' : 'Save'))], 'save');
+      }
+      function offerFill(site, real) {
+        if (PatOS.passwords.locked) return;
+        const list = PatOS.passwords.forSite(site); if (!list.length) return;
+        const x = list.slice().sort((a, b) => (b.used || 0) - (a.used || 0))[0];
+        if (!real) {
+          bar([h('span', { class: 'pb-itext' }, h('b', {}, T('Sign in as') + ' ' + (x.username || T('saved login')) + '?'), ' ' + T('Fill in your saved email and password.')),
+            list.length > 1 ? h('button', { class: 'btn', onclick: () => keyPop(bKey.style.display === 'none' ? lockIc : bKey) }, T('Other accounts')) : null,
+            h('button', { class: 'btn', onclick: () => bar(null) }, T('No thanks')),
+            h('button', { class: 'btn primary', onclick: () => { fill(x); bar(null); } }, T('Fill'))], 'fill');
+        } else {
+          bar([h('span', { class: 'pb-itext' }, h('b', {}, T('You have a saved login for') + ' ' + site + '.'), ' ' + T('This site belongs to another company, so Patoogle can’t type into it. Copy your login, then paste it into the page.')),
+            h('button', { class: 'btn', onclick: () => copy(x.username, T('Username')) }, T('Copy email')),
+            h('button', { class: 'btn primary', onclick: () => { copy(x.password, T('Password')); PatOS.passwords.used(x.id); } }, T('Copy password'))], 'fill');
+        }
+      }
+      // real sign-in pages: we can't read what is typed there, so offer to remember the login ourselves
+      function checkLogin() {
+        bar(null);
+        if (!cur || !/^https?:/.test(cur.url) || isBlocked(cur.url) || PatOS.passwords.locked) return;
+        let path = ''; try { const u = new URL(cur.url); path = u.pathname + u.search; } catch (e) {}
+        if (!LOGIN_RE.test(path)) return;
+        const site = siteOf(cur);
+        if (PatOS.passwords.forSite(site).length) return offerFill(site, true);
+        if (PatOS.passwords.never().includes(site)) return;
+        bar([h('span', { class: 'pb-itext' }, h('b', {}, T('Signing in to') + ' ' + site + '?'), ' ' + T('Patoogle can remember the email and password you use here.')),
+          h('button', { class: 'btn', onclick: () => { PatOS.passwords.addNever(site); bar(null); } }, T('Never for this site')),
+          h('button', { class: 'btn', onclick: () => bar(null) }, T('Not now')),
+          h('button', { class: 'btn primary', onclick: async () => {
+            const u = await PatOS.ask(T('Email or username for') + ' ' + site, '', { icon: 'passwords', ok: T('Next') }); if (u === null) return;
+            const pw = await PatOS.ask(T('Password for') + ' ' + site, '', { icon: 'passwords', ok: T('Save'), password: true }); if (!pw) return;
+            if (PatOS.passwords.has(site, u, pw)) { bar(null); return OF.toast(win, T('Already saved')); }
+            await PatOS.passwords.save({ url: cur.url, site, username: u, password: pw }); bar(null); syncUI(); OF.toast(win, T('Password saved'));
+          } }, T('Save my login'))], 'save');
+      }
+      const onMsg = (e) => {
+        const d = e.data; if (!d || typeof d !== 'object' || !d.patosPw) return;
+        const t = tabs.find((x) => x.frame && x.frame.contentWindow === e.source); if (!t || !t.url.startsWith('patos://file')) return;
+        const site = siteOf(t);
+        if (t !== cur) return;
+        if (d.patosPw === 'submit') offerSave(site, String(d.username || '').slice(0, 200), String(d.password || '').slice(0, 500));
+        if (d.patosPw === 'form') offerFill(site, false);
+      };
+      window.addEventListener('message', onMsg);
+      const onPw = () => syncUI(); PatOS.on('passwords', onPw);
+      win.on('closed', () => { window.removeEventListener('message', onMsg); PatOS.off('passwords', onPw); tabs.forEach((t) => { if (t.web) { webTabs--; t.web = false; } }); });
+
       bBack.onclick = () => { if (cur.idx > 0) { cur.idx--; navigate(cur.hist[cur.idx], cur, true); } };
       bFwd.onclick = () => { if (cur.idx < cur.hist.length - 1) { cur.idx++; navigate(cur.hist[cur.idx], cur, true); } };
-      bReload.onclick = () => navigate(cur.url, cur, true);
+      bReload.onclick = () => { if (cur.url.startsWith('patos://file') && cur.frame) { cur.frame.srcdoc = cur.frame.srcdoc; return; } navigate(cur.url, cur, true); };
       bHome.onclick = () => navigate('patos://newtab');
-      bHist.onclick = () => {
-        const H = PatOS.store.get('browserHistory', []); const r = bHist.getBoundingClientRect();
-        PatOS.menu([{ header: PatOS.t('History') }, ...(H.length ? H.slice(0, 15).map((x) => ({ label: host(x.u) + ' · ' + new Date(x.t).toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' }), action: () => navigate(x.u) })) : [{ label: PatOS.t('No history yet'), disabled: true }]), { divider: true }, { label: PatOS.t('Clear History'), disabled: !H.length, action: () => PatOS.store.set('browserHistory', []) }], r.left - 200, r.bottom + 4);
-      };
-      bExt.onclick = () => { if (!cur.url.startsWith('patos')) PatOS.openExternal(cur.url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '').replace('?igu=1', '?')); };
-      bStar.onclick = () => {
-        if (cur.url.startsWith('patos')) return;
-        const i = bookmarks.findIndex((b) => b.u === cur.url);
-        if (i >= 0) bookmarks.splice(i, 1); else bookmarks.push({ t: cur.title.slice(0, 24), u: cur.url });
-        PatOS.store.set('bookmarks', bookmarks); renderBM(); syncUI();
-      };
       addTab.onclick = () => newTab();
       win._open = (a) => { if (a.html) newTab(null, a.html, a.title); else if (a.url) { if (cur && cur.url === 'patos://newtab') navigate(a.url); else newTab(a.url); } };
       win.body.addEventListener('keydown', (e) => {
-        if (e.altKey && e.key.toLowerCase() === 't') { e.preventDefault(); e.stopPropagation(); newTab(); }
+        const k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
+        if (e.altKey && k === 't') { e.preventDefault(); e.stopPropagation(); if (e.shiftKey) reopen(); else newTab(); }
+        else if (e.altKey && k === 'd') { e.preventDefault(); e.stopPropagation(); omni.focus(); }
+        else if (e.altKey && k === 'y') { e.preventDefault(); e.stopPropagation(); newTab('patos://history'); }
+        else if (e.altKey && k === 'arrowleft') { e.preventDefault(); e.stopPropagation(); bBack.click(); }
+        else if (e.altKey && k === 'arrowright') { e.preventDefault(); e.stopPropagation(); bFwd.click(); }
+        else if (mod && (k === '=' || k === '+')) { e.preventDefault(); zoom(0.1); }
+        else if (mod && k === '-') { e.preventDefault(); zoom(-0.1); }
+        else if (mod && k === '0') { e.preventDefault(); zoom(0); }
+        else if (e.key === 'F5') { e.preventDefault(); bReload.click(); }
       });
-      win.on('closed', () => { tabs.forEach((t) => { if (t.web) { webTabs--; t.web = false; } }); });
       renderBM();
-      if (args.html) newTab(null, args.html, args.title); else newTab(args.url);
+      const session = PatOS.store.get('browserSession', null);
+      if (args.html) newTab(null, args.html, args.title);
+      else if (args.url) newTab(args.url);
+      else if (session && session.tabs && session.tabs.length && PatOS.store.get('browserRestore', false)) { session.tabs.forEach((u, i) => newTab(u, null, null, i !== session.active)); if (tabs[session.active]) select(tabs[session.active]); }
+      else newTab();
     },
     onArgs(win, args) { win._open && win._open(args); },
     menus(win) {
       return { file: [
-        { label: 'New Tab', action: () => win._open({ url: 'patos://newtab' }) },
-        { label: 'New Window', action: () => PatOS.launch('browser') },
+        { label: T('New Tab'), action: () => win._open({ url: 'patos://newtab' }) },
+        { label: T('New Window'), action: () => PatOS.launch('browser') },
         { divider: true },
-        { label: 'Close Window', action: () => win.close() }
+        { label: T('Close Window'), action: () => win.close() }
       ] };
     }
   });

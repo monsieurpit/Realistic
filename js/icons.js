@@ -162,6 +162,7 @@
     radio: { bg: 'linear-gradient(160deg,#ff2d55,#b40d6e)', svg: () => S(`<circle cx="32" cy="32" r="5" fill="#fff"/><path d="M23 23a13 13 0 0 0 0 18M41 23a13 13 0 0 1 0 18M17 17a21 21 0 0 0 0 30M47 17a21 21 0 0 1 0 30" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round"/>`) },
     videos: { bg: 'linear-gradient(160deg,#2c2c2e,#000)', svg: () => S(`<rect x="11" y="17" width="42" height="30" rx="6" fill="none" stroke="#fff" stroke-width="3"/><path d="M28 25v14l12-7z" fill="#fff"/>`) },
     solitaire: { bg: 'linear-gradient(160deg,#30b45a,#0b6b33)', svg: () => S(`<rect x="14" y="14" width="24" height="34" rx="4" fill="#fff" transform="rotate(-10 26 31)"/><rect x="26" y="16" width="24" height="34" rx="4" fill="#fff" stroke="#0b6b33" stroke-width="1.5" transform="rotate(8 38 33)"/><text x="33" y="39" font-size="16" fill="#e0193f" font-family="system-ui" transform="rotate(8 38 33)">♥</text>`) },
+    passwords: { bg: 'linear-gradient(160deg,#5ac8fa,#007aff)', svg: () => S(`<circle cx="25" cy="38" r="11" fill="none" stroke="#fff" stroke-width="5"/><path d="M33 30 50 13M44 19l6 6M39 24l5 5" stroke="#fff" stroke-width="5" stroke-linecap="round" fill="none"/>`) },
   };
 
   /* generic letter-tile icon */

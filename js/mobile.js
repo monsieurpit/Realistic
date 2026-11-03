@@ -81,6 +81,8 @@
         if (inDock) d = d.filter((x) => x !== id); else { if (d.length >= 4) d.pop(); d.push(id); }
         PatOS.setSetting('mobileDock', d);
       } },
+      inDock && PatOS.settings.mobileDock.indexOf(id) > 0 ? { label: 'Move Left', action: () => { const d = PatOS.settings.mobileDock.slice(); const i = d.indexOf(id); [d[i - 1], d[i]] = [d[i], d[i - 1]]; PatOS.setSetting('mobileDock', d); } } : null,
+      inDock && PatOS.settings.mobileDock.indexOf(id) < PatOS.settings.mobileDock.length - 1 ? { label: 'Move Right', action: () => { const d = PatOS.settings.mobileDock.slice(); const i = d.indexOf(id); [d[i + 1], d[i]] = [d[i], d[i + 1]]; PatOS.setSetting('mobileDock', d); } } : null,
       { label: 'Hide App', action: () => PatOS.setSetting('hiddenApps', [...(PatOS.settings.hiddenApps || []), id]) },
       { divider: true },
       { label: 'Edit Home Screen in Settings', action: () => PatOS.launch('settings', { pane: 'dock' }) }

@@ -149,7 +149,8 @@
           ' • Alt+L ouvre le Launchpad avec toutes les apps.\n' +
           ' • Alt+Haut affiche Mission Control (toutes les fenêtres).\n' +
           ' • Alt+W ferme une fenêtre, Alt+M la place dans le Dock.\n' +
-          ' • Double-cliquez sur une barre de titre pour agrandir une fenêtre.\n' +
+          ' • Le bouton vert met une fenêtre en plein écran. Laissez la souris en haut ou en bas pour revoir la barre des menus et le Dock.\n' +
+          ' • Gardez le clic sur une icône du Dock et glissez-la pour la déplacer.\n' +
           ' • Glissez une fenêtre vers le bord gauche ou droit pour la placer.\n' +
           ' • Clic droit sur le bureau pour créer des dossiers ou changer le fond d’écran.\n\n' +
           'Tout ce que vous créez est enregistré dans ce navigateur.\n\nAmusez-vous bien!\n') } : {}, {
@@ -161,26 +162,41 @@
           ' • Alt+L opens Launchpad with every app.\n' +
           ' • Alt+Up shows Mission Control (all windows).\n' +
           ' • Alt+W closes a window, Alt+M minimizes it.\n' +
-          ' • Double-click a title bar to zoom a window.\n' +
+          ' • The green button makes a window full screen. Rest the pointer at the top or bottom to see the menu bar and Dock.\n' +
+          ' • Press and hold a Dock icon, then drag it to move it.\n' +
           ' • Drag a window to the left or right edge to snap it.\n' +
           ' • Right-click the desktop to make folders or change the wallpaper.\n\n' +
           'Everything you make is saved in this browser.\n\nHave fun!\n'
         ) }),
-        Projects: d({})
       })),
-      Documents: d({
-        'Homework.txt': f('Math: page 42, problems 1-10\nScience: read chapter 3\nEnglish: essay draft due Friday\n'),
-        'Ideas.txt': f('- Build a 3D game in PatOS\n- Learn three.js\n- Customize my dock\n'),
-        School: d({ 'Schedule.txt': f('Mon: Math, Science, Gym\nTue: English, History, Art\nWed: Math, Music, Science\nThu: English, French, Gym\nFri: History, Math, Free period\n') })
-      }),
+      Documents: d({}),
       Downloads: d({}),
       Pictures: d({}),
-      Music: d({ 'Playlist.txt': f('Neon Drive\nMidnight Garden\nPixel Rain\nStarfall\nSummer Arcade\n') }),
+      Music: d({}),
       '.Trash': d({})
     });
   }
   let root = PatOS.store.get('fs', null);
   if (!root || root.type !== 'dir') { root = seedFS(); }
+  /* one-time clean-up: remove the old example files PatOS used to add (only if they were never changed) */
+  if (!PatOS.store.get('fsCleaned2', false)) {
+    const OLD = {
+      Documents: { 'Homework.txt': 'Math: page 42', 'Ideas.txt': '- Build a 3D game in PatOS' },
+      Music: { 'Playlist.txt': 'Neon Drive' }
+    };
+    try {
+      Object.entries(OLD).forEach(([dir, files]) => {
+        const dn = root.children[dir]; if (!dn || dn.type !== 'dir') return;
+        Object.entries(files).forEach(([name, start]) => { const n = dn.children[name]; if (n && n.type === 'file' && String(n.content || '').startsWith(start)) delete dn.children[name]; });
+      });
+      const docs = root.children.Documents;
+      const school = docs && docs.children.School;
+      if (school && school.type === 'dir') { const sc = school.children['Schedule.txt']; if (sc && String(sc.content).startsWith('Mon: Math')) delete school.children['Schedule.txt']; if (!Object.keys(school.children).length) delete docs.children.School; }
+      const desk = root.children.Desktop;
+      if (desk && desk.children.Projects && desk.children.Projects.type === 'dir' && !Object.keys(desk.children.Projects.children).length) delete desk.children.Projects;
+    } catch (e) {}
+    PatOS.store.set('fsCleaned2', true); PatOS.store.set('fs', root);
+  }
 
   const saveFS = PatOS.debounce(() => { PatOS.store.set('fs', root); }, 250);
   function norm(path) {

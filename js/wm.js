@@ -14,8 +14,57 @@
     return PatOS.settings.dockSize + 22;
   }
   function workArea() {
+    if (document.body.classList.contains('patos-fs')) return { x: 0, y: 0, w: window.innerWidth, h: window.innerHeight };
     return { x: 0, y: MENUBAR, w: window.innerWidth, h: window.innerHeight - MENUBAR - dockReserve() };
   }
+
+  /* ---------- full screen, like macOS ----------
+     The green button (or Control Center > Full Screen) fills the whole screen and hides the menu bar
+     and the Dock. Rest the pointer at the top or bottom edge for a second to bring them back. */
+  let weAskedBrowserFS = false;
+  function updateFS() {
+    // like macOS: only an app in full screen hides the bars (green button, or a zoomed window while the browser is full screen)
+    const on = !PatOS.isMobile && (wins.some((w) => w.fullscreen && !w.minimized) || (!!document.fullscreenElement && !!active && active.maximized && !active.minimized));
+    const was = document.body.classList.contains('patos-fs');
+    document.body.classList.toggle('patos-fs', on);
+    if (!on) document.body.classList.remove('reveal-top', 'reveal-bottom');
+    if (was !== on) { window.dispatchEvent(new Event('resize')); PatOS.emit('wm:fullscreen', on); }
+  }
+  function setFullscreen(win, on) {
+    if (!!win.fullscreen === on) return;
+    if (on) {
+      if (!win.maximized) win.prevRect = win.rect();
+      win.fullscreen = true; win.el.classList.add('fullscreen');
+      if (!document.fullscreenElement && document.documentElement.requestFullscreen) { weAskedBrowserFS = true; document.documentElement.requestFullscreen().catch(() => { weAskedBrowserFS = false; }); }
+      updateFS();
+      animateTo(win, { x: 0, y: 0, w: window.innerWidth, h: window.innerHeight });
+      focusWindow(win);
+    } else {
+      win.fullscreen = false; win.el.classList.remove('fullscreen');
+      if (!wins.some((w) => w.fullscreen) && weAskedBrowserFS && document.fullscreenElement) { weAskedBrowserFS = false; document.exitFullscreen().catch(() => {}); }
+      updateFS();
+      if (win.maximized) { const a = workArea(); animateTo(win, { x: 0, y: a.y, w: a.w, h: a.h }); } else if (win.prevRect) animateTo(win, win.prevRect);
+    }
+  }
+  document.addEventListener('fullscreenchange', () => {
+    if (!document.fullscreenElement) { weAskedBrowserFS = false; wins.filter((w) => w.fullscreen).forEach((w) => setFullscreen(w, false)); }
+    updateFS();
+  });
+  let revealT = null, revealing = null;
+  document.addEventListener('pointermove', (e) => {
+    const b = document.body;
+    if (!b.classList.contains('patos-fs') || e.pointerType === 'touch') return;
+    const atTop = e.clientY <= 3, atBottom = e.clientY >= window.innerHeight - 3;
+    const edge = atTop ? 'top' : atBottom ? 'bottom' : null;
+    if (edge && revealing !== edge && !b.classList.contains('reveal-' + edge)) {
+      clearTimeout(revealT); revealing = edge;
+      revealT = setTimeout(() => { b.classList.add('reveal-' + edge); revealing = null; }, 1000);
+    } else if (!edge) { clearTimeout(revealT); revealing = null; }
+    // hide again once the pointer leaves the bar (and no menu is open)
+    if (b.classList.contains('reveal-top') && e.clientY > 40 && !e.target.closest('#menubar, .menu, .ctx-menu, #control-center, #notif-center') && !document.querySelector('#menubar .open, .menu.open')) b.classList.remove('reveal-top');
+    if (b.classList.contains('reveal-bottom') && !e.target.closest('#dock-wrap, .menu, .ctx-menu') && e.clientY < window.innerHeight - (PatOS.settings.dockSize + 40)) b.classList.remove('reveal-bottom');
+  });
+  document.addEventListener('pointerleave', () => { clearTimeout(revealT); revealing = null; });
 
   function createWindow(app, args) {
     const id = 'w' + PatOS.uid();
@@ -52,6 +101,7 @@
       close: () => closeWindow(win),
       minimize: () => minimizeWindow(win),
       toggleMax: () => toggleMax(win),
+      toggleFullscreen: () => setFullscreen(win, !win.fullscreen),
       focus: () => focusWindow(win),
       rect() { return { x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight }; }
     };
@@ -59,7 +109,7 @@
 
     traffic.querySelector('.close').addEventListener('click', (e) => { e.stopPropagation(); win.close(); });
     traffic.querySelector('.min').addEventListener('click', (e) => { e.stopPropagation(); win.minimize(); });
-    traffic.querySelector('.max').addEventListener('click', (e) => { e.stopPropagation(); if (app.resizable !== false) win.toggleMax(); });
+    traffic.querySelector('.max').addEventListener('click', (e) => { e.stopPropagation(); if (app.resizable === false) return; if (e.altKey || PatOS.isMobile) win.toggleMax(); else win.toggleFullscreen(); });
     traffic.addEventListener('pointerdown', (e) => e.stopPropagation());
     el.addEventListener('pointerdown', () => focusWindow(win), true);
     titlebar.addEventListener('dblclick', (e) => { if (e.target.closest('.win-toolbar button, input, select')) return; if (app.resizable !== false) win.toggleMax(); });
@@ -187,6 +237,7 @@
   function setMax(win, on) {
     win.maximized = on;
     win.el.classList.toggle('maximized', on);
+    setTimeout(updateFS, 0);
     if (on) { const a = workArea(); animateTo(win, { x: 0, y: a.y, w: a.w, h: a.h }); }
     else if (win.prevRect) animateTo(win, win.prevRect);
   }
@@ -203,11 +254,12 @@
     win.el.style.zIndex = ++z;
     win.el.classList.add('active');
     win.emit('focus');
+    setTimeout(updateFS, 0);
     PatOS.emit('wm:focus', win);
   }
   function blurAll() {
     if (active) { active.el.classList.remove('active'); active.emit('blur'); }
-    active = null; PatOS.emit('wm:focus', null);
+    active = null; PatOS.emit('wm:focus', null); setTimeout(updateFS, 0);
   }
 
   function closeWindow(win) {
@@ -219,6 +271,8 @@
     win.el.style.pointerEvents = 'none';
     win.emit('closed');
     const i = wins.indexOf(win); if (i >= 0) wins.splice(i, 1);
+    if (win.fullscreen) { win.fullscreen = false; if (!wins.some((w) => w.fullscreen) && weAskedBrowserFS && document.fullscreenElement) { weAskedBrowserFS = false; document.exitFullscreen().catch(() => {}); } }
+    updateFS();
     setTimeout(() => win.el.remove(), 210);
     if (active === win) {
       active = null;
@@ -241,6 +295,7 @@
     return reverse ? f.reverse().map((k, i, a) => Object.assign({}, k, { offset: 1 - k.offset })) : f;
   }
   function minimizeWindow(win) {
+    setTimeout(updateFS, 0);
     if (win.minimized) return;
     if (PatOS.isMobile && PatOS.mobile) return PatOS.mobile.home(win);
     const target = PatOS.dock && PatOS.dock.iconRect(win.app.id);
@@ -259,6 +314,7 @@
     PatOS.emit('wm:minimize', win);
   }
   function restoreWindow(win) {
+    setTimeout(updateFS, 0);
     if (PatOS.isMobile && PatOS.mobile) return PatOS.mobile.show(win);
     if (!win.minimized) return focusWindow(win);
     win.minimized = false;
@@ -284,7 +340,9 @@
     windowsOf: (appId) => wins.filter((w) => w.app.id === appId),
     isRunning: (appId) => wins.some((w) => w.app.id === appId),
     quit(appId) { wins.filter((w) => w.app.id === appId).forEach((w) => w.close()); },
-    closeAll() { wins.slice().forEach((w) => w.close()); }
+    closeAll() { wins.slice().forEach((w) => w.close()); },
+    setFullscreen,
+    updateFS
   };
 
   PatOS.launch = function (appId, args) {
@@ -306,6 +364,7 @@
   window.addEventListener('resize', PatOS.debounce(() => {
     const a = workArea();
     wins.forEach((w) => {
+      if (w.fullscreen) { Object.assign(w.el.style, { left: '0px', top: '0px', width: innerWidth + 'px', height: innerHeight + 'px' }); return; }
       if (w.maximized) { Object.assign(w.el.style, { left: '0px', top: a.y + 'px', width: a.w + 'px', height: a.h + 'px' }); return; }
       const r = w.rect();
       if (r.x > a.w - 60) w.el.style.left = Math.max(0, a.w - r.w) + 'px';

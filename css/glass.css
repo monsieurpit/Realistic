@@ -1,12 +1,12 @@
 /* ================= Liquid Glass ================= */
-:root { --lg-tint: rgba(255,255,255,.10); --lg-tint2: rgba(255,255,255,.16); --lg-rim: rgba(255,255,255,.7); --lg-rim2: rgba(255,255,255,.25); --lg-blur: 22px; --lg-text: #fff; --mx: 30%; --my: 0%; }
-:root[data-theme="light"] { --lg-tint: rgba(255,255,255,.32); --lg-tint2: rgba(255,255,255,.45); --lg-rim: rgba(255,255,255,.95); --lg-rim2: rgba(255,255,255,.5); --lg-text: #1d1d1f; }
+:root { --lg-tint: rgba(24,24,30,.38); --lg-tint-strong: rgba(28,28,34,.64); --lg-tint2: rgba(255,255,255,.14); --lg-rim: rgba(255,255,255,.55); --lg-rim2: rgba(255,255,255,.2); --lg-blur: 24px; --lg-text: #fff; --lg-shadow: 0 1px 2px rgba(0,0,0,.35); --mx: 30%; --my: 0%; }
+:root[data-theme="light"] { --lg-tint: rgba(255,255,255,.5); --lg-tint-strong: rgba(250,250,252,.76); --lg-tint2: rgba(255,255,255,.55); --lg-rim: rgba(255,255,255,.95); --lg-rim2: rgba(255,255,255,.55); --lg-text: #1d1d1f; --lg-shadow: 0 1px 1px rgba(255,255,255,.6); }
 
 /* the glass material */
 html.lg-on :is(#dock, .mh-dock, .menu, #control-center, .toast:not(.static), .sp-box, .dlg, .asw-row, .nc-list, .widget, .mw, .lp-search, .cc-tile, .dock-label, .seg, #m-switcher .msw, .lg) {
-  background: radial-gradient(120% 80% at var(--mx) var(--my), rgba(255,255,255,.08), transparent 55%), var(--lg-tint) !important;
-  -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(1.9) brightness(1.06) !important;
-  backdrop-filter: blur(var(--lg-blur)) saturate(1.9) brightness(1.06) !important;
+  background: radial-gradient(120% 80% at var(--mx) var(--my), rgba(255,255,255,.07), transparent 55%), var(--lg-tint) !important;
+  -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(1.7) !important;
+  backdrop-filter: blur(var(--lg-blur)) saturate(1.7) !important;
   box-shadow: inset 0 1px 1px var(--lg-rim), inset 0 -1px 1px rgba(255,255,255,.14), inset 0 0 0 .5px var(--lg-rim2), inset 0 0 22px rgba(255,255,255,.06), 0 12px 40px rgba(0,0,0,.26) !important;
   isolation: isolate;
 }
@@ -17,6 +17,10 @@ html.lg-on :is(#dock, .mh-dock, .menu, #control-center, .toast:not(.static), .sp
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
 }
 html.lg-on :is(#dock, .mh-dock, .asw-row, .dlg, .toast, .nc-list, .widget, .mw) { position: relative; }
+/* surfaces full of text get a thicker pane so words stay easy to read over any wallpaper */
+html.lg-on :is(.menu, #control-center, .toast:not(.static), .sp-box, .dlg, .nc-list, .cc-tile, .lp-search) { background: radial-gradient(120% 80% at var(--mx) var(--my), rgba(255,255,255,.06), transparent 55%), var(--lg-tint-strong) !important; }
+html.lg-on :is(.menu, #control-center, .toast, .sp-box, .dlg, .nc-list, .widget, .mw, .cc-tile, .dock-label) { color: var(--lg-text); text-shadow: var(--lg-shadow); }
+html.lg-on :is(.menu, .sp-box, .dlg, .toast, .nc-list, .widget, .mw, #control-center) :is(small, .sub, .t2, .muted) { opacity: .85; }
 
 /* bigger, softer shapes */
 html.lg-on #dock { border-radius: 28px; padding: 7px 8px; }
@@ -34,8 +38,8 @@ html.lg-on .seg .tab.on { background: rgba(255,255,255,.28); box-shadow: inset 0
 html.lg-on .lp-search { border-radius: 16px; height: 34px; }
 
 /* menu bar: fully clear like the newest Macs */
-html.lg-on #menubar { background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none; text-shadow: 0 1px 6px rgba(0,0,0,.35); }
-:root[data-theme="light"].lg-on #menubar { text-shadow: 0 0 8px rgba(255,255,255,.6); }
+html.lg-on #menubar { background: linear-gradient(180deg, rgba(0,0,0,.28), rgba(0,0,0,.08)); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); text-shadow: 0 1px 3px rgba(0,0,0,.55); }
+:root[data-theme="light"].lg-on #menubar { background: linear-gradient(180deg, rgba(255,255,255,.45), rgba(255,255,255,.18)); text-shadow: 0 0 6px rgba(255,255,255,.7); }
 
 /* windows: rounder, with floating glass sidebars */
 html.lg-on:not(.mobile) .window { border-radius: 18px; }
@@ -72,8 +76,8 @@ html.lg-on.mobile #notif-center { background: rgba(0,0,0,.2) !important; }
 
 /* refraction: the glass bends whatever is behind it (Chromium browsers) */
 html.lg-refract :is(#dock, .mh-dock, .asw-row, .lp-search) {
-  -webkit-backdrop-filter: url(#lg-refract) blur(3px) saturate(1.9) brightness(1.08) !important;
-  backdrop-filter: url(#lg-refract) blur(3px) saturate(1.9) brightness(1.08) !important;
+  -webkit-backdrop-filter: url(#lg-refract) blur(6px) saturate(1.7) !important;
+  backdrop-filter: url(#lg-refract) blur(6px) saturate(1.7) !important;
 }
 
 /* respect "Reduce transparency" */

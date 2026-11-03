@@ -72,10 +72,18 @@ async function bookText(id) {
   });
 }
 
+async function suggest(q, hl) {
+  return cached('sg:' + hl + ':' + q, 10 * 60 * 1000, async () => {
+    const j = await get('https://suggestqueries.google.com/complete/search?client=firefox&hl=' + encodeURIComponent(hl) + '&q=' + encodeURIComponent(q), 'json');
+    return (Array.isArray(j) && Array.isArray(j[1]) ? j[1] : []).slice(0, 8);
+  });
+}
+
 async function handle(req, res, url) {
   const send = (code, obj) => { res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*' }); res.end(JSON.stringify(obj)); };
   const p = url.searchParams;
   try {
+    if (url.pathname === '/api/suggest') return send(200, await suggest((p.get('q') || '').slice(0, 120), /^[a-z]{2}$/.test(p.get('hl') || '') ? p.get('hl') : 'en'));
     if (url.pathname === '/api/news/feeds') return send(200, Object.entries(FEEDS).map(([k, f]) => ({ key: k, name: f[0], source: f[2] })));
     if (url.pathname === '/api/news') return send(200, await news(p.get('feed') || 'top'));
     if (url.pathname === '/api/books/search') return send(200, await bookSearch((p.get('q') || '').slice(0, 100), /^[a-z]{2}$/.test(p.get('lang') || '') ? p.get('lang') : ''));
@@ -83,4 +91,4 @@ async function handle(req, res, url) {
     return send(400, { error: 'Bad request' });
   } catch (e) { return send(502, { error: e.message || 'Service didn’t answer' }); }
 }
-module.exports = { handle, news, bookSearch, bookText };
+module.exports = { handle, news, bookSearch, bookText, suggest };

@@ -7,7 +7,7 @@
   function dialog(opts) {
     return new Promise((resolve) => {
       const layer = h('div', { class: 'dlg-layer' });
-      const input = opts.input != null ? h('input', { class: 'field dlg-in', value: opts.input, spellcheck: 'false' }) : null;
+      const input = opts.input != null ? h('input', { class: 'field dlg-in', value: opts.input, spellcheck: 'false', type: opts.password ? 'password' : 'text', autocomplete: opts.password ? 'new-password' : 'off' }) : null;
       const done = (v) => { layer.remove(); document.removeEventListener('keydown', onKey, true); resolve(v); };
       const ok = h('button', { class: 'btn ' + (opts.danger ? 'danger' : 'primary') }, opts.ok || 'OK');
       const cancel = h('button', { class: 'btn' }, 'Cancel');
@@ -114,6 +114,7 @@
       window: [
         { label: 'Minimize', shortcut: 'Alt+M', action: () => w && w.minimize(), disabled: !w },
         { label: 'Zoom', action: () => w && w.toggleMax(), disabled: !w },
+        { label: w && w.fullscreen ? 'Exit Full Screen' : 'Enter Full Screen', shortcut: 'Alt+F', action: () => w && w.toggleFullscreen && w.toggleFullscreen(), disabled: !w || w.app.resizable === false },
         { label: 'Tile Left', action: () => w && tile(w, 'left'), disabled: !w },
         { label: 'Tile Right', action: () => w && tile(w, 'right'), disabled: !w },
         { divider: true },
@@ -363,8 +364,9 @@
         h('div', { class: 'dock-label' }, app.name),
         h('div', { class: 'dock-icon', html: PatOS.iconHTML(app.icon || id) }),
         h('div', { class: 'dock-dot' }));
-      item.addEventListener('click', () => { PatOS.setLaunchRect(item.querySelector('.dock-icon')); dockClick(id); });
-      item.addEventListener('contextmenu', (e) => { e.preventDefault(); dockMenu(id, item); });
+      item.addEventListener('click', () => { if (dockDrag.justDropped) return; PatOS.setLaunchRect(item.querySelector('.dock-icon')); dockClick(id); });
+      item.addEventListener('contextmenu', (e) => { e.preventDefault(); if (!dockDrag.active) dockMenu(id, item); });
+      item.addEventListener('pointerdown', (e) => dockPress(e, id, item));
       return item;
     };
     pinned.forEach((id) => d.appendChild(mk(id)));
@@ -377,6 +379,72 @@
     trash.addEventListener('contextmenu', (e) => { e.preventDefault(); const r = trash.getBoundingClientRect(); PatOS.menu([{ label: 'Open', action: () => PatOS.launch('finder', { path: '/.Trash' }) }, { label: 'Empty Trash', disabled: !full, action: () => { PatOS.fs.emptyTrash(); PatOS.sound.trash(); } }], r.left, r.top - 80); });
     d.appendChild(trash);
     applyDockSize();
+  }
+  /* ---------- rearrange the Dock: press and hold an icon, then drag it ----------
+     Drop it somewhere else in the Dock to move it, or drag it up and away to remove it. */
+  const dockDrag = { active: false, justDropped: false };
+  function dockPress(e, id, item) {
+    if (e.button !== 0 || e.pointerType === 'touch' && PatOS.isMobile) return;
+    const sx = e.clientX, sy = e.clientY; let started = false;
+    const hold = setTimeout(() => start(), 350);
+    const move = (ev) => {
+      if (!started) { if (Math.hypot(ev.clientX - sx, ev.clientY - sy) > 10) start(); else return; }
+      drag(ev);
+    };
+    const up = (ev) => {
+      clearTimeout(hold); window.removeEventListener('pointermove', move); window.removeEventListener('pointerup', up); window.removeEventListener('pointercancel', up);
+      if (started) drop(ev);
+    };
+    window.addEventListener('pointermove', move); window.addEventListener('pointerup', up); window.addEventListener('pointercancel', up);
+    let ghost = null, d = null, removing = false;
+    function start() {
+      if (started) return; started = true; dockDrag.active = true;
+      d = dockEl(); d.classList.add('rearranging');
+      const ic = item.querySelector('.dock-icon'); const r = ic.getBoundingClientRect();
+      ghost = h('div', { class: 'dock-ghost', html: ic.innerHTML }); Object.assign(ghost.style, { width: r.width + 'px', height: r.height + 'px', left: r.left + 'px', top: r.top + 'px' });
+      document.body.appendChild(ghost);
+      item.classList.add('dock-placeholder');
+      if (navigator.vibrate) try { navigator.vibrate(10); } catch (err) {}
+    }
+    function drag(ev) {
+      if (!ghost) return;
+      const gw = ghost.offsetWidth;
+      ghost.style.left = (ev.clientX - gw / 2) + 'px'; ghost.style.top = (ev.clientY - gw / 2) + 'px';
+      const dr = d.getBoundingClientRect();
+      removing = ev.clientY < dr.top - 70 && id !== 'finder';
+      ghost.classList.toggle('removing', removing);
+      if (removing) return;
+      // live reorder among the pinned icons (everything before the first separator)
+      const pinnedEls = []; for (const ch of d.children) { if (ch.classList.contains('dock-sep')) break; pinnedEls.push(ch); }
+      const others = pinnedEls.filter((x) => x !== item);
+      let before = null;
+      for (const o of others) { const r = o.getBoundingClientRect(); if (ev.clientX < r.left + r.width / 2) { before = o; break; } }
+      const firstSep = d.querySelector('.dock-sep');
+      const target = before || firstSep || null;
+      if (item.nextSibling !== target || item.parentNode !== d) {
+        const rects = new Map([...d.children].map((c) => [c, c.getBoundingClientRect().left]));
+        d.insertBefore(item, target);
+        [...d.children].forEach((c) => { const old = rects.get(c); if (old == null || c === item) return; const dx = old - c.getBoundingClientRect().left; if (dx) { c.style.transition = 'none'; c.style.transform = `translateX(${dx}px)`; requestAnimationFrame(() => { c.style.transition = 'transform .22s var(--ease, ease)'; c.style.transform = ''; }); } });
+      }
+    }
+    function drop() {
+      dockDrag.active = false; dockDrag.justDropped = true; setTimeout(() => { dockDrag.justDropped = false; }, 80);
+      d.classList.remove('rearranging');
+      if (removing) {
+        const r = ghost.getBoundingClientRect(); ghost.remove();
+        const poof = h('div', { class: 'dock-poof' }); Object.assign(poof.style, { left: (r.left + r.width / 2 - 30) + 'px', top: (r.top + r.height / 2 - 30) + 'px' }); document.body.appendChild(poof); setTimeout(() => poof.remove(), 600);
+        PatOS.sound.pop();
+        PatOS.setSetting('dockPinned', PatOS.settings.dockPinned.filter((x) => x !== id));
+        renderDock(); return;
+      }
+      const ir = item.querySelector('.dock-icon').getBoundingClientRect();
+      ghost.style.transition = 'left .2s var(--ease, ease), top .2s var(--ease, ease)'; ghost.style.left = ir.left + 'px'; ghost.style.top = ir.top + 'px';
+      setTimeout(() => { ghost.remove(); item.classList.remove('dock-placeholder');
+        const order = []; for (const ch of d.children) { if (ch.classList.contains('dock-sep')) break; if (ch.dataset.app) order.push(ch.dataset.app); }
+        if (order.join() !== PatOS.settings.dockPinned.join()) PatOS.setSetting('dockPinned', order);
+        renderDock();
+      }, 200);
+    }
   }
   function dockClick(id) {
     const app = PatOS.apps[id];
@@ -855,7 +923,7 @@
         h: () => w && PatOS.wm.windowsOf(w.app.id).forEach((x) => x.minimize()),
         n: () => newWindow(w ? w.app.id : 'finder'),
         l: () => PatOS.launchpad.toggle(),
-        f: () => w && w.toggleMax(),
+        f: () => w && (w.app.resizable === false ? null : w.toggleFullscreen()),
         t: () => PatOS.launch('terminal'),
         e: () => PatOS.launch('finder'),
         b: () => PatOS.launch('browser'),
