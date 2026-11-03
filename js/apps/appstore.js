@@ -134,7 +134,7 @@
       function phoneTab() {
         const d = X.device();
         main.appendChild(h('h1', { class: 'as-h1' }, PatOS.t('Phone & Web')));
-        main.appendChild(h('p', { class: 'as-note' }, PatOS.t('You’re on') + ' ' + (d.kind === 'computer' ? PatOS.t('a') + ' ' + d.name : d.name) + '. ' + (d.kind === 'computer' ? PatOS.t('These apps open their websites. On a phone they open the real apps.') : PatOS.t('These open the real apps on your phone, or the store page if you don’t have them yet.'))));
+        main.appendChild(h('p', { class: 'as-note' }, (d.kind === 'computer' ? PatOS.t('You’re on a computer:') + ' ' + d.name : PatOS.t('You’re on') + ' ' + d.name) + '. ' + (d.kind === 'computer' ? PatOS.t('These apps open their websites. On a phone they open the real apps.') : PatOS.t('These open the real apps on your phone, or the store page if you don’t have them yet.'))));
         const list = X.list().filter((c) => !q || (c.name + ' ' + c.cat).toLowerCase().includes(q));
         const mine = list.filter((c) => X.isInstalled(c.id));
         if (mine.length) { main.appendChild(h('h2', {}, PatOS.t('Installed'))); const g = h('div', { class: 'as-list' }); mine.forEach((c) => g.appendChild(xrow(c))); main.appendChild(g); }

@@ -1,0 +1,23 @@
+name: Tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - run: npm install --no-audit --no-fund
+      - run: npx playwright install --with-deps chromium
+      # the files that build.js writes (version.js, sw.js, dist/) must be up to date in the commit
+      - run: node build.js
+      - run: git diff --exit-code -- js/version.js sw.js dist
+      # every test runs here: the browser tests are not allowed to be skipped (see test/unit/ci.test.js)
+      - run: npm test
+        env:
+          CI: "true"

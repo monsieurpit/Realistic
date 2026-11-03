@@ -177,6 +177,7 @@
           h('button', { class: 'tbtn', title: T('More'), 'aria-label': T('More'), html: '<svg class="sym" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="19" cy="12" r="1.8"/></svg>', onclick: (e) => { const r = e.currentTarget.getBoundingClientRect(); PatOS.menu([
             { label: T('Set as Wallpaper'), action: async () => { PatOS.setSetting('customWallpaper', await srcOf(p)); PatOS.setSetting('wallpaper', 'custom'); PatOS.notify({ title: T('Wallpaper set'), body: p.name, icon: 'photos' }); } },
             { label: T('Slideshow'), action: () => slideshow(i) },
+            p.path ? { label: T('Open in Paint'), action: () => PatOS.launch('paint', { path: p.path }) } : null,
             p.path ? { label: T('Add to Album'), action: () => addToAlbum([p.path], e.currentTarget) } : null,
             { label: T('Download'), action: () => download(p) },
             p.path ? { divider: true } : null, p.path ? { label: T('Move to Trash'), action: removeCurrent } : null], r.left - 150, r.bottom + 4); } }));

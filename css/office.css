@@ -1083,3 +1083,16 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 .ph-drop::after { content: ''; position: absolute; inset: 6px; border: 3px dashed var(--accent); border-radius: 12px; background: color-mix(in srgb, var(--accent) 10%, transparent); pointer-events: none; z-index: 9; }
 .mobile .ph-search { width: 110px; } .mobile .ph-zoom { display: none; } .mobile .ph-info { left: 10px; right: 10px; top: auto; bottom: calc(var(--sab) + 20px); width: auto; }
 .mobile .ph-selbar { padding-bottom: calc(var(--sab) + 28px); }
+/* Paint */
+.pt-win .pt-ws { overflow: auto; background: var(--hover2, #2a2a2e); touch-action: pan-x pan-y; }
+.pt-doc { min-width: 100%; min-height: 100%; display: flex; align-items: center; justify-content: center; padding: 24px; box-sizing: border-box; width: max-content; }
+.pt-stack { position: relative; flex: 0 0 auto; box-shadow: 0 6px 30px rgba(0,0,0,.35); background-color: #fff; background-image: linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%), linear-gradient(45deg, #ccc 25%, transparent 25%, transparent 75%, #ccc 75%); background-size: 16px 16px; background-position: 0 0, 8px 8px; }
+.pt-stack .pt-canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.pt-over { touch-action: none; }
+.pt-tool .sym { width: 20px; height: 20px; } .pt-tool.on { color: #fff; }
+.pt-tools { overflow-y: auto; }
+.pt-alpha { height: 70px; } .pt-tsep { width: 1px; height: 20px; background: var(--border2); margin: 0 4px; }
+.pt-zoomlbl { min-width: 54px; height: 26px; font-size: 12px; }
+.pt-presets { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 8px; } .pt-presets .btn { height: 26px; font-size: 12px; padding: 0 10px; }
+.pt-win .tbtn:disabled { opacity: .35; }
+.mobile .pt-doc { padding: 12px; } .mobile .pt-alpha { height: 20px; }

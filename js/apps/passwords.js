@@ -1,5 +1,6 @@
 /* Passwords — a password manager for PatOS.
-   Passwords are never kept as plain text:
+   Passwords are encrypted whenever the browser allows it (only a very old browser, or one that can't keep
+   the device key, falls back to plain text, and the app says so in a red warning):
    - without a master password they are encrypted (AES-GCM) with a key made for this device, which the
      browser keeps and won't let anyone copy out. Anyone using this browser on this device can still open
      them, so the app recommends a master password.
@@ -71,7 +72,7 @@
     ready,
     async startOver() { items = []; unreadable = false; vault = { v: 2, enc: 'device' }; await persist(); },
     all: () => (items || []).slice(),
-    forSite: (site) => (items || []).filter((x) => sameSite(x.site, site)),
+    forSite: (site) => { touch(); return (items || []).filter((x) => sameSite(x.site, site)); },
     has: (site, username, password) => (items || []).some((x) => sameSite(x.site, site) && x.username === username && (password == null || x.password === password)),
     async save(o) {
       if (!items) throw new Error('locked');
@@ -83,12 +84,13 @@
     },
     async update(id, patch) { const it = (items || []).find((x) => x.id === id); if (!it) return; Object.assign(it, patch, { updated: Date.now() }); if (patch.site) it.site = hostOf(patch.site); await persist(); },
     async remove(id) { items = (items || []).filter((x) => x.id !== id); await persist(); },
-    async used(id) { const it = (items || []).find((x) => x.id === id); if (it) { it.used = Date.now(); await persist(); } },
+    async used(id) { touch(); const it = (items || []).find((x) => x.id === id); if (it) { it.used = Date.now(); await persist(); } },
     never: () => PatOS.store.get('pwNever', []),
     addNever(site) { const l = P.never(); if (!l.includes(norm(site))) { l.push(norm(site)); PatOS.store.set('pwNever', l); } },
     removeNever(site) { PatOS.store.set('pwNever', P.never().filter((x) => x !== site)); },
     async unlock(pw) {
       if (!master()) return !!items;
+      touch();
       try { const k = await deriveKey(pw, unb64(vault.salt)); const data = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(vault.iv) }, k, unb64(vault.data)); items = JSON.parse(dec.decode(data)); aesKey = k; PatOS.emit('passwords'); return true; } catch (e) { return false; }
     },
     lock() { if (master() && items) { items = null; aesKey = null; PatOS.emit('passwords'); } },
@@ -122,9 +124,14 @@
     }
   };
 
-  let lastInput = Date.now();
-  ['pointerdown', 'keydown'].forEach((ev) => addEventListener(ev, () => { lastInput = Date.now(); }, { capture: true, passive: true }));
-  setInterval(() => { if (master() && items && Date.now() - lastInput > 15 * 60000) P.lock(); }, 30000);
+  /* the idle timer only counts use of the vault itself: clicks and keys inside the Passwords window or the key
+     menu in Patoogle, and using a saved login. Working in another app does not keep it open. */
+  let lastUse = Date.now();
+  const touch = () => { lastUse = Date.now(); };
+  ['pointerdown', 'keydown'].forEach((ev) => addEventListener(ev, (e) => { if (e.target && e.target.closest && e.target.closest('.pw-win, .pb-keypop')) touch(); }, { capture: true, passive: true }));
+  P.touch = touch;
+  P.lockIfIdle = (ms) => { if (master() && items && Date.now() - lastUse > (ms == null ? 15 * 60000 : ms)) { P.lock(); return true; } return false; };
+  setInterval(() => P.lockIfIdle(), 30000);
   setTimeout(() => { const pw = PatOS.power; if (pw && pw.lock && !pw._pwWrapped) { const orig = pw.lock; pw.lock = function () { P.lock(); return orig.apply(this, arguments); }; pw._pwWrapped = true; } }, 0);
   const isFile = (site) => String(site).startsWith('file:');
   const label = (site) => (isFile(site) ? site.slice(5) : site);
@@ -135,6 +142,9 @@
     about: 'Keep your passwords in one place, encrypted. Copy a login when you need it, or fill it into your own HTML pages in Patoogle.',
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'pw-win');
+      touch();
+      // closing the last Passwords window locks a vault that has a master password
+      win.on('closed', () => { if (!PatOS.wm.windowsOf('passwords').some((x) => x !== win)) P.lock(); });
       const OF = PatOS.office;
       let filter = 'all', q = '', selId = null, leaks = {};
       const search = h('input', { class: 'field', placeholder: T('Search'), style: { width: '200px' } });

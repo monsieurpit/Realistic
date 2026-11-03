@@ -83,6 +83,15 @@
     const sets = [...dirty], dels = [...removedKeys], puts = Object.assign({}, fcPut), fdel = [...fcDel];
     dirty.clear(); removedKeys.clear(); Object.keys(fcPut).forEach((k) => delete fcPut[k]); fcDel.clear();
     const batch = { sets, dels, puts, fdel }; inflight.add(batch);
+    /* if the save fails, everything in it goes back in the queue: changes AND deletions. Something changed again
+       while the save was running is newer, so it is left alone (a deletion must never undo a newer write). */
+    const requeue = () => {
+      sets.forEach((k) => { if (k in KV) dirty.add(k); });
+      dels.forEach((k) => { if (!(k in KV)) removedKeys.add(k); });
+      Object.keys(puts).forEach((k) => { if (!(k in fcPut) && !fcDel.has(k)) fcPut[k] = puts[k]; });
+      fdel.forEach((k) => { if (!(k in fcPut)) fcDel.add(k); });
+      setTimeout(flushSoon, 8000); // try again a little later
+    };
     return new Promise((res0) => {
       const res = () => { inflight.delete(batch); res0(); };
       try {
@@ -92,9 +101,9 @@
         Object.keys(puts).forEach((k) => fc.put(puts[k], k));
         fdel.forEach((k) => fc.delete(k));
         tx.oncomplete = () => { afterMigrate(); res(); };
-        const bad = (e) => { sets.forEach((k) => dirty.add(k)); Object.assign(fcPut, puts); if (!quotaWarned && PatOS.notify) { quotaWarned = true; PatOS.notify({ title: 'Storage is full', body: 'PatOS could not save. Delete some big files to free space.', icon: 'settings' }); } res(); };
+        const bad = () => { requeue(); if (!quotaWarned && PatOS.notify) { quotaWarned = true; PatOS.notify({ title: 'Storage is full', body: 'PatOS could not save. Delete some big files to free space.', icon: 'settings' }); } res(); };
         tx.onerror = tx.onabort = bad;
-      } catch (e) { res(); }
+      } catch (e) { requeue(); res(); }
     });
   }
   const inflight = new Set(); // writes sent to the database that haven't finished yet

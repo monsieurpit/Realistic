@@ -9,11 +9,16 @@
   const QUALITY = { src: ['Original', 0, 6e6], '1080': ['1080p', 1080, 5e6], '720': ['720p', 720, 2.5e6], '480': ['480p', 480, 1.2e6] };
   const stamp = () => { const d = new Date(); const p = (n) => String(n).padStart(2, '0'); return d.getFullYear() + '-' + p(d.getMonth() + 1) + '-' + p(d.getDate()) + ' ' + p(d.getHours()) + '.' + p(d.getMinutes()) + '.' + p(d.getSeconds()); };
   const fmtT = (s) => { const hh = Math.floor(s / 3600), mm = Math.floor(s % 3600 / 60), ss = s % 60; return (hh ? hh + ':' + String(mm).padStart(2, '0') : mm) + ':' + String(ss).padStart(2, '0'); };
+  // whole sentences per device, so they can be translated properly (le microphone, la caméra)
+  const SENT = {
+    microphone: { blocked: 'Chrome blocked the microphone. Click the lock icon next to the address, then allow it.', missing: 'No microphone was found on this device.', busy: 'The microphone is being used by another app.' },
+    camera: { blocked: 'Chrome blocked the camera. Click the lock icon next to the address, then allow it.', missing: 'No camera was found on this device.', busy: 'The camera is being used by another app.' }
+  };
   const errText = (e, what) => {
-    const n = e && e.name;
-    if (n === 'NotAllowedError' || n === 'PermissionDeniedError') return what === 'screen' ? T('Screen sharing was cancelled, or this browser blocked it.') : T('Chrome blocked the') + ' ' + T(what) + '. ' + T('Click the lock icon next to the address, then allow it.');
-    if (n === 'NotFoundError' || n === 'OverconstrainedError') return T('No') + ' ' + T(what) + ' ' + T('was found on this device.');
-    if (n === 'NotReadableError') return T('The') + ' ' + T(what) + ' ' + T('is being used by another app.');
+    const n = e && e.name, S = SENT[what];
+    if (n === 'NotAllowedError' || n === 'PermissionDeniedError') return what === 'screen' || !S ? T('Screen sharing was cancelled, or this browser blocked it.') : T(S.blocked);
+    if ((n === 'NotFoundError' || n === 'OverconstrainedError') && S) return T(S.missing);
+    if (n === 'NotReadableError' && S) return T(S.busy);
     return (e && e.message) || String(e);
   };
 

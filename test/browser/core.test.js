@@ -63,3 +63,21 @@ test('settings: defaults are filled in and new settings appear for old saves', {
   assert.equal(s.theme, 'light'); assert.equal(s.reopenWindows, true); assert.ok('volume' in s && 'dockPinned' in s);
   await page.close();
 });
+
+test('a failed save keeps deletions too, and never undoes a newer write', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage(); await boot(page, srv.base, { fresh: true });
+  const r = await page.evaluate(async () => {
+    PatOS.store.set('keep', 1); PatOS.store.set('gone', 1); PatOS.store.set('again', 1); await PatOS.flush();
+    // the next save fails (as when the disk is full) while one key is deleted and another deleted then written again
+    const real = window.__IDB.transaction.bind(window.__IDB); window.__IDB.transaction = () => { throw new Error('disk full'); };
+    PatOS.store.remove('gone'); PatOS.store.remove('again'); await PatOS.flush();
+    PatOS.store.set('again', 2); // newer than the deletion that failed
+    window.__IDB.transaction = real; await PatOS.flush();
+    return { gone: PatOS.store.get('gone', 'deleted'), again: PatOS.store.get('again') };
+  });
+  assert.equal(r.gone, 'deleted'); assert.equal(r.again, 2);
+  await reload(page);
+  const after = await page.evaluate(() => ({ keep: PatOS.store.get('keep'), gone: PatOS.store.get('gone', 'deleted'), again: PatOS.store.get('again') }));
+  assert.deepEqual(after, { keep: 1, gone: 'deleted', again: 2 });
+  await page.close();
+});

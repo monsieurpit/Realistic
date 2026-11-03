@@ -53,6 +53,10 @@ test('private addresses are recognised, also when hidden in IPv6', () => {
   const { privateIP } = require('../../services.js');
   for (const ip of ['127.0.0.1', '10.1.2.3', '172.16.0.1', '192.168.0.10', '169.254.169.254', '100.64.0.1', '0.0.0.0', '::1', '::', 'fd00::1', 'fe80::1', '::ffff:127.0.0.1', '::ffff:7f00:1', '64:ff9b::10.0.0.1', '2002:c0a8:0101::1', '[::1]']) assert.equal(privateIP(ip), true, ip);
   for (const ip of ['8.8.8.8', '142.250.72.14', '2607:f8b0:4004:800::200e', '1.1.1.1']) assert.equal(privateIP(ip), false, ip);
+  // the same private addresses written in every IPv6 way: NAT64 in hex, expanded, IPv4-mapped in hex, 6to4, Teredo…
+  for (const ip of ['64:ff9b::a00:1', '64:ff9b::7f00:1', '64:ff9b::c0a8:1', '64:ff9b::10.0.0.1', '64:ff9b:0:0:0:0:a00:1', '64:ff9b:1::a00:1', '::ffff:a00:1', '0:0:0:0:0:ffff:a00:1', '0:0:0:0:0:ffff:10.0.0.1', '::10.0.0.1', '::a00:1', '2002:a00:1::', '0:0:0:0:0:0:0:1', 'febf::1', 'fec0::1', 'ff02::1', '2001:0:4136:e378:8000:63bf:3fff:fdd2', '2001:db8::1', '[::1]', 'fe80::1%eth0', 'garbage']) assert.equal(privateIP(ip), true, ip + ' should be private');
+  // and public ones written the same ways stay public
+  for (const ip of ['64:ff9b::808:808', '::ffff:8.8.8.8', '::ffff:808:808', '2002:808:808::', '2606:4700:4700::1111']) assert.equal(privateIP(ip), false, ip + ' should be public');
 });
 test('the frame check still reads a real site (when there is internet)', async () => {
   const j = await (await fetch(srv.base + '/api/frameable?url=' + encodeURIComponent('https://www.google.com/'))).json();

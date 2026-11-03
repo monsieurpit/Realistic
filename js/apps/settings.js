@@ -67,7 +67,7 @@
               const sw = h('button', { class: 'switch' + (U.betaOn() ? ' on' : ''), role: 'switch', 'aria-checked': String(U.betaOn()), 'aria-label': T('Beta updates') });
               sw.onclick = () => { U.setBeta(!U.betaOn()); paint(); };
               const nb = U.newestBeta;
-              out.appendChild(group(row(T('Beta updates'), sw, U.betaOn() ? (nb ? T('You get each beta as soon as it is ready. Now testing:') + ' ' + label(nb) + '.' : T('You get each beta as soon as it is ready. There is no beta right now.')) : T('Try new features before everyone else. Betas can have bugs.'))));
+              out.appendChild(group(row(T('Beta updates'), sw, (U.betaOn() ? (nb ? T('You are told about each beta as soon as it is ready. Now testing:') + ' ' + label(nb) + '.' : T('You are told about each beta as soon as it is ready. There is no beta right now.')) : T('You are only told about finished updates. Betas can have bugs.')) + ' ' + T('This chooses what you are told, not what is downloaded: PatOS always keeps the newest files from the website, so a beta can start running at your next restart.'))));
             }
             // what's in the version you have, and the ones before
             if (cur && cur.notes) out.append(h('h3', {}, T('What’s new in') + ' ' + label(cur)), h('div', { class: 'su-card' }, h('div', { class: 'su-chead' }, h('b', {}, rt(cur, 'title'), ' ', badge(cur)), cur.date ? h('small', {}, fmtDate(cur.date)) : null), notesOf(cur)));

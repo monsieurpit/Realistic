@@ -68,3 +68,22 @@ test('passwords: with a master password they lock when PatOS locks', { skip: ski
   assert.ok(!r.stored.includes('Pa55word') && !r.stored.includes('school.example'));
   await page.close();
 });
+test('passwords: only using the vault keeps it open, and closing it locks it', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage(); await boot(page, srv.base, { fresh: true });
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise((res) => setTimeout(res, ms)); const P = PatOS.passwords; await P.ready;
+    await P.save({ url: 'https://x.example', username: 'a', password: 'secret1' }); await P.setMaster("correct horse"); const out = {};
+    // activity in some other app does not count
+    await wait(60); document.body.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    out.other = P.lockIfIdle(30); // true = it locked
+    await P.unlock('correct horse'); await wait(60);
+    // activity inside the Passwords window does
+    const el = document.createElement('div'); el.className = 'pw-win'; document.body.appendChild(el); el.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+    out.inside = P.lockIfIdle(30); el.remove();
+    // closing the Passwords window locks it
+    const w = PatOS.launch('passwords'); await wait(300); out.openBefore = !P.locked; w.close(); await wait(300); out.afterClose = P.locked;
+    return out;
+  });
+  assert.deepEqual(r, { other: true, inside: false, openBefore: true, afterClose: true });
+  await page.close();
+});

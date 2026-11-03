@@ -70,8 +70,9 @@ test('Reminders: quick add understands dates, times, priority and lists', { skip
 test('Calendar: repeating events, quick add, alerts and .ics', { skip: skipNoBrowser }, async () => {
   const page = await b.newPage(); const errors = await boot(page, srv.base, { fresh: true });
   const r = await page.evaluate(async () => {
-    const d = (n) => { const x = new Date(); x.setDate(x.getDate() + n); return PatOS.dateKey(x); };
     const soon = new Date(Date.now() + 20 * 60000); const hm = String(soon.getHours()).padStart(2, '0') + ':' + String(soon.getMinutes()).padStart(2, '0');
+    // the event is filed under the day it really happens on (that is tomorrow when the test runs near midnight)
+    const d = (n) => { const x = new Date(soon); x.setDate(x.getDate() + n); return PatOS.dateKey(x); };
     PatOS.store.set('calendar', { [d(0)]: [{ id: 'w', title: 'Math class', time: hm, repeat: 'weekly', alert: '10', skip: [d(14)] }] });
     const w = PatOS.launch('calendar'); await new Promise((res) => setTimeout(res, 300));
     const week = [0, 7, 14, 3].map((n) => PatOS.calendarOn(d(n)).length);
@@ -186,6 +187,47 @@ test('Photos: small thumbnails, large photos, select, albums, zoom and info', { 
   assert.equal(r.selected, '2 photos selected');
   assert.deepEqual(r.album, ['Trip', 2]); assert.equal(r.albumShows, 2);
   assert.equal(r.zoomed, true); assert.equal(r.info, true);
+  assert.deepEqual(errors, []);
+  await page.close();
+});
+
+test('Paint: drawing, opacity, shapes, undo, rotate, save and reopen', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1200, height: 760 } }); const errors = await boot(page, srv.base, { fresh: true });
+  const w = await page.evaluateHandle(() => { const x = PatOS.launch('paint'); x.toggleMax(); return x; });
+  await page.waitForTimeout(500);
+  const box = await page.evaluate(() => { const r = document.querySelector('.pt-over').getBoundingClientRect(); return { x: r.left, y: r.top, w: r.width, h: r.height }; });
+  const px = (x, y) => page.evaluate(([x, y]) => { const c = document.querySelector('.pt-canvas'); const r = c.getBoundingClientRect(); const d = c.getContext('2d').getImageData(Math.round((x - r.left) * c.width / r.width), Math.round((y - r.top) * c.height / r.height), 1, 1).data; return [...d]; }, [x, y]);
+  // a red brush stroke
+  await page.evaluate(() => { document.querySelector('.pt-pick').value = '#ff0000'; document.querySelector('.pt-pick').dispatchEvent(new Event('input')); });
+  const y0 = box.y + 100;
+  await page.mouse.move(box.x + 100, y0); await page.mouse.down(); await page.mouse.move(box.x + 300, y0, { steps: 8 }); await page.mouse.up();
+  const stroke = await px(box.x + 200, y0);
+  // 50% opacity: overlapping the same line twice in one stroke must not get darker than one pass
+  await page.evaluate(() => { const a = document.querySelector('.pt-alpha'); a.value = 50; a.dispatchEvent(new Event('input')); });
+  const y1 = box.y + 200;
+  await page.mouse.move(box.x + 100, y1); await page.mouse.down(); await page.mouse.move(box.x + 300, y1, { steps: 6 }); await page.mouse.move(box.x + 100, y1, { steps: 6 }); await page.mouse.up();
+  const soft = await px(box.x + 200, y1);
+  // a filled rectangle
+  await page.keyboard.press('r'); await page.evaluate(() => document.querySelector('.pt-fillbtn').click());
+  await page.evaluate(() => { const a = document.querySelector('.pt-alpha'); a.value = 100; a.dispatchEvent(new Event('input')); });
+  await page.mouse.move(box.x + 400, box.y + 300); await page.mouse.down(); await page.mouse.move(box.x + 500, box.y + 380, { steps: 4 }); await page.mouse.up();
+  const rect = await px(box.x + 450, box.y + 340);
+  // undo removes the rectangle, rotate swaps the size
+  await page.keyboard.press('Control+z'); const gone = await px(box.x + 450, box.y + 340);
+  const dims = await page.evaluate(() => { const c = document.querySelector('.pt-canvas'); return [c.width, c.height]; });
+  await page.evaluate(() => document.querySelector('.pt-win .tbtn[title="Rotate"]').click()); await page.waitForTimeout(100);
+  const dims2 = await page.evaluate(() => { const c = document.querySelector('.pt-canvas'); return [c.width, c.height]; });
+  // save and reopen
+  await page.evaluate(() => { PatOS.ask = async () => 'Test Drawing.png'; }); await page.evaluate(() => PatOS.wm.active._paint.save()); await page.waitForTimeout(400);
+  const saved = await page.evaluate(() => { const n = PatOS.fs.get('/Pictures/Test Drawing.png'); return n && n.content.startsWith('data:image/png'); });
+  await page.evaluate(() => { PatOS.wm.closeAll(); const x = PatOS.launch('paint', { path: '/Pictures/Test Drawing.png' }); }); await page.waitForTimeout(700);
+  const reopened = await page.evaluate(() => { const c = document.querySelector('.pt-canvas'); return [c.width, c.height]; });
+  assert.deepEqual(stroke.slice(0, 3), [255, 0, 0]);
+  assert.ok(soft[0] === 255 && soft[1] > 100 && soft[1] < 160, 'half-opaque red on white should be about 50% (got ' + soft + ')');
+  assert.deepEqual(rect.slice(0, 3), [255, 0, 0]);
+  assert.deepEqual(gone.slice(0, 3), [255, 255, 255]);
+  assert.deepEqual(dims2, [dims[1], dims[0]]);
+  assert.equal(saved, true); assert.deepEqual(reopened, dims2);
   assert.deepEqual(errors, []);
   await page.close();
 });

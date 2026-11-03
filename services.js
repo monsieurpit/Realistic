@@ -77,14 +77,35 @@ async function bookText(id) {
    frame-ancestors rule. We only read those two headers. The page itself never goes through PatOS. */
 const dns = require('dns').promises; const net = require('net');
 const frameCache = new Map(); const hits = new Map();
+/* an IPv6 address as its 8 parts, whatever way it was written (::, ::ffff:1.2.3.4, 0:0:0:0:0:ffff:102:304 …) */
+function expandV6(ip) {
+  let tail = [];
+  const dotted = /(\d+\.\d+\.\d+\.\d+)$/.exec(ip);
+  if (dotted) { const o = dotted[1].split('.').map(Number); if (o.some((n) => n > 255)) return null; tail = [(o[0] << 8) | o[1], (o[2] << 8) | o[3]]; ip = ip.slice(0, -dotted[1].length) + '0:0'; }
+  const halves = ip.split('::'); if (halves.length > 2) return null;
+  const parse = (t) => (t ? t.split(':').map((x) => parseInt(x, 16)) : []);
+  const head = parse(halves[0]), rest = halves.length === 2 ? parse(halves[1]) : [];
+  if (halves.length === 1 ? head.length !== 8 : head.length + rest.length > 7) return null;
+  const parts = halves.length === 1 ? head : head.concat(new Array(8 - head.length - rest.length).fill(0), rest);
+  if (parts.some((n) => !(n >= 0 && n <= 0xffff))) return null;
+  if (dotted) { parts[6] = tail[0]; parts[7] = tail[1]; }
+  return parts;
+}
+const v4of = (hi, lo) => [hi >> 8, hi & 255, lo >> 8, lo & 255].join('.');
 function privateIP(ip) {
-  ip = String(ip).replace(/^\[|\]$/g, '').toLowerCase();
+  ip = String(ip).replace(/^\[|\]$/g, '').toLowerCase().replace(/%.*$/, '');
   if (net.isIPv6(ip)) {
-    // IPv4 hidden inside IPv6 (::ffff:127.0.0.1, NAT64, 6to4) is checked as IPv4
-    const m = /^(?:::ffff:(?:0:)?|64:ff9b::)(\d+\.\d+\.\d+\.\d+)$/.exec(ip); if (m) return privateIP(m[1]);
-    const h = /^::ffff:([0-9a-f]{1,4}):([0-9a-f]{1,4})$/.exec(ip); if (h) { const a = parseInt(h[1], 16), b = parseInt(h[2], 16); return privateIP([a >> 8, a & 255, b >> 8, b & 255].join('.')); }
-    if (/^2002:/.test(ip)) { const p = ip.split(':'); const a = parseInt(p[1] || '0', 16), b = parseInt(p[2] || '0', 16); return privateIP([a >> 8, a & 255, b >> 8, b & 255].join('.')); }
-    return ip === '::' || ip === '::1' || /^(fc|fd|fe[89ab])/.test(ip) || /^ff/.test(ip);
+    const p = expandV6(ip); if (!p) return true; // anything unreadable is treated as private
+    const zero = (a, b) => p.slice(a, b).every((n) => n === 0);
+    if (zero(0, 8) || (zero(0, 7) && p[7] === 1)) return true; // :: and ::1
+    if (zero(0, 5) && p[5] === 0xffff) return privateIP(v4of(p[6], p[7])); // IPv4-mapped (::ffff:a.b.c.d, in any spelling)
+    if (zero(0, 6)) return privateIP(v4of(p[6], p[7])); // old IPv4-compatible (::a.b.c.d)
+    if (p[0] === 0x64 && p[1] === 0xff9b) return p[2] === 1 ? true : zero(2, 6) ? privateIP(v4of(p[6], p[7])) : true; // NAT64: the IPv4 inside is checked; 64:ff9b:1::/48 is local-use
+    if (p[0] === 0x2002) return privateIP(v4of(p[1], p[2])); // 6to4 carries an IPv4 address too
+    if (p[0] === 0x2001 && p[1] === 0) return true; // Teredo
+    if (p[0] === 0x2001 && p[1] === 0xdb8) return true; // documentation range, never a real site
+    if (p[0] === 0x100 && zero(1, 4)) return true; // discard-only 100::/64
+    return (p[0] & 0xfe00) === 0xfc00 || (p[0] & 0xffc0) === 0xfe80 || (p[0] & 0xffc0) === 0xfec0 || (p[0] & 0xff00) === 0xff00; // fc00::/7, fe80::/10, fec0::/10, ff00::/8
   }
   if (!net.isIPv4(ip)) return true;
   const [a, b, c] = ip.split('.').map(Number);

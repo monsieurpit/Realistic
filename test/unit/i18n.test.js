@@ -15,11 +15,10 @@ test('no French key is written twice', () => {
   keys.forEach((k) => { if (seen.has(k)) dup.push(k); seen.add(k); });
   assert.deepEqual(dup, []);
 });
-test('report: strings without a French translation', () => {
+test('every string shown with T(...) has a French translation', () => {
   const files = [];
   (function walk(d) { for (const f of fs.readdirSync(d)) { const p = path.join(d, f); if (fs.statSync(p).isDirectory()) walk(p); else if (p.endsWith('.js') && !p.endsWith('i18n.js')) files.push(p); } })(path.join(ROOT, 'js'));
   const have = new Set(keys); const missing = new Set();
   files.forEach((f) => { const s = fs.readFileSync(f, 'utf8'); for (const m of s.matchAll(/\b(?:PatOS\.t|T)\('((?:[^'\\]|\\.)+)'\)/g)) if (!have.has(m[1]) && /[a-z]/i.test(m[1])) missing.add(m[1]); });
-  if (missing.size) console.log('# ' + missing.size + ' strings have no French yet, e.g.: ' + [...missing].slice(0, 8).join(' | '));
-  assert.ok(true);
+  assert.equal(missing.size, 0, missing.size + ' strings have no French yet (add them to js/i18n.js): ' + [...missing].join(' | '));
 });

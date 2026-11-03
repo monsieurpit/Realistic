@@ -8,10 +8,14 @@
     "build": "node build.js",
     "test": "node --test --test-concurrency=1 \"test/unit/*.test.js\" \"test/browser/*.test.js\"",
     "test:unit": "node --test \"test/unit/*.test.js\"",
-    "test:browser": "node --test --test-concurrency=1 \"test/browser/*.test.js\""
+    "test:browser": "node --test --test-concurrency=1 \"test/browser/*.test.js\"",
+    "test:ci": "node --test --test-concurrency=1 \"test/unit/*.test.js\" \"test/browser/*.test.js\""
   },
   "engines": {
     "node": ">=18"
   },
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "playwright": ">=1.50.0 <2"
+  }
 }
