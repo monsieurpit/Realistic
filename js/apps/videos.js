@@ -15,7 +15,7 @@
       const session = []; // videos opened from the device this session (object URLs)
       function library() {
         const out = [];
-        try { PatOS.fs.walk('/', (path, n) => { if (n.type !== 'dir' && isVideo(path)) out.push({ name: path.split('/').pop(), src: n.content, path }); }); } catch (e) {}
+        try { PatOS.fs.walk('/', (path, n) => { if (n.type !== 'dir' && isVideo(path)) out.push({ name: path.split('/').pop(), src: n.blob ? null : n.content, path }); }); } catch (e) {}
         return out.concat(session);
       }
       function home() {
@@ -27,7 +27,8 @@
         }
         const g = h('div', { class: 'vd-grid' });
         vids.forEach((v) => {
-          const vid = h('video', { src: v.src, preload: 'metadata', muted: true });
+          const vid = h('video', { preload: 'metadata', muted: true });
+          if (v.src) vid.src = v.src; else if (v.path) PatOS.fs.blobURL(v.path).then((u) => { if (u) vid.src = u; });
           vid.addEventListener('loadedmetadata', () => { try { vid.currentTime = Math.min(2, vid.duration / 3); } catch (e) {} const d = vid.duration; if (isFinite(d)) c.querySelector('.vd-dur').textContent = Math.floor(d / 60) + ':' + String(Math.floor(d % 60)).padStart(2, '0'); });
           const c = h('div', { class: 'vd-card' }, h('div', { class: 'vd-th' }, vid, h('span', { class: 'vd-dur' })), h('b', {}, v.name));
           c.onclick = () => play(v); g.appendChild(c);
@@ -36,7 +37,8 @@
       }
       function play(v) {
         win.setTitle(v.name); main.innerHTML = '';
-        const vid = h('video', { src: v.src, controls: true, autoplay: true, playsinline: true, class: 'vd-player' });
+        const vid = h('video', { controls: true, autoplay: true, playsinline: true, class: 'vd-player' });
+        if (v.src) vid.src = v.src; else if (v.path) PatOS.fs.blobURL(v.path).then((u) => { if (u) vid.src = u; });
         const speed = h('select', { class: 'field' }, ...[0.5, 0.75, 1, 1.25, 1.5, 2].map((s) => h('option', { value: s }, s + '×'))); speed.value = '1';
         speed.onchange = () => { vid.playbackRate = +speed.value; };
         const bPip = h('button', { class: 'btn' }, PatOS.t('Picture in Picture')); bPip.onclick = () => { if (document.pictureInPictureEnabled) vid.requestPictureInPicture().catch(() => {}); };
@@ -48,7 +50,7 @@
         document.body.appendChild(inp); inp.click();
       }
       bImport.onclick = pick;
-      win._open = (a) => { if (a && a.path) { const n = PatOS.fs.get(a.path); if (n) play({ name: a.path.split('/').pop(), src: n.content, path: a.path }); } };
+      win._open = (a) => { if (a && a.path) { const n = PatOS.fs.get(a.path); if (n) play({ name: a.path.split('/').pop(), src: n.blob ? null : n.content, path: a.path }); } };
       if (args && args.path) win._open(args); else home();
     },
     onArgs(win, a) { win._open && win._open(a); }

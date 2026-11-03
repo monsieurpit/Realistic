@@ -190,6 +190,7 @@
       return PatOS.iconHTML('imagefile');
     }
     if (kind === 'audio') return PatOS.iconHTML('audiofile');
+    if (kind === 'video') return PatOS.iconHTML('videos');
     const docIc = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms', pdf: 'preview' }[PatOS.fs.ext(name)];
     if (docIc) return PatOS.iconHTML(docIc);
     if (kind === 'link') return PatOS.iconHTML('linkfile');

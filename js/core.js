@@ -37,17 +37,51 @@
   PatOS.debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
   PatOS.fmtBytes = (n) => n < 1024 ? n + ' B' : n < 1048576 ? (n / 1024).toFixed(1) + ' KB' : (n / 1048576).toFixed(2) + ' MB';
 
-  /* ---------- storage (safe localStorage) ---------- */
+  /* ---------- storage ----------
+     PatOS keeps every setting and file in memory and saves them to the browser's database (IndexedDB),
+     which holds gigabytes. If that isn't available (private windows, some sandboxes) it falls back to
+     localStorage (about 5 MB). preload.js loads the database before this file runs. */
   const PREFIX = 'patos:';
   const mem = {};
+  const KV = window.__KV || null, DBH = window.__IDB || null;
+  const dirty = new Set(), removedKeys = new Set(), fcPut = {}, fcDel = new Set();
+  const clone = (v) => { if (v == null || typeof v !== 'object') return v; try { return structuredClone(v); } catch (e) { return JSON.parse(JSON.stringify(v)); } };
+  let quotaWarned = false;
+  function flushNow() {
+    if (!DBH || (!dirty.size && !removedKeys.size && !Object.keys(fcPut).length && !fcDel.size)) return Promise.resolve();
+    const sets = [...dirty], dels = [...removedKeys], puts = Object.assign({}, fcPut), fdel = [...fcDel];
+    dirty.clear(); removedKeys.clear(); Object.keys(fcPut).forEach((k) => delete fcPut[k]); fcDel.clear();
+    return new Promise((res) => {
+      try {
+        const tx = DBH.transaction(['kv', 'fc'], 'readwrite'); const st = tx.objectStore('kv'), fc = tx.objectStore('fc');
+        sets.forEach((k) => { try { st.put(KV[k], k); } catch (e) { console.error(e); } });
+        dels.forEach((k) => st.delete(k));
+        Object.keys(puts).forEach((k) => fc.put(puts[k], k));
+        fdel.forEach((k) => fc.delete(k));
+        tx.oncomplete = () => { afterMigrate(); res(); };
+        const bad = (e) => { sets.forEach((k) => dirty.add(k)); Object.assign(fcPut, puts); if (!quotaWarned && PatOS.notify) { quotaWarned = true; PatOS.notify({ title: 'Storage is full', body: 'PatOS could not save. Delete some big files to free space.', icon: 'settings' }); } res(); };
+        tx.onerror = tx.onabort = bad;
+      } catch (e) { res(); }
+    });
+  }
+  const flushSoon = PatOS.debounce(flushNow, 120);
+  function afterMigrate() {
+    if (!window.__MIGRATE || !window.__MIGRATE.length) return;
+    const keys = window.__MIGRATE; window.__MIGRATE = null;
+    try { keys.forEach((k) => localStorage.removeItem(k)); } catch (e) {}
+  }
+  if (KV && window.__MIGRATE) Object.keys(KV).forEach((k) => dirty.add(k));
   PatOS.store = {
+    idb: !!KV,
     get(key, fallback) {
+      if (KV) return key in KV ? clone(KV[key]) : fallback;
       try {
         const raw = localStorage.getItem(PREFIX + key);
         return raw == null ? (key in mem ? mem[key] : fallback) : JSON.parse(raw);
       } catch (e) { return key in mem ? mem[key] : fallback; }
     },
     set(key, value) {
+      if (KV) { KV[key] = value; dirty.add(key); removedKeys.delete(key); flushSoon(); return true; }
       mem[key] = value;
       try { localStorage.setItem(PREFIX + key, JSON.stringify(value)); return true; }
       catch (e) {
@@ -55,16 +89,37 @@
         return false;
       }
     },
-    remove(key) { delete mem[key]; try { localStorage.removeItem(PREFIX + key); } catch (e) {} },
+    remove(key) { if (KV) { delete KV[key]; dirty.delete(key); removedKeys.add(key); flushSoon(); return; } delete mem[key]; try { localStorage.removeItem(PREFIX + key); } catch (e) {} },
     usage() {
       let n = 0;
+      if (KV) { try { Object.keys(KV).forEach((k) => { n += JSON.stringify(KV[k]).length * 2; }); } catch (e) {} Object.keys(persistedFC).forEach((k) => { n += persistedFC[k].length * 2; }); return n; }
       try { for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k.startsWith(PREFIX)) n += (localStorage.getItem(k) || '').length * 2; } } catch (e) {}
       return n;
     },
-    clearAll() {
+    flush: flushNow,
+    async clearAll() {
+      try { localStorage.setItem('patos-wipe', '1'); } catch (e) {}
+      if (KV) { Object.keys(KV).forEach((k) => delete KV[k]); dirty.clear(); removedKeys.clear(); }
       try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => localStorage.removeItem(k)); } catch (e) {}
     }
   };
+  const persistedFC = {};
+  PatOS.flush = () => { try { saveFSNow(); } catch (e) {} return flushNow(); };
+  addEventListener('pagehide', () => PatOS.flush());
+  document.addEventListener('visibilitychange', () => { if (document.hidden) PatOS.flush(); });
+
+  /* how much room there is: real numbers from the browser */
+  PatOS.storageInfo = async function () {
+    const out = { used: PatOS.store.usage(), quota: PatOS.store.idb ? 1024 * 1024 * 1024 : 5 * 1024 * 1024, persisted: false, real: false };
+    try {
+      if (navigator.storage && navigator.storage.estimate) { const e = await navigator.storage.estimate(); if (e.quota) { out.used = e.usage || out.used; out.quota = e.quota; out.real = true; } }
+      if (navigator.storage && navigator.storage.persisted) out.persisted = await navigator.storage.persisted();
+    } catch (e) {}
+    return out;
+  };
+  PatOS.askPersist = async function () { try { return navigator.storage && navigator.storage.persist ? await navigator.storage.persist() : false; } catch (e) { return false; } };
+  // ask the browser not to delete PatOS's data when space runs low (it usually says yes for installed apps)
+  window.addEventListener('pointerdown', () => { PatOS.askPersist(); }, { once: true, capture: true });
 
   /* ---------- events ---------- */
   const listeners = {};
@@ -198,7 +253,42 @@
     PatOS.store.set('fsCleaned2', true); PatOS.store.set('fs', root);
   }
 
-  const saveFS = PatOS.debounce(() => { PatOS.store.set('fs', root); }, 250);
+  /* big file contents are saved as separate records, so a small edit doesn't re-save every picture */
+  const FCLOAD = window.__FC || {};
+  (function rehydrate(n) {
+    if (n.type === 'dir') { Object.values(n.children).forEach(rehydrate); return; }
+    if (n.cref) { n.content = FCLOAD[n.cref] != null ? FCLOAD[n.cref] : ''; n.cid = n.cref; delete n.cref; persistedFC[n.cid] = n.content; }
+  })(root);
+  const pendingBlobIds = new Set(); let gcBlobs = false;
+  function saveFSNow() {
+    if (!PatOS.store.idb) { PatOS.store.set('fs', root); return; }
+    const seen = new Set(), liveBlobs = new Set();
+    const slim = (n) => {
+      if (n.type === 'dir') { const out = Object.assign({}, n, { children: {} }); for (const k of Object.keys(n.children)) out.children[k] = slim(n.children[k]); return out; }
+      const out = Object.assign({}, n);
+      if (n.blob) liveBlobs.add(n.blob);
+      if (typeof n.content === 'string' && n.content.length > 4096) {
+        if (!n.cid || seen.has(n.cid)) n.cid = PatOS.uid() + PatOS.uid();
+        seen.add(n.cid);
+        if (persistedFC[n.cid] !== n.content) { persistedFC[n.cid] = n.content; fcPut[n.cid] = n.content; }
+        out.content = ''; out.cref = n.cid;
+      }
+      delete out.cid;
+      return out;
+    };
+    const tree = slim(root);
+    Object.keys(persistedFC).forEach((k) => { if (!seen.has(k)) { delete persistedFC[k]; delete fcPut[k]; fcDel.add(k); } });
+    PatOS.store.set('fs', tree);
+    if (gcBlobs) { gcBlobs = false; collectBlobs(liveBlobs); }
+  }
+  function collectBlobs(live) {
+    if (!DBH) return;
+    try {
+      const tx = DBH.transaction('blobs', 'readwrite'), st = tx.objectStore('blobs'), req = st.getAllKeys();
+      req.onsuccess = () => req.result.forEach((k) => { if (!live.has(k) && !pendingBlobIds.has(k)) st.delete(k); });
+    } catch (e) {}
+  }
+  const saveFS = PatOS.debounce(saveFSNow, 250);
   function norm(path) {
     if (!path) return '/';
     if (path.startsWith('~')) path = '/' + path.slice(1);
@@ -220,6 +310,7 @@
     return cur || null;
   }
   function parentOf(path) { path = norm(path); const i = path.lastIndexOf('/'); return { dir: path.slice(0, i) || '/', name: path.slice(i + 1) }; }
+  const blobUrls = {};
   function changed(path) { saveFS(); PatOS.emit('fs', { path: norm(path), dir: parentOf(path).dir }); }
 
   PatOS.fs = {
@@ -247,7 +338,9 @@
       const existing = parent.children[name];
       if (existing && existing.type === 'dir') throw new Error(name + ' is a folder');
       parent.children[name] = Object.assign({ type: 'file', content: String(content), mtime: now() }, extra || {});
+      if (existing && existing.link && !parent.children[name].link) parent.children[name].link = existing.link;
       changed(path);
+      if (PatOS.device && PatOS.device.touched) PatOS.device.touched(norm(path));
       return norm(path);
     },
     mkdir(path) {
@@ -304,6 +397,7 @@
       if (!item || !target || target.type !== 'dir') throw new Error('Cannot copy');
       const name = PatOS.fs.uniqueName(toDir, parentOf(path).name);
       target.children[name] = JSON.parse(JSON.stringify(item));
+      (function strip(n) { delete n.link; delete n.cid; if (n.type === 'dir') Object.values(n.children).forEach(strip); })(target.children[name]);
       target.children[name].mtime = now();
       changed(toDir + '/' + name);
       return norm(toDir + '/' + name);
@@ -320,7 +414,7 @@
       delete item.origin; p.children[name] = item;
       changed(dir + '/' + name); changed('/.Trash/x');
     },
-    emptyTrash() { node('/.Trash').children = {}; changed('/.Trash/x'); },
+    emptyTrash() { node('/.Trash').children = {}; gcBlobs = true; changed('/.Trash/x'); },
     trashList() { const t = node('/.Trash'); return Object.keys(t.children).map((name) => ({ name, path: '/.Trash/' + name, ...t.children[name] })); },
     uniqueName(dir, base) {
       const p = node(dir); if (!p) return base;
@@ -329,7 +423,7 @@
       while (p.children[m[1] + ' ' + i + (m[2] || '')]) i++;
       return m[1] + ' ' + i + (m[2] || '');
     },
-    size(n) { if (!n) return 0; if (n.type === 'file') return (n.content || '').length; return Object.values(n.children).reduce((a, c) => a + PatOS.fs.size(c), 0); },
+    size(n) { if (!n) return 0; if (n.type === 'file') return n.blob ? (n.size || 0) : (n.content || '').length; return Object.values(n.children).reduce((a, c) => a + PatOS.fs.size(c), 0); },
     walk(path, fn) {
       const n = node(path); if (!n || n.type !== 'dir') return;
       for (const k of Object.keys(n.children)) {
@@ -337,6 +431,39 @@
         const p = norm(path + '/' + k); fn(p, n.children[k]);
         if (n.children[k].type === 'dir') PatOS.fs.walk(p, fn);
       }
+    },
+    /* big files (videos, recordings, huge PDFs) are kept as real Blobs in the database, not as text */
+    async writeBlob(path, blob, extra) {
+      const { dir, name } = parentOf(path); const parent = node(dir);
+      if (!parent || parent.type !== 'dir' || !name) throw new Error('No such folder: ' + dir);
+      if (!DBH) {
+        if (blob.size > 3 * 1024 * 1024) throw new Error('This browser can only store small files here.');
+        const url = await new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); r.readAsDataURL(blob); });
+        return PatOS.fs.write(path, url, extra);
+      }
+      const id = PatOS.uid() + PatOS.uid(); pendingBlobIds.add(id);
+      try {
+        await new Promise((res, rej) => { const tx = DBH.transaction('blobs', 'readwrite'); tx.objectStore('blobs').put(blob, id); tx.oncomplete = res; tx.onerror = tx.onabort = () => rej(tx.error || new Error('Not enough storage space.')); });
+        const existing = parent.children[name];
+        parent.children[name] = Object.assign({ type: 'file', content: '', blob: id, size: blob.size, mime: blob.type || '', mtime: now() }, extra || {});
+        if (existing && existing.link && !parent.children[name].link) parent.children[name].link = existing.link;
+        changed(path);
+        if (PatOS.device && PatOS.device.touched) PatOS.device.touched(norm(path));
+      } finally { pendingBlobIds.delete(id); }
+      return norm(path);
+    },
+    async getBlob(path) {
+      const n = node(path); if (!n || n.type !== 'file') return null;
+      if (n.blob) return new Promise((res) => { try { const r = DBH.transaction('blobs').objectStore('blobs').get(n.blob); r.onsuccess = () => res(r.result || null); r.onerror = () => res(null); } catch (e) { res(null); } });
+      const c = n.content || '';
+      if (/^data:/.test(c)) { try { return await (await fetch(c)).blob(); } catch (e) { return null; } }
+      return new Blob([c], { type: 'text/plain' });
+    },
+    async blobURL(path) {
+      const n = node(path); if (!n) return null;
+      if (!n.blob && /^data:/.test(n.content || '')) return n.content;
+      const key = n.blob || path + n.mtime; blobUrls[key] = blobUrls[key] || PatOS.fs.getBlob(path).then((b) => (b ? URL.createObjectURL(b) : null));
+      return blobUrls[key];
     },
     reset() { root = seedFS(); PatOS.store.set('fs', root); PatOS.emit('fs', { path: '/', dir: '/' }); }
   };
@@ -347,6 +474,7 @@
     const ext = PatOS.fs.ext(name);
     if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext)) return 'image';
     if (['mp3', 'wav', 'ogg', 'm4a'].includes(ext)) return 'audio';
+    if (['mp4', 'webm', 'mov', 'm4v', 'ogv'].includes(ext)) return 'video';
     if (['html', 'htm'].includes(ext)) return 'html';
     if (ext === 'url') return 'link';
     if (ext === 'pdf') return 'pdf';
@@ -462,17 +590,14 @@
         const out = [];
         for (const file of input.files) {
           const isText = /^text\/|json|javascript|xml|csv/.test(file.type) || /\.(txt|md|js|css|html|json|csv|py)$/i.test(file.name);
-          const content = await new Promise((res) => {
-            const r = new FileReader();
-            r.onload = () => res(r.result);
-            if (isText) r.readAsText(file); else r.readAsDataURL(file);
-          });
-          if (!isText && file.size > 3 * 1024 * 1024) {
-            PatOS.notify({ title: 'File too large', body: file.name + ' is over 3 MB and cannot be stored in PatOS.', icon: 'finder' });
-            continue;
-          }
           const name = PatOS.fs.uniqueName(destDir, file.name);
-          try { out.push(PatOS.fs.write(destDir + '/' + name, content)); } catch (e) { console.error(e); }
+          try {
+            if (!isText && (file.size > 8 * 1024 * 1024 || /^video\//.test(file.type) || /\.(mp4|webm|mov|m4v|ogv|mkv)$/i.test(file.name))) out.push(await PatOS.fs.writeBlob(destDir + '/' + name, file));
+            else {
+              const content = await new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); if (isText) r.readAsText(file); else r.readAsDataURL(file); });
+              out.push(PatOS.fs.write(destDir + '/' + name, content));
+            }
+          } catch (e) { PatOS.notify({ title: 'Couldn’t add ' + file.name, body: e.message || 'Not enough storage space.', icon: 'finder' }); }
         }
         input.remove();
         resolve(out);

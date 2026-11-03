@@ -1044,7 +1044,7 @@
       else m.addedNodes.forEach(walk);
     }
   });
-  document.addEventListener('DOMContentLoaded', () => {
+  (document.readyState === 'loading' ? (fn) => document.addEventListener('DOMContentLoaded', fn) : (fn) => fn())(() => {
     walk(document.body);
     mo.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS });
   });

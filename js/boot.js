@@ -103,7 +103,7 @@
 
   PatOS.boot = { showLock, login };
 
-  document.addEventListener('DOMContentLoaded', () => {
+  (document.readyState === 'loading' ? (fn) => document.addEventListener('DOMContentLoaded', fn) : (fn) => fn())(() => {
     PatOS.applyTheme && PatOS.applyTheme();
     $('.lock-form').addEventListener('submit', (e) => { e.preventDefault(); login(); });
     document.addEventListener('keydown', (e) => {

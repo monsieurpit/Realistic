@@ -8,7 +8,7 @@ const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 // inline stylesheets
 html = html.replace(/<link rel="stylesheet" href="([^"]+)">/g, (_, href) => `<style>\n${read(href)}\n</style>`);
 // inline scripts (escape any closing script tags inside the code)
-html = html.replace(/<script src="([^"]+)"><\/script>/g, (_, src) => `<script>\n${read(src).replace(/<\/script/gi, '<\\/script')}\n</script>`);
+html = html.replace(/<script( type="patos\/js")? src="([^"]+)"><\/script>/g, (_, type, src) => `<script${type || ''}>\n${read(src).replace(/<\/script/gi, '<\\/script')}\n</script>`);
 // inline the icon, drop the manifest (single-file mode)
 const icon = 'data:image/svg+xml;base64,' + Buffer.from(read('assets/icon.svg')).toString('base64');
 const touch = 'data:image/png;base64,' + fs.readFileSync(path.join(root, 'assets/icon-180.png')).toString('base64');
