@@ -898,3 +898,29 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 .fd-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; }
 .fd-empty b { font-weight: 600; color: var(--text2); }
 .fd-empty small { font-size: 12.5px; }
+/* TextEdit */
+.te-stage { flex: 1; display: flex; min-height: 0; }
+.te-stage .te-area { min-width: 0; }
+.te-area.nowrap { white-space: pre; overflow-x: auto; }
+.te-preview { display: none; flex: 1; overflow-y: auto; padding: 22px 30px; border-left: 1px solid var(--border); background: var(--win-solid); line-height: 1.6; font-size: 15px; user-select: text; }
+.te-split .te-preview { display: block; }
+.te-preview h1, .te-preview h2 { border-bottom: 1px solid var(--border); padding-bottom: .25em; }
+.te-preview code { font-family: var(--mono); background: var(--hover); padding: 1px 5px; border-radius: 5px; font-size: .9em; }
+.te-preview pre { background: var(--hover); padding: 12px 14px; border-radius: 8px; overflow-x: auto; }
+.te-preview pre code { background: none; padding: 0; }
+.te-preview blockquote { margin: 0; padding-left: 14px; border-left: 3px solid var(--accent); color: var(--text2); }
+.te-preview img { max-width: 100%; }
+.te-preview a { color: var(--accent); }
+.te-status .te-pos { font-variant-numeric: tabular-nums; }
+.te-find { display: flex; align-items: center; gap: 6px; padding: 7px 12px; border-bottom: 1px solid var(--border); background: var(--bar, var(--win-solid)); flex-wrap: wrap; }
+.te-find.hidden { display: none; }
+.te-fin { height: 28px; width: 190px; font-size: 13px; }
+.te-fin.bad { box-shadow: 0 0 0 2px #ff453a inset; }
+.te-fcount { font-size: 12px; color: var(--text2); min-width: 70px; font-variant-numeric: tabular-nums; }
+.te-fopt { display: flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text2); cursor: pointer; }
+.te-rep { display: flex; gap: 6px; align-items: center; margin-left: 8px; }
+.te-fx { margin-left: auto; font-size: 18px; }
+.mobile .te-split .te-area { display: none; }
+.mobile .te-split .te-preview { border: 0; }
+.mobile .te-fin { width: 130px; }
+.te-find .btn.sm { height: 28px; min-width: 28px; padding: 0 10px; font-size: 13px; }
