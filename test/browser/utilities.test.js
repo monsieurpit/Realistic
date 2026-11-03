@@ -88,3 +88,28 @@ test('Calendar: repeating events, quick add, alerts and .ics', { skip: skipNoBro
   assert.deepEqual(errors, []);
   await page.close();
 });
+
+test('Contacts: vCard round trip, old contacts upgraded, duplicates, accent-free search', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage(); const errors = await boot(page, srv.base, { fresh: true });
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise((res) => setTimeout(res, ms)); const out = {};
+    PatOS.store.set('contacts', [{ id: 'old', first: 'Éloïse', last: 'Tremblay', phone: '514-555-0100', email: 'e@x.ca', birthday: '2010-11-04' }]);
+    const w = PatOS.launch('contacts'); await wait(300);
+    const c0 = PatOS.store.get('contacts')[0];
+    out.migrated = !!(window.__x) || (w.body.querySelector('.ct-row span').textContent);
+    const vc = 'BEGIN:VCARD\r\nVERSION:3.0\r\nN:Roy;Marc;;;\r\nFN:Marc Roy\r\nORG:Café\\, Inc\r\nTEL;TYPE=CELL:(438) 555-0101\r\nTEL;TYPE=WORK:438-555-0199\r\nEMAIL;TYPE=WORK:marc@cafe.ca\r\nBDAY:--0315\r\nNOTE:Line one\\nLine two\r\nEND:VCARD\r\nBEGIN:VCARD\r\nVERSION:3.0\r\nFN:Éloïse Tremblay\r\nTEL:5145550100\r\nEND:VCARD\r\n';
+    const parsed = PatOS.vcard.fromVCard(vc);
+    out.parsed = [parsed.length, parsed[0].phones.map((p) => p.l + ':' + p.v).join(','), parsed[0].company, parsed[0].birthday, parsed[0].notes];
+    const back = PatOS.vcard.fromVCard(PatOS.vcard.toVCard(parsed.slice(0, 1)))[0];
+    out.back = [back.first, back.last, back.company, back.phones.length, back.emails[0].v, back.birthday, back.notes];
+    const q = w.body.querySelector('.ct-search input'); q.value = 'eloise'; q.dispatchEvent(new Event('input')); await wait(50);
+    out.search = w.body.querySelectorAll('.ct-row').length;
+    return out;
+  });
+  assert.equal(r.migrated, 'Éloïse Tremblay');
+  assert.deepEqual(r.parsed, [2, 'mobile:(438) 555-0101,work:438-555-0199', 'Café, Inc', '1900-03-15', 'Line one\nLine two']);
+  assert.deepEqual(r.back, ['Marc', 'Roy', 'Café, Inc', 2, 'marc@cafe.ca', '1900-03-15', 'Line one\nLine two']);
+  assert.equal(r.search, 1);
+  assert.deepEqual(errors, []);
+  await page.close();
+});

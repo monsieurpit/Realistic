@@ -8,13 +8,15 @@
     },
     "notes": {
       "en": [
-        "Calendar: Day and Year views, repeating events with an end date, alerts before events (even with Calendar closed), quick add in plain words (“Math class monday 9am weekly”), search, drag events to another day, and .ics import and export (Google Calendar)"
+        "Calendar: Day and Year views, repeating events with an end date, alerts before events (even with Calendar closed), quick add in plain words (“Math class monday 9am weekly”), search, drag events to another day, and .ics import and export (Google Calendar)",
+        "Contacts: several phone numbers and emails per person, company, tap to call or email, search that ignores accents, Undo after deleting, merge duplicates, and better vCard import and export with photos"
       ],
       "fr": [
-        "Calendrier : vues Jour et Année, événements récurrents avec date de fin, alertes avant les événements (même avec Calendrier fermé), ajout rapide en mots simples (« Cours de maths lundi 9h chaque semaine »), recherche, glisser les événements vers un autre jour, et import et export .ics (Google Agenda)"
+        "Calendrier : vues Jour et Année, événements récurrents avec date de fin, alertes avant les événements (même avec Calendrier fermé), ajout rapide en mots simples (« Cours de maths lundi 9h chaque semaine »), recherche, glisser les événements vers un autre jour, et import et export .ics (Google Agenda)",
+        "Contacts : plusieurs numéros et courriels par personne, entreprise, toucher pour appeler ou écrire, recherche sans tenir compte des accents, Annuler après une suppression, fusion des doublons, et meilleur import et export vCard avec les photos"
       ]
     },
-    "beta": 2
+    "beta": 3
   },
   {
     "version": "1.6.0",
