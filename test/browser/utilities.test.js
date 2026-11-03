@@ -149,3 +149,43 @@ test('Weather: summary, 10 days, units, city suggestions (forecast stubbed)', { 
   assert.deepEqual(errors, []);
   await page.close();
 });
+
+test('Photos: small thumbnails, large photos, select, albums, zoom and info', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1200, height: 760 } }); const errors = await boot(page, srv.base, { fresh: true });
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise((res) => setTimeout(res, ms)); const out = {};
+    const pic = (w, h, hue) => { const c = document.createElement('canvas'); c.width = w; c.height = h; const x = c.getContext('2d'); const g = x.createLinearGradient(0, 0, w, h); g.addColorStop(0, `hsl(${hue},80%,50%)`); g.addColorStop(1, `hsl(${hue + 60},80%,30%)`); x.fillStyle = g; x.fillRect(0, 0, w, h); for (let i = 0; i < 200; i++) { x.fillStyle = `hsla(${Math.random() * 360},70%,60%,.5)`; x.fillRect(Math.random() * w, Math.random() * h, 30, 30); } return c; };
+    for (let i = 0; i < 4; i++) PatOS.fs.write(`/Pictures/p${i}.jpg`, pic(1600, 1000, i * 70).toDataURL('image/jpeg', 0.92));
+    const blob = await new Promise((res) => pic(900, 600, 200).toBlob(res, 'image/png')); await PatOS.fs.writeBlob('/Pictures/big.png', blob);
+    const w = PatOS.launch('photos'); w.toggleMax(); await wait(1200);
+    const imgs = [...w.body.querySelectorAll('.ph-thumb img')];
+    out.count = imgs.length; out.loaded = imgs.filter((i) => i.src.startsWith('data:image/jpeg')).length;
+    out.thumbSmall = imgs.every((i) => i.src.length < 60000);
+    out.names = [...w.body.querySelectorAll('.ph-thumb')].map((t) => t.getAttribute('aria-label')).sort().join(',');
+    // select two and add to a new album
+    w.el.querySelector('.ph-selbtn').click(); await wait(100);
+    const th = w.body.querySelectorAll('.ph-thumb'); th[0].click(); th[1].click(); await wait(50);
+    out.selected = w.body.querySelector('.ph-selcount').textContent;
+    PatOS.ask = async () => 'Trip';
+    const addBtn = [...w.body.querySelectorAll('.ph-selbar .btn')].find((b) => /Add to Album/.test(b.textContent)); addBtn.click(); await wait(100);
+    document.querySelectorAll('.menu .menu-item').forEach((m) => { if (/New Album/.test(m.textContent)) m.click(); }); await wait(500);
+    const a = PatOS.store.get('photoAlbums', []); out.album = a.length && [a[0].name, a[0].paths.length];
+    out.albumShows = w.body.querySelectorAll('.ph-thumb').length;
+    // viewer: zoom with the wheel, then info
+    w.el.querySelector('.ph-selbtn').click(); await wait(50);
+    w.body.querySelectorAll('.ph-thumb')[0].click(); await wait(500);
+    const stage = w.body.querySelector('.ph-stage'); const img = stage.querySelector('img');
+    stage.dispatchEvent(new WheelEvent('wheel', { deltaY: -200, clientX: 600, clientY: 400, bubbles: true, cancelable: true })); await wait(50);
+    out.zoomed = /scale\((?!1\))/.test(img.style.transform);
+    w.body.dispatchEvent(new KeyboardEvent('keydown', { key: 'i', bubbles: true })); await wait(80);
+    out.info = w.body.querySelector('.ph-info') && !w.body.querySelector('.ph-info').classList.contains('hidden') && w.body.querySelector('.ph-info').textContent.includes('×');
+    return out;
+  });
+  assert.equal(r.count, 5); assert.equal(r.loaded, 5); assert.equal(r.thumbSmall, true);
+  assert.equal(r.names, 'big.png,p0.jpg,p1.jpg,p2.jpg,p3.jpg');
+  assert.equal(r.selected, '2 photos selected');
+  assert.deepEqual(r.album, ['Trip', 2]); assert.equal(r.albumShows, 2);
+  assert.equal(r.zoomed, true); assert.equal(r.info, true);
+  assert.deepEqual(errors, []);
+  await page.close();
+});

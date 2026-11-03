@@ -1065,3 +1065,21 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 .wx-tiles { align-content: start; }
 .wx-unit .sym { width: 15px; height: 15px; }
 .mobile .wx-sw { flex: 1; } .mobile .wx-sug { top: 34px; }
+/* Photos */
+.ph-col { flex: 1; display: flex; flex-direction: column; min-width: 0; min-height: 0; }
+.ph-search { width: 150px; height: 28px; margin-right: 6px; }
+.ph-selbtn { height: 28px; margin: 0 4px; }
+.ph-thumb img { opacity: 0; transition: opacity .25s; } .ph-thumb img.in { opacity: 1; }
+.ph-thumb.sel { outline: 3px solid var(--accent); outline-offset: -3px; }
+.ph-thumb.sel img { transform: scale(.92); border-radius: 4px; }
+.ph-check { position: absolute; top: 6px; right: 6px; width: 22px; height: 22px; border-radius: 50%; background: rgba(0,0,0,.35); box-shadow: inset 0 0 0 2px #fff; color: #fff; font-size: 13px; display: grid; place-items: center; }
+.ph-thumb.sel .ph-check { background: var(--accent); box-shadow: none; }
+.ph-selbar { display: flex; align-items: center; gap: 8px; padding: 8px 12px; border-top: 1px solid var(--border); background: var(--bar, var(--win-solid)); flex-wrap: wrap; }
+.ph-selbar.hidden { display: none; } .ph-selbar .btn { height: 28px; } .ph-selcount { font-weight: 600; font-size: 13px; }
+.ph-stage { overflow: hidden; touch-action: none; user-select: none; } .ph-stage img { will-change: transform; }
+.ph-info { position: absolute; top: 10px; right: 10px; width: 250px; padding: 12px 14px; border-radius: 12px; background: rgba(30,30,34,.92); color: #fff; font-size: 13px; display: flex; flex-direction: column; gap: 8px; z-index: 3; box-shadow: 0 10px 30px rgba(0,0,0,.5); }
+.ph-info.hidden { display: none; } .ph-ir { display: flex; flex-direction: column; } .ph-ir small { color: #9a9aa0; font-size: 11px; text-transform: uppercase; letter-spacing: .4px; } .ph-ir span { word-break: break-all; }
+.ph-newalbum { margin-top: 8px; }
+.ph-drop::after { content: ''; position: absolute; inset: 6px; border: 3px dashed var(--accent); border-radius: 12px; background: color-mix(in srgb, var(--accent) 10%, transparent); pointer-events: none; z-index: 9; }
+.mobile .ph-search { width: 110px; } .mobile .ph-zoom { display: none; } .mobile .ph-info { left: 10px; right: 10px; top: auto; bottom: calc(var(--sab) + 20px); width: auto; }
+.mobile .ph-selbar { padding-bottom: calc(var(--sab) + 28px); }
