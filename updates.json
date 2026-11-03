@@ -14,7 +14,7 @@
         "Calendrier : vues Jour et Année, événements récurrents avec date de fin, alertes avant les événements (même avec Calendrier fermé), ajout rapide en mots simples (« Cours de maths lundi 9h chaque semaine »), recherche, glisser les événements vers un autre jour, et import et export .ics (Google Agenda)"
       ]
     },
-    "beta": 1
+    "beta": 2
   },
   {
     "version": "1.6.0",

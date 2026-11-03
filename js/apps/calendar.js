@@ -132,6 +132,7 @@
       let cursor = new Date(), selected = new Date(), mode = PatOS.store.get('calMode', 'month'), query = '';
       let events = load();
       const save = () => { PatOS.store.set('calendar', events); syncAlerts(); };
+      syncAlerts();
       const title = h('div', { class: 'cal-title' });
       const seg = h('div', { class: 'seg' }, ...[['day', 'Day'], ['week', 'Week'], ['month', 'Month'], ['year', 'Year']].map(([k, l]) => h('button', { class: 'tab', 'data-k': k, onclick: () => { mode = k; PatOS.store.set('calMode', mode); render(); } }, T(l))));
       const bPrev = h('button', { class: 'tbtn', title: T('Previous'), 'aria-label': T('Previous') }, '‹'), bNext = h('button', { class: 'tbtn', title: T('Next'), 'aria-label': T('Next') }, '›');
