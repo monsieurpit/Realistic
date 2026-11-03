@@ -23,17 +23,19 @@
       const save = () => PatOS.store.set('reminders', items), saveLists = () => PatOS.store.set('remLists', lists);
       const side = h('div', { class: 'rm-side' }), main = h('div', { class: 'rm' });
       win.body.appendChild(h('div', { class: 'rm-wrap' }, side, main));
+      if (PatOS.mobile && PatOS.mobile.stack) { PatOS.mobile.stack(win, PatOS.t('Reminders')); side.classList.add('m-list'); main.classList.add('m-detail'); }
+      const openView = (k, label) => { view = k; render(); PatOS.mobile && PatOS.mobile.detail && PatOS.mobile.detail(win, true, label); };
       const SMART = [['today', 'Today', '#0a84ff', (r) => !r.done && r.due && r.due <= todayKey()], ['scheduled', 'Scheduled', '#ff453a', (r) => !r.done && r.due], ['all', 'All', '#3a3a3c', (r) => !r.done], ['flagged', 'Flagged', '#ff9f0a', (r) => !r.done && r.flag], ['completed', 'Completed', '#8e8e93', (r) => r.done]];
       function listFilter() { const sm = SMART.find((s) => s[0] === view); if (sm) return sm[3]; return (r) => (r.list || 'default') === view && (showDone || !r.done); }
       function renderSide() {
         side.innerHTML = '';
         const grid = h('div', { class: 'rm-smart' });
-        SMART.forEach(([k, l, c, fn]) => { const b = h('button', { class: 'rm-tile' + (view === k ? ' on' : '') }, h('span', { class: 'rm-dot', style: { background: c } }), h('b', {}, items.filter(fn).length), h('span', {}, PatOS.t(l))); b.onclick = () => { view = k; render(); }; grid.appendChild(b); });
+        SMART.forEach(([k, l, c, fn]) => { const b = h('button', { class: 'rm-tile' + (view === k ? ' on' : '') }, h('span', { class: 'rm-dot', style: { background: c } }), h('b', {}, items.filter(fn).length), h('span', {}, PatOS.t(l))); b.onclick = () => openView(k, PatOS.t(l)); grid.appendChild(b); });
         side.append(grid, h('div', { class: 'fd-sh' }, PatOS.t('My Lists')));
         lists.forEach((L) => {
           const n = items.filter((r) => (r.list || 'default') === L.id && !r.done).length;
           const el = h('div', { class: 'fd-si' + (view === L.id ? ' on' : '') }, h('span', { class: 'rm-ldot', style: { background: L.color } }), h('span', { class: 'nf-name' }, L.name), h('small', { class: 'nf-count' }, n || ''));
-          el.onclick = () => { view = L.id; render(); };
+          el.onclick = () => openView(L.id, L.name);
           el.oncontextmenu = (e) => { e.preventDefault(); PatOS.menu([{ label: PatOS.t('Rename List…'), action: async () => { const v = await PatOS.ask(PatOS.t('Rename List…'), L.name, { icon: 'reminders', ok: 'Rename' }); if (v) { L.name = v; saveLists(); render(); } } }, { header: PatOS.t('Color') }, ...COLORS.map((c, i) => ({ label: ['Blue', 'Red', 'Orange', 'Green', 'Purple', 'Pink', 'Teal', 'Gray'].map(PatOS.t)[i], checked: L.color === c, action: () => { L.color = c; saveLists(); render(); } })), { divider: true }, { label: PatOS.t('Delete List'), disabled: lists.length < 2, action: async () => { if (await PatOS.confirmBox(PatOS.t('Delete this list?'), PatOS.t('Its reminders will be deleted too.'), { danger: true, ok: 'Delete', icon: 'reminders' })) { items = items.filter((r) => (r.list || 'default') !== L.id); lists = lists.filter((x) => x !== L); save(); saveLists(); view = 'today'; render(); } } }], e.clientX, e.clientY); };
           el.addEventListener('dragover', (e) => { e.preventDefault(); el.classList.add('drop'); }); el.addEventListener('dragleave', () => el.classList.remove('drop'));
           el.addEventListener('drop', (e) => { e.preventDefault(); el.classList.remove('drop'); const r = items.find((x) => String(x.id) === e.dataTransfer.getData('text/rem')); if (r) { r.list = L.id; save(); render(); } });

@@ -19,6 +19,8 @@
       const side = h('div', { class: 'st-side' });
       const main = h('div', { class: 'st-main' });
       win.body.appendChild(h('div', { class: 'st-wrap' }, side, main));
+      // on a phone: the list of settings first, each pane on its own screen
+      const MB = PatOS.mobile; if (MB && MB.stack) { MB.stack(win, PatOS.t('Settings')); side.classList.add('m-list'); main.classList.add('m-detail'); }
       const S = () => PatOS.settings;
       const row = (label, ctl, sub) => h('div', { class: 'st-row' }, h('div', { class: 'st-rl' }, h('span', {}, label), sub ? h('small', {}, sub) : null), ctl);
       const group = (...rows) => h('div', { class: 'st-group' }, ...rows);
@@ -210,7 +212,7 @@
       function drawSide() {
         side.querySelectorAll('.st-si, .st-noresult').forEach((e) => e.remove());
         const hits = PANES.filter(match);
-        hits.forEach(([k, l, ic]) => { const b = h('button', { class: 'st-si' + (k === pane ? ' on' : '') }, h('span', { class: 'st-ic' }, ic), l); b.onclick = () => { pane = k; renderMain(); drawSide(); }; side.appendChild(b); });
+        hits.forEach(([k, l, ic]) => { const b = h('button', { class: 'st-si' + (k === pane ? ' on' : '') }, h('span', { class: 'st-ic' }, ic), l); b.onclick = () => { pane = k; renderMain(); drawSide(); if (PatOS.mobile && PatOS.mobile.detail) PatOS.mobile.detail(win, true, PatOS.t(l)); }; side.appendChild(b); });
         if (!hits.length) side.appendChild(h('div', { class: 'st-noresult' }, 'No results'));
       }
       function render(keepSearch) {
@@ -226,8 +228,10 @@
         main.append(h('h1', {}, PANES.find((p) => p[0] === pane)[1]), ...panes[pane]());
         win.setTitle(PANES.find((p) => p[0] === pane)[1]);
       }
-      win._pane = (p) => { pane = p; render(); };
+      const paneName = (k) => PatOS.t((PANES.find((x) => x[0] === k) || [k, k])[1]);
+      win._pane = (p) => { pane = p; render(); if (MB && MB.detail) MB.detail(win, true, paneName(p)); };
       render();
+      if (args.pane && MB && MB.detail) MB.detail(win, true, paneName(args.pane));
     },
     onArgs(win, args) { if (args.pane) win._pane(args.pane); }
   });

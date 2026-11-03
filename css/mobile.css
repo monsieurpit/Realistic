@@ -163,3 +163,99 @@ html.mobile, html.mobile body { overscroll-behavior: none; touch-action: manipul
 .mobile .ttt-grid { grid-template-columns: repeat(3, 28vw); grid-template-rows: repeat(3, 28vw); }
 .mobile .rm { padding: 14px 16px; }
 .mobile.m-in-app.m-dark-app #m-indicator span { background: #fff; }
+
+/* ================= Phone, remade (real phones first: iPhone 14 Pro Max = 430 × 932) ================= */
+/* --app-top: where an app's own bar starts. On a real phone that is just below the real status bar
+   (the safe area: 59px on a 14 Pro Max added to the Home Screen, 0 in a Safari tab). In phone layout on a
+   computer, PatOS draws its own status bar, so the bar starts below that. */
+html.mobile { --app-top: calc(var(--mtop) + 26px); --app-bottom: var(--sab); }
+html.real-phone { --mtop: var(--sat); --app-top: var(--sat); }
+.real-phone #m-status, .real-phone #m-indicator { display: none !important; }
+html.mobile.m-kb { --app-bottom: 0px; }
+
+/* Home Screen */
+.real-phone #m-home { padding-top: calc(var(--sat) + 14px); }
+.mobile .mh-grid { row-gap: 0; }
+.mobile .mh-ic { width: min(64px, calc((100vw - 96px) / 4)); height: min(64px, calc((100vw - 96px) / 4)); border-radius: 22%; }
+.mobile .mh-app { font-size: 12px; gap: 7px; }
+.mobile .mh-app span { max-width: 84px; }
+.mh-search { display: none; }
+.mobile .mh-search { display: flex; align-items: center; gap: 6px; align-self: center; margin: 0 auto 12px; padding: 7px 16px; border: 0; border-radius: 999px; background: rgba(255,255,255,.24); -webkit-backdrop-filter: blur(24px) saturate(1.6); backdrop-filter: blur(24px) saturate(1.6); color: #fff; font: 600 13.5px -apple-system, system-ui, sans-serif; text-shadow: 0 1px 3px rgba(0,0,0,.25); }
+:root[data-theme="dark"] .mobile .mh-search, .mobile:root[data-theme="dark"] .mh-search { background: rgba(60,60,70,.45); }
+.mobile .mh-dots { padding: 6px 0 10px; }
+.mobile .mh-dock { padding: 12px 10px; border-radius: 34px; margin-bottom: 4px; }
+
+/* apps: a native-style bar (Home or Back · title · more) and the app's tools in a row underneath */
+.mobile .window { top: var(--vvt, 0px) !important; height: var(--vvh, 100%) !important; }
+.mobile .titlebar { display: flex !important; flex-direction: column !important; align-items: stretch !important; justify-content: flex-start !important; flex-wrap: nowrap !important; gap: 0 !important; min-height: 0 !important; height: auto !important; max-height: none !important; padding: var(--app-top) max(6px, var(--sar)) 0 max(6px, var(--sal)) !important; }
+.mobile .win-title { display: none !important; }
+.m-appbar { display: none; }
+.mobile .m-appbar { display: grid; grid-template-columns: minmax(44px, 1fr) auto minmax(44px, 1fr); align-items: center; height: 44px; padding: 0 4px; }
+.mobile .mab-left, .mobile .mab-more { height: 40px; min-width: 40px; border: 0; background: none; color: var(--accent); display: flex; align-items: center; gap: 2px; padding: 0 6px; border-radius: 10px; font: 400 16px -apple-system, system-ui, sans-serif; cursor: pointer; justify-self: start; max-width: 42vw; }
+.mobile .mab-more { justify-self: end; }
+.mobile .mab-left span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mobile .mab-left:active, .mobile .mab-more:active { opacity: .45; }
+.mobile .mab-title { font: 600 17px -apple-system, system-ui, sans-serif; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 56vw; color: var(--text); }
+.mobile .force-dark .mab-title { color: #fff; }
+.mobile .win-toolbar { order: 0 !important; flex: 0 0 auto !important; display: flex; align-items: center; gap: 6px; padding: 0 8px 8px !important; justify-content: flex-start !important; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+.mobile .win-toolbar > [style*="flex: 1"], .mobile .win-toolbar > [style*="flex:1"] { flex: 0 0 4px !important; }
+.mobile .win-toolbar .field { max-width: 60vw; }
+.mobile .win-toolbar .tbtn { min-width: 38px; height: 38px; flex: none; }
+.mobile .win-toolbar .btn { flex: none; white-space: nowrap; }
+.mobile .win-body { padding-bottom: var(--app-bottom) !important; }
+.mobile .tb-hidden .titlebar { display: none !important; }
+.mobile .tb-hidden .win-body { padding-top: var(--app-top) !important; }
+
+/* list → detail screens */
+.mobile .m-stack:not(.m-show-detail) .m-detail { display: none !important; }
+.mobile .m-stack.m-show-detail .m-list { display: none !important; }
+.mobile .m-stack .m-list, .mobile .m-stack .m-detail { width: auto !important; max-width: none !important; min-width: 0 !important; flex: 1 1 auto !important; border-right: 0 !important; border-left: 0 !important; }
+.mobile .mab-left.back { color: var(--accent); }
+
+/* system overlays sit below the real status bar */
+.real-phone #toasts { top: calc(var(--sat) + 8px); }
+.real-phone .panel { top: calc(var(--sat) + 10px); max-height: calc(var(--vvh, 100%) - var(--sat) - 30px); }
+.real-phone #notif-center { padding-top: calc(var(--sat) + 20px) !important; }
+.mobile .toast { touch-action: none; }
+
+/* Spotlight: a search sheet at the top, results under it, no preview pane */
+.mobile #spotlight .sp-box { position: fixed !important; left: max(8px, var(--sal)); right: max(8px, var(--sar)); top: calc(var(--app-top) + 8px); width: auto !important; max-width: none !important; transform: none !important; margin: 0 !important; max-height: calc(var(--vvh, 100%) - var(--app-top) - 16px); display: flex; flex-direction: column; border-radius: 18px; }
+.mobile #spotlight .sp-preview { display: none !important; }
+.mobile #spotlight .sp-results { overflow-y: auto; max-height: none; flex: 1; }
+.mobile #spotlight .sp-res { min-height: 46px; }
+
+/* menus: bigger rows for fingers, never off the screen */
+.mobile .menu { min-width: 220px; max-width: calc(100vw - 16px); }
+.mobile .menu .menu-item { min-height: 40px; font-size: 15px; }
+
+/* landscape: keep away from the Dynamic Island side */
+@media (orientation: landscape) { .real-phone .titlebar { padding-left: max(10px, var(--sal)) !important; padding-right: max(10px, var(--sar)) !important; } }
+/* Notes on a phone: folders as chips over the list; the note on its own screen */
+.mobile .m-stack .notes-side.m-list { max-height: none !important; border-bottom: 0; }
+.mobile .m-stack .nf-side.m-list { flex: 0 0 auto !important; }
+.mobile .m-stack.m-show-detail .notes-main { display: flex; }
+/* Settings on a phone: a real list, like iPhone Settings */
+.mobile .m-stack .st-side.m-list { display: block; overflow-y: auto; padding: 8px 14px 24px; background: transparent; }
+.mobile .m-stack:not(.m-show-detail) .st-side .st-si { display: flex; width: 100%; height: 48px; border-radius: 0; background: var(--card); margin: 0; padding: 0 12px; gap: 12px; font-size: 16px; border-bottom: .5px solid var(--border); }
+.mobile .m-stack .st-side .st-si:first-of-type { border-radius: 12px 12px 0 0; }
+.mobile .m-stack .st-side .st-si:last-of-type { border-radius: 0 0 12px 12px; border-bottom: 0; }
+.mobile .m-stack .st-side .st-si::after { content: '›'; margin-left: auto; color: var(--text3); font-size: 20px; }
+.mobile .m-stack .st-side .st-si.on { background: var(--card); color: var(--text); }
+.mobile .m-stack .st-user { display: flex; margin: 4px 0 14px; }
+.mobile .m-stack .st-side .field { width: 100%; margin-bottom: 12px; }
+.mobile .m-stack .st-main.m-detail { overflow-y: auto; }
+.mobile .m-stack .st-main > h1:first-child { display: none; }
+/* apps without a title bar (Calculator, Weather, YouTube…) still get Home and ⋯, floating at the top */
+.mobile .tb-hidden .titlebar { display: flex !important; position: absolute !important; top: 0; left: 0; right: 0; z-index: 30; background: transparent !important; border: 0 !important; pointer-events: none; }
+.mobile .tb-hidden .titlebar .m-appbar { pointer-events: auto; }
+.mobile .tb-hidden .titlebar .mab-title, .mobile .tb-hidden .win-toolbar { display: none !important; }
+.mobile .tb-hidden .titlebar .mab-left, .mobile .tb-hidden .titlebar .mab-more { background: rgba(120,120,128,.28); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); color: #fff; border-radius: 999px; width: 40px; justify-content: center; }
+.mobile .tb-hidden .win-body { padding-top: calc(var(--app-top) + 48px) !important; }
+/* Passwords on a phone: filters as a row of chips above the list */
+.mobile .pw-wrap { flex-direction: column; }
+.mobile .m-stack .pw-side.m-list { flex: 0 0 auto !important; display: flex; flex-direction: row; overflow-x: auto; gap: 6px; padding: 8px 10px; border-bottom: .5px solid var(--border); }
+.mobile .m-stack .pw-side.m-list > * { flex: none; white-space: nowrap; }
+.mobile .m-stack .pw-detail.m-detail, .mobile .m-stack .ct-card.m-detail, .mobile .m-stack .rm.m-detail, .mobile .m-stack .rm-side.m-list, .mobile .m-stack .ct-side.m-list { overflow-y: auto; max-height: none !important; }
+.mobile .mh-grid { grid-template-columns: repeat(var(--mh-cols, 4), 1fr); }
+@media (orientation: landscape) { .mobile .mh-grid { max-width: none; } .mobile .mh-ic { width: 56px; height: 56px; } .mobile .mh-search { margin-bottom: 6px; } }
+.real-phone.standalone #lock::after { display: none; } /* iOS draws its own home bar there */

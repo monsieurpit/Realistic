@@ -45,7 +45,7 @@
     PatOS.sound.startup();
     if (PatOS.isMobile && PatOS.isIOS && !navigator.standalone && !PatOS.store.get('iosHint', false)) {
       PatOS.store.set('iosHint', true);
-      setTimeout(() => PatOS.notify({ title: 'Make PatOS full screen', body: 'In Safari tap Share, then “Add to Home Screen”. PatOS then opens like a real app.', icon: 'about', duration: 9000 }), 2500);
+      setTimeout(() => PatOS.notify({ title: 'Make PatOS full screen', body: 'In Safari tap Share, then “Add to Home Screen”. PatOS then opens like a real app.', icon: 'about', duration: 9000 }), 8000);
     }
     if (!PatOS.isMobile && s.askFullscreen && !document.fullscreenElement && document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen().catch(() => {});
@@ -56,7 +56,10 @@
     setTimeout(() => PatOS.emit('wm:ready'), 1200);
     const seen = PatOS.store.get('seenWelcome', false);
     setTimeout(() => {
-      PatOS.notify({ title: 'Welcome to PatOS, ' + PatOS.settings.userName + '!', body: seen ? 'Press Ctrl+Space to search, Alt+L for Launchpad.' : 'Double-click “Welcome to PatOS” on the desktop for tips. Press Ctrl+Space to search.', icon: 'about', duration: 6500 });
+      const body = PatOS.isMobile
+        ? (seen ? 'Tap Search above the Dock to find anything. Press and hold an app for more.' : 'Tap Search above the Dock to find anything. Press and hold an app for more. The ⊞ button in an app takes you home.')
+        : (seen ? 'Press Ctrl+Space to search, Alt+L for Launchpad.' : 'Double-click “Welcome to PatOS” on the desktop for tips. Press Ctrl+Space to search.');
+      PatOS.notify({ title: 'Welcome to PatOS, ' + PatOS.settings.userName + '!', body, icon: 'about', duration: 6500 });
       if (!seen) PatOS.store.set('seenWelcome', true);
     }, 900);
   }

@@ -1235,6 +1235,102 @@ html.mobile, html.mobile body { overscroll-behavior: none; touch-action: manipul
 .mobile .rm { padding: 14px 16px; }
 .mobile.m-in-app.m-dark-app #m-indicator span { background: #fff; }
 
+/* ================= Phone, remade (real phones first: iPhone 14 Pro Max = 430 × 932) ================= */
+/* --app-top: where an app's own bar starts. On a real phone that is just below the real status bar
+   (the safe area: 59px on a 14 Pro Max added to the Home Screen, 0 in a Safari tab). In phone layout on a
+   computer, PatOS draws its own status bar, so the bar starts below that. */
+html.mobile { --app-top: calc(var(--mtop) + 26px); --app-bottom: var(--sab); }
+html.real-phone { --mtop: var(--sat); --app-top: var(--sat); }
+.real-phone #m-status, .real-phone #m-indicator { display: none !important; }
+html.mobile.m-kb { --app-bottom: 0px; }
+
+/* Home Screen */
+.real-phone #m-home { padding-top: calc(var(--sat) + 14px); }
+.mobile .mh-grid { row-gap: 0; }
+.mobile .mh-ic { width: min(64px, calc((100vw - 96px) / 4)); height: min(64px, calc((100vw - 96px) / 4)); border-radius: 22%; }
+.mobile .mh-app { font-size: 12px; gap: 7px; }
+.mobile .mh-app span { max-width: 84px; }
+.mh-search { display: none; }
+.mobile .mh-search { display: flex; align-items: center; gap: 6px; align-self: center; margin: 0 auto 12px; padding: 7px 16px; border: 0; border-radius: 999px; background: rgba(255,255,255,.24); -webkit-backdrop-filter: blur(24px) saturate(1.6); backdrop-filter: blur(24px) saturate(1.6); color: #fff; font: 600 13.5px -apple-system, system-ui, sans-serif; text-shadow: 0 1px 3px rgba(0,0,0,.25); }
+:root[data-theme="dark"] .mobile .mh-search, .mobile:root[data-theme="dark"] .mh-search { background: rgba(60,60,70,.45); }
+.mobile .mh-dots { padding: 6px 0 10px; }
+.mobile .mh-dock { padding: 12px 10px; border-radius: 34px; margin-bottom: 4px; }
+
+/* apps: a native-style bar (Home or Back · title · more) and the app's tools in a row underneath */
+.mobile .window { top: var(--vvt, 0px) !important; height: var(--vvh, 100%) !important; }
+.mobile .titlebar { display: flex !important; flex-direction: column !important; align-items: stretch !important; justify-content: flex-start !important; flex-wrap: nowrap !important; gap: 0 !important; min-height: 0 !important; height: auto !important; max-height: none !important; padding: var(--app-top) max(6px, var(--sar)) 0 max(6px, var(--sal)) !important; }
+.mobile .win-title { display: none !important; }
+.m-appbar { display: none; }
+.mobile .m-appbar { display: grid; grid-template-columns: minmax(44px, 1fr) auto minmax(44px, 1fr); align-items: center; height: 44px; padding: 0 4px; }
+.mobile .mab-left, .mobile .mab-more { height: 40px; min-width: 40px; border: 0; background: none; color: var(--accent); display: flex; align-items: center; gap: 2px; padding: 0 6px; border-radius: 10px; font: 400 16px -apple-system, system-ui, sans-serif; cursor: pointer; justify-self: start; max-width: 42vw; }
+.mobile .mab-more { justify-self: end; }
+.mobile .mab-left span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mobile .mab-left:active, .mobile .mab-more:active { opacity: .45; }
+.mobile .mab-title { font: 600 17px -apple-system, system-ui, sans-serif; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 56vw; color: var(--text); }
+.mobile .force-dark .mab-title { color: #fff; }
+.mobile .win-toolbar { order: 0 !important; flex: 0 0 auto !important; display: flex; align-items: center; gap: 6px; padding: 0 8px 8px !important; justify-content: flex-start !important; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+.mobile .win-toolbar > [style*="flex: 1"], .mobile .win-toolbar > [style*="flex:1"] { flex: 0 0 4px !important; }
+.mobile .win-toolbar .field { max-width: 60vw; }
+.mobile .win-toolbar .tbtn { min-width: 38px; height: 38px; flex: none; }
+.mobile .win-toolbar .btn { flex: none; white-space: nowrap; }
+.mobile .win-body { padding-bottom: var(--app-bottom) !important; }
+.mobile .tb-hidden .titlebar { display: none !important; }
+.mobile .tb-hidden .win-body { padding-top: var(--app-top) !important; }
+
+/* list → detail screens */
+.mobile .m-stack:not(.m-show-detail) .m-detail { display: none !important; }
+.mobile .m-stack.m-show-detail .m-list { display: none !important; }
+.mobile .m-stack .m-list, .mobile .m-stack .m-detail { width: auto !important; max-width: none !important; min-width: 0 !important; flex: 1 1 auto !important; border-right: 0 !important; border-left: 0 !important; }
+.mobile .mab-left.back { color: var(--accent); }
+
+/* system overlays sit below the real status bar */
+.real-phone #toasts { top: calc(var(--sat) + 8px); }
+.real-phone .panel { top: calc(var(--sat) + 10px); max-height: calc(var(--vvh, 100%) - var(--sat) - 30px); }
+.real-phone #notif-center { padding-top: calc(var(--sat) + 20px) !important; }
+.mobile .toast { touch-action: none; }
+
+/* Spotlight: a search sheet at the top, results under it, no preview pane */
+.mobile #spotlight .sp-box { position: fixed !important; left: max(8px, var(--sal)); right: max(8px, var(--sar)); top: calc(var(--app-top) + 8px); width: auto !important; max-width: none !important; transform: none !important; margin: 0 !important; max-height: calc(var(--vvh, 100%) - var(--app-top) - 16px); display: flex; flex-direction: column; border-radius: 18px; }
+.mobile #spotlight .sp-preview { display: none !important; }
+.mobile #spotlight .sp-results { overflow-y: auto; max-height: none; flex: 1; }
+.mobile #spotlight .sp-res { min-height: 46px; }
+
+/* menus: bigger rows for fingers, never off the screen */
+.mobile .menu { min-width: 220px; max-width: calc(100vw - 16px); }
+.mobile .menu .menu-item { min-height: 40px; font-size: 15px; }
+
+/* landscape: keep away from the Dynamic Island side */
+@media (orientation: landscape) { .real-phone .titlebar { padding-left: max(10px, var(--sal)) !important; padding-right: max(10px, var(--sar)) !important; } }
+/* Notes on a phone: folders as chips over the list; the note on its own screen */
+.mobile .m-stack .notes-side.m-list { max-height: none !important; border-bottom: 0; }
+.mobile .m-stack .nf-side.m-list { flex: 0 0 auto !important; }
+.mobile .m-stack.m-show-detail .notes-main { display: flex; }
+/* Settings on a phone: a real list, like iPhone Settings */
+.mobile .m-stack .st-side.m-list { display: block; overflow-y: auto; padding: 8px 14px 24px; background: transparent; }
+.mobile .m-stack:not(.m-show-detail) .st-side .st-si { display: flex; width: 100%; height: 48px; border-radius: 0; background: var(--card); margin: 0; padding: 0 12px; gap: 12px; font-size: 16px; border-bottom: .5px solid var(--border); }
+.mobile .m-stack .st-side .st-si:first-of-type { border-radius: 12px 12px 0 0; }
+.mobile .m-stack .st-side .st-si:last-of-type { border-radius: 0 0 12px 12px; border-bottom: 0; }
+.mobile .m-stack .st-side .st-si::after { content: '›'; margin-left: auto; color: var(--text3); font-size: 20px; }
+.mobile .m-stack .st-side .st-si.on { background: var(--card); color: var(--text); }
+.mobile .m-stack .st-user { display: flex; margin: 4px 0 14px; }
+.mobile .m-stack .st-side .field { width: 100%; margin-bottom: 12px; }
+.mobile .m-stack .st-main.m-detail { overflow-y: auto; }
+.mobile .m-stack .st-main > h1:first-child { display: none; }
+/* apps without a title bar (Calculator, Weather, YouTube…) still get Home and ⋯, floating at the top */
+.mobile .tb-hidden .titlebar { display: flex !important; position: absolute !important; top: 0; left: 0; right: 0; z-index: 30; background: transparent !important; border: 0 !important; pointer-events: none; }
+.mobile .tb-hidden .titlebar .m-appbar { pointer-events: auto; }
+.mobile .tb-hidden .titlebar .mab-title, .mobile .tb-hidden .win-toolbar { display: none !important; }
+.mobile .tb-hidden .titlebar .mab-left, .mobile .tb-hidden .titlebar .mab-more { background: rgba(120,120,128,.28); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); color: #fff; border-radius: 999px; width: 40px; justify-content: center; }
+.mobile .tb-hidden .win-body { padding-top: calc(var(--app-top) + 48px) !important; }
+/* Passwords on a phone: filters as a row of chips above the list */
+.mobile .pw-wrap { flex-direction: column; }
+.mobile .m-stack .pw-side.m-list { flex: 0 0 auto !important; display: flex; flex-direction: row; overflow-x: auto; gap: 6px; padding: 8px 10px; border-bottom: .5px solid var(--border); }
+.mobile .m-stack .pw-side.m-list > * { flex: none; white-space: nowrap; }
+.mobile .m-stack .pw-detail.m-detail, .mobile .m-stack .ct-card.m-detail, .mobile .m-stack .rm.m-detail, .mobile .m-stack .rm-side.m-list, .mobile .m-stack .ct-side.m-list { overflow-y: auto; max-height: none !important; }
+.mobile .mh-grid { grid-template-columns: repeat(var(--mh-cols, 4), 1fr); }
+@media (orientation: landscape) { .mobile .mh-grid { max-width: none; } .mobile .mh-ic { width: 56px; height: 56px; } .mobile .mh-search { margin-bottom: 6px; } }
+.real-phone.standalone #lock::after { display: none; } /* iOS draws its own home bar there */
+
 </style>
   <style>
 /* ================= PatOS apps, part 3 ================= */
@@ -3459,21 +3555,40 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     PatOS.emit('setting:' + key, value);
   };
   /* ---------- desktop vs phone mode ---------- */
+  /* What the device really is. A real phone (iPhone, Android phone) has its own status bar, notch or
+     Dynamic Island and home bar, so PatOS doesn't draw fake ones there; it uses the screen's safe areas. */
+  const UA = navigator.userAgent || '';
+  PatOS.hw = {
+    ios: /iP(hone|od|ad)/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+    iphone: /iPhone|iPod/.test(UA),
+    android: /Android/i.test(UA),
+    phone: /iPhone|iPod/.test(UA) || (/Android/i.test(UA) && /Mobile/i.test(UA)) || /Windows Phone|IEMobile/i.test(UA),
+    standalone: () => navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches),
+    touch: navigator.maxTouchPoints > 0 || 'ontouchstart' in window
+  };
+  PatOS.isIOS = PatOS.hw.ios;
   PatOS.detectMobile = function () {
     const m = PatOS.settings.deviceMode;
     if (m === 'mobile') return true;
     if (m === 'desktop') return false;
+    if (PatOS.hw.phone) return true;
     const w = window.innerWidth, ht = window.innerHeight;
     const coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches;
     return w <= 700 || (coarse && Math.min(w, ht) <= 500);
   };
   PatOS.isMobile = PatOS.detectMobile();
-  PatOS.isIOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  document.documentElement.classList.toggle('mobile', PatOS.isMobile);
+  // "real phone": the phone layout on an actual phone (not the phone layout tried on a computer)
+  const markDevice = () => {
+    const H = document.documentElement;
+    H.classList.toggle('mobile', PatOS.isMobile);
+    H.classList.toggle('real-phone', PatOS.isMobile && (PatOS.hw.phone || (PatOS.hw.touch && PatOS.hw.ios)));
+    H.classList.toggle('ios', PatOS.hw.ios);
+    H.classList.toggle('standalone', !!PatOS.hw.standalone());
+  };
+  markDevice();
   PatOS.applyMode = function () {
     const m = PatOS.detectMobile();
-    document.documentElement.classList.toggle('mobile', m);
-    if (m !== PatOS.isMobile) { PatOS.isMobile = m; PatOS.emit('mode', m); }
+    if (m !== PatOS.isMobile) { PatOS.isMobile = m; markDevice(); PatOS.emit('mode', m); } else markDevice();
   };
   window.addEventListener('resize', PatOS.debounce(() => PatOS.applyMode(), 150));
   PatOS.on('setting:deviceMode', () => PatOS.applyMode());
@@ -6431,6 +6546,14 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Your windows are back': 'Vos fenêtres sont de retour',
     'window was reopened.': 'fenêtre a été rouverte.',
     'windows were reopened.': 'fenêtres ont été rouvertes.',
+    'Tap Search above the Dock to find anything. Press and hold an app for more.': 'Touchez Rechercher au-dessus du Dock pour tout trouver. Maintenez une app enfoncée pour plus d’options.',
+    'Tap Search above the Dock to find anything. Press and hold an app for more. The ⊞ button in an app takes you home.': 'Touchez Rechercher au-dessus du Dock pour tout trouver. Maintenez une app enfoncée pour plus d’options. Le bouton ⊞ dans une app ramène à l’écran d’accueil.',
+    'More': 'Plus',
+    'Home Screen': 'Écran d’accueil',
+    'App Switcher': 'Sélecteur d’apps',
+    'Control Center': 'Centre de contrôle',
+    'Close App': 'Fermer l’app',
+    'Search': 'Rechercher',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 'Offline': 'Hors ligne', 'Connected': 'Connecté',
@@ -8672,6 +8795,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
   /* =========================== INIT =========================== */
   PatOS.shell = {
+    appMenus,
     init() {
       applyTheme();
       setupMenubar(); setupLaunchpad(); setupSpotlight(); setupDesktop(); setupDockMagnify(); setupKeys();
@@ -8717,9 +8841,12 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       h('div', { class: 'ms-l' }, h('span', { class: 'ms-time' })),
       h('button', { id: 'm-island', 'aria-label': 'Now playing' }, h('div', { class: 'mi-art' }), h('div', { class: 'mi-text' }), h('div', { class: 'mi-bars' }, h('i'), h('i'), h('i'), h('i'))),
       h('div', { class: 'ms-r' }, h('span', { class: 'ms-ic', html: ICON_SIG }), h('span', { class: 'ms-ic', html: ICON_WIFI }), h('span', { class: 'ms-bat' }, h('span', { class: 'ms-bat-fill' }))));
+    const search = h('button', { class: 'mh-search', 'aria-label': PatOS.t('Search') }, h('span', { html: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>' }), PatOS.t('Search'));
+    search.onclick = () => PatOS.spotlight.show();
     const home = h('div', { id: 'm-home' },
       h('div', { class: 'mh-pages' }),
       h('div', { class: 'mh-dots' }),
+      search,
       h('div', { class: 'mh-dock' }));
     const ind = h('div', { id: 'm-indicator' }, h('span'));
     const sw = h('div', { id: 'm-switcher', class: 'hidden' }, h('div', { class: 'msw-empty' }, 'No recent apps'));
@@ -8728,13 +8855,18 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     renderHome();
     setupGestures();
     setupIsland();
+    setupViewport();
+    setupBanners();
+    setupHistory();
+    setupTopEdge();
     tickStatus(); setInterval(tickStatus, 1000);
     if (navigator.getBattery) navigator.getBattery().then((b) => { const up = () => { $('.ms-bat-fill').style.width = Math.round(b.level * 100) + '%'; $('.ms-bat').classList.toggle('charging', b.charging); }; up(); b.addEventListener('levelchange', up); b.addEventListener('chargingchange', up); }).catch(() => {});
     window.addEventListener('resize', PatOS.debounce(() => { if (PatOS.isMobile) renderHome(); }, 200));
     PatOS.on('setting', (s) => { if (['mobileDock', 'hiddenApps', 'dockPinned'].includes(s.key)) renderHome(); });
     PatOS.on('wm:open', (w) => { if (PatOS.isMobile) setFront(w); });
     PatOS.on('wm:focus', (w) => { if (PatOS.isMobile && w) setFront(w); });
-    PatOS.on('wm:close', (w) => { if (M.front === w) { M.front = null; html.classList.remove('m-in-app'); } });
+    PatOS.on('wm:close', (w) => { if (M.front === w) { M.front = null; html.classList.remove('m-in-app'); popApp(); } });
+    PatOS.on('wm:title', (w) => { if (w && w._mbar) syncBar(w); });
   }
 
   function tickStatus() {
@@ -8808,16 +8940,25 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const keep = pages.scrollLeft;
     pages.innerHTML = '';
     const ids = homeApps();
-    const avail = window.innerHeight - 64 - 120 - 30; // status + dock + dots
-    const rows = Math.max(3, Math.floor(avail / 98));
-    const per = rows * 4;
-    const firstPer = Math.max(4, per - 8); // page 1 carries two widgets (2x2 each)
+    // fit the grid to this screen: icons, labels and rows come from the real height (safe areas included)
+    const cs = getComputedStyle(html); const px = (v) => parseFloat(cs.getPropertyValue(v)) || 0;
+    const top = Math.max(px('--sat'), html.classList.contains('real-phone') ? 0 : 20) + 34, bottom = px('--sab') + 8;
+    const cellH = innerWidth > innerHeight ? 90 : Math.round(Math.min(108, Math.max(88, (innerWidth - 40) / 4 + 14)));
+    html.style.setProperty('--mh-cell', cellH + 'px');
+    const avail = window.innerHeight - top - bottom - (innerWidth > innerHeight ? 150 : 174); // dock, dots, search
+    // sideways: a wider grid and no widgets, so nothing overlaps on a short screen
+    const land = innerWidth > innerHeight;
+    const cols = land ? Math.max(5, Math.min(8, Math.floor((innerWidth - 60) / 96))) : 4;
+    html.style.setProperty('--mh-cols', cols);
+    const rows = Math.max(land ? 1 : 3, Math.floor(avail / cellH));
+    const per = rows * cols;
+    const firstPer = land ? per : Math.max(4, per - 8); // page 1 carries two widgets (2x2 each) when upright
     const chunks = [ids.slice(0, firstPer)];
     for (let i = firstPer; i < ids.length; i += per) chunks.push(ids.slice(i, i + per));
     chunks.forEach((list, pi) => {
       const page = h('div', { class: 'mh-page' });
-      const grid = h('div', { class: 'mh-grid', style: { gridTemplateRows: `repeat(${rows}, 98px)` } });
-      if (pi === 0) homeWidgets().forEach((w) => grid.appendChild(w));
+      const grid = h('div', { class: 'mh-grid', style: { gridTemplateRows: `repeat(${rows}, var(--mh-cell))` } });
+      if (pi === 0 && !land) homeWidgets().forEach((w) => grid.appendChild(w));
       list.forEach((id) => grid.appendChild(appButton(id, true)));
       page.appendChild(grid); pages.appendChild(page);
     });
@@ -8845,6 +8986,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     html.classList.add('m-in-app');
     html.classList.toggle('m-dark-app', !!(w.app.dark || w.app.titlebar === 'hidden'));
     PatOS.panels.closeAll();
+    appBar(w); syncBar(w); pushApp();
   }
   function toIconFrames(w, fromTransform) {
     const r = { left: 0, top: 0, width: innerWidth, height: innerHeight };
@@ -8860,6 +9002,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     else done();
     if (M.front === w) M.front = null;
     html.classList.remove('m-in-app');
+    popApp();
     PatOS.wm.blurAll();
     PatOS.emit('wm:minimize', w);
     PatOS.sound.tone(500, 0.08, { vol: 0.04 });
@@ -9039,6 +9182,136 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const playing = !!(np && np.playing);
     isl.classList.toggle('playing', playing);
     if (playing) { isl.querySelector('.mi-art').innerHTML = ''; isl.querySelector('.mi-art').style.background = np.color; isl.querySelector('.mi-text').textContent = np.title; }
+  }
+
+  /* ---------------- the app bar: Home or Back, the title, and the app's own menus ---------------- */
+  const T = (x) => PatOS.t(x);
+  const ICO_HOME = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1.6"/><rect x="14" y="4" width="6" height="6" rx="1.6"/><rect x="4" y="14" width="6" height="6" rx="1.6"/><rect x="14" y="14" width="6" height="6" rx="1.6"/></svg>';
+  const ICO_BACK = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
+  const ICO_MORE = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>';
+  function appBar(w) {
+    if (w._mbar) return w._mbar;
+    const left = h('button', { class: 'mab-left' }); const title = h('div', { class: 'mab-title' }); const more = h('button', { class: 'mab-more', 'aria-label': T('More'), html: ICO_MORE });
+    const bar = h('div', { class: 'm-appbar' }, left, title, more);
+    w.titlebar.prepend(bar); w._mbar = { bar, left, title, more };
+    let lp = null, long = false;
+    left.addEventListener('pointerdown', () => { long = false; lp = setTimeout(() => { long = true; try { navigator.vibrate && navigator.vibrate(12); } catch (e) {} openSwitcher(); }, 520); });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach((ev) => left.addEventListener(ev, () => clearTimeout(lp)));
+    left.addEventListener('click', () => { if (long) return; if (w.el.classList.contains('m-show-detail')) M.detail(w, false); else M.goHome(); });
+    left.addEventListener('contextmenu', (e) => e.preventDefault());
+    more.onclick = () => moreMenu(w, more);
+    return w._mbar;
+  }
+  function syncBar(w) {
+    const b = w._mbar; if (!b) return;
+    const detail = w.el.classList.contains('m-show-detail');
+    b.left.innerHTML = detail ? ICO_BACK + '<span>' + PatOS.esc(w._mlistTitle || T(w.app.name)) + '</span>' : ICO_HOME;
+    b.left.setAttribute('aria-label', detail ? T('Back') : T('Home Screen'));
+    b.left.classList.toggle('back', detail);
+    b.title.textContent = detail ? (w._mdetailTitle || w.title || T(w.app.name)) : (w.el.classList.contains('m-stack') ? (w._mlistTitle || T(w.app.name)) : (w.title || T(w.app.name)));
+  }
+  function moreMenu(w, btn) {
+    const items = [];
+    try {
+      const extra = w.app.menus ? w.app.menus(w) || {} : {};
+      Object.entries(extra).forEach(([name, list]) => { if (!Array.isArray(list) || !list.length) return; if (items.length) items.push({ divider: true }); list.forEach((it) => { if (it && !it.divider && !it.header) items.push(Object.assign({}, it, { shortcut: undefined })); }); });
+    } catch (e) {}
+    if (items.length) items.push({ divider: true });
+    items.push({ label: T('App Switcher'), action: () => openSwitcher() }, { label: T('Control Center'), action: () => PatOS.panels.toggle('#control-center') }, { label: T('Close App'), action: () => w.close() });
+    const r = btn.getBoundingClientRect(); PatOS.menu(items, r.right - 220, r.bottom + 6);
+  }
+  /* list → detail screens (Notes, Settings, Contacts…): apps mark their two panes with m-list and m-detail
+     and call PatOS.mobile.detail(win, true) when something is picked */
+  M.stack = function (win, listTitle) { win.el.classList.add('m-stack'); win._mlistTitle = listTitle; if (win._mbar) syncBar(win); };
+  M.detail = function (win, on, title) {
+    if (!win || !PatOS.isMobile) return;
+    const was = win.el.classList.contains('m-show-detail');
+    win.el.classList.toggle('m-show-detail', !!on); if (title !== undefined) win._mdetailTitle = title;
+    if (on && !was) { pushApp('detail'); if (motion()) { const d = win.el.querySelector('.m-detail'); if (d) d.animate([{ transform: 'translateX(28%)', opacity: 0.4 }, { transform: 'none', opacity: 1 }], { duration: 300, easing: 'cubic-bezier(.2,.9,.3,1)' }); } }
+    if (!on && was) { popApp('detail'); win.emit('m-back'); }
+    syncBar(win);
+  };
+  M.inDetail = (win) => !!(win && win.el.classList.contains('m-show-detail'));
+
+  /* ---------------- the back button of the phone (Android) and Safari's swipe back ---------------- */
+  // depth = how many history entries PatOS added on top of the page: 1 inside an app, 2 inside a detail screen.
+  // Going back in history happens a moment later, so a new entry waits until that has finished
+  // (otherwise opening an app right after closing one would get the history out of step).
+  let depth = 0, ignorePop = 0, quiet = false, pending = 0, queued = null;
+  function pushApp(kind) {
+    if (!PatOS.isMobile || !history.pushState) return;
+    if (pending) { queued = kind || 'app'; return; }
+    if (kind !== 'detail' && depth >= 1) return;
+    try { history.pushState({ patos: kind || 'app' }, ''); depth++; } catch (e) {}
+  }
+  function popApp(kind) {
+    if (quiet) return;
+    if (kind !== 'detail') queued = null;
+    if (!depth) return;
+    if (kind === 'detail') { if (depth < 2) return; depth--; ignorePop++; pending++; history.back(); return; }
+    const n = depth; depth = 0; ignorePop++; pending++; // history.go(-n) sends one popstate, whatever n is
+    try { history.go(-n); } catch (e) { ignorePop--; pending--; }
+  }
+  function settle() {
+    pending = Math.max(0, pending - 1);
+    if (!pending && queued) { const k = queued; queued = null; if (M.front) { if (k === 'detail' && depth < 1) pushApp('app'); pushApp(k); } }
+  }
+  function setupHistory() {
+    window.addEventListener('popstate', () => {
+      if (!PatOS.isMobile) return;
+      if (ignorePop > 0) { ignorePop--; settle(); return; }
+      depth = Math.max(0, depth - 1); // the phone's back button (or a swipe back) took one step
+      if (SW.open) { closeSwitcher(true); return; }
+      const w = M.front;
+      if (w && w.el.classList.contains('m-show-detail')) { w.el.classList.remove('m-show-detail'); w.emit('m-back'); syncBar(w); return; }
+      if (w) { quiet = true; try { M.home(w); } finally { quiet = false; } depth = 0; }
+    });
+  }
+
+  /* ---------------- the screen: keyboard and the real visible height ---------------- */
+  function setupViewport() {
+    const vv = window.visualViewport;
+    const upd = () => {
+      const hgt = vv ? vv.height : innerHeight, top = vv ? vv.offsetTop : 0;
+      html.style.setProperty('--vvh', Math.round(hgt) + 'px'); html.style.setProperty('--vvt', Math.round(top) + 'px');
+      const kb = Math.max(0, innerHeight - hgt - top);
+      html.classList.toggle('m-kb', kb > 120);
+      if (kb > 120) { const a = document.activeElement; if (a && a.scrollIntoView && /INPUT|TEXTAREA/.test(a.tagName) || (a && a.isContentEditable)) setTimeout(() => { try { a.scrollIntoView({ block: 'nearest' }); } catch (e) {} }, 60); }
+    };
+    if (vv) { vv.addEventListener('resize', upd); vv.addEventListener('scroll', upd); }
+    window.addEventListener('resize', upd); window.addEventListener('orientationchange', () => setTimeout(() => { upd(); renderHome(); }, 300));
+    upd();
+  }
+
+  /* ---------------- notifications: one banner at a time, swipe up to dismiss ---------------- */
+  function setupBanners() {
+    const box = $('#toasts'); if (!box) return;
+    new MutationObserver((muts) => {
+      if (!PatOS.isMobile) return;
+      const added = []; muts.forEach((m) => m.addedNodes.forEach((t) => { if (t instanceof HTMLElement && t.classList.contains('toast') && t.isConnected) added.push(t); }));
+      if (!added.length) return;
+      const newest = added[added.length - 1];
+      // a banner on a phone leaves after 4 seconds at most (tap it to act, swipe it up to dismiss)
+      setTimeout(() => { if (newest.isConnected) { newest.classList.remove('in'); setTimeout(() => newest.remove(), 400); } }, 4000);
+      [...box.children].forEach((o) => { if (o !== newest) o.remove(); }); // one banner at a time: the newest
+      [newest].forEach((t) => {
+        let sy = null, dy = 0;
+        t.addEventListener('pointerdown', (e) => { sy = e.clientY; dy = 0; t.style.transition = 'none'; });
+        t.addEventListener('pointermove', (e) => { if (sy == null) return; dy = Math.min(0, e.clientY - sy); t.style.transform = 'translateY(' + dy + 'px)'; });
+        const end = (e) => { if (sy == null) return; sy = null; t.style.transition = ''; if (dy < -30) { e.stopPropagation(); t.style.transform = 'translateY(-160px)'; setTimeout(() => t.remove(), 250); } else t.style.transform = ''; };
+        t.addEventListener('pointerup', end, true); t.addEventListener('pointercancel', end);
+      });
+    }).observe(box, { childList: true });
+  }
+
+  /* ---------------- swipes from the top of the Home Screen (there is no fake status bar on a real phone) ---------------- */
+  function setupTopEdge() {
+    const home = $('#m-home'); let st = null;
+    home.addEventListener('pointerdown', (e) => { const zone = parseFloat(getComputedStyle(html).getPropertyValue('--sat')) + 44; if (e.clientY > zone || e.target.closest('.mh-app, .mw, .mh-search')) return; st = { x: e.clientX, y: e.clientY }; });
+    home.addEventListener('pointerup', (e) => {
+      if (!st) return; const dy = e.clientY - st.y, x = st.x; st = null; if (dy < 40) return;
+      if (x > innerWidth * 0.6) PatOS.panels.toggle('#control-center'); else if (x < innerWidth * 0.4) PatOS.panels.toggle('#notif-center');
+    });
   }
 
   /* ---------------- mode switching ---------------- */
@@ -9945,6 +10218,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       win.toolbar.append(h('div', { style: { flex: 1 } }), search, bAdd);
       const side = h('div', { class: 'pw-side' }), list = h('div', { class: 'pw-list' }), detail = h('div', { class: 'pw-detail' });
       win.body.appendChild(h('div', { class: 'pw-wrap' }, side, list, detail));
+      if (PatOS.mobile && PatOS.mobile.stack) { PatOS.mobile.stack(win, T('Passwords')); side.classList.add('m-list'); list.classList.add('m-list'); detail.classList.add('m-detail'); }
       search.oninput = () => { q = search.value.trim().toLowerCase(); renderList(); };
       bAdd.onclick = () => editItem(null);
       const onChange = () => render();
@@ -9980,7 +10254,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           const L = label(x.site)[0] ? label(x.site)[0].toUpperCase() : '#'; if (L !== letter) { letter = L; list.appendChild(h('div', { class: 'pw-letter' }, L)); }
           const st = P.strength(x.password).score;
           const row = h('div', { class: 'pw-row' + (x.id === selId ? ' on' : '') }, h('img', { class: 'pw-fav', src: fav(x.site), alt: '', onerror: (e) => { e.target.replaceWith(h('span', { class: 'pw-fav ph' }, L)); } }), h('div', { class: 'pw-rt' }, h('b', {}, label(x.site)), h('small', {}, x.username || T('(no username)'))), st < 2 || leaks[x.id] ? h('span', { class: 'pw-warn', title: leaks[x.id] ? T('Found in leaks') : T('Weak') }, '!') : null);
-          row.onclick = () => { selId = x.id; renderList(); renderDetail(); };
+          row.onclick = () => { selId = x.id; renderList(); renderDetail(); PatOS.mobile && PatOS.mobile.detail && PatOS.mobile.detail(win, true, x.site); };
           list.appendChild(row);
         });
       }
@@ -11446,6 +11720,8 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       const empty = h('div', { class: 'notes-empty' });
       const mainEl = h('div', { class: 'notes-main' }, meta, ed, empty);
       win.body.append(h('div', { class: 'notes-wrap' }, fside, side, mainEl));
+      // on a phone: the list first, the note on its own screen
+      const MB = PatOS.mobile; if (MB && MB.stack) { MB.stack(win, T('Notes')); fside.classList.add('m-list'); side.classList.add('m-list'); mainEl.classList.add('m-detail'); win.on('m-back', () => { renderList(); renderFolders(); }); }
 
       /* ---------- toolbar ---------- */
       const fmt = (cmd, val) => (e) => { if (e && e.preventDefault) e.preventDefault(); ed.focus(); document.execCommand(cmd, false, val); onInput(); };
@@ -11532,7 +11808,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
             h('div', { class: 'nt-txt' }, h('b', {}, markText(titleOf(n), ql)), h('div', {}, h('span', {}, new Date(n.mtime).toLocaleDateString(PatOS.locale, age < DAY ? undefined : { month: 'short', day: 'numeric' })), ' ', markText(second.slice(0, 70), ql)),
               all ? h('small', { class: 'nt-prog' + (done === all ? ' full' : '') }, done + '/' + all + ' ' + T('done')) : null),
             img ? h('img', { class: 'nt-thumb', src: img, alt: '' }) : null);
-          el.onclick = () => open(n); el.onkeydown = (e) => { if (e.key === 'Enter') open(n); };
+          el.onclick = () => open(n, true); el.onkeydown = (e) => { if (e.key === 'Enter') open(n, true); };
           el.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/note', n.id));
           el.oncontextmenu = (e) => {
             e.preventDefault();
@@ -11552,7 +11828,8 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         const words = (plain(cur.body).match(/[\p{L}\p{N}'’-]+/gu) || []).length;
         meta.textContent = new Date(cur.mtime).toLocaleString(PatOS.locale, { dateStyle: 'long', timeStyle: 'short' }) + ' · ' + words + ' ' + T(words === 1 ? 'word' : 'words') + (cur.deletedAt ? ' · ' + T('In Recently Deleted') : '');
       }
-      function open(n) {
+      function open(n, picked) {
+        if (picked && PatOS.mobile && PatOS.mobile.detail) PatOS.mobile.detail(win, true, titleOf(n));
         cur = n; PatOS.remember && PatOS.remember(win, { id: n.id });
         const up = upgrade(n.body); if (up !== n.body) { n.body = up; save(); }
         ed.innerHTML = n.body; ed.contentEditable = n.deletedAt ? 'false' : 'true';
@@ -11565,13 +11842,13 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         if (n.deletedAt) { notes = notes.filter((x) => x !== n); } else { n.deletedAt = Date.now(); n.pinned = false; }
         save(); PatOS.sound.trash();
         const next = notes.filter(inFolder).sort((a, b) => b.mtime - a.mtime)[0];
-        if (cur === n) { if (next) open(next); else showEmpty(); } render(true);
+        if (cur === n) { if (PatOS.mobile && PatOS.mobile.inDetail(win)) PatOS.mobile.detail(win, false); if (next) open(next); else showEmpty(); } render(true);
       }
       function create() {
         if (folder === 'deleted') folder = 'all';
         const tag = folder.startsWith('tag:') ? folder.slice(4) : null;
         const n = { id: PatOS.uid(), title: '', body: tag ? '<div><br></div><div><br></div><div>#' + tag + '</div>' : '<div><br></div>', mtime: Date.now(), folder: ['all', 'notes'].includes(folder) || tag ? null : folder };
-        notes.unshift(n); save(); open(n); render(true); ed.focus();
+        notes.unshift(n); save(); open(n, true); render(true); ed.focus();
         const r = document.createRange(); r.setStart(ed.firstChild, 0); r.collapse(true); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
       }
       const refreshSoon = PatOS.debounce(() => { renderList(); renderFolders(); }, 250);
@@ -11689,9 +11966,9 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       win.el.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'f' && document.activeElement !== q) { e.preventDefault(); q.focus(); q.select(); } });
       win.on('closed', () => { if (window.CSS && CSS.highlights) CSS.highlights.delete('nt-search'); PatOS.store.set('notes', notes); });
       function render(keepCur) { renderFolders(); renderList(); if (!keepCur && !cur) { const first = notes.filter(inFolder).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.mtime - a.mtime)[0]; if (first) open(first); else showEmpty(); } }
-      win._openNote = (id) => { const n = notes.find((x) => x.id === id); if (n) { folder = 'all'; open(n); render(true); } };
+      win._openNote = (id) => { const n = notes.find((x) => x.id === id); if (n) { folder = 'all'; open(n, true); render(true); } };
       const first = args.id ? notes.find((n) => n.id === args.id) : null;
-      if (first) { open(first); render(true); } else render();
+      if (first) { open(first, true); render(true); } else render();
     },
     onArgs(win, args) { if (args.id) win._openNote(args.id); }
   });
@@ -13537,17 +13814,19 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       const save = () => PatOS.store.set('reminders', items), saveLists = () => PatOS.store.set('remLists', lists);
       const side = h('div', { class: 'rm-side' }), main = h('div', { class: 'rm' });
       win.body.appendChild(h('div', { class: 'rm-wrap' }, side, main));
+      if (PatOS.mobile && PatOS.mobile.stack) { PatOS.mobile.stack(win, PatOS.t('Reminders')); side.classList.add('m-list'); main.classList.add('m-detail'); }
+      const openView = (k, label) => { view = k; render(); PatOS.mobile && PatOS.mobile.detail && PatOS.mobile.detail(win, true, label); };
       const SMART = [['today', 'Today', '#0a84ff', (r) => !r.done && r.due && r.due <= todayKey()], ['scheduled', 'Scheduled', '#ff453a', (r) => !r.done && r.due], ['all', 'All', '#3a3a3c', (r) => !r.done], ['flagged', 'Flagged', '#ff9f0a', (r) => !r.done && r.flag], ['completed', 'Completed', '#8e8e93', (r) => r.done]];
       function listFilter() { const sm = SMART.find((s) => s[0] === view); if (sm) return sm[3]; return (r) => (r.list || 'default') === view && (showDone || !r.done); }
       function renderSide() {
         side.innerHTML = '';
         const grid = h('div', { class: 'rm-smart' });
-        SMART.forEach(([k, l, c, fn]) => { const b = h('button', { class: 'rm-tile' + (view === k ? ' on' : '') }, h('span', { class: 'rm-dot', style: { background: c } }), h('b', {}, items.filter(fn).length), h('span', {}, PatOS.t(l))); b.onclick = () => { view = k; render(); }; grid.appendChild(b); });
+        SMART.forEach(([k, l, c, fn]) => { const b = h('button', { class: 'rm-tile' + (view === k ? ' on' : '') }, h('span', { class: 'rm-dot', style: { background: c } }), h('b', {}, items.filter(fn).length), h('span', {}, PatOS.t(l))); b.onclick = () => openView(k, PatOS.t(l)); grid.appendChild(b); });
         side.append(grid, h('div', { class: 'fd-sh' }, PatOS.t('My Lists')));
         lists.forEach((L) => {
           const n = items.filter((r) => (r.list || 'default') === L.id && !r.done).length;
           const el = h('div', { class: 'fd-si' + (view === L.id ? ' on' : '') }, h('span', { class: 'rm-ldot', style: { background: L.color } }), h('span', { class: 'nf-name' }, L.name), h('small', { class: 'nf-count' }, n || ''));
-          el.onclick = () => { view = L.id; render(); };
+          el.onclick = () => openView(L.id, L.name);
           el.oncontextmenu = (e) => { e.preventDefault(); PatOS.menu([{ label: PatOS.t('Rename List…'), action: async () => { const v = await PatOS.ask(PatOS.t('Rename List…'), L.name, { icon: 'reminders', ok: 'Rename' }); if (v) { L.name = v; saveLists(); render(); } } }, { header: PatOS.t('Color') }, ...COLORS.map((c, i) => ({ label: ['Blue', 'Red', 'Orange', 'Green', 'Purple', 'Pink', 'Teal', 'Gray'].map(PatOS.t)[i], checked: L.color === c, action: () => { L.color = c; saveLists(); render(); } })), { divider: true }, { label: PatOS.t('Delete List'), disabled: lists.length < 2, action: async () => { if (await PatOS.confirmBox(PatOS.t('Delete this list?'), PatOS.t('Its reminders will be deleted too.'), { danger: true, ok: 'Delete', icon: 'reminders' })) { items = items.filter((r) => (r.list || 'default') !== L.id); lists = lists.filter((x) => x !== L); save(); saveLists(); view = 'today'; render(); } } }], e.clientX, e.clientY); };
           el.addEventListener('dragover', (e) => { e.preventDefault(); el.classList.add('drop'); }); el.addEventListener('dragleave', () => el.classList.remove('drop'));
           el.addEventListener('drop', (e) => { e.preventDefault(); el.classList.remove('drop'); const r = items.find((x) => String(x.id) === e.dataTransfer.getData('text/rem')); if (r) { r.list = L.id; save(); render(); } });
@@ -13638,6 +13917,8 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       const side = h('div', { class: 'st-side' });
       const main = h('div', { class: 'st-main' });
       win.body.appendChild(h('div', { class: 'st-wrap' }, side, main));
+      // on a phone: the list of settings first, each pane on its own screen
+      const MB = PatOS.mobile; if (MB && MB.stack) { MB.stack(win, PatOS.t('Settings')); side.classList.add('m-list'); main.classList.add('m-detail'); }
       const S = () => PatOS.settings;
       const row = (label, ctl, sub) => h('div', { class: 'st-row' }, h('div', { class: 'st-rl' }, h('span', {}, label), sub ? h('small', {}, sub) : null), ctl);
       const group = (...rows) => h('div', { class: 'st-group' }, ...rows);
@@ -13829,7 +14110,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       function drawSide() {
         side.querySelectorAll('.st-si, .st-noresult').forEach((e) => e.remove());
         const hits = PANES.filter(match);
-        hits.forEach(([k, l, ic]) => { const b = h('button', { class: 'st-si' + (k === pane ? ' on' : '') }, h('span', { class: 'st-ic' }, ic), l); b.onclick = () => { pane = k; renderMain(); drawSide(); }; side.appendChild(b); });
+        hits.forEach(([k, l, ic]) => { const b = h('button', { class: 'st-si' + (k === pane ? ' on' : '') }, h('span', { class: 'st-ic' }, ic), l); b.onclick = () => { pane = k; renderMain(); drawSide(); if (PatOS.mobile && PatOS.mobile.detail) PatOS.mobile.detail(win, true, PatOS.t(l)); }; side.appendChild(b); });
         if (!hits.length) side.appendChild(h('div', { class: 'st-noresult' }, 'No results'));
       }
       function render(keepSearch) {
@@ -13845,8 +14126,10 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         main.append(h('h1', {}, PANES.find((p) => p[0] === pane)[1]), ...panes[pane]());
         win.setTitle(PANES.find((p) => p[0] === pane)[1]);
       }
-      win._pane = (p) => { pane = p; render(); };
+      const paneName = (k) => PatOS.t((PANES.find((x) => x[0] === k) || [k, k])[1]);
+      win._pane = (p) => { pane = p; render(); if (MB && MB.detail) MB.detail(win, true, paneName(p)); };
       render();
+      if (args.pane && MB && MB.detail) MB.detail(win, true, paneName(args.pane));
     },
     onArgs(win, args) { if (args.pane) win._pane(args.pane); }
   });
@@ -16838,7 +17121,10 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       const bAdd = h('button', { class: 'tbtn', title: 'New contact' }, '＋');
       const bMore = h('button', { class: 'tbtn', title: 'Import or export' }, '⋯');
       win.toolbar.append(bAdd, bMore);
-      win.body.appendChild(h('div', { class: 'ct-wrap' }, h('div', { class: 'ct-side' }, h('div', { class: 'ct-search' }, q), listEl), card));
+      const ctSide = h('div', { class: 'ct-side' }, h('div', { class: 'ct-search' }, q), listEl);
+      win.body.appendChild(h('div', { class: 'ct-wrap' }, ctSide, card));
+      if (PatOS.mobile && PatOS.mobile.stack) { PatOS.mobile.stack(win, PatOS.t('Contacts')); ctSide.classList.add('m-list'); card.classList.add('m-detail'); win.on('m-back', () => { editing = false; render(); }); }
+      const nameOf = (c) => ((c.first || '') + ' ' + (c.last || '')).trim() || c.company || PatOS.t('New Contact');
       const fullName = (c) => [c.first, c.last].filter(Boolean).join(' ') || PatOS.t('No Name');
       const initials = (c) => ((c.first || '?')[0] + (c.last || '')[0 || 0]).toUpperCase().replace('UNDEFINED', '');
       function avatar(c, big) { return h('div', { class: 'ct-av' + (big ? ' big' : ''), style: c.photo ? { backgroundImage: `url(${c.photo})` } : { background: `hsl(${(fullName(c).charCodeAt(0) * 37) % 360},55%,55%)` } }, c.photo ? '' : ((c.first || '?')[0] + ((c.last || '')[0] || '')).toUpperCase()); }
@@ -16851,7 +17137,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
           const L = c.fav ? '★' : fullName(c)[0].toUpperCase();
           if (L !== letter) { letter = L; listEl.appendChild(h('div', { class: 'ct-letter' }, L === '★' ? PatOS.t('Favorites') : L)); }
           const row = h('div', { class: 'ct-row' + (c.id === cur ? ' on' : '') }, avatar(c), h('span', {}, fullName(c)));
-          row.onclick = () => { cur = c.id; editing = false; render(); };
+          row.onclick = () => { cur = c.id; editing = false; render(); PatOS.mobile && PatOS.mobile.detail && PatOS.mobile.detail(win, true, nameOf(c)); };
           listEl.appendChild(row);
         });
         if (!list.length) listEl.appendChild(h('div', { class: 'ct-empty' }, 'No contacts yet. Press + to add one.'));
@@ -16883,13 +17169,13 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         card.appendChild(rows);
       }
       function render() { renderList(); renderCard(); }
-      bAdd.onclick = () => { const c = { id: PatOS.uid(), first: '', last: '' }; list.push(c); cur = c.id; editing = true; save(); render(); const f = card.querySelector('input'); if (f) f.focus(); };
+      bAdd.onclick = () => { const c = { id: PatOS.uid(), first: '', last: '' }; list.push(c); cur = c.id; editing = true; save(); render(); PatOS.mobile && PatOS.mobile.detail && PatOS.mobile.detail(win, true, PatOS.t('New Contact')); const f = card.querySelector('input'); if (f) f.focus(); };
       bMore.onclick = () => { const r = bMore.getBoundingClientRect(); PatOS.menu([
         { label: 'Import a vCard (.vcf)…', action: () => { const i = h('input', { type: 'file', accept: '.vcf,text/vcard' }); i.onchange = () => { const rd = new FileReader(); rd.onload = () => { let n = 0; rd.result.split(/END:VCARD/i).forEach((blk) => { const get = (k) => { const m = blk.match(new RegExp('^' + k + '[^:]*:(.*)$', 'im')); return m ? m[1].trim() : ''; }; const nm = get('N').split(';'); const fn = get('FN'); if (!fn && !nm[0]) return; list.push({ id: PatOS.uid(), first: nm[1] || fn.split(' ')[0] || '', last: nm[0] || fn.split(' ').slice(1).join(' '), phone: get('TEL'), email: get('EMAIL'), birthday: (get('BDAY').match(/\d{4}-?\d{2}-?\d{2}/) || [''])[0].replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3'), notes: get('NOTE') }); n++; }); save(); render(); PatOS.notify({ title: PatOS.t('Contacts'), body: n + ' ' + PatOS.t('contacts imported'), icon: 'contacts' }); }; rd.readAsText(i.files[0]); }; i.click(); } },
         { label: 'Export all as vCard', disabled: !list.length, action: () => PatOS.downloadFile('contacts.vcf', list.map((c) => ['BEGIN:VCARD', 'VERSION:3.0', 'N:' + (c.last || '') + ';' + (c.first || ''), 'FN:' + fullName(c), c.phone ? 'TEL:' + c.phone : '', c.email ? 'EMAIL:' + c.email : '', c.birthday ? 'BDAY:' + c.birthday : '', c.notes ? 'NOTE:' + c.notes : '', 'END:VCARD'].filter(Boolean).join('\n')).join('\n')) }
       ], r.left - 150, r.bottom + 4); };
       q.addEventListener('input', renderList);
-      win._show = (id) => { if (list.some((c) => c.id === id)) { cur = id; editing = false; render(); } };
+      win._show = (id) => { const c = list.find((x) => x.id === id); if (c) { cur = id; editing = false; render(); PatOS.mobile && PatOS.mobile.detail && PatOS.mobile.detail(win, true, nameOf(c)); } };
       render();
     },
     onArgs(win, a) { if (a && a.id && win._show) win._show(a.id); }
@@ -20283,7 +20569,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     PatOS.sound.startup();
     if (PatOS.isMobile && PatOS.isIOS && !navigator.standalone && !PatOS.store.get('iosHint', false)) {
       PatOS.store.set('iosHint', true);
-      setTimeout(() => PatOS.notify({ title: 'Make PatOS full screen', body: 'In Safari tap Share, then “Add to Home Screen”. PatOS then opens like a real app.', icon: 'about', duration: 9000 }), 2500);
+      setTimeout(() => PatOS.notify({ title: 'Make PatOS full screen', body: 'In Safari tap Share, then “Add to Home Screen”. PatOS then opens like a real app.', icon: 'about', duration: 9000 }), 8000);
     }
     if (!PatOS.isMobile && s.askFullscreen && !document.fullscreenElement && document.documentElement.requestFullscreen) {
       document.documentElement.requestFullscreen().catch(() => {});
@@ -20294,7 +20580,10 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     setTimeout(() => PatOS.emit('wm:ready'), 1200);
     const seen = PatOS.store.get('seenWelcome', false);
     setTimeout(() => {
-      PatOS.notify({ title: 'Welcome to PatOS, ' + PatOS.settings.userName + '!', body: seen ? 'Press Ctrl+Space to search, Alt+L for Launchpad.' : 'Double-click “Welcome to PatOS” on the desktop for tips. Press Ctrl+Space to search.', icon: 'about', duration: 6500 });
+      const body = PatOS.isMobile
+        ? (seen ? 'Tap Search above the Dock to find anything. Press and hold an app for more.' : 'Tap Search above the Dock to find anything. Press and hold an app for more. The ⊞ button in an app takes you home.')
+        : (seen ? 'Press Ctrl+Space to search, Alt+L for Launchpad.' : 'Double-click “Welcome to PatOS” on the desktop for tips. Press Ctrl+Space to search.');
+      PatOS.notify({ title: 'Welcome to PatOS, ' + PatOS.settings.userName + '!', body, icon: 'about', duration: 6500 });
       if (!seen) PatOS.store.set('seenWelcome', true);
     }, 900);
   }

@@ -1151,6 +1151,7 @@
 
   /* =========================== INIT =========================== */
   PatOS.shell = {
+    appMenus,
     init() {
       applyTheme();
       setupMenubar(); setupLaunchpad(); setupSpotlight(); setupDesktop(); setupDockMagnify(); setupKeys();

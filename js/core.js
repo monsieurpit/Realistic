@@ -170,21 +170,40 @@
     PatOS.emit('setting:' + key, value);
   };
   /* ---------- desktop vs phone mode ---------- */
+  /* What the device really is. A real phone (iPhone, Android phone) has its own status bar, notch or
+     Dynamic Island and home bar, so PatOS doesn't draw fake ones there; it uses the screen's safe areas. */
+  const UA = navigator.userAgent || '';
+  PatOS.hw = {
+    ios: /iP(hone|od|ad)/.test(UA) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1),
+    iphone: /iPhone|iPod/.test(UA),
+    android: /Android/i.test(UA),
+    phone: /iPhone|iPod/.test(UA) || (/Android/i.test(UA) && /Mobile/i.test(UA)) || /Windows Phone|IEMobile/i.test(UA),
+    standalone: () => navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches),
+    touch: navigator.maxTouchPoints > 0 || 'ontouchstart' in window
+  };
+  PatOS.isIOS = PatOS.hw.ios;
   PatOS.detectMobile = function () {
     const m = PatOS.settings.deviceMode;
     if (m === 'mobile') return true;
     if (m === 'desktop') return false;
+    if (PatOS.hw.phone) return true;
     const w = window.innerWidth, ht = window.innerHeight;
     const coarse = window.matchMedia && matchMedia('(pointer: coarse)').matches;
     return w <= 700 || (coarse && Math.min(w, ht) <= 500);
   };
   PatOS.isMobile = PatOS.detectMobile();
-  PatOS.isIOS = /iP(hone|od|ad)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
-  document.documentElement.classList.toggle('mobile', PatOS.isMobile);
+  // "real phone": the phone layout on an actual phone (not the phone layout tried on a computer)
+  const markDevice = () => {
+    const H = document.documentElement;
+    H.classList.toggle('mobile', PatOS.isMobile);
+    H.classList.toggle('real-phone', PatOS.isMobile && (PatOS.hw.phone || (PatOS.hw.touch && PatOS.hw.ios)));
+    H.classList.toggle('ios', PatOS.hw.ios);
+    H.classList.toggle('standalone', !!PatOS.hw.standalone());
+  };
+  markDevice();
   PatOS.applyMode = function () {
     const m = PatOS.detectMobile();
-    document.documentElement.classList.toggle('mobile', m);
-    if (m !== PatOS.isMobile) { PatOS.isMobile = m; PatOS.emit('mode', m); }
+    if (m !== PatOS.isMobile) { PatOS.isMobile = m; markDevice(); PatOS.emit('mode', m); } else markDevice();
   };
   window.addEventListener('resize', PatOS.debounce(() => PatOS.applyMode(), 150));
   PatOS.on('setting:deviceMode', () => PatOS.applyMode());

@@ -46,6 +46,8 @@
       const empty = h('div', { class: 'notes-empty' });
       const mainEl = h('div', { class: 'notes-main' }, meta, ed, empty);
       win.body.append(h('div', { class: 'notes-wrap' }, fside, side, mainEl));
+      // on a phone: the list first, the note on its own screen
+      const MB = PatOS.mobile; if (MB && MB.stack) { MB.stack(win, T('Notes')); fside.classList.add('m-list'); side.classList.add('m-list'); mainEl.classList.add('m-detail'); win.on('m-back', () => { renderList(); renderFolders(); }); }
 
       /* ---------- toolbar ---------- */
       const fmt = (cmd, val) => (e) => { if (e && e.preventDefault) e.preventDefault(); ed.focus(); document.execCommand(cmd, false, val); onInput(); };
@@ -132,7 +134,7 @@
             h('div', { class: 'nt-txt' }, h('b', {}, markText(titleOf(n), ql)), h('div', {}, h('span', {}, new Date(n.mtime).toLocaleDateString(PatOS.locale, age < DAY ? undefined : { month: 'short', day: 'numeric' })), ' ', markText(second.slice(0, 70), ql)),
               all ? h('small', { class: 'nt-prog' + (done === all ? ' full' : '') }, done + '/' + all + ' ' + T('done')) : null),
             img ? h('img', { class: 'nt-thumb', src: img, alt: '' }) : null);
-          el.onclick = () => open(n); el.onkeydown = (e) => { if (e.key === 'Enter') open(n); };
+          el.onclick = () => open(n, true); el.onkeydown = (e) => { if (e.key === 'Enter') open(n, true); };
           el.addEventListener('dragstart', (e) => e.dataTransfer.setData('text/note', n.id));
           el.oncontextmenu = (e) => {
             e.preventDefault();
@@ -152,7 +154,8 @@
         const words = (plain(cur.body).match(/[\p{L}\p{N}'’-]+/gu) || []).length;
         meta.textContent = new Date(cur.mtime).toLocaleString(PatOS.locale, { dateStyle: 'long', timeStyle: 'short' }) + ' · ' + words + ' ' + T(words === 1 ? 'word' : 'words') + (cur.deletedAt ? ' · ' + T('In Recently Deleted') : '');
       }
-      function open(n) {
+      function open(n, picked) {
+        if (picked && PatOS.mobile && PatOS.mobile.detail) PatOS.mobile.detail(win, true, titleOf(n));
         cur = n; PatOS.remember && PatOS.remember(win, { id: n.id });
         const up = upgrade(n.body); if (up !== n.body) { n.body = up; save(); }
         ed.innerHTML = n.body; ed.contentEditable = n.deletedAt ? 'false' : 'true';
@@ -165,13 +168,13 @@
         if (n.deletedAt) { notes = notes.filter((x) => x !== n); } else { n.deletedAt = Date.now(); n.pinned = false; }
         save(); PatOS.sound.trash();
         const next = notes.filter(inFolder).sort((a, b) => b.mtime - a.mtime)[0];
-        if (cur === n) { if (next) open(next); else showEmpty(); } render(true);
+        if (cur === n) { if (PatOS.mobile && PatOS.mobile.inDetail(win)) PatOS.mobile.detail(win, false); if (next) open(next); else showEmpty(); } render(true);
       }
       function create() {
         if (folder === 'deleted') folder = 'all';
         const tag = folder.startsWith('tag:') ? folder.slice(4) : null;
         const n = { id: PatOS.uid(), title: '', body: tag ? '<div><br></div><div><br></div><div>#' + tag + '</div>' : '<div><br></div>', mtime: Date.now(), folder: ['all', 'notes'].includes(folder) || tag ? null : folder };
-        notes.unshift(n); save(); open(n); render(true); ed.focus();
+        notes.unshift(n); save(); open(n, true); render(true); ed.focus();
         const r = document.createRange(); r.setStart(ed.firstChild, 0); r.collapse(true); const s = getSelection(); s.removeAllRanges(); s.addRange(r);
       }
       const refreshSoon = PatOS.debounce(() => { renderList(); renderFolders(); }, 250);
@@ -289,9 +292,9 @@
       win.el.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.key.toLowerCase() === 'f' && document.activeElement !== q) { e.preventDefault(); q.focus(); q.select(); } });
       win.on('closed', () => { if (window.CSS && CSS.highlights) CSS.highlights.delete('nt-search'); PatOS.store.set('notes', notes); });
       function render(keepCur) { renderFolders(); renderList(); if (!keepCur && !cur) { const first = notes.filter(inFolder).sort((a, b) => (b.pinned ? 1 : 0) - (a.pinned ? 1 : 0) || b.mtime - a.mtime)[0]; if (first) open(first); else showEmpty(); } }
-      win._openNote = (id) => { const n = notes.find((x) => x.id === id); if (n) { folder = 'all'; open(n); render(true); } };
+      win._openNote = (id) => { const n = notes.find((x) => x.id === id); if (n) { folder = 'all'; open(n, true); render(true); } };
       const first = args.id ? notes.find((n) => n.id === args.id) : null;
-      if (first) { open(first); render(true); } else render();
+      if (first) { open(first, true); render(true); } else render();
     },
     onArgs(win, args) { if (args.id) win._openNote(args.id); }
   });

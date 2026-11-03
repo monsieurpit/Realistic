@@ -16,9 +16,12 @@
       h('div', { class: 'ms-l' }, h('span', { class: 'ms-time' })),
       h('button', { id: 'm-island', 'aria-label': 'Now playing' }, h('div', { class: 'mi-art' }), h('div', { class: 'mi-text' }), h('div', { class: 'mi-bars' }, h('i'), h('i'), h('i'), h('i'))),
       h('div', { class: 'ms-r' }, h('span', { class: 'ms-ic', html: ICON_SIG }), h('span', { class: 'ms-ic', html: ICON_WIFI }), h('span', { class: 'ms-bat' }, h('span', { class: 'ms-bat-fill' }))));
+    const search = h('button', { class: 'mh-search', 'aria-label': PatOS.t('Search') }, h('span', { html: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><path d="m20 20-4-4"/></svg>' }), PatOS.t('Search'));
+    search.onclick = () => PatOS.spotlight.show();
     const home = h('div', { id: 'm-home' },
       h('div', { class: 'mh-pages' }),
       h('div', { class: 'mh-dots' }),
+      search,
       h('div', { class: 'mh-dock' }));
     const ind = h('div', { id: 'm-indicator' }, h('span'));
     const sw = h('div', { id: 'm-switcher', class: 'hidden' }, h('div', { class: 'msw-empty' }, 'No recent apps'));
@@ -27,13 +30,18 @@
     renderHome();
     setupGestures();
     setupIsland();
+    setupViewport();
+    setupBanners();
+    setupHistory();
+    setupTopEdge();
     tickStatus(); setInterval(tickStatus, 1000);
     if (navigator.getBattery) navigator.getBattery().then((b) => { const up = () => { $('.ms-bat-fill').style.width = Math.round(b.level * 100) + '%'; $('.ms-bat').classList.toggle('charging', b.charging); }; up(); b.addEventListener('levelchange', up); b.addEventListener('chargingchange', up); }).catch(() => {});
     window.addEventListener('resize', PatOS.debounce(() => { if (PatOS.isMobile) renderHome(); }, 200));
     PatOS.on('setting', (s) => { if (['mobileDock', 'hiddenApps', 'dockPinned'].includes(s.key)) renderHome(); });
     PatOS.on('wm:open', (w) => { if (PatOS.isMobile) setFront(w); });
     PatOS.on('wm:focus', (w) => { if (PatOS.isMobile && w) setFront(w); });
-    PatOS.on('wm:close', (w) => { if (M.front === w) { M.front = null; html.classList.remove('m-in-app'); } });
+    PatOS.on('wm:close', (w) => { if (M.front === w) { M.front = null; html.classList.remove('m-in-app'); popApp(); } });
+    PatOS.on('wm:title', (w) => { if (w && w._mbar) syncBar(w); });
   }
 
   function tickStatus() {
@@ -107,16 +115,25 @@
     const keep = pages.scrollLeft;
     pages.innerHTML = '';
     const ids = homeApps();
-    const avail = window.innerHeight - 64 - 120 - 30; // status + dock + dots
-    const rows = Math.max(3, Math.floor(avail / 98));
-    const per = rows * 4;
-    const firstPer = Math.max(4, per - 8); // page 1 carries two widgets (2x2 each)
+    // fit the grid to this screen: icons, labels and rows come from the real height (safe areas included)
+    const cs = getComputedStyle(html); const px = (v) => parseFloat(cs.getPropertyValue(v)) || 0;
+    const top = Math.max(px('--sat'), html.classList.contains('real-phone') ? 0 : 20) + 34, bottom = px('--sab') + 8;
+    const cellH = innerWidth > innerHeight ? 90 : Math.round(Math.min(108, Math.max(88, (innerWidth - 40) / 4 + 14)));
+    html.style.setProperty('--mh-cell', cellH + 'px');
+    const avail = window.innerHeight - top - bottom - (innerWidth > innerHeight ? 150 : 174); // dock, dots, search
+    // sideways: a wider grid and no widgets, so nothing overlaps on a short screen
+    const land = innerWidth > innerHeight;
+    const cols = land ? Math.max(5, Math.min(8, Math.floor((innerWidth - 60) / 96))) : 4;
+    html.style.setProperty('--mh-cols', cols);
+    const rows = Math.max(land ? 1 : 3, Math.floor(avail / cellH));
+    const per = rows * cols;
+    const firstPer = land ? per : Math.max(4, per - 8); // page 1 carries two widgets (2x2 each) when upright
     const chunks = [ids.slice(0, firstPer)];
     for (let i = firstPer; i < ids.length; i += per) chunks.push(ids.slice(i, i + per));
     chunks.forEach((list, pi) => {
       const page = h('div', { class: 'mh-page' });
-      const grid = h('div', { class: 'mh-grid', style: { gridTemplateRows: `repeat(${rows}, 98px)` } });
-      if (pi === 0) homeWidgets().forEach((w) => grid.appendChild(w));
+      const grid = h('div', { class: 'mh-grid', style: { gridTemplateRows: `repeat(${rows}, var(--mh-cell))` } });
+      if (pi === 0 && !land) homeWidgets().forEach((w) => grid.appendChild(w));
       list.forEach((id) => grid.appendChild(appButton(id, true)));
       page.appendChild(grid); pages.appendChild(page);
     });
@@ -144,6 +161,7 @@
     html.classList.add('m-in-app');
     html.classList.toggle('m-dark-app', !!(w.app.dark || w.app.titlebar === 'hidden'));
     PatOS.panels.closeAll();
+    appBar(w); syncBar(w); pushApp();
   }
   function toIconFrames(w, fromTransform) {
     const r = { left: 0, top: 0, width: innerWidth, height: innerHeight };
@@ -159,6 +177,7 @@
     else done();
     if (M.front === w) M.front = null;
     html.classList.remove('m-in-app');
+    popApp();
     PatOS.wm.blurAll();
     PatOS.emit('wm:minimize', w);
     PatOS.sound.tone(500, 0.08, { vol: 0.04 });
@@ -338,6 +357,136 @@
     const playing = !!(np && np.playing);
     isl.classList.toggle('playing', playing);
     if (playing) { isl.querySelector('.mi-art').innerHTML = ''; isl.querySelector('.mi-art').style.background = np.color; isl.querySelector('.mi-text').textContent = np.title; }
+  }
+
+  /* ---------------- the app bar: Home or Back, the title, and the app's own menus ---------------- */
+  const T = (x) => PatOS.t(x);
+  const ICO_HOME = '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="4" width="6" height="6" rx="1.6"/><rect x="14" y="4" width="6" height="6" rx="1.6"/><rect x="4" y="14" width="6" height="6" rx="1.6"/><rect x="14" y="14" width="6" height="6" rx="1.6"/></svg>';
+  const ICO_BACK = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5l-7 7 7 7"/></svg>';
+  const ICO_MORE = '<svg viewBox="0 0 24 24" width="22" height="22" fill="currentColor"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>';
+  function appBar(w) {
+    if (w._mbar) return w._mbar;
+    const left = h('button', { class: 'mab-left' }); const title = h('div', { class: 'mab-title' }); const more = h('button', { class: 'mab-more', 'aria-label': T('More'), html: ICO_MORE });
+    const bar = h('div', { class: 'm-appbar' }, left, title, more);
+    w.titlebar.prepend(bar); w._mbar = { bar, left, title, more };
+    let lp = null, long = false;
+    left.addEventListener('pointerdown', () => { long = false; lp = setTimeout(() => { long = true; try { navigator.vibrate && navigator.vibrate(12); } catch (e) {} openSwitcher(); }, 520); });
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach((ev) => left.addEventListener(ev, () => clearTimeout(lp)));
+    left.addEventListener('click', () => { if (long) return; if (w.el.classList.contains('m-show-detail')) M.detail(w, false); else M.goHome(); });
+    left.addEventListener('contextmenu', (e) => e.preventDefault());
+    more.onclick = () => moreMenu(w, more);
+    return w._mbar;
+  }
+  function syncBar(w) {
+    const b = w._mbar; if (!b) return;
+    const detail = w.el.classList.contains('m-show-detail');
+    b.left.innerHTML = detail ? ICO_BACK + '<span>' + PatOS.esc(w._mlistTitle || T(w.app.name)) + '</span>' : ICO_HOME;
+    b.left.setAttribute('aria-label', detail ? T('Back') : T('Home Screen'));
+    b.left.classList.toggle('back', detail);
+    b.title.textContent = detail ? (w._mdetailTitle || w.title || T(w.app.name)) : (w.el.classList.contains('m-stack') ? (w._mlistTitle || T(w.app.name)) : (w.title || T(w.app.name)));
+  }
+  function moreMenu(w, btn) {
+    const items = [];
+    try {
+      const extra = w.app.menus ? w.app.menus(w) || {} : {};
+      Object.entries(extra).forEach(([name, list]) => { if (!Array.isArray(list) || !list.length) return; if (items.length) items.push({ divider: true }); list.forEach((it) => { if (it && !it.divider && !it.header) items.push(Object.assign({}, it, { shortcut: undefined })); }); });
+    } catch (e) {}
+    if (items.length) items.push({ divider: true });
+    items.push({ label: T('App Switcher'), action: () => openSwitcher() }, { label: T('Control Center'), action: () => PatOS.panels.toggle('#control-center') }, { label: T('Close App'), action: () => w.close() });
+    const r = btn.getBoundingClientRect(); PatOS.menu(items, r.right - 220, r.bottom + 6);
+  }
+  /* list → detail screens (Notes, Settings, Contacts…): apps mark their two panes with m-list and m-detail
+     and call PatOS.mobile.detail(win, true) when something is picked */
+  M.stack = function (win, listTitle) { win.el.classList.add('m-stack'); win._mlistTitle = listTitle; if (win._mbar) syncBar(win); };
+  M.detail = function (win, on, title) {
+    if (!win || !PatOS.isMobile) return;
+    const was = win.el.classList.contains('m-show-detail');
+    win.el.classList.toggle('m-show-detail', !!on); if (title !== undefined) win._mdetailTitle = title;
+    if (on && !was) { pushApp('detail'); if (motion()) { const d = win.el.querySelector('.m-detail'); if (d) d.animate([{ transform: 'translateX(28%)', opacity: 0.4 }, { transform: 'none', opacity: 1 }], { duration: 300, easing: 'cubic-bezier(.2,.9,.3,1)' }); } }
+    if (!on && was) { popApp('detail'); win.emit('m-back'); }
+    syncBar(win);
+  };
+  M.inDetail = (win) => !!(win && win.el.classList.contains('m-show-detail'));
+
+  /* ---------------- the back button of the phone (Android) and Safari's swipe back ---------------- */
+  // depth = how many history entries PatOS added on top of the page: 1 inside an app, 2 inside a detail screen.
+  // Going back in history happens a moment later, so a new entry waits until that has finished
+  // (otherwise opening an app right after closing one would get the history out of step).
+  let depth = 0, ignorePop = 0, quiet = false, pending = 0, queued = null;
+  function pushApp(kind) {
+    if (!PatOS.isMobile || !history.pushState) return;
+    if (pending) { queued = kind || 'app'; return; }
+    if (kind !== 'detail' && depth >= 1) return;
+    try { history.pushState({ patos: kind || 'app' }, ''); depth++; } catch (e) {}
+  }
+  function popApp(kind) {
+    if (quiet) return;
+    if (kind !== 'detail') queued = null;
+    if (!depth) return;
+    if (kind === 'detail') { if (depth < 2) return; depth--; ignorePop++; pending++; history.back(); return; }
+    const n = depth; depth = 0; ignorePop++; pending++; // history.go(-n) sends one popstate, whatever n is
+    try { history.go(-n); } catch (e) { ignorePop--; pending--; }
+  }
+  function settle() {
+    pending = Math.max(0, pending - 1);
+    if (!pending && queued) { const k = queued; queued = null; if (M.front) { if (k === 'detail' && depth < 1) pushApp('app'); pushApp(k); } }
+  }
+  function setupHistory() {
+    window.addEventListener('popstate', () => {
+      if (!PatOS.isMobile) return;
+      if (ignorePop > 0) { ignorePop--; settle(); return; }
+      depth = Math.max(0, depth - 1); // the phone's back button (or a swipe back) took one step
+      if (SW.open) { closeSwitcher(true); return; }
+      const w = M.front;
+      if (w && w.el.classList.contains('m-show-detail')) { w.el.classList.remove('m-show-detail'); w.emit('m-back'); syncBar(w); return; }
+      if (w) { quiet = true; try { M.home(w); } finally { quiet = false; } depth = 0; }
+    });
+  }
+
+  /* ---------------- the screen: keyboard and the real visible height ---------------- */
+  function setupViewport() {
+    const vv = window.visualViewport;
+    const upd = () => {
+      const hgt = vv ? vv.height : innerHeight, top = vv ? vv.offsetTop : 0;
+      html.style.setProperty('--vvh', Math.round(hgt) + 'px'); html.style.setProperty('--vvt', Math.round(top) + 'px');
+      const kb = Math.max(0, innerHeight - hgt - top);
+      html.classList.toggle('m-kb', kb > 120);
+      if (kb > 120) { const a = document.activeElement; if (a && a.scrollIntoView && /INPUT|TEXTAREA/.test(a.tagName) || (a && a.isContentEditable)) setTimeout(() => { try { a.scrollIntoView({ block: 'nearest' }); } catch (e) {} }, 60); }
+    };
+    if (vv) { vv.addEventListener('resize', upd); vv.addEventListener('scroll', upd); }
+    window.addEventListener('resize', upd); window.addEventListener('orientationchange', () => setTimeout(() => { upd(); renderHome(); }, 300));
+    upd();
+  }
+
+  /* ---------------- notifications: one banner at a time, swipe up to dismiss ---------------- */
+  function setupBanners() {
+    const box = $('#toasts'); if (!box) return;
+    new MutationObserver((muts) => {
+      if (!PatOS.isMobile) return;
+      const added = []; muts.forEach((m) => m.addedNodes.forEach((t) => { if (t instanceof HTMLElement && t.classList.contains('toast') && t.isConnected) added.push(t); }));
+      if (!added.length) return;
+      const newest = added[added.length - 1];
+      // a banner on a phone leaves after 4 seconds at most (tap it to act, swipe it up to dismiss)
+      setTimeout(() => { if (newest.isConnected) { newest.classList.remove('in'); setTimeout(() => newest.remove(), 400); } }, 4000);
+      [...box.children].forEach((o) => { if (o !== newest) o.remove(); }); // one banner at a time: the newest
+      [newest].forEach((t) => {
+        let sy = null, dy = 0;
+        t.addEventListener('pointerdown', (e) => { sy = e.clientY; dy = 0; t.style.transition = 'none'; });
+        t.addEventListener('pointermove', (e) => { if (sy == null) return; dy = Math.min(0, e.clientY - sy); t.style.transform = 'translateY(' + dy + 'px)'; });
+        const end = (e) => { if (sy == null) return; sy = null; t.style.transition = ''; if (dy < -30) { e.stopPropagation(); t.style.transform = 'translateY(-160px)'; setTimeout(() => t.remove(), 250); } else t.style.transform = ''; };
+        t.addEventListener('pointerup', end, true); t.addEventListener('pointercancel', end);
+      });
+    }).observe(box, { childList: true });
+  }
+
+  /* ---------------- swipes from the top of the Home Screen (there is no fake status bar on a real phone) ---------------- */
+  function setupTopEdge() {
+    const home = $('#m-home'); let st = null;
+    home.addEventListener('pointerdown', (e) => { const zone = parseFloat(getComputedStyle(html).getPropertyValue('--sat')) + 44; if (e.clientY > zone || e.target.closest('.mh-app, .mw, .mh-search')) return; st = { x: e.clientX, y: e.clientY }; });
+    home.addEventListener('pointerup', (e) => {
+      if (!st) return; const dy = e.clientY - st.y, x = st.x; st = null; if (dy < 40) return;
+      if (x > innerWidth * 0.6) PatOS.panels.toggle('#control-center'); else if (x < innerWidth * 0.4) PatOS.panels.toggle('#notif-center');
+    });
   }
 
   /* ---------------- mode switching ---------------- */

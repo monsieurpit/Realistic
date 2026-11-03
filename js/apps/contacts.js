@@ -17,7 +17,10 @@
       const bAdd = h('button', { class: 'tbtn', title: 'New contact' }, '＋');
       const bMore = h('button', { class: 'tbtn', title: 'Import or export' }, '⋯');
       win.toolbar.append(bAdd, bMore);
-      win.body.appendChild(h('div', { class: 'ct-wrap' }, h('div', { class: 'ct-side' }, h('div', { class: 'ct-search' }, q), listEl), card));
+      const ctSide = h('div', { class: 'ct-side' }, h('div', { class: 'ct-search' }, q), listEl);
+      win.body.appendChild(h('div', { class: 'ct-wrap' }, ctSide, card));
+      if (PatOS.mobile && PatOS.mobile.stack) { PatOS.mobile.stack(win, PatOS.t('Contacts')); ctSide.classList.add('m-list'); card.classList.add('m-detail'); win.on('m-back', () => { editing = false; render(); }); }
+      const nameOf = (c) => ((c.first || '') + ' ' + (c.last || '')).trim() || c.company || PatOS.t('New Contact');
       const fullName = (c) => [c.first, c.last].filter(Boolean).join(' ') || PatOS.t('No Name');
       const initials = (c) => ((c.first || '?')[0] + (c.last || '')[0 || 0]).toUpperCase().replace('UNDEFINED', '');
       function avatar(c, big) { return h('div', { class: 'ct-av' + (big ? ' big' : ''), style: c.photo ? { backgroundImage: `url(${c.photo})` } : { background: `hsl(${(fullName(c).charCodeAt(0) * 37) % 360},55%,55%)` } }, c.photo ? '' : ((c.first || '?')[0] + ((c.last || '')[0] || '')).toUpperCase()); }
@@ -30,7 +33,7 @@
           const L = c.fav ? '★' : fullName(c)[0].toUpperCase();
           if (L !== letter) { letter = L; listEl.appendChild(h('div', { class: 'ct-letter' }, L === '★' ? PatOS.t('Favorites') : L)); }
           const row = h('div', { class: 'ct-row' + (c.id === cur ? ' on' : '') }, avatar(c), h('span', {}, fullName(c)));
-          row.onclick = () => { cur = c.id; editing = false; render(); };
+          row.onclick = () => { cur = c.id; editing = false; render(); PatOS.mobile && PatOS.mobile.detail && PatOS.mobile.detail(win, true, nameOf(c)); };
           listEl.appendChild(row);
         });
         if (!list.length) listEl.appendChild(h('div', { class: 'ct-empty' }, 'No contacts yet. Press + to add one.'));
@@ -62,13 +65,13 @@
         card.appendChild(rows);
       }
       function render() { renderList(); renderCard(); }
-      bAdd.onclick = () => { const c = { id: PatOS.uid(), first: '', last: '' }; list.push(c); cur = c.id; editing = true; save(); render(); const f = card.querySelector('input'); if (f) f.focus(); };
+      bAdd.onclick = () => { const c = { id: PatOS.uid(), first: '', last: '' }; list.push(c); cur = c.id; editing = true; save(); render(); PatOS.mobile && PatOS.mobile.detail && PatOS.mobile.detail(win, true, PatOS.t('New Contact')); const f = card.querySelector('input'); if (f) f.focus(); };
       bMore.onclick = () => { const r = bMore.getBoundingClientRect(); PatOS.menu([
         { label: 'Import a vCard (.vcf)…', action: () => { const i = h('input', { type: 'file', accept: '.vcf,text/vcard' }); i.onchange = () => { const rd = new FileReader(); rd.onload = () => { let n = 0; rd.result.split(/END:VCARD/i).forEach((blk) => { const get = (k) => { const m = blk.match(new RegExp('^' + k + '[^:]*:(.*)$', 'im')); return m ? m[1].trim() : ''; }; const nm = get('N').split(';'); const fn = get('FN'); if (!fn && !nm[0]) return; list.push({ id: PatOS.uid(), first: nm[1] || fn.split(' ')[0] || '', last: nm[0] || fn.split(' ').slice(1).join(' '), phone: get('TEL'), email: get('EMAIL'), birthday: (get('BDAY').match(/\d{4}-?\d{2}-?\d{2}/) || [''])[0].replace(/^(\d{4})(\d{2})(\d{2})$/, '$1-$2-$3'), notes: get('NOTE') }); n++; }); save(); render(); PatOS.notify({ title: PatOS.t('Contacts'), body: n + ' ' + PatOS.t('contacts imported'), icon: 'contacts' }); }; rd.readAsText(i.files[0]); }; i.click(); } },
         { label: 'Export all as vCard', disabled: !list.length, action: () => PatOS.downloadFile('contacts.vcf', list.map((c) => ['BEGIN:VCARD', 'VERSION:3.0', 'N:' + (c.last || '') + ';' + (c.first || ''), 'FN:' + fullName(c), c.phone ? 'TEL:' + c.phone : '', c.email ? 'EMAIL:' + c.email : '', c.birthday ? 'BDAY:' + c.birthday : '', c.notes ? 'NOTE:' + c.notes : '', 'END:VCARD'].filter(Boolean).join('\n')).join('\n')) }
       ], r.left - 150, r.bottom + 4); };
       q.addEventListener('input', renderList);
-      win._show = (id) => { if (list.some((c) => c.id === id)) { cur = id; editing = false; render(); } };
+      win._show = (id) => { const c = list.find((x) => x.id === id); if (c) { cur = id; editing = false; render(); PatOS.mobile && PatOS.mobile.detail && PatOS.mobile.detail(win, true, nameOf(c)); } };
       render();
     },
     onArgs(win, a) { if (a && a.id && win._show) win._show(a.id); }

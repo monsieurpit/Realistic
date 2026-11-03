@@ -107,6 +107,7 @@
       win.toolbar.append(h('div', { style: { flex: 1 } }), search, bAdd);
       const side = h('div', { class: 'pw-side' }), list = h('div', { class: 'pw-list' }), detail = h('div', { class: 'pw-detail' });
       win.body.appendChild(h('div', { class: 'pw-wrap' }, side, list, detail));
+      if (PatOS.mobile && PatOS.mobile.stack) { PatOS.mobile.stack(win, T('Passwords')); side.classList.add('m-list'); list.classList.add('m-list'); detail.classList.add('m-detail'); }
       search.oninput = () => { q = search.value.trim().toLowerCase(); renderList(); };
       bAdd.onclick = () => editItem(null);
       const onChange = () => render();
@@ -142,7 +143,7 @@
           const L = label(x.site)[0] ? label(x.site)[0].toUpperCase() : '#'; if (L !== letter) { letter = L; list.appendChild(h('div', { class: 'pw-letter' }, L)); }
           const st = P.strength(x.password).score;
           const row = h('div', { class: 'pw-row' + (x.id === selId ? ' on' : '') }, h('img', { class: 'pw-fav', src: fav(x.site), alt: '', onerror: (e) => { e.target.replaceWith(h('span', { class: 'pw-fav ph' }, L)); } }), h('div', { class: 'pw-rt' }, h('b', {}, label(x.site)), h('small', {}, x.username || T('(no username)'))), st < 2 || leaks[x.id] ? h('span', { class: 'pw-warn', title: leaks[x.id] ? T('Found in leaks') : T('Weak') }, '!') : null);
-          row.onclick = () => { selId = x.id; renderList(); renderDetail(); };
+          row.onclick = () => { selId = x.id; renderList(); renderDetail(); PatOS.mobile && PatOS.mobile.detail && PatOS.mobile.detail(win, true, x.site); };
           list.appendChild(row);
         });
       }
