@@ -5,6 +5,30 @@
   'use strict';
   // Chrome may offer to install PatOS before the rest of PatOS has loaded; keep that offer for later
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__installPrompt = e; });
+
+  /* Update safety. Each start is written down, and PatOS marks it finished once the lock screen shows.
+     A start that stayed alive more than 15 seconds without finishing counts as a failed start. After two
+     failed starts in a row, the service worker is asked to go back to the version that worked before. */
+  (function () {
+    var KEY = 'patos-boot', st = {};
+    try { st = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { st = {}; }
+    var failed = st.pending && st.alive && st.alive - st.t > 15000;
+    st.fails = failed ? (st.fails || 0) + 1 : (st.pending ? st.fails || 0 : 0);
+    st.pending = true; st.t = Date.now(); st.alive = st.t;
+    var save = function () { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+    save();
+    var timer = setInterval(function () { if (!st.pending) return clearInterval(timer); st.alive = Date.now(); save(); }, 2000);
+    window.__patosBootOK = function () {
+      st.pending = false; st.fails = 0; save(); clearInterval(timer);
+      var rolled = st.rolledBack; if (rolled) { st.rolledBack = false; save(); }
+      return rolled;
+    };
+    if (st.fails >= 2 && navigator.serviceWorker && navigator.serviceWorker.controller && window.MessageChannel) {
+      var ch = new MessageChannel();
+      ch.port1.onmessage = function (e) { if (e.data && e.data.ok && e.data.useOld) { st.fails = 0; st.pending = false; st.rolledBack = true; save(); location.reload(); } };
+      navigator.serviceWorker.controller.postMessage({ patosRollback: true }, [ch.port2]);
+    }
+  })();
   var started = false;
   function start() {
     if (started) return; started = true;

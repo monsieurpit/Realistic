@@ -3319,6 +3319,30 @@ html.reduce-transparency.lg-on :is(#dock, .mh-dock, .menu, #control-center, .toa
   'use strict';
   // Chrome may offer to install PatOS before the rest of PatOS has loaded; keep that offer for later
   window.addEventListener('beforeinstallprompt', function (e) { e.preventDefault(); window.__installPrompt = e; });
+
+  /* Update safety. Each start is written down, and PatOS marks it finished once the lock screen shows.
+     A start that stayed alive more than 15 seconds without finishing counts as a failed start. After two
+     failed starts in a row, the service worker is asked to go back to the version that worked before. */
+  (function () {
+    var KEY = 'patos-boot', st = {};
+    try { st = JSON.parse(localStorage.getItem(KEY) || '{}') || {}; } catch (e) { st = {}; }
+    var failed = st.pending && st.alive && st.alive - st.t > 15000;
+    st.fails = failed ? (st.fails || 0) + 1 : (st.pending ? st.fails || 0 : 0);
+    st.pending = true; st.t = Date.now(); st.alive = st.t;
+    var save = function () { try { localStorage.setItem(KEY, JSON.stringify(st)); } catch (e) {} };
+    save();
+    var timer = setInterval(function () { if (!st.pending) return clearInterval(timer); st.alive = Date.now(); save(); }, 2000);
+    window.__patosBootOK = function () {
+      st.pending = false; st.fails = 0; save(); clearInterval(timer);
+      var rolled = st.rolledBack; if (rolled) { st.rolledBack = false; save(); }
+      return rolled;
+    };
+    if (st.fails >= 2 && navigator.serviceWorker && navigator.serviceWorker.controller && window.MessageChannel) {
+      var ch = new MessageChannel();
+      ch.port1.onmessage = function (e) { if (e.data && e.data.ok && e.data.useOld) { st.fails = 0; st.pending = false; st.rolledBack = true; save(); location.reload(); } };
+      navigator.serviceWorker.controller.postMessage({ patosRollback: true }, [ch.port2]);
+    }
+  })();
   var started = false;
   function start() {
     if (started) return; started = true;
@@ -6554,6 +6578,22 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Control Center': 'Centre de contrôle',
     'Close App': 'Fermer l’app',
     'Search': 'Rechercher',
+    'PatOS went back to the previous version': 'PatOS est revenu à la version précédente',
+    'The newest version didn’t start on this device, so the one that worked before is back. The next update will be tried again.': 'La version la plus récente n’a pas démarré sur cet appareil, alors celle qui fonctionnait est de retour. La prochaine mise à jour sera essayée à nouveau.',
+    'Updates': 'Mises à jour',
+    'Available when PatOS is opened from its website.': 'Disponible quand PatOS est ouvert depuis son site web.',
+    'Use the newest version': 'Utiliser la version la plus récente',
+    'Go back to the previous version?': 'Revenir à la version précédente ?',
+    'PatOS restarts with the version you had before this update. Your files and settings stay the same.': 'PatOS redémarre avec la version d’avant cette mise à jour. Vos fichiers et réglages restent les mêmes.',
+    'Go Back': 'Revenir',
+    'No previous version': 'Aucune version précédente',
+    'There is no earlier version saved on this device yet.': 'Aucune version antérieure n’est encore enregistrée sur cet appareil.',
+    'Go back…': 'Revenir…',
+    'Running': 'En cours',
+    'previous version': 'version précédente',
+    'Previous version': 'Version précédente',
+    'none yet': 'aucune pour l’instant',
+    'PatOS keeps the version before each update. If an update doesn’t start, PatOS goes back to it by itself.': 'PatOS garde la version d’avant chaque mise à jour. Si une mise à jour ne démarre pas, PatOS y revient tout seul.',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 'Offline': 'Hors ligne', 'Connected': 'Connecté',
@@ -14008,9 +14048,25 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
           const bat = h('span', { class: 'st-val' }, '…');
           if (navigator.getBattery) navigator.getBattery().then((b) => { const f = () => { bat.textContent = Math.round(b.level * 100) + '% · ' + (b.charging ? T('Charging') : T('On battery')) + (isFinite(b.dischargingTime) && !b.charging ? ' · ' + Math.round(b.dischargingTime / 60) + ' min' : ''); }; f(); b.addEventListener('levelchange', f); b.addEventListener('chargingchange', f); }); else bat.textContent = T('Not available in this browser');
           const store = h('span', { class: 'st-val' }, '…'); PatOS.storageInfo().then((i) => { store.textContent = PatOS.fmtBytes(i.used) + ' / ' + PatOS.fmtBytes(i.quota); });
+          // update safety: which copy of PatOS is running, and going back to the one before
+          const upd = h('div', {});
+          const ask = (msg) => new Promise((res) => { const sw = navigator.serviceWorker && navigator.serviceWorker.controller; if (!sw || !window.MessageChannel) return res(null); const ch = new MessageChannel(); const to = setTimeout(() => res(null), 3000); ch.port1.onmessage = (e) => { clearTimeout(to); res(e.data); }; sw.postMessage(msg, [ch.port2]); });
+          const paintUpd = async () => {
+            const m = await ask({ patosVersion: true }); upd.innerHTML = '';
+            if (!m) { upd.appendChild(group(row(T('Updates'), h('span', { class: 'st-val st-wrapval' }, T('Available when PatOS is opened from its website.'))))); return; }
+            const short = (k) => String(k || '').replace('patos-', '');
+            const onOld = m.useOld && m.previous;
+            const btn = onOld
+              ? h('button', { class: 'btn', onclick: async () => { await ask({ patosUseNewest: true }); PatOS._leaving = true; location.reload(); } }, T('Use the newest version'))
+              : m.previous ? h('button', { class: 'btn', onclick: async () => { if (!(await PatOS.confirmBox(T('Go back to the previous version?'), T('PatOS restarts with the version you had before this update. Your files and settings stay the same.'), { ok: T('Go Back'), icon: 'settings' }))) return; const r = await ask({ patosRollback: true }); if (r && r.ok) { PatOS._leaving = true; location.reload(); } else PatOS.alertBox(T('No previous version'), T('There is no earlier version saved on this device yet.'), { icon: 'settings' }); } }, T('Go back…')) : null;
+            upd.appendChild(group(
+              row(T('Running'), h('span', { class: 'st-val' }, short(onOld ? m.previous : m.newest) + (onOld ? ' (' + T('previous version') + ')' : ''))),
+              row(T('Previous version'), h('div', { class: 'st-inline' }, h('span', { class: 'st-val' }, m.previous ? short(m.previous) : T('none yet')), btn), T('PatOS keeps the version before each update. If an update doesn’t start, PatOS goes back to it by itself.'))));
+          };
+          paintUpd();
           return [
             group(info(T('System'), os), info(T('Browser'), bname + ' ' + (br[2] || '')), info(T('Device'), PatOS.extApps ? PatOS.extApps.device().name : ''), info(T('Processor threads'), navigator.hardwareConcurrency), info(T('Memory'), navigator.deviceMemory ? '≥ ' + navigator.deviceMemory + ' GB' : ''), info(T('Graphics'), gpu), info(T('Screen'), screen.width + ' × ' + screen.height + ' @' + (window.devicePixelRatio || 1) + 'x'), info(T('Touch points'), navigator.maxTouchPoints || '0'), info(T('Language'), (navigator.languages || [navigator.language]).slice(0, 3).join(', ')), info(T('Time zone'), Intl.DateTimeFormat().resolvedOptions().timeZone)),
-            group(row(T('Battery'), bat), row(T('Browser storage used'), store), row(T('PatOS version'), h('span', { class: 'st-val' }, PatOS.version)), row(T('Time since PatOS opened'), h('span', { class: 'st-val' }, Math.round(performance.now() / 60000) + ' min')))];
+            group(row(T('Battery'), bat), row(T('Browser storage used'), store), row(T('PatOS version'), h('span', { class: 'st-val' }, PatOS.version)), row(T('Time since PatOS opened'), h('span', { class: 'st-val' }, Math.round(performance.now() / 60000) + ' min'))), upd];
         },
         permissions() {
           const box = h('div'); const rows = [];
@@ -20536,7 +20592,15 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     $('.lock-time').textContent = parts.filter((p) => p.type !== 'dayPeriod').map((p) => p.value).join('').trim();
   }
 
+  // PatOS started fine: tell the update safety check (js/preload.js)
+  let bootMarked = false;
+  function markBooted() {
+    if (bootMarked) return; bootMarked = true;
+    const rolled = window.__patosBootOK && window.__patosBootOK();
+    if (rolled) setTimeout(() => PatOS.notify({ title: PatOS.t('PatOS went back to the previous version'), body: PatOS.t('The newest version didn’t start on this device, so the one that worked before is back. The next update will be tried again.'), icon: 'about', duration: 12000 }), 2500);
+  }
   function showLock() {
+    markBooted();
     const s = PatOS.settings;
     PatOS.wallpaper.apply();
     $('#boot').classList.add('hidden');

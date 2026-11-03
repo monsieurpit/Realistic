@@ -110,9 +110,25 @@
           const bat = h('span', { class: 'st-val' }, '…');
           if (navigator.getBattery) navigator.getBattery().then((b) => { const f = () => { bat.textContent = Math.round(b.level * 100) + '% · ' + (b.charging ? T('Charging') : T('On battery')) + (isFinite(b.dischargingTime) && !b.charging ? ' · ' + Math.round(b.dischargingTime / 60) + ' min' : ''); }; f(); b.addEventListener('levelchange', f); b.addEventListener('chargingchange', f); }); else bat.textContent = T('Not available in this browser');
           const store = h('span', { class: 'st-val' }, '…'); PatOS.storageInfo().then((i) => { store.textContent = PatOS.fmtBytes(i.used) + ' / ' + PatOS.fmtBytes(i.quota); });
+          // update safety: which copy of PatOS is running, and going back to the one before
+          const upd = h('div', {});
+          const ask = (msg) => new Promise((res) => { const sw = navigator.serviceWorker && navigator.serviceWorker.controller; if (!sw || !window.MessageChannel) return res(null); const ch = new MessageChannel(); const to = setTimeout(() => res(null), 3000); ch.port1.onmessage = (e) => { clearTimeout(to); res(e.data); }; sw.postMessage(msg, [ch.port2]); });
+          const paintUpd = async () => {
+            const m = await ask({ patosVersion: true }); upd.innerHTML = '';
+            if (!m) { upd.appendChild(group(row(T('Updates'), h('span', { class: 'st-val st-wrapval' }, T('Available when PatOS is opened from its website.'))))); return; }
+            const short = (k) => String(k || '').replace('patos-', '');
+            const onOld = m.useOld && m.previous;
+            const btn = onOld
+              ? h('button', { class: 'btn', onclick: async () => { await ask({ patosUseNewest: true }); PatOS._leaving = true; location.reload(); } }, T('Use the newest version'))
+              : m.previous ? h('button', { class: 'btn', onclick: async () => { if (!(await PatOS.confirmBox(T('Go back to the previous version?'), T('PatOS restarts with the version you had before this update. Your files and settings stay the same.'), { ok: T('Go Back'), icon: 'settings' }))) return; const r = await ask({ patosRollback: true }); if (r && r.ok) { PatOS._leaving = true; location.reload(); } else PatOS.alertBox(T('No previous version'), T('There is no earlier version saved on this device yet.'), { icon: 'settings' }); } }, T('Go back…')) : null;
+            upd.appendChild(group(
+              row(T('Running'), h('span', { class: 'st-val' }, short(onOld ? m.previous : m.newest) + (onOld ? ' (' + T('previous version') + ')' : ''))),
+              row(T('Previous version'), h('div', { class: 'st-inline' }, h('span', { class: 'st-val' }, m.previous ? short(m.previous) : T('none yet')), btn), T('PatOS keeps the version before each update. If an update doesn’t start, PatOS goes back to it by itself.'))));
+          };
+          paintUpd();
           return [
             group(info(T('System'), os), info(T('Browser'), bname + ' ' + (br[2] || '')), info(T('Device'), PatOS.extApps ? PatOS.extApps.device().name : ''), info(T('Processor threads'), navigator.hardwareConcurrency), info(T('Memory'), navigator.deviceMemory ? '≥ ' + navigator.deviceMemory + ' GB' : ''), info(T('Graphics'), gpu), info(T('Screen'), screen.width + ' × ' + screen.height + ' @' + (window.devicePixelRatio || 1) + 'x'), info(T('Touch points'), navigator.maxTouchPoints || '0'), info(T('Language'), (navigator.languages || [navigator.language]).slice(0, 3).join(', ')), info(T('Time zone'), Intl.DateTimeFormat().resolvedOptions().timeZone)),
-            group(row(T('Battery'), bat), row(T('Browser storage used'), store), row(T('PatOS version'), h('span', { class: 'st-val' }, PatOS.version)), row(T('Time since PatOS opened'), h('span', { class: 'st-val' }, Math.round(performance.now() / 60000) + ' min')))];
+            group(row(T('Battery'), bat), row(T('Browser storage used'), store), row(T('PatOS version'), h('span', { class: 'st-val' }, PatOS.version)), row(T('Time since PatOS opened'), h('span', { class: 'st-val' }, Math.round(performance.now() / 60000) + ' min'))), upd];
         },
         permissions() {
           const box = h('div'); const rows = [];

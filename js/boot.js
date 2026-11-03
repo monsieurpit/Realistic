@@ -12,7 +12,15 @@
     $('.lock-time').textContent = parts.filter((p) => p.type !== 'dayPeriod').map((p) => p.value).join('').trim();
   }
 
+  // PatOS started fine: tell the update safety check (js/preload.js)
+  let bootMarked = false;
+  function markBooted() {
+    if (bootMarked) return; bootMarked = true;
+    const rolled = window.__patosBootOK && window.__patosBootOK();
+    if (rolled) setTimeout(() => PatOS.notify({ title: PatOS.t('PatOS went back to the previous version'), body: PatOS.t('The newest version didn’t start on this device, so the one that worked before is back. The next update will be tried again.'), icon: 'about', duration: 12000 }), 2500);
+  }
   function showLock() {
+    markBooted();
     const s = PatOS.settings;
     PatOS.wallpaper.apply();
     $('#boot').classList.add('hidden');

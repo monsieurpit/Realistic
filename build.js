@@ -35,13 +35,26 @@ fs.writeFileSync(path.join(root, 'sw.js'), `/* PatOS service worker (generated b
 const CACHE = 'patos-${version}';
 const FILES = ${JSON.stringify(assets, null, 0)};
 self.addEventListener('install', (e) => { e.waitUntil(caches.open(CACHE).then((c) => c.addAll(FILES)).then(() => self.skipWaiting())); });
+// Update safety: the version that was running before stays on the device ("previous"). If the new one
+// doesn't start, PatOS asks to go back to it (see js/preload.js), and Settings › This Device can too.
+const META = 'patos-data-meta';
+let meta = null;
+const loadMeta = async () => { try { const r = await (await caches.open(META)).match('/__patos/meta'); meta = r ? await r.json() : {}; } catch (e) { meta = {}; } return meta; };
+const saveMeta = async (m) => { meta = m; await (await caches.open(META)).put('/__patos/meta', new Response(JSON.stringify(m), { headers: { 'Content-Type': 'application/json' } })); };
+const metaReady = loadMeta();
+const isData = (k) => k.startsWith('patos-data-');
 self.addEventListener('activate', (e) => { e.waitUntil((async () => {
-  // caches named patos-data-… hold things people downloaded (Python, books) and survive updates
-  const keys = await caches.keys(); const isData = (k) => k.startsWith('patos-data-');
-  const hadOld = keys.some((k) => k.startsWith('patos-') && !isData(k) && k !== CACHE);
-  await Promise.all(keys.filter((k) => k !== CACHE && !isData(k)).map((k) => caches.delete(k)));
+  const m = await loadMeta(); const keys = await caches.keys();
+  const versions = keys.filter((k) => k.startsWith('patos-') && !isData(k));
+  // the previous version is the one that was running; the first time, any older copy that is still here
+  let previous = m.current && m.current !== CACHE ? m.current : (m.current === CACHE ? m.previous : versions.find((k) => k !== CACHE));
+  if (previous && !versions.includes(previous)) previous = null;
+  const hadOld = !!versions.find((k) => k !== CACHE);
+  await Promise.all(versions.filter((k) => k !== CACHE && k !== previous).map((k) => caches.delete(k)));
+  // a new version always gets its chance, even after going back from an earlier one
+  await saveMeta({ current: CACHE, previous: previous || null, useOld: m.current === CACHE ? !!m.useOld : false, since: m.current === CACHE ? m.since : Date.now() });
   await self.clients.claim();
-  if (hadOld) (await self.clients.matchAll()).forEach((c) => c.postMessage({ patosUpdate: true }));
+  if (hadOld && m.current !== CACHE) (await self.clients.matchAll()).forEach((c) => c.postMessage({ patosUpdate: true }));
 })()); });
 // buttons on PatOS's Chrome notifications (Stop, Snooze): tell the open PatOS, or open it
 self.addEventListener('notificationclick', (e) => {
@@ -54,7 +67,17 @@ self.addEventListener('notificationclick', (e) => {
 });
 // input() for Python: the Python worker waits on /__stdin/<run id> until PatOS sends it a line
 const stdin = {};
-self.addEventListener('message', (e) => { const d = e.data; if (d && d.patosStdin) { const st = stdin[d.id] = stdin[d.id] || { q: [], w: [] }; if (st.w.length) st.w.shift()(d.text); else st.q.push(d.text); } });
+self.addEventListener('message', (e) => {
+  const d = e.data; if (!d) return;
+  if (d.patosStdin) { const st = stdin[d.id] = stdin[d.id] || { q: [], w: [] }; if (st.w.length) st.w.shift()(d.text); else st.q.push(d.text); return; }
+  const reply = (x) => { if (e.ports && e.ports[0]) e.ports[0].postMessage(x); };
+  if (d.patosVersion || d.patosRollback || d.patosUseNewest) e.waitUntil((async () => {
+    const m = Object.assign({}, await loadMeta());
+    if (d.patosRollback) { if (!m.previous || !(await caches.has(m.previous))) return reply({ ok: false, reason: 'none' }); m.useOld = true; await saveMeta(m); }
+    if (d.patosUseNewest) { m.useOld = false; await saveMeta(m); }
+    reply(Object.assign({ ok: true, running: m.useOld && m.previous ? m.previous : CACHE, newest: CACHE }, m));
+  })());
+});
 self.addEventListener('fetch', (e) => {
   const url = new URL(e.request.url);
   if (url.pathname.startsWith('/__stdin/')) {
@@ -69,7 +92,16 @@ self.addEventListener('fetch', (e) => {
     return;
   }
   // saved copy first: PatOS opens instantly and works offline. A new version is picked up the next time PatOS loads.
-  e.respondWith(caches.match(e.request, { ignoreSearch: true }).then((m) => m || fetch(e.request).then((r) => { if (r.ok) { const copy = r.clone(); caches.open(CACHE).then((c) => c.put(e.request, copy)); } return r; }).catch(() => caches.match('index.html'))));
+  // Files come from one version only (the newest, or the previous one after going back), never a mix.
+  e.respondWith((async () => {
+    const m = meta || await metaReady;
+    const name = m && m.useOld && m.previous ? m.previous : CACHE;
+    const c = await caches.open(name);
+    const hit = await c.match(e.request, { ignoreSearch: true });
+    if (hit) return hit;
+    try { const r = await fetch(e.request); if (r.ok && name === CACHE) c.put(e.request, r.clone()); return r; }
+    catch (er) { return (await c.match('index.html')) || (await caches.match('index.html')) || Response.error(); }
+  })());
 });
 `);
 console.log('Wrote sw.js (' + assets.length + ' files, version ' + version + ')');
