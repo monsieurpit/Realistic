@@ -113,3 +113,39 @@ test('Contacts: vCard round trip, old contacts upgraded, duplicates, accent-free
   assert.deepEqual(errors, []);
   await page.close();
 });
+
+test('Weather: summary, 10 days, units, city suggestions (forecast stubbed)', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage(); const errors = await boot(page, srv.base, { fresh: true });
+  const pad = (n) => String(n).padStart(2, '0');
+  const iso = (d, hr) => d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()) + 'T' + pad(hr) + ':00';
+  const now = new Date(); const start = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const hourly = { time: [], temperature_2m: [], weather_code: [], precipitation_probability: [], is_day: [], visibility: [] };
+  for (let i = 0; i < 72; i++) { const d = new Date(start.getTime() + i * 3600000); hourly.time.push(iso(d, d.getHours())); hourly.temperature_2m.push(10 + (i % 24) / 3); hourly.weather_code.push(i === now.getHours() + 4 ? 63 : 1); hourly.precipitation_probability.push(i === now.getHours() + 4 ? 70 : 0); hourly.is_day.push(d.getHours() >= 7 && d.getHours() < 19 ? 1 : 0); hourly.visibility.push(24000); }
+  const days = Array.from({ length: 10 }, (_, i) => { const d = new Date(start.getTime() + i * 86400000); return d.getFullYear() + '-' + pad(d.getMonth() + 1) + '-' + pad(d.getDate()); });
+  const forecast = { utc_offset_seconds: -now.getTimezoneOffset() * 60, current: { time: iso(now, now.getHours()), temperature_2m: 12, apparent_temperature: 9, relative_humidity_2m: 60, weather_code: 1, wind_speed_10m: 20, wind_direction_10m: 90, wind_gusts_10m: 45, pressure_msl: 1015, is_day: 1 }, hourly,
+    daily: { time: days, weather_code: days.map(() => 3), temperature_2m_max: days.map(() => 14), temperature_2m_min: days.map(() => 4), sunrise: days.map((d) => d + 'T07:12'), sunset: days.map((d) => d + 'T16:48'), uv_index_max: days.map(() => 2), precipitation_sum: days.map(() => 1.2), precipitation_probability_max: days.map(() => 30) } };
+  await page.route(/api\.open-meteo\.com\/v1\/forecast/, (r) => r.fulfill({ json: forecast }));
+  await page.route(/air-quality-api/, (r) => r.fulfill({ json: { current: { us_aqi: 42 } } }));
+  await page.route(/geocoding-api/, (r) => r.fulfill({ json: { results: [{ name: 'Québec', admin1: 'Québec', country: 'Canada', latitude: 46.8, longitude: -71.2 }, { name: 'Quebec City Hall', admin1: 'X', country: 'Y', latitude: 1, longitude: 2 }] } }));
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise((res) => setTimeout(res, ms)); const out = {};
+    const w = PatOS.launch('weather'); await wait(900);
+    out.summary = w.body.querySelector('.wx-sum') && w.body.querySelector('.wx-sum').textContent;
+    out.days = w.body.querySelectorAll('.wx-day').length; out.tiles = w.body.querySelectorAll('.wx-tile').length;
+    out.emoji = /[\u{1F300}-\u{1FAFF}☀-➿]/u.test(w.body.querySelector('.wx').textContent);
+    out.wind = [...w.body.querySelectorAll('.wx-tile')].find((t) => /^wind$/i.test(t.querySelector('.wx-ch').textContent.trim())).querySelector('.wx-tv').textContent;
+    w.body.querySelector('.wx-top .wx-unit:last-child').click(); await wait(200);
+    out.windF = [...w.body.querySelectorAll('.wx-tile')].find((t) => /^wind$/i.test(t.querySelector('.wx-ch').textContent.trim())).querySelector('.wx-tv').textContent;
+    const s = w.body.querySelector('.wx-search'); s.value = 'queb'; s.dispatchEvent(new Event('input')); await wait(500);
+    out.sug = w.body.querySelectorAll('.wx-sg').length;
+    s.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' })); await wait(600);
+    out.city = w.body.querySelector('.wx-city').textContent; out.saved = PatOS.store.get('weatherPlaces').length;
+    return out;
+  });
+  assert.match(r.summary, /^Rain expected around/);
+  assert.equal(r.days, 10); assert.equal(r.tiles, 10); assert.equal(r.emoji, false);
+  assert.equal(r.wind, '20 km/h'); assert.equal(r.windF, '12 mph');
+  assert.equal(r.sug, 2); assert.equal(r.city, 'Québec'); assert.equal(r.saved, 2);
+  assert.deepEqual(errors, []);
+  await page.close();
+});

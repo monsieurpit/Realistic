@@ -9,14 +9,16 @@
     "notes": {
       "en": [
         "Calendar: Day and Year views, repeating events with an end date, alerts before events (even with Calendar closed), quick add in plain words (“Math class monday 9am weekly”), search, drag events to another day, and .ics import and export (Google Calendar)",
-        "Contacts: several phone numbers and emails per person, company, tap to call or email, search that ignores accents, Undo after deleting, merge duplicates, and better vCard import and export with photos"
+        "Contacts: several phone numbers and emails per person, company, tap to call or email, search that ignores accents, Undo after deleting, merge duplicates, and better vCard import and export with photos",
+        "Weather: 10-day forecast, a one-line summary of the next hours, city suggestions as you type, gusts, pressure, visibility and rain today, wind and rain in mph and inches with °F, refreshes by itself, and real icons instead of emoji"
       ],
       "fr": [
         "Calendrier : vues Jour et Année, événements récurrents avec date de fin, alertes avant les événements (même avec Calendrier fermé), ajout rapide en mots simples (« Cours de maths lundi 9h chaque semaine »), recherche, glisser les événements vers un autre jour, et import et export .ics (Google Agenda)",
-        "Contacts : plusieurs numéros et courriels par personne, entreprise, toucher pour appeler ou écrire, recherche sans tenir compte des accents, Annuler après une suppression, fusion des doublons, et meilleur import et export vCard avec les photos"
+        "Contacts : plusieurs numéros et courriels par personne, entreprise, toucher pour appeler ou écrire, recherche sans tenir compte des accents, Annuler après une suppression, fusion des doublons, et meilleur import et export vCard avec les photos",
+        "Météo : prévisions sur 10 jours, un résumé des prochaines heures, suggestions de villes en écrivant, rafales, pression, visibilité et pluie du jour, vent et pluie en mph et pouces avec les °F, actualisation automatique, et de vraies icônes au lieu des émojis"
       ]
     },
-    "beta": 3
+    "beta": 4
   },
   {
     "version": "1.6.0",
