@@ -3139,6 +3139,17 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 /* an app waiting for three.js */
 .app-loading { position: absolute; inset: 0; display: grid; place-items: center; }
 .app-loading .spinner { width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--hover2, rgba(127,127,127,.25)); border-top-color: var(--accent, #0a84ff); animation: spin .7s linear infinite; }
+/* big containers that show their own selection don't get the keyboard ring around everything */
+.fd-main:focus-visible, .gm-body:focus-visible, .pdv-scroll:focus-visible, .sh-grid:focus-visible { outline: none; }
+/* Finder */
+.fd-main { position: relative; }
+.fd-main.drop-in { box-shadow: inset 0 0 0 2px var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); border-radius: 6px; }
+.fd-band { position: absolute; border: 1px solid var(--accent); background: color-mix(in srgb, var(--accent) 18%, transparent); border-radius: 3px; pointer-events: none; z-index: 2; }
+.fd-item.cut, .fd-row.cut { opacity: .45; }
+.fd-where { font-size: 10.5px; color: var(--text3); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-top: -2px; }
+.fd-empty { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.fd-empty b { font-weight: 600; color: var(--text2); }
+.fd-empty small { font-size: 12.5px; }
 
 </style>
   <style>
@@ -4092,29 +4103,49 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   };
 
   /* ---------- import files from the real computer ---------- */
+  /* add real files (from a file picker, or dragged in from the computer) to a PatOS folder */
+  PatOS.importFileList = async function (destDir, files) {
+    const out = [];
+    for (const file of files) {
+      const isText = /^text\/|json|javascript|xml|csv/.test(file.type) || /\.(txt|md|js|css|html|json|csv|py)$/i.test(file.name);
+      const name = PatOS.fs.uniqueName(destDir, file.name);
+      try {
+        if (!isText && (file.size > 8 * 1024 * 1024 || /^video\//.test(file.type) || /\.(mp4|webm|mov|m4v|ogv|mkv)$/i.test(file.name))) out.push(await PatOS.fs.writeBlob(destDir + '/' + name, file));
+        else {
+          const content = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error || new Error('Could not read the file')); if (isText) r.readAsText(file); else r.readAsDataURL(file); });
+          out.push(PatOS.fs.write(destDir + '/' + name, content));
+        }
+      } catch (e) { PatOS.notify({ title: PatOS.t('Couldn’t add') + ' ' + file.name, body: e.message || PatOS.t('Not enough storage space.'), icon: 'finder' }); }
+    }
+    return out;
+  };
   PatOS.importFiles = function (destDir, accept) {
     return new Promise((resolve) => {
       const input = PatOS.h('input', { type: 'file', multiple: true, accept: accept || '' });
       input.style.display = 'none';
       document.body.appendChild(input);
-      input.onchange = async () => {
-        const out = [];
-        for (const file of input.files) {
-          const isText = /^text\/|json|javascript|xml|csv/.test(file.type) || /\.(txt|md|js|css|html|json|csv|py)$/i.test(file.name);
-          const name = PatOS.fs.uniqueName(destDir, file.name);
-          try {
-            if (!isText && (file.size > 8 * 1024 * 1024 || /^video\//.test(file.type) || /\.(mp4|webm|mov|m4v|ogv|mkv)$/i.test(file.name))) out.push(await PatOS.fs.writeBlob(destDir + '/' + name, file));
-            else {
-              const content = await new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); if (isText) r.readAsText(file); else r.readAsDataURL(file); });
-              out.push(PatOS.fs.write(destDir + '/' + name, content));
-            }
-          } catch (e) { PatOS.notify({ title: 'Couldn’t add ' + file.name, body: e.message || 'Not enough storage space.', icon: 'finder' }); }
-        }
-        input.remove();
-        resolve(out);
-      };
+      input.onchange = async () => { const out = await PatOS.importFileList(destDir, input.files); input.remove(); resolve(out); };
       input.click();
     });
+  };
+  /* files copied or cut in Finder or on the desktop, waiting to be pasted */
+  PatOS.fileClip = {
+    paths: [], cut: false,
+    set(paths, cut) { this.paths = paths.filter((p) => PatOS.fs.exists(p) && !p.startsWith('/.Trash')); this.cut = !!cut; PatOS.emit('fileclip'); return this.paths.length; },
+    has() { return this.paths.some((p) => PatOS.fs.exists(p)); },
+    paste(dest) {
+      const out = [];
+      for (const p of this.paths) {
+        if (!PatOS.fs.exists(p)) continue;
+        if (dest === p || dest.startsWith(p + '/')) { PatOS.notify({ title: PatOS.t('Cannot copy') + ' ' + PatOS.fs.basename(p), body: PatOS.t('A folder can’t go inside itself.'), icon: 'finder' }); continue; }
+        try {
+          if (this.cut) { if (PatOS.fs.dirname(p) !== dest) out.push(PatOS.fs.move(p, dest)); else out.push(p); }
+          else out.push(PatOS.fs.copy(p, dest));
+        } catch (e) { PatOS.notify({ title: PatOS.t(this.cut ? 'Cannot move' : 'Cannot copy') + ' ' + PatOS.fs.basename(p), body: PatOS.t(e.message), icon: 'finder' }); }
+      }
+      if (this.cut) { this.paths = []; this.cut = false; PatOS.emit('fileclip'); }
+      return out;
+    }
   };
 
   PatOS.downloadFile = function (name, content) {
@@ -6661,6 +6692,22 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Play your own songs with playlists and a queue, or let your computer compose some.': 'Écoutez vos chansons avec des listes de lecture et une file d’attente, ou laissez l’ordinateur en composer.',
     'Tabs, bookmarks and history. Searches open in your real browser, YouTube links in the YouTube app.': 'Onglets, favoris et historique. Les recherches s’ouvrent dans votre vrai navigateur, les liens YouTube dans l’app YouTube.',
     'A graphing calculator: graph equations and inequalities, use sliders, and find roots and crossing points.': 'Une calculatrice graphique : tracez des équations et des inéquations, utilisez des curseurs, trouvez les zéros et les points d’intersection.',
+    'cut': 'coupé',
+    'Paste Into Folder': 'Coller dans le dossier',
+    'file added': 'fichier ajouté',
+    'files added': 'fichiers ajoutés',
+    'Press Import to add files from your phone.': 'Appuyez sur Importer pour ajouter des fichiers de votre téléphone.',
+    'Drag files here from your computer, or press Import.': 'Glissez des fichiers ici depuis votre ordinateur, ou appuyez sur Importer.',
+    'New Finder Window': 'Nouvelle fenêtre du Finder',
+    'as Icons': 'par icônes',
+    'as List': 'par liste',
+    'In': 'Dans',
+    'Not enough storage space.': 'Pas assez d’espace de stockage.',
+    'Cannot copy': 'Impossible de copier',
+    'Cannot move': 'Impossible de déplacer',
+    'available': 'disponibles',
+    'Import Copies…': 'Importer des copies…',
+    'A folder can’t go inside itself.': 'Un dossier ne peut pas aller dans lui-même.',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 
@@ -8747,6 +8794,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       { label: 'Open', action: () => PatOS.openFile(path) },
       n && n.type === 'file' ? { label: 'Open with TextEdit', action: () => PatOS.launch('textedit', { path }) } : null,
       { divider: true },
+      { label: 'Copy', shortcut: 'Ctrl+C', action: () => PatOS.fileClip.set(selected.has(path) ? [...selected] : [path], false) },
+      { label: 'Cut', shortcut: 'Ctrl+X', action: () => PatOS.fileClip.set(selected.has(path) ? [...selected] : [path], true) },
+      { divider: true },
       { label: 'Rename…', action: () => PatOS.renameInline(path) },
       { label: 'Duplicate', action: () => PatOS.fs.copy(path, PatOS.fs.dirname(path)) },
       n && n.type === 'file' ? { label: 'Download to Computer', action: () => PatOS.downloadFile(PatOS.fs.basename(path), n.content) } : null,
@@ -8785,6 +8835,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         { label: 'New Folder', action: () => newFolder('/Desktop') },
         { label: 'New Text File', action: () => { const nm = PatOS.fs.uniqueName('/Desktop', 'untitled.txt'); PatOS.fs.write('/Desktop/' + nm, ''); PatOS.launch('textedit', { path: '/Desktop/' + nm }); } },
         { label: 'Import Files from Computer…', action: () => PatOS.importFiles('/Desktop') },
+        { label: 'Paste', shortcut: 'Ctrl+V', disabled: !PatOS.fileClip.has(), action: () => PatOS.fileClip.paste('/Desktop') },
         { divider: true },
         { label: 'Clean Up Icons', action: () => PatOS.setSetting('desktopPositions', {}) },
         { label: 'Change Wallpaper…', action: () => PatOS.launch('settings', { pane: 'wallpaper' }) },
@@ -8793,6 +8844,16 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         { label: 'Open Terminal', action: () => PatOS.launch('terminal') },
         { label: 'Mission Control', action: () => PatOS.mission.enter() }
       ], e.clientX, e.clientY);
+    });
+    // files dragged in from the computer land on the desktop
+    desk.addEventListener('dragover', (e) => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files') && !e.target.closest('.window')) e.preventDefault(); });
+    desk.addEventListener('drop', (e) => { const files = [...((e.dataTransfer && e.dataTransfer.files) || [])]; if (!files.length || e.target.closest('.window')) return; e.preventDefault(); PatOS.importFileList('/Desktop', files); });
+    // copy, cut and paste desktop icons when no window has the keyboard
+    document.addEventListener('keydown', (e) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey || PatOS.wm.active || e.target.closest('input, textarea, [contenteditable]') || !PatOS.loggedIn) return;
+      const k = e.key.toLowerCase();
+      if ((k === 'c' || k === 'x') && selected.size) { e.preventDefault(); PatOS.fileClip.set([...selected], k === 'x'); }
+      else if (k === 'v' && PatOS.fileClip.has()) { e.preventDefault(); PatOS.fileClip.paste('/Desktop'); }
     });
     // catch-all to block the browser menu inside PatOS chrome
     document.addEventListener('contextmenu', (e) => { if (!e.target.closest('input, textarea, [contenteditable], iframe, .allow-ctx')) e.preventDefault(); });
@@ -9800,7 +9861,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 
 </script>
   <script type="patos/js">
-/* Finder — file manager: icons/list views, sorting, path bar, multi-select, tags, Quick Look, info panel */
+/* Finder — file manager: icons/list views, sorting, path bar, multi-select (click, Shift, Ctrl, or drag a box),
+   copy/cut/paste, drag and drop (also files dragged in from the computer), tags, Quick Look, info panel */
 (function () {
   'use strict';
   const { h, $$ } = PatOS;
@@ -9835,7 +9897,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       else if (n.blob) body.appendChild(h('div', { class: 'ql-folder' }, h('div', { class: 'ql-icon', html: PatOS.fileIconHTML(name, n) }), h('b', {}, name), h('small', {}, PatOS.fmtBytes(PatOS.fs.size(n)))));
       else if (kind === 'pdf' || ext === 'pdf') { try { const bin = atob(String(n.content).split(',')[1]); const arr = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) arr[i] = bin.charCodeAt(i); body.appendChild(h('iframe', { class: 'ql-pdf', src: URL.createObjectURL(new Blob([arr], { type: 'application/pdf' })) })); } catch (e) {} }
       else if (n.type === 'dir') body.appendChild(h('div', { class: 'ql-folder' }, h('div', { class: 'ql-icon', html: PatOS.iconHTML('folder') }), h('b', {}, name), h('small', {}, PatOS.fs.list(p).length + ' ' + PatOS.t('items'))));
-      else if (ext === 'pdoc') body.appendChild(h('div', { class: 'ql-doc', html: String(n.content).replace(/<script[\s\S]*?<\/script>/gi, '').replace(/\son\w+="[^"]*"/gi, '') }));
+      else if (ext === 'pdoc') body.appendChild(h('div', { class: 'ql-doc', html: PatOS.sanitize(String(n.content)) }));
       else if (ext === 'psheet') { try { const cells = JSON.parse(n.content).cells || {}; const t = h('table', { class: 'ql-sheet' }); for (let r = 1; r <= 14; r++) { const tr = h('tr'); for (let c = 0; c < 6; c++) { const v = cells[String.fromCharCode(65 + c) + r]; tr.appendChild(h('td', {}, v ? String(v.v).slice(0, 18) : '')); } t.appendChild(tr); } body.appendChild(t); } catch (e) {} }
       else if (['pslides', 'pform'].includes(ext) || String(n.content).startsWith('data:')) body.appendChild(h('div', { class: 'ql-folder' }, h('div', { class: 'ql-icon', html: PatOS.fileIconHTML(name, n) }), h('b', {}, name), h('small', {}, PatOS.t(kindLabel({ name, ...n })))));
       else body.appendChild(h('pre', { class: 'ql-text' }, String(n.content).slice(0, 20000)));
@@ -9923,7 +9985,13 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       bFwd.onclick = () => { if (fwd.length) { back.push(cwd); go(fwd.pop(), true); } };
       bGrid.onclick = () => { view = 'grid'; PatOS.store.set('finderView', view); render(); };
       bList.onclick = () => { view = 'list'; PatOS.store.set('finderView', view); render(); };
-      bNew.onclick = () => { if (canWrite()) { const nm = PatOS.newFolder(cwd); setTimeout(() => select([cwd + '/' + nm]), 50); } };
+      bNew.onclick = () => newFolderHere();
+      function newFolderHere() { if (!canWrite()) return; const nm = PatOS.newFolder(cwd); const p = (cwd === '/' ? '' : cwd) + '/' + nm; setTimeout(() => { select([p]); anchor = p; PatOS.renameInline(p, (np) => setTimeout(() => select([np]), 80)); }, 60); }
+      /* copy, cut and paste files */
+      const here = () => (cwd === '/' ? '/' : cwd);
+      function copySel(cut) { const sel = [...selected].filter((p) => !p.startsWith('app:')); if (!sel.length || cwd === '/.Trash') return; const n = PatOS.fileClip.set(sel, cut); OFtoast((n === 1 ? '“' + PatOS.fs.basename(sel[0]) + '”' : n + ' ' + PatOS.t('items')) + ' ' + PatOS.t(cut ? 'cut' : 'copied')); render(); }
+      function pasteHere() { if (!canWrite() || !PatOS.fileClip.has()) return; const out = PatOS.fileClip.paste(here()); if (out.length) setTimeout(() => select(out), 80); }
+      function OFtoast(t) { if (PatOS.office && PatOS.office.toast) PatOS.office.toast(win, t); }
       bImport.onclick = () => { if (!canWrite()) return; const r = bImport.getBoundingClientRect(); PatOS.menu([{ label: PatOS.t('Open Files from This Chromebook…'), action: () => PatOS.device.openFiles(cwd) }, { label: PatOS.t('Link a Folder from This Chromebook…'), action: () => PatOS.device.linkFolder(cwd) }, { divider: true }, { label: PatOS.t('Import Copies…'), action: () => PatOS.importFiles(cwd) }], r.left, r.bottom + 4); };
       bInfo.onclick = () => { showInfo = !showInfo; PatOS.store.set('finderInfo', showInfo); render(); };
       bSort.onclick = () => { const r = bSort.getBoundingClientRect(); const opt = (by, label) => ({ label: PatOS.t(label), checked: sort.by === by, action: () => { sort = { by, dir: sort.by === by ? -sort.dir : 1 }; PatOS.store.set('finderSort', sort); render(); } }); PatOS.menu([{ header: PatOS.t('Sort by') }, opt('name', 'Name'), opt('date', 'Date Modified'), opt('size', 'Size'), opt('kind', 'Kind'), { divider: true }, { label: PatOS.t(sort.dir > 0 ? 'Ascending' : 'Descending'), action: () => { sort.dir = -sort.dir; PatOS.store.set('finderSort', sort); render(); } }], r.left - 120, r.bottom + 4); };
@@ -9956,7 +10024,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
           main.appendChild(h('div', { class: 'fd-lh' }, hd('name', 'Name'), hd('date', 'Date Modified'), hd('size', 'Size'), hd('kind', 'Kind')));
         }
         list.forEach((it, i) => main.appendChild(item(it, i)));
-        if (!list.length) main.appendChild(h('div', { class: 'fd-empty' }, search.value ? 'No results' : cwd === '/.Trash' ? 'Trash is empty' : cwd === 'tag' ? 'No files with this tag' : 'This folder is empty'));
+        if (!list.length) main.appendChild(h('div', { class: 'fd-empty' }, h('b', {}, PatOS.t(search.value ? 'No results' : cwd === '/.Trash' ? 'Trash is empty' : cwd === 'tag' ? 'No files with this tag' : 'This folder is empty')),
+          canWrite() && !search.value ? h('small', {}, PatOS.t(PatOS.isMobile ? 'Press Import to add files from your phone.' : 'Drag files here from your computer, or press Import.')) : null));
         // path bar
         pathbar.innerHTML = '';
         if (!['apps', '/.Trash', 'tag'].includes(cwd)) {
@@ -9969,8 +10038,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       }
       function updateStatus() {
         const n = selected.size;
-        status.textContent = (n ? n + ' ' + PatOS.t('of') + ' ' : '') + list.length + ' ' + PatOS.t(list.length === 1 ? 'item' : 'items') + (cwd !== 'apps' ? ' · ' + PatOS.fmtBytes(PatOS.store.usage()) + ' ' + PatOS.t('used') : '');
+        const selSize = n ? [...selected].reduce((t, p) => { const x = !p.startsWith('app:') && PatOS.fs.get(p); return t + (x && x.type === 'file' ? PatOS.fs.size(x) : 0); }, 0) : 0;
+        status.textContent = (n ? n + ' ' + PatOS.t('of') + ' ' : '') + list.length + ' ' + PatOS.t(list.length === 1 ? 'item' : 'items') + (selSize ? ' · ' + PatOS.fmtBytes(selSize) : '') + (cwd !== 'apps' && freeSpace != null ? ' · ' + PatOS.fmtBytes(freeSpace) + ' ' + PatOS.t('available') : '');
       }
+      let freeSpace = null;
+      PatOS.storageInfo().then((i) => { freeSpace = Math.max(0, i.quota - i.used); updateStatus(); }).catch(() => {});
       function select(paths, keep) {
         if (!keep) selected.clear(); paths.forEach((p) => selected.add(p));
         $$('.fd-item, .fd-row', main).forEach((el) => el.classList.toggle('sel', selected.has(el.dataset.path)));
@@ -9996,11 +10068,14 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         const isApp = !!it.app;
         const iconHTML = isApp ? PatOS.iconHTML(PatOS.apps[it.app].icon || it.app) : PatOS.fileIconHTML(it.name, it);
         const tg = !isApp && tagsOf()[it.path];
+        // search results come from inside other folders: say where
+        const where = !isApp && search.value.trim() && PatOS.fs.dirname(it.path) !== cwd ? (PatOS.fs.dirname(it.path) === '/' ? '~' : PatOS.fs.basename(PatOS.fs.dirname(it.path))) : '';
         const dot = tg ? h('span', { class: 'fd-tagdot', style: { background: TAGS[tg] } }) : null;
         const el = view === 'grid'
-          ? h('div', { class: 'fd-item', 'data-path': it.path }, h('div', { class: 'fd-ic', html: iconHTML }), h('div', { class: 'fd-nm' }, dot, it.name))
+          ? h('div', { class: 'fd-item', 'data-path': it.path, title: where ? PatOS.t('In') + ' ' + where : null }, h('div', { class: 'fd-ic', html: iconHTML }), h('div', { class: 'fd-nm' }, dot, it.name), where ? h('small', { class: 'fd-where' }, where) : null)
           : h('div', { class: 'fd-row', 'data-path': it.path }, h('span', { class: 'fd-rn' }, h('span', { class: 'fd-ric', html: iconHTML }), it.name, dot), h('span', {}, it.mtime ? new Date(it.mtime).toLocaleString(undefined, { dateStyle: 'medium', timeStyle: 'short' }) : '—'), h('span', {}, isApp || it.type === 'dir' ? '—' : PatOS.fmtBytes(PatOS.fs.size(it))), h('span', {}, PatOS.t(kindLabel(it))));
         if (selected.has(it.path)) el.classList.add('sel');
+        if (PatOS.fileClip.cut && PatOS.fileClip.paths.includes(it.path)) el.classList.add('cut');
         el.addEventListener('click', (e) => {
           e.stopPropagation(); main.focus({ preventScroll: true });
           if (e.shiftKey && anchor) { const a = list.findIndex((x) => x.path === anchor), b = i; select(list.slice(Math.min(a, b), Math.max(a, b) + 1).map((x) => x.path)); }
@@ -10026,6 +10101,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
             { label: PatOS.t('Open'), action: () => sel.forEach((p) => PatOS.openFile(p)) },
             { label: PatOS.t('Quick Look'), shortcut: 'Space', action: () => PatOS.quickLook(it.path, list.filter((x) => !x.app).map((x) => x.path)) },
             { divider: true },
+            { label: PatOS.t('Copy'), shortcut: 'Ctrl+C', action: () => copySel(false) },
+            { label: PatOS.t('Cut'), shortcut: 'Ctrl+X', action: () => copySel(true) },
+            it.type === 'dir' && sel.length === 1 && PatOS.fileClip.has() ? { label: PatOS.t('Paste Into Folder'), action: () => { const out = PatOS.fileClip.paste(it.path); if (out.length) OFtoast(out.length + ' ' + PatOS.t(out.length === 1 ? 'item' : 'items') + ' → ' + it.name); } } : null,
+            { divider: true },
             sel.length === 1 ? { label: PatOS.t('Rename…'), shortcut: 'Enter', action: () => PatOS.renameInline(it.path) } : null,
             { label: PatOS.t('Duplicate'), action: () => sel.forEach((p) => PatOS.fs.copy(p, PatOS.fs.dirname(p))) },
             { label: PatOS.t('Compress'), action: () => PatOS.compress(sel) },
@@ -10047,17 +10126,48 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         if (cwd === '/.Trash') return;
         if (it.type === 'dir') go(it.path); else PatOS.openFile(it.path);
       }
-      main.addEventListener('click', () => { select([]); anchor = null; });
+      main.addEventListener('click', (e) => { if (banded) { banded = false; return; } if (e.target.closest('.fd-item, .fd-row, button')) return; select([]); anchor = null; });
+      // drag a box on the empty space to select several files
+      let banded = false;
+      main.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0 || e.pointerType === 'touch' || e.target.closest('.fd-item, .fd-row, button, .fd-lh')) return;
+        const r0 = main.getBoundingClientRect(), sx = e.clientX - r0.left + main.scrollLeft, sy = e.clientY - r0.top + main.scrollTop;
+        const keep = e.ctrlKey || e.metaKey || e.shiftKey ? new Set(selected) : new Set();
+        let band = null;
+        const mv = (ev) => {
+          const x2 = ev.clientX - r0.left + main.scrollLeft, y2 = ev.clientY - r0.top + main.scrollTop;
+          if (!band) { if (Math.abs(x2 - sx) + Math.abs(y2 - sy) < 5) return; band = h('div', { class: 'fd-band' }); main.appendChild(band); }
+          const x = Math.min(sx, x2), y = Math.min(sy, y2), w = Math.abs(x2 - sx), hh = Math.abs(y2 - sy);
+          Object.assign(band.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: hh + 'px' });
+          const hit = new Set(keep);
+          $$('.fd-item, .fd-row', main).forEach((el) => { const r = el.getBoundingClientRect(); const ex = r.left - r0.left + main.scrollLeft, ey = r.top - r0.top + main.scrollTop; if (ex < x + w && ex + r.width > x && ey < y + hh && ey + r.height > y) hit.add(el.dataset.path); });
+          select([...hit]);
+        };
+        const up = () => { window.removeEventListener('pointermove', mv); window.removeEventListener('pointerup', up); if (band) { band.remove(); banded = true; setTimeout(() => { banded = false; }, 0); } };
+        window.addEventListener('pointermove', mv); window.addEventListener('pointerup', up);
+      });
+      // drop files from the computer, or PatOS files, onto the folder
+      main.addEventListener('dragover', (e) => { if (!canWrite()) return; e.preventDefault(); main.classList.add('drop-in'); });
+      main.addEventListener('dragleave', (e) => { if (!main.contains(e.relatedTarget)) main.classList.remove('drop-in'); });
+      main.addEventListener('drop', async (e) => {
+        main.classList.remove('drop-in'); if (!canWrite()) return; e.preventDefault();
+        const files = [...((e.dataTransfer && e.dataTransfer.files) || [])];
+        if (files.length) { const out = await PatOS.importFileList(here(), files); if (out.length) { OFtoast(out.length + ' ' + PatOS.t(out.length === 1 ? 'file added' : 'files added')); setTimeout(() => select(out.map((x) => (typeof x === 'string' ? x : x && x.path)).filter(Boolean)), 100); } return; }
+        dropTo(e, here());
+      });
       main.addEventListener('contextmenu', (e) => {
         if (e.target.closest('.fd-item, .fd-row') || cwd === 'apps' || cwd === 'tag') return;
         e.preventDefault();
         if (cwd === '/.Trash') return PatOS.menu([{ label: PatOS.t('Empty Trash'), action: () => PatOS.fs.emptyTrash() }], e.clientX, e.clientY);
         PatOS.menu([
-          { label: PatOS.t('New Folder'), action: () => PatOS.newFolder(cwd) },
+          { label: PatOS.t('New Folder'), action: newFolderHere },
           { label: PatOS.t('New Text File'), action: () => { const nm = PatOS.fs.uniqueName(cwd, 'untitled.txt'); PatOS.fs.write(cwd + '/' + nm, ''); PatOS.launch('textedit', { path: cwd + '/' + nm }); } },
           { label: PatOS.t('New Document'), action: () => PatOS.launch('docs') },
           { label: PatOS.t('Open Files from This Chromebook…'), action: () => PatOS.device.openFiles(cwd) },
           { label: PatOS.t('Link a Folder from This Chromebook…'), action: () => PatOS.device.linkFolder(cwd) },
+          { divider: true },
+          { label: PatOS.t('Paste'), shortcut: 'Ctrl+V', disabled: !PatOS.fileClip.has(), action: pasteHere },
+          { label: PatOS.t('Select All'), shortcut: 'Ctrl+A', action: () => select(list.map((x) => x.path)) },
           { divider: true },
           { label: PatOS.t(view === 'grid' ? 'View as List' : 'View as Icons'), action: () => { view = view === 'grid' ? 'list' : 'grid'; PatOS.store.set('finderView', view); render(); } },
           { label: PatOS.t(showInfo ? 'Hide Info' : 'Show Info'), action: () => bInfo.click() }
@@ -10074,14 +10184,47 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         else if ((e.key === 'o' && e.ctrlKey) || (e.key === 'ArrowDown' && e.ctrlKey)) { if (list[i]) openItem(list[i]); }
         else if ((e.key === 'Delete' || (e.key === 'Backspace' && e.ctrlKey)) && selected.size && canWrite()) { [...selected].forEach((p) => PatOS.fs.remove(p)); PatOS.sound.trash(); }
         else if (e.key === 'a' && e.ctrlKey) { e.preventDefault(); select(list.map((x) => x.path)); }
+        else if ((e.key === 'c' || e.key === 'C') && (e.ctrlKey || e.metaKey) && selected.size) { e.preventDefault(); copySel(false); }
+        else if ((e.key === 'x' || e.key === 'X') && (e.ctrlKey || e.metaKey) && selected.size && canWrite()) { e.preventDefault(); copySel(true); }
+        else if ((e.key === 'v' || e.key === 'V') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); pasteHere(); }
+        else if ((e.key === 'd' || e.key === 'D') && e.ctrlKey && selected.size && canWrite()) { e.preventDefault(); const out = [...selected].map((p) => PatOS.fs.copy(p, PatOS.fs.dirname(p))); setTimeout(() => select(out), 80); }
+        else if (e.key === 'Escape' && selected.size) { select([]); anchor = null; }
         else if (e.key === 'Backspace' && cwd !== '/' && canWrite()) { e.preventDefault(); go(PatOS.fs.dirname(cwd)); }
       });
+      const offClip = PatOS.on('fileclip', () => render()); win.on('closed', () => offClip && offClip());
       const off = PatOS.on('fs', PatOS.debounce(() => { const keep = [...selected].filter((p) => PatOS.fs.exists(p)); selected = new Set(keep); render(); }, 60));
       win.on('closed', off);
       win._go = go;
+      win._finder = { newFolder: newFolderHere, copy: copySel, paste: pasteHere, selectAll: () => select(list.map((x) => x.path)), view: () => view, setView: (v) => { view = v; PatOS.store.set('finderView', v); render(); }, info: () => showInfo, toggleInfo: () => bInfo.click() };
       render(); setTimeout(() => main.focus({ preventScroll: true }), 80);
     },
-    onArgs(win, args) { if (args.path && win._go) win._go(args.path); }
+    onArgs(win, args) { if (args.path && win._go) win._go(args.path); },
+    menus(win) {
+      const F = win._finder || {};
+      return {
+        file: [
+          { label: PatOS.t('New Finder Window'), shortcut: 'Alt+N', action: () => PatOS.launch('finder', { path: win.el._finderPath() }) },
+          { label: PatOS.t('New Folder'), action: () => F.newFolder && F.newFolder() },
+          { divider: true },
+          { label: PatOS.t('Import Copies…'), action: () => PatOS.importFiles(win.el._finderPath()) },
+          { label: PatOS.t('Open Files from This Chromebook…'), action: () => PatOS.device.openFiles(win.el._finderPath()) },
+          { divider: true },
+          { label: PatOS.t('Close Window'), shortcut: 'Alt+W', action: () => win.close() }
+        ],
+        edit: [
+          { label: PatOS.t('Copy'), shortcut: 'Ctrl+C', action: () => F.copy && F.copy(false) },
+          { label: PatOS.t('Cut'), shortcut: 'Ctrl+X', action: () => F.copy && F.copy(true) },
+          { label: PatOS.t('Paste'), shortcut: 'Ctrl+V', disabled: !PatOS.fileClip.has(), action: () => F.paste && F.paste() },
+          { label: PatOS.t('Select All'), shortcut: 'Ctrl+A', action: () => F.selectAll && F.selectAll() }
+        ],
+        view: [
+          { label: PatOS.t('as Icons'), checked: F.view && F.view() === 'grid', action: () => F.setView && F.setView('grid') },
+          { label: PatOS.t('as List'), checked: F.view && F.view() === 'list', action: () => F.setView && F.setView('list') },
+          { divider: true },
+          { label: PatOS.t('Show Info'), checked: !!(F.info && F.info()), action: () => F.toggleInfo && F.toggleInfo() }
+        ]
+      };
+    }
   });
 })();
 

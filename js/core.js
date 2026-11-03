@@ -659,29 +659,49 @@
   };
 
   /* ---------- import files from the real computer ---------- */
+  /* add real files (from a file picker, or dragged in from the computer) to a PatOS folder */
+  PatOS.importFileList = async function (destDir, files) {
+    const out = [];
+    for (const file of files) {
+      const isText = /^text\/|json|javascript|xml|csv/.test(file.type) || /\.(txt|md|js|css|html|json|csv|py)$/i.test(file.name);
+      const name = PatOS.fs.uniqueName(destDir, file.name);
+      try {
+        if (!isText && (file.size > 8 * 1024 * 1024 || /^video\//.test(file.type) || /\.(mp4|webm|mov|m4v|ogv|mkv)$/i.test(file.name))) out.push(await PatOS.fs.writeBlob(destDir + '/' + name, file));
+        else {
+          const content = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(r.error || new Error('Could not read the file')); if (isText) r.readAsText(file); else r.readAsDataURL(file); });
+          out.push(PatOS.fs.write(destDir + '/' + name, content));
+        }
+      } catch (e) { PatOS.notify({ title: PatOS.t('Couldn’t add') + ' ' + file.name, body: e.message || PatOS.t('Not enough storage space.'), icon: 'finder' }); }
+    }
+    return out;
+  };
   PatOS.importFiles = function (destDir, accept) {
     return new Promise((resolve) => {
       const input = PatOS.h('input', { type: 'file', multiple: true, accept: accept || '' });
       input.style.display = 'none';
       document.body.appendChild(input);
-      input.onchange = async () => {
-        const out = [];
-        for (const file of input.files) {
-          const isText = /^text\/|json|javascript|xml|csv/.test(file.type) || /\.(txt|md|js|css|html|json|csv|py)$/i.test(file.name);
-          const name = PatOS.fs.uniqueName(destDir, file.name);
-          try {
-            if (!isText && (file.size > 8 * 1024 * 1024 || /^video\//.test(file.type) || /\.(mp4|webm|mov|m4v|ogv|mkv)$/i.test(file.name))) out.push(await PatOS.fs.writeBlob(destDir + '/' + name, file));
-            else {
-              const content = await new Promise((res) => { const r = new FileReader(); r.onload = () => res(r.result); if (isText) r.readAsText(file); else r.readAsDataURL(file); });
-              out.push(PatOS.fs.write(destDir + '/' + name, content));
-            }
-          } catch (e) { PatOS.notify({ title: 'Couldn’t add ' + file.name, body: e.message || 'Not enough storage space.', icon: 'finder' }); }
-        }
-        input.remove();
-        resolve(out);
-      };
+      input.onchange = async () => { const out = await PatOS.importFileList(destDir, input.files); input.remove(); resolve(out); };
       input.click();
     });
+  };
+  /* files copied or cut in Finder or on the desktop, waiting to be pasted */
+  PatOS.fileClip = {
+    paths: [], cut: false,
+    set(paths, cut) { this.paths = paths.filter((p) => PatOS.fs.exists(p) && !p.startsWith('/.Trash')); this.cut = !!cut; PatOS.emit('fileclip'); return this.paths.length; },
+    has() { return this.paths.some((p) => PatOS.fs.exists(p)); },
+    paste(dest) {
+      const out = [];
+      for (const p of this.paths) {
+        if (!PatOS.fs.exists(p)) continue;
+        if (dest === p || dest.startsWith(p + '/')) { PatOS.notify({ title: PatOS.t('Cannot copy') + ' ' + PatOS.fs.basename(p), body: PatOS.t('A folder can’t go inside itself.'), icon: 'finder' }); continue; }
+        try {
+          if (this.cut) { if (PatOS.fs.dirname(p) !== dest) out.push(PatOS.fs.move(p, dest)); else out.push(p); }
+          else out.push(PatOS.fs.copy(p, dest));
+        } catch (e) { PatOS.notify({ title: PatOS.t(this.cut ? 'Cannot move' : 'Cannot copy') + ' ' + PatOS.fs.basename(p), body: PatOS.t(e.message), icon: 'finder' }); }
+      }
+      if (this.cut) { this.paths = []; this.cut = false; PatOS.emit('fileclip'); }
+      return out;
+    }
   };
 
   PatOS.downloadFile = function (name, content) {

@@ -964,6 +964,9 @@
       { label: 'Open', action: () => PatOS.openFile(path) },
       n && n.type === 'file' ? { label: 'Open with TextEdit', action: () => PatOS.launch('textedit', { path }) } : null,
       { divider: true },
+      { label: 'Copy', shortcut: 'Ctrl+C', action: () => PatOS.fileClip.set(selected.has(path) ? [...selected] : [path], false) },
+      { label: 'Cut', shortcut: 'Ctrl+X', action: () => PatOS.fileClip.set(selected.has(path) ? [...selected] : [path], true) },
+      { divider: true },
       { label: 'Rename…', action: () => PatOS.renameInline(path) },
       { label: 'Duplicate', action: () => PatOS.fs.copy(path, PatOS.fs.dirname(path)) },
       n && n.type === 'file' ? { label: 'Download to Computer', action: () => PatOS.downloadFile(PatOS.fs.basename(path), n.content) } : null,
@@ -1002,6 +1005,7 @@
         { label: 'New Folder', action: () => newFolder('/Desktop') },
         { label: 'New Text File', action: () => { const nm = PatOS.fs.uniqueName('/Desktop', 'untitled.txt'); PatOS.fs.write('/Desktop/' + nm, ''); PatOS.launch('textedit', { path: '/Desktop/' + nm }); } },
         { label: 'Import Files from Computer…', action: () => PatOS.importFiles('/Desktop') },
+        { label: 'Paste', shortcut: 'Ctrl+V', disabled: !PatOS.fileClip.has(), action: () => PatOS.fileClip.paste('/Desktop') },
         { divider: true },
         { label: 'Clean Up Icons', action: () => PatOS.setSetting('desktopPositions', {}) },
         { label: 'Change Wallpaper…', action: () => PatOS.launch('settings', { pane: 'wallpaper' }) },
@@ -1010,6 +1014,16 @@
         { label: 'Open Terminal', action: () => PatOS.launch('terminal') },
         { label: 'Mission Control', action: () => PatOS.mission.enter() }
       ], e.clientX, e.clientY);
+    });
+    // files dragged in from the computer land on the desktop
+    desk.addEventListener('dragover', (e) => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files') && !e.target.closest('.window')) e.preventDefault(); });
+    desk.addEventListener('drop', (e) => { const files = [...((e.dataTransfer && e.dataTransfer.files) || [])]; if (!files.length || e.target.closest('.window')) return; e.preventDefault(); PatOS.importFileList('/Desktop', files); });
+    // copy, cut and paste desktop icons when no window has the keyboard
+    document.addEventListener('keydown', (e) => {
+      if (!(e.ctrlKey || e.metaKey) || e.altKey || PatOS.wm.active || e.target.closest('input, textarea, [contenteditable]') || !PatOS.loggedIn) return;
+      const k = e.key.toLowerCase();
+      if ((k === 'c' || k === 'x') && selected.size) { e.preventDefault(); PatOS.fileClip.set([...selected], k === 'x'); }
+      else if (k === 'v' && PatOS.fileClip.has()) { e.preventDefault(); PatOS.fileClip.paste('/Desktop'); }
     });
     // catch-all to block the browser menu inside PatOS chrome
     document.addEventListener('contextmenu', (e) => { if (!e.target.closest('input, textarea, [contenteditable], iframe, .allow-ctx')) e.preventDefault(); });
