@@ -160,7 +160,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
 
       /* ---------- tabs ---------- */
       function newTab(url, html, title, background, at) {
-        const t = { id: PatOS.uid(), url: 'patos://newtab', title: T('New Tab'), hist: [], idx: -1, pane: h('div', { class: 'br-pane' }), tabEl: null, zoom: 1, loading: false };
+        const t = { id: PatOS.uid(), url: 'patos://newtab', title: T('New Tab'), hist: [], idx: -1, pane: h('div', { class: 'br-pane' }), tabEl: null, zoom: 1, loading: false, gen: 0 };
         t.tabEl = h('div', { class: 'tab br-tab pb-tab', draggable: 'true' }, h('span', { class: 'br-tic none' }), h('span', { class: 'br-tt' }, T('New Tab')), h('button', { class: 'br-tx', title: T('Close tab') }, '×'));
         t.tabEl.addEventListener('click', (e) => { if (e.target.classList.contains('br-tx')) closeTab(t); else select(t); });
         t.tabEl.addEventListener('auxclick', (e) => { if (e.button === 1) closeTab(t); });
@@ -224,20 +224,33 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         else if (url.startsWith('patos://google-setup')) { t.title = 'Google'; t.pane.appendChild(googleSetup(new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || '')); }
         else if (url.startsWith('patos://search')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Patoogle'; t.pane.appendChild(patoogleResults(q)); }
         else if (url.startsWith('patos://google')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Google'; if (googleCx()) t.pane.appendChild(googlePage(t, q)); else { setTimeout(() => navigate(q ? googleURL(q) : 'https://www.google.com/webhp?igu=1&hl=' + glang(), t, true), 0); } }
-        else if (isBlocked(url)) { t.title = host(url); t.pane.appendChild(blockedPage(url)); }
+        else if (isBlocked(url)) { t.title = host(url); t.pane.appendChild(blockedPage(url)); autoOpen(url, t); }
         else {
           const gq = isGoogleFrame(url) ? new URL(url).searchParams.get('q') : null;
           t.title = /bing\.com\/search/.test(url) ? new URL(url).searchParams.get('q') : gq ? gq + ' - Google' : isGoogleFrame(url) ? 'Google' : host(url);
-          const bar = h('div', { class: 'pb-load' });
-          const attrs = { src: url, allow: 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write; geolocation', referrerpolicy: 'no-referrer-when-downgrade', allowfullscreen: true };
-          if (isGoogleFrame(url)) attrs.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-top-navigation-by-user-activation allow-storage-access-by-user-activation';
-          const frame = h('iframe', attrs); t.frame = frame;
-          t.loading = true;
-          frame.addEventListener('load', () => { t.loading = false; bar.classList.add('done'); setTimeout(() => bar.remove(), 400); try { const d = frame.contentDocument; if (d && d.title) t.title = d.title; } catch (e) {} if (t === cur) syncUI(); });
-          t.pane.append(bar, frame);
-          applyZoom(t);
-          if (isGoogleFrame(url)) t.pane.insertBefore(h('div', { class: 'pg-banner g' }, h('span', {}, T('If a page says it refused to connect, that site doesn’t allow being shown inside other apps.')), h('button', { class: 'pg-link', onclick: () => PatOS.openExternal(url.replace('igu=1&', '').replace('?igu=1', '?')) }, T('Open this search in a new tab')), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup' + (gq ? '?q=' + encodeURIComponent(gq) : '')) }, T('Search settings'))), bar);
-          setTimeout(() => { if (t.loading) { t.loading = false; bar.remove(); if (t === cur) syncUI(); } }, 12000);
+          const mine = ++t.gen;
+          const build = () => {
+            if (t.url !== url || t.gen !== mine) return;
+            const bar = h('div', { class: 'pb-load' });
+            const attrs = { src: url, allow: 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write; geolocation', referrerpolicy: 'no-referrer-when-downgrade', allowfullscreen: true };
+            if (isGoogleFrame(url)) attrs.sandbox = 'allow-scripts allow-same-origin allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-top-navigation-by-user-activation allow-storage-access-by-user-activation';
+            const frame = h('iframe', attrs); t.frame = frame; t.loading = true;
+            frame.addEventListener('load', () => { t.loading = false; bar.classList.add('done'); setTimeout(() => bar.remove(), 400); try { const d = frame.contentDocument; if (d && d.title) t.title = d.title; } catch (e) {} if (t === cur) syncUI(); });
+            t.pane.innerHTML = ''; t.pane.append(bar, frame);
+            applyZoom(t);
+            if (isGoogleFrame(url)) t.pane.insertBefore(h('div', { class: 'pg-banner g' }, h('span', {}, T('If a page says it refused to connect, that site doesn’t allow being shown inside other apps.')), h('button', { class: 'pg-link', onclick: () => PatOS.openExternal(url.replace('igu=1&', '').replace('?igu=1', '?')) }, T('Open this search in a new tab')), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup' + (gq ? '?q=' + encodeURIComponent(gq) : '')) }, T('Search settings'))), bar);
+            setTimeout(() => { if (t.loading && t.gen === mine) { t.loading = false; bar.remove(); if (t === cur) syncUI(); } }, 12000);
+          };
+          if (isGoogleFrame(url)) build();
+          else {
+            // ask the server first whether this site allows being shown inside another page; if not, don't show a broken frame
+            t.loading = true; t.pane.appendChild(h('div', { class: 'pb-load' })); t.pane.appendChild(h('div', { class: 'pb-checking' }, h('span', {}, T('Opening') + ' ' + host(url) + '…')));
+            canFrame(url).then((ok) => {
+              if (t.url !== url || t.gen !== mine) return;
+              if (ok === false) { t.loading = false; t.pane.innerHTML = ''; t.pane.appendChild(blockedPage(url)); autoOpen(url, t); if (t === cur) syncUI(); }
+              else build();
+            });
+          }
         }
         if (t === cur) { syncUI(); checkLogin(); } else t.tabEl.querySelector('.br-tt').textContent = t.title;
         saveSession();
@@ -404,12 +417,44 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         q.oninput = draw; draw();
         return h('div', { class: 'pb-history' }, h('div', { class: 'pb-hhead' }, h('h1', {}, T('History')), q, h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox(T('Clear browsing history?'), '', { danger: true, ok: T('Clear'), icon: 'browser' })) { PatOS.store.set('browserHistory', []); draw(); } } }, T('Clear browsing data'))), box);
       }
+      /* ---------- sites that don't allow being shown inside other pages ---------- */
+      const frameMem = PatOS.store.get('frameMem', {});
+      const frameKey = (url) => { try { const u = new URL(url); return u.hostname + '/' + (u.pathname.split('/')[1] || ''); } catch (e) { return url; } };
+      async function canFrame(url) {
+        const k = frameKey(url); const m = frameMem[k]; if (m && Date.now() - m.t < 6 * 3600 * 1000) return m.ok;
+        const base = PatOS.server && await PatOS.server(); if (!base) return null;
+        try {
+          const r = await Promise.race([fetch(base + '/api/frameable?url=' + encodeURIComponent(url)).then((x) => x.json()), new Promise((res) => setTimeout(() => res(null), 3000))]);
+          if (r && !r.unknown) { frameMem[k] = { ok: r.frameable, t: Date.now() }; PatOS.store.set('frameMem', frameMem); return r.frameable; }
+        } catch (e) {}
+        return null;
+      }
+      const appWins = {};
+      function openAppWindow(url) {
+        const w = Math.min(1180, screen.availWidth - 80), hh = Math.min(820, screen.availHeight - 80);
+        const key = 'patoogle_' + host(url).replace(/\W/g, '_');
+        let win2 = appWins[key]; if (win2 && !win2.closed) { try { win2.focus(); return win2; } catch (e) {} }
+        try { win2 = window.open(url, key, `popup=yes,width=${w},height=${hh},left=${Math.max(0, (screen.availWidth - w) / 2)},top=${Math.max(0, (screen.availHeight - hh) / 2)}`); } catch (e) { win2 = null; }
+        if (win2) appWins[key] = win2; return win2;
+      }
+      let restoring = false;
+      // these sites can't be shown here, so open them in their own app window right away
+      function autoOpen(url, t) {
+        if (restoring || t !== cur || !PatOS.store.get('autoAppWindow', true) || PatOS.sandboxed || t.opened === url) return;
+        t.opened = url; const w = openAppWindow(url);
+        if (w) { const note = t.pane.querySelector('.bb-note'); if (note) note.textContent = T('It opened in its own window. If you don’t see it, check that your browser allows pop-ups from this site.'); }
+      }
       function blockedPage(url) {
+        const hn = host(url);
         return h('div', { class: 'br-blocked' },
-          h('div', { class: 'bb-ic' }, '🧱'),
-          h('h2', {}, host(url) + ' can’t be shown inside PatOS'),
-          h('p', {}, PatOS.sandboxed ? 'PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead. PatOS stays open in this one.' : 'This site doesn’t let other apps show it, so it won’t open in Patoogle. You can search for it instead, or use the PatOS app that does the same thing (YouTube, Docs, Drive, Maps or Translate).'),
-          h('div', { class: 'br-alts' }, h('button', { class: 'btn primary', onclick: () => navigate(searchURL(host(url))) }, PatOS.t('Search Google for') + ' ' + host(url))), h('a', { class: 'br-ext', href: url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '').replace('?igu=1', ''), target: '_blank', rel: 'noopener noreferrer' }, 'Open outside PatOS'));
+          h('div', { class: 'bb-ic', html: '<svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="13" rx="2.5"/><path d="M8 20.5h8M12 17.5v3M9 9l6 4M15 9l-6 4"/></svg>' }),
+          h('h2', {}, hn + ' ' + T('doesn’t allow being shown inside PatOS')),
+          h('p', {}, PatOS.sandboxed ? T('PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead.') : T('This website tells browsers not to show it inside other pages. That is the website’s own rule, so PatOS opens it in its own window instead.')),
+          h('p', { class: 'bb-note' }, PatOS.sandboxed ? '' : T('Opening in its own window…')),
+          h('div', { class: 'br-alts' },
+            h('button', { class: 'btn primary', onclick: () => { const w = openAppWindow(url); if (!w) PatOS.openExternal(url); } }, T('Open') + ' ' + hn + ' ' + T('in its own window')),
+            h('button', { class: 'btn', onclick: () => navigate(searchURL(hn)) }, T('Search Google for') + ' ' + hn),
+            h('button', { class: 'btn', onclick: () => PatOS.openExternal(url) }, T('Open in a new tab'))));
       }
       /* ---------- address bar suggestions ---------- */
       let sIdx = -1, sTimer = null, sItems = [];
@@ -602,7 +647,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       const session = PatOS.store.get('browserSession', null);
       if (args.html) newTab(null, args.html, args.title);
       else if (args.url) newTab(args.url);
-      else if (session && session.tabs && session.tabs.length && PatOS.store.get('browserRestore', false)) { session.tabs.forEach((u, i) => newTab(u, null, null, i !== session.active)); if (tabs[session.active]) select(tabs[session.active]); }
+      else if (session && session.tabs && session.tabs.length && PatOS.store.get('browserRestore', false)) { restoring = true; session.tabs.forEach((u, i) => newTab(u, null, null, i !== session.active)); if (tabs[session.active]) select(tabs[session.active]); setTimeout(() => { restoring = false; }, 4000); }
       else newTab();
     },
     onArgs(win, args) { win._open && win._open(args); },
