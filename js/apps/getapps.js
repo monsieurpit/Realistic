@@ -140,7 +140,7 @@
     if (gPop) return closeGoogle();
     const d = device();
     const grid = h('div', { class: 'gg-grid' }, ...GOOGLE.filter(([id]) => byId[id]).map(([id, label]) => {
-      const b = h('button', { class: 'gg-app', title: byId[id].name }, h('div', { class: 'gg-ic', html: PatOS.iconHTML('x-' + id) }), h('span', {}, PatOS.t(label)));
+      const b = h('button', { class: 'gg-app', title: byId[id].name }, h('div', { class: 'gg-ic', html: PatOS.iconHTML('x-' + id) }), h('span', {}, PatOS.lang === 'fr' && label === 'Translate' ? 'Traduction' : label));
       b.onclick = () => { closeGoogle(); open(id); };
       return b;
     }));

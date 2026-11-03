@@ -3382,6 +3382,18 @@ html.reduce-transparency.lg-on :is(#dock, .mh-dock, .menu, #control-center, .toa
             try { for (var i = 0; i < ls.length; i++) { var k = ls.key(i); if (k.indexOf('patos:') === 0) { try { kv[k.slice(6)] = JSON.parse(ls.getItem(k)); moved.push(k); } catch (e) {} } } } catch (e) {}
             window.__MIGRATE = moved;
           }
+          // changes that were still being saved when PatOS last closed (see journal() in core.js)
+          var J = null; try { J = ls && ls.getItem('patos-journal'); } catch (e) {}
+          if (J) {
+            try {
+              var j = JSON.parse(J), tx = db.transaction(['kv', 'fc'], 'readwrite'), kvs = tx.objectStore('kv'), fcs = tx.objectStore('fc');
+              Object.keys(j.s || {}).forEach(function (k) { kv[k] = j.s[k]; kvs.put(j.s[k], k); });
+              (j.d || []).forEach(function (k) { delete kv[k]; kvs.delete(k); });
+              Object.keys(j.f || {}).forEach(function (k) { fc[k] = j.f[k]; fcs.put(j.f[k], k); });
+              (j.fd || []).forEach(function (k) { delete fc[k]; fcs.delete(k); });
+              tx.oncomplete = function () { try { ls.removeItem('patos-journal'); } catch (e) {} };
+            } catch (e) { try { ls.removeItem('patos-journal'); } catch (e2) {} }
+          }
           start();
         });
       });
@@ -3390,7 +3402,7 @@ html.reduce-transparency.lg-on :is(#dock, .mh-dock, .menu, #control-center, .toa
   setTimeout(function () { if (!started) { window.__KV = null; start(); } }, 6000);
   // "Erase PatOS" asks for a clean start
   if (ls && ls.getItem('patos-wipe')) {
-    try { ls.removeItem('patos-wipe'); Object.keys(ls).filter(function (k) { return k.indexOf('patos:') === 0; }).forEach(function (k) { ls.removeItem(k); }); } catch (e) {}
+    try { ls.removeItem('patos-wipe'); ls.removeItem('patos-journal'); Object.keys(ls).filter(function (k) { return k.indexOf('patos:') === 0; }).forEach(function (k) { ls.removeItem(k); }); } catch (e) {}
     try { var d = indexedDB.deleteDatabase('patos'); d.onsuccess = d.onerror = d.onblocked = go; } catch (e) { go(); }
   } else go();
 })();
@@ -3460,7 +3472,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     if (!DBH || (!dirty.size && !removedKeys.size && !Object.keys(fcPut).length && !fcDel.size)) return Promise.resolve();
     const sets = [...dirty], dels = [...removedKeys], puts = Object.assign({}, fcPut), fdel = [...fcDel];
     dirty.clear(); removedKeys.clear(); Object.keys(fcPut).forEach((k) => delete fcPut[k]); fcDel.clear();
-    return new Promise((res) => {
+    const batch = { sets, dels, puts, fdel }; inflight.add(batch);
+    return new Promise((res0) => {
+      const res = () => { inflight.delete(batch); res0(); };
       try {
         const tx = DBH.transaction(['kv', 'fc'], 'readwrite'); const st = tx.objectStore('kv'), fc = tx.objectStore('fc');
         sets.forEach((k) => { try { st.put(KV[k], k); } catch (e) { console.error(e); } });
@@ -3473,7 +3487,21 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       } catch (e) { res(); }
     });
   }
+  const inflight = new Set(); // writes sent to the database that haven't finished yet
   const flushSoon = PatOS.debounce(flushNow, 120);
+  /* When the page closes, a database write that hasn't finished can be cancelled by the browser. So the
+     changes that aren't safely saved yet are also written to localStorage (which saves at once), and
+     js/preload.js puts them back on the next start. */
+  function journal() {
+    if (!DBH) return;
+    const j = { s: {}, d: [], f: {}, fd: [] };
+    const add = (sets, dels, puts, fdel) => { sets.forEach((k) => { j.s[k] = KV[k]; j.d = j.d.filter((x) => x !== k); }); dels.forEach((k) => { delete j.s[k]; j.d.push(k); }); Object.assign(j.f, puts); fdel.forEach((k) => { delete j.f[k]; j.fd.push(k); }); };
+    inflight.forEach((b) => add(b.sets, b.dels, b.puts, b.fdel));
+    add([...dirty], [...removedKeys], fcPut, [...fcDel]);
+    if (!Object.keys(j.s).length && !j.d.length && !Object.keys(j.f).length && !j.fd.length) return;
+    try { const txt = JSON.stringify(j); if (txt.length < 4e6) localStorage.setItem('patos-journal', txt); } catch (e) {}
+  }
+  const clearJournal = () => { if (!inflight.size && !dirty.size) { try { localStorage.removeItem('patos-journal'); } catch (e) {} } };
   function afterMigrate() {
     if (!window.__MIGRATE || !window.__MIGRATE.length) return;
     const keys = window.__MIGRATE; window.__MIGRATE = null;
@@ -3515,7 +3543,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   };
   const persistedFC = {};
   PatOS.flush = () => { try { saveFSNow(); } catch (e) {} return flushNow(); };
-  addEventListener('pagehide', () => PatOS.flush());
+  addEventListener('pagehide', () => { try { saveFSNow(); } catch (e) {} journal(); flushNow().then(clearJournal); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) PatOS.flush(); });
 
   /* how much room there is: real numbers from the browser */
@@ -5215,7 +5243,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Shut Down…': 'Éteindre…', 'Shut Down': 'Éteindre', 'Lock Screen': 'Verrouiller l’écran', 'Lock screen': 'Verrouiller l’écran', 'Lock now': 'Verrouiller maintenant',
     'New Window': 'Nouvelle fenêtre', 'New Folder on Desktop': 'Nouveau dossier sur le bureau', 'Open Finder': 'Ouvrir le Finder', 'Close Window': 'Fermer la fenêtre',
     'Undo': 'Annuler', 'Redo': 'Rétablir', 'Cut': 'Couper', 'Copy': 'Copier', 'Paste': 'Coller', 'Select All': 'Tout sélectionner',
-    'Enter Full Screen': 'Passer en plein écran', 'Mission Control': 'Mission Control', 'Launchpad': 'Launchpad', 'Switch to Light Mode': 'Passer au mode clair', 'Switch to Dark Mode': 'Passer au mode sombre',
+    'Enter Full Screen': 'Passer en plein écran', 'Mission Control': 'Mission Control', 'Launchpad': 'Launchpad', 'Switch to Light Mode': 'Passer en mode clair', 'Switch to Dark Mode': 'Passer en mode sombre', 
     'Minimize': 'Placer dans le Dock', 'Zoom': 'Réduire/agrandir', 'Tile Left': 'Placer à gauche', 'Tile Right': 'Placer à droite', 'Bring All to Front': 'Tout ramener au premier plan',
     'PatOS Help': 'Aide PatOS', 'Keyboard Shortcuts': 'Raccourcis clavier', 'Wi-Fi': 'Wi-Fi', 'Connected': 'Connecté', 'Not connected': 'Non connecté', 'Network Settings…': 'Réglages réseau…',
     'Spotlight Search': 'Recherche Spotlight', 'Search': 'Rechercher', 'Applications': 'Applications', 'Files': 'Fichiers', 'Notes': 'Notes', 'Web': 'Web', 'Calculator': 'Calculatrice',
@@ -5234,7 +5262,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Apps': 'Apps', 'Office': 'Bureautique', '3D & Games': '3D et jeux', 'Utilities': 'Utilitaires',
     // app names
     'Patoogle': 'Patoogle', 'TextEdit': 'TextEdit', 'Terminal': 'Terminal', 'Calendar': 'Calendrier', 'Clock': 'Horloge', 'Weather': 'Météo', 'Photos': 'Photos', 'Paint': 'Dessin', 'Photo Booth': 'Photo Booth',
-    'System Settings': 'Réglages Système', 'Activity Monitor': 'Moniteur d’activité', 'Galaxy': 'Galaxie', 'Orb Runner': 'Orb Runner', '3D Studio': 'Studio 3D', 'Tic-Tac-Toe': 'Tic-tac-toe', 'Maps': 'Plans',
+    'System Settings': 'Réglages Système', 'Activity Monitor': 'Moniteur d’activité', 'Galaxy': 'Galaxie', 'Orb Runner': 'Orb Runner', '3D Studio': 'Studio 3D', 'Tic-Tac-Toe': 'Tic-tac-toe', 'Maps': 'Plans', 
     'Messages': 'Messages', 'App Store': 'App Store', 'Code Studio': 'Code Studio', 'Piano': 'Piano', 'Flashcards': 'Cartes mémoire', 'Typing Trainer': 'Dactylo', 'Typing': 'Dactylo', 'Voice Memos': 'Dictaphone',
     'Stickies': 'Post-it', 'Dictionary': 'Dictionnaire', 'Docs': 'Docs', 'Sheets': 'Tableurs', 'Slides': 'Présentations', 'Drive': 'Drive', 'Forms': 'Formulaires', 'Translate': 'Traduire', 'YouTube': 'YouTube',
     'Trash': 'Corbeille', 'Keep in Dock': 'Garder dans le Dock', 'Remove from Dock': 'Retirer du Dock', 'Add to Dock': 'Ajouter au Dock', 'Open': 'Ouvrir', 'Show': 'Afficher', 'Quit': 'Quitter', 'Empty Trash': 'Vider la corbeille',
@@ -5292,17 +5320,17 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Works in Chrome. Uses more battery.': 'Fonctionne dans Chrome. Consomme plus de batterie.', 'Reduce transparency': 'Réduire la transparence',
     'Solid windows. Runs faster on older Chromebooks.': 'Fenêtres opaques. Plus rapide sur les vieux Chromebooks.', 'Fewer animations': 'Moins d’animations', 'Live 3D Wallpapers': 'Fonds d’écran 3D animés',
     'Animated with three.js. They react to your mouse!': 'Animés avec three.js. Ils réagissent à votre souris!', 'Animate 3D wallpaper': 'Animer le fond d’écran 3D', 'Turn off to save battery': 'Désactivez pour économiser la batterie',
-    'Your own picture': 'Votre propre image', 'Choose a Photo…': 'Choisir une photo…', 'Size': 'Taille', 'Grow icons under the pointer': 'Agrandir les icônes sous le pointeur', 'How much icons grow': 'Taille de l’agrandissement',
+    'Your own picture': 'Votre propre image', 'Choose a Photo…': 'Choisir une photo…', 'Grow icons under the pointer': 'Agrandir les icônes sous le pointeur', 'How much icons grow': 'Taille de l’agrandissement',
     'Automatically hide the Dock': 'Masquer automatiquement le Dock', 'Show desktop widgets': 'Afficher les widgets sur le bureau', 'Apps in the Dock': 'Apps dans le Dock', 'Desktop icons': 'Icônes du bureau', 'Clean Up': 'Ranger',
     'Dock (up to 4 apps)': 'Dock (jusqu’à 4 apps)', 'Apps on the Home Screen': 'Apps sur l’écran d’accueil', 'Brightness': 'Luminosité', '3D Graphics': 'Graphismes 3D', '3D quality': 'Qualité 3D',
     'Low (best for older Chromebooks)': 'Basse (idéal pour les vieux Chromebooks)', 'Balanced': 'Équilibrée', 'High (sharpest)': 'Haute (la plus nette)', 'Output volume': 'Volume de sortie',
     'Play user interface sounds': 'Jouer les sons de l’interface', 'Test': 'Tester', 'Play Startup Chime': 'Jouer le son de démarrage', 'Login password': 'Mot de passe d’ouverture', 'Set': 'Définir',
     'Leave empty for no password. This only protects PatOS, not your computer.': 'Laissez vide pour ne pas avoir de mot de passe. Il protège seulement PatOS, pas votre ordinateur.',
-    'Status': 'État', 'Connection type': 'Type de connexion', 'Speed estimate': 'Vitesse estimée', 'Unknown': 'Inconnu', 'Connected': 'Connecté', 'Offline': 'Hors ligne',
+    'Status': 'État', 'Connection type': 'Type de connexion', 'Speed estimate': 'Vitesse estimée', 'Unknown': 'Inconnu', 'Offline': 'Hors ligne',
     'PatOS uses Alt because Chromebooks reserve most Ctrl shortcuts.': 'PatOS utilise Alt parce que les Chromebooks réservent la plupart des raccourcis Ctrl.',
     'Spotlight search': 'Recherche Spotlight', 'Close window': 'Fermer la fenêtre', 'Quit app': 'Quitter l’app', 'Zoom window': 'Agrandir la fenêtre', 'Tile window left / right': 'Placer la fenêtre à gauche / à droite',
     'New window': 'Nouvelle fenêtre', 'Cycle windows': 'Changer d’app', 'Patoogle browser': 'Navigateur Patoogle', 'Close menus & overlays': 'Fermer les menus',
-    'Empty Trash': 'Vider la corbeille', 'Back up everything': 'Tout sauvegarder', 'Download Backup': 'Télécharger la sauvegarde', 'Restore backup': 'Restaurer une sauvegarde', 'Restore…': 'Restaurer…',
+    'Back up everything': 'Tout sauvegarder', 'Download Backup': 'Télécharger la sauvegarde', 'Restore backup': 'Restaurer une sauvegarde', 'Restore…': 'Restaurer…',
     'Erase all content and settings': 'Effacer contenu et réglages', 'Erase PatOS…': 'Effacer PatOS…', 'Erase PatOS?': 'Effacer PatOS?', 'Erase': 'Effacer',
     'Everything in PatOS will be erased and it will start fresh. This cannot be undone.': 'Tout PatOS sera effacé et repartira à zéro. Cette action est irréversible.',
     // activity
@@ -5322,7 +5350,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     // messages / app store / code / piano / cards / typing / memos / stickies / dictionary
     'PatOS Assistant': 'Assistant PatOS', 'help': 'aide', 'tell me a joke': 'raconte une blague', 'open galaxy': 'ouvre galaxie', 'what time is it?': 'quelle heure est-il?', 'remind me to study': 'rappelle-moi d’étudier',
     'Discover': 'Découvrir', 'All Apps': 'Toutes les apps', 'Search apps': 'Rechercher des apps', 'Results': 'Résultats', 'Essentials': 'Essentiels', 'Hidden Apps': 'Apps masquées', 'APP OF THE DAY': 'APP DU JOUR', 'FEATURED': 'EN VEDETTE',
-    'OPEN': 'OUVRIR', 'GET': 'OBTENIR', 'Hide App': 'Masquer l’app', 'Show App': 'Afficher l’app', '‹ Back': '‹ Retour', 'Open in New Tab': 'Ouvrir dans un nouvel onglet',
+    'OPEN': 'OUVRIR', 'GET': 'OBTENIR', 'Hide App': 'Masquer l’app', 'Show App': 'Afficher l’app', '‹ Back': '‹ Retour', 
     'Templates…': 'Modèles…', '▶ Run': '▶ Exécuter', 'Save as .html in Documents': 'Enregistrer en .html dans Documents', 'Open the page in Patoogle': 'Ouvrir la page dans Patoogle', 'Save project as': 'Enregistrer le projet sous', 'Project saved': 'Projet enregistré',
     'Saved in Documents. Double-click it to open it in Patoogle.': 'Enregistré dans Documents. Double-cliquez pour l’ouvrir dans Patoogle.', 'Live': 'En direct',
     '● Record': '● Enregistrer', '■ Stop': '■ Arrêter', '▶ Play': '▶ Lire', 'Organ': 'Orgue', 'Synth': 'Synthé', 'Bell': 'Cloche',
@@ -5335,7 +5363,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Look up a word': 'Chercher un mot', 'Type a word above and press Enter.': 'Tapez un mot ci-dessus et appuyez sur Entrée.', 'Looking up…': 'Recherche…', 'No definition found': 'Aucune définition trouvée', 'Synonyms: ': 'Synonymes : ',
     // office
     'Saved': 'Enregistré', 'Saving…': 'Enregistrement…', 'Not saved': 'Non enregistré', 'Normal text': 'Texte normal', 'Title': 'Titre', 'Heading 1': 'Titre 1', 'Heading 2': 'Titre 2', 'Quote': 'Citation', 'Code': 'Code',
-    'Text style': 'Style de texte', 'Font': 'Police', 'Font size': 'Taille de police', 'Text color': 'Couleur du texte', 'Highlight': 'Surlignage', 'Align left': 'Aligner à gauche', 'Center': 'Centrer', 'Align right': 'Aligner à droite',
+    'Text style': 'Style de texte', 'Font': 'Police', 'Font size': 'Taille de police', 'Text color': 'Couleur du texte', 'Highlight': 'Surligner', 'Align left': 'Aligner à gauche', 'Center': 'Centrer', 'Align right': 'Aligner à droite',
     'Justify': 'Justifier', 'Numbered list': 'Liste numérotée', 'Indent': 'Augmenter le retrait', 'Outdent': 'Diminuer le retrait', 'Insert link': 'Insérer un lien', 'Insert image': 'Insérer une image', 'Insert table': 'Insérer un tableau',
     'Horizontal line': 'Ligne horizontale', 'Checklist item': 'Case à cocher', 'Clear formatting': 'Effacer la mise en forme', 'Find and replace': 'Rechercher et remplacer', 'Print': 'Imprimer', 'Strikethrough': 'Barré',
     'Link address': 'Adresse du lien', 'Insert': 'Insérer', 'Table size (columns x rows)': 'Taille du tableau (colonnes x rangées)', 'Find': 'Rechercher', 'Replace All': 'Tout remplacer', 'Leave empty to just count matches.': 'Laissez vide pour seulement compter.',
@@ -5363,7 +5391,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Hindi': 'Hindi', 'Turkish': 'Turc', 'Polish': 'Polonais', 'Swedish': 'Suédois', 'Greek': 'Grec', 'Vietnamese': 'Vietnamien', 'Ukrainian': 'Ukrainien', 'Haitian Creole': 'Créole haïtien',
     'YouTube in PatOS': 'YouTube dans PatOS', 'Save key': 'Enregistrer la clé', 'Paste your YouTube API key': 'Collez votre clé d’API YouTube', 'Or paste a YouTube video link to watch it now': 'Ou collez un lien de vidéo YouTube pour la regarder',
     'Watch again': 'Regarder à nouveau', 'Comments': 'Commentaires', 'YouTube settings': 'Réglages YouTube', 'YouTube couldn’t load': 'YouTube n’a pas pu charger', 'That API key doesn’t work': 'Cette clé d’API ne fonctionne pas',
-    'Music': 'Musique', 'Gaming': 'Jeux vidéo', 'Science': 'Science', 'Space': 'Espace', 'Coding': 'Programmation', 'Sports': 'Sports', 'Comedy': 'Humour', 'Animals': 'Animaux', 'Cooking': 'Cuisine', 'Lofi': 'Lofi', 'Minecraft': 'Minecraft',
+    'Gaming': 'Jeux vidéo', 'Science': 'Science', 'Space': 'Espace', 'Coding': 'Programmation', 'Sports': 'Sports', 'Comedy': 'Humour', 'Animals': 'Animaux', 'Cooking': 'Cuisine', 'Lofi': 'Lofi', 'Minecraft': 'Minecraft',
     'Videos play in the real YouTube player, right here. To search and see trending videos, PatOS needs a free YouTube API key from Google (you only do this once):': 'Les vidéos jouent dans le vrai lecteur YouTube, ici même. Pour chercher et voir les tendances, PatOS a besoin d’une clé d’API YouTube gratuite de Google (une seule fois) :',
     'On a computer, go to console.cloud.google.com and sign in with a Google account.': 'Sur un ordinateur, allez sur console.cloud.google.com et connectez-vous avec un compte Google.',
     'Create a project, then open “APIs & Services” › “Library” and turn on “YouTube Data API v3”.': 'Créez un projet, puis ouvrez « API et services » › « Bibliothèque » et activez « YouTube Data API v3 ».',
@@ -5373,11 +5401,11 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Add a YouTube API key in settings () to see the title, comments and more videos.': 'Ajoutez une clé d’API YouTube dans les réglages () pour voir le titre, les commentaires et d’autres vidéos.',
     'Search for a place': 'Rechercher un lieu', 'My location': 'Ma position', 'Open in Google Maps': 'Ouvrir dans Google Maps', 'Your location': 'Votre position',
     // dialogs and misc
-    'Got it': 'Compris', 'Create': 'Créer', 'Copied': 'Copié', 'Error': 'Erreur', 'Yes': 'Oui', 'No': 'Non',
+    'Got it': 'Compris', 'Create': 'Créer', 'Error': 'Erreur', 'Yes': 'Oui', 'No': 'Non',
     'Storage is full': 'Le stockage est plein', 'PatOS could not save. Delete some pictures to free space.': 'PatOS n’a pas pu enregistrer. Supprimez des images pour libérer de l’espace.',
     'Make PatOS full screen': 'Mettre PatOS en plein écran', 'In Safari tap Share, then “Add to Home Screen”. PatOS then opens like a real app.': 'Dans Safari, touchez Partager, puis « Sur l’écran d’accueil ». PatOS s’ouvre alors comme une vraie app.',
     'Downloads are off here': 'Téléchargements désactivés ici', 'Not supported': 'Non pris en charge', 'This browser can’t keep the screen on.': 'Ce navigateur ne peut pas garder l’écran allumé.',
-    'No recent apps': 'Aucune app récente', 'Close App': 'Fermer l’app', 'Hide App': 'Masquer l’app', 'Edit Home Screen in Settings': 'Modifier l’écran d’accueil dans Réglages',
+    'No recent apps': 'Aucune app récente', 'Close App': 'Fermer l’app', 'Edit Home Screen in Settings': 'Modifier l’écran d’accueil dans Réglages',
     'Press Enter to log in ': 'Appuyez sur Entrée ',
     'A full desktop that runs in your browser, even on a school Chromebook.': 'Un bureau complet qui fonctionne dans votre navigateur, même sur un Chromebook d’école.',
     'These results are from Bing.': 'Ces résultats viennent de Bing.', 'Get real Google results': 'Obtenir les vrais résultats Google', 'Search Google': 'Rechercher sur Google', 'Searching…': 'Recherche…',
@@ -5392,26 +5420,26 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Sort by': 'Trier par', 'Ascending': 'Croissant', 'Descending': 'Décroissant', 'Show info': 'Afficher les infos', 'Show Info': 'Afficher les infos', 'Hide Info': 'Masquer les infos', 'Tags': 'Étiquettes',
     'Red': 'Rouge', 'Orange': 'Orange', 'Yellow': 'Jaune', 'Green': 'Vert', 'Blue': 'Bleu', 'Purple': 'Violet', 'Gray': 'Gris', 'No files with this tag': 'Aucun fichier avec cette étiquette',
     'Select something to see its details.': 'Sélectionnez un élément pour voir ses détails.', 'Where': 'Emplacement', 'Contains': 'Contient', 'Quick Look': 'Coup d’œil', 'items': 'éléments', 'item': 'élément', 'of': 'sur', 'used': 'utilisés',
-    'Image': 'Image', 'Audio': 'Audio', 'PDF document': 'Document PDF', 'Web page': 'Page Web', 'Web link': 'Lien Web', 'Text document': 'Document texte', 'Modified': 'Modifié',
+    'Audio': 'Audio', 'PDF document': 'Document PDF', 'Web page': 'Page Web', 'Web link': 'Lien Web', 'Text document': 'Document texte', 'Modified': 'Modifié',
     'Albums': 'Albums', 'Screenshots': 'Captures d’écran', 'Drawings': 'Dessins', 'No favorites yet': 'Aucun favori pour l’instant', 'No photos here yet': 'Aucune photo ici pour l’instant',
     'Open a photo and press the star to add it here.': 'Ouvrez une photo et appuyez sur l’étoile pour l’ajouter ici.', 'Thumbnail size': 'Taille des vignettes', 'Slideshow': 'Diaporama', 'Revert': 'Revenir à l’original',
-    'Save as Copy': 'Enregistrer une copie', 'Save to Photos': 'Enregistrer dans Photos', 'Filters': 'Filtres', 'Adjust': 'Ajuster', 'Contrast': 'Contraste', 'Warmth': 'Chaleur', 'Vignette': 'Vignettage',
-    'Crop and Rotate': 'Recadrer et pivoter', 'Original': 'Originale', 'Square': 'Carré', 'Mirror': 'Miroir', 'edited': 'modifiée', 'Photo saved': 'Photo enregistrée', 'Copy saved to Pictures': 'Copie enregistrée dans Images', 'More': 'Plus',
+    'Save as Copy': 'Enregistrer une copie', 'Filters': 'Filtres', 'Adjust': 'Ajuster', 'Contrast': 'Contraste', 'Warmth': 'Chaleur', 'Vignette': 'Vignettage',
+    'Crop and Rotate': 'Recadrer et pivoter', 'Original': 'Original', 'Square': 'Carré', 'Mirror': 'Miroir', 'edited': 'modifiée', 'Photo saved': 'Photo enregistrée', 'Copy saved to Pictures': 'Copie enregistrée dans Images', 'More': 'Plus',
     'Vivid': 'Éclatant', 'Warm': 'Chaud', 'Cool': 'Froid', 'Mono': 'Mono', 'Noir': 'Noir', 'Dramatic': 'Dramatique',
-    'Shuffle': 'Aléatoire', 'Repeat': 'Répéter', 'Repeat off': 'Répétition désactivée', 'Repeat all': 'Tout répéter', 'Repeat one': 'Répéter un morceau', 'Previous': 'Précédent', 'Play': 'Lire',
+    'Shuffle': 'Aléatoire', 'Repeat': 'Répéter', 'Repeat off': 'Répétition désactivée', 'Repeat all': 'Tout répéter', 'Repeat one': 'Répéter un morceau', 'Previous': 'Précédent', 'Play': 'Lire', 
     'Week': 'Semaine', 'Month': 'Mois', 'all-day': 'journée', 'Coming up': 'À venir', 'New Event': 'Nouvel événement', 'Edit Event': 'Modifier l’événement', 'Date': 'Date', 'Add': 'Ajouter', 'Starting now': 'Commence maintenant',
     'Nothing planned. Double-click a day or press + to add an event.': 'Rien de prévu. Double-cliquez sur un jour ou appuyez sur + pour ajouter un événement.',
-    'Conversion': 'Conversion', 'Timer': 'Minuterie', 'Start a timer for': 'Lancer une minuterie de', 'Timer started': 'Minuterie lancée', 'Timer done': 'Minuterie terminée', 'Your timer finished.': 'Votre minuterie est terminée.',
-    'Press Enter to copy': 'Appuyez sur Entrée pour copier', 'Open now': 'Ouverte',
+    'Conversion': 'Conversion', 'Start a timer for': 'Lancer une minuterie de', 'Timer started': 'Minuterie lancée', 'Timer done': 'Minuterie terminée', 'Your timer finished.': 'Votre minuterie est terminée.',
+    'Press Enter to copy': 'Appuyez sur Entrée pour copier', 'Open now': 'Ouverte', 
     'Body': 'Texte', 'Monospaced': 'Chasse fixe', 'Table': 'Tableau', 'Add a picture': 'Ajouter une image', 'Share and export': 'Partager et exporter', 'Copy Text': 'Copier le texte', 'Open in Docs': 'Ouvrir dans Docs',
-    'Save as Text File in Documents': 'Enregistrer en fichier texte dans Documents', 'All Notes': 'Toutes les notes', 'Rename Folder…': 'Renommer le dossier…', 'Delete Folder': 'Supprimer le dossier', 'Delete this folder?': 'Supprimer ce dossier?',
+    'Save as Text File in Documents': 'Enregistrer en fichier texte dans Documents', 'All Notes': 'Toutes les notes', 'Rename Folder…': 'Renommer le dossier…', 'Delete Folder': 'Supprimer le dossier', 'Delete this folder?': 'Supprimer ce dossier ?', 
     'Its notes move to Recently Deleted.': 'Ses notes iront dans Supprimés récemment.', 'Recently Deleted': 'Supprimés récemment', 'School': 'École', 'note': 'note', 'notes': 'notes', 'Date Edited': 'Date de modification', 'Pinned': 'Épinglées',
     'Previous 7 Days': '7 derniers jours', 'Earlier': 'Plus tôt', 'Recover': 'Récupérer', 'Move to': 'Déplacer vers', 'Nothing here. Deleted notes stay for 30 days.': 'Rien ici. Les notes supprimées restent 30 jours.', 'No notes yet': 'Aucune note pour l’instant',
-    'In Recently Deleted': 'Dans Supprimés récemment', 'No note selected': 'Aucune note sélectionnée', 'Search all notes': 'Rechercher dans toutes les notes', 'New Folder': 'Nouveau dossier',
-    'Tomorrow': 'Demain', 'Yesterday': 'Hier', 'Scheduled': 'Planifiés', 'All': 'Tout', 'Flagged': 'Avec drapeau', 'My Lists': 'Mes listes', 'Rename List…': 'Renommer la liste…', 'Delete List': 'Supprimer la liste', 'Delete this list?': 'Supprimer cette liste?',
+    'In Recently Deleted': 'Dans Supprimés récemment', 'No note selected': 'Aucune note sélectionnée', 'Search all notes': 'Rechercher dans toutes les notes', 
+    'Tomorrow': 'Demain', 'Yesterday': 'Hier', 'Scheduled': 'Planifiés', 'Flagged': 'Avec drapeau', 'My Lists': 'Mes listes', 'Rename List…': 'Renommer la liste…', 'Delete List': 'Supprimer la liste', 'Delete this list?': 'Supprimer cette liste?',
     'Its reminders will be deleted too.': 'Ses rappels seront aussi supprimés.', 'New List': 'Nouvelle liste', 'Homework': 'Devoirs', 'Add List': 'Ajouter une liste', 'Hide Completed': 'Masquer les terminés', 'Show Completed': 'Afficher les terminés',
-    'Overdue': 'En retard', 'Nothing completed yet': 'Rien de terminé pour l’instant', 'All done. Nice.': 'Tout est fait. Bravo.', 'New Reminder': 'Nouveau rappel', 'Details': 'Détails', 'Time': 'Heure', 'Priority': 'Priorité', 'List': 'Liste',
-    'None': 'Aucune', 'Low': 'Basse', 'Medium': 'Moyenne', 'High': 'Haute', 'Reminder': 'Rappel', 'Pink': 'Rose', 'Teal': 'Turquoise',
+    'Overdue': 'En retard', 'Nothing completed yet': 'Rien de terminé pour l’instant', 'All done. Nice.': 'Tout est fait. Bravo.', 'New Reminder': 'Nouveau rappel', 'Details': 'Détails', 'Time': 'Heure', 'Priority': 'Priorité', 
+    'Low': 'Basse', 'Medium': 'Moyen', 'High': 'Haute', 'Reminder': 'Rappel', 'Pink': 'Rose', 'Teal': 'Turquoise',
     'Saved cities': 'Villes enregistrées', 'Search for a city above to add it.': 'Cherchez une ville ci-dessus pour l’ajouter.', 'Remove': 'Retirer', 'NEXT 24 HOURS': 'PROCHAINES 24 HEURES', 'temperature and chance of rain': 'température et risque de pluie',
     'AIR QUALITY': 'QUALITÉ DE L’AIR', 'Good': 'Bonne', 'Moderate': 'Moyenne', 'Unhealthy for sensitive people': 'Mauvaise pour les personnes sensibles', 'Unhealthy': 'Mauvaise', 'Very unhealthy': 'Très mauvaise',
     'Grapher': 'Grapheur',
@@ -5424,7 +5452,6 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Graph': 'Graphique',
     'Reset view': 'Réinitialiser la vue',
     'Show or hide': 'Afficher ou masquer',
-    'Save picture to Photos': 'Enregistrer l’image dans Photos',
     'Alkali metal': 'Métal alcalin',
     'Alkaline earth metal': 'Métal alcalino-terreux',
     'Transition metal': 'Métal de transition',
@@ -6210,7 +6237,6 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Saved to your files': 'Enregistré dans vos fichiers',
     'Save Python file as': 'Enregistrer le fichier Python sous',
     'Saved in Documents.': 'Enregistré dans Documents.',
-    'Done': 'Terminé',
     'Stopped because of an error': 'Arrêté à cause d’une erreur',
     'input() needs PatOS to be opened from its website and reloaded once.': 'input() exige que PatOS soit ouvert depuis son site web et rechargé une fois.',
     'Loading Python (first time takes a moment)…': 'Chargement de Python (la première fois prend un moment)…',
@@ -6249,8 +6275,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Open the Chromebook’s Settings, search for “Restore apps on startup” and choose Always. If PatOS is open when you shut down, it opens again when you sign in.': 'Ouvrez les Paramètres du Chromebook, cherchez « Restaurer les applications au démarrage » et choisissez Toujours. Si PatOS est ouvert quand vous éteignez, il se rouvre quand vous vous connectez.',
     'Only using Chrome? In Chrome Settings › On startup, choose “Open a specific page or set of pages” and add the PatOS address below.': 'Vous utilisez seulement Chrome ? Dans Paramètres de Chrome › Au démarrage, choisissez « Ouvrir une page ou un ensemble de pages spécifiques » et ajoutez l’adresse de PatOS ci-dessous.',
     'School Chromebooks may lock some of these settings. If you can’t change one, that is your school’s choice.': 'Les Chromebooks d’école peuvent bloquer certains de ces paramètres. Si vous ne pouvez pas en changer un, c’est le choix de votre école.',
-    'Copied': 'Copié',
-    'Copy': 'Copier',
+    
     'PatOS address': 'Adresse de PatOS',
     'PatOS asks Chrome for full screen when you log in, so nothing else is on screen.': 'PatOS demande le plein écran à Chrome quand vous vous connectez, pour que rien d’autre ne soit à l’écran.',
     'Open your Chromebook’s files with PatOS': 'Ouvrir les fichiers du Chromebook avec PatOS',
@@ -6264,7 +6289,6 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'You’re offline': 'Vous êtes hors ligne',
     'Your files, Docs, Sheets, Slides, Notes and Code Studio keep working. Apps that need the internet will wait.': 'Vos fichiers, Docs, Sheets, Slides, Notes et Code Studio continuent de fonctionner. Les applications qui ont besoin d’Internet attendront.',
     'This needs the internet. It will load by itself when you’re back online.': 'Ceci a besoin d’Internet. Ça se chargera tout seul quand vous serez de retour en ligne.',
-    'Try again': 'Réessayer',
     'YouTube needs the internet. Videos you were watching will load by themselves when you’re back online.': 'YouTube a besoin d’Internet. Les vidéos se chargeront toutes seules quand vous serez de retour en ligne.',
     'The PatOS server didn’t answer': 'Le serveur PatOS n’a pas répondu',
     'It may be waking up, which can take up to a minute. Try again in a moment.': 'Il est peut-être en train de se réveiller, ce qui peut prendre jusqu’à une minute. Réessayez dans un instant.',
@@ -6276,16 +6300,13 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Maps need the internet. The map will load by itself when you’re back online.': 'Plans a besoin d’Internet. La carte se chargera toute seule quand vous serez de retour en ligne.',
     'Search needs an internet connection.': 'La recherche a besoin d’une connexion Internet.',
     'Looking up a new word needs the internet. Words you looked up before work offline.': 'Chercher un nouveau mot a besoin d’Internet. Les mots déjà cherchés fonctionnent hors ligne.',
-    'No definition found': 'Aucune définition trouvée',
     'Check the spelling and try again.': 'Vérifiez l’orthographe et réessayez.',
     'This website needs the internet. The page will load by itself when you’re back online.': 'Ce site a besoin d’Internet. La page se chargera toute seule quand vous serez de retour en ligne.',
     'Searching needs the internet. Connect to Wi-Fi, then press Try again.': 'La recherche a besoin d’Internet. Connectez-vous au Wi-Fi, puis appuyez sur Réessayer.',
     'The weather needs the internet. It will load by itself when you’re back online.': 'La météo a besoin d’Internet. Elle se chargera toute seule quand vous serez de retour en ligne.',
     'You’re offline. This forecast is from': 'Vous êtes hors ligne. Ces prévisions datent de',
     'Alarm': 'Alarme',
-    'Timer': 'Minuteur',
-    'Reminder': 'Rappel',
-    'Stop': 'Arrêter',
+    
     'Snooze': 'Répéter',
     'Snoozed': 'Reporté',
     'Snoozed for 9 minutes': 'Reporté de 9 minutes',
@@ -6296,76 +6317,52 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Weekends': 'La fin de semaine',
     'Once': 'Une fois',
     'Label': 'Étiquette',
-    'Add Alarm': 'Ajouter une alarme',
+    'Add Alarm': 'Ajouter une alarme', 
     'Minutes': 'Minutes',
-    'Cancel': 'Annuler',
-    'Pause': 'Pause',
-    'Start': 'Démarrer',
-    'Timer done': 'Minuteur terminé',
+    
+    
     'No alarms yet. Alarms ring while PatOS is open.': 'Aucune alarme. Les alarmes sonnent quand PatOS est ouvert.',
     'Top Hit': 'Meilleur résultat',
-    'Applications': 'Applications',
     'Actions': 'Actions',
-    'Files': 'Fichiers',
     'Folders': 'Dossiers',
-    'Notes': 'Notes',
     'Websites': 'Sites web',
-    'Recent': 'Récents',
-    'Calculator': 'Calculatrice',
-    'Dictionary': 'Dictionnaire',
-    'Web': 'Web',
+    
+    
     'Look up': 'Chercher',
-    'Lock Screen': 'Verrouiller l’écran',
-    'Switch to Light Mode': 'Passer en mode clair',
-    'Switch to Dark Mode': 'Passer en mode sombre',
+    
     'Turn Off Do Not Disturb': 'Désactiver Ne pas déranger',
     'Turn On Do Not Disturb': 'Activer Ne pas déranger',
     'Do Not Disturb is on': 'Ne pas déranger est activé',
     'Do Not Disturb is off': 'Ne pas déranger est désactivé',
     'Empty Trash?': 'Vider la corbeille ?',
     'Items in the Trash will be deleted for good.': 'Les éléments de la corbeille seront supprimés définitivement.',
-    'Empty': 'Vider',
     'Record the Screen': 'Enregistrer l’écran',
     'Restart PatOS': 'Redémarrer PatOS',
     'Enter to open · Alt+Enter to show in Finder': 'Entrée pour ouvrir · Alt+Entrée pour afficher dans Finder',
-    'Timer started': 'Minuteur lancé',
-    'Start a timer for': 'Lancer un minuteur de',
-    'Open now': 'Ouvert',
-    'Untitled': 'Sans titre',
+    
+    
     'Opens in your browser, signed in with your Google account': 'S’ouvre dans votre navigateur, connecté à votre compte Google',
     'Opens the Google app on this phone': 'Ouvre l’application Google sur ce téléphone',
     'Classroom': 'Classroom',
-    'Sheets': 'Sheets',
-    'Slides': 'Slides',
-    'Drive': 'Drive',
+    
     'Keep': 'Keep',
-    'Translate': 'Traduction',
-    'Photos': 'Photos',
-    'Maps': 'Maps',
+    
     'Earth': 'Earth',
     'Your Google apps, one click away. They open in your browser, signed in with your Google account.': 'Vos applications Google, à un clic. Elles s’ouvrent dans votre navigateur, connectées à votre compte Google.',
     'Select text': 'Sélectionner du texte',
-    'Highlight': 'Surligner',
     'Pen': 'Crayon',
     'Text': 'Texte',
-    'Box': 'Cadre',
-    'Eraser': 'Gomme',
-    'Yellow': 'Jaune',
-    'Green': 'Vert',
-    'Blue': 'Bleu',
-    'Pink': 'Rose',
-    'Black': 'Noir',
-    'Redo': 'Rétablir',
+    'Box': 'Cadre', 
+    
+    
+    'Black': 'Noir', 
     'Pages': 'Pages',
     'Zoom in': 'Zoom avant',
     'Fit to width': 'Ajuster à la largeur',
-    'Find': 'Rechercher',
     'Export…': 'Exporter…',
     'Find in this PDF': 'Rechercher dans ce PDF',
-    'Previous': 'Précédent',
-    'Next': 'Suivant',
-    'Close': 'Fermer',
-    'Searching…': 'Recherche…',
+    
+    
     'Not found': 'Introuvable',
     'Export PDF with Notes': 'Exporter le PDF avec les annotations',
     'Download PDF with Notes to This Chromebook': 'Télécharger le PDF avec les annotations sur ce Chromebook',
@@ -6373,7 +6370,6 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Clear All Notes': 'Effacer toutes les annotations',
     'Clear all notes?': 'Effacer toutes les annotations ?',
     'Every highlight, drawing and text note on this PDF will be removed.': 'Tous les surlignages, dessins et textes de ce PDF seront supprimés.',
-    'Clear': 'Effacer',
     'The PDF couldn’t be exported': 'Le PDF n’a pas pu être exporté',
     'The PDF couldn’t be saved': 'Le PDF n’a pas pu être enregistré',
     'with notes': 'annoté',
@@ -6383,24 +6379,19 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'This PDF can’t be opened': 'Ce PDF ne peut pas être ouvert',
     'It may be damaged, or not really a PDF.': 'Il est peut-être endommagé, ou ce n’est pas vraiment un PDF.',
     'Opening…': 'Ouverture…',
-    'Open…': 'Ouvrir…',
     'Move Checked Items to Bottom': 'Déplacer les éléments cochés en bas',
     'Uncheck All': 'Tout décocher',
     'Add a drawing': 'Ajouter un dessin',
     'Export as Word (.docx)…': 'Exporter en Word (.docx)…',
     'Print or Save as PDF…': 'Imprimer ou enregistrer en PDF…',
     'Download as Text': 'Télécharger en texte',
-    'Tags': 'Étiquettes',
-    'Delete Folder': 'Supprimer le dossier',
-    'Delete this folder?': 'Supprimer ce dossier ?',
+    
     'done': 'fait',
     'No notes match your search.': 'Aucune note ne correspond à votre recherche.',
     'word': 'mot',
     'Insert Drawing': 'Insérer le dessin',
     'Drawing': 'Dessin',
-    'Date Edited': 'Date de modification',
-    'Rename': 'Renommer',
-    'Create': 'Créer',
+    
     'Scanner': 'Scanner',
     'Scan pages with the camera and save them as a PDF.': 'Numérisez des pages avec la caméra et enregistrez-les en PDF.',
     'Choose Photos…': 'Choisir des photos…',
@@ -6409,10 +6400,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'The camera isn’t available': 'La caméra n’est pas disponible',
     'Allow the camera for PatOS (the lock icon next to the address). On a school Chromebook it may be turned off. You can also scan photos you already took.': 'Autorisez la caméra pour PatOS (le cadenas à côté de l’adresse). Sur un Chromebook d’école, elle peut être désactivée. Vous pouvez aussi numériser des photos déjà prises.',
     'Try Again': 'Réessayer',
-    'Document': 'Document',
     'Grayscale': 'Niveaux de gris',
     'Black & White': 'Noir et blanc',
-    'Original': 'Original',
     'Find Edges': 'Trouver les bords',
     'Whole Photo': 'Photo entière',
     'Rotate': 'Pivoter',
@@ -6427,7 +6416,6 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Move Down': 'Descendre',
     'Save PDF as': 'Enregistrer le PDF sous',
     'Scan': 'Numérisation',
-    'Saving…': 'Enregistrement…',
     'Scan saved': 'Numérisation enregistrée',
     'The scan couldn’t be saved': 'La numérisation n’a pas pu être enregistrée',
     'I don’t understand': 'Je ne comprends pas',
@@ -6456,24 +6444,19 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'false': 'faux',
     'Type an equation, like y = 2x + 1': 'Tapez une équation, comme y = 2x + 1',
     'Expression': 'Expression',
-    'Remove': 'Retirer',
     'Add a slider for': 'Ajouter un curseur pour',
-    'Play': 'Lecture',
     'y-intercept': 'Ordonnée à l’origine',
     'Root': 'Zéro',
     'High point': 'Maximum',
     'Low point': 'Minimum',
     'Crossing': 'Intersection',
-    'Saved to Pictures': 'Enregistré dans Images',
     'Step': 'Pas',
     'Nothing to put in a table': 'Rien à mettre dans une table',
     'Type a function first, like y = 2x + 1.': 'Tapez d’abord une fonction, comme y = 2x + 1.',
     'From': 'De',
     'Games that work offline: 2048, Snake, Minesweeper, Breakout, Connect Four, Memory and more.': 'Des jeux qui fonctionnent hors ligne : 2048, Snake, Démineur, Casse-briques, Puissance 4, Mémoire et plus.',
     'All Games': 'Tous les jeux',
-    'New Game': 'Nouvelle partie',
     'More games': 'Plus de jeux',
-    'Best': 'Record',
     'Wins': 'Victoires',
     'Use the arrow keys or swipe. Tiles with the same number merge.': 'Utilisez les flèches ou glissez. Les tuiles avec le même nombre fusionnent.',
     'You made 2048!': 'Vous avez fait 2048 !',
@@ -6481,19 +6464,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'No more moves': 'Plus de coups possibles',
     'Arrow keys or swipe to turn. Space to pause.': 'Flèches ou glissez pour tourner. Espace pour faire pause.',
     'Game over': 'Partie terminée',
-    'Paused': 'En pause',
-    'Easy': 'Facile',
+    
     'Hard': 'Difficile',
     'Click to open. Right-click or long-press to place a flag. Click a number to open around it.': 'Cliquez pour ouvrir. Clic droit ou appui long pour poser un drapeau. Cliquez sur un chiffre pour ouvrir autour.',
-    'Square': 'Case',
     'Mines': 'Mines',
-    'Time': 'Temps',
     'Boom! You found a mine.': 'Boum ! Vous avez trouvé une mine.',
     'You cleared the board!': 'Vous avez déminé le terrain !',
     'Move with the mouse, a finger or the arrow keys. Click or Space to launch.': 'Déplacez avec la souris, un doigt ou les flèches. Cliquez ou Espace pour lancer.',
     'Level': 'Niveau',
     'Click or press Space to launch': 'Cliquez ou appuyez sur Espace pour lancer',
-    'vs Friend': 'contre un ami',
     'Click a column (or press 1 to 7). Line up four in a row to win.': 'Cliquez sur une colonne (ou 1 à 7). Alignez-en quatre pour gagner.',
     'Column': 'Colonne',
     'Your turn': 'À vous',
@@ -6542,7 +6521,6 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Added to': 'Ajouté à',
     'songs': 'chansons',
     'song': 'chanson',
-    'Title': 'Titre',
     'Artist': 'Artiste',
     'Album': 'Album',
     'Play Next': 'Lire ensuite',
@@ -6558,13 +6536,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Listen to PatOS Originals': 'Écouter les Originaux PatOS',
     'Music added': 'Musique ajoutée',
     'Couldn’t add': 'Impossible d’ajouter',
-    'Now': 'Maintenant',
     'Nothing else in the queue. Right-click a song › Play Next.': 'Rien d’autre dans la file. Clic droit sur une chanson › Lire ensuite.',
     'Not Playing': 'Aucune lecture',
-    'Repeat off': 'Répétition désactivée',
-    'Repeat all': 'Tout répéter',
-    'Repeat one': 'Répéter un',
-    'Repeat': 'Répéter',
+    
+    
     'Reopen windows when PatOS starts': 'Rouvrir les fenêtres au démarrage de PatOS',
     'Your open apps and files come back after a reload or a crash.': 'Vos applications et fichiers ouverts reviennent après un rechargement ou un plantage.',
     'Your windows are back': 'Vos fenêtres sont de retour',
@@ -6572,12 +6547,10 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'windows were reopened.': 'fenêtres ont été rouvertes.',
     'Tap Search above the Dock to find anything. Press and hold an app for more.': 'Touchez Rechercher au-dessus du Dock pour tout trouver. Maintenez une app enfoncée pour plus d’options.',
     'Tap Search above the Dock to find anything. Press and hold an app for more. The ⊞ button in an app takes you home.': 'Touchez Rechercher au-dessus du Dock pour tout trouver. Maintenez une app enfoncée pour plus d’options. Le bouton ⊞ dans une app ramène à l’écran d’accueil.',
-    'More': 'Plus',
     'Home Screen': 'Écran d’accueil',
     'App Switcher': 'Sélecteur d’apps',
     'Control Center': 'Centre de contrôle',
-    'Close App': 'Fermer l’app',
-    'Search': 'Rechercher',
+    
     'PatOS went back to the previous version': 'PatOS est revenu à la version précédente',
     'The newest version didn’t start on this device, so the one that worked before is back. The next update will be tried again.': 'La version la plus récente n’a pas démarré sur cet appareil, alors celle qui fonctionnait est de retour. La prochaine mise à jour sera essayée à nouveau.',
     'Updates': 'Mises à jour',
@@ -6594,41 +6567,39 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Previous version': 'Version précédente',
     'none yet': 'aucune pour l’instant',
     'PatOS keeps the version before each update. If an update doesn’t start, PatOS goes back to it by itself.': 'PatOS garde la version d’avant chaque mise à jour. Si une mise à jour ne démarre pas, PatOS y revient tout seul.',
+    'Board square': 'Case', 'Elapsed': 'Temps', 'Duration': 'Durée',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
-    'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 'Offline': 'Hors ligne', 'Connected': 'Connecté',
+    'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 
     'Not available on this device': 'Non disponible sur cet appareil', 'Search for a city': 'Rechercher une ville', 'The camera isn’t available.': 'La caméra n’est pas disponible.',
     'Allow camera access in your browser settings. On a school Chromebook it may be turned off.': 'Autorisez la caméra dans les réglages du navigateur. Sur un Chromebook d’école, elle est peut-être désactivée.',
-    'Commands you can use:': 'Commandes disponibles :', 'Made by Pat': 'Fait par Pat', 'Can’t get the weather right now.': 'Impossible d’obtenir la météo pour l’instant.', 'Bing': 'Bing',
+    'Commands you can use:': 'Commandes disponibles :', 'Can’t get the weather right now.': 'Impossible d’obtenir la météo pour l’instant.', 'Bing': 'Bing',
     'A web browser with tabs. Searches go through Bing, since Google won’t show its results inside other apps.': 'Un navigateur avec onglets. Les recherches passent par Bing, car Google refuse d’afficher ses résultats dans d’autres apps.',
-    'Most sites open right here. A few big ones, like Gmail, won’t load inside other apps, so use the PatOS app for those.': 'La plupart des sites s’ouvrent ici. Quelques gros sites, comme Gmail, refusent de s’ouvrir dans d’autres apps; utilisez l’app PatOS pour ceux-là.',
-    'This site doesn’t let other apps show it, so it won’t open in Patoogle. You can search for it instead, or use the PatOS app that does the same thing (YouTube, Docs, Drive, Maps or Translate).': 'Ce site ne se laisse pas afficher par d’autres apps, alors il ne s’ouvre pas dans Patoogle. Vous pouvez le chercher à la place, ou utiliser l’app PatOS qui fait la même chose (YouTube, Docs, Drive, Plans ou Traduire).',
-    'Solid windows. Runs faster on older Chromebooks.': 'Fenêtres opaques. Plus rapide sur les vieux Chromebooks.', 'A full desktop that runs in your browser, even on a school Chromebook.': 'Un bureau complet qui fonctionne dans votre navigateur, même sur un Chromebook d’école.',
-    'Controls': 'Réglages', 'Import': 'Importer', 'That’s the fastest you’ve typed so far.': 'C’est le plus vite que vous avez tapé jusqu’ici.', 'History': 'Historique', 'No history yet': 'Aucun historique', 'Clear History': 'Effacer l’historique',
+    'That’s the fastest you’ve typed so far.': 'C’est le plus vite que vous avez tapé jusqu’ici.', 'History': 'Historique', 'No history yet': 'Aucun historique', 'Clear History': 'Effacer l’historique',
     // newer apps
-    'Contacts': 'Contacts', 'Freeform': 'Freeform', 'Preview': 'Aperçu', 'Chess': 'Échecs', 'Screenshot': 'Capture d’écran', 'Patoogle': 'Patoogle',
+    'Contacts': 'Contacts', 'Freeform': 'Freeform', 'Preview': 'Aperçu', 'Chess': 'Échecs', 'Screenshot': 'Capture d’écran', 
     'No Name': 'Sans nom', 'New contact': 'Nouveau contact', 'Import or export': 'Importer ou exporter', 'No contacts yet. Press + to add one.': 'Aucun contact. Appuyez sur + pour en ajouter un.',
-    'Select a contact or add a new one.': 'Choisissez un contact ou ajoutez-en un.', 'First name': 'Prénom', 'Last name': 'Nom', 'Phone': 'Téléphone', 'Email': 'Courriel', 'Birthday': 'Anniversaire', 'Address': 'Adresse',
-    'Delete Contact': 'Supprimer le contact', 'Delete this contact?': 'Supprimer ce contact?', 'Favorite': 'Favori', 'Favorite': 'Favori', 'Message': 'Message', 'Change photo': 'Changer la photo',
+    'Select a contact or add a new one.': 'Choisissez un contact ou ajoutez-en un.', 'First name': 'Prénom', 'Last name': 'Nom', 'Email': 'Courriel', 'Birthday': 'Anniversaire', 'Address': 'Adresse',
+    'Delete Contact': 'Supprimer le contact', 'Delete this contact?': 'Supprimer ce contact?', 'Favorite': 'Favori', 'Message': 'Message', 'Change photo': 'Changer la photo',
     'Press Edit to add a phone number, email or birthday.': 'Appuyez sur Édition pour ajouter un numéro, un courriel ou un anniversaire.', 'Import a vCard (.vcf)…': 'Importer une vCard (.vcf)…', 'Export all as vCard': 'Tout exporter en vCard',
     'contacts imported': 'contacts importés', 'Birthday today': 'Anniversaire aujourd’hui',
-    'Select and move': 'Sélectionner et déplacer', 'Draw': 'Dessiner', 'Sticky note': 'Note autocollante', 'Text': 'Texte', 'Box': 'Boîte', 'Add a picture': 'Ajouter une image', 'Fit everything': 'Tout afficher', 'Boards': 'Tableaux',
+    'Select and move': 'Sélectionner et déplacer', 'Draw': 'Dessiner', 'Sticky note': 'Note autocollante', 'Fit everything': 'Tout afficher', 'Boards': 'Tableaux',
     'New Board': 'Nouveau tableau', 'Rename Board…': 'Renommer le tableau…', 'Clear Board': 'Effacer le tableau', 'Delete Board': 'Supprimer le tableau', 'Board': 'Tableau', 'My Board': 'Mon tableau', 'Name the new board': 'Nommez le nouveau tableau',
-    'Rename board': 'Renommer le tableau', 'Clear this board?': 'Effacer ce tableau?', 'Everything on it will be removed.': 'Tout ce qu’il contient sera supprimé.', 'Clear': 'Effacer',
+    'Rename board': 'Renommer le tableau', 'Clear this board?': 'Effacer ce tableau?', 'Everything on it will be removed.': 'Tout ce qu’il contient sera supprimé.', 
     'Open a PDF or a picture': 'Ouvrir un PDF ou une image', 'Choose a file from your computer, or one already in PatOS.': 'Choisissez un fichier de votre ordinateur ou un fichier déjà dans PatOS.', 'Choose a File…': 'Choisir un fichier…',
-    'Zoom out': 'Zoom arrière', 'Zoom in': 'Zoom avant', 'Rotate': 'Pivoter', 'Actual size': 'Taille réelle', 'This PDF can’t be opened': 'Ce PDF ne peut pas être ouvert',
-    'Medium': 'Moyen', 'Hard': 'Difficile', 'Flip board': 'Retourner l’échiquier', 'White': 'Les blancs', 'Black': 'Les noirs', 'to move': 'jouent', 'Check!': 'Échec!', 'Checkmate!': 'Échec et mat!',
+    'Zoom out': 'Zoom arrière', 'Actual size': 'Taille réelle', 
+    'Flip board': 'Retourner l’échiquier', 'White': 'Les blancs', 'to move': 'jouent', 'Check!': 'Échec!', 'Checkmate!': 'Échec et mat!',
     'Black wins': 'Les noirs gagnent', 'White wins': 'Les blancs gagnent', 'Stalemate. It’s a draw.': 'Pat. Match nul.', 'Draw (50-move rule)': 'Nul (règle des 50 coups)',
     'Take Screenshot': 'Prendre une capture', 'Record Screen': 'Enregistrer l’écran', 'No delay': 'Sans délai', '3 seconds': '3 secondes', '5 seconds': '5 secondes', 'Delay ': 'Délai ', 'Open in Photos': 'Ouvrir dans Photos',
     'Save Video to Computer': 'Enregistrer la vidéo sur l’ordinateur', 'Screen capture was cancelled.': 'La capture d’écran a été annulée.', 'This device doesn’t allow screen capture (iPhones and iPads don’t).': 'Cet appareil ne permet pas la capture d’écran (les iPhone et iPad ne le permettent pas).',
-    'Switch mode': 'Changer de mode', 'Alarms': 'Alarmes', 'Alarm': 'Alarme', 'Add Alarm': 'Ajouter', 'Label': 'Étiquette', 'No alarms yet. Alarms ring while PatOS is open.': 'Aucune alarme. Les alarmes sonnent quand PatOS est ouvert.',
+    'Switch mode': 'Changer de mode', 'Alarms': 'Alarmes', 
     'Continue': 'Continuer', 'Get Started': 'Commencer', 'Welcome to PatOS. Let’s set things up. It takes less than a minute.': 'Bienvenue dans PatOS. Préparons tout. Ça prend moins d’une minute.',
     'Choose your language': 'Choisissez votre langue', 'You can change it later in System Settings.': 'Vous pourrez la changer plus tard dans Réglages Système.', 'What’s your name?': 'Comment vous appelez-vous?',
     'PatOS shows it on the lock screen and greets you with it.': 'PatOS l’affiche sur l’écran verrouillé et vous salue avec.', 'Choose your look': 'Choisissez votre style', 'Pick a wallpaper': 'Choisissez un fond d’écran',
     'The first three move in 3D.': 'Les trois premiers bougent en 3D.', 'You’re all set, ': 'Tout est prêt, ', 'Start Using PatOS': 'Commencer à utiliser PatOS',
     'Swipe up from the bottom to go home': 'Balayez vers le haut depuis le bas pour revenir à l’accueil', 'Swipe up and pause to switch apps': 'Balayez vers le haut et attendez pour changer d’app',
     'Pull down from the top right for Control Center': 'Tirez vers le bas en haut à droite pour le centre de contrôle', 'Ctrl+Space searches everything': 'Ctrl+Espace cherche partout',
-    'Alt+L shows all your apps': 'Alt+L affiche toutes vos apps', 'Drag a window to the edge to snap it': 'Glissez une fenêtre vers le bord pour la placer', 'Waves': 'Vagues', 'Dot Waves': 'Vagues de points', 'Crystals': 'Cristaux', 'Warp': 'Hyperespace', 'Clear Sky': 'Ciel dégagé'
+    'Alt+L shows all your apps': 'Alt+L affiche toutes vos apps', 'Drag a window to the edge to snap it': 'Glissez une fenêtre vers le bord pour la placer', 'Waves': 'Vagues', 'Dot Waves': 'Vagues de points', 'Crystals': 'Cristaux', 'Warp': 'Hyperespace', 
   };
   const PATTERNS = [
     [/^About (.+)$/, (m) => 'À propos de ' + t(m[1])], [/^Hide (.+)$/, (m) => 'Masquer ' + t(m[1])], [/^Quit (.+)$/, (m) => 'Quitter ' + t(m[1])], [/^Log Out (.+)…$/, (m) => 'Fermer la session de ' + m[1] + '…'],
@@ -13316,7 +13287,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       }
       function songTable(paths) {
         const rows = h('div', { class: 'mu-table', role: 'list' });
-        rows.appendChild(h('div', { class: 'mu-tr mu-th' }, h('span', {}, '#'), h('span', {}, T('Title')), h('span', {}, T('Artist')), h('span', {}, T('Album')), h('span', {}, T('Time'))));
+        rows.appendChild(h('div', { class: 'mu-tr mu-th' }, h('span', {}, '#'), h('span', {}, T('Title')), h('span', {}, T('Artist')), h('span', {}, T('Album')), h('span', {}, T('Duration'))));
         const items = paths.map((p) => ({ path: p }));
         paths.forEach((p, i) => {
           const m = metaOf(p); const playingNow = cur() && cur().path === p;
@@ -20056,7 +20027,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     function reset() {
       [R, C, M] = LEVELS[level]; cells = []; started = false; opened = 0; flags = 0; done = false; clearInterval(tick); t0 = 0; api.score(0, level);
       grid.innerHTML = ''; grid.style.gridTemplateColumns = 'repeat(' + C + ', var(--ms))'; grid.style.setProperty('--ms', (C > 16 ? 24 : 30) + 'px');
-      for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) { const el = h('button', { class: 'ms-c', 'aria-label': T('Square') }); const cell = { r, c, el, mine: false, n: 0, open: false, flag: false }; cells.push(cell); bind(cell); grid.appendChild(el); }
+      for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) { const el = h('button', { class: 'ms-c', 'aria-label': T('Board square') }); const cell = { r, c, el, mine: false, n: 0, open: false, flag: false }; cells.push(cell); bind(cell); grid.appendChild(el); }
       updInfo();
     }
     const at = (r, c) => (r < 0 || c < 0 || r >= R || c >= C ? null : cells[r * C + c]);
@@ -20067,7 +20038,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
       cells.forEach((x2) => { x2.n = around(x2).filter((y) => y.mine).length; });
       started = true; t0 = Date.now(); tick = setInterval(updInfo, 500);
     }
-    function updInfo() { const s = t0 ? Math.floor((Date.now() - t0) / 1000) : 0; info.textContent = T('Mines') + ': ' + (M - flags) + '   ·   ' + T('Time') + ': ' + s + ' s'; }
+    function updInfo() { const s = t0 ? Math.floor((Date.now() - t0) / 1000) : 0; info.textContent = T('Mines') + ': ' + (M - flags) + '   ·   ' + T('Elapsed') + ': ' + s + ' s'; }
     function openCell(cell) {
       if (done || cell.open || cell.flag) return;
       if (!started) lay(cell);
@@ -20472,7 +20443,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     if (gPop) return closeGoogle();
     const d = device();
     const grid = h('div', { class: 'gg-grid' }, ...GOOGLE.filter(([id]) => byId[id]).map(([id, label]) => {
-      const b = h('button', { class: 'gg-app', title: byId[id].name }, h('div', { class: 'gg-ic', html: PatOS.iconHTML('x-' + id) }), h('span', {}, PatOS.t(label)));
+      const b = h('button', { class: 'gg-app', title: byId[id].name }, h('div', { class: 'gg-ic', html: PatOS.iconHTML('x-' + id) }), h('span', {}, PatOS.lang === 'fr' && label === 'Translate' ? 'Traduction' : label));
       b.onclick = () => { closeGoogle(); open(id); };
       return b;
     }));

@@ -13,6 +13,7 @@ const TYPES = {
   '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8'
 };
+const PRIVATE_DIRS = new Set(['test', 'node_modules']); // never served
 const PRIVATE = new Set(['server.js', 'yt.js', 'services.js', 'http-util.js', 'package.json', 'package-lock.json', 'build.js']);
 
 const server = http.createServer((req, res) => {
@@ -26,7 +27,7 @@ const server = http.createServer((req, res) => {
   if (p.endsWith('/')) p += 'index.html';
   const file = path.normalize(path.join(ROOT, p));
   const rel = path.relative(ROOT, file);
-  if (rel.startsWith('..') || rel.split(path.sep).some((s) => s.startsWith('.')) || PRIVATE.has(rel)) { res.writeHead(404); return res.end('Not found'); }
+  if (rel.startsWith('..') || rel.split(path.sep).some((s) => s.startsWith('.')) || PRIVATE.has(rel) || PRIVATE_DIRS.has(rel.split(path.sep)[0])) { res.writeHead(404); return res.end('Not found'); }
   sendFile(req, res, file, TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream').then((ok) => { if (!ok) { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('Not found'); } }).catch(() => { res.writeHead(500); res.end('Server error'); });
 });
 server.keepAliveTimeout = 65000; server.headersTimeout = 70000;

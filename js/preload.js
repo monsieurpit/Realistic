@@ -68,6 +68,18 @@
             try { for (var i = 0; i < ls.length; i++) { var k = ls.key(i); if (k.indexOf('patos:') === 0) { try { kv[k.slice(6)] = JSON.parse(ls.getItem(k)); moved.push(k); } catch (e) {} } } } catch (e) {}
             window.__MIGRATE = moved;
           }
+          // changes that were still being saved when PatOS last closed (see journal() in core.js)
+          var J = null; try { J = ls && ls.getItem('patos-journal'); } catch (e) {}
+          if (J) {
+            try {
+              var j = JSON.parse(J), tx = db.transaction(['kv', 'fc'], 'readwrite'), kvs = tx.objectStore('kv'), fcs = tx.objectStore('fc');
+              Object.keys(j.s || {}).forEach(function (k) { kv[k] = j.s[k]; kvs.put(j.s[k], k); });
+              (j.d || []).forEach(function (k) { delete kv[k]; kvs.delete(k); });
+              Object.keys(j.f || {}).forEach(function (k) { fc[k] = j.f[k]; fcs.put(j.f[k], k); });
+              (j.fd || []).forEach(function (k) { delete fc[k]; fcs.delete(k); });
+              tx.oncomplete = function () { try { ls.removeItem('patos-journal'); } catch (e) {} };
+            } catch (e) { try { ls.removeItem('patos-journal'); } catch (e2) {} }
+          }
           start();
         });
       });
@@ -76,7 +88,7 @@
   setTimeout(function () { if (!started) { window.__KV = null; start(); } }, 6000);
   // "Erase PatOS" asks for a clean start
   if (ls && ls.getItem('patos-wipe')) {
-    try { ls.removeItem('patos-wipe'); Object.keys(ls).filter(function (k) { return k.indexOf('patos:') === 0; }).forEach(function (k) { ls.removeItem(k); }); } catch (e) {}
+    try { ls.removeItem('patos-wipe'); ls.removeItem('patos-journal'); Object.keys(ls).filter(function (k) { return k.indexOf('patos:') === 0; }).forEach(function (k) { ls.removeItem(k); }); } catch (e) {}
     try { var d = indexedDB.deleteDatabase('patos'); d.onsuccess = d.onerror = d.onblocked = go; } catch (e) { go(); }
   } else go();
 })();

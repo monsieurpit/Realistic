@@ -357,7 +357,7 @@
       }
       function songTable(paths) {
         const rows = h('div', { class: 'mu-table', role: 'list' });
-        rows.appendChild(h('div', { class: 'mu-tr mu-th' }, h('span', {}, '#'), h('span', {}, T('Title')), h('span', {}, T('Artist')), h('span', {}, T('Album')), h('span', {}, T('Time'))));
+        rows.appendChild(h('div', { class: 'mu-tr mu-th' }, h('span', {}, '#'), h('span', {}, T('Title')), h('span', {}, T('Artist')), h('span', {}, T('Album')), h('span', {}, T('Duration'))));
         const items = paths.map((p) => ({ path: p }));
         paths.forEach((p, i) => {
           const m = metaOf(p); const playingNow = cur() && cur().path === p;

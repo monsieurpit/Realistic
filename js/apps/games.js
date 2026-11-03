@@ -103,7 +103,7 @@
     function reset() {
       [R, C, M] = LEVELS[level]; cells = []; started = false; opened = 0; flags = 0; done = false; clearInterval(tick); t0 = 0; api.score(0, level);
       grid.innerHTML = ''; grid.style.gridTemplateColumns = 'repeat(' + C + ', var(--ms))'; grid.style.setProperty('--ms', (C > 16 ? 24 : 30) + 'px');
-      for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) { const el = h('button', { class: 'ms-c', 'aria-label': T('Square') }); const cell = { r, c, el, mine: false, n: 0, open: false, flag: false }; cells.push(cell); bind(cell); grid.appendChild(el); }
+      for (let r = 0; r < R; r++) for (let c = 0; c < C; c++) { const el = h('button', { class: 'ms-c', 'aria-label': T('Board square') }); const cell = { r, c, el, mine: false, n: 0, open: false, flag: false }; cells.push(cell); bind(cell); grid.appendChild(el); }
       updInfo();
     }
     const at = (r, c) => (r < 0 || c < 0 || r >= R || c >= C ? null : cells[r * C + c]);
@@ -114,7 +114,7 @@
       cells.forEach((x2) => { x2.n = around(x2).filter((y) => y.mine).length; });
       started = true; t0 = Date.now(); tick = setInterval(updInfo, 500);
     }
-    function updInfo() { const s = t0 ? Math.floor((Date.now() - t0) / 1000) : 0; info.textContent = T('Mines') + ': ' + (M - flags) + '   ·   ' + T('Time') + ': ' + s + ' s'; }
+    function updInfo() { const s = t0 ? Math.floor((Date.now() - t0) / 1000) : 0; info.textContent = T('Mines') + ': ' + (M - flags) + '   ·   ' + T('Elapsed') + ': ' + s + ' s'; }
     function openCell(cell) {
       if (done || cell.open || cell.flag) return;
       if (!started) lay(cell);

@@ -51,7 +51,9 @@
     if (!DBH || (!dirty.size && !removedKeys.size && !Object.keys(fcPut).length && !fcDel.size)) return Promise.resolve();
     const sets = [...dirty], dels = [...removedKeys], puts = Object.assign({}, fcPut), fdel = [...fcDel];
     dirty.clear(); removedKeys.clear(); Object.keys(fcPut).forEach((k) => delete fcPut[k]); fcDel.clear();
-    return new Promise((res) => {
+    const batch = { sets, dels, puts, fdel }; inflight.add(batch);
+    return new Promise((res0) => {
+      const res = () => { inflight.delete(batch); res0(); };
       try {
         const tx = DBH.transaction(['kv', 'fc'], 'readwrite'); const st = tx.objectStore('kv'), fc = tx.objectStore('fc');
         sets.forEach((k) => { try { st.put(KV[k], k); } catch (e) { console.error(e); } });
@@ -64,7 +66,21 @@
       } catch (e) { res(); }
     });
   }
+  const inflight = new Set(); // writes sent to the database that haven't finished yet
   const flushSoon = PatOS.debounce(flushNow, 120);
+  /* When the page closes, a database write that hasn't finished can be cancelled by the browser. So the
+     changes that aren't safely saved yet are also written to localStorage (which saves at once), and
+     js/preload.js puts them back on the next start. */
+  function journal() {
+    if (!DBH) return;
+    const j = { s: {}, d: [], f: {}, fd: [] };
+    const add = (sets, dels, puts, fdel) => { sets.forEach((k) => { j.s[k] = KV[k]; j.d = j.d.filter((x) => x !== k); }); dels.forEach((k) => { delete j.s[k]; j.d.push(k); }); Object.assign(j.f, puts); fdel.forEach((k) => { delete j.f[k]; j.fd.push(k); }); };
+    inflight.forEach((b) => add(b.sets, b.dels, b.puts, b.fdel));
+    add([...dirty], [...removedKeys], fcPut, [...fcDel]);
+    if (!Object.keys(j.s).length && !j.d.length && !Object.keys(j.f).length && !j.fd.length) return;
+    try { const txt = JSON.stringify(j); if (txt.length < 4e6) localStorage.setItem('patos-journal', txt); } catch (e) {}
+  }
+  const clearJournal = () => { if (!inflight.size && !dirty.size) { try { localStorage.removeItem('patos-journal'); } catch (e) {} } };
   function afterMigrate() {
     if (!window.__MIGRATE || !window.__MIGRATE.length) return;
     const keys = window.__MIGRATE; window.__MIGRATE = null;
@@ -106,7 +122,7 @@
   };
   const persistedFC = {};
   PatOS.flush = () => { try { saveFSNow(); } catch (e) {} return flushNow(); };
-  addEventListener('pagehide', () => PatOS.flush());
+  addEventListener('pagehide', () => { try { saveFSNow(); } catch (e) {} journal(); flushNow().then(clearJournal); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) PatOS.flush(); });
 
   /* how much room there is: real numbers from the browser */
