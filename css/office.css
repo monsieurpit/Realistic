@@ -508,3 +508,15 @@ mark.dx-hit { background: #fff2a8; color: inherit; border-radius: 2px; } mark.dx
 .pb-checking span { animation: ofPulse 1.2s ease-in-out infinite; }
 .br-blocked .bb-ic { color: var(--text3); } .br-blocked .br-alts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .bb-note { font-size: 13px; color: var(--text3); min-height: 18px; }
+
+/* ===== Accessibility ===== */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html.show-focus *:focus { outline: 3px solid var(--accent) !important; outline-offset: 2px !important; }
+html.bold-text body, html.bold-text .window, html.bold-text .menu, html.bold-text #menubar { font-weight: 600; }
+html.high-contrast { --border: rgba(255,255,255,.55); --border2: rgba(255,255,255,.65); --text2: var(--text); --text3: var(--text2); }
+html.high-contrast[data-theme="light"] { --border: rgba(0,0,0,.6); --border2: rgba(0,0,0,.7); }
+html.high-contrast .window { box-shadow: 0 0 0 2px currentColor, 0 12px 40px rgba(0,0,0,.5) !important; }
+html.high-contrast .btn, html.high-contrast .tbtn, html.high-contrast .field { outline: 1px solid var(--border2); }
+html.big-targets .btn, html.big-targets .tbtn, html.big-targets .ob, html.big-targets .of-b, html.big-targets .st-si, html.big-targets .fd-si, html.big-targets .menu-item { min-height: 40px; min-width: 40px; }
+.st-note { font-size: 12.5px; color: var(--text2); line-height: 1.5; margin: 10px 4px; }
+.st-inline { display: flex; align-items: center; gap: 10px; } .st-wrapval { white-space: normal; text-align: right; max-width: 320px; }

@@ -131,6 +131,7 @@
         off.addEventListener('pointerdown', () => (PatOS._leaving = true, location.reload()), { once: true });
       }
     });
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.__installPrompt = e; });
     boot();
     // offline support / installable app when served over http(s)
     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !PatOS.singleFile) {

@@ -97,6 +97,7 @@
       return n;
     },
     flush: flushNow,
+    dump() { const o = {}; if (KV) Object.keys(KV).forEach((k) => { if (k !== 'fs') o[k] = clone(KV[k]); }); else { try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX) && k !== PREFIX + 'fs').forEach((k) => { o[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); }); } catch (e) {} } return o; },
     async clearAll() {
       try { localStorage.setItem('patos-wipe', '1'); } catch (e) {}
       if (KV) { Object.keys(KV).forEach((k) => delete KV[k]); dirty.clear(); removedKeys.clear(); }
@@ -144,7 +145,7 @@
     uiSounds: true,
     volume: 0.7,
     brightness: 1,
-    reduceMotion: false,
+    reduceMotion: false, highContrast: false, boldText: false, showFocus: false, bigTargets: false, srAnnounce: true, systemNotifications: true,
     reduceTransparency: false,
     quality3d: 'auto',       // low | auto | high
     askFullscreen: true,

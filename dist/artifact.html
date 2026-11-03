@@ -2660,6 +2660,18 @@ mark.dx-hit { background: #fff2a8; color: inherit; border-radius: 2px; } mark.dx
 .br-blocked .bb-ic { color: var(--text3); } .br-blocked .br-alts { display: flex; gap: 8px; flex-wrap: wrap; justify-content: center; }
 .bb-note { font-size: 13px; color: var(--text3); min-height: 18px; }
 
+/* ===== Accessibility ===== */
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+html.show-focus *:focus { outline: 3px solid var(--accent) !important; outline-offset: 2px !important; }
+html.bold-text body, html.bold-text .window, html.bold-text .menu, html.bold-text #menubar { font-weight: 600; }
+html.high-contrast { --border: rgba(255,255,255,.55); --border2: rgba(255,255,255,.65); --text2: var(--text); --text3: var(--text2); }
+html.high-contrast[data-theme="light"] { --border: rgba(0,0,0,.6); --border2: rgba(0,0,0,.7); }
+html.high-contrast .window { box-shadow: 0 0 0 2px currentColor, 0 12px 40px rgba(0,0,0,.5) !important; }
+html.high-contrast .btn, html.high-contrast .tbtn, html.high-contrast .field { outline: 1px solid var(--border2); }
+html.big-targets .btn, html.big-targets .tbtn, html.big-targets .ob, html.big-targets .of-b, html.big-targets .st-si, html.big-targets .fd-si, html.big-targets .menu-item { min-height: 40px; min-width: 40px; }
+.st-note { font-size: 12.5px; color: var(--text2); line-height: 1.5; margin: 10px 4px; }
+.st-inline { display: flex; align-items: center; gap: 10px; } .st-wrapval { white-space: normal; text-align: right; max-width: 320px; }
+
 </style>
   <style>
 /* ================= Liquid Glass ================= */
@@ -3011,6 +3023,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       return n;
     },
     flush: flushNow,
+    dump() { const o = {}; if (KV) Object.keys(KV).forEach((k) => { if (k !== 'fs') o[k] = clone(KV[k]); }); else { try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX) && k !== PREFIX + 'fs').forEach((k) => { o[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); }); } catch (e) {} } return o; },
     async clearAll() {
       try { localStorage.setItem('patos-wipe', '1'); } catch (e) {}
       if (KV) { Object.keys(KV).forEach((k) => delete KV[k]); dirty.clear(); removedKeys.clear(); }
@@ -3058,7 +3071,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     uiSounds: true,
     volume: 0.7,
     brightness: 1,
-    reduceMotion: false,
+    reduceMotion: false, highContrast: false, boldText: false, showFocus: false, bigTargets: false, srAnnounce: true, systemNotifications: true,
     reduceTransparency: false,
     quality3d: 'auto',       // low | auto | high
     askFullscreen: true,
@@ -5366,6 +5379,87 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     'Check': 'Vérifier',
     'No passwords yet': 'Aucun mot de passe',
     'Options': 'Options',
+    'Google': 'Google',
+    'It opened in its own window. If you don’t see it, check that your browser allows pop-ups from this site.': 'Le site s’est ouvert dans sa propre fenêtre. Si vous ne le voyez pas, vérifiez que votre navigateur autorise les fenêtres contextuelles pour ce site.',
+    'doesn’t allow being shown inside PatOS': 'n’accepte pas d’être affiché dans PatOS',
+    'This website tells browsers not to show it inside other pages. That is the website’s own rule, so PatOS opens it in its own window instead.': 'Ce site demande aux navigateurs de ne pas l’afficher dans d’autres pages. C’est sa propre règle, donc PatOS l’ouvre dans sa propre fenêtre.',
+    'Opening in its own window…': 'Ouverture dans sa propre fenêtre…',
+    'in its own window': 'dans sa propre fenêtre',
+    'Opening': 'Ouverture de',
+    'Mobile data': 'Données mobiles',
+    'Quality': 'Qualité',
+    'Estimated speed': 'Vitesse estimée',
+    'Round-trip time': 'Temps de réponse',
+    'Data saver': 'Économiseur de données',
+    'Response time of the PatOS server': 'Temps de réponse du serveur PatOS',
+    'Download speed': 'Vitesse de téléchargement',
+    'Not tested': 'Pas testé',
+    'Testing…': 'Test en cours…',
+    'Couldn’t test': 'Test impossible',
+    'Not reachable (PatOS is running as a file)': 'Injoignable (PatOS tourne comme un fichier)',
+    'Wi-Fi and Bluetooth are controlled by ChromeOS. Click the clock in the bottom right corner of the screen (outside PatOS) to change them. PatOS shows what it can see from the browser.': 'Le Wi-Fi et le Bluetooth sont gérés par ChromeOS. Cliquez sur l’horloge en bas à droite de l’écran (hors de PatOS) pour les changer. PatOS montre ce que le navigateur lui laisse voir.',
+    'This Device': 'Cet appareil',
+    'Permissions & Install': 'Permissions et installation',
+    'Accessibility': 'Accessibilité',
+    'System': 'Système',
+    'Processor threads': 'Threads du processeur',
+    'Memory': 'Mémoire',
+    'Screen': 'Écran',
+    'Touch points': 'Points tactiles',
+    'Time zone': 'Fuseau horaire',
+    'Battery': 'Batterie',
+    'Charging': 'En charge',
+    'On battery': 'Sur batterie',
+    'Not available in this browser': 'Indisponible dans ce navigateur',
+    'Browser storage used': 'Stockage utilisé',
+    'PatOS version': 'Version de PatOS',
+    'Time since PatOS opened': 'Depuis l’ouverture de PatOS',
+    'Camera': 'Caméra',
+    'Microphone': 'Microphone',
+    'Location': 'Position',
+    'Allowed': 'Autorisée',
+    'Blocked': 'Bloquée',
+    'Not asked yet': 'Pas encore demandée',
+    'Allow…': 'Autoriser…',
+    'Click the lock icon next to the address, then set it to Allow.': 'Cliquez sur le cadenas à côté de l’adresse, puis choisissez Autoriser.',
+    'Show PatOS notifications when this tab is in the background': 'Afficher les notifications de PatOS quand l’onglet est en arrière-plan',
+    'Needs the Notifications permission above.': 'Demande la permission Notifications ci-dessus.',
+    'Install PatOS': 'Installer PatOS',
+    'Use Chrome’s menu: Cast, save and share › Install page as app': 'Menu de Chrome : Diffuser, enregistrer et partager › Installer la page comme appli',
+    'Protected from clean-up': 'Protégées contre le nettoyage',
+    'Browser may clear it when space is low': 'Le navigateur peut les effacer si l’espace manque',
+    'Install as an app': 'Installer comme appli',
+    'Runs in its own window, opens faster and works offline.': 'Tourne dans sa propre fenêtre, s’ouvre plus vite et marche hors ligne.',
+    'Your saved data': 'Vos données enregistrées',
+    'Tip: to open PatOS when Chrome starts, go to Chrome Settings › On startup › Open a specific page, and add this page.': 'Astuce : pour ouvrir PatOS au démarrage de Chrome, allez dans Réglages de Chrome › Au démarrage › Ouvrir une page précise, et ajoutez cette page.',
+    'Reduce motion': 'Réduire les animations',
+    'Fewer animations.': 'Moins d’animations.',
+    'Solid backgrounds instead of glass.': 'Des fonds pleins au lieu du verre.',
+    'High contrast': 'Contraste élevé',
+    'Stronger borders and text.': 'Bordures et texte plus marqués.',
+    'Bold text': 'Texte en gras',
+    'Always show keyboard focus': 'Toujours montrer le focus clavier',
+    'Draws an outline around the item you are on when you press Tab.': 'Dessine un contour autour de l’élément actif quand vous appuyez sur Tab.',
+    'Larger click targets': 'Cibles plus grandes',
+    'Bigger buttons, good for touch screens.': 'Boutons plus grands, pratique sur écran tactile.',
+    'Read notifications aloud to screen readers': 'Annoncer les notifications aux lecteurs d’écran',
+    'To make everything bigger, press Ctrl and + (and Ctrl and 0 to reset). PatOS rearranges itself to fit. On a Chromebook you can also use ChromeVox, the built-in screen reader (Ctrl+Alt+Z).': 'Pour tout agrandir, appuyez sur Ctrl et + (et Ctrl et 0 pour revenir). PatOS se réorganise. Sur un Chromebook, vous pouvez aussi utiliser ChromeVox, le lecteur d’écran intégré (Ctrl+Alt+Z).',
+    'used of': 'utilisés sur',
+    'estimate': 'estimation',
+    'Protected': 'Protégé',
+    'Not protected yet': 'Pas encore protégé',
+    'Protect my data': 'Protéger mes données',
+    'Ask Chrome': 'Demander à Chrome',
+    'Your data is protected': 'Vos données sont protégées',
+    'Chrome said not yet': 'Chrome a dit pas encore',
+    'The browser won’t clear PatOS when space is low.': 'Le navigateur n’effacera pas PatOS quand l’espace manque.',
+    'Install PatOS as an app and try again.': 'Installez PatOS comme appli et réessayez.',
+    'Stops the browser from clearing PatOS’s files when the device runs low on space.': 'Empêche le navigateur d’effacer les fichiers de PatOS quand l’espace manque.',
+    'Download backup…': 'Télécharger une sauvegarde…',
+    'Backup saved': 'Sauvegarde enregistrée',
+    'big files (videos and recordings) are not in the backup. Save them from Finder with “Save to This Chromebook…”.': 'gros fichiers (vidéos et enregistrements) ne sont pas dans la sauvegarde. Enregistrez-les depuis le Finder avec « Enregistrer sur ce Chromebook… ».',
+    'That file is not a PatOS backup': 'Ce fichier n’est pas une sauvegarde PatOS',
+    'Choose a PatOS-backup.json file.': 'Choisissez un fichier PatOS-backup.json.',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 'Offline': 'Hors ligne', 'Connected': 'Connecté',
@@ -5867,7 +5961,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     x = clamp(x, 4, Math.max(4, area.w - w - 4));
     y = clamp(y, area.y + 2, Math.max(area.y + 2, area.y + area.h - ht));
 
-    const el = h('div', { class: 'window opening' + (app.titlebar === 'hidden' ? ' tb-hidden' : '') + (app.dark ? ' force-dark' : ''), 'data-app': app.id, id });
+    const el = h('div', { role: 'dialog', 'aria-label': app.name, class: 'window opening' + (app.titlebar === 'hidden' ? ' tb-hidden' : '') + (app.dark ? ' force-dark' : ''), 'data-app': app.id, id });
     const traffic = h('div', { class: 'traffic' },
       h('button', { class: 'tl close', title: 'Close (Alt+W)', 'aria-label': 'Close' }),
       h('button', { class: 'tl min', title: 'Minimize (Alt+M)', 'aria-label': 'Minimize' }),
@@ -5887,7 +5981,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       minimized: false, maximized: false, prevRect: null,
       on(ev, fn) { (handlers[ev] = handlers[ev] || []).push(fn); },
       emit(ev, d) { (handlers[ev] || []).forEach((f) => { try { f(d); } catch (e) { console.error(e); } }); },
-      setTitle(t) { titleEl.textContent = t; win.title = t; PatOS.emit('wm:title', win); },
+      setTitle(t) { titleEl.textContent = t; win.title = t; el.setAttribute('aria-label', t); PatOS.emit('wm:title', win); },
       close: () => closeWindow(win),
       minimize: () => minimizeWindow(win),
       toggleMax: () => toggleMax(win),
@@ -6518,6 +6612,9 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   PatOS.notify = function (n) {
     n = Object.assign({ title: 'PatOS', body: '', icon: 'about', time: new Date() }, n);
     notifs.unshift(n); if (notifs.length > 30) notifs.pop();
+    // screen readers: announce it; other tabs: show a real browser notification
+    try { let lr = document.getElementById('sr-live'); if (!lr) { lr = document.createElement('div'); lr.id = 'sr-live'; lr.setAttribute('aria-live', 'polite'); lr.setAttribute('role', 'status'); lr.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)'; document.body.appendChild(lr); } if (PatOS.settings.srAnnounce !== false) lr.textContent = n.title + '. ' + n.body; } catch (e) {}
+    if (document.hidden && PatOS.settings.systemNotifications !== false && window.Notification && Notification.permission === 'granted') { try { const sn = new Notification(n.title, { body: n.body, icon: 'assets/icon-180.png' }); sn.onclick = () => { window.focus(); n.onClick && n.onClick(); sn.close(); }; } catch (e) {} }
     if (PatOS.focusMode) return;
     PatOS.sound.notify();
     const t = h('div', { class: 'toast' },
@@ -6816,13 +6913,14 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     const { pinned, running } = dockItems();
     const mk = (id) => {
       const app = PatOS.apps[id];
-      const item = h('div', { class: 'dock-item' + (PatOS.wm.isRunning(id) ? ' running' : ''), 'data-app': id, title: '' },
+      const item = h('div', { class: 'dock-item' + (PatOS.wm.isRunning(id) ? ' running' : ''), 'data-app': id, title: '', role: 'button', tabindex: '0', 'aria-label': app.name },
         h('div', { class: 'dock-label' }, app.name),
         h('div', { class: 'dock-icon', html: PatOS.iconHTML(app.icon || id) }),
         h('div', { class: 'dock-dot' }));
       item.addEventListener('click', () => { if (dockDrag.justDropped) return; PatOS.setLaunchRect(item.querySelector('.dock-icon')); dockClick(id); });
       item.addEventListener('contextmenu', (e) => { e.preventDefault(); if (!dockDrag.active) dockMenu(id, item); });
       item.addEventListener('pointerdown', (e) => dockPress(e, id, item));
+      item.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); item.click(); } });
       return item;
     };
     pinned.forEach((id) => d.appendChild(mk(id)));
@@ -7335,6 +7433,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
     document.documentElement.style.setProperty('--accent', s.accent);
     document.documentElement.classList.toggle('reduce-motion', !!s.reduceMotion);
     document.documentElement.classList.toggle('reduce-transparency', !!s.reduceTransparency);
+    ['highContrast', 'boldText', 'showFocus', 'bigTargets'].forEach((k) => document.documentElement.classList.toggle(k.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase()), !!s[k]));
     $('#dimmer').style.opacity = String(1 - s.brightness);
     const chromium = !!window.chrome && !PatOS.isIOS && !/Firefox/.test(navigator.userAgent);
     document.documentElement.classList.toggle('lg-on', !!s.liquidGlass);
@@ -8593,6 +8692,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
   ];
   const SHORTCUTS = [
     { t: 'Google', u: 'https://www.google.com/webhp?igu=1', i: 'search' },
+    { t: 'Classroom', u: 'https://classroom.google.com/' },
     { t: 'Wikipedia', u: 'https://en.wikipedia.org/wiki/Main_Page', i: 'W' },
     { t: 'YouTube', app: 'youtube', i: 'youtube' },
     { t: 'Docs', app: 'docs', i: 'docs' },
@@ -11614,10 +11714,11 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
 (function () {
   'use strict';
   const { h } = PatOS;
+  const T = (x) => PatOS.t(x);
   const ACCENTS = ['#0a84ff', '#bf5af2', '#ff375f', '#ff453a', '#ff9f0a', '#ffd60a', '#32d74b', '#64d2ff', '#8e8e93'];
   const PANES = [
-    ['general', 'General', '⚙️'], ['appearance', 'Appearance', '🎨'], ['wallpaper', 'Wallpaper', '🖼'], ['dock', 'Home Screen & Dock', '🧭'],
-    ['display', 'Displays & 3D', '🖥'], ['sound', 'Sound', '🔊'], ['lock', 'Lock Screen', '🔒'], ['network', 'Network', '📶'],
+    ['general', 'General', '⚙️'], ['appearance', 'Appearance', '🎨'], ['accessibility', 'Accessibility', '♿'], ['wallpaper', 'Wallpaper', '🖼'], ['dock', 'Home Screen & Dock', '🧭'],
+    ['display', 'Displays & 3D', '🖥'], ['sound', 'Sound', '🔊'], ['lock', 'Lock Screen', '🔒'], ['network', 'Network', '📶'], ['permissions', 'Permissions & Install', '🛡'], ['system', 'This Device', '💻'],
     ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾']
   ];
   PatOS.registerApp({
@@ -11684,23 +11785,99 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
           return [h('h3', {}, 'Lock Screen'), group(row('Login password', h('div', { class: 'st-inline' }, pw, h('button', { class: 'btn', onclick: () => { PatOS.setSetting('password', pw.value); pw.value = ''; pw.placeholder = S().password ? '••••••' : 'No password'; PatOS.notify({ title: S().password ? 'Password set' : 'Password removed', body: 'Used on the PatOS lock screen.', icon: 'settings' }); } }, 'Set')), 'Leave empty for no password. This only protects PatOS, not your computer.'), row('Lock now', h('button', { class: 'btn', onclick: () => PatOS.power.lock() }, 'Lock Screen')))];
         },
         network() {
-          const c = navigator.connection || {};
-          return [h('h3', {}, 'Network'), group(row('Status', h('span', { class: 'st-val' }, navigator.onLine ? 'Connected' : 'Offline')), row('Connection type', h('span', { class: 'st-val' }, c.effectiveType ? c.effectiveType.toUpperCase() : 'Unknown')), row('Speed estimate', h('span', { class: 'st-val' }, c.downlink ? c.downlink + ' Mbps' : 'Unknown')))];
+          const box = h('div'); const out = [box];
+          const paint = () => {
+            box.innerHTML = '';
+            const c = navigator.connection || {}; const kind = c.type ? ({ wifi: 'Wi-Fi', cellular: T('Mobile data'), ethernet: 'Ethernet', none: T('None') }[c.type] || c.type) : null;
+            const lat = h('span', { class: 'st-val' }, '…'), spd = h('span', { class: 'st-val' }, T('Not tested'));
+            box.append(group(
+              row(T('Status'), h('span', { class: 'st-val', style: { color: navigator.onLine ? '#32d74b' : '#ff453a' } }, navigator.onLine ? T('Connected') : T('Offline'))),
+              row(T('Connection type'), h('span', { class: 'st-val' }, kind || (c.effectiveType ? c.effectiveType.toUpperCase() : T('Unknown')))),
+              c.effectiveType ? row(T('Quality'), h('span', { class: 'st-val' }, c.effectiveType.toUpperCase())) : null,
+              c.downlink ? row(T('Estimated speed'), h('span', { class: 'st-val' }, c.downlink + ' Mbps')) : null,
+              c.rtt != null ? row(T('Round-trip time'), h('span', { class: 'st-val' }, c.rtt + ' ms')) : null,
+              c.saveData ? row(T('Data saver'), h('span', { class: 'st-val' }, T('On'))) : null),
+            group(row(T('Response time of the PatOS server'), lat), row(T('Download speed'), h('div', { class: 'st-inline' }, spd, h('button', { class: 'btn', onclick: async (e) => { const b = e.currentTarget; b.disabled = true; spd.textContent = T('Testing…'); try { spd.textContent = await speedTest(); } catch (err) { spd.textContent = T('Couldn’t test'); } b.disabled = false; } }, T('Test'))))));
+            box.appendChild(h('p', { class: 'st-note' }, T('Wi-Fi and Bluetooth are controlled by ChromeOS. Click the clock in the bottom right corner of the screen (outside PatOS) to change them. PatOS shows what it can see from the browser.')));
+            pingMs().then((ms) => { lat.textContent = ms == null ? T('Not reachable (PatOS is running as a file)') : ms + ' ms'; });
+          };
+          async function pingMs() { const base = PatOS.server && await PatOS.server(); if (!base) return null; const t = []; for (let i = 0; i < 3; i++) { const t0 = performance.now(); try { await fetch(base + '/api/ping', { cache: 'no-store' }); t.push(performance.now() - t0); } catch (e) {} } return t.length ? Math.round(Math.min(...t)) : null; }
+          async function speedTest() { const base = (PatOS.server && await PatOS.server()) || ''; const t0 = performance.now(); const r = await fetch((base || '') + '/vendor/three.min.js?x=' + Date.now(), { cache: 'no-store', headers: { 'Accept-Encoding': 'identity' } }); const buf = await r.arrayBuffer(); const sec = (performance.now() - t0) / 1000; return (buf.byteLength * 8 / 1e6 / sec).toFixed(1) + ' Mbps'; }
+          const rerun = () => { if (pane === 'network' && main.isConnected) paint(); };
+          addEventListener('online', rerun); addEventListener('offline', rerun); if (navigator.connection) navigator.connection.addEventListener('change', rerun);
+          win.on('closed', () => { removeEventListener('online', rerun); removeEventListener('offline', rerun); });
+          paint(); return out;
+        },
+        system() {
+          const box = h('div'); const ua = navigator.userAgent;
+          const os = /CrOS/.test(ua) ? 'ChromeOS' : /Android/.test(ua) ? 'Android' : /iPhone|iPad/.test(ua) ? 'iOS' : /Windows/.test(ua) ? 'Windows' : /Mac/.test(ua) ? 'macOS' : /Linux/.test(ua) ? 'Linux' : T('Unknown');
+          const br = (/(Edg|Chrome|Firefox|Version)\/([\d.]+)/.exec(ua) || []); const bname = /Edg\//.test(ua) ? 'Edge' : /Firefox\//.test(ua) ? 'Firefox' : /Chrome\//.test(ua) ? 'Chrome' : /Safari\//.test(ua) ? 'Safari' : T('Unknown');
+          let gpu = ''; try { const c = document.createElement('canvas'); const gl = c.getContext('webgl'); const ext = gl && gl.getExtension('WEBGL_debug_renderer_info'); gpu = ext ? gl.getParameter(ext.UNMASKED_RENDERER_WEBGL) : ''; } catch (e) {}
+          const info = (k, v) => v ? row(k, h('span', { class: 'st-val st-wrapval' }, String(v))) : null;
+          const bat = h('span', { class: 'st-val' }, '…');
+          if (navigator.getBattery) navigator.getBattery().then((b) => { const f = () => { bat.textContent = Math.round(b.level * 100) + '% · ' + (b.charging ? T('Charging') : T('On battery')) + (isFinite(b.dischargingTime) && !b.charging ? ' · ' + Math.round(b.dischargingTime / 60) + ' min' : ''); }; f(); b.addEventListener('levelchange', f); b.addEventListener('chargingchange', f); }); else bat.textContent = T('Not available in this browser');
+          const store = h('span', { class: 'st-val' }, '…'); PatOS.storageInfo().then((i) => { store.textContent = PatOS.fmtBytes(i.used) + ' / ' + PatOS.fmtBytes(i.quota); });
+          return [
+            group(info(T('System'), os), info(T('Browser'), bname + ' ' + (br[2] || '')), info(T('Device'), PatOS.extApps ? PatOS.extApps.device().name : ''), info(T('Processor threads'), navigator.hardwareConcurrency), info(T('Memory'), navigator.deviceMemory ? '≥ ' + navigator.deviceMemory + ' GB' : ''), info(T('Graphics'), gpu), info(T('Screen'), screen.width + ' × ' + screen.height + ' @' + (window.devicePixelRatio || 1) + 'x'), info(T('Touch points'), navigator.maxTouchPoints || '0'), info(T('Language'), (navigator.languages || [navigator.language]).slice(0, 3).join(', ')), info(T('Time zone'), Intl.DateTimeFormat().resolvedOptions().timeZone)),
+            group(row(T('Battery'), bat), row(T('Browser storage used'), store), row(T('PatOS version'), h('span', { class: 'st-val' }, PatOS.version)), row(T('Time since PatOS opened'), h('span', { class: 'st-val' }, Math.round(performance.now() / 60000) + ' min')))];
+        },
+        permissions() {
+          const box = h('div'); const rows = [];
+          const defs = [['camera', 'Camera', async () => { const s = await navigator.mediaDevices.getUserMedia({ video: true }); s.getTracks().forEach((t) => t.stop()); }], ['microphone', 'Microphone', async () => { const s = await navigator.mediaDevices.getUserMedia({ audio: true }); s.getTracks().forEach((t) => t.stop()); }], ['geolocation', 'Location', () => new Promise((res, rej) => navigator.geolocation.getCurrentPosition(res, rej))], ['notifications', 'Notifications', () => Notification.requestPermission()]];
+          const paint = async () => {
+            box.innerHTML = '';
+            const g = [];
+            for (const [name, label, ask] of defs) {
+              let st = 'unknown'; try { st = (await navigator.permissions.query({ name })).state; } catch (e) { if (name === 'notifications' && window.Notification) st = Notification.permission === 'default' ? 'prompt' : Notification.permission; }
+              const lab = { granted: T('Allowed'), denied: T('Blocked'), prompt: T('Not asked yet'), unknown: T('Unknown') }[st] || st;
+              g.push(row(T(label), h('div', { class: 'st-inline' }, h('span', { class: 'st-val', style: { color: st === 'granted' ? '#32d74b' : st === 'denied' ? '#ff453a' : '' } }, lab), st !== 'granted' ? h('button', { class: 'btn', onclick: async () => { try { await ask(); } catch (e) {} paint(); } }, T(st === 'denied' ? 'Try again' : 'Allow…')) : null), st === 'denied' ? T('Click the lock icon next to the address, then set it to Allow.') : null));
+            }
+            box.append(group(...g));
+            const sys = h('button', { class: 'switch' + (S().systemNotifications !== false ? ' on' : '') }); sys.onclick = () => { PatOS.setSetting('systemNotifications', S().systemNotifications === false); sys.classList.toggle('on'); };
+            box.append(group(row(T('Show PatOS notifications when this tab is in the background'), sys, T('Needs the Notifications permission above.'))));
+            // install
+            const inst = h('div', { class: 'st-inline' });
+            const standalone = matchMedia('(display-mode: standalone)').matches || navigator.standalone;
+            if (standalone) inst.appendChild(h('span', { class: 'st-val', style: { color: '#32d74b' } }, T('Installed')));
+            else if (window.__installPrompt) inst.appendChild(h('button', { class: 'btn primary', onclick: async () => { const ev = window.__installPrompt; ev.prompt(); await ev.userChoice; window.__installPrompt = null; paint(); } }, T('Install PatOS')));
+            else inst.appendChild(h('span', { class: 'st-val' }, T('Use Chrome’s menu: Cast, save and share › Install page as app')));
+            const pers = h('span', { class: 'st-val' }, '…'); PatOS.storageInfo().then((i) => { pers.textContent = i.persisted ? T('Protected from clean-up') : T('Browser may clear it when space is low'); });
+            box.append(group(row(T('Install as an app'), inst, T('Runs in its own window, opens faster and works offline.')), row(T('Your saved data'), pers)),
+              h('p', { class: 'st-note' }, T('Tip: to open PatOS when Chrome starts, go to Chrome Settings › On startup › Open a specific page, and add this page.')));
+          };
+          paint(); return [box];
+        },
+        accessibility() {
+          return [h('h3', {}, T('Accessibility')),
+            group(row(T('Reduce motion'), toggle('reduceMotion'), T('Fewer animations.')), row(T('Reduce transparency'), toggle('reduceTransparency'), T('Solid backgrounds instead of glass.')), row(T('High contrast'), toggle('highContrast'), T('Stronger borders and text.')), row(T('Bold text'), toggle('boldText')), row(T('Always show keyboard focus'), toggle('showFocus'), T('Draws an outline around the item you are on when you press Tab.')), row(T('Larger click targets'), toggle('bigTargets'), T('Bigger buttons, good for touch screens.'))),
+            group(row(T('Read notifications aloud to screen readers'), toggle('srAnnounce'))),
+            h('p', { class: 'st-note' }, T('To make everything bigger, press Ctrl and + (and Ctrl and 0 to reset). PatOS rearranges itself to fit. On a Chromebook you can also use ChromeVox, the built-in screen reader (Ctrl+Alt+Z).'))];
         },
         keyboard() {
           const sc = [['Ctrl+Space / Alt+Space', 'Spotlight search'], ['Alt+L or F4', 'Launchpad'], ['Alt+↑ or F3', 'Mission Control'], ['Alt+W', 'Close window'], ['Alt+Q', 'Quit app'], ['Alt+M', 'Minimize'], ['Alt+F', 'Zoom window'], ['Alt+← / Alt+→', 'Tile window left / right'], ['Alt+N', 'New window'], ['Alt+`', 'Cycle windows'], ['Alt+T', 'Terminal'], ['Alt+E', 'Finder'], ['Alt+B', 'Patoogle browser'], ['Alt+,', 'Settings'], ['Alt+Esc', 'Lock screen'], ['Esc', 'Close menus & overlays']];
           return [h('h3', {}, 'Keyboard Shortcuts'), h('p', { class: 'st-note' }, 'PatOS uses Alt because Chromebooks reserve most Ctrl shortcuts.'), group(...sc.map(([k, d]) => row(d, h('kbd', {}, k))))];
         },
         storage() {
-          const used = PatOS.store.usage(); const cap = 5 * 1024 * 1024;
-          return [h('h3', {}, 'Storage'), h('div', { class: 'st-storage' }, h('div', { class: 'fd-bar big' }, h('span', { style: { width: Math.min(100, used / cap * 100) + '%' } })), h('small', {}, PatOS.fmtBytes(used) + ' used of about 5 MB browser storage')),
-            group(row('Empty Trash', h('button', { class: 'btn', onclick: () => { PatOS.fs.emptyTrash(); render(); } }, 'Empty')),
-              row('Back up everything', h('button', { class: 'btn', onclick: () => { const all = {}; try { Object.keys(localStorage).filter((k) => k.startsWith('patos:')).forEach((k) => (all[k] = localStorage.getItem(k))); } catch (e) {} PatOS.downloadFile('PatOS-backup.json', JSON.stringify(all)); } }, 'Download Backup')),
-              row('Restore backup', h('button', { class: 'btn', onclick: () => { const i = h('input', { type: 'file', accept: '.json' }); i.onchange = () => { const r = new FileReader(); r.onload = () => { try { const d = JSON.parse(r.result); Object.entries(d).forEach(([k, v]) => localStorage.setItem(k, v)); (PatOS._leaving = true, location.reload()); } catch (e) { PatOS.alertBox('That file is not a PatOS backup', 'Choose a PatOS-backup.json file.', { icon: 'settings' }); } }; r.readAsText(i.files[0]); }; i.click(); } }, 'Restore…')),
-              row('Erase all content and settings', h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox('Erase PatOS?', 'Everything in PatOS will be erased and it will start fresh. This cannot be undone.', { ok: 'Erase', danger: true, icon: 'settings' })) { PatOS.store.clearAll(); (PatOS._leaving = true, location.reload()); } } }, 'Erase PatOS…')))];
+          const bar = h('div', { class: 'st-storage' }, h('div', { class: 'fd-bar big' }, h('span', { style: { width: '2%' } })), h('small', {}, T('Checking…')));
+          const pers = h('span', { class: 'st-val' }, '…');
+          PatOS.storageInfo().then((i) => { bar.querySelector('span').style.width = Math.max(2, Math.min(100, i.used / i.quota * 100)) + '%'; bar.querySelector('small').textContent = PatOS.fmtBytes(i.used) + ' ' + T('used of') + ' ' + PatOS.fmtBytes(i.quota) + (i.real ? '' : ' (' + T('estimate') + ')'); pers.textContent = i.persisted ? T('Protected') : T('Not protected yet'); });
+          const exportAll = async () => {
+            const kv = PatOS.store.dump();
+            const tree = JSON.parse(JSON.stringify(PatOS.fs.get('/'), (k, v) => (k === 'cid' ? undefined : v)));
+            let blobs = 0; (function w(n) { if (n.type === 'dir') Object.values(n.children).forEach(w); else if (n.blob) blobs++; })(tree);
+            PatOS.downloadFile('PatOS-backup.json', JSON.stringify({ patosBackup: 2, kv, fs: tree }));
+            if (blobs) PatOS.notify({ title: T('Backup saved'), body: blobs + ' ' + T('big files (videos and recordings) are not in the backup. Save them from Finder with “Save to This Chromebook…”.'), icon: 'settings' });
+          };
+          const importAll = () => { const i = h('input', { type: 'file', accept: '.json' }); i.onchange = () => { const r = new FileReader(); r.onload = async () => { try { const d = JSON.parse(r.result); if (d.patosBackup) { Object.entries(d.kv || {}).forEach(([k, v]) => PatOS.store.set(k, v)); PatOS.store.set('fs', d.fs); } else Object.entries(d).forEach(([k, v]) => { if (k.startsWith('patos:')) PatOS.store.set(k.slice(6), JSON.parse(v)); }); await PatOS.store.flush(); PatOS._leaving = true; location.reload(); } catch (e) { PatOS.alertBox(T('That file is not a PatOS backup'), T('Choose a PatOS-backup.json file.'), { icon: 'settings' }); } }; r.readAsText(i.files[0]); }; i.click(); };
+          return [bar,
+            group(row(T('Protect my data'), h('div', { class: 'st-inline' }, pers, h('button', { class: 'btn', onclick: async () => { const ok = await PatOS.askPersist(); PatOS.notify({ title: ok ? T('Your data is protected') : T('Chrome said not yet'), body: ok ? T('The browser won’t clear PatOS when space is low.') : T('Install PatOS as an app and try again.'), icon: 'settings' }); render(); } }, T('Ask Chrome'))), T('Stops the browser from clearing PatOS’s files when the device runs low on space.')),
+              row(T('Empty Trash'), h('button', { class: 'btn', onclick: () => { PatOS.fs.emptyTrash(); render(); } }, T('Empty'))),
+              row(T('Back up everything'), h('button', { class: 'btn', onclick: exportAll }, T('Download backup…'))),
+              row(T('Restore backup'), h('button', { class: 'btn', onclick: importAll }, T('Restore…'))),
+              row(T('Erase all content and settings'), h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox(T('Erase PatOS?'), T('Everything in PatOS will be erased and it will start fresh. This cannot be undone.'), { ok: T('Erase'), danger: true, icon: 'settings' })) { await PatOS.store.clearAll(); PatOS._leaving = true; location.reload(); } } }, T('Erase PatOS…'))))];
         }
       };
-      const KW = { general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace' };
+      const KW = { general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications install permissions installer', system: 'device battery memory processor system appareil batterie mémoire' };
       let filter = '';
       const sq = h('input', { class: 'field st-search', placeholder: 'Search', spellcheck: 'false' });
       sq.addEventListener('input', () => { filter = sq.value.trim().toLowerCase(); drawSide(); const hits = PANES.filter(match); if (filter && hits.length && !hits.some((p) => p[0] === pane)) { pane = hits[0][0]; renderMain(); drawSide(); } });
@@ -16410,7 +16587,16 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
     ["capcut", "CapCut", 1500855883, "capcut", "com.lemon.lvoverseas", "https://www.capcut.com/", "Video", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/31/d8/5b/31d85b5d-7785-5789-df84-1b052afd2e43/AppIcon-0-0-1x_U007emarketing-0-8-0-85-220.png/256x256bb.jpg", 0],
     ["soundcloud", "SoundCloud", 336353151, "soundcloud", "com.soundcloud.android", "https://soundcloud.com/", "Music", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/1b/03/50/1b035022-a482-798c-e754-798b78331c9b/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/256x256bb.jpg", 0],
     ["waze", "Waze", 323229106, "waze", "com.waze", "https://www.waze.com/live-map", "Travel", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/a9/b3/57/a9b35786-b96f-9fe4-3cc5-6bce1b9a7e40/AppIcon-0-0-1x_U007epad-0-1-0-85-220.png/256x256bb.jpg", 0],
-    ["ytofficial", "YouTube (official app)", 544007664, "youtube", "com.google.android.youtube", "https://www.youtube.com/", "Video", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/82/43/be/8243be7f-17c3-33ae-720a-ffcde48bed61/logo_youtube_2024_q4_color-0-0-1x_U007emarketing-0-0-0-7-0-0-0-85-220.png/256x256bb.jpg", 0]
+    ["ytofficial", "YouTube (official app)", 544007664, "youtube", "com.google.android.youtube", "https://www.youtube.com/", "Video", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/82/43/be/8243be7f-17c3-33ae-720a-ffcde48bed61/logo_youtube_2024_q4_color-0-0-1x_U007emarketing-0-0-0-7-0-0-0-85-220.png/256x256bb.jpg", 0],
+    ["gdocs", "Google Docs", 842842640, "googledocs", "com.google.android.apps.docs.editors.docs", "https://docs.google.com/document/u/0/", "Google", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/41/91/fe/4191febf-4ea8-2f55-4c4b-3f7eec3503e8/docs_2026_ios-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-0-85-220.png/256x256bb.jpg", 0],
+    ["gsheets", "Google Sheets", 842849113, "googlesheets", "com.google.android.apps.docs.editors.sheets", "https://docs.google.com/spreadsheets/u/0/", "Google", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/dc/36/91/dc369151-6af2-5807-fe06-cd5eb4ae3508/sheets_2026q3_ios-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-0-85-220.png/256x256bb.jpg", 0],
+    ["gslides", "Google Slides", 879478102, "googleslides", "com.google.android.apps.docs.editors.slides", "https://docs.google.com/presentation/u/0/", "Google", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/6f/90/c7/6f90c7aa-cd0d-3880-4bb2-fe59229d5005/slides_2026_ios-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-0-85-220.png/256x256bb.jpg", 0],
+    ["gdrive", "Google Drive", 507874739, "googledrive", "com.google.android.apps.docs", "https://drive.google.com/", "Google", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/4c/44/97/4c449717-ff3b-c65c-8491-2b1785675ad7/drive_2026_ios-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-0-85-220.png/256x256bb.jpg", 0],
+    ["gclassroom", "Google Classroom", 924620788, "googleclassroom", "com.google.android.apps.classroom", "https://classroom.google.com/", "Google", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/de/f5/00/def500d8-75f4-3ea5-9560-a09261e69d58/classroom_ios-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-85-220.png/256x256bb.jpg", 0],
+    ["gphotos", "Google Photos", 962194608, "googlephotos", "com.google.android.apps.photos", "https://photos.google.com/", "Google", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/e5/7b/39/e57b39ea-a504-e096-8e71-9280485ab0dc/Photos-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-0-85-220.png/256x256bb.jpg", 0],
+    ["gtranslate", "Google Translate", 414706506, "googletranslate", "com.google.android.apps.translate", "https://translate.google.com/", "Google", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/14/80/ef/1480ef54-e994-2364-41c6-88710a26a351/TranslateApp-0-0-1x_U007epad-0-0-0-1-0-0-0-85-220.png/256x256bb.jpg", 0],
+    ["gkeep", "Google Keep", 1029207872, "googlekeep", "com.google.android.keep", "https://keep.google.com/", "Google", "https://is1-ssl.mzstatic.com/image/thumb/Purple221/v4/c4/4a/92/c44a9289-9c4a-b0fe-fd4b-652adec4ac9d/keep_2026_ios-0-0-1x_U007epad-0-0-0-1-0-0-sRGB-0-85-220.png/256x256bb.jpg", 0],
+    ["gearth", "Google Earth", 293622097, "comgoogleearth", "com.google.earth", "https://earth.google.com/web/", "Google", "https://is1-ssl.mzstatic.com/image/thumb/Purple211/v4/8c/15/2f/8c152fc8-90e3-e739-f548-3bb46e3c328c/logo_earth_color-0-0-1x_U007epad-0-0-0-1-0-0-0-85-220.png/256x256bb.jpg", 0]
   ];
 
   const ua = navigator.userAgent || '';
@@ -16689,6 +16875,7 @@ function ready(){if(f())P.postMessage({patosPw:'form'},'*')}if(document.readySta
         off.addEventListener('pointerdown', () => (PatOS._leaving = true, location.reload()), { once: true });
       }
     });
+    window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); window.__installPrompt = e; });
     boot();
     // offline support / installable app when served over http(s)
     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !PatOS.singleFile) {

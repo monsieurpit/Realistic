@@ -15,6 +15,7 @@
   ];
   const SHORTCUTS = [
     { t: 'Google', u: 'https://www.google.com/webhp?igu=1', i: 'search' },
+    { t: 'Classroom', u: 'https://classroom.google.com/' },
     { t: 'Wikipedia', u: 'https://en.wikipedia.org/wiki/Main_Page', i: 'W' },
     { t: 'YouTube', app: 'youtube', i: 'youtube' },
     { t: 'Docs', app: 'docs', i: 'docs' },

@@ -77,7 +77,7 @@
     x = clamp(x, 4, Math.max(4, area.w - w - 4));
     y = clamp(y, area.y + 2, Math.max(area.y + 2, area.y + area.h - ht));
 
-    const el = h('div', { class: 'window opening' + (app.titlebar === 'hidden' ? ' tb-hidden' : '') + (app.dark ? ' force-dark' : ''), 'data-app': app.id, id });
+    const el = h('div', { role: 'dialog', 'aria-label': app.name, class: 'window opening' + (app.titlebar === 'hidden' ? ' tb-hidden' : '') + (app.dark ? ' force-dark' : ''), 'data-app': app.id, id });
     const traffic = h('div', { class: 'traffic' },
       h('button', { class: 'tl close', title: 'Close (Alt+W)', 'aria-label': 'Close' }),
       h('button', { class: 'tl min', title: 'Minimize (Alt+M)', 'aria-label': 'Minimize' }),
@@ -97,7 +97,7 @@
       minimized: false, maximized: false, prevRect: null,
       on(ev, fn) { (handlers[ev] = handlers[ev] || []).push(fn); },
       emit(ev, d) { (handlers[ev] || []).forEach((f) => { try { f(d); } catch (e) { console.error(e); } }); },
-      setTitle(t) { titleEl.textContent = t; win.title = t; PatOS.emit('wm:title', win); },
+      setTitle(t) { titleEl.textContent = t; win.title = t; el.setAttribute('aria-label', t); PatOS.emit('wm:title', win); },
       close: () => closeWindow(win),
       minimize: () => minimizeWindow(win),
       toggleMax: () => toggleMax(win),

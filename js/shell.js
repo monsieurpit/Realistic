@@ -62,6 +62,9 @@
   PatOS.notify = function (n) {
     n = Object.assign({ title: 'PatOS', body: '', icon: 'about', time: new Date() }, n);
     notifs.unshift(n); if (notifs.length > 30) notifs.pop();
+    // screen readers: announce it; other tabs: show a real browser notification
+    try { let lr = document.getElementById('sr-live'); if (!lr) { lr = document.createElement('div'); lr.id = 'sr-live'; lr.setAttribute('aria-live', 'polite'); lr.setAttribute('role', 'status'); lr.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)'; document.body.appendChild(lr); } if (PatOS.settings.srAnnounce !== false) lr.textContent = n.title + '. ' + n.body; } catch (e) {}
+    if (document.hidden && PatOS.settings.systemNotifications !== false && window.Notification && Notification.permission === 'granted') { try { const sn = new Notification(n.title, { body: n.body, icon: 'assets/icon-180.png' }); sn.onclick = () => { window.focus(); n.onClick && n.onClick(); sn.close(); }; } catch (e) {} }
     if (PatOS.focusMode) return;
     PatOS.sound.notify();
     const t = h('div', { class: 'toast' },
@@ -360,13 +363,14 @@
     const { pinned, running } = dockItems();
     const mk = (id) => {
       const app = PatOS.apps[id];
-      const item = h('div', { class: 'dock-item' + (PatOS.wm.isRunning(id) ? ' running' : ''), 'data-app': id, title: '' },
+      const item = h('div', { class: 'dock-item' + (PatOS.wm.isRunning(id) ? ' running' : ''), 'data-app': id, title: '', role: 'button', tabindex: '0', 'aria-label': app.name },
         h('div', { class: 'dock-label' }, app.name),
         h('div', { class: 'dock-icon', html: PatOS.iconHTML(app.icon || id) }),
         h('div', { class: 'dock-dot' }));
       item.addEventListener('click', () => { if (dockDrag.justDropped) return; PatOS.setLaunchRect(item.querySelector('.dock-icon')); dockClick(id); });
       item.addEventListener('contextmenu', (e) => { e.preventDefault(); if (!dockDrag.active) dockMenu(id, item); });
       item.addEventListener('pointerdown', (e) => dockPress(e, id, item));
+      item.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); item.click(); } });
       return item;
     };
     pinned.forEach((id) => d.appendChild(mk(id)));
@@ -879,6 +883,7 @@
     document.documentElement.style.setProperty('--accent', s.accent);
     document.documentElement.classList.toggle('reduce-motion', !!s.reduceMotion);
     document.documentElement.classList.toggle('reduce-transparency', !!s.reduceTransparency);
+    ['highContrast', 'boldText', 'showFocus', 'bigTargets'].forEach((k) => document.documentElement.classList.toggle(k.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase()), !!s[k]));
     $('#dimmer').style.opacity = String(1 - s.brightness);
     const chromium = !!window.chrome && !PatOS.isIOS && !/Firefox/.test(navigator.userAgent);
     document.documentElement.classList.toggle('lg-on', !!s.liquidGlass);
