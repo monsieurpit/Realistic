@@ -17,7 +17,7 @@
   const KV_KEYS = ['notes', 'noteFolders', 'noteSort', 'stickies', 'journal', 'calendar', 'reminders', 'remLists', 'alarms', 'contacts',
     'decks', 'fcStreak', 'bookmarks', 'browserShortcuts', 'photoAlbums', 'photoFavs', 'musicPlaylists', 'radioFavs', 'ytLibrary', 'newsSaved',
     'newsFeed', 'booksLib', 'booksPrefs', 'clockCities', 'weatherPlaces', 'weatherPlace', 'weatherUnit', 'termAlias', 'termVars', 'fileTags',
-    'focusCfg', 'focusHistory', 'boards', 'patApps', 'patAppData', 'searchEngine', 'translatePrefs', 'solStats', 'sudokuBest', 'typingBest', 'orbBest', 'gamesBest', 'tttScore'];
+    'focusCfg', 'focusHistory', 'boards', 'patApps', 'patAppData', 'linkRoom', 'searchEngine', 'translatePrefs', 'solStats', 'sudokuBest', 'typingBest', 'orbBest', 'gamesBest', 'tttScore'];
   const SETTING_KEYS = ['userName', 'theme', 'accent', 'wallpaper', 'dockSize', 'magnify', 'magnifyScale', 'dockAutohide', 'dockPinned', 'mobileDock',
     'hiddenApps', 'language', 'clock24', 'showSeconds', 'uiSounds', 'volume', 'reduceMotion', 'highContrast', 'boldText', 'showFocus', 'bigTargets',
     'reduceTransparency', 'liquidGlass', 'showWidgets', 'reopenWindows'];

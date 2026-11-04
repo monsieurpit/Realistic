@@ -158,10 +158,10 @@
     peek(key) { return KV ? KV[key] : undefined; },
     /* everything worth keeping, for backups: all saved data except the file tree (that comes from fs.exportTree)
        and caches that are made again by themselves */
-    backupData() { const o = {}; const skip = new Set(['fs', 'wpCache', 'wpLockCache', 'wxCache', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState']); const src = KV || (function () { const r = {}; try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => { try { r[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {} return r; })(); Object.keys(src).forEach((k) => { if (!skip.has(k)) o[k] = clone(src[k]); }); return o; },
+    backupData() { const o = {}; const skip = new Set(['fs', 'wpCache', 'wpLockCache', 'wxCache', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer', 'linkState']); const src = KV || (function () { const r = {}; try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => { try { r[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {} return r; })(); Object.keys(src).forEach((k) => { if (!skip.has(k)) o[k] = clone(src[k]); }); return o; },
     /* put saved data back from a backup: keys that are not in it are removed */
     restoreData(data) {
-      const keep = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer']); const neverRemove = new Set(['syncKey']); const old = KV ? Object.keys(KV) : [];
+      const keep = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer', 'linkState']); const neverRemove = new Set(['syncKey']); const old = KV ? Object.keys(KV) : [];
       old.forEach((k) => { if (!keep.has(k) && !neverRemove.has(k) && !(k in data)) PatOS.store.remove(k); });
       Object.keys(data).forEach((k) => { if (!keep.has(k)) PatOS.store.set(k, clone(data[k])); });
     },

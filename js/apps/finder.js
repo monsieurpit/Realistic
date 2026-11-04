@@ -246,6 +246,7 @@
             { label: PatOS.t('Duplicate'), action: () => sel.forEach((p) => PatOS.fs.copy(p, PatOS.fs.dirname(p))) },
             { label: PatOS.t('Compress'), action: () => PatOS.compress(sel) },
             it.type === 'file' && /\.zip$/i.test(it.name) ? { label: PatOS.t('Extract Here'), action: () => PatOS.openZip(it.path) } : null,
+            sel.some((p) => { const n = PatOS.fs.get(p); return n && n.type === 'file'; }) && PatOS.link ? { label: PatOS.t('Send with PatDrop'), action: () => PatOS.sendWithPatDrop(sel) } : null,
             it.type === 'file' && sel.length === 1 ? { label: PatOS.t('Save to This Chromebook…'), action: () => PatOS.device.saveCopy(it.path) } : null,
             it.type === 'dir' && sel.length === 1 && PatOS.device.supported ? { label: PatOS.t('Save Folder to This Chromebook…'), action: () => PatOS.device.exportFolder(it.path) } : null,
             it.type === 'dir' && PatOS.device.isLinked(it.path) ? { label: PatOS.t('Refresh from This Chromebook'), action: () => PatOS.device.refresh(it.path) } : null,
