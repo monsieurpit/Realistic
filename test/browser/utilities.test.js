@@ -285,3 +285,34 @@ test('Terminal: variables, aliases, !!, text tools and diff', { skip: skipNoBrow
   assert.deepEqual(errors, []);
   await page.close();
 });
+
+test('Flashcards: list import, forgiving answers, and spaced repetition through a real session', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1000, height: 700 } }); const errors = await boot(page, srv.base, { fresh: true });
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise((res) => setTimeout(res, ms)); const o = {};
+    o.parse = [PatOS.flashParse('bonjour\thello\nmerci\tthank you'), PatOS.flashParse('a, b\nc, d'), PatOS.flashParse('dog - chien\ncat - chat'), PatOS.flashParse('x; y')].map((x) => x.map((p) => p.join('|')).join(','));
+    const A = PatOS.flashAccepts;
+    o.accept = [A('Éléphant', 'elephant'), A('elephant', 'elephent'), A('Water (H2O)', 'water'), A('colour; color', 'color'), A('cat', 'dog'), A('red', 'rde'), A('abc', '')].join();
+    PatOS.store.set('decks', [{ id: 'd', name: 'Test', cards: [['A', 'a'], ['B', 'b'], ['C', 'c']] }]); // old format: arrays
+    const w = PatOS.launch('flashcards'); await wait(300);
+    w.body.querySelector('.fc-deck .btn.primary').click(); await wait(100);
+    o.ready = w.body.querySelector('.fc-sumn').textContent; w.body.querySelector('.fc-go').click(); await wait(150);
+    const key = (k) => document.dispatchEvent(new KeyboardEvent('keydown', { key: k, bubbles: true }));
+    const step = async (flipKey, k) => { key(flipKey); await wait(80); key(k); await wait(400); };
+    await step(' ', '2'); await step(' ', '1'); await step(' ', '2'); // A right, B missed (comes back), C right
+    o.requeued = w.body.querySelector('.fc-count').textContent; await step(' ', '2'); // B again
+    o.score = w.body.querySelector('.fc-score') && w.body.querySelector('.fc-score').textContent;
+    const d = PatOS.store.get('decks')[0]; const now = Date.now();
+    o.cards = d.cards.map((c) => c.f + ':' + c.box + ':' + (c.due - now > 20 * 3600e3 ? 'days' : c.due - now < 3600e3 ? 'soon' : 'hours')).join();
+    o.best = d.best; o.streak = PatOS.store.get('fcStreak').n;
+    // type-the-answer mode with a forgiving check
+    d.mode = 'write'; PatOS.store.set('decks', [d]); w.body.querySelector('.fc-rbtns .btn:last-child').click(); await wait(100);
+    return o;
+  });
+  assert.deepEqual(r.parse, ['bonjour|hello,merci|thank you', 'a|b,c|d', 'dog|chien,cat|chat', 'x|y']);
+  assert.equal(r.accept, 'true,true,true,true,false,false,false');
+  assert.equal(r.ready, '3'); assert.match(r.requeued, /^3 \/ 3/); assert.equal(r.score, '67%');
+  assert.equal(r.cards, 'A:1:days,B:1:soon,C:1:days'); assert.equal(r.best, 67); assert.equal(r.streak, 1);
+  assert.deepEqual(errors, []);
+  await page.close();
+});
