@@ -127,6 +127,7 @@ Plain HTML, CSS and JavaScript with no npm dependencies. `build.js` only makes t
 
 - Documents, notes, slides and pasted text are cleaned before they are shown, so a file can't run scripts inside PatOS.
 - Passwords are encrypted whenever the browser allows it. Without a master password the key belongs to this browser on this device (anyone using it can open them, so a master password is recommended). With one, the list stays locked until you type it, and locks again when PatOS locks, when you close Passwords, or after 15 minutes without using the vault (working in another app doesn't count). Only a very old browser, or one that can't keep the device key, falls back to plain text, and Passwords shows a red warning when that happens.
+- Programs you run in Terminal (JavaScript) and Python live in a Worker that is locked down before your code starts: it can't open PatOS's database, caches, file-system storage or service worker, or start more workers, so a program can't read your files or the password list's key. It can still compute and use the internet like any web page. This is a barrier, not a virtual machine, so the master password remains the real protection for passwords, and you should still only run code you trust. Terminal's `node` runs JavaScript in the browser; it isn't Node.js (no `require` or npm).
 - The PatOS server only checks public websites for Patoogle (no private or local network addresses, re-checked after every redirect), and never serves its own source, tests or `node_modules`.
 
 ## Updates
@@ -135,7 +136,7 @@ Plain HTML, CSS and JavaScript with no npm dependencies. `build.js` only makes t
 
 ## Tests
 
-`npm test` runs everything: server tests, then browser tests in Chromium through Playwright (file system, saving, every app in English, French and on an iPhone, file formats, offline start, crash recovery, timers, Spotlight, security). Browser tests are skipped when Playwright isn't installed. See `test/README.md`.
+`npm test` runs everything (`npm ci` installs the exact Playwright version from `package-lock.json`; `npx playwright install chromium` fetches its browser): server tests, then browser tests in Chromium through Playwright (file system, saving, every app in English, French and on an iPhone, file formats, offline start, crash recovery, timers, Spotlight, security). Browser tests are skipped when Playwright isn't installed. See `test/README.md`.
 
 ```
 index.html          the page

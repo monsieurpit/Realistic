@@ -130,6 +130,8 @@
   const idOf = (r) => (r ? r.version + (r.beta ? 'b' + r.beta : '') : '');
   const label = (r) => (r ? 'PatOS ' + r.version + (r.beta ? ' ' + PatOS.t('beta') + ' ' + r.beta : '') : 'PatOS');
   PatOS.versionLabel = label;
+  // the version this copy is really running (with 'beta N' on a beta); About, Terminal and Settings show this
+  PatOS.versionNow = () => { const r = runningRel(); return r.version + (r.beta ? ' ' + PatOS.t('beta') + ' ' + r.beta : ''); };
   // what this copy of PatOS is: the beta (when Beta updates is on and this code has one) or the release
   const runningRel = () => (betaOn() && PatOS.beta ? PatOS.beta : (PatOS.releases && PatOS.releases[0]) || { version: PatOS.version });
   function setupUpdates() {

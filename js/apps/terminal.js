@@ -42,7 +42,7 @@
            ['mkdir <dir>', 'make a folder'], ['rm <path>', 'move to Trash'], ['mv <src> <dir>', 'move'], ['cp <src> <dir>', 'copy'], ['echo <text> [> file]', 'print or write text'],
            ['tree', 'show folder tree'], ['open <app|file>', 'open an app or file'], ['apps', 'list apps'], ['calc <expr>', 'calculator'], ['date', 'current date'], ['whoami', 'your name'],
            ['neofetch', 'system info'], ['theme dark|light', 'change appearance'], ['wallpaper <name>', 'change wallpaper'], ['matrix', 'enter the matrix (press any key to stop)'],
-           ['grep / wc / head / tail', 'filter text (works with |)'], ['sort / uniq / rev / seq', 'more text tools'], ['cut / tr / sed / nl / tee', 'cut -d, -f1 · tr a-z A-Z · sed s/a/b/g'], ['diff <a> <b>', 'compare two files'], ['stat <file>', 'size, type and date'], ['basename / dirname', 'parts of a path'], ['NAME=value / $NAME', 'variables (export to keep them)'], ['alias ll="ls -l"', 'make your own shortcut'], ['!!', 'repeat the last command'], ['which / sleep', 'find a command · wait'], ['find [dir] -name <pattern>', 'find files'], ['ls -l', 'detailed list'], ['python <file.py>', 'run a Python program (also python -c "code")'], ['node <file.js>', 'run a JavaScript file'], ['curl <url>', 'download a web page'], ['ping <host>', 'check a website'], ['weather', 'current weather'], ['todo [text]', 'list or add reminders'], ['cmd > file', 'save output to a file'], ['cmd1 && cmd2', 'run one after another'], ['cowsay <text>', 'a talking cow'], ['fortune', 'a random message'], ['history', 'command history'], ['clear', 'clear screen'], ['exit', 'close terminal']]
+           ['grep / wc / head / tail', 'filter text (works with |)'], ['sort / uniq / rev / seq', 'more text tools'], ['cut / tr / sed / nl / tee', 'cut -d, -f1 · tr a-z A-Z · sed s/a/b/g'], ['diff <a> <b>', 'compare two files'], ['stat <file>', 'size, type and date'], ['basename / dirname', 'parts of a path'], ['NAME=value / $NAME', 'variables (export to keep them)'], ['alias ll="ls -l"', 'make your own shortcut'], ['!!', 'repeat the last command'], ['which / sleep', 'find a command · wait'], ['find [dir] -name <pattern>', 'find files'], ['ls -l', 'detailed list'], ['python <file.py>', 'run a Python program (also python -c "code")'], ['node <file.js>', 'run JavaScript (in the browser: not real Node.js, no require or npm)'], ['curl <url>', 'download a web page'], ['ping <host>', 'check a website'], ['weather', 'current weather'], ['todo [text]', 'list or add reminders'], ['cmd > file', 'save output to a file'], ['cmd1 && cmd2', 'run one after another'], ['cowsay <text>', 'a talking cow'], ['fortune', 'a random message'], ['history', 'command history'], ['clear', 'clear screen'], ['exit', 'close terminal']]
             .forEach(([c, d]) => print(`  <span class="ty">${esc(c.padEnd(22))}</span>${esc(d)}`));
         },
         ls(a) {
@@ -96,7 +96,7 @@
         neofetch() {
           const info = [
             `<span class="tg">${esc(user)}@patos</span>`, '-----------------',
-            `<span class="ty">OS</span>: PatOS ${PatOS.version}`,
+            `<span class="ty">OS</span>: PatOS ${(PatOS.versionNow ? PatOS.versionNow() : PatOS.version)}`,
             `<span class="ty">Host</span>: ${esc(navigator.userAgent.includes('CrOS') ? 'Chromebook' : navigator.platform || 'Web')}`,
             `<span class="ty">Kernel</span>: JavaScript (${esc((navigator.userAgent.match(/Chrome\/[\d.]+/) || ['Browser'])[0])})`,
             `<span class="ty">Uptime</span>: ${Math.round(performance.now() / 60000)} mins`,
@@ -184,8 +184,8 @@
         async node(a) {
           const ei = a.indexOf('-e'); let code;
           if (ei >= 0) code = a.slice(ei + 1).join(' ');
-          else { const f = a.find((x) => !x.startsWith('-')); if (!f) return text('usage: node <file.js>   or   node -e "console.log(1+1)"', 'err'); const n = PatOS.fs.get(resolve(f)); if (!n || n.type !== 'file') return text('node: Cannot find module ' + f, 'err'); code = n.content; }
-          const src = 'const fmt=(x)=>{try{return typeof x==="string"?x:typeof x==="object"&&x!==null?JSON.stringify(x,null,1):String(x)}catch(e){return String(x)}};const send=(t,a)=>postMessage({t,m:a.map(fmt).join(" ")});self.console={log:(...a)=>send("out",a),info:(...a)=>send("out",a),warn:(...a)=>send("out",a),error:(...a)=>send("err",a)};onmessage=async(e)=>{try{await(0,eval)("(async()=>{"+e.data+"\\n})()")}catch(err){send("err",[err&&err.stack?String(err.stack).split("\\n")[0]:err])}postMessage({t:"done"})};';
+          else { const f = a.find((x) => !x.startsWith('-')); if (flag(a, '-v') || flag(a, '--version')) return text('PatOS JavaScript runner (it runs JavaScript in your browser; it is not Node.js, so there is no require() or npm)'); if (!f) return text('usage: node <file.js>   or   node -e "console.log(1+1)"   (runs JavaScript in the browser, not real Node.js)', 'err'); const n = PatOS.fs.get(resolve(f)); if (!n || n.type !== 'file') return text('node: Cannot find module ' + f, 'err'); code = n.content; }
+          const src = PatOS.workerLockdown + 'const fmt=(x)=>{try{return typeof x==="string"?x:typeof x==="object"&&x!==null?JSON.stringify(x,null,1):String(x)}catch(e){return String(x)}};const send=(t,a)=>postMessage({t,m:a.map(fmt).join(" ")});self.console={log:(...a)=>send("out",a),info:(...a)=>send("out",a),warn:(...a)=>send("out",a),error:(...a)=>send("err",a)};onmessage=async(e)=>{try{await(0,eval)("(async()=>{"+e.data+"\\n})()")}catch(err){send("err",[err&&err.stack?String(err.stack).split("\\n")[0]:err])}postMessage({t:"done"})};';
           await new Promise((res) => {
             const w = new Worker(URL.createObjectURL(new Blob([src], { type: 'text/javascript' }))); const to = setTimeout(() => { w.terminate(); text('node: stopped after 15 seconds', 'err'); res(); }, 15000);
             w.onmessage = (e) => { if (e.data.t === 'done') { clearTimeout(to); w.terminate(); res(); } else text(e.data.m, e.data.t === 'err' ? 'err' : undefined); };
@@ -209,8 +209,8 @@
           catch (e) { text('weather: no internet connection', 'err'); }
         },
         todo(a) { if (!a.length) { const l = PatOS.store.get('reminders', []).filter((r) => !r.done); return text(l.map((r, i) => (i + 1) + '. ' + r.text).join('\n') || 'Nothing to do.'); } const items = PatOS.store.get('reminders', []); items.push({ id: Date.now(), text: a.join(' '), done: false }); PatOS.store.set('reminders', items); text('Added to Reminders.', 'tm'); },
-        env() { text(['USER=' + user, 'HOME=/Users/' + user, 'SHELL=/bin/patsh', 'LANG=' + (PatOS.lang === 'fr' ? 'fr_CA' : 'en_CA') + '.UTF-8', 'OS=PatOS ' + PatOS.version, 'TERM=patos-256color'].join('\n')); },
-        uname(a) { text(flag(a, '-a') ? 'PatOS ' + PatOS.version + ' patos ' + navigator.userAgent : 'PatOS'); },
+        env() { text(['USER=' + user, 'HOME=/Users/' + user, 'SHELL=/bin/patsh', 'LANG=' + (PatOS.lang === 'fr' ? 'fr_CA' : 'en_CA') + '.UTF-8', 'OS=PatOS ' + (PatOS.versionNow ? PatOS.versionNow() : PatOS.version), 'TERM=patos-256color'].join('\n')); },
+        uname(a) { text(flag(a, '-a') ? 'PatOS ' + (PatOS.versionNow ? PatOS.versionNow() : PatOS.version) + ' patos ' + navigator.userAgent : 'PatOS'); },
         free() { const m = performance.memory; text(m ? 'used ' + PatOS.fmtBytes(m.usedJSHeapSize) + ' of ' + PatOS.fmtBytes(m.jsHeapSizeLimit) : 'Memory info is not available in this browser.'); },
         hostname() { text('patos.local'); },
         yes(a) { text(Array(20).fill(a.join(' ') || 'y').join('\n')); }
@@ -277,11 +277,11 @@
           text(out.length ? out.join('\n') : 'The files are the same.', out.length ? undefined : 'tm');
         }
       });
-      const oldEnv = cmds.env; cmds.env = () => text(Object.keys(vars).map((k) => k + '=' + vars[k]).concat(['LANG=' + (PatOS.lang === 'fr' ? 'fr_CA' : 'en_CA') + '.UTF-8', 'OS=PatOS ' + PatOS.version, 'TERM=patos-256color']).join('\n'));
+      const oldEnv = cmds.env; cmds.env = () => text(Object.keys(vars).map((k) => k + '=' + vars[k]).concat(['LANG=' + (PatOS.lang === 'fr' ? 'fr_CA' : 'en_CA') + '.UTF-8', 'OS=PatOS ' + (PatOS.versionNow ? PatOS.versionNow() : PatOS.version), 'TERM=patos-256color']).join('\n'));
       void oldEnv;
       // $NAME and ${NAME} become their values (not inside single quotes)
       const expand = (line) => { let out = '', q = null; for (let i = 0; i < line.length; i++) { const c = line[i]; if (q) { if (c === q) q = null; out += c; } else if (c === '"' || c === "'") { q = c; out += c; } else if (c === '$') { const m = /^\$(?:\{(\w+)\}|(\w+)|\?)/.exec(line.slice(i)); if (m) { out += m[0] === '$?' ? '0' : (vars[m[1] || m[2]] != null ? vars[m[1] || m[2]] : ''); i += m[0].length - 1; } else out += c; } else out += c; } return out; };
-      cmds.python3 = cmds.python; cmds.py = cmds.python; cmds.dir = cmds.ls; cmds.cls = cmds.clear; cmds.man = cmds.help; cmds.say = cmds.echo;
+      cmds.python3 = cmds.python; cmds.py = cmds.python; cmds.js = cmds.node; cmds.dir = cmds.ls; cmds.cls = cmds.clear; cmds.man = cmds.help; cmds.say = cmds.echo;
 
       const splitTop = (s, sep) => { const out = []; let cur = '', q = null; for (let i = 0; i < s.length; i++) { const c = s[i]; if (q) { if (c === q) q = null; cur += c; } else if (c === '"' || c === "'") { q = c; cur += c; } else if (s.startsWith(sep, i)) { out.push(cur); cur = ''; i += sep.length - 1; } else cur += c; } out.push(cur); return out.map((x) => x.trim()).filter(Boolean); };
       async function exec1(seg, inData, capt) {

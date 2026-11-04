@@ -5,7 +5,32 @@
 (function () {
   'use strict';
   const CDN = 'https://cdn.jsdelivr.net/pyodide/v0.26.4/full/';
-  const WORKER = `
+
+  /* Programs run in a Worker that belongs to PatOS's own web address, so by default they could open PatOS's
+     database (files, and the key that guards the password list) or message its service worker. This runs
+     inside the worker BEFORE any program: it takes away every way a worker has to reach that storage
+     (IndexedDB, the Cache API, file-system storage, starting more workers, BroadcastChannel and the service
+     worker), and locks the replacements so a program can't put the real ones back. What is left is plain
+     computing and the internet, like any web page. It is a barrier, not a virtual machine: the master
+     password on the Passwords app remains the real protection for passwords. */
+  function lockdown() {
+    var no = function (n) { return function () { throw new Error(n + ' is not available to programs run inside PatOS'); }; };
+    var chain = [], o = self; while (o) { chain.push(o); o = Object.getPrototypeOf(o); }
+    var kill = function (target, key, getter) { try { Object.defineProperty(target, key, { configurable: false, enumerable: false, get: getter, set: function () {} }); } catch (e) {} };
+    ['indexedDB', 'caches', 'Worker', 'SharedWorker', 'BroadcastChannel', 'webkitRequestFileSystem', 'webkitRequestFileSystemSync'].forEach(function (k) {
+      chain.forEach(function (t) { if (Object.prototype.hasOwnProperty.call(t, k)) kill(t, k, no(k)); });
+      if (!Object.prototype.hasOwnProperty.call(self, k)) kill(self, k, no(k));
+    });
+    var methods = { IDBFactory: ['open', 'deleteDatabase', 'databases'], CacheStorage: ['open', 'match', 'has', 'keys', 'delete'], StorageManager: ['getDirectory', 'estimate', 'persist', 'persisted'] };
+    Object.keys(methods).forEach(function (cls) { var C = self[cls]; if (typeof C !== 'function' || !C.prototype) return; methods[cls].forEach(function (m) { try { Object.defineProperty(C.prototype, m, { configurable: false, writable: false, value: no(cls + '.' + m) }); } catch (e) {} }); });
+    try {
+      var nav = self.navigator, np = Object.getPrototypeOf(nav);
+      ['serviceWorker', 'storage', 'locks'].forEach(function (k) { kill(np, k, function () { return undefined; }); kill(nav, k, function () { return undefined; }); });
+    } catch (e) {}
+  }
+  const LOCK_SRC = 'const lockdown = ' + lockdown.toString() + ';';
+  PatOS.workerLockdown = LOCK_SRC + 'lockdown();'; // for other runners (the Terminal's JavaScript)
+  const WORKER = LOCK_SRC + `
     let py = null, base = '', runId = '';
     const post = (type, data) => postMessage({ type, data });
     async function init() {
@@ -19,6 +44,7 @@
       const dec = new TextDecoder(), dec2 = new TextDecoder();
       py.setStdout({ write: (b) => { post('out', dec.decode(b, { stream: true })); return b.length; } });
       py.setStderr({ write: (b) => { post('err', dec2.decode(b, { stream: true })); return b.length; } });
+      lockdown(); // from here on, no program can reach PatOS's storage
     }
     const cleanTrace = (m) => String(m).split('\\n').filter((l, i, a) => !/_pyodide|pyodide\\/|\\/lib\\/python3\\d+\\.zip\\/_|importlib/.test(l)).join('\\n').replace(/^PythonError: /, '').trim();
     onmessage = async (e) => {
