@@ -143,7 +143,8 @@
       const send = h('button', { class: 'msg-send', 'aria-label': 'Send' }, '↑');
       const chips = h('div', { class: 'msg-chips' }, ...(PatOS.lang === 'fr' ? ['aide', 'minuteur 10 min', 'qu’est-ce que j’ai aujourd’hui?', 'mes rappels', 'raconte une blague', 'ouvre galaxie', 'rappelle-moi d’étudier'] : ['help', 'timer 10 min', 'what’s on my calendar today?', 'my reminders', 'tell me a joke', 'open galaxy', 'remind me to study']).map((c) => h('button', { class: 'no-tr', onclick: () => submit(c) }, c)));
       const head = h('div', { class: 'msg-head' }, h('div', { class: 'msg-av sm' }, 'P'), h('b', {}, 'Pat'));
-      const root = h('div', { class: 'msg-main pat-main' }, head, list, chips, h('div', { class: 'msg-bar' }, input, send));
+      const mic = PatOS.voice && PatOS.voice.supported() ? h('button', { class: 'msg-mic', title: PatOS.t('Ask with your voice'), 'aria-label': PatOS.t('Ask with your voice'), html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>' }) : null;
+      const root = h('div', { class: 'msg-main pat-main' }, head, list, chips, h('div', { class: 'msg-bar' }, mic, input, send));
       function bubble(m, anim) {
         const b = h('div', { class: 'msg-b ' + (m.from === 'me' ? 'me' : 'them') + (anim ? ' pop' : ''), title: m.t ? new Date(m.t).toLocaleString(PatOS.locale, { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : null }, m.text);
         list.appendChild(b); list.scrollTop = list.scrollHeight;
@@ -157,7 +158,7 @@
         const typing = h('div', { class: 'msg-b them typing' }, h('i'), h('i'), h('i')); list.appendChild(typing); list.scrollTop = list.scrollHeight;
         setTimeout(() => {
           typing.remove();
-          let out = reply(text);
+          let out = PatOS.assistantReply ? PatOS.assistantReply(text) : reply(text);
           if (out === '\u0000clear') { clearChat(); return; }
           const r = { from: 'pat', text: out, t: Date.now() }; log.push(r); bubble(r, true);
           PatOS.sound.tone(700, 0.12, { vol: 0.06 }); PatOS.sound.tone(1050, 0.12, { vol: 0.05, delay: 0.08 });
@@ -174,6 +175,7 @@
       });
       function clearChat() { log = []; PatOS.store.remove('chatLog'); sent = []; list.innerHTML = ''; const hi = { from: 'pat', text: PatOS.lang === 'fr' ? 'C’est effacé. Écris « aide » si tu veux la liste des commandes.' : 'Cleared. Type "help" if you want the list of commands.', t: Date.now() }; log.push(hi); bubble(hi, true); PatOS.store.set('chatLog', log); }
       const clearAsk = async () => { if (await PatOS.confirmBox(PatOS.t('Clear this conversation?'), PatOS.t('The messages will be deleted.'), { ok: PatOS.t('Clear'), danger: true, icon: 'messages' })) clearChat(); };
+      if (mic) { let stop = null; mic.onclick = () => { if (stop) { stop(); return; } mic.classList.add('on'); input.placeholder = PatOS.t('Listening…'); stop = PatOS.voice.listenOnce((t) => { submit(t); }, (err) => { stop = null; mic.classList.remove('on'); input.placeholder = PatOS.t('Ask Pat') + '…'; if (err) PatOS.notify({ title: 'Pat', body: err.message, icon: 'messages' }); }); }; }
       send.onclick = () => submit();
       render();
       return { el: root, focus: () => input.focus(), clear: clearAsk };
