@@ -84,14 +84,27 @@
 
   /* ---------- state, kept on this device (never sent anywhere) ---------- */
   let state = null; // { rev, epoch, recs: { rid: { id, t, h, pushed, del } }, touch: { key: ms }, last, error, rejected, bad, hold }
-  const blank = () => ({ rev: 0, epoch: '', recs: {}, touch: {}, last: 0, error: '', rejected: 0, bad: 0, hold: 0 });
+  const blank = () => ({ rev: 0, epoch: '', recs: {}, touch: {}, last: 0, error: '', rejected: 0, bad: 0, hold: 0, mode, who: '' });
   const persist = PatOS.debounce(() => { if (state) PatOS.store.set('syncState', state); }, 1500);
   let status = 'off', lastCounts = { items: 0, excluded: 0 };
   function setStatus(s) { status = s; PatOS.emit('sync', api.status()); }
 
   /* ---------- what is on this device ---------- */
-  const isKV = (k) => KV_KEYS.indexOf(k) >= 0;
-  const pickSettings = () => { const o = {}; SETTING_KEYS.forEach((k) => { if (PatOS.settings[k] !== undefined) o[k] = PatOS.settings[k]; }); return o; };
+  /* With a PatOS account, everything that belongs to the person follows them (all saved lists, the files, the settings); only what
+     is about this one device, a copy that is made again by itself, or a secret stays. With a sync code, only the list above. */
+  let mode = 'code'; // 'code' (a sync code and the PatOS server) or 'account' (a PatOS account in the cloud)
+  const DENY = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncKey', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'accountPrompt', 'accountSeen', 'msgRead', 'patAppGrants', 'privacyLog',
+    'setupStep', 'installOffered', 'iosHint', 'notifAsked', 'appInstalled', 'alarmQueue',
+    'wpCache', 'wpLockCache', 'wxCache', 'dictCache', 'googleCx', 'patosServer', 'ytKey', 'pwVault', 'musicState', 'settings']);
+  const DENY_PREFIX = ['newsCache:', 'ytHome:'];
+  const denied = (k) => DENY.has(k) || DENY_PREFIX.some((x) => k.indexOf(x) === 0);
+  const isKV = (k) => (mode === 'account' ? !denied(k) : KV_KEYS.indexOf(k) >= 0);
+  const kvKeys = () => (mode === 'account' ? PatOS.store.keys().filter((k) => !denied(k)) : KV_KEYS);
+  /* a PatOS account takes every setting (dock, desktop icon places, wallpaper, theme...) except the lock password and what depends on this device's screen and graphics */
+  const DEVICE_SETTINGS = new Set(['password', 'deviceMode', 'betaUpdates', 'quality3d', 'live3d']);
+  const settingKeys = () => (mode === 'account' ? Object.keys(PatOS.settings).filter((k) => !DEVICE_SETTINGS.has(k)) : SETTING_KEYS);
+  const settingOk = (k) => (mode === 'account' ? !DEVICE_SETTINGS.has(k) : SETTING_KEYS.indexOf(k) >= 0);
+  const pickSettings = () => { const o = {}; settingKeys().forEach((k) => { if (PatOS.settings[k] !== undefined) o[k] = PatOS.settings[k]; }); return o; };
   const fileHash = (c, m, o) => cyrb(c + '\0' + (m || '') + '\0' + (o || ''));
   const fcache = new Map(); // path -> { m, n, mime, origin, h }
   function fileInfo(path, n) {
@@ -114,7 +127,7 @@
   /* every item on this device: Map rid -> { id, h, t }, and the ones that stay here */
   async function scan() {
     const items = new Map(), big = new Set(); const ids = [];
-    KV_KEYS.forEach((k) => { if (PatOS.store.peek(k) !== undefined) ids.push('k:' + k); });
+    kvKeys().forEach((k) => { if (PatOS.store.peek(k) !== undefined) ids.push('k:' + k); });
     ids.push('s:');
     (function walk(node, path) {
       Object.keys(node.children || {}).forEach((name) => {
@@ -143,7 +156,7 @@
   function applyItem(p, t) {
     if (p.k === 'kv' && isKV(p.key)) { PatOS.store.set(p.key, p.value); return 'k:' + p.key; }
     if (p.k === 'set' && p.value && typeof p.value === 'object') {
-      SETTING_KEYS.forEach((k) => { if (k in p.value && JSON.stringify(PatOS.settings[k]) !== JSON.stringify(p.value[k])) PatOS.setSetting(k, p.value[k]); });
+      Object.keys(p.value).forEach((k) => { if (settingOk(k) && JSON.stringify(PatOS.settings[k]) !== JSON.stringify(p.value[k])) PatOS.setSetting(k, p.value[k]); });
       return 's:';
     }
     if (p.k === 'dir' && typeof p.path === 'string' && p.path[0] === '/') { return mkdirp(p.path) ? 'd:' + p.path : null; }
@@ -175,13 +188,21 @@
     if (!res.ok) throw Object.assign(new Error((j && j.error) || 'HTTP ' + res.status), { status: res.status });
     return j;
   }
+  /* where the items go: the PatOS server (a sync code) or the cloud account (set by js/account.js) */
+  let acct = null; // { uid, register(), pull(since), push(records), wipe() } while a PatOS account is used
+  const W = {
+    register: () => (mode === 'account' ? acct.register() : call('POST', 'register')),
+    pull: (since) => (mode === 'account' ? acct.pull(since) : call('GET', 'pull?since=' + since)),
+    push: (records) => (mode === 'account' ? acct.push(records) : call('POST', 'push', { records })),
+    wipe: () => (mode === 'account' ? acct.wipe() : call('DELETE', 'account'))
+  };
   /* a new or emptied server: remember nothing was sent there, so everything goes again */
   function newServer(epoch) {
     if (state.epoch) Object.keys(state.recs).forEach((k) => { const r = state.recs[k]; if (r.del) delete state.recs[k]; else r.pushed = false; });
     state.epoch = epoch; state.rev = 0; persist();
   }
   async function ensureAccount() {
-    const reg = await call('POST', 'register');
+    const reg = await W.register();
     if (state.epoch !== reg.epoch) newServer(reg.epoch);
   }
 
@@ -212,7 +233,7 @@
     const deferred = []; let guard = 0;
     for (;;) {
       if (++guard > 500) break;
-      const r = await call('GET', 'pull?since=' + state.rev);
+      const r = await W.pull(state.rev);
       if (r.epoch !== state.epoch) { newServer(r.epoch); continue; }
       applying = true;
       try { for (const rec of r.records) await receive(rec, local, deferred); } finally { applying = false; }
@@ -260,11 +281,11 @@
         else { const body = await seal(payloadOf(it.id), it.rid); rec = { rid: it.rid, t: it.t, iv: body.iv, data: body.data }; bytes += body.data.length; }
         batch.push({ it, rec });
       }
-      const res = await call('POST', 'push', { records: batch.map((b) => b.rec) });
+      const res = await W.push(batch.map((b) => b.rec));
       if (res.epoch !== state.epoch) { newServer(res.epoch); throw Object.assign(new Error('server changed'), { again: true }); }
       batch.forEach((b) => { state.recs[b.it.rid] = { id: b.it.id, t: b.it.t, h: b.it.h, pushed: true, del: !!b.it.del }; });
       skipped += res.skipped || 0; if (res.rejected) state.rejected += res.rejected;
-      if (res.rev - res.applied === state.rev) state.rev = res.rev; // nobody else wrote in between: no need to read our own changes back
+      if (res.rev != null && res.rev - res.applied === state.rev) state.rev = res.rev; // nobody else wrote in between: no need to read our own changes back
       persist();
     }
     // forget deletions older than 90 days (the server does the same)
@@ -305,12 +326,20 @@
     return running;
   }
   const kick = PatOS.debounce(() => { if (S && navigator.onLine !== false) cycle(); }, 4000);
+  const kickSlow = PatOS.debounce(() => { if (S && navigator.onLine !== false) cycle(); }, 30000); // open windows and the like change all the time
 
   /* ---------- start / stop ---------- */
   async function start(raw) {
     S = await derive(raw); ridCache.clear(); fcache.clear();
-    state = Object.assign(blank(), PatOS.store.get('syncState', {})); if (!state.recs) state.recs = {}; if (!state.touch) state.touch = {};
+    loadState();
     setStatus('idle');
+  }
+  /* the bookkeeping belongs to one way of syncing and one person/code: another one starts clean (everything is sent again) */
+  function loadState() {
+    const who = mode === 'account' ? 'acct:' + acct.uid : 'code:' + S.uid;
+    const old = PatOS.store.get('syncState', {});
+    state = Object.assign(blank(), old && (old.who === who || (!old.who && mode === 'code')) ? old : {});
+    state.mode = mode; state.who = who; if (!state.recs) state.recs = {}; if (!state.touch) state.touch = {};
   }
   const noCrypto = () => !(window.crypto && crypto.subtle && window.TextEncoder);
   const api = {
@@ -336,7 +365,7 @@
     },
     async disable(wipeServer) {
       let failed = false;
-      if (wipeServer && S) { try { await call('DELETE', 'account'); } catch (e) { failed = true; } }
+      if (wipeServer && S) { try { await W.wipe(); } catch (e) { failed = true; } }
       S = null; state = null; ridCache.clear(); fcache.clear();
       PatOS.store.remove('syncKey'); PatOS.store.remove('syncState');
       setStatus('off'); return { failed };
@@ -351,6 +380,17 @@
       PatOS.store.set('syncKey', b64(raw)); PatOS.store.remove('syncState');
       await start(raw); await cycle(); return api.code();
     },
+    mode: () => mode,
+    /* signed in to a PatOS account: from now on Sync saves to the account (key = made from the password), see js/account.js */
+    async useAccount(raw, transport) {
+      mode = 'account'; acct = transport; S = await derive(raw); ridCache.clear(); fcache.clear(); loadState(); setStatus('idle'); persist(); cycle(); // (it runs in the background: the caller does not wait for the whole upload)
+    },
+    /* signed out: back to a sync code if there is one, else Sync is off */
+    async clearAccount() {
+      acct = null; mode = 'code'; ridCache.clear(); fcache.clear();
+      const k = PatOS.store.get('syncKey', null);
+      if (k) { try { await start(unb64(k)); } catch (e) { S = null; state = null; setStatus('off'); } } else { S = null; state = null; setStatus('off'); }
+    },
     now: (opts) => cycle(opts),
     server_url: () => base(),
     /* point this device at another PatOS server; it fills the new one with everything it has */
@@ -364,7 +404,7 @@
     resend() { if (!state) return null; Object.keys(state.recs).forEach((k) => { state.recs[k].pushed = false; }); state.rejected = 0; persist(); return cycle(); },
     async server() { if (!S) return null; try { return await call('GET', 'status'); } catch (e) { return null; } },
     status() {
-      return { on: !!S, state: status, last: state ? state.last : 0, error: state ? state.error : '', rejected: state ? state.rejected : 0, bad: state ? state.bad : 0,
+      return { on: !!S, mode, state: status, last: state ? state.last : 0, error: state ? state.error : '', rejected: state ? state.rejected : 0, bad: state ? state.bad : 0,
         hold: state ? state.hold : 0, items: lastCounts.items, stay: lastCounts.excluded, offline: navigator.onLine === false };
     },
     _codeToKey: codeToKey, _keyToCode: keyToCode
@@ -373,14 +413,15 @@
 
   /* ---------- when to sync ---------- */
   function touch(key) { if (!state) return; state.touch[key] = Date.now(); persist(); }
-  PatOS.on('store:set', (k) => { if (!S || applying) return; if (isKV(k)) { touch(k); kick(); } else if (k === 'settings') { touch('settings'); kick(); } });
+  const CHATTY = new Set(['sessions', 'frameMem', 'browserSession', 'browserRestore', 'autoAppWindow']);
+  PatOS.on('store:set', (k) => { if (!S || applying) return; if (isKV(k)) { touch(k); (CHATTY.has(k) ? kickSlow : kick)(); } else if (k === 'settings') { touch('settings'); kick(); } });
   PatOS.on('fs', () => { if (S && !applying) kick(); });
   addEventListener('online', () => { if (S) kick(); });
   document.addEventListener('visibilitychange', () => { if (S && !document.hidden) kick(); });
   setInterval(() => { if (S && !document.hidden && navigator.onLine !== false) cycle(); }, 3 * 60 * 1000);
 
   const saved = PatOS.store.get('syncKey', null);
-  if (saved && !noCrypto()) {
+  if (saved && !noCrypto() && !PatOS.store.get('accountInfo', null)) {
     try { start(unb64(saved)).then(() => setTimeout(() => { if (navigator.onLine !== false) cycle(); }, 15000)); } catch (e) {}
   }
 })();

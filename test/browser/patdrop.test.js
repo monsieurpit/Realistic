@@ -97,7 +97,7 @@ test('the PatDrop window: make a chat, send, receive, install an app, drop from 
   assert.deepEqual(await page.evaluate(() => PatOS.fs.read('/Downloads/PatDrop/note.txt')), 'from bro');
   // Finder: "Send with PatDrop"
   await page.evaluate(async () => { PatOS.fs.write('/Documents/finder-file.txt', 'sent from Finder'); await PatOS.sendWithPatDrop(['/Documents/finder-file.txt', '/Documents']); });
-  await B.ev(() => PatOS.link.now()); assert.equal(await B.ev(() => PatOS.fs.read('/Downloads/PatDrop/finder-file.txt')), 'sent from Finder');
+  await A.ev(() => PatOS.link.now()); await B.ev(() => PatOS.link.now()); assert.equal(await B.ev(() => PatOS.fs.read('/Downloads/PatDrop/finder-file.txt')), 'sent from Finder');
   // attach menu
   await page.click('.pd-bar .btn >> nth=0'); await page.waitForSelector('.menu'); const menu = await page.innerText('.menu'); assert.match(menu, /File from this computer/); assert.match(menu, /Link/); assert.match(menu, /My clipboard/); assert.match(menu, /Send an app/);
   await page.keyboard.press('Escape'); await page.mouse.click(5, 5);

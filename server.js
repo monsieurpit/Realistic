@@ -16,8 +16,8 @@ const TYPES = {
   '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8', '.md': 'text/plain; charset=utf-8', '.patapp': 'application/json'
 };
-const PRIVATE_DIRS = new Set(['test', 'node_modules', 'data', 'sync-data']); // never served
-const PRIVATE = new Set(['server.js', 'yt.js', 'services.js', 'http-util.js', 'sync-server.js', 'apps-server.js', 'link-server.js', 'apprequests.html', 'package.json', 'package-lock.json', 'build.js', 'updates.json']);
+const PRIVATE_DIRS = new Set(['test', 'node_modules', 'data', 'sync-data', 'vendor-src', 'scripts']); // never served
+const PRIVATE = new Set(['server.js', 'yt.js', 'services.js', 'http-util.js', 'sync-server.js', 'apps-server.js', 'link-server.js', 'apprequests.html', 'firestore.rules', 'firebase.json', 'package.json', 'package-lock.json', 'build.js', 'updates.json']);
 
 const server = http.createServer((req, res) => {
   let p;

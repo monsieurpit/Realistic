@@ -1152,6 +1152,32 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .pd-app { display: flex; gap: 10px; align-items: center; } .pd-app .as-ic { width: 44px; height: 44px; flex: none; }
 .pd-bar { display: flex; gap: 8px; padding: 8px 12px 12px; border-top: 1px solid var(--line, #8883); align-items: center; } .pd-in { flex: 1; }
 .pd-app small, .pd-card2 > small { display: block; }
+/* Messages with people */
+.m2 { height: 100%; display: flex; position: relative; overflow: hidden; container-type: inline-size; }
+.m2-side { width: 260px; flex: none; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
+.m2-sh { padding: 10px; } .m2-search { width: 100%; box-sizing: border-box; }
+.m2-list { flex: 1; overflow: auto; padding: 0 8px 10px; display: flex; flex-direction: column; gap: 2px; }
+.m2-h { font-size: 11.5px; font-weight: 700; opacity: .55; text-transform: uppercase; letter-spacing: .05em; padding: 10px 6px 4px; }
+.m2-empty { opacity: .6; font-size: 13px; line-height: 1.45; padding: 8px 8px; }
+.m2-row { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; cursor: pointer; } .m2-row:hover { background: var(--hover, #8882); } .m2-row.on { background: var(--accent, #0a84ff); color: #fff; }
+.m2-row .msg-av { width: 36px; height: 36px; } .m2-rt { flex: 1; min-width: 0; } .m2-rt b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .m2-rt small { display: block; opacity: .7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
+.m2-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent, #0a84ff); flex: none; } .m2-row.on .m2-dot { background: #fff; } .m2-time { opacity: .5; font-size: 11px; flex: none; }
+.m2-main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--win-solid); }
+.m2-head { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--border); } .m2-head .msg-av { width: 34px; height: 34px; } .m2-head small { display: block; opacity: .6; font-size: 12px; } .m2-back { display: none; font-size: 22px; }
+.m2-msgs { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
+.m2-day { align-self: center; font-size: 11.5px; opacity: .5; margin: 8px 0 2px; } .m2-sys { align-self: center; max-width: 80%; text-align: center; font-size: 12.5px; opacity: .6; line-height: 1.45; padding: 6px 10px; }
+.msg-b.sending { opacity: .55; }
+.m2-ask { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px 14px; border-top: 1px solid var(--border); flex-wrap: wrap; } .m2-ask div { display: flex; gap: 8px; }
+.m2-card { margin: auto; max-width: 380px; text-align: center; display: flex; flex-direction: column; gap: 10px; padding: 24px; } .m2-card h2 { margin: 0; } .m2-card p { margin: 0; opacity: .75; line-height: 1.45; font-size: 14px; } .m2-card .m2-fine { opacity: .55; font-size: 12.5px; } .m2-cbtns { display: flex; gap: 8px; justify-content: center; }
+.m2-who { opacity: .7; font-size: 13px; padding-right: 8px; }
+.m2-pat { position: absolute; top: 0; right: 0; bottom: 0; width: min(380px, 100%); display: flex; transform: translateX(105%); transition: transform .2s ease; z-index: 6; box-shadow: -14px 0 40px rgba(0,0,0,.35); border-left: 1px solid var(--border); background: var(--win-solid); }
+.m2-pat.open { transform: none; } .m2-pat .msg-main { width: 100%; }
+@container (max-width: 640px) {
+  .m2-side { width: 100%; border-right: 0; } .m2-main { display: none; position: absolute; inset: 0; z-index: 3; }
+  .m2-back { display: inline-flex; }
+}
+.m2-chat .m2-main { display: flex; }
+@container (max-width: 640px) { .m2-chat .m2-side { visibility: hidden; } }
 
 </style>
   <style>
@@ -3471,6 +3497,18 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 .su-link { margin-top: 10px; color: var(--accent); font-size: 13.5px; padding: 6px 12px; border-radius: 8px; } .su-link:hover { background: var(--hover); }
 .sy-code { font: 600 17px/1.4 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .06em; padding: 12px 14px; text-align: center; user-select: all; word-break: break-all; }
 .pa-frame { display: block; width: 100%; height: 100%; border: 0; background: transparent; }
+/* PatOS accounts */
+.acc-layer { z-index: 100000; }
+.acc-card { width: min(420px, calc(100vw - 28px)); max-height: calc(100vh - 28px); overflow: auto; border-radius: 22px; padding: 26px 26px 22px; display: flex; flex-direction: column; gap: 10px; text-align: center; background: var(--panel, #232326); box-shadow: 0 30px 80px rgba(0,0,0,.5); border: 1px solid var(--line, #8883); }
+.acc-card.big { width: min(480px, calc(100vw - 28px)); padding: 32px 30px 24px; }
+.acc-card h2 { margin: 4px 0 0; font-size: 22px; } .acc-logo { width: 64px; height: 64px; margin: 0 auto; } .acc-logo .icon-tile { width: 64px; height: 64px; } .acc-logo.big, .acc-logo.big .icon-tile { width: 84px; height: 84px; }
+.acc-sub { margin: 0; opacity: .75; line-height: 1.45; font-size: 14px; } .acc-fine { margin: 0; opacity: .6; font-size: 12px; line-height: 1.4; text-align: left; }
+.acc-tabs { display: flex; gap: 4px; background: rgba(127,127,127,.18); border-radius: 12px; padding: 3px; } .acc-tab { flex: 1; border: 0; border-radius: 9px; padding: 7px; font: inherit; background: transparent; color: inherit; cursor: pointer; } .acc-tab.on { background: var(--accent, #0a84ff); color: #fff; }
+.acc-note { min-height: 18px; font-size: 13px; opacity: .85; text-align: left; } .acc-note.err { color: #ff6b6b; opacity: 1; }
+.acc-btns { display: flex; gap: 8px; justify-content: flex-end; margin-top: 4px; } .acc-btns.col { flex-direction: column; align-items: stretch; } .acc-go { min-width: 130px; } .acc-later { align-self: center; opacity: .7; }
+.acc-list { list-style: none; margin: 4px 0; padding: 0; text-align: left; display: flex; flex-direction: column; gap: 10px; } .acc-list li { display: flex; flex-direction: column; gap: 1px; font-size: 13.5px; } .acc-list li span { opacity: .7; line-height: 1.4; }
+.acc-bar { height: 8px; border-radius: 6px; background: rgba(127,127,127,.25); overflow: hidden; margin: 8px 0; } .acc-bar i { display: block; height: 100%; width: 40%; background: var(--accent, #0a84ff); border-radius: 6px; animation: acc-slide 1.1s ease-in-out infinite; } .acc-bar.full i { width: 100%; animation: none; background: #32d74b; } .acc-bar.stop i { animation: none; background: #ff9f0a; }
+@keyframes acc-slide { 0% { transform: translateX(-100%); } 100% { transform: translateX(260%); } }
 
 </style>
   <style>
@@ -4095,6 +4133,7 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
 `&&s.push(l+1);let r=l=>s[l.line-1]+l.col-1,i=[],o=0,a=l=>{if(l<=o)return;n.slice(o,l).split(/(\/\/[^\n]*|\/\*[\s\S]*?\*\/)/).forEach((h,b)=>h&&i.push({text:h,kind:b%2===1?"comment":"plain"})),o=l};return t.forEach((l,c)=>{if(l.type==="EOF")return;let d=r(l);a(d);let h=n.slice(d,d+l.lexeme.length);if(l.type==="JSX"){vp(h,i),o=d+h.length;return}if(l.type==="SELECTOR"){i.push({text:h.slice(0,5),kind:"keyword"},{text:h.slice(5),kind:"tag"}),o=d+h.length;return}let b="plain";if(l.type==="STRING")b="string";else if(l.type==="NUMBER"||l.type==="UNIT")b="number";else if(l.type==="COLOR")b="constant";else if(e.css&&(l.type==="IDENT"||ss.includes(l.type))&&t[c+1]?.type===":"&&!t[c+1].spaceBefore)b="attr";else if(Ep.has(l.type))b="constant";else if(ss.includes(l.type))b="keyword";else if(l.type==="IDENT"){let $=t[c+1];/^[A-Z]/.test(l.lexeme)?b="kind":$?.type==="("||$?.type==="=>"?b="function":(e.css&&["frames","font","layer","at","css","important"].includes(l.lexeme)||["by","times","from","as","shared","get","set","other","until","choice","needs","pause","remove","inside","like","wide","hoist","block","hold","next","default"].includes(l.lexeme))&&(b="keyword")}else b="operator";i.push({text:h,kind:b}),o=d+h.length}),a(n.length),i}async function Sp(n,e={}){return new Ut({write:()=>{},loadModule:(s,r)=>{let i=cr(r,s),o=e.files?.[i];if(o===void 0)throw new Error(`not found: ${s}`);return{name:i,source:o}}}).runStyles(n,e.file??"styles.pitoss")}return xc(Tp);})();
 
 </script>
+  <script type="patos/firebase" src="vendor/firebase.js"></script>
   <script type="patos/js">
 /* PatOS core: utilities, storage, events, settings, file system, sounds, app registry */
 (function () {
@@ -4256,10 +4295,10 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
     peek(key) { return KV ? KV[key] : undefined; },
     /* everything worth keeping, for backups: all saved data except the file tree (that comes from fs.exportTree)
        and caches that are made again by themselves */
-    backupData() { const o = {}; const skip = new Set(['fs', 'wpCache', 'wpLockCache', 'wxCache', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer', 'linkState']); const src = KV || (function () { const r = {}; try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => { try { r[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {} return r; })(); Object.keys(src).forEach((k) => { if (!skip.has(k)) o[k] = clone(src[k]); }); return o; },
+    backupData() { const o = {}; const skip = new Set(['fs', 'wpCache', 'wpLockCache', 'wxCache', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'accountPrompt', 'msgRead', 'msgOutbox']); const src = KV || (function () { const r = {}; try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => { try { r[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {} return r; })(); Object.keys(src).forEach((k) => { if (!skip.has(k)) o[k] = clone(src[k]); }); return o; },
     /* put saved data back from a backup: keys that are not in it are removed */
     restoreData(data) {
-      const keep = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer', 'linkState']); const neverRemove = new Set(['syncKey']); const old = KV ? Object.keys(KV) : [];
+      const keep = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'accountPrompt', 'msgRead', 'msgOutbox']); const neverRemove = new Set(['syncKey']); const old = KV ? Object.keys(KV) : [];
       old.forEach((k) => { if (!keep.has(k) && !neverRemove.has(k) && !(k in data)) PatOS.store.remove(k); });
       Object.keys(data).forEach((k) => { if (!keep.has(k)) PatOS.store.set(k, clone(data[k])); });
     },
@@ -4950,7 +4989,7 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
 /* generated by build.js from updates.json: do not edit */
 PatOS.version = "1.7.0";
 PatOS.releases = [{"version":"1.7.0","date":"2026-11-04","title":{"en":"Better apps","fr":"De meilleures apps"},"notes":{"en":["Calendar: Day and Year views, repeating events with an end date, alerts before events (even with Calendar closed), quick add in plain words (“Math class monday 9am weekly”), search, drag events to another day, and .ics import and export (Google Calendar)","Contacts: several phone numbers and emails per person, company, tap to call or email, search that ignores accents, Undo after deleting, merge duplicates, and better vCard import and export with photos","Weather: 10-day forecast, a one-line summary of the next hours, city suggestions as you type, gusts, pressure, visibility and rain today, wind and rain in mph and inches with °F, refreshes by itself, and real icons instead of emoji","Photos: much faster with many photos, your own albums, select several photos at once, search, zoom and pan with the wheel or pinch, swipe between photos, photo info, drop pictures to add them, and large photos now show up","Paint: choose your canvas size, zoom, text, filled shapes, opacity that doesn’t darken overlaps, Shift for straight lines and circles, rotate and flip, more undo, keyboard shortcuts, and open or save over a picture (Photos › More › Open in Paint)","Reliability and security: a failed save keeps your deletions, stricter checks for private network addresses, the password vault only counts use of the vault as activity and locks when you close Passwords, and the French translation is complete","Messages: Pat can set timers and alarms, show your calendar and what is due, add events and reminders with dates in plain words, convert units, work out percentages, find files, pick between options, and suggest the app you meant. Up arrow brings back what you typed","Terminal: variables ($NAME), aliases, !! to repeat the last command, new tools (cut, tr, sed, diff, nl, tee, stat, basename, dirname, which, sleep), and Tab fills in what several matches share","Flashcards: spaced repetition (cards you know come back later, cards you miss come back today), a mode where you type the answer, either side first, paste a list or a Quizlet export to make a deck, a study streak, and no more pre-made decks","Security: programs run in Terminal and Python can no longer reach PatOS’s storage, Terminal’s node command is labeled as a JavaScript runner, and About, Terminal and Settings show the exact version you are running"],"fr":["Calendrier : vues Jour et Année, événements récurrents avec date de fin, alertes avant les événements (même avec Calendrier fermé), ajout rapide en mots simples (« Cours de maths lundi 9h chaque semaine »), recherche, glisser les événements vers un autre jour, et import et export .ics (Google Agenda)","Contacts : plusieurs numéros et courriels par personne, entreprise, toucher pour appeler ou écrire, recherche sans tenir compte des accents, Annuler après une suppression, fusion des doublons, et meilleur import et export vCard avec les photos","Météo : prévisions sur 10 jours, un résumé des prochaines heures, suggestions de villes en écrivant, rafales, pression, visibilité et pluie du jour, vent et pluie en mph et pouces avec les °F, actualisation automatique, et de vraies icônes au lieu des émojis","Photos : beaucoup plus rapide avec beaucoup de photos, vos propres albums, sélection de plusieurs photos, recherche, zoom et déplacement à la molette ou au pincement, balayage entre les photos, infos de la photo, glisser des images pour les ajouter, et les grandes photos apparaissent maintenant","Paint : choisissez la taille du canevas, zoom, texte, formes pleines, opacité qui ne s’assombrit pas aux croisements, Maj pour des lignes droites et des cercles, rotation et retournement, plus d’annulations, raccourcis clavier, et ouverture ou enregistrement par-dessus une image (Photos › Plus › Ouvrir dans Paint)","Fiabilité et sécurité : un enregistrement échoué garde vos suppressions, vérifications plus strictes des adresses de réseau privé, le coffre de mots de passe ne compte que son propre usage comme activité et se verrouille à la fermeture de Mots de passe, et la traduction française est complète","Messages : Pat peut régler des minuteurs et des alarmes, montrer ton calendrier et ce qui est dû, ajouter des événements et des rappels avec des dates en mots simples, convertir des unités, calculer des pourcentages, trouver des fichiers, choisir entre des options, et suggérer l’app que tu voulais. La flèche du haut rappelle ce que tu as écrit","Terminal : variables ($NOM), alias, !! pour répéter la dernière commande, nouveaux outils (cut, tr, sed, diff, nl, tee, stat, basename, dirname, which, sleep), et Tab complète ce que plusieurs correspondances ont en commun","Cartes mémoire : répétition espacée (les cartes que vous savez reviennent plus tard, celles que vous ratez reviennent aujourd’hui), un mode où vous écrivez la réponse, recto ou verso d’abord, coller une liste ou un export Quizlet pour faire un jeu, une série de jours d’étude, et plus de jeux préfaits","Sécurité : les programmes lancés dans Terminal et Python ne peuvent plus accéder au stockage de PatOS, la commande node du Terminal est présentée comme un exécuteur JavaScript, et À propos, Terminal et Réglages affichent la version exacte que vous utilisez"]}},{"version":"1.6.0","date":"2026-11-03","title":{"en":"Software Update","fr":"Mise à jour de logiciels"},"notes":{"en":["New Settings › Software Update: see your version, what changed, and install updates","PatOS finds new versions by itself while it is open, without refreshing","Installing an update restarts PatOS only, and your windows come back"],"fr":["Nouveau Réglages › Mise à jour de logiciels : votre version, ce qui a changé, et l’installation des mises à jour","PatOS trouve les nouvelles versions tout seul pendant qu’il est ouvert, sans rafraîchir","Installer une mise à jour redémarre seulement PatOS, et vos fenêtres reviennent"]}},{"version":"1.5.0","date":"2026-11-03","title":{"en":"iPhone swipe up, Reminders in plain words","fr":"Balayage sur iPhone, Rappels en mots simples"},"notes":{"en":["iPhone: swipe up from the bar at the bottom to leave an app, swipe up and pause for the app switcher","Reminders: type “Math test friday at 3pm !!” and the date, time and priority are filled in","Reminders can repeat, and there is search and Undo"],"fr":["iPhone : balayez vers le haut depuis la barre du bas pour quitter une app, et faites une pause pour le sélecteur d’apps","Rappels : écrivez « Examen de maths vendredi à 15h !! » et la date, l’heure et la priorité se remplissent","Les rappels peuvent se répéter, avec recherche et Annuler"]}},{"version":"1.4.0","date":"2026-11-03","title":{"en":"Clock and Calculator","fr":"Horloge et Calculatrice"},"notes":{"en":["Clock: add any city, a stopwatch that keeps running when closed, a timer with hours and a name, editable alarms","Calculator: history you can reuse, copy and paste, real percent, inverse trig"],"fr":["Horloge : ajoutez n’importe quelle ville, un chronomètre qui continue fermé, un minuteur avec heures et nom, des alarmes modifiables","Calculatrice : historique réutilisable, copier-coller, vrai pourcentage, trigonométrie inverse"]}},{"version":"1.3.0","date":"2026-11-03","title":{"en":"Finder and TextEdit","fr":"Finder et TextEdit"},"notes":{"en":["Finder: copy, cut and paste files, drag a box to select, drop files from your computer","TextEdit: find and replace, line and column, word wrap, Markdown preview, recent files, print"],"fr":["Finder : copier, couper et coller des fichiers, sélection en tirant un cadre, déposer des fichiers de l’ordinateur","TextEdit : rechercher et remplacer, ligne et colonne, retour à la ligne, aperçu Markdown, fichiers récents, impression"]}},{"version":"1.2.0","date":"2026-11-03","title":{"en":"Faster start, smoother 3D","fr":"Démarrage plus rapide, 3D plus fluide"},"notes":{"en":["PatOS starts in about a second instead of several","3D waits for the graphics chip, so slower Chromebooks don’t lag"],"fr":["PatOS démarre en environ une seconde au lieu de plusieurs","La 3D attend la puce graphique, donc les Chromebooks plus lents ne ralentissent plus"]}},{"version":"1.1.0","date":"2026-11-03","title":{"en":"Security","fr":"Sécurité"},"notes":{"en":["Passwords are always encrypted, and lock with your master password","Documents and pasted text can no longer run code","Pat in Messages is described honestly: a command helper, not an AI"],"fr":["Les mots de passe sont toujours chiffrés et se verrouillent avec votre mot de passe principal","Les documents et le texte collé ne peuvent plus exécuter de code","Pat dans Messages est décrit honnêtement : un assistant à commandes, pas une IA"]}}];
-PatOS.beta = {"version":"2.0.0","beta":5,"date":"2026-11-04","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"notes":{"en":["Backup & Restore: a snapshot every day (restore PatOS to how it was on Tuesday), a backup file you can lock with a password, and on a Chromebook an auto-backup folder on your real disk, so your data survives even if PatOS or the website is deleted. You can restore from the very first screen on a new device","Sync (optional): your files, notes, calendar, reminders, contacts, flashcards and some settings follow you between your Chromebook and your iPhone. Everything is encrypted on the device with a key only you have, so the server sees nothing readable. It works offline, never blocks PatOS, and if you delete your Railway and make a new one, your devices fill it again by themselves (restoring a backup brings your Sync code back too). Turn it on in Settings › Sync","Everything on your real disk: the backup folder now also keeps a full copy of your big files (videos, recordings, up to 1 GB) and your Sync code, so if PatOS or the website is deleted, restoring from the folder brings it all back. In Settings › Sync you can make a new code to share, or point an old PatOS at a new server address","App SDK and PitCode Studio: make your own PatOS apps in PatOS, like Xcode. Write them in PitCode (your own language, built in) or in HTML and JavaScript, run them in a preview with a console, then install them, save them as a .patapp file, or send them for review. Apps run in a locked box and must ask before using the camera, microphone, location, files, clipboard, notifications or the internet. New Settings › Privacy shows what every app may do and did. The App Store has new Community and Develop tabs, and accepted apps are reviewed at /apprequests","PatDrop: a chat for you and your friend (or your own devices). Make a code, type it on the other PatOS, and send messages, files, photos, links, clipboard text and even apps made in PitCode Studio, straight into each other's PatOS. It is encrypted on your device, works offline (things wait in an outbox), tells you when something arrives, and Finder has a Send with PatDrop item"],"fr":["Sauvegarde et restauration : un instantané chaque jour (remettez PatOS comme il était mardi), un fichier de sauvegarde que vous pouvez verrouiller par mot de passe, et sur un Chromebook un dossier de sauvegarde automatique sur votre vrai disque, pour que vos données survivent même si PatOS ou le site est supprimé. Vous pouvez restaurer dès le tout premier écran sur un nouvel appareil","Synchronisation (facultative) : vos fichiers, notes, calendrier, rappels, contacts, cartes mémoire et certains réglages vous suivent entre votre Chromebook et votre iPhone. Tout est chiffré sur l’appareil avec une clé que vous seul avez, donc le serveur ne voit rien de lisible. Cela fonctionne hors ligne, ne bloque jamais PatOS, et si vous supprimez votre Railway pour en créer un nouveau, vos appareils le remplissent tout seuls (restaurer une sauvegarde ramène aussi votre code). Activez-la dans Réglages › Synchronisation","Tout sur votre vrai disque : le dossier de sauvegarde garde maintenant aussi une copie complète de vos gros fichiers (vidéos, enregistrements, jusqu’à 1 Go) et votre code de synchronisation, donc si PatOS ou le site est supprimé, restaurer depuis le dossier ramène tout. Dans Réglages › Synchronisation vous pouvez créer un nouveau code à partager, ou diriger un ancien PatOS vers une nouvelle adresse de serveur","SDK d’apps et PitCode Studio : faites vos propres apps PatOS dans PatOS, comme Xcode. Écrivez-les en PitCode (votre propre langage, intégré) ou en HTML et JavaScript, lancez-les dans un aperçu avec une console, puis installez-les, enregistrez-les en fichier .patapp, ou envoyez-les pour examen. Les apps tournent dans une boîte verrouillée et doivent demander avant d’utiliser la caméra, le micro, la position, les fichiers, le presse-papiers, les notifications ou internet. Le nouveau Réglages › Confidentialité montre ce que chaque app peut faire et a fait. L’App Store a de nouveaux onglets Communauté et Développer, et les apps acceptées sont examinées sur /apprequests","PatDrop : une discussion pour vous et votre ami (ou vos propres appareils). Créez un code, écrivez-le sur l’autre PatOS, et envoyez messages, fichiers, photos, liens, texte du presse-papiers et même des apps faites dans PitCode Studio, directement dans le PatOS de l’autre. C’est chiffré sur votre appareil, ça marche hors ligne (les choses attendent dans une boîte d’envoi), ça vous prévient quand quelque chose arrive, et le Finder a un élément Envoyer avec PatDrop"]}};
+PatOS.beta = {"version":"2.0.0","beta":6,"date":"2026-11-04","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"notes":{"en":["Backup & Restore: a snapshot every day (restore PatOS to how it was on Tuesday), a backup file you can lock with a password, and on a Chromebook an auto-backup folder on your real disk, so your data survives even if PatOS or the website is deleted. You can restore from the very first screen on a new device","Sync (optional): your files, notes, calendar, reminders, contacts, flashcards and some settings follow you between your Chromebook and your iPhone. Everything is encrypted on the device with a key only you have, so the server sees nothing readable. It works offline, never blocks PatOS, and if you delete your Railway and make a new one, your devices fill it again by themselves (restoring a backup brings your Sync code back too). Turn it on in Settings › Sync","Everything on your real disk: the backup folder now also keeps a full copy of your big files (videos, recordings, up to 1 GB) and your Sync code, so if PatOS or the website is deleted, restoring from the folder brings it all back. In Settings › Sync you can make a new code to share, or point an old PatOS at a new server address","App SDK and PitCode Studio: make your own PatOS apps in PatOS, like Xcode. Write them in PitCode (your own language, built in) or in HTML and JavaScript, run them in a preview with a console, then install them, save them as a .patapp file, or send them for review. Apps run in a locked box and must ask before using the camera, microphone, location, files, clipboard, notifications or the internet. New Settings › Privacy shows what every app may do and did. The App Store has new Community and Develop tabs, and accepted apps are reviewed at /apprequests","PatDrop: a chat for you and your friend (or your own devices). Make a code, type it on the other PatOS, and send messages, files, photos, links, clipboard text and even apps made in PitCode Studio, straight into each other's PatOS. It is encrypted on your device, works offline (things wait in an outbox), tells you when something arrives, and Finder has a Send with PatDrop item","PatOS Accounts: make an account with just a username and a password (no email) and everything you have (files, photos, notes, calendar, apps and your own apps, the dock, every setting, even your open windows and where they are) is saved in the cloud, locked with your password, and follows you to every device. A copy stays on each device, so PatOS still works offline. Everyone gets a big invitation to create their account, and everything already on the device is saved into it","Messages is now for people: search a username, send a message request, and they get notifications from you only after they accept. Every conversation is saved in the cloud and is the same on all your devices. Pat, the command helper, moved to a button in the top bar"],"fr":["Sauvegarde et restauration : un instantané chaque jour (remettez PatOS comme il était mardi), un fichier de sauvegarde que vous pouvez verrouiller par mot de passe, et sur un Chromebook un dossier de sauvegarde automatique sur votre vrai disque, pour que vos données survivent même si PatOS ou le site est supprimé. Vous pouvez restaurer dès le tout premier écran sur un nouvel appareil","Synchronisation (facultative) : vos fichiers, notes, calendrier, rappels, contacts, cartes mémoire et certains réglages vous suivent entre votre Chromebook et votre iPhone. Tout est chiffré sur l’appareil avec une clé que vous seul avez, donc le serveur ne voit rien de lisible. Cela fonctionne hors ligne, ne bloque jamais PatOS, et si vous supprimez votre Railway pour en créer un nouveau, vos appareils le remplissent tout seuls (restaurer une sauvegarde ramène aussi votre code). Activez-la dans Réglages › Synchronisation","Tout sur votre vrai disque : le dossier de sauvegarde garde maintenant aussi une copie complète de vos gros fichiers (vidéos, enregistrements, jusqu’à 1 Go) et votre code de synchronisation, donc si PatOS ou le site est supprimé, restaurer depuis le dossier ramène tout. Dans Réglages › Synchronisation vous pouvez créer un nouveau code à partager, ou diriger un ancien PatOS vers une nouvelle adresse de serveur","SDK d’apps et PitCode Studio : faites vos propres apps PatOS dans PatOS, comme Xcode. Écrivez-les en PitCode (votre propre langage, intégré) ou en HTML et JavaScript, lancez-les dans un aperçu avec une console, puis installez-les, enregistrez-les en fichier .patapp, ou envoyez-les pour examen. Les apps tournent dans une boîte verrouillée et doivent demander avant d’utiliser la caméra, le micro, la position, les fichiers, le presse-papiers, les notifications ou internet. Le nouveau Réglages › Confidentialité montre ce que chaque app peut faire et a fait. L’App Store a de nouveaux onglets Communauté et Développer, et les apps acceptées sont examinées sur /apprequests","PatDrop : une discussion pour vous et votre ami (ou vos propres appareils). Créez un code, écrivez-le sur l’autre PatOS, et envoyez messages, fichiers, photos, liens, texte du presse-papiers et même des apps faites dans PitCode Studio, directement dans le PatOS de l’autre. C’est chiffré sur votre appareil, ça marche hors ligne (les choses attendent dans une boîte d’envoi), ça vous prévient quand quelque chose arrive, et le Finder a un élément Envoyer avec PatDrop","Comptes PatOS : créez un compte avec seulement un nom d’utilisateur et un mot de passe (pas de courriel) et tout ce que vous avez (fichiers, photos, notes, calendrier, apps et vos propres apps, le dock, tous les réglages, même vos fenêtres ouvertes et leur place) est enregistré dans le nuage, verrouillé par votre mot de passe, et vous suit sur chaque appareil. Une copie reste sur chaque appareil, donc PatOS marche toujours hors ligne. Tout le monde reçoit une grande invitation à créer son compte, et tout ce qui est déjà sur l’appareil y est enregistré","Messages est maintenant pour les gens : cherchez un nom d’utilisateur, envoyez une demande de message, et la personne reçoit des notifications de vous seulement après avoir accepté. Chaque conversation est enregistrée dans le nuage et identique sur tous vos appareils. Pat, l’assistant à commandes, est passé dans un bouton de la barre du haut"]}};
 
 </script>
   <script type="patos/js">
@@ -7862,6 +7901,116 @@ PatOS.beta = {"version":"2.0.0","beta":5,"date":"2026-11-04","title":{"en":"PatO
     'Snapshot': 'Instantané',
     'Snapshot saved': 'Instantané enregistré',
     'Daily snapshot': 'Instantané quotidien',
+    'PatOS account': 'Compte PatOS',
+    'Create Account': 'Créer le compte',
+    'Sign In': 'Se connecter',
+    'Create account': 'Créer un compte',
+    'Sign in': 'Se connecter',
+    'Creating your account…': 'Création de votre compte…',
+    'Signing in…': 'Connexion…',
+    'Create your PatOS account': 'Créez votre compte PatOS',
+    'Welcome back': 'Content de vous revoir',
+    'Just a username and a password. No email. Everything you have is saved to your account, so it follows you to any device.': 'Juste un nom d’utilisateur et un mot de passe. Pas de courriel. Tout ce que vous avez est enregistré dans votre compte, donc ça vous suit sur n’importe quel appareil.',
+    'Your files, notes and settings come back to this device. What is only here is kept and saved to your account too.': 'Vos fichiers, notes et réglages reviennent sur cet appareil. Ce qui n’est qu’ici est gardé et enregistré aussi dans votre compte.',
+    'There is no “forgot my password”: your saved things are locked with your password, so nobody can open them without it. Pick one you will remember.': 'Il n’y a pas de « mot de passe oublié » : vos données enregistrées sont verrouillées par votre mot de passe, donc personne ne peut les ouvrir sans lui. Choisissez-en un dont vous vous souviendrez.',
+    'Saving everything to your account…': 'Enregistrement de tout dans votre compte…',
+    'You are offline. Your account is ready, and everything will be saved when you are back online.': 'Vous êtes hors ligne. Votre compte est prêt, et tout sera enregistré à votre retour en ligne.',
+    'Your account is ready, but saving had a problem. PatOS will keep trying.': 'Votre compte est prêt, mais l’enregistrement a eu un problème. PatOS va réessayer.',
+    'All saved.': 'Tout est enregistré.',
+    'items are in your account.': 'éléments sont dans votre compte.',
+    'PatOS now has accounts. Just a username and a password: no email.': 'PatOS a maintenant des comptes. Juste un nom d’utilisateur et un mot de passe : pas de courriel.',
+    'Everything is saved': 'Tout est enregistré',
+    'Your files, notes, calendar, settings and apps are saved to your account and follow you to every device.': 'Vos fichiers, notes, calendrier, réglages et apps sont enregistrés dans votre compte et vous suivent sur chaque appareil.',
+    'Still works offline': 'Marche toujours hors ligne',
+    'A copy stays on this device, so PatOS opens and works with no internet.': 'Une copie reste sur cet appareil, donc PatOS s’ouvre et marche sans internet.',
+    'Message your friends': 'Écrivez à vos amis',
+    'Find people by username in Messages. They accept your request first.': 'Trouvez des gens par nom d’utilisateur dans Messages. Ils acceptent d’abord votre demande.',
+    'Private': 'Privé',
+    'What is saved is locked with your password.': 'Ce qui est enregistré est verrouillé par votre mot de passe.',
+    'Create My Account': 'Créer mon compte',
+    'I Already Have an Account': 'J’ai déjà un compte',
+    'Later': 'Plus tard',
+    'Save everything to the cloud and message your friends.': 'Enregistrez tout dans le nuage et écrivez à vos amis.',
+    'The account code could not be loaded.': 'Le code des comptes n’a pas pu être chargé.',
+    'A username has 3 to 20 letters, numbers or underscores.': 'Un nom d’utilisateur a de 3 à 20 lettres, chiffres ou tirets bas.',
+    'Use a password of at least 8 characters.': 'Utilisez un mot de passe d’au moins 8 caractères.',
+    'Before signing in': 'Avant la connexion',
+    'Pat, the command helper': 'Pat, l’assistant à commandes',
+    'Find a person': 'Trouver une personne',
+    'Find a person by username': 'Trouver une personne par nom d’utilisateur',
+    'Nobody with that username. Check the spelling.': 'Personne avec ce nom d’utilisateur. Vérifiez l’orthographe.',
+    'Open the chat': 'Ouvrir la discussion',
+    'Request sent': 'Demande envoyée',
+    'Wants to message you': 'Veut vous écrire',
+    'Declined': 'Refusée',
+    'Send a message request': 'Envoyer une demande de message',
+    'Requests': 'Demandes',
+    'No conversations yet. Search for a username above to start one.': 'Pas encore de conversations. Cherchez un nom d’utilisateur ci-dessus pour en commencer une.',
+    'Waiting for them to accept': 'En attente de leur acceptation',
+    'You declined this request': 'Vous avez refusé cette demande',
+    'Messages now work between PatOS accounts. Create a free account with just a username and a password, then find your friends by username. They accept your request first.': 'Les messages marchent maintenant entre comptes PatOS. Créez un compte gratuit avec juste un nom d’utilisateur et un mot de passe, puis trouvez vos amis par nom d’utilisateur. Ils acceptent d’abord votre demande.',
+    'Pat, the command helper, works without an account: press Pat in the top bar.': 'Pat, l’assistant à commandes, marche sans compte : appuyez sur Pat dans la barre du haut.',
+    'Pick a conversation, or find someone by username in the search box.': 'Choisissez une conversation, ou trouvez quelqu’un par nom d’utilisateur dans la zone de recherche.',
+    'waiting to be sent (you are offline or the connection is slow)': 'en attente d’envoi (vous êtes hors ligne ou la connexion est lente)',
+    'Message request': 'Demande de message',
+    'New message': 'Nouveau message',
+    'has to accept your request before you can keep chatting. They get no notifications from you until then.': 'doit accepter votre demande avant que vous puissiez continuer. Il ne reçoit aucune notification de vous d’ici là.',
+    'Your first message is sent as a request. @': 'Votre premier message est envoyé comme demande. @',
+    'decides whether to accept it, and gets no notifications from you until they do.': 'décide de l’accepter ou non, et ne reçoit aucune notification de vous tant qu’il ne l’a pas fait.',
+    'wants to message you.': 'veut vous écrire.',
+    'Accept': 'Accepter',
+    'Decline': 'Refuser',
+    'This person did not accept your request.': 'Cette personne n’a pas accepté votre demande.',
+    'You declined this request.': 'Vous avez refusé cette demande.',
+    'Accept Anyway': 'Accepter quand même',
+    'Waiting for them to accept…': 'En attente de leur acceptation…',
+    'Clear Pat Conversation…': 'Effacer la conversation avec Pat…',
+    'A username and a password, no email. Everything you have is saved to your account and follows you to every device. A copy stays on each device, so PatOS works offline too.': 'Un nom d’utilisateur et un mot de passe, pas de courriel. Tout ce que vous avez est enregistré dans votre compte et vous suit sur chaque appareil. Une copie reste sur chaque appareil, donc PatOS marche aussi hors ligne.',
+    'Accounts need PatOS opened from its web address (https) in a browser that can do encryption.': 'Les comptes demandent que PatOS soit ouvert depuis son adresse web (https) dans un navigateur capable de chiffrer.',
+    'Create an account': 'Créer un compte',
+    'Create Account…': 'Créer le compte…',
+    'Everything on this device is saved to it.': 'Tout ce qui est sur cet appareil y est enregistré.',
+    'Already have one?': 'Vous en avez déjà un ?',
+    'Sign In…': 'Se connecter…',
+    'Your saved things come to this device.': 'Vos données enregistrées viennent sur cet appareil.',
+    'There is no “forgot my password”: your saved things are locked with your password, so nobody can open them without it.': 'Il n’y a pas de « mot de passe oublié » : vos données enregistrées sont verrouillées par votre mot de passe, donc personne ne peut les ouvrir sans lui.',
+    'Your sign-in expired. Sign in again to keep saving.': 'Votre connexion a expiré. Reconnectez-vous pour continuer à enregistrer.',
+    'Offline. Your changes are safe here and are saved when you are back online.': 'Hors ligne. Vos changements sont en sécurité ici et seront enregistrés à votre retour en ligne.',
+    'Saving had a problem. PatOS will try again.': 'L’enregistrement a eu un problème. PatOS va réessayer.',
+    'Save Now': 'Enregistrer maintenant',
+    'Signed in as': 'Connecté en tant que',
+    'Saved in your account': 'Enregistré dans votre compte',
+    'big files (videos and recordings) stay on this device only.': 'gros fichiers (vidéos et enregistrements) restent sur cet appareil seulement.',
+    'Files, notes, calendar, contacts, settings, apps and more.': 'Fichiers, notes, calendrier, contacts, réglages, apps et plus.',
+    'Sign in again': 'Se reconnecter',
+    'Sign out': 'Se déconnecter',
+    'Sign out?': 'Se déconnecter ?',
+    'Everything stays on this device. PatOS stops saving to your account until you sign in again.': 'Tout reste sur cet appareil. PatOS arrête d’enregistrer dans votre compte jusqu’à votre reconnexion.',
+    'Sign Out': 'Se déconnecter',
+    'Sign Out…': 'Se déconnecter…',
+    'Delete your account?': 'Supprimer votre compte ?',
+    'Delete Account': 'Supprimer le compte',
+    'This deletes your username and everything saved in your account (not what is on this device). Messages you sent stay in your friends’ chats. Type your password to confirm.': 'Cela supprime votre nom d’utilisateur et tout ce qui est enregistré dans votre compte (pas ce qui est sur cet appareil). Les messages que vous avez envoyés restent dans les discussions de vos amis. Écrivez votre mot de passe pour confirmer.',
+    'Account deleted': 'Compte supprimé',
+    'Your account and its saved copy are gone. Everything is still on this device.': 'Votre compte et sa copie enregistrée ont disparu. Tout est toujours sur cet appareil.',
+    'Delete Account…': 'Supprimer le compte…',
+    'Stop using this account on this device': 'Ne plus utiliser ce compte sur cet appareil',
+    'Delete this account': 'Supprimer ce compte',
+    'Removes your username and the saved copy from the cloud.': 'Supprime votre nom d’utilisateur et la copie enregistrée du nuage.',
+    'Sign in or create an account': 'Se connecter ou créer un compte',
+    'accepted your message request': 'a accepté votre demande de message',
+    'Sign in first.': 'Connectez-vous d’abord.',
+    'This person did not accept your message request.': 'Cette personne n’a pas accepté votre demande de message.',
+    'Your message request is waiting for an answer.': 'Votre demande de message attend une réponse.',
+    'You can’t message this person right now.': 'Vous ne pouvez pas écrire à cette personne pour le moment.',
+    'That username is taken.': 'Ce nom d’utilisateur est pris.',
+    'Choose a longer password.': 'Choisissez un mot de passe plus long.',
+    'Wrong username or password.': 'Nom d’utilisateur ou mot de passe incorrect.',
+    'Too many tries. Wait a few minutes.': 'Trop d’essais. Attendez quelques minutes.',
+    'No internet right now.': 'Pas d’internet pour le moment.',
+    'Accounts are not switched on yet. In the Firebase console, open Authentication and turn on Email/Password.': 'Les comptes ne sont pas encore activés. Dans la console Firebase, ouvrez Authentication et activez Email/Mot de passe.',
+    'The database rules do not allow this yet. Paste the rules from firestore.rules into the Firebase console.': 'Les règles de la base de données ne l’autorisent pas encore. Collez les règles de firestore.rules dans la console Firebase.',
+    'Account': 'Compte',
     'Send with PatDrop': 'Envoyer avec PatDrop',
     'This browser can’t do the encryption PatDrop needs. Open PatOS from its https address, or in a newer browser.': 'Ce navigateur ne peut pas faire le chiffrement dont PatDrop a besoin. Ouvrez PatOS depuis son adresse https, ou dans un navigateur plus récent.',
     'A name for this chat (like Me and Bro)': 'Un nom pour cette discussion (comme Moi et mon frère)',
@@ -11605,14 +11754,27 @@ PatOS.beta = {"version":"2.0.0","beta":5,"date":"2026-11-04","title":{"en":"PatO
 
   /* ---------- state, kept on this device (never sent anywhere) ---------- */
   let state = null; // { rev, epoch, recs: { rid: { id, t, h, pushed, del } }, touch: { key: ms }, last, error, rejected, bad, hold }
-  const blank = () => ({ rev: 0, epoch: '', recs: {}, touch: {}, last: 0, error: '', rejected: 0, bad: 0, hold: 0 });
+  const blank = () => ({ rev: 0, epoch: '', recs: {}, touch: {}, last: 0, error: '', rejected: 0, bad: 0, hold: 0, mode, who: '' });
   const persist = PatOS.debounce(() => { if (state) PatOS.store.set('syncState', state); }, 1500);
   let status = 'off', lastCounts = { items: 0, excluded: 0 };
   function setStatus(s) { status = s; PatOS.emit('sync', api.status()); }
 
   /* ---------- what is on this device ---------- */
-  const isKV = (k) => KV_KEYS.indexOf(k) >= 0;
-  const pickSettings = () => { const o = {}; SETTING_KEYS.forEach((k) => { if (PatOS.settings[k] !== undefined) o[k] = PatOS.settings[k]; }); return o; };
+  /* With a PatOS account, everything that belongs to the person follows them (all saved lists, the files, the settings); only what
+     is about this one device, a copy that is made again by itself, or a secret stays. With a sync code, only the list above. */
+  let mode = 'code'; // 'code' (a sync code and the PatOS server) or 'account' (a PatOS account in the cloud)
+  const DENY = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncKey', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'accountPrompt', 'accountSeen', 'msgRead', 'patAppGrants', 'privacyLog',
+    'setupStep', 'installOffered', 'iosHint', 'notifAsked', 'appInstalled', 'alarmQueue',
+    'wpCache', 'wpLockCache', 'wxCache', 'dictCache', 'googleCx', 'patosServer', 'ytKey', 'pwVault', 'musicState', 'settings']);
+  const DENY_PREFIX = ['newsCache:', 'ytHome:'];
+  const denied = (k) => DENY.has(k) || DENY_PREFIX.some((x) => k.indexOf(x) === 0);
+  const isKV = (k) => (mode === 'account' ? !denied(k) : KV_KEYS.indexOf(k) >= 0);
+  const kvKeys = () => (mode === 'account' ? PatOS.store.keys().filter((k) => !denied(k)) : KV_KEYS);
+  /* a PatOS account takes every setting (dock, desktop icon places, wallpaper, theme...) except the lock password and what depends on this device's screen and graphics */
+  const DEVICE_SETTINGS = new Set(['password', 'deviceMode', 'betaUpdates', 'quality3d', 'live3d']);
+  const settingKeys = () => (mode === 'account' ? Object.keys(PatOS.settings).filter((k) => !DEVICE_SETTINGS.has(k)) : SETTING_KEYS);
+  const settingOk = (k) => (mode === 'account' ? !DEVICE_SETTINGS.has(k) : SETTING_KEYS.indexOf(k) >= 0);
+  const pickSettings = () => { const o = {}; settingKeys().forEach((k) => { if (PatOS.settings[k] !== undefined) o[k] = PatOS.settings[k]; }); return o; };
   const fileHash = (c, m, o) => cyrb(c + '\0' + (m || '') + '\0' + (o || ''));
   const fcache = new Map(); // path -> { m, n, mime, origin, h }
   function fileInfo(path, n) {
@@ -11635,7 +11797,7 @@ PatOS.beta = {"version":"2.0.0","beta":5,"date":"2026-11-04","title":{"en":"PatO
   /* every item on this device: Map rid -> { id, h, t }, and the ones that stay here */
   async function scan() {
     const items = new Map(), big = new Set(); const ids = [];
-    KV_KEYS.forEach((k) => { if (PatOS.store.peek(k) !== undefined) ids.push('k:' + k); });
+    kvKeys().forEach((k) => { if (PatOS.store.peek(k) !== undefined) ids.push('k:' + k); });
     ids.push('s:');
     (function walk(node, path) {
       Object.keys(node.children || {}).forEach((name) => {
@@ -11664,7 +11826,7 @@ PatOS.beta = {"version":"2.0.0","beta":5,"date":"2026-11-04","title":{"en":"PatO
   function applyItem(p, t) {
     if (p.k === 'kv' && isKV(p.key)) { PatOS.store.set(p.key, p.value); return 'k:' + p.key; }
     if (p.k === 'set' && p.value && typeof p.value === 'object') {
-      SETTING_KEYS.forEach((k) => { if (k in p.value && JSON.stringify(PatOS.settings[k]) !== JSON.stringify(p.value[k])) PatOS.setSetting(k, p.value[k]); });
+      Object.keys(p.value).forEach((k) => { if (settingOk(k) && JSON.stringify(PatOS.settings[k]) !== JSON.stringify(p.value[k])) PatOS.setSetting(k, p.value[k]); });
       return 's:';
     }
     if (p.k === 'dir' && typeof p.path === 'string' && p.path[0] === '/') { return mkdirp(p.path) ? 'd:' + p.path : null; }
@@ -11696,13 +11858,21 @@ PatOS.beta = {"version":"2.0.0","beta":5,"date":"2026-11-04","title":{"en":"PatO
     if (!res.ok) throw Object.assign(new Error((j && j.error) || 'HTTP ' + res.status), { status: res.status });
     return j;
   }
+  /* where the items go: the PatOS server (a sync code) or the cloud account (set by js/account.js) */
+  let acct = null; // { uid, register(), pull(since), push(records), wipe() } while a PatOS account is used
+  const W = {
+    register: () => (mode === 'account' ? acct.register() : call('POST', 'register')),
+    pull: (since) => (mode === 'account' ? acct.pull(since) : call('GET', 'pull?since=' + since)),
+    push: (records) => (mode === 'account' ? acct.push(records) : call('POST', 'push', { records })),
+    wipe: () => (mode === 'account' ? acct.wipe() : call('DELETE', 'account'))
+  };
   /* a new or emptied server: remember nothing was sent there, so everything goes again */
   function newServer(epoch) {
     if (state.epoch) Object.keys(state.recs).forEach((k) => { const r = state.recs[k]; if (r.del) delete state.recs[k]; else r.pushed = false; });
     state.epoch = epoch; state.rev = 0; persist();
   }
   async function ensureAccount() {
-    const reg = await call('POST', 'register');
+    const reg = await W.register();
     if (state.epoch !== reg.epoch) newServer(reg.epoch);
   }
 
@@ -11733,7 +11903,7 @@ PatOS.beta = {"version":"2.0.0","beta":5,"date":"2026-11-04","title":{"en":"PatO
     const deferred = []; let guard = 0;
     for (;;) {
       if (++guard > 500) break;
-      const r = await call('GET', 'pull?since=' + state.rev);
+      const r = await W.pull(state.rev);
       if (r.epoch !== state.epoch) { newServer(r.epoch); continue; }
       applying = true;
       try { for (const rec of r.records) await receive(rec, local, deferred); } finally { applying = false; }
@@ -11781,11 +11951,11 @@ PatOS.beta = {"version":"2.0.0","beta":5,"date":"2026-11-04","title":{"en":"PatO
         else { const body = await seal(payloadOf(it.id), it.rid); rec = { rid: it.rid, t: it.t, iv: body.iv, data: body.data }; bytes += body.data.length; }
         batch.push({ it, rec });
       }
-      const res = await call('POST', 'push', { records: batch.map((b) => b.rec) });
+      const res = await W.push(batch.map((b) => b.rec));
       if (res.epoch !== state.epoch) { newServer(res.epoch); throw Object.assign(new Error('server changed'), { again: true }); }
       batch.forEach((b) => { state.recs[b.it.rid] = { id: b.it.id, t: b.it.t, h: b.it.h, pushed: true, del: !!b.it.del }; });
       skipped += res.skipped || 0; if (res.rejected) state.rejected += res.rejected;
-      if (res.rev - res.applied === state.rev) state.rev = res.rev; // nobody else wrote in between: no need to read our own changes back
+      if (res.rev != null && res.rev - res.applied === state.rev) state.rev = res.rev; // nobody else wrote in between: no need to read our own changes back
       persist();
     }
     // forget deletions older than 90 days (the server does the same)
@@ -11826,12 +11996,20 @@ PatOS.beta = {"version":"2.0.0","beta":5,"date":"2026-11-04","title":{"en":"PatO
     return running;
   }
   const kick = PatOS.debounce(() => { if (S && navigator.onLine !== false) cycle(); }, 4000);
+  const kickSlow = PatOS.debounce(() => { if (S && navigator.onLine !== false) cycle(); }, 30000); // open windows and the like change all the time
 
   /* ---------- start / stop ---------- */
   async function start(raw) {
     S = await derive(raw); ridCache.clear(); fcache.clear();
-    state = Object.assign(blank(), PatOS.store.get('syncState', {})); if (!state.recs) state.recs = {}; if (!state.touch) state.touch = {};
+    loadState();
     setStatus('idle');
+  }
+  /* the bookkeeping belongs to one way of syncing and one person/code: another one starts clean (everything is sent again) */
+  function loadState() {
+    const who = mode === 'account' ? 'acct:' + acct.uid : 'code:' + S.uid;
+    const old = PatOS.store.get('syncState', {});
+    state = Object.assign(blank(), old && (old.who === who || (!old.who && mode === 'code')) ? old : {});
+    state.mode = mode; state.who = who; if (!state.recs) state.recs = {}; if (!state.touch) state.touch = {};
   }
   const noCrypto = () => !(window.crypto && crypto.subtle && window.TextEncoder);
   const api = {
@@ -11857,7 +12035,7 @@ PatOS.beta = {"version":"2.0.0","beta":5,"date":"2026-11-04","title":{"en":"PatO
     },
     async disable(wipeServer) {
       let failed = false;
-      if (wipeServer && S) { try { await call('DELETE', 'account'); } catch (e) { failed = true; } }
+      if (wipeServer && S) { try { await W.wipe(); } catch (e) { failed = true; } }
       S = null; state = null; ridCache.clear(); fcache.clear();
       PatOS.store.remove('syncKey'); PatOS.store.remove('syncState');
       setStatus('off'); return { failed };
@@ -11872,6 +12050,17 @@ PatOS.beta = {"version":"2.0.0","beta":5,"date":"2026-11-04","title":{"en":"PatO
       PatOS.store.set('syncKey', b64(raw)); PatOS.store.remove('syncState');
       await start(raw); await cycle(); return api.code();
     },
+    mode: () => mode,
+    /* signed in to a PatOS account: from now on Sync saves to the account (key = made from the password), see js/account.js */
+    async useAccount(raw, transport) {
+      mode = 'account'; acct = transport; S = await derive(raw); ridCache.clear(); fcache.clear(); loadState(); setStatus('idle'); persist(); cycle(); // (it runs in the background: the caller does not wait for the whole upload)
+    },
+    /* signed out: back to a sync code if there is one, else Sync is off */
+    async clearAccount() {
+      acct = null; mode = 'code'; ridCache.clear(); fcache.clear();
+      const k = PatOS.store.get('syncKey', null);
+      if (k) { try { await start(unb64(k)); } catch (e) { S = null; state = null; setStatus('off'); } } else { S = null; state = null; setStatus('off'); }
+    },
     now: (opts) => cycle(opts),
     server_url: () => base(),
     /* point this device at another PatOS server; it fills the new one with everything it has */
@@ -11885,7 +12074,7 @@ PatOS.beta = {"version":"2.0.0","beta":5,"date":"2026-11-04","title":{"en":"PatO
     resend() { if (!state) return null; Object.keys(state.recs).forEach((k) => { state.recs[k].pushed = false; }); state.rejected = 0; persist(); return cycle(); },
     async server() { if (!S) return null; try { return await call('GET', 'status'); } catch (e) { return null; } },
     status() {
-      return { on: !!S, state: status, last: state ? state.last : 0, error: state ? state.error : '', rejected: state ? state.rejected : 0, bad: state ? state.bad : 0,
+      return { on: !!S, mode, state: status, last: state ? state.last : 0, error: state ? state.error : '', rejected: state ? state.rejected : 0, bad: state ? state.bad : 0,
         hold: state ? state.hold : 0, items: lastCounts.items, stay: lastCounts.excluded, offline: navigator.onLine === false };
     },
     _codeToKey: codeToKey, _keyToCode: keyToCode
@@ -11894,14 +12083,15 @@ PatOS.beta = {"version":"2.0.0","beta":5,"date":"2026-11-04","title":{"en":"PatO
 
   /* ---------- when to sync ---------- */
   function touch(key) { if (!state) return; state.touch[key] = Date.now(); persist(); }
-  PatOS.on('store:set', (k) => { if (!S || applying) return; if (isKV(k)) { touch(k); kick(); } else if (k === 'settings') { touch('settings'); kick(); } });
+  const CHATTY = new Set(['sessions', 'frameMem', 'browserSession', 'browserRestore', 'autoAppWindow']);
+  PatOS.on('store:set', (k) => { if (!S || applying) return; if (isKV(k)) { touch(k); (CHATTY.has(k) ? kickSlow : kick)(); } else if (k === 'settings') { touch('settings'); kick(); } });
   PatOS.on('fs', () => { if (S && !applying) kick(); });
   addEventListener('online', () => { if (S) kick(); });
   document.addEventListener('visibilitychange', () => { if (S && !document.hidden) kick(); });
   setInterval(() => { if (S && !document.hidden && navigator.onLine !== false) cycle(); }, 3 * 60 * 1000);
 
   const saved = PatOS.store.get('syncKey', null);
-  if (saved && !noCrypto()) {
+  if (saved && !noCrypto() && !PatOS.store.get('accountInfo', null)) {
     try { start(unb64(saved)).then(() => setTimeout(() => { if (navigator.onLine !== false) cycle(); }, 15000)); } catch (e) {}
   }
 })();
@@ -12139,6 +12329,350 @@ PatOS.beta = {"version":"2.0.0","beta":5,"date":"2026-11-04","title":{"en":"PatO
   document.addEventListener('visibilitychange', () => { if (K && !document.hidden) { flush(); poll(); } });
   PatOS.on('store:set', (k) => { if (k !== 'linkRoom') return; const r = room(); if (r && !K) start(); else if (!r && K) stop(); });
   if (!started) { started = true; start(); }
+})();
+
+</script>
+  <script type="patos/js">
+/* PatOS accounts: a username and a password, nothing else (no email).
+   - The account lives in the cloud (Firebase). Everything you have (files, notes, calendar, settings, apps...) is saved there
+     by Sync, and also kept on this device, so PatOS still opens and works with no internet.
+   - What is saved in the cloud is encrypted on the device first, with a key made from your password. The database holds
+     scrambled bytes. The password itself only goes to Firebase Authentication, which keeps a salted hash.
+   - There is no "forgot my password": nobody could open your cloud copy without it. (The copy on your devices stays.)
+   - The cloud layer is vendor/firebase.js (see vendor-src/firebase-entry.js). It is only loaded when there is an account,
+     or when someone opens the sign-up box. */
+(function () {
+  'use strict';
+  const T = (s) => PatOS.t(s);
+  const b64 = (u) => { let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); };
+  const unb64 = (s) => { const bin = atob(s); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; };
+  const noCrypto = () => !(window.crypto && crypto.subtle && window.TextEncoder);
+
+  /* ---------- the cloud layer, loaded when needed ---------- */
+  let loading = null;
+  PatOS.loadFirebase = function () {
+    if (window.PatFirebase) return Promise.resolve(window.PatFirebase);
+    if (!loading) loading = (async () => {
+      const tag = document.querySelector('script[type="patos/firebase"]');
+      const r = await fetch((tag && tag.getAttribute('src')) || 'vendor/firebase.js'); if (!r.ok) throw new Error(T('The account code could not be loaded.'));
+      const s = document.createElement('script'); s.text = await r.text(); document.head.appendChild(s);
+      if (!window.PatFirebase) throw new Error(T('The account code could not be loaded.'));
+      return window.PatFirebase;
+    })().catch((e) => { loading = null; throw e; });
+    return loading;
+  };
+
+  /* ---------- the key for the cloud copy: made from the password, kept on this device so Sync can run without asking again ---------- */
+  async function keyFrom(password, uid) {
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+    return new Uint8Array(await crypto.subtle.deriveBits({ name: 'PBKDF2', salt: new TextEncoder().encode('patos-account-v1:' + uid), iterations: 250000, hash: 'SHA-256' }, base, 256));
+  }
+
+  let F = null, user = null, state = 'off', resuming = null, transport = null;
+  const info = () => PatOS.store.get('accountInfo', null);
+  const emit = () => PatOS.emit('account', api.status());
+  const setState = (s) => { state = s; emit(); };
+  const checks = (username, password) => {
+    if (noCrypto()) throw new Error(T('This browser cannot do encryption here'));
+    if (!/^[a-z0-9_]{3,20}$/.test(String(username || '').trim().toLowerCase())) throw new Error(T('A username has 3 to 20 letters, numbers or underscores.'));
+    if (String(password || '').length < 8) throw new Error(T('Use a password of at least 8 characters.'));
+  };
+  /* Firebase errors, in the person's language */
+  const say = (e) => {
+    const c = e && e.code;
+    const m = { taken: 'That username is taken.', weak: 'Choose a longer password.', wrong: 'Wrong username or password.', busy: 'Too many tries. Wait a few minutes.', offline: 'No internet right now.', invalid: 'A username has 3 to 20 letters, numbers or underscores.',
+      setup: 'Accounts are not switched on yet. In the Firebase console, open Authentication and turn on Email/Password.', rules: 'The database rules do not allow this yet. Paste the rules from firestore.rules into the Firebase console.' }[c];
+    return new Error(m ? T(m) : String((e && e.message) || e));
+  };
+
+  /* what Sync uses to save into the account */
+  function makeTransport(uid, username) {
+    let epoch = '';
+    return {
+      uid,
+      async register() {
+        let m = await F.syncMeta(uid);
+        if (!m.exists) { await F.claim(uid, username); m = await F.syncMeta(uid); }
+        epoch = m.epoch; return { epoch, rev: 0 };
+      },
+      async pull(since) { const r = await F.syncRead(uid, since, 100); return { epoch, rev: r.last, records: r.records, more: r.more }; },
+      async push(records) { const r = await F.syncWrite(uid, records); return { epoch, rev: null, applied: r.applied, skipped: r.skipped, rejected: 0 }; },
+      wipe: () => F.syncWipe(uid)
+    };
+  }
+  async function startSync(keyBytes) { transport = makeTransport(user.uid, user.username); return PatOS.sync.useAccount(keyBytes, transport); }
+
+  async function enter(u, password, snapshot) {
+    const key = await keyFrom(password, u.uid);
+    if (snapshot) { try { if (PatOS.backup) await PatOS.backup.snapshot(T('Before signing in'), 'before'); } catch (e) {} } // a way back, in case the account has other versions of what is here
+    user = u; PatOS.store.set('accountKey', b64(key)); PatOS.store.set('accountInfo', { uid: u.uid, username: u.username, at: Date.now() });
+    state = 'ok'; emit(); PatOS.emit('chat:account'); // (Sync and Messages pick it up)
+    try { await startSync(key); } catch (e) { /* the account is made; saving will be tried again */ }
+    return u;
+  }
+
+  const api = {
+    available: () => !noCrypto() && /^https?:$/.test(location.protocol) && !PatOS.singleFile,
+    signedIn: () => !!info(),
+    info,
+    user: () => info(),
+    status: () => ({ signedIn: !!info(), username: (info() || {}).username || '', state }),
+    /* a new account: the name must be free; everything on this device is then saved into it */
+    async signUp(username, password) {
+      checks(username, password); username = username.trim().toLowerCase();
+      try { F = await PatOS.loadFirebase(); const u = await F.signUp(username, password); return await enter(u, password, false); } catch (e) { throw say(e); }
+    },
+    /* an account that exists: its things come to this device (what is here and not there is kept and sent) */
+    async signIn(username, password) {
+      checks(username, password); username = username.trim().toLowerCase();
+      try { F = await PatOS.loadFirebase(); const u = await F.signIn(username, password); return await enter(u, password, true); } catch (e) { throw say(e); }
+    },
+    /* leave the account on this device; everything stays here, and nothing more is sent */
+    async signOut() {
+      try { if (F || window.PatFirebase) await (F || window.PatFirebase).signOut(); } catch (e) {}
+      user = null; transport = null; PatOS.store.remove('accountInfo'); PatOS.store.remove('accountKey'); PatOS.store.remove('syncState');
+      try { await PatOS.sync.clearAccount(); } catch (e) {}
+      state = 'off'; emit(); PatOS.emit('chat:account');
+    },
+    /* removes the cloud copy, the username and the sign-in; what is on this device stays */
+    async deleteAccount(password) {
+      const i = info(); if (!i) return;
+      try { F = await PatOS.loadFirebase(); await F.deleteAccount(i.username, password); } catch (e) { throw say(e); }
+      await api.signOut();
+    },
+    /* the signed-in person, for other parts of PatOS (Messages) */
+    cloud: async () => { F = await PatOS.loadFirebase(); return F; },
+    ready: () => state === 'ok'
+  };
+  PatOS.account = api;
+
+  /* ---------- coming back on the next start (works offline: the browser remembers the sign-in) ---------- */
+  async function resume() {
+    const i = info(), k = PatOS.store.get('accountKey', null); if (!i || !k || resuming) return;
+    resuming = (async () => {
+      try {
+        F = await PatOS.loadFirebase(); const u = await F.restore();
+        if (!u || u.uid !== i.uid) { state = navigator.onLine === false ? 'ok' : 'reauth'; emit(); if (state === 'reauth') return; } // the sign-in was lost: sign in again to go on saving
+        user = { uid: i.uid, username: i.username }; state = 'ok'; emit(); PatOS.emit('chat:account');
+        await startSync(unb64(k));
+      } catch (e) { state = 'offline'; emit(); }
+    })().finally(() => { resuming = null; });
+    return resuming;
+  }
+  api._resume = resume;
+  if (info() && api.available()) setTimeout(() => resume(), 1500);
+  addEventListener('online', () => { if (info() && state !== 'ok') resume(); });
+})();
+
+</script>
+  <script type="patos/js">
+/* PatOS chat: messages between people with PatOS accounts (the Messages app).
+   - Find a person by username and send them a message. The first message is a REQUEST: they see it, but get no notifications
+     from you until they accept it. If they decline, you can't message them. They can change their mind later.
+   - Every conversation and its whole history is saved in the cloud database (conversations/{id}/messages/{id}), so it is the
+     same on all your devices. Messages are not encrypted from the database (the other person has to read them): only the two
+     people in a conversation can read it, and nobody can change or delete a message afterwards (see firestore.rules).
+   - Notifications arrive while PatOS is open (also in a background tab). With PatOS closed there is no way to reach you.
+   - Offline: what you send waits in an outbox saved on the device and goes out when you are back. */
+(function () {
+  'use strict';
+  const T = (s) => PatOS.t(s);
+  let F = null, me = null, offConv = null, offMsg = null, convs = [], current = null, msgs = [], loaded = false, flushing = false, lastError = '';
+  const prev = new Map(); // conversation id -> { at, status } from the last look, to know what is new
+  const read = () => PatOS.store.get('msgRead', {});
+  const outbox = () => PatOS.store.get('msgOutbox', []);
+  const setOutbox = (l) => PatOS.store.set('msgOutbox', l);
+  const ms = (x) => (x && x.toMillis ? x.toMillis() : +x || 0);
+  const emit = (e) => PatOS.emit(e || 'chat', api.status());
+  const newId = () => 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+
+  /* a conversation, as the person sees it */
+  function shape(c) {
+    const other = c.members.find((u) => u !== me.uid);
+    return { id: c.id, other: { uid: other, username: (c.usernames && c.usernames[other]) || '?' }, status: c.status, mine: c.requester === me.uid, last: c.lastMessage || '', lastAt: ms(c.lastMessageAt), lastFromMe: c.lastFrom === me.uid, created: ms(c.createdAt) };
+  }
+  const isUnread = (c) => c.status === 'accepted' && !c.lastFromMe && c.lastAt > (read()[c.id] || 0);
+
+  function onConvs(list) {
+    const next = list.map(shape);
+    if (loaded) next.forEach((c) => {
+      const p = prev.get(c.id); const watching = current === c.id && !document.hidden && document.hasFocus();
+      if (c.status === 'accepted' && !c.lastFromMe && c.lastAt > ((p && p.at) || 0) && !watching) notify(c, c.last);
+      else if (p && p.status === 'pending' && c.status === 'accepted' && c.mine) notify(c, T('accepted your message request'));
+    });
+    next.forEach((c) => prev.set(c.id, { at: c.lastAt, status: c.status }));
+    convs = next.sort((a, b) => b.lastAt - a.lastAt); loaded = true; attach(); emit();
+  }
+  /* the history of the open conversation, live. It can only be read once the conversation exists (a request is made a moment after
+     it is written), so this is tried again whenever the list of conversations changes. */
+  function attach() {
+    if (offMsg || !current || !F || !convs.some((c) => c.id === current)) return; const cid = current;
+    offMsg = F.listenMessages(cid, (l) => { msgs = l; emit('chat:messages'); api.markRead(cid); }, (e) => { if (offMsg) { offMsg(); offMsg = null; } lastError = String(e.message || e); emit(); });
+  }
+  function notify(c, body) {
+    try { PatOS.notify({ title: c.other.username, body: String(body).slice(0, 120), icon: 'messages', onClick: () => PatOS.launch('messages', { chat: c.id }) }); if (PatOS.sound && PatOS.sound.pop) PatOS.sound.pop(); } catch (e) {}
+  }
+
+  async function start() {
+    if (offConv || !PatOS.account || !PatOS.account.signedIn() || !PatOS.account.available()) return;
+    try { F = await PatOS.account.cloud(); me = PatOS.account.info(); if (!me) return; } catch (e) { return; }
+    loaded = false; prev.clear();
+    offConv = F.listenConversations(me.uid, onConvs, (e) => { lastError = String(e.message || e); emit(); });
+    flush();
+  }
+  function stop() { if (offConv) offConv(); if (offMsg) offMsg(); offConv = offMsg = null; convs = []; msgs = []; current = null; loaded = false; me = null; emit(); }
+
+  /* ---------- sending (through an outbox, so nothing is lost offline) ---------- */
+  const withTimeout = (p, t) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error('timeout'), { code: 'offline' })), t || 20000))]);
+  async function flush() {
+    if (flushing || !F || !me || navigator.onLine === false) return;
+    flushing = true;
+    try {
+      for (const it of outbox()) {
+        try {
+          if (it.kind === 'request') { await withTimeout(F.requestChat(me, it.other, it.text, it.id)); }
+          else await withTimeout(F.sendMessage(it.cid, me, it.text, it.id));
+        } catch (e) {
+          if (e && e.code === 'offline') break; // try again later
+          let there = false; if (it.kind !== 'request') { try { there = await F.messageExists(it.cid, it.id); } catch (x) {} } // it may have gone through already
+          if (!there) { lastError = String(e.message || e); emit('chat:error'); }
+        }
+        setOutbox(outbox().filter((x) => x.id !== it.id)); emit('chat:messages');
+      }
+    } finally { flushing = false; }
+  }
+
+  const api = {
+    available: () => !!(PatOS.account && PatOS.account.signedIn()),
+    ready: () => !!me,
+    me: () => me,
+    conversations: () => convs.filter((c) => c.status === 'accepted' || (c.status === 'pending' && c.mine)).map((c) => Object.assign({ unread: isUnread(c) }, c)),
+    requests: () => convs.filter((c) => c.status === 'pending' && !c.mine),
+    declined: () => convs.filter((c) => c.status === 'declined' && !c.mine),
+    unread: () => convs.filter(isUnread).length + convs.filter((c) => c.status === 'pending' && !c.mine).length,
+    find: (id) => convs.find((c) => c.id === id) || null,
+    messages: () => msgs.map((m) => ({ id: m.id, mine: m.from === (me && me.uid), text: m.text, t: m.t || ms(m.at), sending: false }))
+      .concat(outbox().filter((o) => o.cid === current || (o.kind === 'request' && current === F.convId(me.uid, o.other.uid))).filter((o) => !msgs.some((m) => m.id === o.id)).map((o) => ({ id: o.id, mine: true, text: o.text, t: o.t, sending: true }))).sort((a, b) => a.t - b.t),
+    outbox: () => outbox().length,
+    status: () => ({ signedIn: !!(PatOS.account && PatOS.account.signedIn()), ready: !!me, unread: convs.filter(isUnread).length + convs.filter((c) => c.status === 'pending' && !c.mine).length, outbox: outbox().length }),
+    error: () => lastError,
+    async search(prefix) { if (!F) await start(); if (!F) return []; const r = await F.search(prefix, 8); return r.filter((u) => u.uid !== me.uid).map((u) => Object.assign({ cid: F.convId(me.uid, u.uid), conv: convs.find((c) => c.other.uid === u.uid) || null }, u)); },
+    /* look at one conversation: its history comes live */
+    open(cid) {
+      if (offMsg) offMsg(); offMsg = null; current = cid; msgs = []; attach();
+      api.markRead(cid); emit('chat:messages');
+    },
+    close() { api.open(null); },
+    markRead(cid) { if (!cid) return; const c = convs.find((x) => x.id === cid); const r = read(); const at = Math.max(Date.now(), c ? c.lastAt : 0); if ((r[cid] || 0) < at - 1000 || !r[cid]) { r[cid] = at; PatOS.store.set('msgRead', r); emit(); } },
+    /* a first message to someone: they can accept or decline it */
+    async request(other, text) {
+      if (!F) await start(); text = String(text || '').trim(); if (!text) return; if (!me) throw new Error(T('Sign in first.'));
+      const cid = F.convId(me.uid, other.uid); const c = convs.find((x) => x.id === cid);
+      if (c && c.status === 'accepted') return api.send(cid, text);
+      if (c && c.status === 'declined' && c.mine) throw new Error(T('This person did not accept your message request.'));
+      if (c) throw new Error(T('Your message request is waiting for an answer.'));
+      setOutbox(outbox().concat([{ kind: 'request', id: 'request', cid, other: { uid: other.uid, username: other.username }, text: text.slice(0, 2000), t: Date.now() }])); emit('chat:messages'); flush(); return cid;
+    },
+    send(cid, text) {
+      text = String(text || '').trim(); if (!text) return; const c = convs.find((x) => x.id === cid);
+      if (!c || c.status !== 'accepted') throw new Error(c && c.status === 'pending' ? T('Your message request is waiting for an answer.') : T('You can’t message this person right now.'));
+      setOutbox(outbox().concat([{ kind: 'msg', id: newId(), cid, text: text.slice(0, 2000), t: Date.now() }])); emit('chat:messages'); flush();
+    },
+    async respond(cid, accept) { if (!F) await start(); await F.respond(cid, !!accept); },
+    retry: flush
+  };
+  PatOS.chat = api;
+
+  PatOS.on('chat:account', () => { if (PatOS.account.signedIn()) start(); else stop(); });
+  addEventListener('online', () => flush());
+  setInterval(() => { if (me) flush(); }, 20000);
+  if (PatOS.account && PatOS.account.signedIn() && PatOS.account.available()) setTimeout(start, 2500);
+})();
+
+</script>
+  <script type="patos/js">
+/* The screens for PatOS accounts: create one, sign in, and the big invitation everyone gets once this update arrives. */
+(function () {
+  'use strict';
+  const { h } = PatOS; const T = (s) => PatOS.t(s);
+  const A = () => PatOS.account;
+
+  /* create an account / sign in (one box, two tabs); onDone runs when it worked */
+  function box(start, onDone) {
+    return new Promise((resolve) => {
+      let mode = start === 'signin' ? 'signin' : 'signup';
+      const layer = h('div', { class: 'dlg-layer acc-layer' }); const card = h('div', { class: 'acc-card', role: 'dialog', 'aria-modal': 'true', 'aria-label': T('PatOS account') }); layer.appendChild(card);
+      const close = (v) => { document.removeEventListener('keydown', onKey, true); layer.remove(); resolve(v); };
+      const onKey = (e) => { if (e.key === 'Escape' && !busy) { e.stopPropagation(); close(false); } };
+      document.addEventListener('keydown', onKey, true);
+      let busy = false;
+      function paint() {
+        card.innerHTML = '';
+        const user = h('input', { class: 'field', placeholder: T('Username'), autocomplete: 'username', autocapitalize: 'none', spellcheck: 'false', maxlength: '20', 'aria-label': T('Username') });
+        const pass = h('input', { class: 'field', type: 'password', placeholder: T('Password'), autocomplete: mode === 'signup' ? 'new-password' : 'current-password', 'aria-label': T('Password') });
+        const again = mode === 'signup' ? h('input', { class: 'field', type: 'password', placeholder: T('Password again'), autocomplete: 'new-password', 'aria-label': T('Password again') }) : null;
+        const note = h('div', { class: 'acc-note', 'aria-live': 'polite' });
+        const go = h('button', { class: 'btn primary acc-go' }, mode === 'signup' ? T('Create Account') : T('Sign In'));
+        const tabs = h('div', { class: 'acc-tabs' }, ...[['signup', T('Create account')], ['signin', T('Sign in')]].map(([k, l]) => h('button', { class: 'acc-tab' + (mode === k ? ' on' : ''), disabled: busy, onclick: () => { mode = k; paint(); } }, l)));
+        const submit = async () => {
+          if (busy) return; note.className = 'acc-note'; note.textContent = '';
+          if (mode === 'signup' && pass.value !== again.value) { note.className = 'acc-note err'; note.textContent = T('The two passwords are different.'); return; }
+          busy = true; go.disabled = user.disabled = pass.disabled = true; if (again) again.disabled = true; note.textContent = mode === 'signup' ? T('Creating your account…') : T('Signing in…');
+          try { await (mode === 'signup' ? A().signUp(user.value, pass.value) : A().signIn(user.value, pass.value)); saving(); } catch (e) { busy = false; go.disabled = user.disabled = pass.disabled = false; if (again) again.disabled = false; note.className = 'acc-note err'; note.textContent = String(e.message || e); }
+        };
+        [user, pass, again].forEach((i) => i && i.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); }));
+        go.onclick = submit;
+        card.append(h('div', { class: 'acc-logo', html: PatOS.iconHTML('settings') }), h('h2', {}, mode === 'signup' ? T('Create your PatOS account') : T('Welcome back')), tabs,
+          h('p', { class: 'acc-sub' }, mode === 'signup' ? T('Just a username and a password. No email. Everything you have is saved to your account, so it follows you to any device.') : T('Your files, notes and settings come back to this device. What is only here is kept and saved to your account too.')),
+          user, pass, again, mode === 'signup' ? h('p', { class: 'acc-fine' }, T('There is no “forgot my password”: your saved things are locked with your password, so nobody can open them without it. Pick one you will remember.')) : null,
+          note, h('div', { class: 'acc-btns' }, h('button', { class: 'btn', disabled: busy, onclick: () => close(false) }, T('Cancel')), go));
+        setTimeout(() => user.focus(), 40);
+      }
+      /* after it worked: watch Sync save everything, then close */
+      function saving() {
+        card.innerHTML = '';
+        const msg = h('p', { class: 'acc-sub', 'aria-live': 'polite' }, T('Saving everything to your account…')); const bar = h('div', { class: 'acc-bar' }, h('i'));
+        const done = h('button', { class: 'btn primary', disabled: true, onclick: () => close(true) }, T('Done'));
+        card.append(h('div', { class: 'acc-logo', html: PatOS.iconHTML('settings') }), h('h2', {}, '@' + (A().info() || {}).username), msg, bar, h('div', { class: 'acc-btns' }, done));
+        let finished = false; let seenSyncing = false; const t0 = Date.now();
+        const check = () => {
+          const s = PatOS.sync.status();
+          if (s.state === 'syncing') seenSyncing = true;
+          if (finished) return;
+          if (s.state === 'error' || s.state === 'offline') { finished = true; msg.textContent = s.state === 'offline' ? T('You are offline. Your account is ready, and everything will be saved when you are back online.') : T('Your account is ready, but saving had a problem. PatOS will keep trying.'); bar.classList.add('stop'); done.disabled = false; off(); return; }
+          if (s.state === 'idle' && s.last && (seenSyncing || Date.now() - t0 > 4000) && s.mode === 'account') { finished = true; msg.textContent = T('All saved.') + ' ' + s.items + ' ' + T('items are in your account.'); bar.classList.add('full'); done.disabled = false; done.focus(); off(); }
+        };
+        const off = PatOS.on('sync', check); const iv = setInterval(() => { check(); if (finished) clearInterval(iv); }, 700); check();
+        if (onDone) try { onDone(); } catch (e) {}
+      }
+      paint(); document.body.appendChild(layer);
+    });
+  }
+
+  /* the big invitation: once this update is installed, everyone without an account sees it (and again each day until they choose) */
+  const DAY = 86400000;
+  function invite() {
+    if (document.querySelector('.acc-layer')) return;
+    const layer = h('div', { class: 'dlg-layer acc-layer' });
+    const later = () => { PatOS.store.set('accountPrompt', { snoozedUntil: Date.now() + DAY }); layer.remove(); };
+    const item = (t, d) => h('li', {}, h('b', {}, t), h('span', {}, d));
+    layer.appendChild(h('div', { class: 'acc-card big', role: 'dialog', 'aria-modal': 'true', 'aria-label': T('Create your PatOS account') },
+      h('div', { class: 'acc-logo big', html: PatOS.iconHTML('settings') }), h('h2', {}, T('Create your PatOS account')),
+      h('p', { class: 'acc-sub' }, T('PatOS now has accounts. Just a username and a password: no email.')),
+      h('ul', { class: 'acc-list' }, item(T('Everything is saved'), T('Your files, notes, calendar, settings and apps are saved to your account and follow you to every device.')), item(T('Still works offline'), T('A copy stays on this device, so PatOS opens and works with no internet.')), item(T('Message your friends'), T('Find people by username in Messages. They accept your request first.')), item(T('Private'), T('What is saved is locked with your password.'))),
+      h('div', { class: 'acc-btns col' }, h('button', { class: 'btn primary acc-go', onclick: () => { layer.remove(); box('signup'); } }, T('Create My Account')), h('button', { class: 'btn', onclick: () => { layer.remove(); box('signin'); } }, T('I Already Have an Account')), h('button', { class: 'tbtn acc-later', onclick: later }, T('Later')))));
+    document.body.appendChild(layer);
+    PatOS.notify && PatOS.notify({ title: T('Create your PatOS account'), body: T('Save everything to the cloud and message your friends.'), icon: 'settings', duration: 6000, onClick: () => {} });
+  }
+  function maybeInvite() {
+    if (navigator.webdriver) return; // (automated test browsers are not invited)
+    if (!PatOS.loggedIn || !A() || !A().available() || A().signedIn() || navigator.onLine === false) return;
+    if (!PatOS.store.get('setupDone', true)) return;
+    const p = PatOS.store.get('accountPrompt', {}); if (p.snoozedUntil && Date.now() < p.snoozedUntil) return;
+    invite();
+  }
+  PatOS.accountUI = { open: box, invite, maybeInvite };
+  setInterval(maybeInvite, 15000); setTimeout(maybeInvite, 6000);
 })();
 
 </script>
@@ -17671,11 +18205,11 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
   const T = (x) => PatOS.t(x);
   const ACCENTS = ['#0a84ff', '#bf5af2', '#ff375f', '#ff453a', '#ff9f0a', '#ffd60a', '#32d74b', '#64d2ff', '#8e8e93'];
   const PANES = [
-    ['general', 'General', '⚙️'], ['update', 'Software Update', '⬇️'], ['appearance', 'Appearance', '🎨'], ['accessibility', 'Accessibility', '♿'], ['wallpaper', 'Wallpaper', '🖼'], ['dock', 'Home Screen & Dock', '🧭'],
+    ['general', 'General', '⚙️'], ['account', 'Account', '👤'], ['update', 'Software Update', '⬇️'], ['appearance', 'Appearance', '🎨'], ['accessibility', 'Accessibility', '♿'], ['wallpaper', 'Wallpaper', '🖼'], ['dock', 'Home Screen & Dock', '🧭'],
     ['display', 'Displays & 3D', '🖥'], ['sound', 'Sound', '🔊'], ['lock', 'Lock Screen', '🔒'], ['network', 'Network', '📶'], ['startup', 'Install & Start Up', '🚀'], ['permissions', 'Permissions', '🛡'], ['system', 'This Device', '💻'],
     ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾'], ['backup', 'Backup & Restore', '🕘'], ['sync', 'Sync', '☁️'], ['privacy', 'Privacy', '🔐']
   ];
-  const KW = { privacy: 'privacy apps permissions camera microphone location log confidentialite applications permissions camera micro position journal', sync: 'sync cloud devices iphone chromebook account encrypted key code synchroniser appareils compte chiffre cle', backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
+  const KW = { account: 'account username password sign in sign up cloud save login compte nom utilisateur mot de passe connexion creer', privacy: 'privacy apps permissions camera microphone location log confidentialite applications permissions camera micro position journal', sync: 'sync cloud devices iphone chromebook account encrypted key code synchroniser appareils compte chiffre cle', backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
   // Spotlight searches Settings with this list
   PatOS.settingsIndex = () => PANES.map(([k, l]) => ({ pane: k, label: l, keywords: KW[k] || '' }));
   PatOS.registerApp({
@@ -17814,6 +18348,32 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
             }
           };
           const on = () => { if (pane === 'backup' && out.isConnected) paint(); }; const off = PatOS.on('backup', on); win.on('closed', off);
+          paint(); return [out];
+        },
+        account() {
+          const out = h('div', { class: 'bk ac' }); const A = PatOS.account;
+          const msg = (title, body) => PatOS.alertBox(title, body, { icon: 'settings' });
+          const paint = () => {
+            out.innerHTML = '';
+            out.appendChild(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('settings') }), h('div', {}, h('h2', {}, T('PatOS Account')), h('p', { class: 'su-status' }, T('A username and a password, no email. Everything you have is saved to your account and follows you to every device. A copy stays on each device, so PatOS works offline too.')))));
+            if (!A || !A.available()) { out.appendChild(h('div', { class: 'bk-empty' }, T('Accounts need PatOS opened from its web address (https) in a browser that can do encryption.'))); return; }
+            if (!A.signedIn()) {
+              out.appendChild(group(row(T('Create an account'), h('button', { class: 'btn primary', onclick: () => PatOS.accountUI.open('signup') }, T('Create Account…')), T('Everything on this device is saved to it.')), row(T('Already have one?'), h('button', { class: 'btn', onclick: () => PatOS.accountUI.open('signin') }, T('Sign In…')), T('Your saved things come to this device.'))));
+              out.appendChild(h('div', { class: 'bk-empty' }, T('There is no “forgot my password”: your saved things are locked with your password, so nobody can open them without it.'))); return;
+            }
+            const st = PatOS.sync.status(); const i = A.info();
+            const label = A.status().state === 'reauth' ? T('Your sign-in expired. Sign in again to keep saving.') : st.state === 'syncing' ? T('Saving…') : st.state === 'offline' || st.offline ? T('Offline. Your changes are safe here and are saved when you are back online.') : st.error ? T('Saving had a problem. PatOS will try again.') : st.last ? T('Everything is saved') + ' · ' + (PatOS.backup ? PatOS.backup.when(st.last) : '') : T('Not saved yet');
+            const now = h('button', { class: 'btn' }, T('Save Now')); now.onclick = async () => { now.disabled = true; try { await PatOS.sync.now(); } finally { now.disabled = false; } };
+            out.appendChild(group(row(T('Signed in as'), h('span', { class: 'st-val' }, '@' + i.username)), row(T('Status'), now, label), row(T('Saved in your account'), h('span', { class: 'st-val' }, st.items + ' ' + T('items')), st.stay ? st.stay + ' ' + T('big files (videos and recordings) stay on this device only.') : T('Files, notes, calendar, contacts, settings, apps and more.'))));
+            if (A.status().state === 'reauth') out.appendChild(group(row(T('Sign in again'), h('button', { class: 'btn primary', onclick: () => PatOS.accountUI.open('signin') }, T('Sign In…')))));
+            out.appendChild(h('h3', {}, T('Sign out')));
+            const so = h('button', { class: 'btn', onclick: async () => { if (await PatOS.confirmBox(T('Sign out?'), T('Everything stays on this device. PatOS stops saving to your account until you sign in again.'), { ok: T('Sign Out'), icon: 'settings' })) { await A.signOut(); paint(); } } }, T('Sign Out…'));
+            const del = h('button', { class: 'btn danger', onclick: async () => {
+              const pw = await PatOS.ask(T('Delete your account?'), '', { password: true, ok: T('Delete Account'), danger: true, icon: 'settings', text: T('This deletes your username and everything saved in your account (not what is on this device). Messages you sent stay in your friends’ chats. Type your password to confirm.') });
+              if (!pw) return; try { await A.deleteAccount(pw); paint(); msg(T('Account deleted'), T('Your account and its saved copy are gone. Everything is still on this device.')); } catch (e) { msg(T('That didn’t work'), String(e.message || e)); } } }, T('Delete Account…'));
+            out.appendChild(group(row(T('Stop using this account on this device'), so), row(T('Delete this account'), del, T('Removes your username and the saved copy from the cloud.'))));
+          };
+          const on = () => { if (pane === 'account' && out.isConnected) paint(); }; const offs = [PatOS.on('account', on), PatOS.on('sync', on)]; win.on('closed', () => offs.forEach((f) => f()));
           paint(); return [out];
         },
         privacy() {
@@ -18108,7 +18668,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       }
       function render(keepSearch) {
         side.innerHTML = '';
-        side.appendChild(h('div', { class: 'st-user' }, h('div', { class: 'lock-avatar sm' }, S().userName.charAt(0).toUpperCase()), h('div', {}, h('b', {}, S().userName), h('small', {}, 'PatOS Account'))));
+        side.appendChild(h('div', { class: 'st-user' }, h('div', { class: 'lock-avatar sm' }, S().userName.charAt(0).toUpperCase()), h('div', {}, h('b', {}, S().userName), h('small', {}, PatOS.account && PatOS.account.signedIn() ? '@' + PatOS.account.info().username : PatOS.t('Sign in or create an account')))));
         side.appendChild(sq); if (!keepSearch) { sq.value = filter; }
         drawSide();
         renderMain();
@@ -18693,18 +19253,15 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
   }
   PatOS.assistantReply = reply;
 
-  PatOS.registerApp({
-    id: 'messages', name: 'Messages', icon: 'messages', width: 760, height: 560, keywords: 'chat assistant bot pat commands text timer calendar messages',
-    about: 'Type commands to Pat: open apps, do math, add reminders and notes. Pat follows a fixed list of commands, it is not an AI.',
-    launch(win) {
+  /* Pat, the command helper: the same chat as always, now in a panel that opens from the Pat button in the top bar */
+  function patHelper(win) {
       let log = PatOS.store.get('chatLog', null) || [{ from: 'pat', text: PatOS.lang === 'fr' ? `Salut ${PatOS.settings.userName}, moi c’est Pat. Demande-moi d’ouvrir une app, de faire un calcul ou d’ajouter un rappel. Écris « aide » si tu veux la liste.` : `Hi ${PatOS.settings.userName}, I’m Pat. Ask me to open an app, do some math or add a reminder. Type "help" if you want the list.`, t: Date.now() }];
-      const side = h('div', { class: 'msg-side' }, h('div', { class: 'msg-conv on' }, h('div', { class: 'msg-av' }, 'P'), h('div', {}, h('b', {}, 'Pat'), h('small', {}, 'Command helper'))));
       const list = h('div', { class: 'msg-list' });
       const input = h('input', { class: 'msg-in', placeholder: PatOS.t('Ask Pat') + '…', spellcheck: 'true', autocomplete: 'off', enterkeyhint: 'send', 'aria-label': PatOS.t('Message Pat') });
       const send = h('button', { class: 'msg-send', 'aria-label': 'Send' }, '↑');
       const chips = h('div', { class: 'msg-chips' }, ...(PatOS.lang === 'fr' ? ['aide', 'minuteur 10 min', 'qu’est-ce que j’ai aujourd’hui?', 'mes rappels', 'raconte une blague', 'ouvre galaxie', 'rappelle-moi d’étudier'] : ['help', 'timer 10 min', 'what’s on my calendar today?', 'my reminders', 'tell me a joke', 'open galaxy', 'remind me to study']).map((c) => h('button', { class: 'no-tr', onclick: () => submit(c) }, c)));
       const head = h('div', { class: 'msg-head' }, h('div', { class: 'msg-av sm' }, 'P'), h('b', {}, 'Pat'));
-      win.body.appendChild(h('div', { class: 'msg-wrap' }, side, h('div', { class: 'msg-main' }, head, list, chips, h('div', { class: 'msg-bar' }, input, send))));
+      const root = h('div', { class: 'msg-main pat-main' }, head, list, chips, h('div', { class: 'msg-bar' }, input, send));
       function bubble(m, anim) {
         const b = h('div', { class: 'msg-b ' + (m.from === 'me' ? 'me' : 'them') + (anim ? ' pop' : ''), title: m.t ? new Date(m.t).toLocaleString(PatOS.locale, { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : null }, m.text);
         list.appendChild(b); list.scrollTop = list.scrollHeight;
@@ -18734,14 +19291,116 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         else if (e.key === 'ArrowDown' && histAt >= 0) { e.preventDefault(); histAt++; if (histAt >= sent.length) { histAt = -1; input.value = ''; } else input.value = sent[histAt]; }
       });
       function clearChat() { log = []; PatOS.store.remove('chatLog'); sent = []; list.innerHTML = ''; const hi = { from: 'pat', text: PatOS.lang === 'fr' ? 'C’est effacé. Écris « aide » si tu veux la liste des commandes.' : 'Cleared. Type "help" if you want the list of commands.', t: Date.now() }; log.push(hi); bubble(hi, true); PatOS.store.set('chatLog', log); }
-      win._clearChat = async () => { if (await PatOS.confirmBox(PatOS.t('Clear this conversation?'), PatOS.t('The messages will be deleted.'), { ok: PatOS.t('Clear'), danger: true, icon: 'messages' })) clearChat(); };
+      const clearAsk = async () => { if (await PatOS.confirmBox(PatOS.t('Clear this conversation?'), PatOS.t('The messages will be deleted.'), { ok: PatOS.t('Clear'), danger: true, icon: 'messages' })) clearChat(); };
       send.onclick = () => submit();
       render();
-      setTimeout(() => input.focus(), 100);
+      return { el: root, focus: () => input.focus(), clear: clearAsk };
+  }
+
+  /* ---------- Messages: people with PatOS accounts (the Pat helper is the button in the top bar) ---------- */
+  const clock = (t) => { const d = new Date(t), now = new Date(); const hm = d.toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' }); return d.toDateString() === now.toDateString() ? hm : d.toLocaleDateString(PatOS.locale, { month: 'short', day: 'numeric' }) + ' ' + hm; };
+  PatOS.registerApp({
+    id: 'messages', name: 'Messages', icon: 'messages', width: 860, height: 600, minWidth: 340, minHeight: 360, keywords: 'chat messages friends people users username request pat helper commands text timer calendar',
+    about: 'Message people with a PatOS account: find them by username, and they accept your request first. Pat, the command helper, is the button in the top bar.',
+    launch(win, args) {
+      win.el.classList.add('has-toolbar');
+      const C = PatOS.chat, A = PatOS.account;
+      const bPat = h('button', { class: 'btn pat-btn', title: PatOS.t('Pat, the command helper') }, 'Pat'); const who = h('span', { class: 'm2-who' });
+      win.toolbar.append(bPat, h('div', { style: { flex: 1 } }), who); win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px'; win.toolbar.style.gap = '8px';
+      const side = h('div', { class: 'm2-side' }), main = h('div', { class: 'm2-main' }), patBox = h('div', { class: 'm2-pat', 'aria-hidden': 'true' });
+      const root = h('div', { class: 'm2' }, side, main, patBox); win.body.appendChild(root);
+      let helper = null, query = '', results = null, cur = null /* a conversation id */, target = null /* someone new */, searchTimer = null, listEl = null;
+      const T = (x) => PatOS.t(x);
+      const msg = (title, body) => PatOS.alertBox(title, body, { icon: 'messages' });
+      const fail = (e) => msg(T('That didn’t work'), String((e && e.message) || e));
+      /* Pat's panel */
+      bPat.onclick = () => {
+        if (!helper) { helper = patHelper(win); patBox.appendChild(helper.el); win._clearChat = helper.clear; }
+        const open = patBox.classList.toggle('open'); patBox.setAttribute('aria-hidden', String(!open)); bPat.classList.toggle('primary', open); if (open) setTimeout(() => helper.focus(), 220);
+      };
+      const av = (name) => h('div', { class: 'msg-av' }, (name || '?').charAt(0).toUpperCase());
+      const signedIn = () => A && A.signedIn();
+
+      /* the left side: search, requests, conversations */
+      function row(name, sub, extra, on, onClick) { const b = h('div', { class: 'm2-row' + (on ? ' on' : ''), role: 'button', tabindex: '0', onclick: onClick }, av(name), h('div', { class: 'm2-rt' }, h('b', {}, name), h('small', {}, sub || '')), extra || null); b.addEventListener('keydown', (e) => { if (e.key === 'Enter') onClick(); }); return b; }
+      function drawSide() {
+        const keep = side.querySelector('.m2-search'); const had = document.activeElement === keep; const val = keep ? keep.value : query;
+        side.innerHTML = '';
+        if (!signedIn()) return;
+        const search = h('input', { class: 'field m2-search', placeholder: T('Find a person'), spellcheck: 'false', autocapitalize: 'none', autocomplete: 'off', 'aria-label': T('Find a person by username') }); search.value = val;
+        search.addEventListener('input', () => { query = search.value.trim(); clearTimeout(searchTimer); if (!query) { results = null; drawSide(); return; } searchTimer = setTimeout(async () => { const q = query; try { const r = await C.search(q); if (q === query) { results = r; drawList(); } } catch (e) { results = []; drawList(); } }, 250); });
+        side.appendChild(h('div', { class: 'm2-sh' }, search)); listEl = h('div', { class: 'm2-list' }); side.appendChild(listEl); drawList();
+        if (had) { search.focus(); search.setSelectionRange(val.length, val.length); }
+      }
+      function drawList() {
+        if (!listEl) return; listEl.innerHTML = '';
+        if (query) {
+          if (!results) { listEl.appendChild(h('div', { class: 'm2-empty' }, T('Searching…'))); return; }
+          if (!results.length) listEl.appendChild(h('div', { class: 'm2-empty' }, T('Nobody with that username. Check the spelling.')));
+          results.forEach((u) => listEl.appendChild(row('@' + u.username, u.conv ? (u.conv.status === 'accepted' ? T('Open the chat') : u.conv.status === 'pending' ? (u.conv.mine ? T('Request sent') : T('Wants to message you')) : T('Declined')) : T('Send a message request'), null, false, () => { query = ''; results = null; if (u.conv) { cur = u.conv.id; target = null; C.open(cur); } else { target = u; cur = null; C.close(); } drawSide(); drawMain(); win.el.classList.add('m2-chat'); })));
+          return;
+        }
+        const reqs = C.requests(), convs = C.conversations(), declined = C.declined();
+        if (reqs.length) { listEl.appendChild(h('div', { class: 'm2-h' }, T('Requests') + ' (' + reqs.length + ')')); reqs.forEach((c) => listEl.appendChild(row('@' + c.other.username, c.last, h('span', { class: 'm2-dot' }), cur === c.id, () => openConv(c.id)))); }
+        listEl.appendChild(h('div', { class: 'm2-h' }, T('Messages')));
+        if (!convs.length) listEl.appendChild(h('div', { class: 'm2-empty' }, T('No conversations yet. Search for a username above to start one.')));
+        convs.forEach((c) => listEl.appendChild(row('@' + c.other.username, c.status === 'pending' ? T('Waiting for them to accept') : (c.lastFromMe ? T('You') + ': ' : '') + c.last, c.unread ? h('span', { class: 'm2-dot' }) : h('small', { class: 'm2-time' }, c.lastAt ? clock(c.lastAt) : ''), cur === c.id, () => openConv(c.id))));
+        if (declined.length) { listEl.appendChild(h('div', { class: 'm2-h' }, T('Declined'))); declined.forEach((c) => listEl.appendChild(row('@' + c.other.username, T('You declined this request'), null, cur === c.id, () => openConv(c.id)))); }
+      }
+      function openConv(id) { cur = id; target = null; C.open(id); drawSide(); drawMain(); win.el.classList.add('m2-chat'); }
+
+      /* the right side: one conversation */
+      function drawMain() {
+        main.innerHTML = '';
+        if (!signedIn()) {
+          main.appendChild(h('div', { class: 'm2-card' }, h('h2', {}, T('Message your friends')), h('p', {}, T('Messages now work between PatOS accounts. Create a free account with just a username and a password, then find your friends by username. They accept your request first.')),
+            h('div', { class: 'm2-cbtns' }, h('button', { class: 'btn primary', onclick: () => PatOS.accountUI.open('signup') }, T('Create Account')), h('button', { class: 'btn', onclick: () => PatOS.accountUI.open('signin') }, T('Sign In'))),
+            h('p', { class: 'm2-fine' }, T('Pat, the command helper, works without an account: press Pat in the top bar.')))); return;
+        }
+        const c = cur ? C.find(cur) : null;
+        if (!c && !target) { main.appendChild(h('div', { class: 'm2-card' }, h('h2', {}, T('Messages')), h('p', {}, T('Pick a conversation, or find someone by username in the search box.')), C.outbox() ? h('p', { class: 'm2-fine' }, C.outbox() + ' ' + T('waiting to be sent (you are offline or the connection is slow)')) : null)); return; }
+        const name = c ? c.other.username : target.username;
+        const back = h('button', { class: 'tbtn m2-back', 'aria-label': T('Back'), onclick: () => { win.el.classList.remove('m2-chat'); } }, '‹');
+        main.appendChild(h('div', { class: 'm2-head' }, back, av(name), h('div', {}, h('b', {}, '@' + name), h('small', {}, c ? (c.status === 'accepted' ? T('Chat') : c.status === 'pending' ? (c.mine ? T('Waiting for them to accept') : T('Message request')) : T('Declined')) : T('New message')))));
+        const list = h('div', { class: 'm2-msgs', role: 'log', 'aria-live': 'polite' });
+        if (c) {
+          const ms = C.messages(); let day = '';
+          ms.forEach((m) => { const dk = new Date(m.t).toDateString(); if (dk !== day) { day = dk; list.appendChild(h('div', { class: 'm2-day' }, new Date(m.t).toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' }))); } list.appendChild(h('div', { class: 'msg-b ' + (m.mine ? 'me' : 'them') + (m.sending ? ' sending' : ''), title: new Date(m.t).toLocaleString(PatOS.locale) }, m.text)); });
+          if (c.status === 'pending' && c.mine) list.appendChild(h('div', { class: 'm2-sys' }, '@' + name + ' ' + T('has to accept your request before you can keep chatting. They get no notifications from you until then.')));
+        } else {
+          list.appendChild(h('div', { class: 'm2-sys' }, T('Your first message is sent as a request. @') + name + ' ' + T('decides whether to accept it, and gets no notifications from you until they do.')));
+          C.outbox() && list.appendChild(h('div', { class: 'm2-sys' }, T('Sending…')));
+        }
+        main.appendChild(list); setTimeout(() => { list.scrollTop = list.scrollHeight; }, 0);
+        // the bottom: write, or answer a request
+        if (c && c.status === 'pending' && !c.mine) {
+          main.appendChild(h('div', { class: 'm2-ask' }, h('span', {}, '@' + name + ' ' + T('wants to message you.')), h('div', {}, h('button', { class: 'btn primary', onclick: () => C.respond(c.id, true).catch(fail) }, T('Accept')), h('button', { class: 'btn', onclick: () => C.respond(c.id, false).then(() => { cur = null; C.close(); drawSide(); drawMain(); }).catch(fail) }, T('Decline')))));
+        } else if (c && c.status === 'declined') {
+          main.appendChild(c.mine ? h('div', { class: 'm2-ask' }, h('span', {}, T('This person did not accept your request.'))) : h('div', { class: 'm2-ask' }, h('span', {}, T('You declined this request.')), h('div', {}, h('button', { class: 'btn', onclick: () => C.respond(c.id, true).catch(fail) }, T('Accept Anyway')))));
+        } else if (c && c.status === 'pending' && c.mine) {
+          main.appendChild(h('div', { class: 'm2-ask' }, h('span', {}, T('Waiting for them to accept…'))));
+        } else {
+          const input = h('input', { class: 'msg-in', placeholder: T('Message'), maxlength: '2000', autocomplete: 'off', enterkeyhint: 'send', 'aria-label': T('Message') });
+          const send = h('button', { class: 'msg-send', 'aria-label': T('Send') }, '↑');
+          const go = async () => { const v = input.value.trim(); if (!v) return; input.value = ''; try { if (c) C.send(c.id, v); else { const id = await C.request(target, v); if (id) { cur = id; target = null; C.open(id); drawSide(); } } } catch (e) { input.value = v; fail(e); } };
+          input.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); }); send.onclick = go;
+          main.appendChild(h('div', { class: 'msg-bar' }, input, send)); if (!win._noFocus) setTimeout(() => input.focus(), 60);
+        }
+      }
+      const fullPaint = () => { who.textContent = signedIn() ? '@' + A.info().username : ''; if (!signedIn()) { cur = null; target = null; } drawSide(); drawMain(); };
+      const offs = [PatOS.on('chat', () => { if (!root.isConnected) return; drawSide(); const c = cur ? C.find(cur) : null; if (cur && !c) { /* gone */ } else if (c && main.dataset.status !== c.status) { drawMain(); } main.dataset.status = c ? c.status : ''; }),
+        PatOS.on('chat:messages', () => { if (!root.isConnected) return; if (cur || target) { const keepFocus = document.activeElement && document.activeElement.classList.contains('msg-in'); const v = keepFocus ? document.activeElement.value : ''; drawMain(); if (keepFocus) { const i = main.querySelector('.msg-in'); if (i) { i.value = v; i.focus(); } } } }),
+        PatOS.on('account', () => { if (root.isConnected) fullPaint(); })];
+      win.on('closed', () => { offs.forEach((f) => f()); C.close(); });
+      win._open = (id) => { if (signedIn()) openConv(id); };
+      fullPaint();
+      if (signedIn() && C.available() && !C.ready()) { try { PatOS.chat.search(''); } catch (e) {} }
+      if (args && args.chat) win._open(args.chat);
     },
+    onArgs(win, a) { if (a.chat && win._open) win._open(a.chat); },
     menus(win) {
       return { file: [
-        { label: PatOS.t('Clear Conversation…'), action: () => win._clearChat && win._clearChat() },
+        { label: PatOS.t('Clear Pat Conversation…'), action: () => win._clearChat && win._clearChat() },
         { divider: true },
         { label: PatOS.t('Close Window'), shortcut: 'Alt+W', action: () => win.close() }
       ] };

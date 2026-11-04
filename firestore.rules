@@ -1,0 +1,106 @@
+rules_version = '2';
+
+// PatOS accounts, saved data and messages. Paste this whole file into the Firebase console:
+// Firestore Database > Rules > replace everything > Publish. (docs/FIREBASE.md explains each part.)
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function signedIn() { return request.auth != null; }
+    function mine(uid) { return signedIn() && request.auth.uid == uid; }
+    // A username is tied to the sign-in it belongs to (name@patos.invalid), so nobody can claim someone else's name.
+    function myName() { return request.auth.token.email.split('@')[0]; }
+    function goodName(n) { return n is string && n.matches('^[a-z0-9_]{3,20}$'); }
+
+    // usernames/{name}: who is who. Signed-in people can look names up (that is how search works).
+    match /usernames/{name} {
+      allow get, list: if signedIn();
+      allow create: if signedIn() && goodName(name) && name == myName()
+        && request.resource.data.keys().hasOnly(['uid', 'createdAt'])
+        && request.resource.data.uid == request.auth.uid
+        && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if signedIn() && resource.data.uid == request.auth.uid;
+    }
+
+    // accounts/{uid}: the account and the saved items (files, notes, settings...), private to that person.
+    // The items are encrypted on the device with a key made from the password, so even this database only holds scrambled bytes.
+    match /accounts/{uid} {
+      allow read: if mine(uid);
+      allow create: if mine(uid) && goodName(request.resource.data.username) && request.resource.data.username == myName()
+        && request.resource.data.keys().hasOnly(['username', 'epoch', 'createdAt'])
+        && request.resource.data.epoch is string && request.resource.data.createdAt == request.time;
+      allow update: if false;
+      allow delete: if mine(uid);
+
+      match /records/{rid} {
+        allow read, delete: if mine(uid);
+        allow create, update: if mine(uid)
+          && request.resource.data.keys().hasOnly(['t', 'del', 'n', 'iv', 'at'])
+          && request.resource.data.t is number && request.resource.data.del is bool
+          && request.resource.data.n is number && request.resource.data.n >= 0 && request.resource.data.n <= 40
+          && request.resource.data.iv is string && request.resource.data.iv.size() <= 32
+          && request.resource.data.at == request.time;
+      }
+      match /chunks/{cid} {
+        allow read, delete: if mine(uid);
+        allow create, update: if mine(uid)
+          && request.resource.data.keys().hasOnly(['d'])
+          && request.resource.data.d is string && request.resource.data.d.size() <= 800000;
+      }
+    }
+
+    // conversations/{uid1_uid2}: one conversation per pair of people (the two ids, smaller first). Only the two can see it.
+    function convPath(cid) { return /databases/$(database)/documents/conversations/$(cid); }
+    function otherOf(d) { return d.members[0] == request.auth.uid ? d.members[1] : d.members[0]; }
+
+    match /conversations/{cid} {
+      allow get: if signedIn() && cid.matches('.*' + request.auth.uid + '.*') && (resource == null || request.auth.uid in resource.data.members);
+      allow list: if signedIn() && request.auth.uid in resource.data.members;
+
+      // A first message makes a request: the other person has to accept it.
+      allow create: if signedIn()
+        && request.resource.data.keys().hasOnly(['members', 'usernames', 'status', 'requester', 'createdAt', 'lastMessage', 'lastMessageAt', 'lastFrom'])
+        && request.resource.data.members.size() == 2
+        && request.resource.data.members[0] < request.resource.data.members[1]
+        && cid == request.resource.data.members[0] + '_' + request.resource.data.members[1]
+        && request.auth.uid in request.resource.data.members
+        && request.resource.data.requester == request.auth.uid
+        && request.resource.data.status == 'pending'
+        && request.resource.data.lastFrom == request.auth.uid
+        && request.resource.data.usernames[request.auth.uid] == myName()
+        && get(/databases/$(database)/documents/usernames/$(request.resource.data.usernames[otherOf(request.resource.data)])).data.uid == otherOf(request.resource.data)
+        && request.resource.data.createdAt == request.time && request.resource.data.lastMessageAt == request.time
+        && request.resource.data.lastMessage is string && request.resource.data.lastMessage.size() <= 140;
+
+      allow update: if signedIn() && request.auth.uid in resource.data.members && (
+        // answering a request: only the person who was asked, and only the status
+        (request.auth.uid != resource.data.requester
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt'])
+          && request.resource.data.status in ['accepted', 'declined'])
+        ||
+        // a new message updates the preview, but only once the request is accepted
+        (resource.data.status == 'accepted'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastMessage', 'lastMessageAt', 'lastFrom'])
+          && request.resource.data.lastFrom == request.auth.uid && request.resource.data.lastMessageAt == request.time
+          && request.resource.data.lastMessage is string && request.resource.data.lastMessage.size() <= 140)
+      );
+      allow delete: if false;
+
+      // The history: messages are added, never changed or removed.
+      match /messages/{mid} {
+        function conv() { return getAfter(convPath(cid)).data; }
+        allow read: if signedIn() && request.auth.uid in get(convPath(cid)).data.members;
+        allow create: if signedIn() && request.auth.uid in conv().members
+          && request.resource.data.keys().hasOnly(['from', 'text', 't', 'at'])
+          && request.resource.data.from == request.auth.uid
+          && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000
+          && request.resource.data.t is number && request.resource.data.at == request.time
+          && (conv().status == 'accepted' || (conv().status == 'pending' && conv().requester == request.auth.uid && mid == 'request'));
+        allow update, delete: if false;
+      }
+    }
+
+    // everything else stays closed
+    match /{document=**} { allow read, write: if false; }
+  }
+}

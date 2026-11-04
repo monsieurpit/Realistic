@@ -5,11 +5,11 @@
   const T = (x) => PatOS.t(x);
   const ACCENTS = ['#0a84ff', '#bf5af2', '#ff375f', '#ff453a', '#ff9f0a', '#ffd60a', '#32d74b', '#64d2ff', '#8e8e93'];
   const PANES = [
-    ['general', 'General', '⚙️'], ['update', 'Software Update', '⬇️'], ['appearance', 'Appearance', '🎨'], ['accessibility', 'Accessibility', '♿'], ['wallpaper', 'Wallpaper', '🖼'], ['dock', 'Home Screen & Dock', '🧭'],
+    ['general', 'General', '⚙️'], ['account', 'Account', '👤'], ['update', 'Software Update', '⬇️'], ['appearance', 'Appearance', '🎨'], ['accessibility', 'Accessibility', '♿'], ['wallpaper', 'Wallpaper', '🖼'], ['dock', 'Home Screen & Dock', '🧭'],
     ['display', 'Displays & 3D', '🖥'], ['sound', 'Sound', '🔊'], ['lock', 'Lock Screen', '🔒'], ['network', 'Network', '📶'], ['startup', 'Install & Start Up', '🚀'], ['permissions', 'Permissions', '🛡'], ['system', 'This Device', '💻'],
     ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾'], ['backup', 'Backup & Restore', '🕘'], ['sync', 'Sync', '☁️'], ['privacy', 'Privacy', '🔐']
   ];
-  const KW = { privacy: 'privacy apps permissions camera microphone location log confidentialite applications permissions camera micro position journal', sync: 'sync cloud devices iphone chromebook account encrypted key code synchroniser appareils compte chiffre cle', backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
+  const KW = { account: 'account username password sign in sign up cloud save login compte nom utilisateur mot de passe connexion creer', privacy: 'privacy apps permissions camera microphone location log confidentialite applications permissions camera micro position journal', sync: 'sync cloud devices iphone chromebook account encrypted key code synchroniser appareils compte chiffre cle', backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
   // Spotlight searches Settings with this list
   PatOS.settingsIndex = () => PANES.map(([k, l]) => ({ pane: k, label: l, keywords: KW[k] || '' }));
   PatOS.registerApp({
@@ -148,6 +148,32 @@
             }
           };
           const on = () => { if (pane === 'backup' && out.isConnected) paint(); }; const off = PatOS.on('backup', on); win.on('closed', off);
+          paint(); return [out];
+        },
+        account() {
+          const out = h('div', { class: 'bk ac' }); const A = PatOS.account;
+          const msg = (title, body) => PatOS.alertBox(title, body, { icon: 'settings' });
+          const paint = () => {
+            out.innerHTML = '';
+            out.appendChild(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('settings') }), h('div', {}, h('h2', {}, T('PatOS Account')), h('p', { class: 'su-status' }, T('A username and a password, no email. Everything you have is saved to your account and follows you to every device. A copy stays on each device, so PatOS works offline too.')))));
+            if (!A || !A.available()) { out.appendChild(h('div', { class: 'bk-empty' }, T('Accounts need PatOS opened from its web address (https) in a browser that can do encryption.'))); return; }
+            if (!A.signedIn()) {
+              out.appendChild(group(row(T('Create an account'), h('button', { class: 'btn primary', onclick: () => PatOS.accountUI.open('signup') }, T('Create Account…')), T('Everything on this device is saved to it.')), row(T('Already have one?'), h('button', { class: 'btn', onclick: () => PatOS.accountUI.open('signin') }, T('Sign In…')), T('Your saved things come to this device.'))));
+              out.appendChild(h('div', { class: 'bk-empty' }, T('There is no “forgot my password”: your saved things are locked with your password, so nobody can open them without it.'))); return;
+            }
+            const st = PatOS.sync.status(); const i = A.info();
+            const label = A.status().state === 'reauth' ? T('Your sign-in expired. Sign in again to keep saving.') : st.state === 'syncing' ? T('Saving…') : st.state === 'offline' || st.offline ? T('Offline. Your changes are safe here and are saved when you are back online.') : st.error ? T('Saving had a problem. PatOS will try again.') : st.last ? T('Everything is saved') + ' · ' + (PatOS.backup ? PatOS.backup.when(st.last) : '') : T('Not saved yet');
+            const now = h('button', { class: 'btn' }, T('Save Now')); now.onclick = async () => { now.disabled = true; try { await PatOS.sync.now(); } finally { now.disabled = false; } };
+            out.appendChild(group(row(T('Signed in as'), h('span', { class: 'st-val' }, '@' + i.username)), row(T('Status'), now, label), row(T('Saved in your account'), h('span', { class: 'st-val' }, st.items + ' ' + T('items')), st.stay ? st.stay + ' ' + T('big files (videos and recordings) stay on this device only.') : T('Files, notes, calendar, contacts, settings, apps and more.'))));
+            if (A.status().state === 'reauth') out.appendChild(group(row(T('Sign in again'), h('button', { class: 'btn primary', onclick: () => PatOS.accountUI.open('signin') }, T('Sign In…')))));
+            out.appendChild(h('h3', {}, T('Sign out')));
+            const so = h('button', { class: 'btn', onclick: async () => { if (await PatOS.confirmBox(T('Sign out?'), T('Everything stays on this device. PatOS stops saving to your account until you sign in again.'), { ok: T('Sign Out'), icon: 'settings' })) { await A.signOut(); paint(); } } }, T('Sign Out…'));
+            const del = h('button', { class: 'btn danger', onclick: async () => {
+              const pw = await PatOS.ask(T('Delete your account?'), '', { password: true, ok: T('Delete Account'), danger: true, icon: 'settings', text: T('This deletes your username and everything saved in your account (not what is on this device). Messages you sent stay in your friends’ chats. Type your password to confirm.') });
+              if (!pw) return; try { await A.deleteAccount(pw); paint(); msg(T('Account deleted'), T('Your account and its saved copy are gone. Everything is still on this device.')); } catch (e) { msg(T('That didn’t work'), String(e.message || e)); } } }, T('Delete Account…'));
+            out.appendChild(group(row(T('Stop using this account on this device'), so), row(T('Delete this account'), del, T('Removes your username and the saved copy from the cloud.'))));
+          };
+          const on = () => { if (pane === 'account' && out.isConnected) paint(); }; const offs = [PatOS.on('account', on), PatOS.on('sync', on)]; win.on('closed', () => offs.forEach((f) => f()));
           paint(); return [out];
         },
         privacy() {
@@ -442,7 +468,7 @@
       }
       function render(keepSearch) {
         side.innerHTML = '';
-        side.appendChild(h('div', { class: 'st-user' }, h('div', { class: 'lock-avatar sm' }, S().userName.charAt(0).toUpperCase()), h('div', {}, h('b', {}, S().userName), h('small', {}, 'PatOS Account'))));
+        side.appendChild(h('div', { class: 'st-user' }, h('div', { class: 'lock-avatar sm' }, S().userName.charAt(0).toUpperCase()), h('div', {}, h('b', {}, S().userName), h('small', {}, PatOS.account && PatOS.account.signedIn() ? '@' + PatOS.account.info().username : PatOS.t('Sign in or create an account')))));
         side.appendChild(sq); if (!keepSearch) { sq.value = filter; }
         drawSide();
         renderMain();

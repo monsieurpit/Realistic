@@ -162,6 +162,14 @@ PatDrop is a chat where you can also drop files, links, clipboard text and apps.
 - **Offline:** what you send waits in an outbox saved on the device and goes out when you are back online. You are told when something arrives.
 - **The server:** rooms live in `PATOS_DATA/link`. The server forgets items after 30 days, and the oldest first when a room is over `LINK_QUOTA_MB` (100). Other limits: `LINK_MAX_ROOMS` (100), `LINK_RATE` (240 requests a minute per address). If the folder is lost, the next device that talks to it makes the room again (old messages stay on the devices that already have them).
 
+## Accounts and Messages (Firebase)
+
+PatOS accounts need only a username and a password (no email). Everything you have (files, notes, calendar, settings, apps...) is saved to your account in the cloud, **encrypted on the device with a key made from your password**, and a copy stays on each device, so PatOS still opens and works offline. Sign in on another device and everything is there. There is no password reset: nobody can open your cloud copy without the password. Files over about 9 MB stay on the device where they are.
+
+**Messages** is for people: search a username, send a message request, and they receive notifications from you only after they accept. Every conversation and its history is saved in the cloud database and is the same on all your devices. Pat, the command helper, is the button in the top bar.
+
+First-time setup of the Firebase project (switch on Email/Password sign-in, publish `firestore.rules`) is in **[docs/FIREBASE.md](docs/FIREBASE.md)**, which also lists everything the database holds and what the rules allow. `npm run test:cloud` tests all of it against the Firebase emulator (not your real project).
+
 ## Updates
 
 `updates.json` lists every version, newest first, with what changed (English and French). `npm run build` turns it into `js/version.js`. While PatOS is open it checks the server every few minutes: you get "Update available", then "Ready to install", which opens Settings › Software Update with the version and its notes. Restart PatOS installs it on PatOS's own boot screen and brings your windows back. To publish an update: add an entry at the top of `updates.json`, run `npm run build`, push, and let Railway deploy. A release being built has a `"beta": N` number: raise N with each push and add its notes; only people with Settings › Software Update › Beta updates on are told about it (the switch chooses what you are told, not what is downloaded: PatOS has one website, so everyone's copy gets the newest files, and a beta can start running at the next restart even with the switch off. Truly separate channels would need a second Railway deployment) (everyone gets the files, since there is one website). When it is ready, delete `"beta"` and push: everyone gets the normal update.
