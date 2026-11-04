@@ -59,6 +59,7 @@
     q.filter((x) => String(x.id).startsWith('cal:') && !want.has(x.id)).forEach((x) => PatOS.alarms.cancel(x.id));
     want.forEach((item, id) => { const old = q.find((x) => x.id === id); if (!old || old.at !== item.at || old.title !== item.title) PatOS.alarms.schedule(item); });
   }
+  PatOS.calendarSync = syncAlerts;
   PatOS.on('wm:ready', () => setTimeout(syncAlerts, 1500));
   setInterval(syncAlerts, 10 * 60000);
 

@@ -231,3 +231,30 @@ test('Paint: drawing, opacity, shapes, undo, rotate, save and reopen', { skip: s
   assert.deepEqual(errors, []);
   await page.close();
 });
+
+test('Messages: Pat runs timers, alarms, calendar, reminders, conversions and finds files (English and French)', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage(); const errors = await boot(page, srv.base, { fresh: true });
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise((res) => setTimeout(res, ms)); const out = {}; const say = (t) => PatOS.assistantReply(t);
+    PatOS.launch('calendar').close(); await wait(100);
+    out.timer = say('timer 10 min'); out.queue = (PatOS.store.get('alarmQueue') || []).length;
+    out.badTimer = say('timer soon');
+    out.alarm = say('wake me at 7:30'); out.alarms = PatOS.store.get('alarms').map((a) => a.time + a.repeat).join();
+    out.event = say('add event lunch today at 12pm'); out.cal = say('what is on my calendar today?');
+    PatOS.store.set('reminders', [{ id: 1, text: 'Math homework', done: false, due: PatOS.dateKey(new Date()) }]); out.due = say('my reminders');
+    out.pct = say('15% of 80'); out.conv = say('5 km to mi'); out.math = say('2 + 3 * 4');
+    PatOS.fs.write('/Documents/Zebra essay.txt', 'x'); out.find = say('find file zebra');
+    out.pick = say('pick pizza or tacos'); out.near = say('galxy'); out.open = say('open galaxy'); out.clear = say('clear');
+    PatOS.lang = 'fr'; out.frTimer = say('minuteur 5 min'); out.frAlarm = say('réveille-moi à 6h45'); out.frCal = say('qu’est-ce que j’ai aujourd’hui?'); out.frConv = say('convertis 5 km en mi'); PatOS.lang = 'en';
+    return out;
+  });
+  assert.match(r.timer, /^Timer set for 10 min/); assert.equal(r.queue, 1); assert.match(r.badTimer, /How long/);
+  assert.match(r.alarm, /^Alarm set for/); assert.equal(r.alarms, '07:30once');
+  assert.match(r.event, /^Added “lunch”/); assert.match(r.cal, /lunch/); assert.match(r.due, /Math homework/);
+  assert.equal(r.pct, '15% of 80 = 12'); assert.equal(r.conv, "5 km = 3.107 mi"); assert.equal(r.math, '2 + 3 * 4 = 14');
+  assert.match(r.find, /Zebra essay\.txt/); assert.match(r.pick, /^I pick: (pizza|tacos)\.$/); assert.match(r.near, /Did you mean Galaxy/);
+  assert.match(r.open, /opening Galaxy/); assert.equal(r.clear, '\u0000clear');
+  assert.match(r.frTimer, /^Minuteur réglé/); assert.match(r.frAlarm, /^Alarme réglée/); assert.match(r.frCal, /lunch|Rien|calendrier/); assert.match(r.frConv, /3[.,]107/);
+  assert.deepEqual(errors, []);
+  await page.close();
+});
