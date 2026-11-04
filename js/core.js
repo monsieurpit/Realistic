@@ -685,6 +685,7 @@
     if (/^(mp4|webm|mov|m4v|ogv)$/.test(ext) && PatOS.apps.videos) return PatOS.launch('videos', { path });
     if (/^(docx|xlsx|pptx)$/.test(ext) && PatOS.openOffice) return PatOS.openOffice(path);
     if (ext === 'zip' && PatOS.openZip) return PatOS.openZip(path);
+    if (ext === 'patapp' && PatOS.patapps) return PatOS.patapps.installFromFile(path).catch((e) => PatOS.alertBox(PatOS.t('That didn’t work'), String(e.message || e), { icon: 'appstore' }));
     if (ext === 'ics' && PatOS.apps.calendar) return PatOS.launch('calendar', { ics: path });
     if (ext === 'py' && PatOS.apps.code) return PatOS.launch('code', { path });
     if (kind === 'image') return PatOS.launch('photos', { path });
@@ -770,6 +771,22 @@
       document.head.appendChild(s);
     });
     return three3D;
+  };
+  /* PitCode (the language; vendor/pitcode.js) is loaded only when something needs it: Studio, or an app written in PitCode */
+  let pitSrc = null;
+  PatOS.pitcodeSource = function () {
+    if (!pitSrc) pitSrc = (async () => {
+      const tag = document.querySelector('script[type="patos/pit"]');
+      if (tag && !tag.getAttribute('src')) return tag.textContent; // single-file PatOS: it is already inside
+      const r = await fetch((tag && tag.getAttribute('src')) || 'vendor/pitcode.js'); if (!r.ok) throw new Error('PitCode could not be loaded.');
+      return r.text();
+    })().catch((e) => { pitSrc = null; throw e; });
+    return pitSrc;
+  };
+  PatOS.loadPitCode = async function () {
+    if (window.PitCode) return window.PitCode;
+    const s = document.createElement('script'); s.text = await PatOS.pitcodeSource(); document.head.appendChild(s);
+    return window.PitCode;
   };
   /* weaker devices (2-4 cores, little memory, phones) get lighter 3D when quality is "Balanced" */
   PatOS.weakDevice = (function () {

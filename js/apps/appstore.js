@@ -48,7 +48,7 @@
       win.el.classList.add('has-toolbar');
       let tab = 'discover', q = '';
       const seg = h('div', { class: 'seg' });
-      [['discover', 'Discover'], ['phone', 'Phone & Web'], ['office', 'Office'], ['games', '3D & Games'], ['all', 'All Apps']].forEach(([k, l]) => seg.appendChild(h('button', { class: 'tab', 'data-k': k, onclick: () => { tab = k; render(); } }, l)));
+      [['discover', 'Discover'], ['phone', 'Phone & Web'], ['office', 'Office'], ['games', '3D & Games'], ['community', 'Community'], ['develop', 'Develop'], ['all', 'All Apps']].forEach(([k, l]) => seg.appendChild(h('button', { class: 'tab', 'data-k': k, onclick: () => { tab = k; render(); } }, l)));
       const search = h('input', { class: 'field', placeholder: 'Search apps', style: { width: '170px' } });
       search.oninput = () => { q = search.value.toLowerCase(); render(); };
       win.toolbar.append(seg, h('div', { style: { flex: 1 } }), search);
@@ -146,6 +146,8 @@
         main.innerHTML = '';
         const ids = PatOS.appOrder.filter((id) => !PatOS.apps[id].hidden && id !== 'appstore');
         if (q && tab !== 'phone') { if (X) { const xs = X.list().filter((c) => (c.name + ' ' + c.cat).toLowerCase().includes(q)); if (xs.length) { main.appendChild(h('h2', {}, PatOS.t('Phone & Web'))); const gx = h('div', { class: 'as-list' }); xs.forEach((c) => gx.appendChild(xrow(c))); main.appendChild(gx); } } main.appendChild(h('h2', {}, 'Results')); const g = h('div', { class: 'as-list' }); ids.filter((id) => (PatOS.apps[id].name + ' ' + (PatOS.apps[id].keywords || '')).toLowerCase().includes(q)).forEach((id) => g.appendChild(row(id))); main.appendChild(g); return; }
+        if (tab === 'community' && PatOS.patappsUI) { PatOS.patappsUI.community(main, q, render); return; }
+        if (tab === 'develop' && PatOS.patappsUI) { PatOS.patappsUI.develop(main, render); return; }
         if (tab === 'phone' && X) { phoneTab(); return; }
         if (tab === 'discover') {
           const hero = h('div', { class: 'as-hero' });

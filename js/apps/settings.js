@@ -7,9 +7,9 @@
   const PANES = [
     ['general', 'General', '⚙️'], ['update', 'Software Update', '⬇️'], ['appearance', 'Appearance', '🎨'], ['accessibility', 'Accessibility', '♿'], ['wallpaper', 'Wallpaper', '🖼'], ['dock', 'Home Screen & Dock', '🧭'],
     ['display', 'Displays & 3D', '🖥'], ['sound', 'Sound', '🔊'], ['lock', 'Lock Screen', '🔒'], ['network', 'Network', '📶'], ['startup', 'Install & Start Up', '🚀'], ['permissions', 'Permissions', '🛡'], ['system', 'This Device', '💻'],
-    ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾'], ['backup', 'Backup & Restore', '🕘'], ['sync', 'Sync', '☁️']
+    ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾'], ['backup', 'Backup & Restore', '🕘'], ['sync', 'Sync', '☁️'], ['privacy', 'Privacy', '🔐']
   ];
-  const KW = { sync: 'sync cloud devices iphone chromebook account encrypted key code synchroniser appareils compte chiffre cle', backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
+  const KW = { privacy: 'privacy apps permissions camera microphone location log confidentialite applications permissions camera micro position journal', sync: 'sync cloud devices iphone chromebook account encrypted key code synchroniser appareils compte chiffre cle', backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
   // Spotlight searches Settings with this list
   PatOS.settingsIndex = () => PANES.map(([k, l]) => ({ pane: k, label: l, keywords: KW[k] || '' }));
   PatOS.registerApp({
@@ -148,6 +148,36 @@
             }
           };
           const on = () => { if (pane === 'backup' && out.isConnected) paint(); }; const off = PatOS.on('backup', on); win.on('closed', off);
+          paint(); return [out];
+        },
+        privacy() {
+          const out = h('div', { class: 'bk pv' }); const A = PatOS.patapps;
+          const paint = () => {
+            out.innerHTML = '';
+            out.appendChild(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('settings') }), h('div', {}, h('h2', {}, T('Privacy')), h('p', { class: 'su-status' }, T('Apps from the App Store Community run in a locked box. Each one has to ask before it uses your camera, microphone, location, files, clipboard, notifications or the internet. Here you see what each app may do, and what it did.')))));
+            const apps = A ? A.list() : [];
+            if (!apps.length) out.appendChild(h('div', { class: 'bk-empty' }, T('No community apps are installed. PatOS’s own apps are not listed here.')));
+            apps.forEach((r) => {
+              const g = A.grants(r.id); const rows = [];
+              if (!r.app.permissions.length) rows.push(row(T('Asks for'), h('span', { class: 'st-val' }, T('nothing special'))));
+              r.app.permissions.forEach((p) => {
+                const st = g[p] || 'ask'; const sw = h('button', { class: 'switch' + (st === 'allow' ? ' on' : ''), role: 'switch', 'aria-checked': String(st === 'allow'), 'aria-label': A.permInfo(p)[0] });
+                sw.onclick = () => { A.setGrant(r.id, p, st === 'allow' ? 'deny' : 'allow'); paint(); };
+                rows.push(row(A.permInfo(p)[0], h('div', { class: 'st-inline' }, h('span', { class: 'st-val' }, st === 'allow' ? T('Allowed') : st === 'deny' ? T('Not allowed') : T('Will ask')), sw), A.permInfo(p)[1].replace(/^./, (c) => c.toUpperCase()) + '.'));
+              });
+              rows.push(row(T('Remove this app'), h('button', { class: 'btn', onclick: async () => { if (await A.uninstall(r.id)) paint(); } }, T('Remove…')), r.source === 'store' ? T('Checked by the owner of this PatOS.') : T('Installed from a file. Nobody checked it.')));
+              out.appendChild(h('h3', {}, r.app.name + ' ' + r.app.version)); out.appendChild(group(...rows));
+            });
+            const lg = A ? A.logOf() : [];
+            out.appendChild(h('h3', {}, T('Recent activity')));
+            if (!lg.length) out.appendChild(h('div', { class: 'bk-empty' }, T('Nothing yet.')));
+            else {
+              const word = (w) => w === 'used' ? T('used') : w === 'allowed' ? T('was allowed') : w === 'denied' ? T('was denied') : T('was blocked');
+              out.appendChild(h('div', { class: 'bk-list pv-log' }, ...lg.slice(0, 40).map((x) => h('div', { class: 'bk-snap' }, h('div', {}, h('b', {}, x.name), h('small', {}, A.permInfo(x.perm)[0] + ' ' + word(x.what))), h('small', {}, PatOS.backup ? PatOS.backup.when(x.t) : new Date(x.t).toLocaleString())))));
+              out.appendChild(h('div', { class: 'bk-acts', style: { marginTop: '8px' } }, h('button', { class: 'btn', onclick: () => { A.clearLog(); paint(); } }, T('Clear Activity'))));
+            }
+          };
+          const on = () => { if (pane === 'privacy' && out.isConnected) paint(); }; const off = PatOS.on('patapps', on); win.on('closed', off);
           paint(); return [out];
         },
         sync() {

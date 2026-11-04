@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">
+<title>PatOS app requests</title>
+<style nonce="__NONCE__">
+:root { color-scheme: dark; --bg:#111216; --card:#1c1d23; --line:#2d2f38; --text:#f2f2f7; --dim:#9a9aa6; --blue:#0a84ff; --red:#ff453a; --green:#32d74b; --amber:#ffd60a; }
+* { box-sizing: border-box; } body { margin:0; background:var(--bg); color:var(--text); font:15px/1.5 system-ui,-apple-system,Segoe UI,sans-serif; }
+main { max-width: 860px; margin: 0 auto; padding: 24px 16px 80px; } h1 { font-size: 24px; margin: 0 0 4px; } h2 { font-size: 15px; color: var(--dim); text-transform: uppercase; letter-spacing: .06em; margin: 28px 0 10px; }
+p.sub { color: var(--dim); margin: 0 0 18px; } .card { background: var(--card); border:1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+.row { display:flex; gap:12px; align-items:center; flex-wrap:wrap; } .grow { flex:1; min-width: 200px; } .ic { width:44px; height:44px; border-radius:11px; display:grid; place-items:center; font-size:24px; flex:none; }
+small, .dim { color: var(--dim); } button, input, textarea { font: inherit; } input, textarea { width:100%; background:#0d0e11; color:var(--text); border:1px solid var(--line); border-radius:10px; padding:9px 11px; }
+button { background:#2a2c35; color:var(--text); border:0; border-radius:10px; padding:8px 14px; cursor:pointer; } button.primary { background:var(--blue); } button.good { background: #1f7a3a; } button.bad { background:#8e2a24; } button:disabled { opacity:.5; }
+.tag { display:inline-block; font-size:12px; padding:2px 8px; border-radius:20px; background:#2a2c35; margin: 2px 4px 2px 0; } .tag.warn { background:#5a4a00; color:var(--amber); } .tag.net { background:#5a1d19; color:#ffb4ae; }
+pre { background:#0d0e11; border:1px solid var(--line); border-radius:10px; padding:12px; overflow:auto; max-height: 420px; font: 12.5px/1.45 ui-monospace,Menlo,Consolas,monospace; white-space: pre-wrap; word-break: break-word; }
+.err { color: var(--red); min-height: 20px; } .hidden { display:none; } ul.flags { margin: 6px 0 0; padding-left: 20px; } ul.flags li { color: var(--amber); }
+</style></head><body><main>
+<h1>PatOS app requests</h1><p class="sub">Review apps that people sent in. Nothing here is run: the app's code is only shown as text. To try an app, download it and open it in PatOS (App Store &rsaquo; Develop &rsaquo; Open a .patapp file).</p>
+<section id="login" class="card"><label for="pw"><b>Password</b></label><div class="row" style="margin-top:8px"><input id="pw" type="password" class="grow" autocomplete="current-password" placeholder="Review password"><button id="go" class="primary">Sign in</button></div><div id="lerr" class="err"></div></section>
+<section id="app" class="hidden"><div class="row"><div class="grow"><h2 style="margin:0">Waiting for review</h2></div><button id="out">Sign out</button></div><div id="pending"></div><h2>In the store</h2><div id="accepted"></div><div id="detail"></div></section>
+<script nonce="__NONCE__">
+(function () {
+  'use strict';
+  var token = ''; var $ = function (id) { return document.getElementById(id); };
+  function el(tag, props) { var e = document.createElement(tag); props = props || {}; Object.keys(props).forEach(function (k) { if (k === 'text') e.textContent = props[k]; else if (k === 'class') e.className = props[k]; else if (k.slice(0, 2) === 'on') e[k] = props[k]; else e.setAttribute(k, props[k]); }); for (var i = 2; i < arguments.length; i++) { var c = arguments[i]; if (c) e.appendChild(typeof c === 'string' ? document.createTextNode(c) : c); } return e; }
+  function api(method, route, body) { return fetch('/api/apps/' + route, { method: method, headers: Object.assign({ Authorization: 'Bearer ' + token }, body ? { 'Content-Type': 'application/json' } : {}), body: body ? JSON.stringify(body) : undefined }).then(function (r) { return r.json().then(function (j) { if (r.status === 401) { signOut(); } if (!r.ok) throw new Error(j.error || 'Error'); return j; }); }); }
+  function signOut() { token = ''; $('app').classList.add('hidden'); $('login').classList.remove('hidden'); $('pw').value = ''; }
+  $('out').onclick = signOut;
+  function login() { $('lerr').textContent = ''; api('POST', 'admin/login', { password: $('pw').value }).then(function (j) { token = j.token; $('login').classList.add('hidden'); $('app').classList.remove('hidden'); refresh(); }).catch(function (e) { $('lerr').textContent = e.message; }); }
+  $('go').onclick = login; $('pw').onkeydown = function (e) { if (e.key === 'Enter') login(); };
+  function tags(a) { var box = el('div'); if (a.engine === 'pitcode') box.appendChild(el('span', { class: 'tag', text: 'written in PitCode' })); (a.permissions.length ? a.permissions : ['nothing special']).forEach(function (p) { box.appendChild(el('span', { class: 'tag' + (p === 'network' ? ' net' : p === 'nothing special' ? '' : ' warn'), text: p })); }); return box; }
+  function card(a, kind) {
+    var ic = el('div', { class: 'ic', text: a.icon }); ic.style.background = /^#[0-9a-f]{6}$/i.test(a.color) ? a.color : '#0a84ff';
+    var acts = el('div', { class: 'row' }, el('button', { class: 'primary', text: kind === 'pending' ? 'Review' : 'Look', onclick: function () { detail(a, kind); } }));
+    if (kind === 'accepted') acts.appendChild(el('button', { class: 'bad', text: 'Remove from store', onclick: function () { if (confirm('Remove ' + a.name + ' from the store? People who installed it keep it.')) api('POST', 'admin/remove', { id: a.id }).then(refresh).catch(function (e) { alert(e.message); }); } }));
+    return el('div', { class: 'card' }, el('div', { class: 'row' }, ic, el('div', { class: 'grow' }, el('b', { text: a.name + ' ' + a.version }), el('div', { class: 'dim', text: (a.author || 'unknown author') + ' · ' + a.id + ' · ' + Math.round(a.size / 1024 * 10) / 10 + ' KB' }), el('div', { text: a.description }), tags(a)), acts));
+  }
+  function refresh() {
+    $('detail').textContent = '';
+    api('GET', 'admin/list').then(function (j) {
+      var p = $('pending'), a = $('accepted'); p.textContent = ''; a.textContent = '';
+      if (!j.pending.length) p.appendChild(el('p', { class: 'dim', text: 'Nothing waiting.' })); j.pending.forEach(function (x) { p.appendChild(card(x, 'pending')); });
+      if (!j.accepted.length) a.appendChild(el('p', { class: 'dim', text: 'No community apps yet.' })); j.accepted.forEach(function (x) { a.appendChild(card(x, 'accepted')); });
+    }).catch(function (e) { $('detail').appendChild(el('p', { class: 'err', text: e.message })); });
+  }
+  /* things a reviewer should look at: this only points them out, it does not decide anything */
+  var FLAGS = [[/\bfetch\s*\(|XMLHttpRequest|WebSocket|EventSource|sendBeacon/, 'Talks to the network (only works if it asks for "network")'], [/\beval\s*\(|new\s+Function\s*\(|document\.write/, 'Builds code from text (eval, Function, document.write)'], [/\bparent\b|\btop\b|window\.opener/, 'Mentions parent, top or opener'], [/document\.cookie|localStorage|sessionStorage|indexedDB/, 'Uses browser storage directly (apps should use patos.storage)'], [/window\.open|location\s*=|location\.href|location\.assign/, 'Opens or navigates to other pages'], [/<iframe|<object|<embed/i, 'Embeds other pages'], [/\bjs\.(fetch|XMLHttpRequest|WebSocket|eval|Function|top|parent|document\.cookie|localStorage)|\bjs\.window\b/, 'PitCode reaching into JavaScript (js.fetch, js.eval, js.top ...)'], [/https?:\/\/[^\s"'`)<>]+/, 'Contains web addresses']];
+  function detail(a, kind) {
+    api('GET', 'admin/app?id=' + encodeURIComponent(a.id) + (kind === 'accepted' ? '&from=accepted' : '')).then(function (j) {
+      var app = j.app, box = $('detail'); box.textContent = '';
+      var sources = []; var m = /id="pit-files">([\s\S]*?)<\/script>/.exec(app.html);
+      if (app.engine === 'pitcode' && m) { try { var fl = JSON.parse(m[1]); Object.keys(fl).forEach(function (n) { sources.push({ name: n, text: String(fl[n]) }); }); } catch (e) {} }
+      var all = app.html + '\n' + sources.map(function (s) { return s.text; }).join('\n');
+      var flags = el('ul', { class: 'flags' }); FLAGS.forEach(function (f) { if (f[0].test(all)) flags.appendChild(el('li', { text: f[1] })); });
+      if (app.engine === 'pitcode') flags.appendChild(el('li', { text: 'Uses the PitCode engine: it may build code from text inside its locked box (normal for PitCode, but read the sources).' }));
+      var note = el('input', { placeholder: 'A note for the person who sent it (optional, they will see it)', maxlength: '300' });
+      var acts = el('div', { class: 'row', style: 'margin-top:10px' });
+      if (kind === 'pending') { acts.appendChild(el('button', { class: 'good', text: 'Accept', onclick: function () { decide('accept'); } })); acts.appendChild(el('button', { class: 'bad', text: 'Reject', onclick: function () { decide('reject'); } })); }
+      acts.appendChild(el('button', { text: 'Download .patapp', onclick: function () { var b = new Blob([JSON.stringify(app)], { type: 'application/json' }); var u = URL.createObjectURL(b); var l = el('a', { href: u, download: app.id + '.patapp' }); document.body.appendChild(l); l.click(); l.remove(); setTimeout(function () { URL.revokeObjectURL(u); }, 2000); } }));
+      function decide(d) { if (d === 'reject' && !note.value.trim() && !confirm('Reject without a note?')) return; api('POST', 'admin/decide', { id: app.id, decision: d, note: note.value }).then(refresh).catch(function (e) { alert(e.message); }); }
+      box.append(el('h2', { text: 'Reviewing ' + app.name + ' ' + app.version }), el('div', { class: 'card' }, el('div', { text: 'Asks for:' }), tags(app), el('div', { class: 'dim', style: 'margin-top:8px', text: 'Things to look at:' }), flags.children.length ? flags : el('p', { class: 'dim', text: 'Nothing unusual found, but read the code.' }), kind === 'pending' ? el('div', { style: 'margin-top:12px' }, note) : null, acts), sources.length ? el('h2', { text: 'PitCode sources' }) : null);
+      sources.forEach(function (s) { box.appendChild(el('div', { class: 'dim', text: s.name })); box.appendChild(el('pre', { text: s.text })); });
+      var det = el('details', {}, el('summary', { text: sources.length ? 'The whole page PatOS will run (read this too)' : 'Code' }), el('pre', { text: app.html })); if (!sources.length) det.setAttribute('open', ''); box.appendChild(det);
+      box.scrollIntoView({ behavior: 'smooth' });
+    }).catch(function (e) { alert(e.message); });
+  }
+})();
+</script></main></body></html>

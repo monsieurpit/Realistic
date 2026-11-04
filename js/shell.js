@@ -10,14 +10,14 @@
       const input = opts.input != null ? h('input', { class: 'field dlg-in', value: opts.input, spellcheck: 'false', type: opts.password ? 'password' : 'text', autocomplete: opts.password ? 'new-password' : 'off' }) : null;
       const done = (v) => { layer.remove(); document.removeEventListener('keydown', onKey, true); resolve(v); };
       const ok = h('button', { class: 'btn ' + (opts.danger ? 'danger' : 'primary') }, opts.ok || 'OK');
-      const cancel = h('button', { class: 'btn' }, 'Cancel');
+      const cancel = h('button', { class: 'btn' }, opts.cancel || 'Cancel');
       ok.onclick = () => done(input ? input.value : true);
       cancel.onclick = () => done(input ? null : false);
-      const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); cancel.click(); } else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); ok.click(); } };
+      const onKey = (e) => { if (e.key === 'Escape') { e.stopPropagation(); cancel.click(); } else if (e.key === 'Enter') { e.preventDefault(); e.stopPropagation(); (opts.safe ? cancel : ok).click(); } };
       document.addEventListener('keydown', onKey, true);
       layer.appendChild(h('div', { class: 'dlg' }, h('div', { class: 'dlg-ic', html: PatOS.iconHTML(opts.icon || 'about') }), h('b', {}, opts.title || 'PatOS'), opts.text ? h('p', {}, opts.text) : null, input, h('div', { class: 'dlg-btns' }, opts.noCancel ? null : cancel, ok)));
       document.body.appendChild(layer);
-      setTimeout(() => { if (input) { input.focus(); input.select(); } else ok.focus(); }, 30);
+      setTimeout(() => { if (input) { input.focus(); input.select(); } else (opts.safe ? cancel : ok).focus(); }, 30);
     });
   }
   PatOS.ask = (title, value, opts) => dialog(Object.assign({ title, input: value == null ? '' : value }, opts));

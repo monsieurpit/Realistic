@@ -5,6 +5,7 @@ const path = require('path');
 const yt = require('./yt.js');
 const services = require('./services.js');
 const syncServer = require('./sync-server.js');
+const appsServer = require('./apps-server.js');
 const { sendFile, sendJSON, sendPyodide } = require('./http-util.js');
 
 const ROOT = __dirname;
@@ -12,10 +13,10 @@ const PORT = process.env.PORT || 3000;
 const TYPES = {
   '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8',
   '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml',
-  '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8'
+  '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8', '.md': 'text/plain; charset=utf-8', '.patapp': 'application/json'
 };
 const PRIVATE_DIRS = new Set(['test', 'node_modules', 'data', 'sync-data']); // never served
-const PRIVATE = new Set(['server.js', 'yt.js', 'services.js', 'http-util.js', 'sync-server.js', 'package.json', 'package-lock.json', 'build.js', 'updates.json']);
+const PRIVATE = new Set(['server.js', 'yt.js', 'services.js', 'http-util.js', 'sync-server.js', 'apps-server.js', 'apprequests.html', 'package.json', 'package-lock.json', 'build.js', 'updates.json']);
 
 const server = http.createServer((req, res) => {
   let p;
@@ -23,6 +24,8 @@ const server = http.createServer((req, res) => {
   if (p.startsWith('/api/yt/')) return yt.handle(req, res, new URL(req.url, 'http://x'));
   if (p.startsWith('/api/news') || p.startsWith('/api/books/') || p === '/api/suggest' || p === '/api/frameable') return services.handle(req, res, new URL(req.url, 'http://x'));
   if (p.startsWith('/api/sync/')) return syncServer.handle(req, res, new URL(req.url, 'http://x'));
+  if (p.startsWith('/api/apps/')) return appsServer.handle(req, res, new URL(req.url, 'http://x'));
+  if (p === '/apprequests' || p === '/apprequests/') return appsServer.page(req, res);
   if (p.startsWith('/pyodide/')) return sendPyodide(req, res, p).then((ok) => { if (!ok) { res.writeHead(404); res.end('Not found'); } });
   if (p === '/api/config') return sendJSON(req, res, 200, { googleCx: (process.env.GOOGLE_CX || '').trim() });
   // the list of PatOS versions and what changed in each (read fresh, so a running PatOS can see the newest one)
