@@ -138,3 +138,31 @@ test('Settings › Sync: turn on, show the code, join dialog, turn off', { skip:
   assert.deepEqual(errors, []);
   await page.close();
 });
+
+test('an old copy of PatOS can send everything to a new server at another address', { skip: skipNoBrowser }, async () => {
+  const A = await device();
+  await A.ev(() => PatOS.fs.write('/Documents/rescue.txt', 'saved from the old site'));
+  const k = await A.ev(async () => { const c = await PatOS.sync.enable(); await PatOS.sync.now(); return c; });
+  const data2 = mkData(); process.env.PATOS_DATA = data2; const srv2 = await startServer();
+  try {
+    assert.match(await A.ev(async () => { try { await PatOS.sync.setServer('not a url'); return 'ok'; } catch (e) { return e.message; } }), /not a web address/);
+    const st = await A.ev(async (u) => { await PatOS.sync.setServer(u); await PatOS.sync.now(); return PatOS.sync.status(); }, srv2.base);
+    assert.equal(st.error, ''); assert.ok(allServerBytes(data2).length > 100, 'the new server received everything');
+    const F = await device(srv2.base);
+    assert.equal(await F.ev(async (c) => { await PatOS.sync.join(c); return PatOS.fs.read('/Documents/rescue.txt'); }, k), 'saved from the old site');
+    await F.ctx.close();
+  } finally { srv2.stop(); process.env.PATOS_DATA = dataDir; }
+  await A.ctx.close();
+});
+
+test('a new code: the device keeps everything, the old code stops working, the new one joins', { skip: skipNoBrowser }, async () => {
+  const A = await device(), B = await device(), C = await device();
+  await A.ev(() => PatOS.fs.write('/Documents/mine.txt', 'kept'));
+  const old = await A.ev(async () => { const c = await PatOS.sync.enable(); await PatOS.sync.now(); return c; });
+  const fresh = await A.ev(async () => PatOS.sync.regenerate());
+  assert.notEqual(fresh, old);
+  assert.equal(await A.ev(() => PatOS.fs.read('/Documents/mine.txt')), 'kept');
+  assert.equal(await B.ev(async (c) => { await PatOS.sync.join(c); return PatOS.fs.exists('/Documents/mine.txt'); }, old), false, 'the old code finds nothing');
+  assert.equal(await C.ev(async (c) => { await PatOS.sync.join(c); return PatOS.fs.read('/Documents/mine.txt'); }, fresh), 'kept');
+  await A.ctx.close(); await B.ctx.close(); await C.ctx.close();
+});

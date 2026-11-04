@@ -62,6 +62,10 @@ function check(a) {
 
 async function handle(req, res, url) {
   const route = url.pathname.replace(/^\/api\/sync\/?/, '');
+  /* Another PatOS site may talk to this server (for example an old copy of PatOS sending its data to a new server).
+     This is safe: nothing here uses cookies, and every request needs the account's secret token. */
+  res.setHeader('Access-Control-Allow-Origin', '*'); res.setHeader('Access-Control-Allow-Headers', 'Authorization, Content-Type, X-Patos-Uid'); res.setHeader('Access-Control-Allow-Methods', 'GET, POST, DELETE, OPTIONS'); res.setHeader('Access-Control-Max-Age', '86400');
+  if (req.method === 'OPTIONS') { res.writeHead(204); return res.end(); }
   if (limited(req)) return json(res, 429, { error: 'slow down' });
   try {
     const a = auth(req); if (a.error) return json(res, 400, { error: a.error });

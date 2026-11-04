@@ -127,3 +127,30 @@ test('restore screens: a locked file asks for its password, then for a confirmat
   assert.deepEqual(r, { asksPassword: true, asksAgain: true, confirm: true, restored: 'my homework', restarted: true });
   await page.close(); await page2.close();
 });
+
+test('auto-backup folder: big files are copied as real files and come back after everything is lost', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage(); await boot(page, srv.base, { fresh: true });
+  const r = await page.evaluate(async () => {
+    const mk = () => { const files = new Map(), dirs = new Map(); return { files, dirs,
+      async getFileHandle(n, o) { if (!files.has(n)) { if (!o || !o.create) throw new Error('nf'); files.set(n, new Blob([])); } return { async getFile() { const f = files.get(n); return new File([f], n, { lastModified: Date.now() }); }, async createWritable() { const parts = []; return { async write(x) { parts.push(x); }, async close() { files.set(n, new Blob(parts)); } }; } }; },
+      async getDirectoryHandle(n, o) { if (!dirs.has(n)) { if (!o || !o.create) throw new Error('nf'); dirs.set(n, mk()); } return dirs.get(n); },
+      async removeEntry(n) { files.delete(n); },
+      async *entries() { for (const k of [...files.keys()]) yield [k, await this.getFileHandle(k)]; } }; };
+    const dir = mk(); const bytes = new Uint8Array(300000).map((_, i) => i % 251);
+    await PatOS.fs.writeBlob('/Videos/clip.bin', new Blob([bytes], { type: 'video/mp4' }));
+    const tree = PatOS.fs.exportTree(); const id = PatOS.fs.get('/Videos/clip.bin').blob;
+    const c = await PatOS.backup.folder.copyBig(dir, tree);
+    const again = await PatOS.backup.folder.copyBig(dir, tree); // nothing new the second time
+    const copy = dir.dirs.get('PatOS-files').files.get(id);
+    // everything in PatOS's storage is lost
+    await new Promise((res) => { const tx = window.__IDB.transaction('blobs', 'readwrite'); tx.objectStore('blobs').delete(id); tx.oncomplete = res; });
+    const gone = await PatOS.fs.getBlob('/Videos/clip.bin');
+    const n = await PatOS.backup.folder.loadBig(dir, tree);
+    const back = await PatOS.fs.getBlob('/Videos/clip.bin');
+    const same = back && back.size === bytes.length && new Uint8Array(await back.arrayBuffer()).every((v, i) => v === bytes[i]);
+    return { c, again, size: copy && copy.size, gone: !!gone, n, same, type: back && back.type };
+  });
+  assert.deepEqual(r.c, { total: 1, copied: 1, skipped: 0 }); assert.deepEqual(r.again, { total: 1, copied: 0, skipped: 0 });
+  assert.equal(r.size, 300000); assert.equal(r.gone, false); assert.equal(r.n, 1); assert.equal(r.same, true); assert.equal(r.type, 'video/mp4');
+  await page.close();
+});

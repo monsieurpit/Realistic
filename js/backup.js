@@ -15,6 +15,7 @@
   const T = (s) => PatOS.t(s);
   const FORMAT = 'patos-backup', ENC = 'patos-backup-encrypted';
   const KEEP = { auto: 7, manual: 10, before: 3 };
+  const FOLDER_CAP = 1024 * 1024 * 1024, FILES_DIR = 'PatOS-files'; // the folder keeps a full copy of big files, up to this much
   const BLOB_CAP = 150 * 1024 * 1024; // a backup file includes big files only up to this much in total
   const DAY = 86400000;
   const db = () => window.__IDB;
@@ -104,9 +105,10 @@
   async function removeSnapshot(key) { try { await delSnap(key); } catch (e) {} setIndex(index().filter((x) => x.key !== key)); }
 
   /* ---------- putting a backup back ---------- */
-  async function apply(state) {
+  async function apply(state, opts) {
     if (!state || state.format !== FORMAT || !state.fs || !state.kv) throw new Error('This is not a PatOS backup');
     await snapshot(T('Before restoring'), 'before'); // always keep a way back
+    if (opts && opts.blobDir) await loadBigFiles(opts.blobDir, state.fs);
     if (state.blobs) for (const id of Object.keys(state.blobs)) { const b = state.blobs[id]; const blob = new Blob([await unb64(b.data)], { type: b.type || '' }); await idb('blobs', 'readwrite', (s) => s.put(blob, id)); }
     PatOS.store.restoreData(structuredClone(state.kv));
     const r = await PatOS.fs.importTree(structuredClone(state.fs));
@@ -145,6 +147,36 @@
     names.sort().reverse().slice(keep || 14).forEach((n) => { dir.removeEntry(n).catch(() => {}); });
     return name;
   }
+  const bigIds = (tree) => { const ids = []; (function walk(n) { if (n.type === 'dir') Object.values(n.children || {}).forEach(walk); else if (n.blob && /^[A-Za-z0-9]+$/.test(n.blob)) ids.push([n.blob, n.size || 0]); })(tree); return ids; };
+  /* big files (videos, recordings) go into the folder as real files, one each, so the folder holds everything.
+     Only new ones are copied each time. Files that are no longer in PatOS are removed after 14 days. */
+  async function copyBigFiles(dir, tree) {
+    const ids = bigIds(tree); const out = { total: ids.length, copied: 0, skipped: 0 };
+    const fd = await dir.getDirectoryHandle(FILES_DIR, { create: true }); const have = new Map();
+    for await (const [n, hd] of fd.entries()) have.set(n, hd);
+    let bytes = 0;
+    for (const [id, size] of ids) {
+      bytes += size; if (have.has(id)) continue;
+      if (bytes > FOLDER_CAP) { out.skipped++; continue; }
+      const blob = await idb('blobs', 'readonly', (st) => st.get(id)).catch(() => null); if (!blob) { out.skipped++; continue; }
+      try { const fh = await fd.getFileHandle(id, { create: true }); const w = await fh.createWritable(); await w.write(blob); await w.close(); out.copied++; }
+      catch (e) { out.skipped++; try { await fd.removeEntry(id); } catch (e2) {} }
+    }
+    const live = new Set(ids.map((x) => x[0]));
+    for (const [n, hd] of have) if (!live.has(n)) { try { const f = await hd.getFile(); if (Date.now() - f.lastModified > 14 * DAY) await fd.removeEntry(n); } catch (e) {} }
+    return out;
+  }
+  /* before a restore from a folder: bring its big files back into PatOS's storage */
+  async function loadBigFiles(dir, tree) {
+    let fd; try { fd = await dir.getDirectoryHandle(FILES_DIR); } catch (e) { return 0; }
+    const have = new Set(await idb('blobs', 'readonly', (st) => st.getAllKeys()).catch(() => [])); let n = 0;
+    const mime = {}; (function walk(x) { if (x.type === 'dir') Object.values(x.children || {}).forEach(walk); else if (x.blob) mime[x.blob] = x.mime || ''; })(tree);
+    for (const [id] of bigIds(tree)) {
+      if (have.has(id)) continue;
+      try { const f = await (await fd.getFileHandle(id)).getFile(); const blob = new Blob([await f.arrayBuffer()], { type: mime[id] || f.type || '' }); await idb('blobs', 'readwrite', (st) => st.put(blob, id)); n++; } catch (e) {}
+    }
+    return n;
+  }
   async function linkFolder() {
     if (!folderSupported()) throw new Error('This browser can’t save to a folder');
     const h = await window.showDirectoryPicker({ id: 'patos-backup', mode: 'readwrite' });
@@ -160,7 +192,7 @@
     const h = await getFolder(); if (!h) return { ok: false, why: 'none' };
     const p = await folderPermission(h, !!ask); if (p !== 'granted') return { ok: false, why: 'permission' };
     const state = await collect({ blobs: false });
-    try { const name = await writeToFolder(h, state); setInfo({ folderLast: Date.now() }); PatOS.emit('backup'); return { ok: true, name }; } catch (e) { return { ok: false, why: String(e.message || e) }; }
+    try { const name = await writeToFolder(h, state); let big = null; try { big = await copyBigFiles(h, state.fs); } catch (e) { big = { total: 0, copied: 0, skipped: 0, failed: true }; } setInfo({ folderLast: Date.now(), folderBig: big }); PatOS.emit('backup'); return { ok: true, name }; } catch (e) { return { ok: false, why: String(e.message || e) }; }
   }
 
 
@@ -174,7 +206,7 @@
       if (r && r.missing) await msg(T('Restored'), r.missing + ' ' + T(r.missing === 1 ? 'big file was not in this backup, so it was left out.' : 'big files were not in this backup, so they were left out.'));
       PatOS.restartPatOS ? PatOS.restartPatOS({ update: false }) : location.reload();
     },
-    async fromFile(file) {
+    async fromFile(file, opts) {
       let pass = null, state = null; const text = await file.text();
       for (let i = 0; i < 4 && !state; i++) {
         try { state = await parse(text, pass); }
@@ -184,7 +216,7 @@
       }
       if (!state) return;
       const st = state.stats || {};
-      await ui.confirmRestore(T('Restore this backup?') + ' (' + when(state.created) + ', ' + (st.files || 0) + ' ' + T('files') + ', ' + (state.device || '') + ')', () => apply(state));
+      await ui.confirmRestore(T('Restore this backup?') + ' (' + when(state.created) + ', ' + (st.files || 0) + ' ' + T('files') + ', ' + (state.device || '') + ')', () => apply(state, opts));
     },
     pickFile() {
       return new Promise((res) => {
@@ -203,7 +235,7 @@
       files.sort((a, b) => b[0].localeCompare(a[0]));
       if (!files.length) return msg(T('No backups here yet'), T('This folder has no PatOS backups.'));
       const r = anchor && anchor.getBoundingClientRect ? anchor.getBoundingClientRect() : { left: innerWidth / 2 - 100, bottom: innerHeight / 2 - 100 };
-      PatOS.menu([{ header: T('Restore from this folder') }, ...files.slice(0, 14).map(([n, hd]) => ({ label: n.replace(/^PatOS-backup-/, '').replace(/\.patos-backup$/, ''), action: async () => { try { await ui.fromFile(await hd.getFile()); } catch (e) { msg(T('That didn’t work'), T(String(e.message || e))); } } }))], r.left, r.bottom + 4);
+      PatOS.menu([{ header: T('Restore from this folder') }, ...files.slice(0, 14).map(([n, hd]) => ({ label: n.replace(/^PatOS-backup-/, '').replace(/\.patos-backup$/, ''), action: async () => { try { await ui.fromFile(await hd.getFile(), { blobDir: dir }); } catch (e) { msg(T('That didn’t work'), T(String(e.message || e))); } } }))], r.left, r.bottom + 4);
     }
   };
 
@@ -234,5 +266,5 @@
   setInterval(() => autoTick(false), 3600e3);
 
   PatOS.backup = { ui, collect, parse, apply, snapshot, list, removeSnapshot, restoreSnapshot, exportFile, saveFile, count, when, stamp, autoTick, setAuto: (on) => setInfo({ auto: !!on }), autoOn, persist, info,
-    folder: { handle: getFolder, supported: folderSupported, link: linkFolder, unlink: unlinkFolder, status: folderStatus, writeNow: writeFolderNow, write: writeToFolder } };
+    folder: { handle: getFolder, supported: folderSupported, link: linkFolder, unlink: unlinkFolder, status: folderStatus, writeNow: writeFolderNow, write: writeToFolder, copyBig: copyBigFiles, loadBig: loadBigFiles } };
 })();

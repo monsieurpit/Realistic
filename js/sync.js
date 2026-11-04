@@ -167,8 +167,10 @@
   }
 
   /* ---------- talking to the server ---------- */
+  /* normally this same site; or another PatOS server you choose (a new Railway, while this copy of PatOS is still the old one) */
+  function base() { const v = String(PatOS.store.get('syncServer', '') || '').trim().replace(/\/+$/, ''); return /^https?:\/\/[^\s/]+$/i.test(v) ? v : ''; }
   async function call(method, route, body) {
-    const res = await fetch('/api/sync/' + route, { method, cache: 'no-store', headers: Object.assign({ 'X-Patos-Uid': S.uid, Authorization: 'Bearer ' + S.token }, body ? { 'Content-Type': 'application/json' } : {}), body: body ? JSON.stringify(body) : undefined });
+    const res = await fetch(base() + '/api/sync/' + route, { method, cache: 'no-store', headers: Object.assign({ 'X-Patos-Uid': S.uid, Authorization: 'Bearer ' + S.token }, body ? { 'Content-Type': 'application/json' } : {}), body: body ? JSON.stringify(body) : undefined });
     let j = null; try { j = await res.json(); } catch (e) {}
     if (!res.ok) throw Object.assign(new Error((j && j.error) || 'HTTP ' + res.status), { status: res.status });
     return j;
@@ -339,7 +341,25 @@
       PatOS.store.remove('syncKey'); PatOS.store.remove('syncState');
       setStatus('off'); return { failed };
     },
+    /* a new code (lost it, shared it by mistake, or the server is gone for good): this device keeps everything and
+       starts a new account under a new key. Other devices join again with the new code. */
+    async regenerate() {
+      if (!S) throw new Error('Sync is off');
+      if (noCrypto()) throw new Error('This browser cannot do encryption here');
+      try { await call('DELETE', 'account'); } catch (e) { /* the old server may be gone already */ }
+      const raw = crypto.getRandomValues(new Uint8Array(16));
+      PatOS.store.set('syncKey', b64(raw)); PatOS.store.remove('syncState');
+      await start(raw); await cycle(); return api.code();
+    },
     now: (opts) => cycle(opts),
+    server_url: () => base(),
+    /* point this device at another PatOS server; it fills the new one with everything it has */
+    setServer(url) {
+      url = String(url || '').trim().replace(/\/+$/, '');
+      if (url && !/^https?:\/\/[^\s/]+$/i.test(url)) throw new Error('That is not a web address. Use something like https://my-patos.up.railway.app');
+      if (url) PatOS.store.set('syncServer', url); else PatOS.store.remove('syncServer');
+      return S ? cycle() : null;
+    },
     /* send everything again (for example after the server said it was full) */
     resend() { if (!state) return null; Object.keys(state.recs).forEach((k) => { state.recs[k].pushed = false; }); state.rejected = 0; persist(); return cycle(); },
     async server() { if (!S) return null; try { return await call('GET', 'status'); } catch (e) { return null; } },
