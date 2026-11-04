@@ -115,10 +115,11 @@ test('restore screens: a locked file asks for its password, then for a confirmat
     const wait = (ms) => new Promise((res) => setTimeout(res, ms)); const out = {};
     PatOS.restartPatOS = () => { window.__restarted = true; };
     const done = PatOS.backup.ui.fromFile(new File([text], 'b.patos-backup'));
-    await wait(300); out.asksPassword = !!document.querySelector('.dlg .dlg-in[type=password]');
-    let inp = document.querySelector('.dlg .dlg-in'); inp.value = 'wrong'; document.querySelector('.dlg .btn.primary').click(); await wait(300);
+    const until = async (fn) => { for (let i = 0; i < 100 && !fn(); i++) await wait(100); };
+    await until(() => document.querySelector('.dlg .dlg-in')); out.asksPassword = !!document.querySelector('.dlg .dlg-in[type=password]');
+    let inp = document.querySelector('.dlg .dlg-in'); inp.value = 'wrong'; document.querySelector('.dlg .btn.primary').click(); await until(() => /not right/.test((document.querySelector('.dlg') || {}).innerText || ''));
     out.asksAgain = /not right/.test(document.querySelector('.dlg').innerText);
-    inp = document.querySelector('.dlg .dlg-in'); inp.value = 'sesame1'; document.querySelector('.dlg .btn.primary').click(); await wait(400);
+    inp = document.querySelector('.dlg .dlg-in'); inp.value = 'sesame1'; document.querySelector('.dlg .btn.primary').click(); await until(() => /Restore this backup/.test((document.querySelector('.dlg') || {}).innerText || ''));
     out.confirm = /Restore this backup/.test(document.querySelector('.dlg').innerText) && !PatOS.fs.exists('/Documents/keep.txt'); // nothing changes until you confirm
     document.querySelector('.dlg .btn.danger').click(); await done; await wait(200);
     out.restored = PatOS.fs.read('/Documents/keep.txt'); out.restarted = !!window.__restarted;

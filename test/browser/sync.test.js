@@ -166,3 +166,21 @@ test('a new code: the device keeps everything, the old code stops working, the n
   assert.equal(await C.ev(async (c) => { await PatOS.sync.join(c); return PatOS.fs.read('/Documents/mine.txt'); }, fresh), 'kept');
   await A.ctx.close(); await B.ctx.close(); await C.ctx.close();
 });
+
+test('Settings buttons that confirm with a notification work (new code, server address, backup snapshot)', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1100, height: 760 } }); const errors = await boot(page, srv.base, { fresh: true });
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise((res) => setTimeout(res, ms)); const o = { toasts: [] }; PatOS.notify = (n) => o.toasts.push(n.title);
+    await PatOS.sync.enable(); await wait(800);
+    const w = PatOS.launch('settings', { pane: 'sync' }); await wait(800);
+    const btn = (re) => [...w.body.querySelectorAll('.btn')].find((x) => re.test(x.textContent));
+    btn(/^Save$/).click(); await wait(800);
+    btn(/Make a New Code/).click(); await wait(300); document.querySelector('.dlg .btn.primary').click(); await wait(1500);
+    w._pane('backup'); await wait(600); btn(/Back Up Now|Snapshot now/).click(); await wait(800);
+    o.alert = !!document.querySelector('.dlg');
+    return o;
+  });
+  assert.deepEqual(r.toasts.filter((x) => !/Welcome/.test(x)), ['Server saved', 'New code ready', 'Snapshot saved']); assert.equal(r.alert, false);
+  assert.deepEqual(errors, []);
+  await page.close();
+});

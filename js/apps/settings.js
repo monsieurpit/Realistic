@@ -15,6 +15,7 @@
   PatOS.registerApp({
     id: 'settings', name: 'System Settings', icon: 'settings', width: 800, height: 560, minWidth: 600, keywords: 'preferences settings control wallpaper theme dark parametres paramètres réglages reglages préférences',
     launch(win, args) {
+      const toast = (t) => PatOS.notify({ title: t, body: '', icon: 'settings' });
       let pane = args.pane || 'general';
       const side = h('div', { class: 'st-side' });
       const main = h('div', { class: 'st-main' });
