@@ -258,3 +258,30 @@ test('Messages: Pat runs timers, alarms, calendar, reminders, conversions and fi
   assert.deepEqual(errors, []);
   await page.close();
 });
+
+test('Terminal: variables, aliases, !!, text tools and diff', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1000, height: 700 } }); const errors = await boot(page, srv.base, { fresh: true });
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise((res) => setTimeout(res, ms));
+    PatOS.fs.write('/Documents/a.txt', 'one\ntwo\nthree\n'); PatOS.fs.write('/Documents/b.txt', 'one\n2\nthree\nfour\n'); PatOS.fs.write('/Documents/c.csv', 'x,1,red\ny,2,blue\n');
+    const w = PatOS.launch('terminal'); await wait(300);
+    const input = w.body.querySelector('.term-in'); const out = w.body.querySelector('.term');
+    const run = async (cmd) => { const before = out.querySelectorAll('.term-row').length; input.value = cmd; input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter' })); await wait(250); return [...out.querySelectorAll('.term-row')].slice(before + 1).map((x) => x.textContent).join('\n'); };
+    await run('cd Documents'); const o = {};
+    await run('NAME=Pat'); o.var = await run('echo hello $NAME'); o.single = await run("echo '$NAME'");
+    await run("alias ll='ls -l'"); o.alias = (await run('ll')).includes('a.txt');
+    o.bang = await run('echo again'); o.bang2 = await run('!!');
+    o.cut = await run('cut -d, -f1,3 c.csv'); o.tr = await run('echo hello | tr a-z A-Z'); o.sed = await run("cat a.txt | sed 's/o/0/g'");
+    o.nl = await run('cat a.txt | nl'); o.diff = await run('diff a.txt b.txt'); o.stat = await run('stat a.txt'); o.base = await run('basename /Documents/a.txt .txt');
+    o.which = await run('which grep'); o.missing = await run('nosuchcmd'); o.empty = await run('  | ');
+    // Tab fills in what the matches share
+    await run('touch report1.txt'); await run('touch report2.txt'); input.value = 'cat rep'; input.dispatchEvent(new KeyboardEvent('keydown', { key: 'Tab' })); o.tab = input.value;
+    return o;
+  });
+  assert.equal(r.var, 'hello Pat'); assert.equal(r.single, '$NAME'); assert.equal(r.alias, true); assert.equal(r.bang2, 'echo again\nagain');
+  assert.equal(r.cut, 'x,red\ny,blue'); assert.equal(r.tr, 'HELLO'); assert.equal(r.sed, 'one\ntw0\nthree'.replace('one', '0ne'));
+  assert.match(r.nl, /1\s+one[\s\S]*3\s+three/); assert.equal(r.diff, '< two\n> 2\n> four'); assert.match(r.stat, /Size:/); assert.equal(r.base, 'a');
+  assert.match(r.which, /built in/); assert.match(r.missing, /command not found/); assert.equal(r.tab, 'cat report');
+  assert.deepEqual(errors, []);
+  await page.close();
+});

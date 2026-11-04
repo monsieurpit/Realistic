@@ -42,7 +42,7 @@
            ['mkdir <dir>', 'make a folder'], ['rm <path>', 'move to Trash'], ['mv <src> <dir>', 'move'], ['cp <src> <dir>', 'copy'], ['echo <text> [> file]', 'print or write text'],
            ['tree', 'show folder tree'], ['open <app|file>', 'open an app or file'], ['apps', 'list apps'], ['calc <expr>', 'calculator'], ['date', 'current date'], ['whoami', 'your name'],
            ['neofetch', 'system info'], ['theme dark|light', 'change appearance'], ['wallpaper <name>', 'change wallpaper'], ['matrix', 'enter the matrix (press any key to stop)'],
-           ['grep / wc / head / tail', 'filter text (works with |)'], ['sort / uniq / rev / seq', 'more text tools'], ['find [dir] -name <pattern>', 'find files'], ['ls -l', 'detailed list'], ['python <file.py>', 'run a Python program (also python -c "code")'], ['node <file.js>', 'run a JavaScript file'], ['curl <url>', 'download a web page'], ['ping <host>', 'check a website'], ['weather', 'current weather'], ['todo [text]', 'list or add reminders'], ['cmd > file', 'save output to a file'], ['cmd1 && cmd2', 'run one after another'], ['cowsay <text>', 'a talking cow'], ['fortune', 'a random message'], ['history', 'command history'], ['clear', 'clear screen'], ['exit', 'close terminal']]
+           ['grep / wc / head / tail', 'filter text (works with |)'], ['sort / uniq / rev / seq', 'more text tools'], ['cut / tr / sed / nl / tee', 'cut -d, -f1 · tr a-z A-Z · sed s/a/b/g'], ['diff <a> <b>', 'compare two files'], ['stat <file>', 'size, type and date'], ['basename / dirname', 'parts of a path'], ['NAME=value / $NAME', 'variables (export to keep them)'], ['alias ll="ls -l"', 'make your own shortcut'], ['!!', 'repeat the last command'], ['which / sleep', 'find a command · wait'], ['find [dir] -name <pattern>', 'find files'], ['ls -l', 'detailed list'], ['python <file.py>', 'run a Python program (also python -c "code")'], ['node <file.js>', 'run a JavaScript file'], ['curl <url>', 'download a web page'], ['ping <host>', 'check a website'], ['weather', 'current weather'], ['todo [text]', 'list or add reminders'], ['cmd > file', 'save output to a file'], ['cmd1 && cmd2', 'run one after another'], ['cowsay <text>', 'a talking cow'], ['fortune', 'a random message'], ['history', 'command history'], ['clear', 'clear screen'], ['exit', 'close terminal']]
             .forEach(([c, d]) => print(`  <span class="ty">${esc(c.padEnd(22))}</span>${esc(d)}`));
         },
         ls(a) {
@@ -224,12 +224,73 @@
       const oldHist = cmds.history; cmds.history = (a) => { if (flag(a, '-c')) { hist.length = 0; PatOS.store.set('termHist', hist); return text('History cleared.', 'tm'); } oldHist(a); };
       const oldMv = cmds.mv; cmds.mv = (a) => { if (a.length === 2 && !PatOS.fs.isDir(resolve(a[1])) && PatOS.fs.dirname(resolve(a[1])) === PatOS.fs.dirname(resolve(a[0]))) { try { PatOS.fs.rename(resolve(a[0]), PatOS.fs.basename(resolve(a[1]))); } catch (e) { text('mv: ' + e.message, 'err'); } return; } oldMv(a); };
       const oldCat = cmds.cat; cmds.cat = (a) => { if (!a.length && stdin != null) return text(stdin); if (a.length > 1) return a.forEach((f) => oldCat([f])); oldCat(a); };
+      /* ---------- shell basics: variables, aliases, and a few more tools ---------- */
+      const vars = Object.assign({ USER: user, HOME: '/Users/' + user, SHELL: '/bin/patsh' }, PatOS.store.get('termVars', {}));
+      const aliases = PatOS.store.get('termAlias', {});
+      const saveVars = () => { const o = {}; Object.keys(vars).forEach((k) => { if (!['USER', 'HOME', 'SHELL'].includes(k)) o[k] = vars[k]; }); PatOS.store.set('termVars', o); };
+      const readAll = (a) => { const f = a.filter((x) => !x.startsWith('-')); const files = f.slice(1); return files.length ? files.map((n) => { const c = PatOS.fs.read(resolve(n)); if (c == null) throw new Error(n + ': No such file'); return c; }).join('\n') : stdin == null ? '' : stdin; };
+      const lines = (t) => String(t).replace(/\n$/, '').split('\n');
+      Object.assign(cmds, {
+        export(a) { if (!a.length) return cmds.env([]); a.forEach((x) => { const m = /^([A-Za-z_]\w*)=(.*)$/.exec(x); if (m) vars[m[1]] = m[2].replace(/^["']|["']$/g, ''); }); saveVars(); },
+        unset(a) { a.forEach((k) => { delete vars[k]; }); saveVars(); },
+        alias(a, raw) {
+          const rest = raw.replace(/^\s*alias\s*/i, '');
+          if (!rest) return text(Object.keys(aliases).map((k) => k + "='" + aliases[k] + "'").join('\n') || '(no aliases)');
+          const m = /^([\w.-]+)=(.*)$/.exec(rest); if (!m) return text(aliases[rest] ? rest + "='" + aliases[rest] + "'" : 'alias: ' + rest + ': not found', aliases[rest] ? undefined : 'err');
+          aliases[m[1]] = m[2].replace(/^["']|["']$/g, ''); PatOS.store.set('termAlias', aliases);
+        },
+        unalias(a) { a.forEach((k) => { delete aliases[k]; }); PatOS.store.set('termAlias', aliases); },
+        which(a) { a.forEach((n) => text(cmds[n.toLowerCase()] ? (aliases[n] ? n + ': aliased to ' + aliases[n] : n + ': built in to PatOS Terminal') : n + ' not found', cmds[n.toLowerCase()] ? undefined : 'err')); },
+        basename(a) { if (!a[0]) return text('usage: basename <path>', 'err'); const b = a[0].replace(/\/+$/, '').split('/').pop(); text(a[1] && b.endsWith(a[1]) ? b.slice(0, -a[1].length) : b); },
+        dirname(a) { if (!a[0]) return text('usage: dirname <path>', 'err'); const p = a[0].replace(/\/+$/, ''); const i = p.lastIndexOf('/'); text(i < 0 ? '.' : i === 0 ? '/' : p.slice(0, i)); },
+        sleep(a) { const n = parseFloat(a[0]); if (!(n >= 0)) return text('usage: sleep <seconds>', 'err'); return new Promise((r) => setTimeout(r, Math.min(n, 30) * 1000)); },
+        nl(a) { text(lines(readAll(['', ...a])).map((l, i) => String(i + 1).padStart(6) + '  ' + l).join('\n')); },
+        tee(a) { const f = a.filter((x) => !x.startsWith('-'))[0]; const data = stdin == null ? '' : stdin; text(data); if (f) { const p = resolve(f); try { PatOS.fs.write(p, (flag(a, '-a') ? (PatOS.fs.read(p) || '') : '') + data + '\n'); } catch (e) { text('tee: ' + e.message, 'err'); } } },
+        cut(a) {
+          const di = a.findIndex((x) => x === '-d' || (x.startsWith('-d') && x.length > 2)), fi = a.findIndex((x) => x === '-f' || /^-f\d/.test(x)); if (fi < 0) return text('usage: cut -d, -f1,3 [file]', 'err');
+          const delim = di < 0 ? '\t' : a[di] === '-d' ? (a[di + 1] || '\t') : a[di].slice(2); const spec = a[fi] === '-f' ? a[fi + 1] : a[fi].slice(2);
+          const want = []; String(spec).split(',').forEach((r) => { const m = /^(\d+)-(\d*)$/.exec(r); if (m) { for (let i = +m[1]; i <= (+m[2] || 50); i++) want.push(i); } else if (+r) want.push(+r); });
+          const skip = new Set([di, fi]); if (di >= 0 && a[di] === '-d') skip.add(di + 1); if (a[fi] === '-f') skip.add(fi + 1);
+          const rest = a.filter((x, i) => !skip.has(i));
+          lines(readAll(['', ...rest])).forEach((l) => { const p = l.split(delim); text(want.map((n) => p[n - 1]).filter((x) => x != null).join(delim)); });
+        },
+        tr(a) {
+          const set = (x) => String(x || '').replace(/(.)-(.)/g, (m, c, d) => { let o = ''; for (let i = c.charCodeAt(0); i <= d.charCodeAt(0); i++) o += String.fromCharCode(i); return o; }).replace(/\\n/g, '\n');
+          const del = flag(a, '-d'); const sets = a.filter((x) => !x.startsWith('-')); const A = set(sets[0]), B = set(sets[1]);
+          if (!A) return text('usage: tr a-z A-Z   or   tr -d chars', 'err');
+          const src = stdin == null ? '' : stdin; text([...src].map((c) => { const i = A.indexOf(c); if (i < 0) return c; return del ? '' : (B[Math.min(i, B.length - 1)] || c); }).join(''));
+        },
+        sed(a) {
+          const ex = a.find((x) => /^s(.).+\1.*\1[gi]*$/.test(x)); if (!ex) return text("usage: sed 's/old/new/g' [file]", 'err');
+          const d = ex[1]; const parts = ex.slice(2).split(d); const re = new RegExp(parts[0], (parts[2] || '').includes('g') ? (parts[2].includes('i') ? 'gi' : 'g') : (parts[2] || '').includes('i') ? 'i' : '');
+          lines(readAll(['', ...a.filter((x) => x !== ex && !x.startsWith('-'))])).forEach((l) => text(l.replace(re, parts[1])));
+        },
+        stat(a) { if (!a[0]) return text('usage: stat <file>', 'err'); const p = resolve(a[0]); const n = PatOS.fs.get(p); if (!n) return text('stat: ' + a[0] + ': No such file or directory', 'err'); text(['  File: ' + PatOS.fs.basename(p) + (n.type === 'dir' ? '/' : ''), '  Type: ' + (n.type === 'dir' ? 'folder' : 'file'), '  Size: ' + PatOS.fmtBytes(PatOS.fs.size(n)), '  Where: ' + (PatOS.fs.dirname(p) || '/'), 'Modified: ' + new Date(n.mtime).toLocaleString()].join('\n')); },
+        diff(a) {
+          const f = a.filter((x) => !x.startsWith('-')); if (f.length < 2) return text('usage: diff <file1> <file2>', 'err');
+          const A = PatOS.fs.read(resolve(f[0])), B = PatOS.fs.read(resolve(f[1])); if (A == null || B == null) return text('diff: ' + (A == null ? f[0] : f[1]) + ': No such file', 'err');
+          const x = lines(A), y = lines(B); if (x.length * y.length > 4e6) return text('diff: the files are too big to compare here', 'err');
+          const L = Array.from({ length: x.length + 1 }, () => new Uint16Array(y.length + 1));
+          for (let i = x.length - 1; i >= 0; i--) for (let j = y.length - 1; j >= 0; j--) L[i][j] = x[i] === y[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+          const out = []; let i = 0, j = 0;
+          while (i < x.length || j < y.length) { if (i < x.length && j < y.length && x[i] === y[j]) { i++; j++; } else if (i < x.length && (j >= y.length || L[i + 1][j] >= L[i][j + 1])) out.push('< ' + x[i++]); else out.push('> ' + y[j++]); }
+          text(out.length ? out.join('\n') : 'The files are the same.', out.length ? undefined : 'tm');
+        }
+      });
+      const oldEnv = cmds.env; cmds.env = () => text(Object.keys(vars).map((k) => k + '=' + vars[k]).concat(['LANG=' + (PatOS.lang === 'fr' ? 'fr_CA' : 'en_CA') + '.UTF-8', 'OS=PatOS ' + PatOS.version, 'TERM=patos-256color']).join('\n'));
+      void oldEnv;
+      // $NAME and ${NAME} become their values (not inside single quotes)
+      const expand = (line) => { let out = '', q = null; for (let i = 0; i < line.length; i++) { const c = line[i]; if (q) { if (c === q) q = null; out += c; } else if (c === '"' || c === "'") { q = c; out += c; } else if (c === '$') { const m = /^\$(?:\{(\w+)\}|(\w+)|\?)/.exec(line.slice(i)); if (m) { out += m[0] === '$?' ? '0' : (vars[m[1] || m[2]] != null ? vars[m[1] || m[2]] : ''); i += m[0].length - 1; } else out += c; } else out += c; } return out; };
       cmds.python3 = cmds.python; cmds.py = cmds.python; cmds.dir = cmds.ls; cmds.cls = cmds.clear; cmds.man = cmds.help; cmds.say = cmds.echo;
 
       const splitTop = (s, sep) => { const out = []; let cur = '', q = null; for (let i = 0; i < s.length; i++) { const c = s[i]; if (q) { if (c === q) q = null; cur += c; } else if (c === '"' || c === "'") { q = c; cur += c; } else if (s.startsWith(sep, i)) { out.push(cur); cur = ''; i += sep.length - 1; } else cur += c; } out.push(cur); return out.map((x) => x.trim()).filter(Boolean); };
       async function exec1(seg, inData, capt) {
-        const parts = seg.match(/"[^"]*"|'[^']*'|\S+/g).map((p) => p.replace(/^["']|["']$/g, ''));
-        const name = parts.shift().toLowerCase();
+        seg = seg.trim(); if (!seg) return true;
+        const assign = /^([A-Za-z_]\w*)=(.*)$/.exec(seg); if (assign) { vars[assign[1]] = expand(assign[2]).replace(/^["']|["']$/g, ''); saveVars(); return true; }
+        const first = seg.split(/\s+/)[0]; if (aliases[first]) seg = aliases[first] + seg.slice(first.length);
+        seg = expand(seg);
+        const parts = (seg.match(/"[^"]*"|'[^']*'|\S+/g) || []).map((p) => p.replace(/^["']|["']$/g, ''));
+        const name = (parts.shift() || '').toLowerCase(); if (!name) return true;
         if (!cmds[name]) { text('patsh: command not found: ' + name + '  (type “help”)', 'err'); return false; }
         const prevCap = capture, prevIn = stdin; capture = capt; stdin = inData;
         try { await cmds[name](parts, seg); return true; } catch (e) { capture = prevCap; text(name + ': ' + e.message, 'err'); return false; } finally { capture = prevCap; stdin = prevIn; }
@@ -250,6 +311,7 @@
       async function run(raw) {
         print(prompt.innerHTML + esc(raw), 'cmd');
         raw = raw.trim(); if (!raw) return;
+        if (/^!!/.test(raw)) { if (!hist.length) return text('patsh: no previous command', 'err'); raw = hist[hist.length - 1] + raw.slice(2); print('<span class="tm">' + esc(raw) + '</span>'); }
         hist.push(raw); if (hist.length > 200) hist.shift(); hi = hist.length; PatOS.store.set('termHist', hist);
         input.disabled = true;
         for (const part of splitTop(raw, '&&')) { const ok = await runLine(part); if (!ok) break; }
@@ -269,8 +331,13 @@
           const dir = resolve(base || '.'); const frag = last.slice(base.length).toLowerCase();
           const pool = parts.length ? PatOS.fs.list(dir).map((i) => i.name + (i.type === 'dir' ? '/' : '')) : Object.keys(cmds);
           const m = pool.filter((n) => n.toLowerCase().startsWith(frag));
-          if (m.length === 1) input.value = [...parts, base + m[0]].join(' ');
-          else if (m.length > 1) print(m.map(esc).join('    '), 'tm');
+          if (m.length === 1) input.value = [...parts, base + m[0]].join(' ') + (m[0].endsWith('/') ? '' : ' ');
+          else if (m.length > 1) {
+            // fill in what all the matches share, then list them
+            let pre = m[0]; m.forEach((n) => { while (!n.toLowerCase().startsWith(pre.toLowerCase())) pre = pre.slice(0, -1); });
+            if (pre.length > frag.length) input.value = [...parts, base + pre].join(' ');
+            print(m.map(esc).join('    '), 'tm');
+          }
         }
       });
       setPrompt();
