@@ -7,9 +7,9 @@
   const PANES = [
     ['general', 'General', '⚙️'], ['update', 'Software Update', '⬇️'], ['appearance', 'Appearance', '🎨'], ['accessibility', 'Accessibility', '♿'], ['wallpaper', 'Wallpaper', '🖼'], ['dock', 'Home Screen & Dock', '🧭'],
     ['display', 'Displays & 3D', '🖥'], ['sound', 'Sound', '🔊'], ['lock', 'Lock Screen', '🔒'], ['network', 'Network', '📶'], ['startup', 'Install & Start Up', '🚀'], ['permissions', 'Permissions', '🛡'], ['system', 'This Device', '💻'],
-    ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾']
+    ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾'], ['backup', 'Backup & Restore', '🕘']
   ];
-  const KW = { update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
+  const KW = { backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
   // Spotlight searches Settings with this list
   PatOS.settingsIndex = () => PANES.map(([k, l]) => ({ pane: k, label: l, keywords: KW[k] || '' }));
   PatOS.registerApp({
@@ -80,6 +80,73 @@
           };
           const idOf = (r) => (r ? r.version + (r.beta ? 'b' + r.beta : '') : '');
           if (U) { const on = () => { if (pane === 'update' && out.isConnected) paint(); }; const off = PatOS.on('update', on); win.on('closed', off); U.fetchReleases().then(on); if (U.state === 'idle' || U.state === 'uptodate') U.check(false); }
+          paint(); return [out];
+        },
+        backup() {
+          const out = h('div', { class: 'bk' }); const B = PatOS.backup;
+          const msg = (title, body) => PatOS.alertBox(title, body, { icon: 'settings' });
+          const sizeOf = (b) => PatOS.fmtBytes(b);
+          const spin = (btn, fn) => async () => { if (btn) btn.disabled = true; try { await fn(); } catch (e) { if (e && e.name !== 'AbortError') msg(T('That didn’t work'), String(e.message || e)); } finally { if (btn) btn.disabled = false; } };
+          const restore = (title, run) => B.ui.confirmRestore(title, run), fromFile = (f) => B.ui.fromFile(f), pickFile = () => B.ui.pickFile();
+          function exportDialog() {
+            const c = B.count(PatOS.fs.exportTree());
+            const layer = h('div', { class: 'dlg-layer' }); const close = () => layer.remove();
+            const big = h('input', { type: 'checkbox', checked: c.blobFiles > 0 && c.blobBytes < 150 * 1048576 }); big.disabled = !c.blobFiles;
+            const p1 = h('input', { class: 'field', type: 'password', placeholder: T('Password (optional)'), autocomplete: 'new-password', 'aria-label': T('Password') }), p2 = h('input', { class: 'field', type: 'password', placeholder: T('Type it again'), autocomplete: 'new-password', 'aria-label': T('Password again') });
+            const note = h('div', { class: 'bk-note' });
+            const go = h('button', { class: 'btn primary' }, T('Export'));
+            go.onclick = async () => {
+              if (p1.value && p1.value !== p2.value) { note.textContent = T('The two passwords are different.'); return; }
+              if (p1.value && p1.value.length < 6) { note.textContent = T('Use at least 6 characters.'); return; }
+              go.disabled = true; note.textContent = T('Making the backup…');
+              try { const f = await B.exportFile({ blobs: big.checked, password: p1.value || null }); const how = await B.saveFile(f); close(); if (how !== 'cancelled') PatOS.notify({ title: T('Backup file ready'), body: f.name + ' · ' + sizeOf(f.blob.size) + (f.stats.bigSkipped ? ' · ' + f.stats.bigSkipped + ' ' + T('big files left out') : ''), icon: 'settings', duration: 8000 }); }
+              catch (e) { go.disabled = false; note.textContent = String(e.message || e); }
+            };
+            layer.appendChild(h('div', { class: 'dlg ce bk-dlg' }, h('b', {}, T('Export a backup file')), h('p', { class: 'bk-note' }, T('One file with all your files, notes and settings. Keep it somewhere safe, like a USB stick or your Files app.') + ' ' + c.files + ' ' + T('files') + ', ' + sizeOf(c.bytes + c.blobBytes) + '.'),
+              c.blobFiles ? h('label', { class: 'ce-row' }, h('span', {}, T('Include big files') + ' (' + c.blobFiles + ', ' + sizeOf(c.blobBytes) + ')'), big) : null,
+              h('p', { class: 'bk-note' }, T('A password locks the file. If you forget it, the backup can’t be opened.')), p1, p2, note,
+              h('div', { class: 'dlg-btns' }, h('button', { class: 'btn', onclick: close }, T('Cancel')), go)));
+            layer.addEventListener('pointerdown', (e) => { if (e.target === layer) close(); }); layer.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+            document.body.appendChild(layer); setTimeout(() => p1.focus(), 30);
+          }
+          const folderBackups = (btn) => B.ui.folderMenu(null, btn);
+          const paint = async () => {
+            const [persisted, fst] = await Promise.all([B.persist.status(), B.folder.status()]);
+            const snaps = B.list(); const inf = B.info();
+            out.innerHTML = '';
+            out.append(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('settings') }), h('div', {}, h('h2', {}, T('Your data is yours')), h('p', { class: 'su-status' }, T('PatOS keeps everything on this device and works without internet. Backups protect it if the browser’s data is erased, PatOS is removed, or you switch devices.')))));
+            const vaultWarn = PatOS.passwords && PatOS.passwords.deviceOnly && PatOS.passwords.all().length;
+            if (vaultWarn) out.appendChild(h('div', { class: 'pw-warn bk-warn' }, h('span', {}, T('Your saved passwords are locked with a key that never leaves this device, so a backup can’t open them on another device or after PatOS is erased. Add a master password in Passwords to include them safely.')), h('button', { class: 'btn', onclick: () => PatOS.launch('passwords') }, T('Open Passwords'))));
+            out.appendChild(group(row(T('Kept safe by the browser'), persisted ? h('span', { class: 'st-val' }, T('Yes')) : h('button', { class: 'btn', onclick: spin(null, async () => { await B.persist.request(); paint(); }) }, T('Ask')), persisted ? T('The browser won’t clear PatOS’s data when the device is low on space.') : T('The browser may clear PatOS’s data when the device is low on space. Ask it not to.'))));
+            // snapshots
+            const now = h('button', { class: 'btn' }, T('Back Up Now')); now.onclick = spin(now, async () => { await B.snapshot(T('Snapshot'), 'manual'); toast(T('Snapshot saved')); paint(); });
+            const auto = h('button', { class: 'switch' + (B.autoOn() ? ' on' : ''), role: 'switch', 'aria-checked': String(B.autoOn()), 'aria-label': T('Daily snapshot') }); auto.onclick = () => { B.setAuto(!B.autoOn()); paint(); };
+            out.append(h('h3', {}, T('Snapshots')), group(row(T('Take a snapshot every day'), auto, T('Keeps the last 7 days inside PatOS. Big files like videos are not copied into snapshots.')), row(T('Snapshot now'), now)));
+            if (snaps.length) out.appendChild(h('div', { class: 'bk-list' }, ...snaps.map((x) => {
+              const b = h('button', { class: 'btn' }, T('Restore')); b.onclick = spin(b, () => restore(T('Restore PatOS to') + ' ' + B.when(x.t) + '?', () => B.restoreSnapshot(x.key)));
+              const del = x.kind === 'auto' ? null : h('button', { class: 'tbtn', title: T('Delete'), 'aria-label': T('Delete'), onclick: async () => { await B.removeSnapshot(x.key); paint(); } }, '×');
+              return h('div', { class: 'bk-snap' }, h('div', {}, h('b', {}, B.when(x.t)), h('small', {}, T(x.kind === 'auto' ? 'Daily snapshot' : x.kind === 'before' ? 'Before restoring' : 'Snapshot') + ' · ' + x.files + ' ' + T('files') + ' · ' + sizeOf(x.bytes))), h('div', { class: 'bk-acts' }, b, del));
+            })));
+            else out.appendChild(h('div', { class: 'bk-empty' }, T('No snapshots yet. The first one is made a few seconds after PatOS opens, then once a day.')));
+            // backup file
+            const ex = h('button', { class: 'btn', onclick: exportDialog }, T('Export…')), im = h('button', { class: 'btn' }, T('Import…')); im.onclick = spin(im, pickFile);
+            out.append(h('h3', {}, T('Backup file')), group(row(T('Save everything to a file'), ex, PatOS.hw && PatOS.hw.ios ? T('On an iPhone the file goes to your Files app.') : T('One file you can keep anywhere. Use it to move PatOS to a new device.')), row(T('Restore from a file'), im, T('Replaces what is here with the backup (a copy of right now is saved first).'))));
+            // the folder
+            out.appendChild(h('h3', {}, T('Auto-backup folder')));
+            if (!fst.supported) out.appendChild(h('div', { class: 'bk-empty' }, T('Folders need Chrome on a computer or Chromebook. On an iPhone, use Export and save the file to Files.')));
+            else if (!fst.linked) {
+              const ch = h('button', { class: 'btn primary' }, T('Choose Folder…')); ch.onclick = spin(ch, async () => { await B.folder.link(); toast(T('Backup folder set')); paint(); });
+              out.appendChild(group(row(T('Back up to a folder'), ch, T('Every day PatOS saves a backup in a folder you choose. It is on your real disk, so it survives even if PatOS or this website is deleted. Already have one? Choose it again to restore from it.'))));
+              out.appendChild(h('div', { class: 'bk-empty' }, T('Reinstalled PatOS? Choose your backup folder above, then press Restore.')));
+            } else {
+              const allow = fst.permission !== 'granted' ? h('button', { class: 'btn primary' }, T('Allow')) : null; if (allow) allow.onclick = spin(allow, async () => { await B.folder.writeNow(true); paint(); });
+              const bn = h('button', { class: 'btn' }, T('Back Up Now')); bn.onclick = spin(bn, async () => { const r = await B.folder.writeNow(true); if (!r.ok) throw new Error(r.why === 'permission' ? T('Allow PatOS to save in the folder first.') : r.why); toast(T('Backup saved')); paint(); });
+              const rs = h('button', { class: 'btn' }, T('Restore…')); rs.onclick = spin(rs, () => folderBackups(rs));
+              const stop = h('button', { class: 'btn', onclick: async () => { await B.folder.unlink(); paint(); } }, T('Stop'));
+              out.appendChild(group(row(fst.name, h('div', { class: 'bk-acts' }, allow, bn, rs, stop), fst.permission !== 'granted' ? T('The browser needs a click to let PatOS save here again.') : (fst.last ? T('Last saved') + ' ' + B.when(fst.last) : T('Not saved yet')))));
+            }
+          };
+          const on = () => { if (pane === 'backup' && out.isConnected) paint(); }; const off = PatOS.on('backup', on); win.on('closed', off);
           paint(); return [out];
         },
         appearance() {

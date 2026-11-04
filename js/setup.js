@@ -27,7 +27,8 @@
     if (step === 0) {
       const hello = h('div', { class: 'su-hello' }, 'Hello');
       let i = 0; helloTimer = setInterval(() => { i = (i + 1) % HELLOS.length; hello.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(-8px)' }], { duration: 300 }).onfinish = () => { hello.textContent = HELLOS[i]; hello.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 400 }); }; }, 1800);
-      c.append(hello, h('p', { class: 'su-sub' }, T('Welcome to PatOS. Let’s set things up. It takes less than a minute.')), next('Get Started', () => go(1)), dots);
+      const have = h('button', { class: 'su-link', onclick: (e) => { const B = PatOS.backup; if (!B) return; const r = e.currentTarget.getBoundingClientRect(); PatOS.menu([{ label: T('From a backup file…'), action: () => B.ui.pickFile() }, B.folder.supported() ? { label: T('From my backup folder…'), action: () => B.ui.folderMenu(null, e.currentTarget).catch(() => {}) } : null], r.left, r.top - 90); } }, T('I already have a backup'));
+      c.append(hello, h('p', { class: 'su-sub' }, T('Welcome to PatOS. Let’s set things up. It takes less than a minute.')), next('Get Started', () => go(1)), have, dots);
     } else if (step === 1) {
       const pick = (code, label, flag) => { const b = h('button', { class: 'su-opt' + (PatOS.lang === code ? ' on' : '') }, h('span', { class: 'su-flag' }, flag), label); b.onclick = () => { if (PatOS.lang === code) return go(2); PatOS.setSetting('language', code); PatOS.store.set('setupStep', 2); (PatOS._leaving = true, location.reload()); }; return b; };
       c.append(h('h1', {}, T('Choose your language')), h('p', { class: 'su-sub' }, T('You can change it later in System Settings.')), h('div', { class: 'su-opts' }, pick('en', 'English', 'EN'), pick('fr', 'Français', 'FR')), next(null, () => go(2)), dots);

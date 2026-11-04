@@ -3375,6 +3375,17 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 .fc-pdlg { width: min(520px, calc(100vw - 32px)); align-items: stretch; text-align: left; } .fc-paste { height: 180px; resize: vertical; font-family: var(--mono); font-size: 12.5px; width: 100%; }
 .fc-pnote { font-size: 12.5px; color: var(--text2); margin: 0; } .fc-pinfo { min-height: 16px; color: var(--accent); font-size: 12.5px; }
 .mobile .fc-ready { width: 100%; } .mobile .fc-opt { flex-direction: column; align-items: stretch; gap: 4px; }
+/* Backup & Restore */
+.bk h3 { margin: 22px 0 8px; }
+.bk-warn { margin: 0 0 14px; }
+.bk-list { display: flex; flex-direction: column; gap: 6px; margin-top: 8px; }
+.bk-snap { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 14px; border-radius: 12px; background: var(--card); }
+.bk-snap small { display: block; color: var(--text3); margin-top: 2px; }
+.bk-acts { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; justify-content: flex-end; }
+.bk-empty { color: var(--text3); font-size: 13px; padding: 10px 4px; line-height: 1.5; }
+.bk-dlg { width: min(440px, calc(100vw - 32px)); align-items: stretch; text-align: left; }
+.bk-note { font-size: 12.5px; color: var(--text2); margin: 0; min-height: 16px; }
+.su-link { margin-top: 10px; color: var(--accent); font-size: 13.5px; padding: 6px 12px; border-radius: 8px; } .su-link:hover { background: var(--hover); }
 
 </style>
   <style>
@@ -3821,6 +3832,15 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       return n;
     },
     flush: flushNow,
+    /* everything worth keeping, for backups: all saved data except the file tree (that comes from fs.exportTree)
+       and caches that are made again by themselves */
+    backupData() { const o = {}; const skip = new Set(['fs', 'wpCache', 'wpLockCache', 'wxCache', 'fsCleaned2', 'snapIndex', 'backupInfo']); const src = KV || (function () { const r = {}; try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => { try { r[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {} return r; })(); Object.keys(src).forEach((k) => { if (!skip.has(k)) o[k] = clone(src[k]); }); return o; },
+    /* put saved data back from a backup: keys that are not in it are removed */
+    restoreData(data) {
+      const keep = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo']); const old = KV ? Object.keys(KV) : [];
+      old.forEach((k) => { if (!keep.has(k) && !(k in data)) PatOS.store.remove(k); });
+      Object.keys(data).forEach((k) => { if (!keep.has(k)) PatOS.store.set(k, clone(data[k])); });
+    },
     dump() { const o = {}; if (KV) Object.keys(KV).forEach((k) => { if (k !== 'fs') o[k] = clone(KV[k]); }); else { try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX) && k !== PREFIX + 'fs').forEach((k) => { o[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); }); } catch (e) {} } return o; },
     async clearAll() {
       try { localStorage.setItem('patos-wipe', '1'); } catch (e) {}
@@ -4213,7 +4233,19 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       const key = n.blob || path + n.mtime; blobUrls[key] = blobUrls[key] || PatOS.fs.getBlob(path).then((b) => (b ? URL.createObjectURL(b) : null));
       return blobUrls[key];
     },
-    reset() { root = seedFS(); PatOS.store.set('fs', root); PatOS.emit('fs', { path: '/', dir: '/' }); }
+    reset() { root = seedFS(); PatOS.store.set('fs', root); PatOS.emit('fs', { path: '/', dir: '/' }); },
+    /* the whole file tree with every file's content inside it (for backups) */
+    exportTree() { const t = clone(root); (function strip(n) { delete n.cid; if (n.type === 'dir') Object.values(n.children).forEach(strip); })(t); return t; },
+    /* replace the whole file tree (restoring a backup); big files whose data is no longer here are dropped, and counted */
+    async importTree(tree) {
+      if (!tree || tree.type !== 'dir' || !tree.children) throw new Error('This is not a PatOS file tree');
+      let missing = 0; const have = new Set();
+      if (DBH) { await new Promise((res) => { try { const r = DBH.transaction('blobs').objectStore('blobs').getAllKeys(); r.onsuccess = () => { r.result.forEach((k) => have.add(k)); res(); }; r.onerror = () => res(); } catch (e) { res(); } }); }
+      (function fix(n) { if (n.type !== 'dir') return; Object.keys(n.children).forEach((k) => { const c = n.children[k]; if (c.type === 'dir') fix(c); else if (c.blob && !have.has(c.blob)) { delete n.children[k]; missing++; } }); })(tree);
+      ['Desktop', 'Documents', 'Downloads', 'Pictures', 'Music', 'Videos', '.Trash'].forEach((d) => { if (!tree.children[d]) tree.children[d] = { type: 'dir', children: {}, mtime: now() }; });
+      root = tree; saveFSNow(); // (records of the old files are removed by saveFSNow itself) PatOS.emit('fs', { path: '/', dir: '/' });
+      return { missing };
+    }
   };
 
   /* file type helpers */
@@ -4478,7 +4510,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 /* generated by build.js from updates.json: do not edit */
 PatOS.version = "1.7.0";
 PatOS.releases = [{"version":"1.7.0","date":"2026-11-04","title":{"en":"Better apps","fr":"De meilleures apps"},"notes":{"en":["Calendar: Day and Year views, repeating events with an end date, alerts before events (even with Calendar closed), quick add in plain words (“Math class monday 9am weekly”), search, drag events to another day, and .ics import and export (Google Calendar)","Contacts: several phone numbers and emails per person, company, tap to call or email, search that ignores accents, Undo after deleting, merge duplicates, and better vCard import and export with photos","Weather: 10-day forecast, a one-line summary of the next hours, city suggestions as you type, gusts, pressure, visibility and rain today, wind and rain in mph and inches with °F, refreshes by itself, and real icons instead of emoji","Photos: much faster with many photos, your own albums, select several photos at once, search, zoom and pan with the wheel or pinch, swipe between photos, photo info, drop pictures to add them, and large photos now show up","Paint: choose your canvas size, zoom, text, filled shapes, opacity that doesn’t darken overlaps, Shift for straight lines and circles, rotate and flip, more undo, keyboard shortcuts, and open or save over a picture (Photos › More › Open in Paint)","Reliability and security: a failed save keeps your deletions, stricter checks for private network addresses, the password vault only counts use of the vault as activity and locks when you close Passwords, and the French translation is complete","Messages: Pat can set timers and alarms, show your calendar and what is due, add events and reminders with dates in plain words, convert units, work out percentages, find files, pick between options, and suggest the app you meant. Up arrow brings back what you typed","Terminal: variables ($NAME), aliases, !! to repeat the last command, new tools (cut, tr, sed, diff, nl, tee, stat, basename, dirname, which, sleep), and Tab fills in what several matches share","Flashcards: spaced repetition (cards you know come back later, cards you miss come back today), a mode where you type the answer, either side first, paste a list or a Quizlet export to make a deck, a study streak, and no more pre-made decks","Security: programs run in Terminal and Python can no longer reach PatOS’s storage, Terminal’s node command is labeled as a JavaScript runner, and About, Terminal and Settings show the exact version you are running"],"fr":["Calendrier : vues Jour et Année, événements récurrents avec date de fin, alertes avant les événements (même avec Calendrier fermé), ajout rapide en mots simples (« Cours de maths lundi 9h chaque semaine »), recherche, glisser les événements vers un autre jour, et import et export .ics (Google Agenda)","Contacts : plusieurs numéros et courriels par personne, entreprise, toucher pour appeler ou écrire, recherche sans tenir compte des accents, Annuler après une suppression, fusion des doublons, et meilleur import et export vCard avec les photos","Météo : prévisions sur 10 jours, un résumé des prochaines heures, suggestions de villes en écrivant, rafales, pression, visibilité et pluie du jour, vent et pluie en mph et pouces avec les °F, actualisation automatique, et de vraies icônes au lieu des émojis","Photos : beaucoup plus rapide avec beaucoup de photos, vos propres albums, sélection de plusieurs photos, recherche, zoom et déplacement à la molette ou au pincement, balayage entre les photos, infos de la photo, glisser des images pour les ajouter, et les grandes photos apparaissent maintenant","Paint : choisissez la taille du canevas, zoom, texte, formes pleines, opacité qui ne s’assombrit pas aux croisements, Maj pour des lignes droites et des cercles, rotation et retournement, plus d’annulations, raccourcis clavier, et ouverture ou enregistrement par-dessus une image (Photos › Plus › Ouvrir dans Paint)","Fiabilité et sécurité : un enregistrement échoué garde vos suppressions, vérifications plus strictes des adresses de réseau privé, le coffre de mots de passe ne compte que son propre usage comme activité et se verrouille à la fermeture de Mots de passe, et la traduction française est complète","Messages : Pat peut régler des minuteurs et des alarmes, montrer ton calendrier et ce qui est dû, ajouter des événements et des rappels avec des dates en mots simples, convertir des unités, calculer des pourcentages, trouver des fichiers, choisir entre des options, et suggérer l’app que tu voulais. La flèche du haut rappelle ce que tu as écrit","Terminal : variables ($NOM), alias, !! pour répéter la dernière commande, nouveaux outils (cut, tr, sed, diff, nl, tee, stat, basename, dirname, which, sleep), et Tab complète ce que plusieurs correspondances ont en commun","Cartes mémoire : répétition espacée (les cartes que vous savez reviennent plus tard, celles que vous ratez reviennent aujourd’hui), un mode où vous écrivez la réponse, recto ou verso d’abord, coller une liste ou un export Quizlet pour faire un jeu, une série de jours d’étude, et plus de jeux préfaits","Sécurité : les programmes lancés dans Terminal et Python ne peuvent plus accéder au stockage de PatOS, la commande node du Terminal est présentée comme un exécuteur JavaScript, et À propos, Terminal et Réglages affichent la version exacte que vous utilisez"]}},{"version":"1.6.0","date":"2026-11-03","title":{"en":"Software Update","fr":"Mise à jour de logiciels"},"notes":{"en":["New Settings › Software Update: see your version, what changed, and install updates","PatOS finds new versions by itself while it is open, without refreshing","Installing an update restarts PatOS only, and your windows come back"],"fr":["Nouveau Réglages › Mise à jour de logiciels : votre version, ce qui a changé, et l’installation des mises à jour","PatOS trouve les nouvelles versions tout seul pendant qu’il est ouvert, sans rafraîchir","Installer une mise à jour redémarre seulement PatOS, et vos fenêtres reviennent"]}},{"version":"1.5.0","date":"2026-11-03","title":{"en":"iPhone swipe up, Reminders in plain words","fr":"Balayage sur iPhone, Rappels en mots simples"},"notes":{"en":["iPhone: swipe up from the bar at the bottom to leave an app, swipe up and pause for the app switcher","Reminders: type “Math test friday at 3pm !!” and the date, time and priority are filled in","Reminders can repeat, and there is search and Undo"],"fr":["iPhone : balayez vers le haut depuis la barre du bas pour quitter une app, et faites une pause pour le sélecteur d’apps","Rappels : écrivez « Examen de maths vendredi à 15h !! » et la date, l’heure et la priorité se remplissent","Les rappels peuvent se répéter, avec recherche et Annuler"]}},{"version":"1.4.0","date":"2026-11-03","title":{"en":"Clock and Calculator","fr":"Horloge et Calculatrice"},"notes":{"en":["Clock: add any city, a stopwatch that keeps running when closed, a timer with hours and a name, editable alarms","Calculator: history you can reuse, copy and paste, real percent, inverse trig"],"fr":["Horloge : ajoutez n’importe quelle ville, un chronomètre qui continue fermé, un minuteur avec heures et nom, des alarmes modifiables","Calculatrice : historique réutilisable, copier-coller, vrai pourcentage, trigonométrie inverse"]}},{"version":"1.3.0","date":"2026-11-03","title":{"en":"Finder and TextEdit","fr":"Finder et TextEdit"},"notes":{"en":["Finder: copy, cut and paste files, drag a box to select, drop files from your computer","TextEdit: find and replace, line and column, word wrap, Markdown preview, recent files, print"],"fr":["Finder : copier, couper et coller des fichiers, sélection en tirant un cadre, déposer des fichiers de l’ordinateur","TextEdit : rechercher et remplacer, ligne et colonne, retour à la ligne, aperçu Markdown, fichiers récents, impression"]}},{"version":"1.2.0","date":"2026-11-03","title":{"en":"Faster start, smoother 3D","fr":"Démarrage plus rapide, 3D plus fluide"},"notes":{"en":["PatOS starts in about a second instead of several","3D waits for the graphics chip, so slower Chromebooks don’t lag"],"fr":["PatOS démarre en environ une seconde au lieu de plusieurs","La 3D attend la puce graphique, donc les Chromebooks plus lents ne ralentissent plus"]}},{"version":"1.1.0","date":"2026-11-03","title":{"en":"Security","fr":"Sécurité"},"notes":{"en":["Passwords are always encrypted, and lock with your master password","Documents and pasted text can no longer run code","Pat in Messages is described honestly: a command helper, not an AI"],"fr":["Les mots de passe sont toujours chiffrés et se verrouillent avec votre mot de passe principal","Les documents et le texte collé ne peuvent plus exécuter de code","Pat dans Messages est décrit honnêtement : un assistant à commandes, pas une IA"]}}];
-PatOS.beta = null;
+PatOS.beta = {"version":"2.0.0","beta":1,"date":"2026-11-04","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"notes":{"en":["Backup & Restore: a snapshot every day (restore PatOS to how it was on Tuesday), a backup file you can lock with a password, and on a Chromebook an auto-backup folder on your real disk, so your data survives even if PatOS or the website is deleted. You can restore from the very first screen on a new device"],"fr":["Sauvegarde et restauration : un instantané chaque jour (remettez PatOS comme il était mardi), un fichier de sauvegarde que vous pouvez verrouiller par mot de passe, et sur un Chromebook un dossier de sauvegarde automatique sur votre vrai disque, pour que vos données survivent même si PatOS ou le site est supprimé. Vous pouvez restaurer dès le tout premier écran sur un nouvel appareil"]}};
 
 </script>
   <script type="patos/js">
@@ -7358,6 +7390,78 @@ PatOS.beta = null;
     'Study the ones I missed': 'Étudier celles que j’ai ratées',
     'Keep Studying': 'Continuer à étudier',
     'Study with spaced repetition: cards you know come back later, cards you miss come back today. Flip or type the answer.': 'Étudiez avec la répétition espacée : les cartes que vous savez reviennent plus tard, celles que vous ratez reviennent aujourd’hui. Retournez la carte ou écrivez la réponse.',
+    'That didn’t work': 'Ça n’a pas marché',
+    'Your files and settings go back to how they were then, and anything newer is replaced. A copy of right now is saved first, as “Before restoring”.': 'Vos fichiers et réglages reviennent comme ils étaient alors, et tout ce qui est plus récent est remplacé. Une copie de maintenant est d’abord enregistrée, sous « Avant la restauration ».',
+    'Restore': 'Restaurer',
+    'Restored': 'Restauré',
+    'Type the password you chose when you saved it.': 'Écrivez le mot de passe choisi à l’enregistrement.',
+    'Restore this backup?': 'Restaurer cette sauvegarde ?',
+    'Password (optional)': 'Mot de passe (facultatif)',
+    'Password again': 'Mot de passe encore',
+    'Export': 'Exporter',
+    'The two passwords are different.': 'Les deux mots de passe sont différents.',
+    'Making the backup…': 'Création de la sauvegarde…',
+    'Backup file ready': 'Fichier de sauvegarde prêt',
+    'big files left out': 'gros fichiers laissés de côté',
+    'Export a backup file': 'Exporter un fichier de sauvegarde',
+    'One file with all your files, notes and settings. Keep it somewhere safe, like a USB stick or your Files app.': 'Un fichier avec tous vos fichiers, notes et réglages. Gardez-le en lieu sûr, comme une clé USB ou votre app Fichiers.',
+    'Include big files': 'Inclure les gros fichiers',
+    'A password locks the file. If you forget it, the backup can’t be opened.': 'Un mot de passe verrouille le fichier. Si vous l’oubliez, la sauvegarde ne s’ouvre plus.',
+    'No backups here yet': 'Aucune sauvegarde ici pour l’instant',
+    'This folder has no PatOS backups.': 'Ce dossier n’a aucune sauvegarde PatOS.',
+    'Restore from this folder': 'Restaurer depuis ce dossier',
+    'Your data is yours': 'Vos données vous appartiennent',
+    'PatOS keeps everything on this device and works without internet. Backups protect it if the browser’s data is erased, PatOS is removed, or you switch devices.': 'PatOS garde tout sur cet appareil et fonctionne sans Internet. Les sauvegardes le protègent si les données du navigateur sont effacées, si PatOS est retiré ou si vous changez d’appareil.',
+    'Your saved passwords are locked with a key that never leaves this device, so a backup can’t open them on another device or after PatOS is erased. Add a master password in Passwords to include them safely.': 'Vos mots de passe sont verrouillés par une clé qui ne quitte jamais cet appareil, donc une sauvegarde ne peut pas les ouvrir sur un autre appareil ni après l’effacement de PatOS. Ajoutez un mot de passe principal dans Mots de passe pour les inclure en sécurité.',
+    'Open Passwords': 'Ouvrir Mots de passe',
+    'Kept safe by the browser': 'Protégé par le navigateur',
+    'Ask': 'Demander',
+    'The browser won’t clear PatOS’s data when the device is low on space.': 'Le navigateur n’effacera pas les données de PatOS quand l’appareil manque d’espace.',
+    'The browser may clear PatOS’s data when the device is low on space. Ask it not to.': 'Le navigateur peut effacer les données de PatOS quand l’appareil manque d’espace. Demandez-lui de ne pas le faire.',
+    'Back Up Now': 'Sauvegarder maintenant',
+    'Snapshot': 'Instantané',
+    'Snapshot saved': 'Instantané enregistré',
+    'Daily snapshot': 'Instantané quotidien',
+    'Snapshots': 'Instantanés',
+    'Take a snapshot every day': 'Prendre un instantané chaque jour',
+    'Keeps the last 7 days inside PatOS. Big files like videos are not copied into snapshots.': 'Garde les 7 derniers jours dans PatOS. Les gros fichiers comme les vidéos ne sont pas copiés dans les instantanés.',
+    'Snapshot now': 'Instantané maintenant',
+    'Restore PatOS to': 'Restaurer PatOS tel qu’il était le',
+    'Before restoring': 'Avant la restauration',
+    'No snapshots yet. The first one is made a few seconds after PatOS opens, then once a day.': 'Aucun instantané. Le premier est fait quelques secondes après l’ouverture de PatOS, puis une fois par jour.',
+    'Import…': 'Importer…',
+    'Backup file': 'Fichier de sauvegarde',
+    'Save everything to a file': 'Tout enregistrer dans un fichier',
+    'On an iPhone the file goes to your Files app.': 'Sur un iPhone, le fichier va dans votre app Fichiers.',
+    'One file you can keep anywhere. Use it to move PatOS to a new device.': 'Un fichier à garder où vous voulez. Servez-vous-en pour déplacer PatOS vers un nouvel appareil.',
+    'Restore from a file': 'Restaurer depuis un fichier',
+    'Replaces what is here with the backup (a copy of right now is saved first).': 'Remplace ce qui est ici par la sauvegarde (une copie de maintenant est d’abord enregistrée).',
+    'Auto-backup folder': 'Dossier de sauvegarde automatique',
+    'Folders need Chrome on a computer or Chromebook. On an iPhone, use Export and save the file to Files.': 'Les dossiers demandent Chrome sur un ordinateur ou un Chromebook. Sur un iPhone, utilisez Exporter et enregistrez le fichier dans Fichiers.',
+    'Choose Folder…': 'Choisir un dossier…',
+    'Backup folder set': 'Dossier de sauvegarde défini',
+    'Back up to a folder': 'Sauvegarder dans un dossier',
+    'Every day PatOS saves a backup in a folder you choose. It is on your real disk, so it survives even if PatOS or this website is deleted. Already have one? Choose it again to restore from it.': 'Chaque jour, PatOS enregistre une sauvegarde dans un dossier de votre choix. Il est sur votre vrai disque, donc il survit même si PatOS ou ce site est supprimé. Vous en avez déjà un ? Choisissez-le de nouveau pour restaurer.',
+    'Reinstalled PatOS? Choose your backup folder above, then press Restore.': 'PatOS réinstallé ? Choisissez votre dossier de sauvegarde ci-dessus, puis appuyez sur Restaurer.',
+    'Allow': 'Autoriser',
+    'Allow PatOS to save in the folder first.': 'Autorisez d’abord PatOS à enregistrer dans le dossier.',
+    'The browser needs a click to let PatOS save here again.': 'Le navigateur a besoin d’un clic pour que PatOS puisse enregistrer ici de nouveau.',
+    'Last saved': 'Dernier enregistrement',
+    'Not saved yet': 'Pas encore enregistré',
+    'Backup folder needs permission': 'Le dossier de sauvegarde demande une permission',
+    'Click to let PatOS save today’s backup.': 'Cliquez pour que PatOS enregistre la sauvegarde du jour.',
+    'big file was not in this backup, so it was left out.': 'gros fichier n’était pas dans cette sauvegarde, il a donc été laissé de côté.',
+    'big files were not in this backup, so they were left out.': 'gros fichiers n’étaient pas dans cette sauvegarde, ils ont donc été laissés de côté.',
+    'This is not a PatOS backup': 'Ce n’est pas une sauvegarde PatOS',
+    'That snapshot is gone': 'Cet instantané n’existe plus',
+    'This browser can’t save to a folder': 'Ce navigateur ne peut pas enregistrer dans un dossier',
+    'That password is not right': 'Ce mot de passe n’est pas le bon',
+    'This backup is locked': 'Cette sauvegarde est verrouillée',
+    'password needed': 'mot de passe requis',
+    'Backup & Restore': 'Sauvegarde et restauration',
+    'I already have a backup': 'J’ai déjà une sauvegarde',
+    'From a backup file…': 'Depuis un fichier de sauvegarde…',
+    'From my backup folder…': 'Depuis mon dossier de sauvegarde…',
     'Ask Pat': 'Demander à Pat',
     'Every single one. Nice.': 'Tout bon. Bien joué.', 'Solid work.': 'Beau travail.', 'Give it another go.': 'Essaie encore une fois.', 'Thanks, your answers were sent': 'Merci, vos réponses ont été envoyées',
     'You win.': 'Vous gagnez.', 'The computer wins.': 'L’ordinateur gagne.', "It's a draw.": 'Match nul.', 'New personal best': 'Nouveau record personnel', 
@@ -10447,6 +10551,247 @@ PatOS.beta = null;
 
 </script>
   <script type="patos/js">
+/* PatOS Backups — so your data survives almost anything.
+   - Snapshots: PatOS keeps a copy of your files and settings once a day (the last 7), and one before any restore.
+     "Restore PatOS to how it was on Tuesday" brings everything back.
+   - Backup file: Export saves everything in one .patos-backup file (optionally locked with a password), and
+     Import puts it back, on this device or a new one. On an iPhone it goes to the Files app.
+   - Auto-backup folder (Chrome on a computer or Chromebook): PatOS writes a backup into a folder you choose,
+     every day. That folder is on the real disk, so it survives even if PatOS, the website or the browser's
+     data is deleted.
+   - It asks the browser to keep PatOS's storage safe from automatic clean-up.
+   Snapshots don't contain big files (videos and very large pictures): those stay where they are. A backup
+   file can include them when the total is not too big. Passwords are saved the way they are stored: a list
+   protected only by this device's key can't be opened on another device, so add a master password. */
+(function () {
+  'use strict';
+  const T = (s) => PatOS.t(s);
+  const FORMAT = 'patos-backup', ENC = 'patos-backup-encrypted';
+  const KEEP = { auto: 7, manual: 10, before: 3 };
+  const BLOB_CAP = 150 * 1024 * 1024; // a backup file includes big files only up to this much in total
+  const DAY = 86400000;
+  const db = () => window.__IDB;
+  const FOLDER_KEY = 'backup-dir', FOLDER_FILE = /^PatOS-backup-\d{4}-\d{2}-\d{2}\.patos-backup$/;
+
+  /* ---------- the database, in small pieces ---------- */
+  function idb(store, mode, fn) {
+    return new Promise((res, rej) => {
+      if (!db()) return rej(new Error('This browser has no storage database'));
+      try { const tx = db().transaction(store, mode); let out; try { out = fn(tx.objectStore(store)); } catch (e) { return rej(e); } tx.oncomplete = () => res(out && 'result' in out ? out.result : out); tx.onerror = tx.onabort = () => rej(tx.error || new Error('storage error')); } catch (e) { rej(e); }
+    });
+  }
+  const putSnap = (key, val) => idb('handles', 'readwrite', (s) => s.put(val, key));
+  const getSnap = (key) => idb('handles', 'readonly', (s) => s.get(key));
+  const delSnap = (key) => idb('handles', 'readwrite', (s) => s.delete(key));
+
+  /* ---------- helpers ---------- */
+  function count(tree) {
+    const r = { files: 0, bytes: 0, blobFiles: 0, blobBytes: 0 };
+    (function walk(n) { if (n.type === 'dir') { Object.values(n.children || {}).forEach(walk); return; } r.files++; if (n.blob) { r.blobFiles++; r.blobBytes += n.size || 0; } else r.bytes += (n.content || '').length; })(tree);
+    return r;
+  }
+  const device = () => { const ua = navigator.userAgent; return PatOS.hw && PatOS.hw.iphone ? 'iPhone' : /CrOS/.test(ua) ? 'Chromebook' : PatOS.hw && PatOS.hw.android ? 'Android' : /Mac/.test(navigator.platform) ? 'Mac' : /Win/.test(navigator.platform) ? 'Windows' : 'Browser'; };
+  const stamp = (t) => { const d = new Date(t || Date.now()); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); };
+  const when = (t) => new Date(t).toLocaleString(PatOS.lang === 'fr' ? 'fr-CA' : undefined, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  const b64 = (u8) => new Promise((res) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.readAsDataURL(new Blob([u8])); });
+  const unb64 = async (s) => new Uint8Array(await (await fetch('data:application/octet-stream;base64,' + s)).arrayBuffer());
+
+  /* ---------- making a backup of everything ---------- */
+  async function collect(opts) {
+    opts = opts || {};
+    try { await PatOS.flush(); } catch (e) {}
+    const tree = PatOS.fs.exportTree();
+    const state = { format: FORMAT, version: 1, created: Date.now(), patos: PatOS.version, device: device(), kv: PatOS.store.backupData(), fs: tree };
+    const c = count(tree); state.stats = { files: c.files, bytes: c.bytes, bigFiles: c.blobFiles, bigBytes: c.blobBytes };
+    if (opts.blobs && c.blobFiles) {
+      state.blobs = {}; let total = 0, skipped = 0;
+      const ids = []; (function walk(n) { if (n.type === 'dir') Object.values(n.children).forEach(walk); else if (n.blob) ids.push([n.blob, n.size || 0]); })(tree);
+      for (const [id, size] of ids) {
+        if (total + size > BLOB_CAP) { skipped++; continue; }
+        const blob = await idb('blobs', 'readonly', (s) => s.get(id)); if (!blob) { skipped++; continue; }
+        state.blobs[id] = { type: blob.type, data: await b64(new Uint8Array(await blob.arrayBuffer())) }; total += size;
+      }
+      state.stats.bigIncluded = Object.keys(state.blobs).length; state.stats.bigSkipped = skipped;
+    }
+    return state;
+  }
+  async function encrypt(obj, pass) {
+    const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt, iterations: 250000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['encrypt']);
+    const data = new Uint8Array(await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, new TextEncoder().encode(JSON.stringify(obj))));
+    return { format: ENC, version: 1, created: obj.created, device: obj.device, salt: await b64(salt), iv: await b64(iv), data: await b64(data) };
+  }
+  async function decrypt(w, pass) {
+    const base = await crypto.subtle.importKey('raw', new TextEncoder().encode(pass), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey({ name: 'PBKDF2', salt: await unb64(w.salt), iterations: 250000, hash: 'SHA-256' }, base, { name: 'AES-GCM', length: 256 }, false, ['decrypt']);
+    try { return JSON.parse(new TextDecoder().decode(await crypto.subtle.decrypt({ name: 'AES-GCM', iv: await unb64(w.iv) }, key, await unb64(w.data)))); }
+    catch (e) { const err = new Error('wrong password'); err.wrongPassword = true; throw err; }
+  }
+  /* a backup file's contents → the backup (asks for the password through err.needPassword when it is locked) */
+  async function parse(text, pass) {
+    let j; try { j = JSON.parse(text); } catch (e) { throw new Error('This is not a PatOS backup'); }
+    if (j && j.format === ENC) { if (!pass) { const err = new Error('password needed'); err.needPassword = true; throw err; } j = await decrypt(j, pass); }
+    if (!j || j.format !== FORMAT || !j.fs || !j.kv) throw new Error('This is not a PatOS backup');
+    return j;
+  }
+
+  /* ---------- snapshots ---------- */
+  const index = () => PatOS.store.get('snapIndex', []);
+  const setIndex = (l) => PatOS.store.set('snapIndex', l);
+  async function snapshot(label, kind, t) {
+    kind = kind || 'manual'; t = t || Date.now();
+    const s = await collect({ blobs: false }); const key = 'snap:' + t + ':' + kind;
+    await putSnap(key, { t, label, kind, kv: s.kv, fs: s.fs, stats: s.stats, patos: s.patos, device: s.device });
+    const l = index().filter((x) => x.key !== key); l.push({ key, t, label, kind, files: s.stats.files, bytes: s.stats.bytes }); setIndex(l);
+    await prune();
+    return key;
+  }
+  async function prune() {
+    const l = index().sort((a, b) => b.t - a.t); const keep = new Set(); const seen = { auto: 0, manual: 0, before: 0 };
+    l.forEach((x) => { if (seen[x.kind] < (KEEP[x.kind] || 5)) { seen[x.kind]++; keep.add(x.key); } });
+    for (const x of l) if (!keep.has(x.key)) { try { await delSnap(x.key); } catch (e) {} }
+    setIndex(l.filter((x) => keep.has(x.key)));
+  }
+  const list = () => index().slice().sort((a, b) => b.t - a.t);
+  async function removeSnapshot(key) { try { await delSnap(key); } catch (e) {} setIndex(index().filter((x) => x.key !== key)); }
+
+  /* ---------- putting a backup back ---------- */
+  async function apply(state) {
+    if (!state || state.format !== FORMAT || !state.fs || !state.kv) throw new Error('This is not a PatOS backup');
+    await snapshot(T('Before restoring'), 'before'); // always keep a way back
+    if (state.blobs) for (const id of Object.keys(state.blobs)) { const b = state.blobs[id]; const blob = new Blob([await unb64(b.data)], { type: b.type || '' }); await idb('blobs', 'readwrite', (s) => s.put(blob, id)); }
+    PatOS.store.restoreData(structuredClone(state.kv));
+    const r = await PatOS.fs.importTree(structuredClone(state.fs));
+    await PatOS.flush();
+    return r; // { missing }: big files that were not in the backup
+  }
+  async function restoreSnapshot(key) { const v = await getSnap(key); if (!v) throw new Error('That snapshot is gone'); return apply(Object.assign({ format: FORMAT }, v)); }
+
+  /* ---------- the backup file ---------- */
+  async function exportFile(opts) {
+    opts = opts || {}; const state = await collect({ blobs: !!opts.blobs });
+    const wrapped = opts.password ? await encrypt(state, opts.password) : state;
+    const blob = new Blob([JSON.stringify(wrapped)], { type: 'application/json' });
+    return { blob, name: 'PatOS Backup ' + stamp() + '.patos-backup', stats: state.stats, encrypted: !!opts.password };
+  }
+  async function saveFile(f) {
+    // on an iPhone the share sheet can put it straight into Files
+    try { const file = new File([f.blob], f.name, { type: 'application/json' }); if (PatOS.hw && PatOS.hw.ios && navigator.canShare && navigator.canShare({ files: [file] })) { await navigator.share({ files: [file], title: f.name }); return 'shared'; } } catch (e) { if (e && e.name === 'AbortError') return 'cancelled'; }
+    PatOS.downloadBlob ? PatOS.downloadBlob(f.name, f.blob) : PatOS.downloadFile(f.name, URL.createObjectURL(f.blob)); return 'downloaded';
+  }
+
+  /* ---------- the auto-backup folder (Chrome on a computer or Chromebook) ---------- */
+  const folderSupported = () => typeof window.showDirectoryPicker === 'function' && !PatOS.sandboxed;
+  const info = () => PatOS.store.get('backupInfo', {});
+  const setInfo = (o) => PatOS.store.set('backupInfo', Object.assign(info(), o));
+  const getFolder = () => idb('handles', 'readonly', (s) => s.get(FOLDER_KEY)).catch(() => null);
+  async function folderPermission(h, ask) {
+    if (!h) return 'none';
+    try { let p = await h.queryPermission({ mode: 'readwrite' }); if (p !== 'granted' && ask) p = await h.requestPermission({ mode: 'readwrite' }); return p; } catch (e) { return 'denied'; }
+  }
+  /* writes today's backup file into a folder, and removes the oldest PatOS backup files there (keeps 14) */
+  async function writeToFolder(dir, state, keep) {
+    const name = 'PatOS-backup-' + stamp(state.created) + '.patos-backup';
+    const fh = await dir.getFileHandle(name, { create: true }); const w = await fh.createWritable(); await w.write(JSON.stringify(state)); await w.close();
+    const names = []; for await (const [n] of dir.entries()) if (FOLDER_FILE.test(n)) names.push(n);
+    names.sort().reverse().slice(keep || 14).forEach((n) => { dir.removeEntry(n).catch(() => {}); });
+    return name;
+  }
+  async function linkFolder() {
+    if (!folderSupported()) throw new Error('This browser can’t save to a folder');
+    const h = await window.showDirectoryPicker({ id: 'patos-backup', mode: 'readwrite' });
+    await idb('handles', 'readwrite', (s) => s.put(h, FOLDER_KEY)); setInfo({ folder: h.name });
+    await writeFolderNow(true); return h.name;
+  }
+  async function unlinkFolder() { await idb('handles', 'readwrite', (s) => s.delete(FOLDER_KEY)).catch(() => {}); setInfo({ folder: null, folderLast: null }); }
+  async function folderStatus() {
+    const h = await getFolder(); if (!h) return { linked: false, supported: folderSupported() };
+    return { linked: true, supported: true, name: h.name, permission: await folderPermission(h, false), last: info().folderLast || 0 };
+  }
+  async function writeFolderNow(ask) {
+    const h = await getFolder(); if (!h) return { ok: false, why: 'none' };
+    const p = await folderPermission(h, !!ask); if (p !== 'granted') return { ok: false, why: 'permission' };
+    const state = await collect({ blobs: false });
+    try { const name = await writeToFolder(h, state); setInfo({ folderLast: Date.now() }); PatOS.emit('backup'); return { ok: true, name }; } catch (e) { return { ok: false, why: String(e.message || e) }; }
+  }
+
+
+  /* ---------- the "put it back" screens (used by Settings and by the Setup Assistant) ---------- */
+  const msg = (title, body) => PatOS.alertBox(title, body, { icon: 'settings' });
+  const ui = {
+    /* ask before replacing everything, then restart PatOS on its own boot screen */
+    async confirmRestore(title, run) {
+      if (!(await PatOS.confirmBox(title, T('Your files and settings go back to how they were then, and anything newer is replaced. A copy of right now is saved first, as “Before restoring”.'), { ok: T('Restore'), danger: true, icon: 'settings' }))) return;
+      const r = await run();
+      if (r && r.missing) await msg(T('Restored'), r.missing + ' ' + T(r.missing === 1 ? 'big file was not in this backup, so it was left out.' : 'big files were not in this backup, so they were left out.'));
+      PatOS.restartPatOS ? PatOS.restartPatOS({ update: false }) : location.reload();
+    },
+    async fromFile(file) {
+      let pass = null, state = null; const text = await file.text();
+      for (let i = 0; i < 4 && !state; i++) {
+        try { state = await parse(text, pass); }
+        catch (e) {
+          if (e.needPassword || e.wrongPassword) { pass = await PatOS.ask(T(e.wrongPassword ? 'That password is not right' : 'This backup is locked'), '', { icon: 'settings', ok: T('Unlock'), password: true, text: T('Type the password you chose when you saved it.') }); if (pass == null) return; } else throw e;
+        }
+      }
+      if (!state) return;
+      const st = state.stats || {};
+      await ui.confirmRestore(T('Restore this backup?') + ' (' + when(state.created) + ', ' + (st.files || 0) + ' ' + T('files') + ', ' + (state.device || '') + ')', () => apply(state));
+    },
+    pickFile() {
+      return new Promise((res) => {
+        const i = document.createElement('input'); i.type = 'file'; i.accept = '.patos-backup,.json,application/json'; i.style.display = 'none'; document.body.appendChild(i);
+        i.onchange = async () => { const f = i.files[0]; i.remove(); if (f) { try { await ui.fromFile(f); } catch (e) { msg(T('That didn’t work'), T(String(e.message || e))); } } res(); };
+        i.addEventListener('cancel', () => { i.remove(); res(); });
+        i.click();
+      });
+    },
+    /* list the backups in a folder (the linked one, or one you pick right now) and restore the one you choose */
+    async folderMenu(dir, anchor) {
+      if (!dir) dir = await getFolder();
+      if (!dir) { if (!folderSupported()) return; dir = await window.showDirectoryPicker({ id: 'patos-backup', mode: 'read' }); }
+      if ((await dir.requestPermission({ mode: 'read' })) !== 'granted') return;
+      const files = []; for await (const [n, hd] of dir.entries()) if (/^PatOS-backup-.*\.patos-backup$/.test(n) && hd.kind === 'file') files.push([n, hd]);
+      files.sort((a, b) => b[0].localeCompare(a[0]));
+      if (!files.length) return msg(T('No backups here yet'), T('This folder has no PatOS backups.'));
+      const r = anchor && anchor.getBoundingClientRect ? anchor.getBoundingClientRect() : { left: innerWidth / 2 - 100, bottom: innerHeight / 2 - 100 };
+      PatOS.menu([{ header: T('Restore from this folder') }, ...files.slice(0, 14).map(([n, hd]) => ({ label: n.replace(/^PatOS-backup-/, '').replace(/\.patos-backup$/, ''), action: async () => { try { await ui.fromFile(await hd.getFile()); } catch (e) { msg(T('That didn’t work'), T(String(e.message || e))); } } }))], r.left, r.bottom + 4);
+    }
+  };
+
+  /* ---------- keeping storage safe, and the daily routine ---------- */
+  const persist = {
+    supported: () => !!(navigator.storage && navigator.storage.persist),
+    status: async () => { try { return await navigator.storage.persisted(); } catch (e) { return false; } },
+    request: async () => { try { return await navigator.storage.persist(); } catch (e) { return false; } }
+  };
+  const autoOn = () => info().auto !== false;
+  async function autoTick(force) {
+    if (!PatOS.store.idb || !PatOS.loggedIn) return;
+    if (autoOn()) {
+      const last = list().find((x) => x.kind === 'auto'); const t = Date.now();
+      if (force || !last || t - last.t > 20 * 3600e3) { try { await snapshot(T('Daily snapshot'), 'auto'); PatOS.emit('backup'); } catch (e) { console.warn('PatOS backup:', e); } }
+    }
+    const h = await getFolder();
+    if (h && (force || Date.now() - (info().folderLast || 0) > 20 * 3600e3)) {
+      const r = await writeFolderNow(false);
+      // the browser may want a click before it lets PatOS write again: ask once a day, with a notification you can click
+      if (!r.ok && r.why === 'permission' && Date.now() - (info().folderAsked || 0) > DAY) {
+        setInfo({ folderAsked: Date.now() });
+        PatOS.notify({ title: T('Backup folder needs permission'), body: T('Click to let PatOS save today’s backup.'), icon: 'settings', duration: 20000, onClick: async () => { const r2 = await writeFolderNow(true); if (r2.ok) PatOS.notify({ title: T('Backup saved'), body: info().folder || '', icon: 'settings' }); } });
+      }
+    }
+  }
+  PatOS.on('wm:ready', () => { persist.request(); setTimeout(() => autoTick(false), 25000); });
+  setInterval(() => autoTick(false), 3600e3);
+
+  PatOS.backup = { ui, collect, parse, apply, snapshot, list, removeSnapshot, restoreSnapshot, exportFile, saveFile, count, when, stamp, autoTick, setAuto: (on) => setInfo({ auto: !!on }), autoOn, persist, info,
+    folder: { handle: getFolder, supported: folderSupported, link: linkFolder, unlink: unlinkFolder, status: folderStatus, writeNow: writeFolderNow, write: writeToFolder } };
+})();
+
+</script>
+  <script type="patos/js">
 /* Setup Assistant — runs the first time PatOS starts */
 (function () {
   'use strict';
@@ -10476,7 +10821,8 @@ PatOS.beta = null;
     if (step === 0) {
       const hello = h('div', { class: 'su-hello' }, 'Hello');
       let i = 0; helloTimer = setInterval(() => { i = (i + 1) % HELLOS.length; hello.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(-8px)' }], { duration: 300 }).onfinish = () => { hello.textContent = HELLOS[i]; hello.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 400 }); }; }, 1800);
-      c.append(hello, h('p', { class: 'su-sub' }, T('Welcome to PatOS. Let’s set things up. It takes less than a minute.')), next('Get Started', () => go(1)), dots);
+      const have = h('button', { class: 'su-link', onclick: (e) => { const B = PatOS.backup; if (!B) return; const r = e.currentTarget.getBoundingClientRect(); PatOS.menu([{ label: T('From a backup file…'), action: () => B.ui.pickFile() }, B.folder.supported() ? { label: T('From my backup folder…'), action: () => B.ui.folderMenu(null, e.currentTarget).catch(() => {}) } : null], r.left, r.top - 90); } }, T('I already have a backup'));
+      c.append(hello, h('p', { class: 'su-sub' }, T('Welcome to PatOS. Let’s set things up. It takes less than a minute.')), next('Get Started', () => go(1)), have, dots);
     } else if (step === 1) {
       const pick = (code, label, flag) => { const b = h('button', { class: 'su-opt' + (PatOS.lang === code ? ' on' : '') }, h('span', { class: 'su-flag' }, flag), label); b.onclick = () => { if (PatOS.lang === code) return go(2); PatOS.setSetting('language', code); PatOS.store.set('setupStep', 2); (PatOS._leaving = true, location.reload()); }; return b; };
       c.append(h('h1', {}, T('Choose your language')), h('p', { class: 'su-sub' }, T('You can change it later in System Settings.')), h('div', { class: 'su-opts' }, pick('en', 'English', 'EN'), pick('fr', 'Français', 'FR')), next(null, () => go(2)), dots);
@@ -15975,9 +16321,9 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
   const PANES = [
     ['general', 'General', '⚙️'], ['update', 'Software Update', '⬇️'], ['appearance', 'Appearance', '🎨'], ['accessibility', 'Accessibility', '♿'], ['wallpaper', 'Wallpaper', '🖼'], ['dock', 'Home Screen & Dock', '🧭'],
     ['display', 'Displays & 3D', '🖥'], ['sound', 'Sound', '🔊'], ['lock', 'Lock Screen', '🔒'], ['network', 'Network', '📶'], ['startup', 'Install & Start Up', '🚀'], ['permissions', 'Permissions', '🛡'], ['system', 'This Device', '💻'],
-    ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾']
+    ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾'], ['backup', 'Backup & Restore', '🕘']
   ];
-  const KW = { update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
+  const KW = { backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
   // Spotlight searches Settings with this list
   PatOS.settingsIndex = () => PANES.map(([k, l]) => ({ pane: k, label: l, keywords: KW[k] || '' }));
   PatOS.registerApp({
@@ -16048,6 +16394,73 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           };
           const idOf = (r) => (r ? r.version + (r.beta ? 'b' + r.beta : '') : '');
           if (U) { const on = () => { if (pane === 'update' && out.isConnected) paint(); }; const off = PatOS.on('update', on); win.on('closed', off); U.fetchReleases().then(on); if (U.state === 'idle' || U.state === 'uptodate') U.check(false); }
+          paint(); return [out];
+        },
+        backup() {
+          const out = h('div', { class: 'bk' }); const B = PatOS.backup;
+          const msg = (title, body) => PatOS.alertBox(title, body, { icon: 'settings' });
+          const sizeOf = (b) => PatOS.fmtBytes(b);
+          const spin = (btn, fn) => async () => { if (btn) btn.disabled = true; try { await fn(); } catch (e) { if (e && e.name !== 'AbortError') msg(T('That didn’t work'), String(e.message || e)); } finally { if (btn) btn.disabled = false; } };
+          const restore = (title, run) => B.ui.confirmRestore(title, run), fromFile = (f) => B.ui.fromFile(f), pickFile = () => B.ui.pickFile();
+          function exportDialog() {
+            const c = B.count(PatOS.fs.exportTree());
+            const layer = h('div', { class: 'dlg-layer' }); const close = () => layer.remove();
+            const big = h('input', { type: 'checkbox', checked: c.blobFiles > 0 && c.blobBytes < 150 * 1048576 }); big.disabled = !c.blobFiles;
+            const p1 = h('input', { class: 'field', type: 'password', placeholder: T('Password (optional)'), autocomplete: 'new-password', 'aria-label': T('Password') }), p2 = h('input', { class: 'field', type: 'password', placeholder: T('Type it again'), autocomplete: 'new-password', 'aria-label': T('Password again') });
+            const note = h('div', { class: 'bk-note' });
+            const go = h('button', { class: 'btn primary' }, T('Export'));
+            go.onclick = async () => {
+              if (p1.value && p1.value !== p2.value) { note.textContent = T('The two passwords are different.'); return; }
+              if (p1.value && p1.value.length < 6) { note.textContent = T('Use at least 6 characters.'); return; }
+              go.disabled = true; note.textContent = T('Making the backup…');
+              try { const f = await B.exportFile({ blobs: big.checked, password: p1.value || null }); const how = await B.saveFile(f); close(); if (how !== 'cancelled') PatOS.notify({ title: T('Backup file ready'), body: f.name + ' · ' + sizeOf(f.blob.size) + (f.stats.bigSkipped ? ' · ' + f.stats.bigSkipped + ' ' + T('big files left out') : ''), icon: 'settings', duration: 8000 }); }
+              catch (e) { go.disabled = false; note.textContent = String(e.message || e); }
+            };
+            layer.appendChild(h('div', { class: 'dlg ce bk-dlg' }, h('b', {}, T('Export a backup file')), h('p', { class: 'bk-note' }, T('One file with all your files, notes and settings. Keep it somewhere safe, like a USB stick or your Files app.') + ' ' + c.files + ' ' + T('files') + ', ' + sizeOf(c.bytes + c.blobBytes) + '.'),
+              c.blobFiles ? h('label', { class: 'ce-row' }, h('span', {}, T('Include big files') + ' (' + c.blobFiles + ', ' + sizeOf(c.blobBytes) + ')'), big) : null,
+              h('p', { class: 'bk-note' }, T('A password locks the file. If you forget it, the backup can’t be opened.')), p1, p2, note,
+              h('div', { class: 'dlg-btns' }, h('button', { class: 'btn', onclick: close }, T('Cancel')), go)));
+            layer.addEventListener('pointerdown', (e) => { if (e.target === layer) close(); }); layer.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+            document.body.appendChild(layer); setTimeout(() => p1.focus(), 30);
+          }
+          const folderBackups = (btn) => B.ui.folderMenu(null, btn);
+          const paint = async () => {
+            const [persisted, fst] = await Promise.all([B.persist.status(), B.folder.status()]);
+            const snaps = B.list(); const inf = B.info();
+            out.innerHTML = '';
+            out.append(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('settings') }), h('div', {}, h('h2', {}, T('Your data is yours')), h('p', { class: 'su-status' }, T('PatOS keeps everything on this device and works without internet. Backups protect it if the browser’s data is erased, PatOS is removed, or you switch devices.')))));
+            const vaultWarn = PatOS.passwords && PatOS.passwords.deviceOnly && PatOS.passwords.all().length;
+            if (vaultWarn) out.appendChild(h('div', { class: 'pw-warn bk-warn' }, h('span', {}, T('Your saved passwords are locked with a key that never leaves this device, so a backup can’t open them on another device or after PatOS is erased. Add a master password in Passwords to include them safely.')), h('button', { class: 'btn', onclick: () => PatOS.launch('passwords') }, T('Open Passwords'))));
+            out.appendChild(group(row(T('Kept safe by the browser'), persisted ? h('span', { class: 'st-val' }, T('Yes')) : h('button', { class: 'btn', onclick: spin(null, async () => { await B.persist.request(); paint(); }) }, T('Ask')), persisted ? T('The browser won’t clear PatOS’s data when the device is low on space.') : T('The browser may clear PatOS’s data when the device is low on space. Ask it not to.'))));
+            // snapshots
+            const now = h('button', { class: 'btn' }, T('Back Up Now')); now.onclick = spin(now, async () => { await B.snapshot(T('Snapshot'), 'manual'); toast(T('Snapshot saved')); paint(); });
+            const auto = h('button', { class: 'switch' + (B.autoOn() ? ' on' : ''), role: 'switch', 'aria-checked': String(B.autoOn()), 'aria-label': T('Daily snapshot') }); auto.onclick = () => { B.setAuto(!B.autoOn()); paint(); };
+            out.append(h('h3', {}, T('Snapshots')), group(row(T('Take a snapshot every day'), auto, T('Keeps the last 7 days inside PatOS. Big files like videos are not copied into snapshots.')), row(T('Snapshot now'), now)));
+            if (snaps.length) out.appendChild(h('div', { class: 'bk-list' }, ...snaps.map((x) => {
+              const b = h('button', { class: 'btn' }, T('Restore')); b.onclick = spin(b, () => restore(T('Restore PatOS to') + ' ' + B.when(x.t) + '?', () => B.restoreSnapshot(x.key)));
+              const del = x.kind === 'auto' ? null : h('button', { class: 'tbtn', title: T('Delete'), 'aria-label': T('Delete'), onclick: async () => { await B.removeSnapshot(x.key); paint(); } }, '×');
+              return h('div', { class: 'bk-snap' }, h('div', {}, h('b', {}, B.when(x.t)), h('small', {}, T(x.kind === 'auto' ? 'Daily snapshot' : x.kind === 'before' ? 'Before restoring' : 'Snapshot') + ' · ' + x.files + ' ' + T('files') + ' · ' + sizeOf(x.bytes))), h('div', { class: 'bk-acts' }, b, del));
+            })));
+            else out.appendChild(h('div', { class: 'bk-empty' }, T('No snapshots yet. The first one is made a few seconds after PatOS opens, then once a day.')));
+            // backup file
+            const ex = h('button', { class: 'btn', onclick: exportDialog }, T('Export…')), im = h('button', { class: 'btn' }, T('Import…')); im.onclick = spin(im, pickFile);
+            out.append(h('h3', {}, T('Backup file')), group(row(T('Save everything to a file'), ex, PatOS.hw && PatOS.hw.ios ? T('On an iPhone the file goes to your Files app.') : T('One file you can keep anywhere. Use it to move PatOS to a new device.')), row(T('Restore from a file'), im, T('Replaces what is here with the backup (a copy of right now is saved first).'))));
+            // the folder
+            out.appendChild(h('h3', {}, T('Auto-backup folder')));
+            if (!fst.supported) out.appendChild(h('div', { class: 'bk-empty' }, T('Folders need Chrome on a computer or Chromebook. On an iPhone, use Export and save the file to Files.')));
+            else if (!fst.linked) {
+              const ch = h('button', { class: 'btn primary' }, T('Choose Folder…')); ch.onclick = spin(ch, async () => { await B.folder.link(); toast(T('Backup folder set')); paint(); });
+              out.appendChild(group(row(T('Back up to a folder'), ch, T('Every day PatOS saves a backup in a folder you choose. It is on your real disk, so it survives even if PatOS or this website is deleted. Already have one? Choose it again to restore from it.'))));
+              out.appendChild(h('div', { class: 'bk-empty' }, T('Reinstalled PatOS? Choose your backup folder above, then press Restore.')));
+            } else {
+              const allow = fst.permission !== 'granted' ? h('button', { class: 'btn primary' }, T('Allow')) : null; if (allow) allow.onclick = spin(allow, async () => { await B.folder.writeNow(true); paint(); });
+              const bn = h('button', { class: 'btn' }, T('Back Up Now')); bn.onclick = spin(bn, async () => { const r = await B.folder.writeNow(true); if (!r.ok) throw new Error(r.why === 'permission' ? T('Allow PatOS to save in the folder first.') : r.why); toast(T('Backup saved')); paint(); });
+              const rs = h('button', { class: 'btn' }, T('Restore…')); rs.onclick = spin(rs, () => folderBackups(rs));
+              const stop = h('button', { class: 'btn', onclick: async () => { await B.folder.unlink(); paint(); } }, T('Stop'));
+              out.appendChild(group(row(fst.name, h('div', { class: 'bk-acts' }, allow, bn, rs, stop), fst.permission !== 'granted' ? T('The browser needs a click to let PatOS save here again.') : (fst.last ? T('Last saved') + ' ' + B.when(fst.last) : T('Not saved yet')))));
+            }
+          };
+          const on = () => { if (pane === 'backup' && out.isConnected) paint(); }; const off = PatOS.on('backup', on); win.on('closed', off);
           paint(); return [out];
         },
         appearance() {

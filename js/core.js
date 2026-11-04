@@ -153,6 +153,15 @@
       return n;
     },
     flush: flushNow,
+    /* everything worth keeping, for backups: all saved data except the file tree (that comes from fs.exportTree)
+       and caches that are made again by themselves */
+    backupData() { const o = {}; const skip = new Set(['fs', 'wpCache', 'wpLockCache', 'wxCache', 'fsCleaned2', 'snapIndex', 'backupInfo']); const src = KV || (function () { const r = {}; try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => { try { r[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {} return r; })(); Object.keys(src).forEach((k) => { if (!skip.has(k)) o[k] = clone(src[k]); }); return o; },
+    /* put saved data back from a backup: keys that are not in it are removed */
+    restoreData(data) {
+      const keep = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo']); const old = KV ? Object.keys(KV) : [];
+      old.forEach((k) => { if (!keep.has(k) && !(k in data)) PatOS.store.remove(k); });
+      Object.keys(data).forEach((k) => { if (!keep.has(k)) PatOS.store.set(k, clone(data[k])); });
+    },
     dump() { const o = {}; if (KV) Object.keys(KV).forEach((k) => { if (k !== 'fs') o[k] = clone(KV[k]); }); else { try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX) && k !== PREFIX + 'fs').forEach((k) => { o[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); }); } catch (e) {} } return o; },
     async clearAll() {
       try { localStorage.setItem('patos-wipe', '1'); } catch (e) {}
@@ -545,7 +554,19 @@
       const key = n.blob || path + n.mtime; blobUrls[key] = blobUrls[key] || PatOS.fs.getBlob(path).then((b) => (b ? URL.createObjectURL(b) : null));
       return blobUrls[key];
     },
-    reset() { root = seedFS(); PatOS.store.set('fs', root); PatOS.emit('fs', { path: '/', dir: '/' }); }
+    reset() { root = seedFS(); PatOS.store.set('fs', root); PatOS.emit('fs', { path: '/', dir: '/' }); },
+    /* the whole file tree with every file's content inside it (for backups) */
+    exportTree() { const t = clone(root); (function strip(n) { delete n.cid; if (n.type === 'dir') Object.values(n.children).forEach(strip); })(t); return t; },
+    /* replace the whole file tree (restoring a backup); big files whose data is no longer here are dropped, and counted */
+    async importTree(tree) {
+      if (!tree || tree.type !== 'dir' || !tree.children) throw new Error('This is not a PatOS file tree');
+      let missing = 0; const have = new Set();
+      if (DBH) { await new Promise((res) => { try { const r = DBH.transaction('blobs').objectStore('blobs').getAllKeys(); r.onsuccess = () => { r.result.forEach((k) => have.add(k)); res(); }; r.onerror = () => res(); } catch (e) { res(); } }); }
+      (function fix(n) { if (n.type !== 'dir') return; Object.keys(n.children).forEach((k) => { const c = n.children[k]; if (c.type === 'dir') fix(c); else if (c.blob && !have.has(c.blob)) { delete n.children[k]; missing++; } }); })(tree);
+      ['Desktop', 'Documents', 'Downloads', 'Pictures', 'Music', 'Videos', '.Trash'].forEach((d) => { if (!tree.children[d]) tree.children[d] = { type: 'dir', children: {}, mtime: now() }; });
+      root = tree; saveFSNow(); // (records of the old files are removed by saveFSNow itself) PatOS.emit('fs', { path: '/', dir: '/' });
+      return { missing };
+    }
   };
 
   /* file type helpers */

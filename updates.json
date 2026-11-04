@@ -1,5 +1,22 @@
 [
   {
+    "version": "2.0.0",
+    "beta": 1,
+    "date": "2026-11-04",
+    "title": {
+      "en": "PatOS 2.0: Everywhere",
+      "fr": "PatOS 2.0 : partout"
+    },
+    "notes": {
+      "en": [
+        "Backup & Restore: a snapshot every day (restore PatOS to how it was on Tuesday), a backup file you can lock with a password, and on a Chromebook an auto-backup folder on your real disk, so your data survives even if PatOS or the website is deleted. You can restore from the very first screen on a new device"
+      ],
+      "fr": [
+        "Sauvegarde et restauration : un instantané chaque jour (remettez PatOS comme il était mardi), un fichier de sauvegarde que vous pouvez verrouiller par mot de passe, et sur un Chromebook un dossier de sauvegarde automatique sur votre vrai disque, pour que vos données survivent même si PatOS ou le site est supprimé. Vous pouvez restaurer dès le tout premier écran sur un nouvel appareil"
+      ]
+    }
+  },
+  {
     "version": "1.7.0",
     "date": "2026-11-04",
     "title": {
