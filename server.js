@@ -4,6 +4,7 @@ const fs = require('fs');
 const path = require('path');
 const yt = require('./yt.js');
 const services = require('./services.js');
+const syncServer = require('./sync-server.js');
 const { sendFile, sendJSON, sendPyodide } = require('./http-util.js');
 
 const ROOT = __dirname;
@@ -13,14 +14,15 @@ const TYPES = {
   '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8'
 };
-const PRIVATE_DIRS = new Set(['test', 'node_modules']); // never served
-const PRIVATE = new Set(['server.js', 'yt.js', 'services.js', 'http-util.js', 'package.json', 'package-lock.json', 'build.js']);
+const PRIVATE_DIRS = new Set(['test', 'node_modules', 'data', 'sync-data']); // never served
+const PRIVATE = new Set(['server.js', 'yt.js', 'services.js', 'http-util.js', 'sync-server.js', 'package.json', 'package-lock.json', 'build.js', 'updates.json']);
 
 const server = http.createServer((req, res) => {
   let p;
   try { p = decodeURIComponent(new URL(req.url, 'http://x').pathname); } catch (e) { res.writeHead(400); return res.end('Bad request'); }
   if (p.startsWith('/api/yt/')) return yt.handle(req, res, new URL(req.url, 'http://x'));
   if (p.startsWith('/api/news') || p.startsWith('/api/books/') || p === '/api/suggest' || p === '/api/frameable') return services.handle(req, res, new URL(req.url, 'http://x'));
+  if (p.startsWith('/api/sync/')) return syncServer.handle(req, res, new URL(req.url, 'http://x'));
   if (p.startsWith('/pyodide/')) return sendPyodide(req, res, p).then((ok) => { if (!ok) { res.writeHead(404); res.end('Not found'); } });
   if (p === '/api/config') return sendJSON(req, res, 200, { googleCx: (process.env.GOOGLE_CX || '').trim() });
   // the list of PatOS versions and what changed in each (read fresh, so a running PatOS can see the newest one)

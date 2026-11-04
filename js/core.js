@@ -137,7 +137,7 @@
       } catch (e) { return key in mem ? mem[key] : fallback; }
     },
     set(key, value) {
-      if (KV) { KV[key] = value; dirty.add(key); removedKeys.delete(key); flushSoon(); return true; }
+      if (KV) { KV[key] = value; dirty.add(key); removedKeys.delete(key); flushSoon(); PatOS.emit && PatOS.emit('store:set', key); return true; }
       mem[key] = value;
       try { localStorage.setItem(PREFIX + key, JSON.stringify(value)); return true; }
       catch (e) {
@@ -145,7 +145,7 @@
         return false;
       }
     },
-    remove(key) { if (KV) { delete KV[key]; dirty.delete(key); removedKeys.add(key); flushSoon(); return; } delete mem[key]; try { localStorage.removeItem(PREFIX + key); } catch (e) {} },
+    remove(key) { if (KV) { delete KV[key]; dirty.delete(key); removedKeys.add(key); flushSoon(); PatOS.emit && PatOS.emit('store:set', key); return; } delete mem[key]; try { localStorage.removeItem(PREFIX + key); } catch (e) {} },
     usage() {
       let n = 0;
       if (KV) { try { Object.keys(KV).forEach((k) => { n += JSON.stringify(KV[k]).length * 2; }); } catch (e) {} Object.keys(persistedFC).forEach((k) => { n += persistedFC[k].length * 2; }); return n; }
@@ -153,13 +153,16 @@
       return n;
     },
     flush: flushNow,
+    /* look at saved data without copying it (for hashing in Sync); never change what this returns */
+    keys() { return KV ? Object.keys(KV) : []; },
+    peek(key) { return KV ? KV[key] : undefined; },
     /* everything worth keeping, for backups: all saved data except the file tree (that comes from fs.exportTree)
        and caches that are made again by themselves */
-    backupData() { const o = {}; const skip = new Set(['fs', 'wpCache', 'wpLockCache', 'wxCache', 'fsCleaned2', 'snapIndex', 'backupInfo']); const src = KV || (function () { const r = {}; try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => { try { r[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {} return r; })(); Object.keys(src).forEach((k) => { if (!skip.has(k)) o[k] = clone(src[k]); }); return o; },
+    backupData() { const o = {}; const skip = new Set(['fs', 'wpCache', 'wpLockCache', 'wxCache', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState']); const src = KV || (function () { const r = {}; try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => { try { r[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {} return r; })(); Object.keys(src).forEach((k) => { if (!skip.has(k)) o[k] = clone(src[k]); }); return o; },
     /* put saved data back from a backup: keys that are not in it are removed */
     restoreData(data) {
-      const keep = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo']); const old = KV ? Object.keys(KV) : [];
-      old.forEach((k) => { if (!keep.has(k) && !(k in data)) PatOS.store.remove(k); });
+      const keep = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState']); const neverRemove = new Set(['syncKey']); const old = KV ? Object.keys(KV) : [];
+      old.forEach((k) => { if (!keep.has(k) && !neverRemove.has(k) && !(k in data)) PatOS.store.remove(k); });
       Object.keys(data).forEach((k) => { if (!keep.has(k)) PatOS.store.set(k, clone(data[k])); });
     },
     dump() { const o = {}; if (KV) Object.keys(KV).forEach((k) => { if (k !== 'fs') o[k] = clone(KV[k]); }); else { try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX) && k !== PREFIX + 'fs').forEach((k) => { o[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); }); } catch (e) {} } return o; },
@@ -564,7 +567,8 @@
       if (DBH) { await new Promise((res) => { try { const r = DBH.transaction('blobs').objectStore('blobs').getAllKeys(); r.onsuccess = () => { r.result.forEach((k) => have.add(k)); res(); }; r.onerror = () => res(); } catch (e) { res(); } }); }
       (function fix(n) { if (n.type !== 'dir') return; Object.keys(n.children).forEach((k) => { const c = n.children[k]; if (c.type === 'dir') fix(c); else if (c.blob && !have.has(c.blob)) { delete n.children[k]; missing++; } }); })(tree);
       ['Desktop', 'Documents', 'Downloads', 'Pictures', 'Music', 'Videos', '.Trash'].forEach((d) => { if (!tree.children[d]) tree.children[d] = { type: 'dir', children: {}, mtime: now() }; });
-      root = tree; saveFSNow(); // (records of the old files are removed by saveFSNow itself) PatOS.emit('fs', { path: '/', dir: '/' });
+      root = tree; saveFSNow(); // (records of the old files are removed by saveFSNow itself)
+      PatOS.emit('fs', { path: '/', dir: '/' });
       return { missing };
     }
   };

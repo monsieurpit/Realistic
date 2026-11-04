@@ -3391,6 +3391,7 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 .bk-dlg { width: min(440px, calc(100vw - 32px)); align-items: stretch; text-align: left; }
 .bk-note { font-size: 12.5px; color: var(--text2); margin: 0; min-height: 16px; }
 .su-link { margin-top: 10px; color: var(--accent); font-size: 13.5px; padding: 6px 12px; border-radius: 8px; } .su-link:hover { background: var(--hover); }
+.sy-code { font: 600 17px/1.4 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .06em; padding: 12px 14px; text-align: center; user-select: all; word-break: break-all; }
 
 </style>
   <style>
@@ -3822,7 +3823,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       } catch (e) { return key in mem ? mem[key] : fallback; }
     },
     set(key, value) {
-      if (KV) { KV[key] = value; dirty.add(key); removedKeys.delete(key); flushSoon(); return true; }
+      if (KV) { KV[key] = value; dirty.add(key); removedKeys.delete(key); flushSoon(); PatOS.emit && PatOS.emit('store:set', key); return true; }
       mem[key] = value;
       try { localStorage.setItem(PREFIX + key, JSON.stringify(value)); return true; }
       catch (e) {
@@ -3830,7 +3831,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
         return false;
       }
     },
-    remove(key) { if (KV) { delete KV[key]; dirty.delete(key); removedKeys.add(key); flushSoon(); return; } delete mem[key]; try { localStorage.removeItem(PREFIX + key); } catch (e) {} },
+    remove(key) { if (KV) { delete KV[key]; dirty.delete(key); removedKeys.add(key); flushSoon(); PatOS.emit && PatOS.emit('store:set', key); return; } delete mem[key]; try { localStorage.removeItem(PREFIX + key); } catch (e) {} },
     usage() {
       let n = 0;
       if (KV) { try { Object.keys(KV).forEach((k) => { n += JSON.stringify(KV[k]).length * 2; }); } catch (e) {} Object.keys(persistedFC).forEach((k) => { n += persistedFC[k].length * 2; }); return n; }
@@ -3838,13 +3839,16 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       return n;
     },
     flush: flushNow,
+    /* look at saved data without copying it (for hashing in Sync); never change what this returns */
+    keys() { return KV ? Object.keys(KV) : []; },
+    peek(key) { return KV ? KV[key] : undefined; },
     /* everything worth keeping, for backups: all saved data except the file tree (that comes from fs.exportTree)
        and caches that are made again by themselves */
-    backupData() { const o = {}; const skip = new Set(['fs', 'wpCache', 'wpLockCache', 'wxCache', 'fsCleaned2', 'snapIndex', 'backupInfo']); const src = KV || (function () { const r = {}; try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => { try { r[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {} return r; })(); Object.keys(src).forEach((k) => { if (!skip.has(k)) o[k] = clone(src[k]); }); return o; },
+    backupData() { const o = {}; const skip = new Set(['fs', 'wpCache', 'wpLockCache', 'wxCache', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState']); const src = KV || (function () { const r = {}; try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => { try { r[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {} return r; })(); Object.keys(src).forEach((k) => { if (!skip.has(k)) o[k] = clone(src[k]); }); return o; },
     /* put saved data back from a backup: keys that are not in it are removed */
     restoreData(data) {
-      const keep = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo']); const old = KV ? Object.keys(KV) : [];
-      old.forEach((k) => { if (!keep.has(k) && !(k in data)) PatOS.store.remove(k); });
+      const keep = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState']); const neverRemove = new Set(['syncKey']); const old = KV ? Object.keys(KV) : [];
+      old.forEach((k) => { if (!keep.has(k) && !neverRemove.has(k) && !(k in data)) PatOS.store.remove(k); });
       Object.keys(data).forEach((k) => { if (!keep.has(k)) PatOS.store.set(k, clone(data[k])); });
     },
     dump() { const o = {}; if (KV) Object.keys(KV).forEach((k) => { if (k !== 'fs') o[k] = clone(KV[k]); }); else { try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX) && k !== PREFIX + 'fs').forEach((k) => { o[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); }); } catch (e) {} } return o; },
@@ -4249,7 +4253,8 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
       if (DBH) { await new Promise((res) => { try { const r = DBH.transaction('blobs').objectStore('blobs').getAllKeys(); r.onsuccess = () => { r.result.forEach((k) => have.add(k)); res(); }; r.onerror = () => res(); } catch (e) { res(); } }); }
       (function fix(n) { if (n.type !== 'dir') return; Object.keys(n.children).forEach((k) => { const c = n.children[k]; if (c.type === 'dir') fix(c); else if (c.blob && !have.has(c.blob)) { delete n.children[k]; missing++; } }); })(tree);
       ['Desktop', 'Documents', 'Downloads', 'Pictures', 'Music', 'Videos', '.Trash'].forEach((d) => { if (!tree.children[d]) tree.children[d] = { type: 'dir', children: {}, mtime: now() }; });
-      root = tree; saveFSNow(); // (records of the old files are removed by saveFSNow itself) PatOS.emit('fs', { path: '/', dir: '/' });
+      root = tree; saveFSNow(); // (records of the old files are removed by saveFSNow itself)
+      PatOS.emit('fs', { path: '/', dir: '/' });
       return { missing };
     }
   };
@@ -4516,7 +4521,7 @@ function(t,e){"object"==typeof exports&&"undefined"!=typeof module?e(exports):"f
 /* generated by build.js from updates.json: do not edit */
 PatOS.version = "1.7.0";
 PatOS.releases = [{"version":"1.7.0","date":"2026-11-04","title":{"en":"Better apps","fr":"De meilleures apps"},"notes":{"en":["Calendar: Day and Year views, repeating events with an end date, alerts before events (even with Calendar closed), quick add in plain words (“Math class monday 9am weekly”), search, drag events to another day, and .ics import and export (Google Calendar)","Contacts: several phone numbers and emails per person, company, tap to call or email, search that ignores accents, Undo after deleting, merge duplicates, and better vCard import and export with photos","Weather: 10-day forecast, a one-line summary of the next hours, city suggestions as you type, gusts, pressure, visibility and rain today, wind and rain in mph and inches with °F, refreshes by itself, and real icons instead of emoji","Photos: much faster with many photos, your own albums, select several photos at once, search, zoom and pan with the wheel or pinch, swipe between photos, photo info, drop pictures to add them, and large photos now show up","Paint: choose your canvas size, zoom, text, filled shapes, opacity that doesn’t darken overlaps, Shift for straight lines and circles, rotate and flip, more undo, keyboard shortcuts, and open or save over a picture (Photos › More › Open in Paint)","Reliability and security: a failed save keeps your deletions, stricter checks for private network addresses, the password vault only counts use of the vault as activity and locks when you close Passwords, and the French translation is complete","Messages: Pat can set timers and alarms, show your calendar and what is due, add events and reminders with dates in plain words, convert units, work out percentages, find files, pick between options, and suggest the app you meant. Up arrow brings back what you typed","Terminal: variables ($NAME), aliases, !! to repeat the last command, new tools (cut, tr, sed, diff, nl, tee, stat, basename, dirname, which, sleep), and Tab fills in what several matches share","Flashcards: spaced repetition (cards you know come back later, cards you miss come back today), a mode where you type the answer, either side first, paste a list or a Quizlet export to make a deck, a study streak, and no more pre-made decks","Security: programs run in Terminal and Python can no longer reach PatOS’s storage, Terminal’s node command is labeled as a JavaScript runner, and About, Terminal and Settings show the exact version you are running"],"fr":["Calendrier : vues Jour et Année, événements récurrents avec date de fin, alertes avant les événements (même avec Calendrier fermé), ajout rapide en mots simples (« Cours de maths lundi 9h chaque semaine »), recherche, glisser les événements vers un autre jour, et import et export .ics (Google Agenda)","Contacts : plusieurs numéros et courriels par personne, entreprise, toucher pour appeler ou écrire, recherche sans tenir compte des accents, Annuler après une suppression, fusion des doublons, et meilleur import et export vCard avec les photos","Météo : prévisions sur 10 jours, un résumé des prochaines heures, suggestions de villes en écrivant, rafales, pression, visibilité et pluie du jour, vent et pluie en mph et pouces avec les °F, actualisation automatique, et de vraies icônes au lieu des émojis","Photos : beaucoup plus rapide avec beaucoup de photos, vos propres albums, sélection de plusieurs photos, recherche, zoom et déplacement à la molette ou au pincement, balayage entre les photos, infos de la photo, glisser des images pour les ajouter, et les grandes photos apparaissent maintenant","Paint : choisissez la taille du canevas, zoom, texte, formes pleines, opacité qui ne s’assombrit pas aux croisements, Maj pour des lignes droites et des cercles, rotation et retournement, plus d’annulations, raccourcis clavier, et ouverture ou enregistrement par-dessus une image (Photos › Plus › Ouvrir dans Paint)","Fiabilité et sécurité : un enregistrement échoué garde vos suppressions, vérifications plus strictes des adresses de réseau privé, le coffre de mots de passe ne compte que son propre usage comme activité et se verrouille à la fermeture de Mots de passe, et la traduction française est complète","Messages : Pat peut régler des minuteurs et des alarmes, montrer ton calendrier et ce qui est dû, ajouter des événements et des rappels avec des dates en mots simples, convertir des unités, calculer des pourcentages, trouver des fichiers, choisir entre des options, et suggérer l’app que tu voulais. La flèche du haut rappelle ce que tu as écrit","Terminal : variables ($NOM), alias, !! pour répéter la dernière commande, nouveaux outils (cut, tr, sed, diff, nl, tee, stat, basename, dirname, which, sleep), et Tab complète ce que plusieurs correspondances ont en commun","Cartes mémoire : répétition espacée (les cartes que vous savez reviennent plus tard, celles que vous ratez reviennent aujourd’hui), un mode où vous écrivez la réponse, recto ou verso d’abord, coller une liste ou un export Quizlet pour faire un jeu, une série de jours d’étude, et plus de jeux préfaits","Sécurité : les programmes lancés dans Terminal et Python ne peuvent plus accéder au stockage de PatOS, la commande node du Terminal est présentée comme un exécuteur JavaScript, et À propos, Terminal et Réglages affichent la version exacte que vous utilisez"]}},{"version":"1.6.0","date":"2026-11-03","title":{"en":"Software Update","fr":"Mise à jour de logiciels"},"notes":{"en":["New Settings › Software Update: see your version, what changed, and install updates","PatOS finds new versions by itself while it is open, without refreshing","Installing an update restarts PatOS only, and your windows come back"],"fr":["Nouveau Réglages › Mise à jour de logiciels : votre version, ce qui a changé, et l’installation des mises à jour","PatOS trouve les nouvelles versions tout seul pendant qu’il est ouvert, sans rafraîchir","Installer une mise à jour redémarre seulement PatOS, et vos fenêtres reviennent"]}},{"version":"1.5.0","date":"2026-11-03","title":{"en":"iPhone swipe up, Reminders in plain words","fr":"Balayage sur iPhone, Rappels en mots simples"},"notes":{"en":["iPhone: swipe up from the bar at the bottom to leave an app, swipe up and pause for the app switcher","Reminders: type “Math test friday at 3pm !!” and the date, time and priority are filled in","Reminders can repeat, and there is search and Undo"],"fr":["iPhone : balayez vers le haut depuis la barre du bas pour quitter une app, et faites une pause pour le sélecteur d’apps","Rappels : écrivez « Examen de maths vendredi à 15h !! » et la date, l’heure et la priorité se remplissent","Les rappels peuvent se répéter, avec recherche et Annuler"]}},{"version":"1.4.0","date":"2026-11-03","title":{"en":"Clock and Calculator","fr":"Horloge et Calculatrice"},"notes":{"en":["Clock: add any city, a stopwatch that keeps running when closed, a timer with hours and a name, editable alarms","Calculator: history you can reuse, copy and paste, real percent, inverse trig"],"fr":["Horloge : ajoutez n’importe quelle ville, un chronomètre qui continue fermé, un minuteur avec heures et nom, des alarmes modifiables","Calculatrice : historique réutilisable, copier-coller, vrai pourcentage, trigonométrie inverse"]}},{"version":"1.3.0","date":"2026-11-03","title":{"en":"Finder and TextEdit","fr":"Finder et TextEdit"},"notes":{"en":["Finder: copy, cut and paste files, drag a box to select, drop files from your computer","TextEdit: find and replace, line and column, word wrap, Markdown preview, recent files, print"],"fr":["Finder : copier, couper et coller des fichiers, sélection en tirant un cadre, déposer des fichiers de l’ordinateur","TextEdit : rechercher et remplacer, ligne et colonne, retour à la ligne, aperçu Markdown, fichiers récents, impression"]}},{"version":"1.2.0","date":"2026-11-03","title":{"en":"Faster start, smoother 3D","fr":"Démarrage plus rapide, 3D plus fluide"},"notes":{"en":["PatOS starts in about a second instead of several","3D waits for the graphics chip, so slower Chromebooks don’t lag"],"fr":["PatOS démarre en environ une seconde au lieu de plusieurs","La 3D attend la puce graphique, donc les Chromebooks plus lents ne ralentissent plus"]}},{"version":"1.1.0","date":"2026-11-03","title":{"en":"Security","fr":"Sécurité"},"notes":{"en":["Passwords are always encrypted, and lock with your master password","Documents and pasted text can no longer run code","Pat in Messages is described honestly: a command helper, not an AI"],"fr":["Les mots de passe sont toujours chiffrés et se verrouillent avec votre mot de passe principal","Les documents et le texte collé ne peuvent plus exécuter de code","Pat dans Messages est décrit honnêtement : un assistant à commandes, pas une IA"]}}];
-PatOS.beta = {"version":"2.0.0","beta":1,"date":"2026-11-04","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"notes":{"en":["Backup & Restore: a snapshot every day (restore PatOS to how it was on Tuesday), a backup file you can lock with a password, and on a Chromebook an auto-backup folder on your real disk, so your data survives even if PatOS or the website is deleted. You can restore from the very first screen on a new device"],"fr":["Sauvegarde et restauration : un instantané chaque jour (remettez PatOS comme il était mardi), un fichier de sauvegarde que vous pouvez verrouiller par mot de passe, et sur un Chromebook un dossier de sauvegarde automatique sur votre vrai disque, pour que vos données survivent même si PatOS ou le site est supprimé. Vous pouvez restaurer dès le tout premier écran sur un nouvel appareil"]}};
+PatOS.beta = {"version":"2.0.0","beta":2,"date":"2026-11-04","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"notes":{"en":["Backup & Restore: a snapshot every day (restore PatOS to how it was on Tuesday), a backup file you can lock with a password, and on a Chromebook an auto-backup folder on your real disk, so your data survives even if PatOS or the website is deleted. You can restore from the very first screen on a new device","Sync (optional): your files, notes, calendar, reminders, contacts, flashcards and some settings follow you between your Chromebook and your iPhone. Everything is encrypted on the device with a key only you have, so the server sees nothing readable. It works offline, never blocks PatOS, and if you delete your Railway and make a new one, your devices fill it again by themselves (restoring a backup brings your Sync code back too). Turn it on in Settings › Sync"],"fr":["Sauvegarde et restauration : un instantané chaque jour (remettez PatOS comme il était mardi), un fichier de sauvegarde que vous pouvez verrouiller par mot de passe, et sur un Chromebook un dossier de sauvegarde automatique sur votre vrai disque, pour que vos données survivent même si PatOS ou le site est supprimé. Vous pouvez restaurer dès le tout premier écran sur un nouvel appareil","Synchronisation (facultative) : vos fichiers, notes, calendrier, rappels, contacts, cartes mémoire et certains réglages vous suivent entre votre Chromebook et votre iPhone. Tout est chiffré sur l’appareil avec une clé que vous seul avez, donc le serveur ne voit rien de lisible. Cela fonctionne hors ligne, ne bloque jamais PatOS, et si vous supprimez votre Railway pour en créer un nouveau, vos appareils le remplissent tout seuls (restaurer une sauvegarde ramène aussi votre code). Activez-la dans Réglages › Synchronisation"]}};
 
 </script>
   <script type="patos/js">
@@ -7428,6 +7433,54 @@ PatOS.beta = {"version":"2.0.0","beta":1,"date":"2026-11-04","title":{"en":"PatO
     'Snapshot': 'Instantané',
     'Snapshot saved': 'Instantané enregistré',
     'Daily snapshot': 'Instantané quotidien',
+    'Sync code': 'Code de synchronisation',
+    'Join': 'Rejoindre',
+    'Joining…': 'Connexion…',
+    'Join Sync': 'Rejoindre la synchronisation',
+    'Type the code shown in Settings › Sync on your other device. Things that are on both devices will use the version from Sync. PatOS keeps a snapshot first, so you can go back.': 'Écrivez le code affiché dans Réglages › Synchronisation sur votre autre appareil. Ce qui existe sur les deux appareils prendra la version de la synchronisation. PatOS garde d’abord un instantané, pour que vous puissiez revenir en arrière.',
+    'Turn Off': 'Désactiver',
+    'Sync is off': 'La synchronisation est désactivée',
+    'Sync is off on this device, but the copy on the server could not be deleted now.': 'La synchronisation est désactivée sur cet appareil, mais la copie sur le serveur n’a pas pu être supprimée pour le moment.',
+    'Turn off Sync?': 'Désactiver la synchronisation ?',
+    'Everything stays on this device. Your other devices keep their own copies too.': 'Tout reste sur cet appareil. Vos autres appareils gardent aussi leurs copies.',
+    'Also delete my encrypted copy from the server': 'Supprimer aussi ma copie chiffrée du serveur',
+    'Sync': 'Synchronisation',
+    'Your files, notes, calendar and settings follow you between your devices. It is optional: PatOS works fully without it, and offline, and changes wait until you are back online. Everything is locked with a key that stays on your devices, so the server only keeps scrambled data.': 'Vos fichiers, notes, calendrier et réglages vous suivent entre vos appareils. C’est facultatif : PatOS fonctionne très bien sans, et hors ligne, et les changements attendent votre retour en ligne. Tout est verrouillé par une clé qui reste sur vos appareils, donc le serveur ne garde que des données brouillées.',
+    'This browser can’t do the encryption Sync needs. Open PatOS from its https address, or in a newer browser.': 'Ce navigateur ne peut pas faire le chiffrement dont la synchronisation a besoin. Ouvrez PatOS depuis son adresse https, ou dans un navigateur plus récent.',
+    'Turn On Sync': 'Activer la synchronisation',
+    'Join with a Code…': 'Rejoindre avec un code…',
+    'Start Sync on this device': 'Démarrer la synchronisation sur cet appareil',
+    'Makes a code. Type it on your other devices to connect them.': 'Crée un code. Écrivez-le sur vos autres appareils pour les connecter.',
+    'Already use Sync on another device?': 'Vous utilisez déjà la synchronisation sur un autre appareil ?',
+    'Already using Sync? Restoring a backup brings the sync code back too, so a new server fills itself again.': 'Vous synchronisez déjà ? Restaurer une sauvegarde ramène aussi le code de synchronisation, donc un nouveau serveur se remplit tout seul.',
+    'Syncing…': 'Synchronisation…',
+    'Waiting for the internet. Your changes are safe here and go out later.': 'En attente d’internet. Vos changements sont en sécurité ici et partiront plus tard.',
+    'This server has an account with a different key. Check the code.': 'Ce serveur a un compte avec une autre clé. Vérifiez le code.',
+    'The server is full. Free some space or raise its limit.': 'Le serveur est plein. Libérez de l’espace ou augmentez sa limite.',
+    'Too many requests, trying again soon.': 'Trop de requêtes, nouvel essai bientôt.',
+    'The server had a problem. Trying again soon.': 'Le serveur a eu un problème. Nouvel essai bientôt.',
+    'Up to date': 'À jour',
+    'Not synced yet': 'Pas encore synchronisé',
+    'Sync Now': 'Synchroniser maintenant',
+    'Hide': 'Masquer',
+    'Show Code': 'Afficher le code',
+    'Your sync code': 'Votre code de synchronisation',
+    'Type this code in Settings › Sync on another device to connect it. Keep it private: it unlocks your data. It is included in backups.': 'Écrivez ce code dans Réglages › Synchronisation sur un autre appareil pour le connecter. Gardez-le privé : il déverrouille vos données. Il est inclus dans les sauvegardes.',
+    'On this device': 'Sur cet appareil',
+    'big files (videos and recordings) stay on the device where they are.': 'gros fichiers (vidéos et enregistrements) restent sur l’appareil où ils sont.',
+    'Files, notes, calendar, reminders, contacts, flashcards and some settings.': 'Fichiers, notes, calendrier, rappels, contacts, cartes mémoire et certains réglages.',
+    'Sync These Deletions': 'Synchroniser ces suppressions',
+    'items are missing on this device, so they would be deleted on your other devices too. If that is not what you wanted, restore a snapshot in Backup & Restore first.': 'éléments manquent sur cet appareil, donc ils seraient aussi supprimés sur vos autres appareils. Si ce n’est pas voulu, restaurez d’abord un instantané dans Sauvegarde et restauration.',
+    'items could not be saved on the server (it may be full).': 'éléments n’ont pas pu être enregistrés sur le serveur (il est peut-être plein).',
+    'Turn off': 'Désactiver',
+    'Stop syncing this device': 'Arrêter de synchroniser cet appareil',
+    'Turn Off…': 'Désactiver…',
+    'On the server': 'Sur le serveur',
+    'encrypted items': 'éléments chiffrés',
+    'Before joining Sync': 'Avant de rejoindre la synchronisation',
+    'That code is not right. Check it and try again.': 'Ce code n’est pas bon. Vérifiez-le et réessayez.',
+    'Sync is already on': 'La synchronisation est déjà activée',
+    'This browser cannot do encryption here': 'Ce navigateur ne peut pas faire de chiffrement ici',
     'Snapshots': 'Instantanés',
     'Take a snapshot every day': 'Prendre un instantané chaque jour',
     'Keeps the last 7 days inside PatOS. Big files like videos are not copied into snapshots.': 'Garde les 7 derniers jours dans PatOS. Les gros fichiers comme les vidéos ne sont pas copiés dans les instantanés.',
@@ -10794,6 +10847,375 @@ PatOS.beta = {"version":"2.0.0","beta":1,"date":"2026-11-04","title":{"en":"PatO
 
   PatOS.backup = { ui, collect, parse, apply, snapshot, list, removeSnapshot, restoreSnapshot, exportFile, saveFile, count, when, stamp, autoTick, setAuto: (on) => setInfo({ auto: !!on }), autoOn, persist, info,
     folder: { handle: getFolder, supported: folderSupported, link: linkFolder, unlink: unlinkFolder, status: folderStatus, writeNow: writeFolderNow, write: writeToFolder } };
+})();
+
+</script>
+  <script type="patos/js">
+/* PatOS Sync: your files, notes, calendar and settings follow you between your devices.
+   - It is optional, and PatOS never waits for it. Everything is saved on the device first; Sync only copies changes
+     to and from your own PatOS server in the background. Offline, nothing is lost: changes go out later.
+   - Everything is encrypted on the device before it leaves (AES-GCM). The server only holds scrambled bytes and
+     scrambled ids: it can't read your file names or what is in them. The key is made on your first device
+     (a 28-character code) and typed into the others. Nobody can reset it for you, so it is also saved in backups.
+   - The key lives only on your devices. If the server's folder is ever lost (a new Railway), the first device that
+     syncs makes the account again and sends everything back.
+   - A change made later wins (the clocks of your devices are trusted). Deleting is a change too. A device that joins
+     keeps its own things, and for anything that exists on both sides the server's version is used (a safety
+     snapshot is taken first). Big files (videos, huge pictures) stay on the device where they are. */
+(function () {
+  'use strict';
+  const T = (s) => PatOS.t(s);
+
+  /* what follows you: these saved lists (the file tree is walked separately) and a few settings */
+  const KV_KEYS = ['notes', 'noteFolders', 'noteSort', 'stickies', 'journal', 'calendar', 'reminders', 'remLists', 'alarms', 'contacts',
+    'decks', 'fcStreak', 'bookmarks', 'browserShortcuts', 'photoAlbums', 'photoFavs', 'musicPlaylists', 'radioFavs', 'ytLibrary', 'newsSaved',
+    'newsFeed', 'booksLib', 'booksPrefs', 'clockCities', 'weatherPlaces', 'weatherPlace', 'weatherUnit', 'termAlias', 'termVars', 'fileTags',
+    'focusCfg', 'focusHistory', 'boards', 'searchEngine', 'translatePrefs', 'solStats', 'sudokuBest', 'typingBest', 'orbBest', 'gamesBest', 'tttScore'];
+  const SETTING_KEYS = ['userName', 'theme', 'accent', 'wallpaper', 'dockSize', 'magnify', 'magnifyScale', 'dockAutohide', 'dockPinned', 'mobileDock',
+    'hiddenApps', 'language', 'clock24', 'showSeconds', 'uiSounds', 'volume', 'reduceMotion', 'highContrast', 'boldText', 'showFocus', 'bigTargets',
+    'reduceTransparency', 'liquidGlass', 'showWidgets', 'reopenWindows'];
+  const FILE_CAP = 9 * 1024 * 1024; // a file bigger than this stays where it is
+  const BATCH_BYTES = 6 * 1024 * 1024, BATCH_COUNT = 150;
+  const enc = new TextEncoder(), dec = new TextDecoder();
+  const ALPHA = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
+
+  /* ---------- small helpers ---------- */
+  function b64(buf) { const u = buf instanceof Uint8Array ? buf : new Uint8Array(buf); let s = ''; for (let i = 0; i < u.length; i += 0x8000) s += String.fromCharCode.apply(null, u.subarray(i, i + 0x8000)); return btoa(s); }
+  const b64url = (buf) => b64(buf).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  function unb64(s) { const bin = atob(s); const u = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u[i] = bin.charCodeAt(i); return u; }
+  function cyrb(str) { // a fast 53-bit hash, only to notice that something changed (not for security)
+    let h1 = 0xdeadbeef, h2 = 0x41c6ce57;
+    for (let i = 0; i < str.length; i++) { const ch = str.charCodeAt(i); h1 = Math.imul(h1 ^ ch, 2654435761); h2 = Math.imul(h2 ^ ch, 1597334677); }
+    h1 = Math.imul(h1 ^ (h1 >>> 16), 2246822507) ^ Math.imul(h2 ^ (h2 >>> 13), 3266489909);
+    h2 = Math.imul(h2 ^ (h2 >>> 16), 2246822507) ^ Math.imul(h1 ^ (h1 >>> 13), 3266489909);
+    return (4294967296 * (2097151 & h2) + (h1 >>> 0)).toString(36) + ':' + str.length;
+  }
+
+  /* ---------- the sync code ---------- */
+  function check2(chars) { let n = 0; for (let i = 0; i < chars.length; i++) n = (n * 31 + ALPHA.indexOf(chars[i]) + 1) % 1024; return ALPHA[n >> 5] + ALPHA[n & 31]; }
+  function keyToCode(bytes) {
+    let bits = '', out = ''; for (const b of bytes) bits += b.toString(2).padStart(8, '0');
+    bits = bits.padEnd(130, '0'); for (let i = 0; i < 130; i += 5) out += ALPHA[parseInt(bits.slice(i, i + 5), 2)];
+    out += check2(out); return out.match(/.{4}/g).join('-');
+  }
+  function codeToKey(code) {
+    const c = String(code || '').toUpperCase().replace(/[\s-]/g, '').replace(/O/g, '0').replace(/[IL]/g, '1');
+    if (c.length !== 28 || /[^0-9A-HJKMNP-TV-Z]/.test(c)) return null;
+    if (check2(c.slice(0, 26)) !== c.slice(26)) return null;
+    let bits = ''; for (let i = 0; i < 26; i++) bits += ALPHA.indexOf(c[i]).toString(2).padStart(5, '0');
+    if (/1/.test(bits.slice(128))) return null;
+    const out = new Uint8Array(16); for (let i = 0; i < 16; i++) out[i] = parseInt(bits.slice(i * 8, i * 8 + 8), 2);
+    return out;
+  }
+
+  /* ---------- keys and encryption ---------- */
+  let S = null; // { uid, token, aes, mac }  (null while Sync is off)
+  async function derive(raw) {
+    const base = await crypto.subtle.importKey('raw', raw, 'HKDF', false, ['deriveBits']);
+    const bits = async (info, n) => new Uint8Array(await crypto.subtle.deriveBits({ name: 'HKDF', hash: 'SHA-256', salt: enc.encode('patos-sync-v1'), info: enc.encode(info) }, base, n * 8));
+    return {
+      uid: b64url(await bits('uid', 24)), token: b64url(await bits('token', 32)),
+      aes: await crypto.subtle.importKey('raw', await bits('enc', 32), 'AES-GCM', false, ['encrypt', 'decrypt']),
+      mac: await crypto.subtle.importKey('raw', await bits('rid', 32), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign'])
+    };
+  }
+  const ridCache = new Map();
+  function ridOf(id) {
+    let p = ridCache.get(id);
+    if (!p) { p = crypto.subtle.sign('HMAC', S.mac, enc.encode(id)).then(b64url); ridCache.set(id, p); }
+    return p;
+  }
+  async function seal(obj, rid) {
+    const iv = crypto.getRandomValues(new Uint8Array(12));
+    const ct = await crypto.subtle.encrypt({ name: 'AES-GCM', iv, additionalData: enc.encode(rid) }, S.aes, enc.encode(JSON.stringify(obj)));
+    return { iv: b64(iv), data: b64(ct) };
+  }
+  async function open(rec) {
+    const pt = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: unb64(rec.iv), additionalData: enc.encode(rec.rid) }, S.aes, unb64(rec.data));
+    return JSON.parse(dec.decode(pt));
+  }
+
+  /* ---------- state, kept on this device (never sent anywhere) ---------- */
+  let state = null; // { rev, epoch, recs: { rid: { id, t, h, pushed, del } }, touch: { key: ms }, last, error, rejected, bad, hold }
+  const blank = () => ({ rev: 0, epoch: '', recs: {}, touch: {}, last: 0, error: '', rejected: 0, bad: 0, hold: 0 });
+  const persist = PatOS.debounce(() => { if (state) PatOS.store.set('syncState', state); }, 1500);
+  let status = 'off', lastCounts = { items: 0, excluded: 0 };
+  function setStatus(s) { status = s; PatOS.emit('sync', api.status()); }
+
+  /* ---------- what is on this device ---------- */
+  const isKV = (k) => KV_KEYS.indexOf(k) >= 0;
+  const pickSettings = () => { const o = {}; SETTING_KEYS.forEach((k) => { if (PatOS.settings[k] !== undefined) o[k] = PatOS.settings[k]; }); return o; };
+  const fileHash = (c, m, o) => cyrb(c + '\0' + (m || '') + '\0' + (o || ''));
+  const fcache = new Map(); // path -> { m, n, mime, origin, h }
+  function fileInfo(path, n) {
+    const c = typeof n.content === 'string' ? n.content : String(n.content == null ? '' : n.content);
+    const hit = fcache.get(path);
+    if (hit && hit.m === n.mtime && hit.n === c.length && hit.mime === n.mime && hit.origin === n.origin) return hit.h;
+    const h = fileHash(c, n.mime, n.origin); fcache.set(path, { m: n.mtime, n: c.length, mime: n.mime, origin: n.origin, h }); return h;
+  }
+  /* the item for an id: { h, t } when it exists here, 'big' when it exists but stays on this device, else null */
+  function localItem(id) {
+    const kind = id[0], rest = id.slice(2);
+    if (kind === 'k') { const v = PatOS.store.peek(rest); if (v === undefined) return null; return { h: cyrb(JSON.stringify(v)), t: state.touch[rest] || Date.now() }; }
+    if (kind === 's') return { h: cyrb(JSON.stringify(pickSettings())), t: state.touch.settings || Date.now() };
+    const n = PatOS.fs.get(rest); if (!n) return null;
+    if (kind === 'd') return n.type === 'dir' ? { h: 'dir', t: n.mtime || 0 } : null;
+    if (n.type !== 'file') return null;
+    if (n.blob || (typeof n.content === 'string' && n.content.length > FILE_CAP)) return 'big';
+    return { h: fileInfo(rest, n), t: n.mtime || 0 };
+  }
+  /* every item on this device: Map rid -> { id, h, t }, and the ones that stay here */
+  async function scan() {
+    const items = new Map(), big = new Set(); const ids = [];
+    KV_KEYS.forEach((k) => { if (PatOS.store.peek(k) !== undefined) ids.push('k:' + k); });
+    ids.push('s:');
+    (function walk(node, path) {
+      Object.keys(node.children || {}).forEach((name) => {
+        const p = path === '/' ? '/' + name : path + '/' + name, n = node.children[name];
+        if (n.type === 'dir') { ids.push('d:' + p); walk(n, p); } else ids.push('f:' + p);
+      });
+    })(PatOS.fs.get('/'), '/');
+    for (const id of ids) {
+      const it = localItem(id); const rid = await ridOf(id);
+      if (it === 'big') big.add(rid); else if (it) items.set(rid, { id, h: it.h, t: it.t });
+    }
+    lastCounts = { items: items.size, excluded: big.size };
+    return { items, big };
+  }
+
+  /* ---------- putting a received item onto this device ---------- */
+  let applying = false;
+  function mkdirp(path) {
+    let cur = '';
+    for (const part of path.split('/').filter(Boolean)) {
+      cur += '/' + part; const n = PatOS.fs.get(cur);
+      if (!n) PatOS.fs.mkdir(cur); else if (n.type !== 'dir') return false;
+    }
+    return true;
+  }
+  function applyItem(p, t) {
+    if (p.k === 'kv' && isKV(p.key)) { PatOS.store.set(p.key, p.value); return 'k:' + p.key; }
+    if (p.k === 'set' && p.value && typeof p.value === 'object') {
+      SETTING_KEYS.forEach((k) => { if (k in p.value && JSON.stringify(PatOS.settings[k]) !== JSON.stringify(p.value[k])) PatOS.setSetting(k, p.value[k]); });
+      return 's:';
+    }
+    if (p.k === 'dir' && typeof p.path === 'string' && p.path[0] === '/') { return mkdirp(p.path) ? 'd:' + p.path : null; }
+    if (p.k === 'file' && typeof p.path === 'string' && p.path[0] === '/' && typeof p.content === 'string') {
+      const path = PatOS.fs.norm(p.path); if (path === '/') return null;
+      if (!mkdirp(PatOS.fs.dirname(path))) return null;
+      const ex = PatOS.fs.get(path); if (ex && ex.type === 'dir') return null;
+      const extra = {}; if (p.mime) extra.mime = String(p.mime); if (p.origin) extra.origin = String(p.origin);
+      PatOS.fs.write(path, p.content, extra);
+      const n = PatOS.fs.get(path); if (n) n.mtime = t;
+      return 'f:' + path;
+    }
+    return null;
+  }
+  function dropItem(id) {
+    const kind = id[0], rest = id.slice(2);
+    if (kind === 'k') PatOS.store.remove(rest);
+    else if (kind === 'f') { const n = PatOS.fs.get(rest); if (n && n.type === 'file') PatOS.fs.remove(rest, true); }
+    else if (kind === 'd') return 'dir';
+    return null;
+  }
+
+  /* ---------- talking to the server ---------- */
+  async function call(method, route, body) {
+    const res = await fetch('/api/sync/' + route, { method, cache: 'no-store', headers: Object.assign({ 'X-Patos-Uid': S.uid, Authorization: 'Bearer ' + S.token }, body ? { 'Content-Type': 'application/json' } : {}), body: body ? JSON.stringify(body) : undefined });
+    let j = null; try { j = await res.json(); } catch (e) {}
+    if (!res.ok) throw Object.assign(new Error((j && j.error) || 'HTTP ' + res.status), { status: res.status });
+    return j;
+  }
+  /* a new or emptied server: remember nothing was sent there, so everything goes again */
+  function newServer(epoch) {
+    if (state.epoch) Object.keys(state.recs).forEach((k) => { const r = state.recs[k]; if (r.del) delete state.recs[k]; else r.pushed = false; });
+    state.epoch = epoch; state.rev = 0; persist();
+  }
+  async function ensureAccount() {
+    const reg = await call('POST', 'register');
+    if (state.epoch !== reg.epoch) newServer(reg.epoch);
+  }
+
+  /* ---------- receiving ---------- */
+  async function receive(rec, local, deferred) {
+    const r = state.recs[rec.rid];
+    if (r && rec.t <= r.t) return; // we have this version, or a newer one
+    const here = local.items.get(rec.rid);
+    const changed = here && (!r || r.h !== here.h); // edited here since it was last in sync (or never in sync)
+    if (rec.deleted) {
+      const id = (here && here.id) || (r && r.id); if (!id) return;
+      if (!here) { state.recs[rec.rid] = { id, t: rec.t, h: null, pushed: true, del: true }; return; }
+      if (changed && r && here.t > rec.t) return; // we changed it after it was deleted elsewhere: keep ours
+      if (dropItem(id) === 'dir') deferred.push({ id, rid: rec.rid, t: rec.t });
+      else { state.recs[rec.rid] = { id, t: rec.t, h: null, pushed: true, del: true }; local.items.delete(rec.rid); }
+      return;
+    }
+    let p; try { p = await open(rec); } catch (e) { state.bad++; return; }
+    const id = p.k === 'kv' ? 'k:' + p.key : p.k === 'set' ? 's:' : p.k === 'dir' ? 'd:' + p.path : p.k === 'file' ? 'f:' + p.path : null;
+    if (!id || (await ridOf(id)) !== rec.rid) { state.bad++; return; }
+    if (changed && r && here.t > rec.t) return; // we edited it later: ours wins and goes out below
+    const done = applyItem(p, rec.t); if (!done) return;
+    const now = localItem(done); // what it looks like here now (settings can differ in what they carry)
+    state.recs[rec.rid] = { id, t: rec.t, h: now && now !== 'big' ? now.h : null, pushed: true };
+    if (now && now !== 'big') local.items.set(rec.rid, { id, h: now.h, t: rec.t });
+  }
+  async function pull(local) {
+    const deferred = []; let guard = 0;
+    for (;;) {
+      if (++guard > 500) break;
+      const r = await call('GET', 'pull?since=' + state.rev);
+      if (r.epoch !== state.epoch) { newServer(r.epoch); continue; }
+      applying = true;
+      try { for (const rec of r.records) await receive(rec, local, deferred); } finally { applying = false; }
+      state.rev = r.rev; persist();
+      if (!r.more) break;
+    }
+    applying = true;
+    try { // folders that were deleted elsewhere, deepest first, only when nothing is left inside
+      deferred.sort((a, b) => b.id.length - a.id.length).forEach((d) => {
+        const p = d.id.slice(2), n = PatOS.fs.get(p);
+        if (n && n.type === 'dir' && !Object.keys(n.children).length) { try { PatOS.fs.remove(p, true); state.recs[d.rid] = { id: d.id, t: d.t, h: null, pushed: true, del: true }; } catch (e) {} }
+      });
+    } finally { applying = false; }
+  }
+
+  /* ---------- sending ---------- */
+  function payloadOf(id) {
+    const kind = id[0], rest = id.slice(2);
+    if (kind === 'k') return { k: 'kv', key: rest, value: PatOS.store.peek(rest) };
+    if (kind === 's') return { k: 'set', value: pickSettings() };
+    if (kind === 'd') return { k: 'dir', path: rest };
+    const n = PatOS.fs.get(rest); const o = { k: 'file', path: rest, content: n.content };
+    if (n.mime) o.mime = n.mime;
+    if (n.origin) o.origin = n.origin;
+    return o;
+  }
+  async function push(local, force) {
+    const out = [];
+    local.items.forEach((it, rid) => {
+      const r = state.recs[rid];
+      if (!r || r.del || r.h !== it.h) out.push({ rid, id: it.id, h: it.h, t: r ? Math.max(it.t, r.t + 1) : it.t });
+      else if (!r.pushed) out.push({ rid, id: it.id, h: it.h, t: r.t });
+    });
+    const dels = [];
+    Object.keys(state.recs).forEach((rid) => { const r = state.recs[rid]; if (!r.del && !local.items.has(rid) && !local.big.has(rid)) dels.push({ rid, id: r.id, h: null, del: true, t: Math.max(Date.now(), r.t + 1) }); });
+    const live = Object.values(state.recs).filter((r) => !r.del).length;
+    state.hold = 0;
+    if (dels.length > 20 && dels.length > live / 2 && !force) { state.hold = dels.length; dels.length = 0; } // most things vanished at once: ask first
+    const all = out.concat(dels); let skipped = 0;
+    for (let i = 0; i < all.length;) {
+      const batch = []; let bytes = 0;
+      while (i < all.length && batch.length < BATCH_COUNT && (bytes < BATCH_BYTES || !batch.length)) {
+        const it = all[i++]; let rec;
+        if (it.del) rec = { rid: it.rid, t: it.t, deleted: true };
+        else { const body = await seal(payloadOf(it.id), it.rid); rec = { rid: it.rid, t: it.t, iv: body.iv, data: body.data }; bytes += body.data.length; }
+        batch.push({ it, rec });
+      }
+      const res = await call('POST', 'push', { records: batch.map((b) => b.rec) });
+      if (res.epoch !== state.epoch) { newServer(res.epoch); throw Object.assign(new Error('server changed'), { again: true }); }
+      batch.forEach((b) => { state.recs[b.it.rid] = { id: b.it.id, t: b.it.t, h: b.it.h, pushed: true, del: !!b.it.del }; });
+      skipped += res.skipped || 0; if (res.rejected) state.rejected += res.rejected;
+      if (res.rev - res.applied === state.rev) state.rev = res.rev; // nobody else wrote in between: no need to read our own changes back
+      persist();
+    }
+    // forget deletions older than 90 days (the server does the same)
+    const cut = Date.now() - 90 * 86400000; Object.keys(state.recs).forEach((k) => { const r = state.recs[k]; if (r.del && r.t < cut) delete state.recs[k]; });
+    return { skipped, sent: all.length };
+  }
+
+  /* ---------- one round ---------- */
+  let running = null, queued = false, forceNext = false;
+  async function cycle(opts) {
+    if (!S || !state) return null;
+    if (opts && opts.force) forceNext = true;
+    if (running) { queued = true; return running; }
+    running = (async () => {
+      setStatus('syncing');
+      try {
+        for (let pass = 0; pass < 3; pass++) {
+          await ensureAccount();
+          let local = await scan();
+          await pull(local);
+          local = await scan();
+          const force = forceNext; forceNext = false;
+          const r = await push(local, force);
+          if (!r.skipped) break;
+        }
+        state.last = Date.now(); state.error = '';
+        setStatus('idle');
+      } catch (e) {
+        applying = false;
+        if (e && e.again) { queued = true; setStatus('idle'); }
+        else if (e && e.status === 403) { state.error = 'key'; setStatus('error'); }
+        else if (e && e.status === 507) { state.error = 'full'; setStatus('error'); }
+        else if (e && e.status === 429) { state.error = 'busy'; setStatus('error'); }
+        else if (e && e.status >= 400) { state.error = 'server'; setStatus('error'); }
+        else { state.error = 'offline'; setStatus('offline'); } // no network (or the server is asleep): try again later
+      } finally { running = null; persist(); if (queued) { queued = false; kick(); } }
+    })();
+    return running;
+  }
+  const kick = PatOS.debounce(() => { if (S && navigator.onLine !== false) cycle(); }, 4000);
+
+  /* ---------- start / stop ---------- */
+  async function start(raw) {
+    S = await derive(raw); ridCache.clear(); fcache.clear();
+    state = Object.assign(blank(), PatOS.store.get('syncState', {})); if (!state.recs) state.recs = {}; if (!state.touch) state.touch = {};
+    setStatus('idle');
+  }
+  const noCrypto = () => !(window.crypto && crypto.subtle && window.TextEncoder);
+  const api = {
+    available: () => !noCrypto(),
+    on: () => !!S,
+    code() { const k = PatOS.store.get('syncKey', null); if (!k) return ''; try { return keyToCode(unb64(k)); } catch (e) { return ''; } },
+    async enable() {
+      if (S) return api.code();
+      if (noCrypto()) throw new Error('This browser cannot do encryption here');
+      const raw = crypto.getRandomValues(new Uint8Array(16));
+      PatOS.store.set('syncKey', b64(raw)); PatOS.store.remove('syncState');
+      await start(raw); cycle(); return api.code();
+    },
+    async join(code) {
+      if (noCrypto()) throw new Error('This browser cannot do encryption here');
+      const raw = codeToKey(code); if (!raw) throw new Error('That code is not right. Check it and try again.');
+      if (S) throw new Error('Sync is already on');
+      try { if (PatOS.backup) await PatOS.backup.snapshot(T('Before joining Sync'), 'before'); } catch (e) {}
+      PatOS.store.set('syncKey', b64(raw)); PatOS.store.remove('syncState');
+      await start(raw);
+      await cycle();
+      return status;
+    },
+    async disable(wipeServer) {
+      let failed = false;
+      if (wipeServer && S) { try { await call('DELETE', 'account'); } catch (e) { failed = true; } }
+      S = null; state = null; ridCache.clear(); fcache.clear();
+      PatOS.store.remove('syncKey'); PatOS.store.remove('syncState');
+      setStatus('off'); return { failed };
+    },
+    now: (opts) => cycle(opts),
+    /* send everything again (for example after the server said it was full) */
+    resend() { if (!state) return null; Object.keys(state.recs).forEach((k) => { state.recs[k].pushed = false; }); state.rejected = 0; persist(); return cycle(); },
+    async server() { if (!S) return null; try { return await call('GET', 'status'); } catch (e) { return null; } },
+    status() {
+      return { on: !!S, state: status, last: state ? state.last : 0, error: state ? state.error : '', rejected: state ? state.rejected : 0, bad: state ? state.bad : 0,
+        hold: state ? state.hold : 0, items: lastCounts.items, stay: lastCounts.excluded, offline: navigator.onLine === false };
+    },
+    _codeToKey: codeToKey, _keyToCode: keyToCode
+  };
+  PatOS.sync = api;
+
+  /* ---------- when to sync ---------- */
+  function touch(key) { if (!state) return; state.touch[key] = Date.now(); persist(); }
+  PatOS.on('store:set', (k) => { if (!S || applying) return; if (isKV(k)) { touch(k); kick(); } else if (k === 'settings') { touch('settings'); kick(); } });
+  PatOS.on('fs', () => { if (S && !applying) kick(); });
+  addEventListener('online', () => { if (S) kick(); });
+  document.addEventListener('visibilitychange', () => { if (S && !document.hidden) kick(); });
+  setInterval(() => { if (S && !document.hidden && navigator.onLine !== false) cycle(); }, 3 * 60 * 1000);
+
+  const saved = PatOS.store.get('syncKey', null);
+  if (saved && !noCrypto()) {
+    try { start(unb64(saved)).then(() => setTimeout(() => { if (navigator.onLine !== false) cycle(); }, 15000)); } catch (e) {}
+  }
 })();
 
 </script>
@@ -16327,9 +16749,9 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
   const PANES = [
     ['general', 'General', '⚙️'], ['update', 'Software Update', '⬇️'], ['appearance', 'Appearance', '🎨'], ['accessibility', 'Accessibility', '♿'], ['wallpaper', 'Wallpaper', '🖼'], ['dock', 'Home Screen & Dock', '🧭'],
     ['display', 'Displays & 3D', '🖥'], ['sound', 'Sound', '🔊'], ['lock', 'Lock Screen', '🔒'], ['network', 'Network', '📶'], ['startup', 'Install & Start Up', '🚀'], ['permissions', 'Permissions', '🛡'], ['system', 'This Device', '💻'],
-    ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾'], ['backup', 'Backup & Restore', '🕘']
+    ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾'], ['backup', 'Backup & Restore', '🕘'], ['sync', 'Sync', '☁️']
   ];
-  const KW = { backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
+  const KW = { sync: 'sync cloud devices iphone chromebook account encrypted key code synchroniser appareils compte chiffre cle', backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
   // Spotlight searches Settings with this list
   PatOS.settingsIndex = () => PANES.map(([k, l]) => ({ pane: k, label: l, keywords: KW[k] || '' }));
   PatOS.registerApp({
@@ -16467,6 +16889,62 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
             }
           };
           const on = () => { if (pane === 'backup' && out.isConnected) paint(); }; const off = PatOS.on('backup', on); win.on('closed', off);
+          paint(); return [out];
+        },
+        sync() {
+          const out = h('div', { class: 'bk sy' }); const Y = PatOS.sync;
+          const msg = (title, body) => PatOS.alertBox(title, body, { icon: 'settings' });
+          const spin = (btn, fn) => async () => { if (btn) btn.disabled = true; try { await fn(); } catch (e) { msg(T('That didn’t work'), T(String(e.message || e))); } finally { if (btn) btn.disabled = false; } };
+          let shown = false;
+          function joinDialog() {
+            const layer = h('div', { class: 'dlg-layer' }); const close = () => layer.remove();
+            const inp = h('input', { class: 'field', placeholder: 'XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX', spellcheck: 'false', autocapitalize: 'characters', autocomplete: 'off', 'aria-label': T('Sync code') });
+            const note = h('div', { class: 'bk-note' }); const go = h('button', { class: 'btn primary' }, T('Join'));
+            go.onclick = async () => {
+              go.disabled = true; note.textContent = T('Joining…');
+              try { await Y.join(inp.value); close(); paint(); } catch (e) { go.disabled = false; note.textContent = T(String(e.message || e)); }
+            };
+            inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go.click(); });
+            layer.appendChild(h('div', { class: 'dlg ce bk-dlg' }, h('b', {}, T('Join Sync')), h('p', { class: 'bk-note' }, T('Type the code shown in Settings › Sync on your other device. Things that are on both devices will use the version from Sync. PatOS keeps a snapshot first, so you can go back.')), inp, note, h('div', { class: 'dlg-btns' }, h('button', { class: 'btn', onclick: close }, T('Cancel')), go)));
+            layer.addEventListener('pointerdown', (e) => { if (e.target === layer) close(); }); layer.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+            document.body.appendChild(layer); setTimeout(() => inp.focus(), 30);
+          }
+          function offDialog() {
+            const layer = h('div', { class: 'dlg-layer' }); const close = () => layer.remove();
+            const wipe = h('input', { type: 'checkbox' });
+            const go = h('button', { class: 'btn primary' }, T('Turn Off'));
+            go.onclick = async () => { go.disabled = true; const r = await Y.disable(wipe.checked); close(); paint(); if (r.failed) msg(T('Sync is off'), T('Sync is off on this device, but the copy on the server could not be deleted now.')); };
+            layer.appendChild(h('div', { class: 'dlg ce bk-dlg' }, h('b', {}, T('Turn off Sync?')), h('p', { class: 'bk-note' }, T('Everything stays on this device. Your other devices keep their own copies too.')),
+              h('label', { class: 'ce-row' }, h('span', {}, T('Also delete my encrypted copy from the server')), wipe), h('div', { class: 'dlg-btns' }, h('button', { class: 'btn', onclick: close }, T('Cancel')), go)));
+            layer.addEventListener('pointerdown', (e) => { if (e.target === layer) close(); }); layer.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+            document.body.appendChild(layer);
+          }
+          const paint = async () => {
+            const st = Y.status(); out.innerHTML = '';
+            out.appendChild(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('settings') }), h('div', {}, h('h2', {}, T('Sync')), h('p', { class: 'su-status' }, T('Your files, notes, calendar and settings follow you between your devices. It is optional: PatOS works fully without it, and offline, and changes wait until you are back online. Everything is locked with a key that stays on your devices, so the server only keeps scrambled data.')))));
+            if (!Y.available()) { out.appendChild(h('div', { class: 'bk-empty' }, T('This browser can’t do the encryption Sync needs. Open PatOS from its https address, or in a newer browser.'))); return; }
+            if (!st.on) {
+              const on = h('button', { class: 'btn primary' }, T('Turn On Sync')); on.onclick = spin(on, async () => { await Y.enable(); shown = true; paint(); });
+              const jn = h('button', { class: 'btn', onclick: joinDialog }, T('Join with a Code…'));
+              out.appendChild(group(row(T('Start Sync on this device'), on, T('Makes a code. Type it on your other devices to connect them.')), row(T('Already use Sync on another device?'), jn)));
+              out.appendChild(h('div', { class: 'bk-empty' }, T('Already using Sync? Restoring a backup brings the sync code back too, so a new server fills itself again.')));
+              return;
+            }
+            const label = st.state === 'syncing' ? T('Syncing…') : st.state === 'offline' || st.offline ? T('Waiting for the internet. Your changes are safe here and go out later.') : st.error === 'key' ? T('This server has an account with a different key. Check the code.') : st.error === 'full' ? T('The server is full. Free some space or raise its limit.') : st.error === 'busy' ? T('Too many requests, trying again soon.') : st.error ? T('The server had a problem. Trying again soon.') : st.last ? T('Up to date') + ' · ' + (PatOS.backup ? PatOS.backup.when(st.last) : new Date(st.last).toLocaleString()) : T('Not synced yet');
+            const now = h('button', { class: 'btn' }, T('Sync Now')); now.onclick = spin(now, async () => { await Y.now(); });
+            out.appendChild(group(row(T('Status'), now, label)));
+            const code = Y.code();
+            const show = h('button', { class: 'btn' }, shown ? T('Hide') : T('Show Code')); show.onclick = () => { shown = !shown; paint(); };
+            const cp = shown ? h('button', { class: 'btn', onclick: () => { try { navigator.clipboard.writeText(code); } catch (e) {} toast(T('Copied')); } }, T('Copy')) : null;
+            out.appendChild(group(row(T('Your sync code'), h('div', { class: 'bk-acts' }, cp, show), T('Type this code in Settings › Sync on another device to connect it. Keep it private: it unlocks your data. It is included in backups.')), shown ? h('div', { class: 'sy-code', 'aria-live': 'polite' }, code) : null));
+            out.appendChild(group(row(T('On this device'), h('span', { class: 'st-val' }, st.items + ' ' + T('items')), st.stay ? st.stay + ' ' + T('big files (videos and recordings) stay on the device where they are.') : T('Files, notes, calendar, reminders, contacts, flashcards and some settings.'))));
+            if (st.hold) { const ok = h('button', { class: 'btn primary' }, T('Sync These Deletions')); ok.onclick = spin(ok, async () => { await Y.now({ force: true }); }); out.appendChild(h('div', { class: 'pw-warn bk-warn' }, h('span', {}, st.hold + ' ' + T('items are missing on this device, so they would be deleted on your other devices too. If that is not what you wanted, restore a snapshot in Backup & Restore first.')), ok)); }
+            if (st.rejected) { const rs = h('button', { class: 'btn' }, T('Try Again')); rs.onclick = spin(rs, async () => { await Y.resend(); }); out.appendChild(h('div', { class: 'pw-warn bk-warn' }, h('span', {}, st.rejected + ' ' + T('items could not be saved on the server (it may be full).')), rs)); }
+            out.appendChild(h('h3', {}, T('Turn off')));
+            out.appendChild(group(row(T('Stop syncing this device'), h('button', { class: 'btn', onclick: offDialog }, T('Turn Off…')))));
+            Y.server().then((s) => { if (s && out.isConnected && pane === 'sync') { const line = h('div', { class: 'bk-empty' }, T('On the server') + ': ' + s.records + ' ' + T('encrypted items') + ', ' + PatOS.fmtBytes(s.bytes) + ' ' + T('of') + ' ' + PatOS.fmtBytes(s.quota)); const old = out.querySelector('.sy-srv'); if (old) old.remove(); line.classList.add('sy-srv'); out.appendChild(line); } });
+          };
+          const on = () => { if (pane === 'sync' && out.isConnected) paint(); }; const off = PatOS.on('sync', on); win.on('closed', off);
           paint(); return [out];
         },
         appearance() {

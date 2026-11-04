@@ -1130,3 +1130,4 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 .bk-dlg { width: min(440px, calc(100vw - 32px)); align-items: stretch; text-align: left; }
 .bk-note { font-size: 12.5px; color: var(--text2); margin: 0; min-height: 16px; }
 .su-link { margin-top: 10px; color: var(--accent); font-size: 13.5px; padding: 6px 12px; border-radius: 8px; } .su-link:hover { background: var(--hover); }
+.sy-code { font: 600 17px/1.4 ui-monospace, Menlo, Consolas, monospace; letter-spacing: .06em; padding: 12px 14px; text-align: center; user-select: all; word-break: break-all; }

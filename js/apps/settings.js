@@ -7,9 +7,9 @@
   const PANES = [
     ['general', 'General', '⚙️'], ['update', 'Software Update', '⬇️'], ['appearance', 'Appearance', '🎨'], ['accessibility', 'Accessibility', '♿'], ['wallpaper', 'Wallpaper', '🖼'], ['dock', 'Home Screen & Dock', '🧭'],
     ['display', 'Displays & 3D', '🖥'], ['sound', 'Sound', '🔊'], ['lock', 'Lock Screen', '🔒'], ['network', 'Network', '📶'], ['startup', 'Install & Start Up', '🚀'], ['permissions', 'Permissions', '🛡'], ['system', 'This Device', '💻'],
-    ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾'], ['backup', 'Backup & Restore', '🕘']
+    ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾'], ['backup', 'Backup & Restore', '🕘'], ['sync', 'Sync', '☁️']
   ];
-  const KW = { backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
+  const KW = { sync: 'sync cloud devices iphone chromebook account encrypted key code synchroniser appareils compte chiffre cle', backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
   // Spotlight searches Settings with this list
   PatOS.settingsIndex = () => PANES.map(([k, l]) => ({ pane: k, label: l, keywords: KW[k] || '' }));
   PatOS.registerApp({
@@ -147,6 +147,62 @@
             }
           };
           const on = () => { if (pane === 'backup' && out.isConnected) paint(); }; const off = PatOS.on('backup', on); win.on('closed', off);
+          paint(); return [out];
+        },
+        sync() {
+          const out = h('div', { class: 'bk sy' }); const Y = PatOS.sync;
+          const msg = (title, body) => PatOS.alertBox(title, body, { icon: 'settings' });
+          const spin = (btn, fn) => async () => { if (btn) btn.disabled = true; try { await fn(); } catch (e) { msg(T('That didn’t work'), T(String(e.message || e))); } finally { if (btn) btn.disabled = false; } };
+          let shown = false;
+          function joinDialog() {
+            const layer = h('div', { class: 'dlg-layer' }); const close = () => layer.remove();
+            const inp = h('input', { class: 'field', placeholder: 'XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX', spellcheck: 'false', autocapitalize: 'characters', autocomplete: 'off', 'aria-label': T('Sync code') });
+            const note = h('div', { class: 'bk-note' }); const go = h('button', { class: 'btn primary' }, T('Join'));
+            go.onclick = async () => {
+              go.disabled = true; note.textContent = T('Joining…');
+              try { await Y.join(inp.value); close(); paint(); } catch (e) { go.disabled = false; note.textContent = T(String(e.message || e)); }
+            };
+            inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go.click(); });
+            layer.appendChild(h('div', { class: 'dlg ce bk-dlg' }, h('b', {}, T('Join Sync')), h('p', { class: 'bk-note' }, T('Type the code shown in Settings › Sync on your other device. Things that are on both devices will use the version from Sync. PatOS keeps a snapshot first, so you can go back.')), inp, note, h('div', { class: 'dlg-btns' }, h('button', { class: 'btn', onclick: close }, T('Cancel')), go)));
+            layer.addEventListener('pointerdown', (e) => { if (e.target === layer) close(); }); layer.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+            document.body.appendChild(layer); setTimeout(() => inp.focus(), 30);
+          }
+          function offDialog() {
+            const layer = h('div', { class: 'dlg-layer' }); const close = () => layer.remove();
+            const wipe = h('input', { type: 'checkbox' });
+            const go = h('button', { class: 'btn primary' }, T('Turn Off'));
+            go.onclick = async () => { go.disabled = true; const r = await Y.disable(wipe.checked); close(); paint(); if (r.failed) msg(T('Sync is off'), T('Sync is off on this device, but the copy on the server could not be deleted now.')); };
+            layer.appendChild(h('div', { class: 'dlg ce bk-dlg' }, h('b', {}, T('Turn off Sync?')), h('p', { class: 'bk-note' }, T('Everything stays on this device. Your other devices keep their own copies too.')),
+              h('label', { class: 'ce-row' }, h('span', {}, T('Also delete my encrypted copy from the server')), wipe), h('div', { class: 'dlg-btns' }, h('button', { class: 'btn', onclick: close }, T('Cancel')), go)));
+            layer.addEventListener('pointerdown', (e) => { if (e.target === layer) close(); }); layer.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
+            document.body.appendChild(layer);
+          }
+          const paint = async () => {
+            const st = Y.status(); out.innerHTML = '';
+            out.appendChild(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('settings') }), h('div', {}, h('h2', {}, T('Sync')), h('p', { class: 'su-status' }, T('Your files, notes, calendar and settings follow you between your devices. It is optional: PatOS works fully without it, and offline, and changes wait until you are back online. Everything is locked with a key that stays on your devices, so the server only keeps scrambled data.')))));
+            if (!Y.available()) { out.appendChild(h('div', { class: 'bk-empty' }, T('This browser can’t do the encryption Sync needs. Open PatOS from its https address, or in a newer browser.'))); return; }
+            if (!st.on) {
+              const on = h('button', { class: 'btn primary' }, T('Turn On Sync')); on.onclick = spin(on, async () => { await Y.enable(); shown = true; paint(); });
+              const jn = h('button', { class: 'btn', onclick: joinDialog }, T('Join with a Code…'));
+              out.appendChild(group(row(T('Start Sync on this device'), on, T('Makes a code. Type it on your other devices to connect them.')), row(T('Already use Sync on another device?'), jn)));
+              out.appendChild(h('div', { class: 'bk-empty' }, T('Already using Sync? Restoring a backup brings the sync code back too, so a new server fills itself again.')));
+              return;
+            }
+            const label = st.state === 'syncing' ? T('Syncing…') : st.state === 'offline' || st.offline ? T('Waiting for the internet. Your changes are safe here and go out later.') : st.error === 'key' ? T('This server has an account with a different key. Check the code.') : st.error === 'full' ? T('The server is full. Free some space or raise its limit.') : st.error === 'busy' ? T('Too many requests, trying again soon.') : st.error ? T('The server had a problem. Trying again soon.') : st.last ? T('Up to date') + ' · ' + (PatOS.backup ? PatOS.backup.when(st.last) : new Date(st.last).toLocaleString()) : T('Not synced yet');
+            const now = h('button', { class: 'btn' }, T('Sync Now')); now.onclick = spin(now, async () => { await Y.now(); });
+            out.appendChild(group(row(T('Status'), now, label)));
+            const code = Y.code();
+            const show = h('button', { class: 'btn' }, shown ? T('Hide') : T('Show Code')); show.onclick = () => { shown = !shown; paint(); };
+            const cp = shown ? h('button', { class: 'btn', onclick: () => { try { navigator.clipboard.writeText(code); } catch (e) {} toast(T('Copied')); } }, T('Copy')) : null;
+            out.appendChild(group(row(T('Your sync code'), h('div', { class: 'bk-acts' }, cp, show), T('Type this code in Settings › Sync on another device to connect it. Keep it private: it unlocks your data. It is included in backups.')), shown ? h('div', { class: 'sy-code', 'aria-live': 'polite' }, code) : null));
+            out.appendChild(group(row(T('On this device'), h('span', { class: 'st-val' }, st.items + ' ' + T('items')), st.stay ? st.stay + ' ' + T('big files (videos and recordings) stay on the device where they are.') : T('Files, notes, calendar, reminders, contacts, flashcards and some settings.'))));
+            if (st.hold) { const ok = h('button', { class: 'btn primary' }, T('Sync These Deletions')); ok.onclick = spin(ok, async () => { await Y.now({ force: true }); }); out.appendChild(h('div', { class: 'pw-warn bk-warn' }, h('span', {}, st.hold + ' ' + T('items are missing on this device, so they would be deleted on your other devices too. If that is not what you wanted, restore a snapshot in Backup & Restore first.')), ok)); }
+            if (st.rejected) { const rs = h('button', { class: 'btn' }, T('Try Again')); rs.onclick = spin(rs, async () => { await Y.resend(); }); out.appendChild(h('div', { class: 'pw-warn bk-warn' }, h('span', {}, st.rejected + ' ' + T('items could not be saved on the server (it may be full).')), rs)); }
+            out.appendChild(h('h3', {}, T('Turn off')));
+            out.appendChild(group(row(T('Stop syncing this device'), h('button', { class: 'btn', onclick: offDialog }, T('Turn Off…')))));
+            Y.server().then((s) => { if (s && out.isConnected && pane === 'sync') { const line = h('div', { class: 'bk-empty' }, T('On the server') + ': ' + s.records + ' ' + T('encrypted items') + ', ' + PatOS.fmtBytes(s.bytes) + ' ' + T('of') + ' ' + PatOS.fmtBytes(s.quota)); const old = out.querySelector('.sy-srv'); if (old) old.remove(); line.classList.add('sy-srv'); out.appendChild(line); } });
+          };
+          const on = () => { if (pane === 'sync' && out.isConnected) paint(); }; const off = PatOS.on('sync', on); win.on('closed', off);
           paint(); return [out];
         },
         appearance() {
