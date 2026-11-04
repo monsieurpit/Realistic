@@ -170,11 +170,17 @@ PatOS accounts need only a username and a password (no email). Everything you ha
 
 First-time setup of the Firebase project (switch on Email/Password sign-in, publish `firestore.rules`) is in **[docs/FIREBASE.md](docs/FIREBASE.md)**, which also lists everything the database holds and what the rules allow. `npm run test:cloud` tests all of it against the Firebase emulator (not your real project).
 
+## Pat (top bar) and loading
+
+**Pat** is the speech bubble in the top bar, next to Control Center (on a phone: the Pat app in Launchpad). It opens a panel where you type or say what you want. Pat is a command helper, not an AI. Messages is only for people.
+
+**Apps load when they are opened.** `scripts/appmeta.js` (run by `node build.js`) reads each app file in a sandbox. An app file that only registers itself is marked `type="patos/lazy"` in `index.html`; its name, icon, window size and keywords go into `js/appmeta.js`, so Launchpad, the Dock and search know it from the start, in the same order as before. Its code is read the first time it is opened (`PatOS.launch`) or the first time something it shares (`PatOS.theHelper`) is used. Shortly after start PatOS reads the text of those files from the offline copy (nothing runs), so opening an app is instant and works offline. A file stays eager (loaded at start) if it listens for events, starts timers, touches the page, or registers apps with other functions. The single-file build (`dist/PatOS.html`) has every app inside.
+
 ## Shortcuts and Hey Pat
 
 **Shortcuts** (an app) builds little automations: a list of steps (open or close an app, ask Pat for a timer or a reminder, play music, change dark or light mode, set the volume, show a notification or a message box, say something out loud, wait, open a page or a file, run another shortcut) that run one after the other and stop at the first mistake, with a log of what happened. A shortcut starts by hand, **when you unlock PatOS**, **every day at a time** (on the days you choose), or when you say **"Hey Pat, <its phrase>"**. The Gallery has starting points (Good morning, Study time, Bedtime, When I unlock). Shortcuts are saved with your files and settings, so they follow you with Sync and with your account. You can also type or say a shortcut's name to Pat ("run study time").
 
-**Hey Pat** (Settings › Pat Voice) is off until you turn it on. It then listens for "Hey Pat" while PatOS is open, and does what follows: a shortcut if you said its name or phrase, otherwise Pat's commands (timers, calendar, opening apps...), with the answer shown and, if you want, spoken. The microphone button in Pat's panel (Messages, top bar) asks one question without the wake word. It uses the browser's speech recognition: **in Chrome the sound is sent to Google's speech service** to be turned into text. A microphone pill is shown the whole time it listens; it stops when the tab is hidden, and turns itself off if the microphone is refused. Works in French too ("Salut Pat").
+**Hey Pat** (Settings › Pat Voice) is off until you turn it on. It then listens for "Hey Pat" while PatOS is open, and does what follows: a shortcut if you said its name or phrase, otherwise Pat's commands (timers, calendar, opening apps...), with the answer shown and, if you want, spoken. The microphone button in Pat's panel (the speech bubble in the top bar) asks one question without the wake word. It uses the browser's speech recognition: **in Chrome the sound is sent to Google's speech service** to be turned into text. A microphone pill is shown the whole time it listens; it stops when the tab is hidden, and turns itself off if the microphone is refused. Works in French too ("Salut Pat").
 
 ## Updates
 

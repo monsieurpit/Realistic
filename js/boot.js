@@ -243,6 +243,7 @@
         off.addEventListener('pointerdown', () => (PatOS._leaving = true, location.reload()), { once: true });
       }
     });
+    if (PatOS.sortApps) PatOS.sortApps();
     boot();
     // offline support / installable app when served over http(s)
     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !PatOS.singleFile) setupUpdates();

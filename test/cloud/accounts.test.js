@@ -148,13 +148,14 @@ test('Messages: find a person, send a request, they accept, chat on any device; 
   for (const d of [A, B, C, A2]) await d.ctx.close();
 });
 
-test('the Messages window: Pat moved to the top bar, search, a request and its answer', { skip: emu.skip }, async () => {
+test('the Messages window: Messages has no Pat, search, a request and its answer', { skip: emu.skip }, async () => {
   const an = uniq('uma'), bn = uniq('vic'), pw = 'window passwords are long';
   const A = await device(), B = await device();
   await A.ev(() => { PatOS.launch('messages'); }); await A.page.waitForSelector('.m2');
   assert.match(await A.page.innerText('.m2-main'), /Message your friends[\s\S]*Create Account[\s\S]*Pat, the command helper, works without an account/);
-  await A.page.click('.pat-btn'); await A.page.waitForSelector('.m2-pat.open .msg-chips'); await A.page.fill('.m2-pat .msg-in', 'hello'); await A.page.press('.m2-pat .msg-in', 'Enter'); await A.page.waitForSelector('.m2-pat .msg-b.them:not(.typing)', { timeout: 5000 });
-  assert.match(await A.page.innerText('.m2-pat'), /Pat/); await A.page.click('.pat-btn'); assert.equal(await A.page.locator('.m2-pat.open').count(), 0);
+  assert.equal(await A.page.locator('.pat-btn, .m2-pat').count(), 0, 'Pat is not in Messages any more');
+  await A.page.click('#mb-pat'); await A.page.waitForSelector('#pat-panel:not(.hidden) .msg-chips'); await A.page.fill('#pat-panel .msg-in', 'hello'); await A.page.press('#pat-panel .msg-in', 'Enter'); await A.page.waitForFunction(() => document.querySelectorAll('#pat-panel .msg-b.them:not(.typing)').length >= 2, null, { timeout: 5000 });
+  assert.match(await A.page.innerText('#pat-panel'), /Pat/); await A.page.click('#mb-pat'); assert.equal(await A.page.locator('#pat-panel:not(.hidden)').count(), 0);
   for (const [d, u] of [[A, an], [B, bn]]) await d.ev(async ([u, p]) => { await PatOS.account.signUp(u, p); }, [u, pw]);
   for (const d of [A, B]) await waitFor(d.page, () => PatOS.chat.ready(), null, 20000);
   await A.page.waitForSelector('.m2-search'); await A.page.fill('.m2-search', bn.slice(0, 7)); await A.page.waitForSelector('.m2-row >> text=@' + bn, { timeout: 8000 });

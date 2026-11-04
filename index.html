@@ -90,6 +90,7 @@
       <div class="mb-right">
         <span class="mb-status" id="mb-battery" title="Battery"></span>
         <button class="mb-status" id="mb-wifi" title="Wi-Fi"></button>
+        <button class="mb-status" id="mb-pat" title="Pat"></button>
         <button class="mb-status" id="mb-search" title="Spotlight (Ctrl+Space)"></button>
         <button class="mb-status" id="mb-cc" title="Control Center"></button>
         <button class="mb-clock" id="mb-clock"></button>
@@ -111,6 +112,7 @@
     </div>
 
     <div id="control-center" class="panel hidden"></div>
+    <div id="pat-panel" class="panel hidden" role="dialog" aria-label="Pat"></div>
     <div id="notif-center" class="panel hidden"></div>
     <div id="toasts"></div>
     <div id="menu-layer"></div>
@@ -139,6 +141,8 @@
   <script type="patos/js" src="js/wm.js"></script>
   <script type="patos/js" src="js/wallpaper.js"></script>
   <script type="patos/js" src="js/shell.js"></script>
+  <script type="patos/js" src="js/pat.js"></script>
+  <script type="patos/js" src="js/appmeta.js"></script>
   <script type="patos/js" src="js/mobile.js"></script>
   <script type="patos/js" src="js/alarms.js"></script>
   <script type="patos/js" src="js/session.js"></script>
@@ -149,71 +153,71 @@
   <script type="patos/js" src="js/chat.js"></script>
   <script type="patos/js" src="js/account-ui.js"></script>
   <script type="patos/js" src="js/setup.js"></script>
-  <script type="patos/js" src="js/apps/finder.js"></script>
-  <script type="patos/js" src="js/apps/office.js"></script>
+  <script type="patos/lazy" src="js/apps/finder.js"></script>
+  <script type="patos/lazy" src="js/apps/office.js"></script>
   <script type="patos/js" src="js/apps/passwords.js"></script>
   <script type="patos/js" src="js/apps/browser.js"></script>
-  <script type="patos/js" src="js/apps/webapps.js"></script>
+  <script type="patos/lazy" src="js/apps/webapps.js"></script>
   <script type="patos/js" src="js/apps/youtube.js"></script>
-  <script type="patos/js" src="js/apps/notes.js"></script>
-  <script type="patos/js" src="js/apps/textedit.js"></script>
-  <script type="patos/js" src="js/apps/calculator.js"></script>
-  <script type="patos/js" src="js/apps/terminal.js"></script>
+  <script type="patos/lazy" src="js/apps/notes.js"></script>
+  <script type="patos/lazy" src="js/apps/textedit.js"></script>
+  <script type="patos/lazy" src="js/apps/calculator.js"></script>
+  <script type="patos/lazy" src="js/apps/terminal.js"></script>
   <script type="patos/js" src="js/apps/calendar.js"></script>
   <script type="patos/js" src="js/apps/clock.js"></script>
-  <script type="patos/js" src="js/apps/weather.js"></script>
+  <script type="patos/lazy" src="js/apps/weather.js"></script>
   <script type="patos/js" src="js/apps/music.js"></script>
-  <script type="patos/js" src="js/apps/photos.js"></script>
-  <script type="patos/js" src="js/apps/paint.js"></script>
-  <script type="patos/js" src="js/apps/photobooth.js"></script>
-  <script type="patos/js" src="js/apps/reminders.js"></script>
-  <script type="patos/js" src="js/apps/settings.js"></script>
-  <script type="patos/js" src="js/apps/activity.js"></script>
-  <script type="patos/js" src="js/apps/galaxy.js"></script>
-  <script type="patos/js" src="js/apps/orbrunner.js"></script>
-  <script type="patos/js" src="js/apps/studio.js"></script>
-  <script type="patos/js" src="js/apps/tictactoe.js"></script>
-  <script type="patos/js" src="js/apps/messages.js"></script>
-  <script type="patos/js" src="js/apps/appstore.js"></script>
-  <script type="patos/js" src="js/apps/codestudio.js"></script>
-  <script type="patos/js" src="js/apps/piano.js"></script>
-  <script type="patos/js" src="js/apps/flashcards.js"></script>
-  <script type="patos/js" src="js/apps/typing.js"></script>
-  <script type="patos/js" src="js/apps/voicememos.js"></script>
+  <script type="patos/lazy" src="js/apps/photos.js"></script>
+  <script type="patos/lazy" src="js/apps/paint.js"></script>
+  <script type="patos/lazy" src="js/apps/photobooth.js"></script>
+  <script type="patos/lazy" src="js/apps/reminders.js"></script>
+  <script type="patos/lazy" src="js/apps/settings.js"></script>
+  <script type="patos/lazy" src="js/apps/activity.js"></script>
+  <script type="patos/lazy" src="js/apps/galaxy.js"></script>
+  <script type="patos/lazy" src="js/apps/orbrunner.js"></script>
+  <script type="patos/lazy" src="js/apps/studio.js"></script>
+  <script type="patos/lazy" src="js/apps/tictactoe.js"></script>
+  <script type="patos/lazy" src="js/apps/messages.js"></script>
+  <script type="patos/lazy" src="js/apps/appstore.js"></script>
+  <script type="patos/lazy" src="js/apps/codestudio.js"></script>
+  <script type="patos/lazy" src="js/apps/piano.js"></script>
+  <script type="patos/lazy" src="js/apps/flashcards.js"></script>
+  <script type="patos/lazy" src="js/apps/typing.js"></script>
+  <script type="patos/lazy" src="js/apps/voicememos.js"></script>
   <script type="patos/js" src="js/apps/stickies.js"></script>
-  <script type="patos/js" src="js/apps/dictionary.js"></script>
-  <script type="patos/js" src="js/apps/docs.js"></script>
-  <script type="patos/js" src="js/apps/sheets.js"></script>
-  <script type="patos/js" src="js/apps/slides.js"></script>
-  <script type="patos/js" src="js/apps/drive.js"></script>
-  <script type="patos/js" src="js/apps/forms.js"></script>
-  <script type="patos/js" src="js/apps/translate.js"></script>
+  <script type="patos/lazy" src="js/apps/dictionary.js"></script>
+  <script type="patos/lazy" src="js/apps/docs.js"></script>
+  <script type="patos/lazy" src="js/apps/sheets.js"></script>
+  <script type="patos/lazy" src="js/apps/slides.js"></script>
+  <script type="patos/lazy" src="js/apps/drive.js"></script>
+  <script type="patos/lazy" src="js/apps/forms.js"></script>
+  <script type="patos/lazy" src="js/apps/translate.js"></script>
   <script type="patos/js" src="js/apps/contacts.js"></script>
-  <script type="patos/js" src="js/apps/freeform.js"></script>
-  <script type="patos/js" src="js/apps/pdfview.js"></script>
-  <script type="patos/js" src="js/apps/preview.js"></script>
-  <script type="patos/js" src="js/apps/scanner.js"></script>
-  <script type="patos/js" src="js/apps/chess.js"></script>
-  <script type="patos/js" src="js/apps/screenshot.js"></script>
-  <script type="patos/js" src="js/apps/grapher.js"></script>
-  <script type="patos/js" src="js/apps/elements.js"></script>
-  <script type="patos/js" src="js/apps/focus.js"></script>
-  <script type="patos/js" src="js/apps/journal.js"></script>
-  <script type="patos/js" src="js/apps/sudoku.js"></script>
-  <script type="patos/js" src="js/apps/news.js"></script>
-  <script type="patos/js" src="js/apps/books.js"></script>
-  <script type="patos/js" src="js/apps/radio.js"></script>
-  <script type="patos/js" src="js/apps/videos.js"></script>
-  <script type="patos/js" src="js/apps/solitaire.js"></script>
-  <script type="patos/js" src="js/apps/games.js"></script>
+  <script type="patos/lazy" src="js/apps/freeform.js"></script>
+  <script type="patos/lazy" src="js/apps/pdfview.js"></script>
+  <script type="patos/lazy" src="js/apps/preview.js"></script>
+  <script type="patos/lazy" src="js/apps/scanner.js"></script>
+  <script type="patos/lazy" src="js/apps/chess.js"></script>
+  <script type="patos/lazy" src="js/apps/screenshot.js"></script>
+  <script type="patos/lazy" src="js/apps/grapher.js"></script>
+  <script type="patos/lazy" src="js/apps/elements.js"></script>
+  <script type="patos/lazy" src="js/apps/focus.js"></script>
+  <script type="patos/lazy" src="js/apps/journal.js"></script>
+  <script type="patos/lazy" src="js/apps/sudoku.js"></script>
+  <script type="patos/lazy" src="js/apps/news.js"></script>
+  <script type="patos/lazy" src="js/apps/books.js"></script>
+  <script type="patos/lazy" src="js/apps/radio.js"></script>
+  <script type="patos/lazy" src="js/apps/videos.js"></script>
+  <script type="patos/lazy" src="js/apps/solitaire.js"></script>
+  <script type="patos/lazy" src="js/apps/games.js"></script>
   <script type="patos/js" src="js/apps/getapps.js"></script>
-  <script type="patos/js" src="js/apps/about.js"></script>
+  <script type="patos/lazy" src="js/apps/about.js"></script>
   <script type="patos/js" src="js/patapp-format.js"></script>
   <script type="patos/js" src="js/patapps.js"></script>
-  <script type="patos/js" src="js/apps/patapps-ui.js"></script>
-  <script type="patos/js" src="js/apps/pitstudio.js"></script>
-  <script type="patos/js" src="js/apps/patdrop.js"></script>
-  <script type="patos/js" src="js/apps/shortcuts.js"></script>
+  <script type="patos/lazy" src="js/apps/patapps-ui.js"></script>
+  <script type="patos/lazy" src="js/apps/pitstudio.js"></script>
+  <script type="patos/lazy" src="js/apps/patdrop.js"></script>
+  <script type="patos/lazy" src="js/apps/shortcuts.js"></script>
   <script type="patos/js" src="js/shortcuts.js"></script>
   <script type="patos/js" src="js/boot.js"></script>
 </body>

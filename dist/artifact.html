@@ -1165,8 +1165,7 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .m2-ask { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px 14px; border-top: 1px solid var(--border); flex-wrap: wrap; } .m2-ask div { display: flex; gap: 8px; }
 .m2-card { margin: auto; max-width: 380px; text-align: center; display: flex; flex-direction: column; gap: 10px; padding: 24px; } .m2-card h2 { margin: 0; } .m2-card p { margin: 0; opacity: .75; line-height: 1.45; font-size: 14px; } .m2-card .m2-fine { opacity: .55; font-size: 12.5px; } .m2-cbtns { display: flex; gap: 8px; justify-content: center; }
 .m2-who { opacity: .7; font-size: 13px; padding-right: 8px; }
-.m2-pat { position: absolute; top: 0; right: 0; bottom: 0; width: min(380px, 100%); display: flex; transform: translateX(105%); transition: transform .2s ease; z-index: 6; box-shadow: -14px 0 40px rgba(0,0,0,.35); border-left: 1px solid var(--border); background: var(--win-solid); }
-.m2-pat.open { transform: none; } .m2-pat .msg-main { width: 100%; }
+
 @container (max-width: 640px) {
   .m2-side { width: 100%; border-right: 0; } .m2-main { display: none; position: absolute; inset: 0; z-index: 3; }
   .m2-back { display: inline-flex; }
@@ -1197,6 +1196,15 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .voice-pill { position: fixed; z-index: 99998; left: 50%; bottom: 96px; transform: translateX(-50%); display: flex; align-items: center; gap: 8px; padding: 6px 14px; border-radius: 20px; border: 0; font: 13px system-ui, sans-serif; color: #fff; background: rgba(30,30,34,.85); backdrop-filter: blur(14px); box-shadow: 0 6px 24px rgba(0,0,0,.35); cursor: pointer; }
 .voice-pill .vp-dot { width: 9px; height: 9px; border-radius: 50%; background: #ff453a; animation: vp-pulse 1.6s infinite; } .voice-pill.awake { background: #0a84ff; } .voice-pill.awake .vp-dot { background: #fff; animation-duration: .7s; }
 @keyframes vp-pulse { 0%, 100% { opacity: 1; } 50% { opacity: .35; } }
+
+/* Pat in the top bar */
+#pat-panel { position: fixed; top: 34px; right: 8px; width: 392px; height: min(580px, calc(100vh - 140px)); display: flex; flex-direction: column; padding: 0; overflow: hidden; z-index: 9250; }
+#pat-panel.hidden { display: none; }
+#pat-panel .msg-main { flex: 1; min-height: 0; background: transparent; }
+.pat-top { display: flex; align-items: center; gap: 8px; padding: 8px 10px 8px 16px; border-bottom: 1px solid var(--border); } .pat-sub { font-size: 12px; opacity: .55; }
+#mb-pat.on { background: var(--hover2, rgba(127,127,127,.3)); }
+.mobile #pat-panel { inset: calc(var(--mtop, 44px) + 4px) 0 0 0; width: auto; height: auto; border-radius: 18px 18px 0 0; top: calc(var(--mtop, 44px) + 4px); }
+.mobile #mb-pat { display: none; }
 
 </style>
   <style>
@@ -3681,6 +3689,7 @@ html.reduce-transparency.lg-on :is(#dock, .mh-dock, .menu, #control-center, .toa
       <div class="mb-right">
         <span class="mb-status" id="mb-battery" title="Battery"></span>
         <button class="mb-status" id="mb-wifi" title="Wi-Fi"></button>
+        <button class="mb-status" id="mb-pat" title="Pat"></button>
         <button class="mb-status" id="mb-search" title="Spotlight (Ctrl+Space)"></button>
         <button class="mb-status" id="mb-cc" title="Control Center"></button>
         <button class="mb-clock" id="mb-clock"></button>
@@ -3702,6 +3711,7 @@ html.reduce-transparency.lg-on :is(#dock, .mh-dock, .menu, #control-center, .toa
     </div>
 
     <div id="control-center" class="panel hidden"></div>
+    <div id="pat-panel" class="panel hidden" role="dialog" aria-label="Pat"></div>
     <div id="notif-center" class="panel hidden"></div>
     <div id="toasts"></div>
     <div id="menu-layer"></div>
@@ -4825,8 +4835,56 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
   PatOS.appOrder = [];
   PatOS.registerApp = function (def) {
     def = Object.assign({ width: 760, height: 520, minWidth: 320, minHeight: 220, single: true, category: 'Apps', resizable: true }, def);
+    const had = !!PatOS.apps[def.id];
     PatOS.apps[def.id] = def;
-    PatOS.appOrder.push(def.id);
+    if (!had) PatOS.appOrder.push(def.id); // (a name-only entry replaced by the real app keeps its place)
+  };
+
+  /* ---------- apps that load when first opened (see scripts/appmeta.js and js/appmeta.js) ----------
+     Launchpad, the Dock and search know these apps by name from the start. Their code is read from their own file the first
+     time they are opened (or the first time something they share is used), from the copy PatOS keeps on the device. */
+  const lazyLoaded = new Set(), lazyText = new Map(), lazySrcs = new Set();
+  /* Soon after start, the text of these files is read from the device's offline copy (nothing is run, so it is cheap). That way an app
+     opens at once, also offline, and from the same version as the rest of PatOS even if an update arrives meanwhile. */
+  PatOS.prefetchLazy = function () {
+    const queue = [...lazySrcs].filter((x) => !lazyText.has(x)); const worker = async () => { while (queue.length) { const src = queue.shift(); try { const r = await fetch(src); if (r.ok) lazyText.set(src, await r.text()); } catch (e) {} } };
+    return Promise.all([worker(), worker(), worker()]);
+  };
+  PatOS.loadLazy = function (src) {
+    if (lazyLoaded.has(src)) return true; lazyLoaded.add(src);
+    try {
+      let text = lazyText.get(src);
+      if (text == null) { // not read yet (a very early click): ask the network (a synchronous request does not go through the offline copy)
+        const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+        if (x.status !== 200 && !(x.status === 0 && x.responseText)) throw new Error('HTTP ' + x.status); text = x.responseText;
+      }
+      const s = document.createElement('script'); s.text = text + '\n//# sourceURL=' + src; document.head.appendChild(s); s.remove(); lazyText.delete(src);
+      return true;
+    } catch (e) {
+      lazyLoaded.delete(src); console.error('PatOS could not load ' + src, e);
+      if (PatOS.notify) PatOS.notify({ title: 'This app could not open', body: 'Its files are not ready yet. Try again in a moment.', icon: 'settings' });
+      return false;
+    }
+  };
+  PatOS.lazyApps = (list) => { list.forEach((m) => { lazySrcs.add(m.lazy); PatOS.registerApp(m); }); setTimeout(() => PatOS.prefetchLazy(), 400); };
+  /* PatOS.theHelper: loads the file that makes it the first time it is read. The file's own assignment replaces this entry. */
+  PatOS.lazyExports = function (map) {
+    Object.keys(map).forEach((key) => {
+      if (Object.prototype.hasOwnProperty.call(PatOS, key)) return; const src = map[key]; lazySrcs.add(src);
+      const plain = (v) => Object.defineProperty(PatOS, key, { value: v, writable: true, configurable: true, enumerable: true });
+      Object.defineProperty(PatOS, key, { configurable: true, enumerable: true,
+        get() { plain(undefined); delete PatOS[key]; PatOS.loadLazy(src); const d = Object.getOwnPropertyDescriptor(PatOS, key); return d && 'value' in d ? d.value : undefined; },
+        set(v) { plain(v); } });
+    });
+  };
+  /* the order apps had when everything loaded at start (name-only entries are registered first, so put them back in place) */
+  PatOS.sortApps = function () {
+    if (!PatOS.appRank) return; const rank = new Map(PatOS.appRank.map((id, i) => [id, i])); const cur = PatOS.appOrder.slice();
+    const lazy = cur.filter((id) => PatOS.apps[id] && PatOS.apps[id].lazy).sort((a, b) => (rank.get(a) || 0) - (rank.get(b) || 0)); const real = cur.filter((id) => !(PatOS.apps[id] && PatOS.apps[id].lazy));
+    const out = []; let li = 0;
+    real.forEach((id) => { if (rank.has(id)) while (li < lazy.length && rank.get(lazy[li]) < rank.get(id)) out.push(lazy[li++]); out.push(id); });
+    while (li < lazy.length) out.push(lazy[li++]);
+    PatOS.appOrder.splice(0, PatOS.appOrder.length, ...out);
   };
 
   /* ---------- open a file with the right app ---------- */
@@ -5007,7 +5065,7 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
 /* generated by build.js from updates.json: do not edit */
 PatOS.version = "1.7.0";
 PatOS.releases = [{"version":"1.7.0","date":"2026-11-04","title":{"en":"Better apps","fr":"De meilleures apps"},"notes":{"en":["Calendar: Day and Year views, repeating events with an end date, alerts before events (even with Calendar closed), quick add in plain words (“Math class monday 9am weekly”), search, drag events to another day, and .ics import and export (Google Calendar)","Contacts: several phone numbers and emails per person, company, tap to call or email, search that ignores accents, Undo after deleting, merge duplicates, and better vCard import and export with photos","Weather: 10-day forecast, a one-line summary of the next hours, city suggestions as you type, gusts, pressure, visibility and rain today, wind and rain in mph and inches with °F, refreshes by itself, and real icons instead of emoji","Photos: much faster with many photos, your own albums, select several photos at once, search, zoom and pan with the wheel or pinch, swipe between photos, photo info, drop pictures to add them, and large photos now show up","Paint: choose your canvas size, zoom, text, filled shapes, opacity that doesn’t darken overlaps, Shift for straight lines and circles, rotate and flip, more undo, keyboard shortcuts, and open or save over a picture (Photos › More › Open in Paint)","Reliability and security: a failed save keeps your deletions, stricter checks for private network addresses, the password vault only counts use of the vault as activity and locks when you close Passwords, and the French translation is complete","Messages: Pat can set timers and alarms, show your calendar and what is due, add events and reminders with dates in plain words, convert units, work out percentages, find files, pick between options, and suggest the app you meant. Up arrow brings back what you typed","Terminal: variables ($NAME), aliases, !! to repeat the last command, new tools (cut, tr, sed, diff, nl, tee, stat, basename, dirname, which, sleep), and Tab fills in what several matches share","Flashcards: spaced repetition (cards you know come back later, cards you miss come back today), a mode where you type the answer, either side first, paste a list or a Quizlet export to make a deck, a study streak, and no more pre-made decks","Security: programs run in Terminal and Python can no longer reach PatOS’s storage, Terminal’s node command is labeled as a JavaScript runner, and About, Terminal and Settings show the exact version you are running"],"fr":["Calendrier : vues Jour et Année, événements récurrents avec date de fin, alertes avant les événements (même avec Calendrier fermé), ajout rapide en mots simples (« Cours de maths lundi 9h chaque semaine »), recherche, glisser les événements vers un autre jour, et import et export .ics (Google Agenda)","Contacts : plusieurs numéros et courriels par personne, entreprise, toucher pour appeler ou écrire, recherche sans tenir compte des accents, Annuler après une suppression, fusion des doublons, et meilleur import et export vCard avec les photos","Météo : prévisions sur 10 jours, un résumé des prochaines heures, suggestions de villes en écrivant, rafales, pression, visibilité et pluie du jour, vent et pluie en mph et pouces avec les °F, actualisation automatique, et de vraies icônes au lieu des émojis","Photos : beaucoup plus rapide avec beaucoup de photos, vos propres albums, sélection de plusieurs photos, recherche, zoom et déplacement à la molette ou au pincement, balayage entre les photos, infos de la photo, glisser des images pour les ajouter, et les grandes photos apparaissent maintenant","Paint : choisissez la taille du canevas, zoom, texte, formes pleines, opacité qui ne s’assombrit pas aux croisements, Maj pour des lignes droites et des cercles, rotation et retournement, plus d’annulations, raccourcis clavier, et ouverture ou enregistrement par-dessus une image (Photos › Plus › Ouvrir dans Paint)","Fiabilité et sécurité : un enregistrement échoué garde vos suppressions, vérifications plus strictes des adresses de réseau privé, le coffre de mots de passe ne compte que son propre usage comme activité et se verrouille à la fermeture de Mots de passe, et la traduction française est complète","Messages : Pat peut régler des minuteurs et des alarmes, montrer ton calendrier et ce qui est dû, ajouter des événements et des rappels avec des dates en mots simples, convertir des unités, calculer des pourcentages, trouver des fichiers, choisir entre des options, et suggérer l’app que tu voulais. La flèche du haut rappelle ce que tu as écrit","Terminal : variables ($NOM), alias, !! pour répéter la dernière commande, nouveaux outils (cut, tr, sed, diff, nl, tee, stat, basename, dirname, which, sleep), et Tab complète ce que plusieurs correspondances ont en commun","Cartes mémoire : répétition espacée (les cartes que vous savez reviennent plus tard, celles que vous ratez reviennent aujourd’hui), un mode où vous écrivez la réponse, recto ou verso d’abord, coller une liste ou un export Quizlet pour faire un jeu, une série de jours d’étude, et plus de jeux préfaits","Sécurité : les programmes lancés dans Terminal et Python ne peuvent plus accéder au stockage de PatOS, la commande node du Terminal est présentée comme un exécuteur JavaScript, et À propos, Terminal et Réglages affichent la version exacte que vous utilisez"]}},{"version":"1.6.0","date":"2026-11-03","title":{"en":"Software Update","fr":"Mise à jour de logiciels"},"notes":{"en":["New Settings › Software Update: see your version, what changed, and install updates","PatOS finds new versions by itself while it is open, without refreshing","Installing an update restarts PatOS only, and your windows come back"],"fr":["Nouveau Réglages › Mise à jour de logiciels : votre version, ce qui a changé, et l’installation des mises à jour","PatOS trouve les nouvelles versions tout seul pendant qu’il est ouvert, sans rafraîchir","Installer une mise à jour redémarre seulement PatOS, et vos fenêtres reviennent"]}},{"version":"1.5.0","date":"2026-11-03","title":{"en":"iPhone swipe up, Reminders in plain words","fr":"Balayage sur iPhone, Rappels en mots simples"},"notes":{"en":["iPhone: swipe up from the bar at the bottom to leave an app, swipe up and pause for the app switcher","Reminders: type “Math test friday at 3pm !!” and the date, time and priority are filled in","Reminders can repeat, and there is search and Undo"],"fr":["iPhone : balayez vers le haut depuis la barre du bas pour quitter une app, et faites une pause pour le sélecteur d’apps","Rappels : écrivez « Examen de maths vendredi à 15h !! » et la date, l’heure et la priorité se remplissent","Les rappels peuvent se répéter, avec recherche et Annuler"]}},{"version":"1.4.0","date":"2026-11-03","title":{"en":"Clock and Calculator","fr":"Horloge et Calculatrice"},"notes":{"en":["Clock: add any city, a stopwatch that keeps running when closed, a timer with hours and a name, editable alarms","Calculator: history you can reuse, copy and paste, real percent, inverse trig"],"fr":["Horloge : ajoutez n’importe quelle ville, un chronomètre qui continue fermé, un minuteur avec heures et nom, des alarmes modifiables","Calculatrice : historique réutilisable, copier-coller, vrai pourcentage, trigonométrie inverse"]}},{"version":"1.3.0","date":"2026-11-03","title":{"en":"Finder and TextEdit","fr":"Finder et TextEdit"},"notes":{"en":["Finder: copy, cut and paste files, drag a box to select, drop files from your computer","TextEdit: find and replace, line and column, word wrap, Markdown preview, recent files, print"],"fr":["Finder : copier, couper et coller des fichiers, sélection en tirant un cadre, déposer des fichiers de l’ordinateur","TextEdit : rechercher et remplacer, ligne et colonne, retour à la ligne, aperçu Markdown, fichiers récents, impression"]}},{"version":"1.2.0","date":"2026-11-03","title":{"en":"Faster start, smoother 3D","fr":"Démarrage plus rapide, 3D plus fluide"},"notes":{"en":["PatOS starts in about a second instead of several","3D waits for the graphics chip, so slower Chromebooks don’t lag"],"fr":["PatOS démarre en environ une seconde au lieu de plusieurs","La 3D attend la puce graphique, donc les Chromebooks plus lents ne ralentissent plus"]}},{"version":"1.1.0","date":"2026-11-03","title":{"en":"Security","fr":"Sécurité"},"notes":{"en":["Passwords are always encrypted, and lock with your master password","Documents and pasted text can no longer run code","Pat in Messages is described honestly: a command helper, not an AI"],"fr":["Les mots de passe sont toujours chiffrés et se verrouillent avec votre mot de passe principal","Les documents et le texte collé ne peuvent plus exécuter de code","Pat dans Messages est décrit honnêtement : un assistant à commandes, pas une IA"]}}];
-PatOS.beta = {"version":"2.0.0","beta":7,"date":"2026-11-04","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"notes":{"en":["Backup & Restore: a snapshot every day (restore PatOS to how it was on Tuesday), a backup file you can lock with a password, and on a Chromebook an auto-backup folder on your real disk, so your data survives even if PatOS or the website is deleted. You can restore from the very first screen on a new device","Sync (optional): your files, notes, calendar, reminders, contacts, flashcards and some settings follow you between your Chromebook and your iPhone. Everything is encrypted on the device with a key only you have, so the server sees nothing readable. It works offline, never blocks PatOS, and if you delete your Railway and make a new one, your devices fill it again by themselves (restoring a backup brings your Sync code back too). Turn it on in Settings › Sync","Everything on your real disk: the backup folder now also keeps a full copy of your big files (videos, recordings, up to 1 GB) and your Sync code, so if PatOS or the website is deleted, restoring from the folder brings it all back. In Settings › Sync you can make a new code to share, or point an old PatOS at a new server address","App SDK and PitCode Studio: make your own PatOS apps in PatOS, like Xcode. Write them in PitCode (your own language, built in) or in HTML and JavaScript, run them in a preview with a console, then install them, save them as a .patapp file, or send them for review. Apps run in a locked box and must ask before using the camera, microphone, location, files, clipboard, notifications or the internet. New Settings › Privacy shows what every app may do and did. The App Store has new Community and Develop tabs, and accepted apps are reviewed at /apprequests","PatDrop: a chat for you and your friend (or your own devices). Make a code, type it on the other PatOS, and send messages, files, photos, links, clipboard text and even apps made in PitCode Studio, straight into each other's PatOS. It is encrypted on your device, works offline (things wait in an outbox), tells you when something arrives, and Finder has a Send with PatDrop item","PatOS Accounts: make an account with just a username and a password (no email) and everything you have (files, photos, notes, calendar, apps and your own apps, the dock, every setting, even your open windows and where they are) is saved in the cloud, locked with your password, and follows you to every device. A copy stays on each device, so PatOS still works offline. Everyone gets a big invitation to create their account, and everything already on the device is saved into it","Messages is now for people: search a username, send a message request, and they get notifications from you only after they accept. Every conversation is saved in the cloud and is the same on all your devices. Pat, the command helper, moved to a button in the top bar","Shortcuts: a new app for little automations. Open apps, ask Pat for a timer, change the theme, show messages, and more, one step after the other. Start them by hand, when you unlock PatOS, every day at a time, or by saying “Hey Pat, …”. Turn on Hey Pat in Settings › Pat Voice (it is off until you do): Pat listens for its name, answers out loud and runs your shortcuts. There is also a microphone button in Pat’s panel in Messages"],"fr":["Sauvegarde et restauration : un instantané chaque jour (remettez PatOS comme il était mardi), un fichier de sauvegarde que vous pouvez verrouiller par mot de passe, et sur un Chromebook un dossier de sauvegarde automatique sur votre vrai disque, pour que vos données survivent même si PatOS ou le site est supprimé. Vous pouvez restaurer dès le tout premier écran sur un nouvel appareil","Synchronisation (facultative) : vos fichiers, notes, calendrier, rappels, contacts, cartes mémoire et certains réglages vous suivent entre votre Chromebook et votre iPhone. Tout est chiffré sur l’appareil avec une clé que vous seul avez, donc le serveur ne voit rien de lisible. Cela fonctionne hors ligne, ne bloque jamais PatOS, et si vous supprimez votre Railway pour en créer un nouveau, vos appareils le remplissent tout seuls (restaurer une sauvegarde ramène aussi votre code). Activez-la dans Réglages › Synchronisation","Tout sur votre vrai disque : le dossier de sauvegarde garde maintenant aussi une copie complète de vos gros fichiers (vidéos, enregistrements, jusqu’à 1 Go) et votre code de synchronisation, donc si PatOS ou le site est supprimé, restaurer depuis le dossier ramène tout. Dans Réglages › Synchronisation vous pouvez créer un nouveau code à partager, ou diriger un ancien PatOS vers une nouvelle adresse de serveur","SDK d’apps et PitCode Studio : faites vos propres apps PatOS dans PatOS, comme Xcode. Écrivez-les en PitCode (votre propre langage, intégré) ou en HTML et JavaScript, lancez-les dans un aperçu avec une console, puis installez-les, enregistrez-les en fichier .patapp, ou envoyez-les pour examen. Les apps tournent dans une boîte verrouillée et doivent demander avant d’utiliser la caméra, le micro, la position, les fichiers, le presse-papiers, les notifications ou internet. Le nouveau Réglages › Confidentialité montre ce que chaque app peut faire et a fait. L’App Store a de nouveaux onglets Communauté et Développer, et les apps acceptées sont examinées sur /apprequests","PatDrop : une discussion pour vous et votre ami (ou vos propres appareils). Créez un code, écrivez-le sur l’autre PatOS, et envoyez messages, fichiers, photos, liens, texte du presse-papiers et même des apps faites dans PitCode Studio, directement dans le PatOS de l’autre. C’est chiffré sur votre appareil, ça marche hors ligne (les choses attendent dans une boîte d’envoi), ça vous prévient quand quelque chose arrive, et le Finder a un élément Envoyer avec PatDrop","Comptes PatOS : créez un compte avec seulement un nom d’utilisateur et un mot de passe (pas de courriel) et tout ce que vous avez (fichiers, photos, notes, calendrier, apps et vos propres apps, le dock, tous les réglages, même vos fenêtres ouvertes et leur place) est enregistré dans le nuage, verrouillé par votre mot de passe, et vous suit sur chaque appareil. Une copie reste sur chaque appareil, donc PatOS marche toujours hors ligne. Tout le monde reçoit une grande invitation à créer son compte, et tout ce qui est déjà sur l’appareil y est enregistré","Messages est maintenant pour les gens : cherchez un nom d’utilisateur, envoyez une demande de message, et la personne reçoit des notifications de vous seulement après avoir accepté. Chaque conversation est enregistrée dans le nuage et identique sur tous vos appareils. Pat, l’assistant à commandes, est passé dans un bouton de la barre du haut","Raccourcis : une nouvelle app pour de petites automatisations. Ouvrir des apps, demander un minuteur à Pat, changer le thème, afficher des messages, et plus, une étape après l’autre. Lancez-les à la main, quand vous déverrouillez PatOS, chaque jour à une heure, ou en disant « Hey Pat, … ». Activez Hey Pat dans Réglages › Voix de Pat (désactivé tant que vous ne le faites pas) : Pat écoute son nom, répond à voix haute et lance vos raccourcis. Il y a aussi un bouton micro dans le panneau de Pat dans Messages"]}};
+PatOS.beta = {"version":"2.0.0","beta":8,"date":"2026-11-04","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"notes":{"en":["Backup & Restore: a snapshot every day (restore PatOS to how it was on Tuesday), a backup file you can lock with a password, and on a Chromebook an auto-backup folder on your real disk, so your data survives even if PatOS or the website is deleted. You can restore from the very first screen on a new device","Sync (optional): your files, notes, calendar, reminders, contacts, flashcards and some settings follow you between your Chromebook and your iPhone. Everything is encrypted on the device with a key only you have, so the server sees nothing readable. It works offline, never blocks PatOS, and if you delete your Railway and make a new one, your devices fill it again by themselves (restoring a backup brings your Sync code back too). Turn it on in Settings › Sync","Everything on your real disk: the backup folder now also keeps a full copy of your big files (videos, recordings, up to 1 GB) and your Sync code, so if PatOS or the website is deleted, restoring from the folder brings it all back. In Settings › Sync you can make a new code to share, or point an old PatOS at a new server address","App SDK and PitCode Studio: make your own PatOS apps in PatOS, like Xcode. Write them in PitCode (your own language, built in) or in HTML and JavaScript, run them in a preview with a console, then install them, save them as a .patapp file, or send them for review. Apps run in a locked box and must ask before using the camera, microphone, location, files, clipboard, notifications or the internet. New Settings › Privacy shows what every app may do and did. The App Store has new Community and Develop tabs, and accepted apps are reviewed at /apprequests","PatDrop: a chat for you and your friend (or your own devices). Make a code, type it on the other PatOS, and send messages, files, photos, links, clipboard text and even apps made in PitCode Studio, straight into each other's PatOS. It is encrypted on your device, works offline (things wait in an outbox), tells you when something arrives, and Finder has a Send with PatDrop item","PatOS Accounts: make an account with just a username and a password (no email) and everything you have (files, photos, notes, calendar, apps and your own apps, the dock, every setting, even your open windows and where they are) is saved in the cloud, locked with your password, and follows you to every device. A copy stays on each device, so PatOS still works offline. Everyone gets a big invitation to create their account, and everything already on the device is saved into it","Messages is now for people: search a username, send a message request, and they get notifications from you only after they accept. Every conversation is saved in the cloud and is the same on all your devices. Pat, the command helper, moved to a button in the top bar","Shortcuts: a new app for little automations. Open apps, ask Pat for a timer, change the theme, show messages, and more, one step after the other. Start them by hand, when you unlock PatOS, every day at a time, or by saying “Hey Pat, …”. Turn on Hey Pat in Settings › Pat Voice (it is off until you do): Pat listens for its name, answers out loud and runs your shortcuts. There is also a microphone button in Pat’s panel in Messages","Pat moved to the top bar: click the speech bubble next to Control Center to talk to Pat from anywhere (it is no longer inside Messages). On a phone, Pat is an app in Launchpad that opens the same panel","Faster start: apps now load when you open them. PatOS reads about a third of the app code at start instead of all of it, and every app still works offline"],"fr":["Sauvegarde et restauration : un instantané chaque jour (remettez PatOS comme il était mardi), un fichier de sauvegarde que vous pouvez verrouiller par mot de passe, et sur un Chromebook un dossier de sauvegarde automatique sur votre vrai disque, pour que vos données survivent même si PatOS ou le site est supprimé. Vous pouvez restaurer dès le tout premier écran sur un nouvel appareil","Synchronisation (facultative) : vos fichiers, notes, calendrier, rappels, contacts, cartes mémoire et certains réglages vous suivent entre votre Chromebook et votre iPhone. Tout est chiffré sur l’appareil avec une clé que vous seul avez, donc le serveur ne voit rien de lisible. Cela fonctionne hors ligne, ne bloque jamais PatOS, et si vous supprimez votre Railway pour en créer un nouveau, vos appareils le remplissent tout seuls (restaurer une sauvegarde ramène aussi votre code). Activez-la dans Réglages › Synchronisation","Tout sur votre vrai disque : le dossier de sauvegarde garde maintenant aussi une copie complète de vos gros fichiers (vidéos, enregistrements, jusqu’à 1 Go) et votre code de synchronisation, donc si PatOS ou le site est supprimé, restaurer depuis le dossier ramène tout. Dans Réglages › Synchronisation vous pouvez créer un nouveau code à partager, ou diriger un ancien PatOS vers une nouvelle adresse de serveur","SDK d’apps et PitCode Studio : faites vos propres apps PatOS dans PatOS, comme Xcode. Écrivez-les en PitCode (votre propre langage, intégré) ou en HTML et JavaScript, lancez-les dans un aperçu avec une console, puis installez-les, enregistrez-les en fichier .patapp, ou envoyez-les pour examen. Les apps tournent dans une boîte verrouillée et doivent demander avant d’utiliser la caméra, le micro, la position, les fichiers, le presse-papiers, les notifications ou internet. Le nouveau Réglages › Confidentialité montre ce que chaque app peut faire et a fait. L’App Store a de nouveaux onglets Communauté et Développer, et les apps acceptées sont examinées sur /apprequests","PatDrop : une discussion pour vous et votre ami (ou vos propres appareils). Créez un code, écrivez-le sur l’autre PatOS, et envoyez messages, fichiers, photos, liens, texte du presse-papiers et même des apps faites dans PitCode Studio, directement dans le PatOS de l’autre. C’est chiffré sur votre appareil, ça marche hors ligne (les choses attendent dans une boîte d’envoi), ça vous prévient quand quelque chose arrive, et le Finder a un élément Envoyer avec PatDrop","Comptes PatOS : créez un compte avec seulement un nom d’utilisateur et un mot de passe (pas de courriel) et tout ce que vous avez (fichiers, photos, notes, calendrier, apps et vos propres apps, le dock, tous les réglages, même vos fenêtres ouvertes et leur place) est enregistré dans le nuage, verrouillé par votre mot de passe, et vous suit sur chaque appareil. Une copie reste sur chaque appareil, donc PatOS marche toujours hors ligne. Tout le monde reçoit une grande invitation à créer son compte, et tout ce qui est déjà sur l’appareil y est enregistré","Messages est maintenant pour les gens : cherchez un nom d’utilisateur, envoyez une demande de message, et la personne reçoit des notifications de vous seulement après avoir accepté. Chaque conversation est enregistrée dans le nuage et identique sur tous vos appareils. Pat, l’assistant à commandes, est passé dans un bouton de la barre du haut","Raccourcis : une nouvelle app pour de petites automatisations. Ouvrir des apps, demander un minuteur à Pat, changer le thème, afficher des messages, et plus, une étape après l’autre. Lancez-les à la main, quand vous déverrouillez PatOS, chaque jour à une heure, ou en disant « Hey Pat, … ». Activez Hey Pat dans Réglages › Voix de Pat (désactivé tant que vous ne le faites pas) : Pat écoute son nom, répond à voix haute et lance vos raccourcis. Il y a aussi un bouton micro dans le panneau de Pat dans Messages","Pat est passé dans la barre du haut : cliquez sur la bulle à côté du Centre de contrôle pour parler à Pat de n’importe où (il n’est plus dans Messages). Sur un téléphone, Pat est une app dans Launchpad qui ouvre le même panneau","Démarrage plus rapide : les apps se chargent maintenant à leur ouverture. PatOS lit environ un tiers du code des apps au démarrage au lieu de tout, et chaque app marche toujours hors ligne"]}};
 
 </script>
   <script type="patos/js">
@@ -7919,6 +7977,10 @@ PatOS.beta = {"version":"2.0.0","beta":7,"date":"2026-11-04","title":{"en":"PatO
     'Snapshot': 'Instantané',
     'Snapshot saved': 'Instantané enregistré',
     'Daily snapshot': 'Instantané quotidien',
+    'Pat, the command helper, works without an account: click the speech bubble in the top bar.': 'Pat, l’assistant à commandes, marche sans compte : cliquez sur la bulle dans la barre du haut.',
+    'Command helper, not an AI': 'Assistant à commandes, pas une IA',
+    'Clear the conversation': 'Effacer la conversation',
+    'Pat': 'Pat',
     'Ask with your voice': 'Demander avec votre voix',
     'Listening…': 'Écoute…',
     'Pat Voice': 'Voix de Pat',
@@ -9173,8 +9235,12 @@ PatOS.beta = {"version":"2.0.0","beta":7,"date":"2026-11-04","title":{"en":"PatO
   };
 
   PatOS.launch = function (appId, args) {
-    const app = PatOS.apps[appId];
+    let app = PatOS.apps[appId];
     if (!app) { PatOS.notify && PatOS.notify({ title: 'App not found', body: appId }); return null; }
+    if (app.lazy) { // an app whose code has not been read yet: read it now (js/appmeta.js)
+      if (!PatOS.loadLazy(app.lazy)) return null;
+      app = PatOS.apps[appId]; if (!app || app.lazy) { PatOS.notify && PatOS.notify({ title: 'App not found', body: appId }); return null; }
+    }
     if (app.action) { app.action(args || {}); PatOS.emit('app:launch', appId); return null; }
     const existing = PatOS.wm.windowsOf(appId);
     if (app.single && existing.length) {
@@ -10710,6 +10776,219 @@ PatOS.beta = {"version":"2.0.0","beta":7,"date":"2026-11-04","title":{"en":"PatO
       setInterval(() => { $$('#dock .dock-item[data-app="calendar"] .dock-icon, #dock .dock-item[data-app="clock"] .dock-icon').forEach((el) => { el.innerHTML = PatOS.iconHTML(el.parentNode.dataset.app); }); }, 60000);
     }
   };
+})();
+
+</script>
+  <script type="patos/js">
+/* Pat: the command helper in the top bar. Pat is not an AI: it matches what you type (or say) against a fixed list of commands (open an app, math,
+   reminders, notes, timers, the time and date, a few settings) and answers from that list. Everything runs on the device.
+   Click the speech bubble in the top bar (next to Control Center), or open the Pat app on a phone. */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  const JOKES = ['Why did the computer go to the doctor? It had a virus.', 'Why do programmers prefer dark mode? Because light attracts bugs.', 'What do you call a dinosaur that codes? A Typo-saurus.', 'Why was the math book sad? It had too many problems.', 'How does the moon cut its hair? Eclipse it.', 'I would tell you a UDP joke, but you might not get it.'];
+  const FACTS = ['A day on Venus is longer than a year on Venus.', 'Octopuses have three hearts.', 'Honey never spoils. Archaeologists have found 3,000-year-old honey that is still edible.', 'The Eiffel Tower can be about 15 cm taller in summer because the metal expands.', 'There are more possible chess games than atoms in the observable universe.', 'Bananas are berries, but strawberries are not.'];
+  const pick = (a) => a[Math.floor(Math.random() * a.length)];
+
+  const FR = () => PatOS.lang === 'fr';
+  const L = (en, fr) => (FR() ? fr : en);
+  const JOKES_FR = ['Pourquoi l’ordinateur est-il allé chez le médecin? Il avait un virus.', 'Pourquoi les programmeurs aiment le mode sombre? Parce que la lumière attire les bogues.', 'Que dit un zéro à un huit? Belle ceinture!', 'Pourquoi le livre de maths est triste? Il a trop de problèmes.', 'Quel est le comble pour un électricien? De ne pas être au courant.'];
+  const FACTS_FR = ['Une journée sur Vénus dure plus longtemps qu’une année sur Vénus.', 'Les pieuvres ont trois cœurs.', 'Le miel ne se gâte jamais. On a trouvé du miel de 3 000 ans encore mangeable.', 'La tour Eiffel peut grandir d’environ 15 cm en été parce que le métal se dilate.', 'Les bananes sont des baies, mais pas les fraises.'];
+  /* French commands are turned into the matching English command first */
+  function fromFrench(t) {
+    const rules = [[/^(?:mets|règle|regle|programme)\s+un\s+minuteur\s+(?:de|pour)\s+(.+)/i, 'timer $1'], [/^minuteur\s+(?:de\s+)?(.+)/i, 'timer $1'], [/^(?:réveille-moi|reveille-moi|mets un réveil|mets un reveil)\s+(?:à|a)\s+(\d{1,2})\s*(?:h|:)?\s*(\d{2})?\s*$/i, (m) => 'wake me at ' + m[1] + ':' + (m[2] || '00')],
+      [/^(?:qu['’]est-ce que j['’]ai|mon calendrier|mon horaire|mon agenda)\s*(?:aujourd['’]hui|demain)?/i, (m, t) => 'calendar ' + (/demain/i.test(t) ? 'tomorrow' : 'today')], [/^(?:ajoute|ajouter|crée|cree)\s+(?:un\s+)?(?:événement|evenement)\s*:?\s*(.+)/i, 'add event $1'], [/^(?:mes rappels|qu['’]est-ce que j['’]ai à faire|quoi à faire)/i, 'my reminders'],
+      [/^convertis?\s+(.+)/i, '$1'], [/^(?:trouve|cherche)\s+(?:le\s+)?fichier\s+(.+)/i, 'find file $1'], [/^ouvre\s+(?:le\s+)?fichier\s+(.+)/i, 'open file $1'], [/^(?:choisis|choisi)\s+(?:entre\s+)?(.+)/i, 'pick $1'], [/^(?:efface|vide)\s+(?:la\s+)?conversation$/i, 'clear'],[/^(salut|bonjour|allo|allô|coucou)\b.*/i, 'hi'], [/^(aide|que peux-tu faire|qu'est-ce que tu peux faire).*/i, 'help'], [/^(ouvre|ouvrir|lance|lancer|démarre)\s+(?:l'|l’|la |le |les )?(.+)/i, 'open $2'],
+      [/quelle heure/i, 'time'], [/quel jour|quelle date|la date/i, 'date'], [/^(rappelle-moi|rappelle moi)\s+(?:de |d'|d’)?(.+)/i, 'remind me to $2'], [/^(?:prends une note|note)\s*:?\s*(.+)/i, 'note: $1'],
+      [/blague/i, 'joke'], [/anecdote|fait amusant|un fait/i, 'fact'], [/pile ou face/i, 'flip a coin'], [/lance (?:un |le )?dé/i, 'roll a die'], [/mode sombre/i, 'dark mode'], [/mode clair/i, 'light mode'],
+      [/fond d.?écran/i, 'wallpaper'], [/(joue|mets) (de la musique|une chanson)/i, 'play music'], [/météo/i, 'weather'], [/merci/i, 'thanks'], [/qui es-tu|ton nom/i, 'who are you'], [/comment (ça|ca) va|ça va\?/i, 'how are you'],
+      [/^(cherche|recherche)\s+(.+)/i, 'search $2'], [/^(définis|définition de|que veut dire)\s+(.+)/i, 'define $2'], [/liste des apps|quelles apps/i, 'list apps'], [/^combien (font|fait)\s+(.+)/i, '$2']];
+    for (const [re, rep] of rules) if (re.test(t)) return typeof rep === 'function' ? rep(re.exec(t), t) : t.replace(re, rep);
+    return t;
+  }
+  /* ---------- what Pat can do ----------
+     Pat is a command helper, not an AI: it matches what you type against a fixed list of commands. */
+  const today = () => PatOS.dateKey(new Date());
+  const fmtTime = (hm) => { const [h2, m2] = hm.split(':').map(Number); const d = new Date(); d.setHours(h2, m2, 0, 0); return d.toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' }); };
+  function lev(a, b) { const d = Array.from({ length: a.length + 1 }, (_, i) => [i]); for (let j = 1; j <= b.length; j++) d[0][j] = j; for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[a.length][b.length]; }
+  const appNames = (k) => [PatOS.apps[k].name.toLowerCase(), PatOS.t(PatOS.apps[k].name).toLowerCase()];
+  function findApp(q) {
+    q = q.toLowerCase().replace(/[.!?]$/, '').replace(/^(the|my|le|la|les|l['’])\s*/, '').trim(); if (!q) return null;
+    const ids = PatOS.appOrder.filter((k) => PatOS.apps[k] && !PatOS.apps[k].hidden);
+    return ids.find((k) => appNames(k).includes(q) || k === q) || ids.find((k) => appNames(k).some((n) => n.startsWith(q))) || ids.find((k) => appNames(k).some((n) => n.includes(q)));
+  }
+  function suggestApp(q) {
+    q = q.toLowerCase().trim(); let best = null, bd = 3;
+    PatOS.appOrder.filter((k) => PatOS.apps[k] && !PatOS.apps[k].hidden).forEach((k) => appNames(k).forEach((n) => { const d = lev(q, n); if (d < bd && d <= Math.max(1, Math.floor(n.length / 3))) { bd = d; best = k; } }));
+    return best;
+  }
+  function findFiles(q) {
+    q = q.toLowerCase().trim(); const out = [];
+    PatOS.fs.walk('/', (p, n) => { if (!p.startsWith('/.Trash') && n.type === 'file' && PatOS.fs.basename(p).toLowerCase().includes(q)) out.push(p); });
+    return out;
+  }
+  function reply(text) {
+    let t = text.trim(); if (FR()) t = fromFrench(t);
+    const l = t.toLowerCase(); let m;
+    const name = PatOS.settings.userName;
+    if (/^(hi|hey|hello|yo|sup)\b/.test(l)) return L(`Hey ${name}. What do you need? I can open an app, set a timer, check your calendar, do a quick calculation, add a reminder, or just tell you a bad joke. Type "help" for the full list.`, `Salut ${name}. Qu’est-ce qu’il te faut? Je peux ouvrir une app, mettre un minuteur, regarder ton calendrier, faire un calcul, ajouter un rappel ou te raconter une mauvaise blague. Écris « aide » pour la liste complète.`);
+    if (/\bhelp\b|what can you do/.test(l)) return L('Here’s what you can ask me (I follow a list of commands, I’m not an AI):\n• open galaxy\n• timer 10 min\n• wake me at 7:30\n• what’s on my calendar today?\n• add event math test friday 2pm\n• my reminders\n• remind me to study for math\n• note: buy pencils\n• 24 * 17 + 3   ·   15% of 80\n• 5 km to mi   ·   20 c to f\n• find file essay\n• pick pizza or tacos\n• what time is it?   ·   tell me a joke / a fact\n• flip a coin / roll a die\n• dark mode / light mode / change wallpaper\n• play music   ·   clear', 'Voici ce que tu peux me demander (je suis une liste de commandes, je ne suis pas une IA) :\n• ouvre galaxie\n• minuteur 10 min\n• réveille-moi à 7h30\n• qu’est-ce que j’ai aujourd’hui?\n• ajoute un événement test de maths vendredi 14h\n• mes rappels\n• rappelle-moi d’étudier\n• note : acheter des crayons\n• 24 * 17 + 3   ·   15% de 80\n• convertis 5 km en mi   ·   20 c en f\n• trouve le fichier devoir\n• choisis pizza ou tacos\n• quelle heure est-il?   ·   raconte une blague / un fait\n• pile ou face / lance un dé\n• mode sombre / mode clair / change le fond d’écran\n• joue de la musique   ·   efface la conversation');
+    if ((m = l.match(/^(?:open|launch|start)\s+file\s+(.+)/))) {
+      const f = findFiles(m[1]); if (!f.length) return L(`I couldn’t find a file called “${m[1]}”.`, `Je n’ai pas trouvé de fichier appelé « ${m[1]} ».`);
+      setTimeout(() => PatOS.openFile(f[0]), 400); return L(`Opening ${PatOS.fs.basename(f[0])}.`, `J’ouvre ${PatOS.fs.basename(f[0])}.`);
+    }
+    if ((m = l.match(/^(?:open|launch|start)\s+(.+)/))) {
+      const q = m[1].replace(/[.!?]$/, '').trim(); const id = findApp(q);
+      if (id) { setTimeout(() => PatOS.launch(id), 500); return L(`Sure, opening ${PatOS.apps[id].name}.`, `D’accord, j’ouvre ${PatOS.t(PatOS.apps[id].name)}.`); }
+      const near = suggestApp(q); if (near) return L(`I don’t have an app called "${q}". Did you mean ${PatOS.apps[near].name}? Say "open ${PatOS.apps[near].name.toLowerCase()}".`, `Je n’ai pas d’app appelée « ${q} ». Tu voulais dire ${PatOS.t(PatOS.apps[near].name)}? Écris « ouvre ${PatOS.t(PatOS.apps[near].name).toLowerCase()} ».`);
+      return L(`Hmm, I don’t have an app called "${q}". Say "list apps" and I’ll show you what’s there.`, `Hmm, je n’ai pas d’app appelée « ${q} ». Écris « liste des apps » et je te montre ce qu’il y a.`);
+    }
+    if (/list (all )?apps|what apps/.test(l)) return L('Here’s everything you’ve got: ', 'Voici tout ce que tu as : ') + PatOS.appOrder.filter((k) => !PatOS.apps[k].hidden).map((k) => PatOS.t(PatOS.apps[k].name)).join(', ') + '.';
+    // timers and alarms are rung by PatOS.alarms, so they ring even with Messages closed
+    if ((m = l.match(/^(?:set (?:a )?|start (?:a )?)?timer(?: for)?\s+(.+)/))) {
+      const ms = PatOS.parseDuration ? PatOS.parseDuration(m[1]) : 0;
+      if (ms > 0 && ms <= 24 * 3600000) { PatOS.quickTimer(Math.round(ms / 1000), ''); const mins = Math.round(ms / 60000); return L(`Timer set for ${mins >= 60 ? Math.floor(mins / 60) + ' h' + (mins % 60 ? ' ' + mins % 60 + ' min' : '') : mins < 1 ? Math.round(ms / 1000) + ' s' : mins + ' min'}. It will ring even if you close Messages.`, `Minuteur réglé pour ${mins >= 60 ? Math.floor(mins / 60) + ' h' + (mins % 60 ? ' ' + mins % 60 + ' min' : '') : mins < 1 ? Math.round(ms / 1000) + ' s' : mins + ' min'}. Il sonnera même si tu fermes Messages.`); }
+      return L('How long? Try “timer 10 min” or “timer 1h 20m”.', 'Combien de temps? Essaie « minuteur 10 min » ou « minuteur 1h 20m ».');
+    }
+    if ((m = l.match(/^(?:wake me(?: up)? at|set (?:an )?alarm(?: for| at)?)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/))) {
+      let hh = +m[1]; const mm = +(m[2] || 0); if (m[3] === 'pm' && hh < 12) hh += 12; if (m[3] === 'am' && hh === 12) hh = 0;
+      if (hh > 23 || mm > 59) return L('That isn’t a time I can use. Try “wake me at 7:30”.', 'Ce n’est pas une heure valide. Essaie « réveille-moi à 7h30 ».');
+      const time = String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
+      const list = PatOS.store.get('alarms', []); list.push({ id: PatOS.uid(), time, label: 'Pat', repeat: 'once', on: true }); PatOS.store.set('alarms', list); PatOS.emit('alarms'); PatOS.alarms && PatOS.alarms.askPermission();
+      return L(`Alarm set for ${fmtTime(time)}. It rings once; you can change it in Clock.`, `Alarme réglée à ${fmtTime(time)}. Elle sonne une fois; tu peux la changer dans Horloge.`);
+    }
+    // calendar and reminders
+    if ((m = l.match(/^(?:what(?:’s|'s| is)?(?: on)?|show|check)?\s*(?:my\s+)?(?:calendar|schedule|agenda)\s*(today|tomorrow)?\??$/)) || (m = l.match(/^what do i have\s*(today|tomorrow)?\??$/))) {
+      const d = new Date(); if (m[1] === 'tomorrow') d.setDate(d.getDate() + 1);
+      const evs = PatOS.calendarOn ? PatOS.calendarOn(d) : []; const day = m[1] === 'tomorrow' ? L('tomorrow', 'demain') : L('today', 'aujourd’hui');
+      if (!evs.length) return L(`Nothing on your calendar ${day}.`, `Rien dans ton calendrier ${day}.`);
+      return L(`On your calendar ${day}:\n`, `Dans ton calendrier ${day} :\n`) + evs.map((e) => '• ' + (e.time ? fmtTime(e.time) + '  ' : L('All day  ', 'Toute la journée  ')) + e.title).join('\n');
+    }
+    if ((m = t.match(/^(?:add event|event|schedule)\s*:?\s+(.+)/i))) {
+      const p = PatOS.parseReminder ? PatOS.parseReminder(m[1], null) : { text: m[1] }; const key = p.due || today();
+      const cal = PatOS.store.get('calendar', {}) || {}; (cal[key] = cal[key] || []).push({ id: PatOS.uid(), title: p.text, time: p.time || '', end: '', color: '#0a84ff', notes: '', repeat: '', alert: p.time ? '0' : 'none' });
+      PatOS.store.set('calendar', cal); PatOS.emit('calendar'); PatOS.calendarSync && PatOS.calendarSync();
+      return L(`Added “${p.text}” to your calendar on ${new Date(key + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' })}${p.time ? ' at ' + fmtTime(p.time) : ''}.`, `J’ai ajouté « ${p.text} » à ton calendrier le ${new Date(key + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' })}${p.time ? ' à ' + fmtTime(p.time) : ''}.`);
+    }
+    if (/^(?:my reminders|show (?:my )?reminders|what(?:’s|'s| is) due|what do i (?:need|have) to do)\??$/.test(l)) {
+      const k = today(); const due = (PatOS.store.get('reminders', []) || []).filter((r) => !r.done && r.due && r.due <= k).sort((a, b) => (a.due + (a.time || '')).localeCompare(b.due + (b.time || '')));
+      if (!due.length) return L('You’re all caught up. Nothing is due today.', 'Tu es à jour. Rien n’est dû aujourd’hui.');
+      return L('Due today or overdue:\n', 'Dû aujourd’hui ou en retard :\n') + due.slice(0, 8).map((r) => '• ' + r.text + (r.time ? ' (' + fmtTime(r.time) + ')' : '') + (r.due < k ? L(' · overdue', ' · en retard') : '')).join('\n') + (due.length > 8 ? '\n… +' + (due.length - 8) : '');
+    }
+    if (/^clear( chat| the chat| conversation)?$/.test(l)) return '\u0000clear';
+    if (/\btime\b/.test(l) && !/timer/.test(l)) return L('It’s ', 'Il est ') + new Date().toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' }) + '.';
+    if (/\b(date|day is it|today)\b/.test(l) && !/calendar|due/.test(l)) return L('Today is ', 'On est le ') + new Date().toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + '.';
+    if ((m = t.match(/^(?:remind me to|reminder:?|add reminder:?)\s+(.+)/i))) {
+      const p = PatOS.parseReminder ? PatOS.parseReminder(m[1], null) : { text: m[1] };
+      const items = PatOS.store.get('reminders', []) || []; const r = { id: Date.now(), text: p.text, done: false }; if (p.due) r.due = p.due; if (p.time) { r.time = p.time; PatOS.alarms && PatOS.alarms.askPermission(); } if (p.prio) r.prio = p.prio; items.push(r); PatOS.store.set('reminders', items); PatOS.emit('reminders');
+      return L(`Got it. I added “${p.text}” to your reminders` + (p.due ? ' for ' + new Date(p.due + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'short', day: 'numeric' }) + (p.time ? ' at ' + fmtTime(p.time) : '') : '') + '.', `C’est noté. J’ai ajouté « ${p.text} » à tes rappels` + (p.due ? ' pour le ' + new Date(p.due + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'short', day: 'numeric' }) + (p.time ? ' à ' + fmtTime(p.time) : '') : '') + '.');
+    }
+    if ((m = t.match(/^(?:note:?|take a note:?|write down:?)\s+(.+)/i))) {
+      const notes = PatOS.store.get('notes', []) || []; notes.unshift({ id: PatOS.uid(), title: m[1].slice(0, 40), body: '<div>' + PatOS.esc(m[1]) + '</div>', mtime: Date.now() }); PatOS.store.set('notes', notes);
+      return L('Saved. You’ll find it at the top of Notes.', 'C’est enregistré. Tu la trouveras en haut de Notes.');
+    }
+    if ((m = l.match(/^find (?:the )?files?\s+(.+)/))) {
+      const f = findFiles(m[1]); if (!f.length) return L(`I couldn’t find a file with “${m[1]}” in its name.`, `Je n’ai pas trouvé de fichier avec « ${m[1]} » dans son nom.`);
+      return L(`Found ${f.length}:\n`, `${f.length} trouvé${f.length > 1 ? 's' : ''} :\n`) + f.slice(0, 6).map((p) => '• ' + p).join('\n') + (f.length > 6 ? '\n… +' + (f.length - 6) : '') + L('\nSay “open file ' + m[1] + '” to open the first one.', '\nÉcris « ouvre le fichier ' + m[1] + ' » pour ouvrir le premier.');
+    }
+    if ((m = l.match(/^(?:pick|choose)\s+(?:between\s+)?(.+)/)) && /,|\bor\b|\bou\b/.test(m[1])) { const opts = t.replace(/^(?:pick|choose)\s+(?:between\s+)?/i, '').split(/\s*,\s*|\s+or\s+|\s+ou\s+/i).map((x) => x.trim()).filter(Boolean); if (opts.length > 1) return L('I pick: ', 'Je choisis : ') + pick(opts) + '.'; }
+    if (/joke/.test(l)) return pick(FR() ? JOKES_FR : JOKES);
+    if (/fact/.test(l)) return L('Fun fact: ', 'Le savais-tu? ') + pick(FR() ? FACTS_FR : FACTS);
+    if (/flip a coin|coin flip/.test(l)) return Math.random() < 0.5 ? L('Heads.', 'Pile.') : L('Tails.', 'Face.');
+    if ((m = l.match(/roll (?:a )?(?:die|dice|d(\d+))/))) { const n = Math.max(2, Math.min(1000, +(m[1] || 6))); return L('You rolled a ', 'Tu as fait ') + (1 + Math.floor(Math.random() * n)) + '.'; }
+    if (/dark mode/.test(l)) { PatOS.setSetting('theme', 'dark'); return L('Done, dark mode is on.', 'C’est fait, le mode sombre est activé.'); }
+    if (/light mode/.test(l)) { PatOS.setSetting('theme', 'light'); return L('Done, light mode is on.', 'C’est fait, le mode clair est activé.'); }
+    if (/wallpaper/.test(l)) { const all = [...Object.keys(PatOS.wallpaper.live), ...Object.keys(PatOS.wallpaper.palettes)]; const next = all[(all.indexOf(PatOS.settings.wallpaper) + 1) % all.length]; PatOS.setSetting('wallpaper', next); return L('New wallpaper: ', 'Nouveau fond d’écran : ') + PatOS.t((PatOS.wallpaper.live[next] || PatOS.wallpaper.palettes[next]).name) + '.'; }
+    if (/play (some )?music|play a song/.test(l)) { PatOS.launch('music'); setTimeout(() => PatOS.music && !PatOS.music.nowPlaying() && PatOS.music.toggle(), 600); return L('Putting on a song.', 'Je mets une chanson.'); }
+    if (/weather/.test(l)) { setTimeout(() => PatOS.launch('weather'), 400); return L('Here’s the weather.', 'Voici la météo.'); }
+    if (/who are you|your name/.test(l)) return L('I’m Pat, a command helper. I’m not an AI: I understand a fixed list of commands (type "help" to see them), and I run on your device, so I work without internet.', 'Moi c’est Pat, un assistant à commandes. Je ne suis pas une IA : je comprends une liste fixe de commandes (écris « aide » pour la voir), et je fonctionne sur ton appareil, même sans Internet.');
+    if (/thank/.test(l)) return L('Anytime.', 'Avec plaisir.');
+    if (/how are you/.test(l)) return L('Pretty good, thanks. How about you?', 'Ça va bien, merci. Et toi?');
+    // percent and unit conversions
+    if ((m = l.match(/^(-?\d+(?:[.,]\d+)?)\s*%\s*(?:of|de)\s*(-?\d+(?:[.,]\d+)?)$/))) { const v = parseFloat(m[1].replace(',', '.')) * parseFloat(m[2].replace(',', '.')) / 100; return m[1] + '% ' + L('of', 'de') + ' ' + m[2] + ' = ' + (+v.toPrecision(12)); }
+    if (PatOS.convertUnits) { const c = PatOS.convertUnits(t); if (c) return c.text; }
+    const expr = t.replace(/[x×]/g, '*').replace(/÷/g, '/').replace(/what is|what's|calculate|=|\?/gi, '').replace(/,/g, '.').trim();
+    if (/^[\d\s+\-*/().%^]+$/.test(expr) && /\d/.test(expr) && expr.length < 200) { try { const v = Function('"use strict";return (' + expr.replace(/\^/g, '**') + ')')(); if (Number.isFinite(v)) return expr + ' = ' + (+v.toPrecision(12)); } catch (e) {} }
+    if (/^(search|google|look up)\s+/.test(l)) { const q = t.replace(/^(search|google|look up)\s+/i, ''); setTimeout(() => PatOS.launch('browser', { url: q }), 400); return L('Looking up “', 'Je cherche « ') + q + L('” on the web.', ' » sur le Web.'); }
+    if ((m = l.match(/^(?:define|meaning of|what does (.+) mean)\s*(.*)/))) { const w = (m[1] || m[2]).trim(); setTimeout(() => PatOS.launch('dictionary', { word: w }), 400); return L('Let me look up “' + w + '”.', 'Je cherche « ' + w + ' ».'); }
+    // a lone app name opens it ("galaxy", "notes")
+    if (l.length < 24 && !/\s{2,}/.test(l)) { const id = findApp(l); if (id && appNames(id).some((n) => n === l)) { setTimeout(() => PatOS.launch(id), 400); return L(`Opening ${PatOS.apps[id].name}.`, `J’ouvre ${PatOS.t(PatOS.apps[id].name)}.`); } const near = suggestApp(l); if (near) return L(`Did you mean ${PatOS.apps[near].name}? Say "open ${PatOS.apps[near].name.toLowerCase()}".`, `Tu voulais dire ${PatOS.t(PatOS.apps[near].name)}? Écris « ouvre ${PatOS.t(PatOS.apps[near].name).toLowerCase()} ».`); }
+    return pick(FR() ? ['Je ne suis pas sûr de comprendre. Écris « aide » pour voir ce que je sais faire.', 'Ça, je ne sais pas encore le faire. Essaie « aide ».'] : ['I’m not sure what you mean. Type "help" to see what I can do.', 'That one’s beyond me for now. Try "help".', 'I can’t answer that, sorry. I’m better at opening apps, timers, quick math and reminders.']);
+  }
+  PatOS.assistantReply = reply;
+
+  /* Pat, the command helper: the same chat as always, now in a panel that opens from the Pat button in the top bar */
+  /* the chat with Pat, as an element: a list of messages, quick suggestions, and a box to type in */
+  function patHelper() {
+      let log = PatOS.store.get('chatLog', null) || [{ from: 'pat', text: PatOS.lang === 'fr' ? `Salut ${PatOS.settings.userName}, moi c’est Pat. Demande-moi d’ouvrir une app, de faire un calcul ou d’ajouter un rappel. Écris « aide » si tu veux la liste.` : `Hi ${PatOS.settings.userName}, I’m Pat. Ask me to open an app, do some math or add a reminder. Type "help" if you want the list.`, t: Date.now() }];
+      const list = h('div', { class: 'msg-list' });
+      const input = h('input', { class: 'msg-in', placeholder: PatOS.t('Ask Pat') + '…', spellcheck: 'true', autocomplete: 'off', enterkeyhint: 'send', 'aria-label': PatOS.t('Message Pat') });
+      const send = h('button', { class: 'msg-send', 'aria-label': 'Send' }, '↑');
+      const chips = h('div', { class: 'msg-chips' }, ...(PatOS.lang === 'fr' ? ['aide', 'minuteur 10 min', 'qu’est-ce que j’ai aujourd’hui?', 'mes rappels', 'raconte une blague', 'ouvre galaxie', 'rappelle-moi d’étudier'] : ['help', 'timer 10 min', 'what’s on my calendar today?', 'my reminders', 'tell me a joke', 'open galaxy', 'remind me to study']).map((c) => h('button', { class: 'no-tr', onclick: () => submit(c) }, c)));
+      const head = h('div', { class: 'msg-head' }, h('div', { class: 'msg-av sm' }, 'P'), h('b', {}, 'Pat'));
+      const mic = PatOS.voice && PatOS.voice.supported() ? h('button', { class: 'msg-mic', title: PatOS.t('Ask with your voice'), 'aria-label': PatOS.t('Ask with your voice'), html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>' }) : null;
+      const root = h('div', { class: 'msg-main pat-main' }, head, list, chips, h('div', { class: 'msg-bar' }, mic, input, send));
+      function bubble(m, anim) {
+        const b = h('div', { class: 'msg-b ' + (m.from === 'me' ? 'me' : 'them') + (anim ? ' pop' : ''), title: m.t ? new Date(m.t).toLocaleString(PatOS.locale, { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : null }, m.text);
+        list.appendChild(b); list.scrollTop = list.scrollHeight;
+      }
+      function render() { list.innerHTML = ''; log.slice(-80).forEach((m) => bubble(m)); }
+      function submit(text) {
+        text = (text || input.value).trim(); if (!text) return; input.value = '';
+        sent.push(text); sent = sent.slice(-50); histAt = -1;
+        const me = { from: 'me', text, t: Date.now() }; log.push(me); bubble(me, true);
+        PatOS.sound.tone(1100, 0.08, { vol: 0.06, slide: 1500 });
+        const typing = h('div', { class: 'msg-b them typing' }, h('i'), h('i'), h('i')); list.appendChild(typing); list.scrollTop = list.scrollHeight;
+        setTimeout(() => {
+          typing.remove();
+          let out = PatOS.assistantReply ? PatOS.assistantReply(text) : reply(text);
+          if (out === '\u0000clear') { clearChat(); return; }
+          const r = { from: 'pat', text: out, t: Date.now() }; log.push(r); bubble(r, true);
+          PatOS.sound.tone(700, 0.12, { vol: 0.06 }); PatOS.sound.tone(1050, 0.12, { vol: 0.05, delay: 0.08 });
+          if (log.length > 200) log = log.slice(-200);
+          PatOS.store.set('chatLog', log);
+        }, 500 + Math.random() * 500);
+      }
+      // up and down bring back what you typed before
+      let sent = log.filter((x) => x.from === 'me').map((x) => x.text).slice(-50), histAt = -1;
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') submit();
+        else if (e.key === 'ArrowUp' && sent.length) { e.preventDefault(); histAt = histAt < 0 ? sent.length - 1 : Math.max(0, histAt - 1); input.value = sent[histAt]; }
+        else if (e.key === 'ArrowDown' && histAt >= 0) { e.preventDefault(); histAt++; if (histAt >= sent.length) { histAt = -1; input.value = ''; } else input.value = sent[histAt]; }
+      });
+      function clearChat() { log = []; PatOS.store.remove('chatLog'); sent = []; list.innerHTML = ''; const hi = { from: 'pat', text: PatOS.lang === 'fr' ? 'C’est effacé. Écris « aide » si tu veux la liste des commandes.' : 'Cleared. Type "help" if you want the list of commands.', t: Date.now() }; log.push(hi); bubble(hi, true); PatOS.store.set('chatLog', log); }
+      const clearAsk = async () => { if (await PatOS.confirmBox(PatOS.t('Clear this conversation?'), PatOS.t('The messages will be deleted.'), { ok: PatOS.t('Clear'), danger: true, icon: 'messages' })) clearChat(); };
+      if (mic) { let stop = null; mic.onclick = () => { if (stop) { stop(); return; } mic.classList.add('on'); input.placeholder = PatOS.t('Listening…'); stop = PatOS.voice.listenOnce((t) => { submit(t); }, (err) => { stop = null; mic.classList.remove('on'); input.placeholder = PatOS.t('Ask Pat') + '…'; if (err) PatOS.notify({ title: 'Pat', body: err.message, icon: 'messages' }); }); }; }
+      send.onclick = () => submit();
+      render();
+      return { el: root, focus: () => input.focus(), clear: clearAsk };
+  }
+
+  /* ---------- the Pat button in the top bar (next to Control Center) and its panel ---------- */
+  const bar = document.getElementById('mb-pat'), box = document.getElementById('pat-panel');
+  let built = null;
+  const ICON = '<svg viewBox="0 0 24 24"><path d="M5.2 4h13.6A2.2 2.2 0 0 1 21 6.2v8.1a2.2 2.2 0 0 1-2.2 2.2H12l-4.4 3.5a.6.6 0 0 1-1-.5v-3H5.2A2.2 2.2 0 0 1 3 14.3V6.2A2.2 2.2 0 0 1 5.2 4z" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/><circle cx="8.4" cy="10.2" r="1.25" fill="currentColor"/><circle cx="12" cy="10.2" r="1.25" fill="currentColor"/><circle cx="15.6" cy="10.2" r="1.25" fill="currentColor"/></svg>';
+  const isOpen = () => !!box && !box.classList.contains('hidden');
+  function open() {
+    if (!box) return;
+    ['#control-center', '#notif-center'].forEach((s) => { const e = document.querySelector(s); if (e) e.classList.add('hidden'); });
+    if (!built) {
+      built = patHelper();
+      const top = h('div', { class: 'pat-top' }, h('b', {}, 'Pat'), h('span', { class: 'pat-sub' }, PatOS.t('Command helper, not an AI')), h('div', { style: { flex: 1 } }),
+        h('button', { class: 'tbtn', title: PatOS.t('Clear the conversation'), onclick: () => built.clear() }, PatOS.t('Clear')), h('button', { class: 'tbtn', title: PatOS.t('Close'), 'aria-label': PatOS.t('Close'), onclick: close }, '×'));
+      box.append(top, built.el);
+    }
+    box.classList.remove('hidden'); bar && bar.classList.add('on'); setTimeout(() => built.focus(), 60);
+  }
+  function close() { if (box) box.classList.add('hidden'); if (bar) bar.classList.remove('on'); }
+  const toggle = () => (isOpen() ? close() : open());
+  if (bar) { bar.innerHTML = ICON; bar.title = PatOS.t('Pat'); bar.addEventListener('click', (e) => { e.stopPropagation(); toggle(); }); }
+  document.addEventListener('pointerdown', (e) => { if (isOpen() && !e.target.closest('#pat-panel, #mb-pat, .dlg-layer, .menu')) close(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen() && !e.defaultPrevented) close(); });
+  PatOS.pat = { open, close, toggle, isOpen, ask: (t) => { open(); const i = box.querySelector('.msg-in'); if (i) { i.value = t; i.focus(); } } };
+  /* on a phone there is no menu bar: Pat is an app in Launchpad that opens the same panel */
+  PatOS.iconDefs.pat = { bg: 'linear-gradient(160deg,#7d5cff,#ff4fa0)', svg: () => '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path d="M12 14h40a6 6 0 0 1 6 6v20a6 6 0 0 1-6 6H31L19 56a1.5 1.5 0 0 1-2.5-1.2V46H12a6 6 0 0 1-6-6V20a6 6 0 0 1 6-6z" fill="#fff"/><circle cx="22" cy="30" r="3.4" fill="#7d5cff"/><circle cx="32" cy="30" r="3.4" fill="#a05cff"/><circle cx="42" cy="30" r="3.4" fill="#ff4fa0"/></svg>' };
+  PatOS.registerApp({ id: 'pat', name: 'Pat', icon: 'pat', category: 'Utilities', keywords: 'pat helper assistant commands timer hey pat voice command chat', about: 'Pat, the command helper: type or say what you want (open an app, a timer, a reminder, the weather). A fixed list of commands, not an AI.', action: () => toggle() });
 })();
 
 </script>
@@ -19225,190 +19504,13 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
 
 </script>
   <script type="patos/js">
-/* Messages — chat with Pat, a command helper built into PatOS.
-   Pat is not an AI: it recognizes a fixed list of commands (open an app, math, reminders, notes,
-   time and date, a few settings) and answers from that list. Everything runs on the device. */
+/* Messages: chat with people who have a PatOS account (see js/chat.js). Find a username, send a request, they accept, then talk.
+   Pat, the command helper, is not here: it lives in the top bar (js/pat.js). */
 (function () {
   'use strict';
   const { h } = PatOS;
-  const JOKES = ['Why did the computer go to the doctor? It had a virus.', 'Why do programmers prefer dark mode? Because light attracts bugs.', 'What do you call a dinosaur that codes? A Typo-saurus.', 'Why was the math book sad? It had too many problems.', 'How does the moon cut its hair? Eclipse it.', 'I would tell you a UDP joke, but you might not get it.'];
-  const FACTS = ['A day on Venus is longer than a year on Venus.', 'Octopuses have three hearts.', 'Honey never spoils. Archaeologists have found 3,000-year-old honey that is still edible.', 'The Eiffel Tower can be about 15 cm taller in summer because the metal expands.', 'There are more possible chess games than atoms in the observable universe.', 'Bananas are berries, but strawberries are not.'];
-  const pick = (a) => a[Math.floor(Math.random() * a.length)];
 
-  const FR = () => PatOS.lang === 'fr';
-  const L = (en, fr) => (FR() ? fr : en);
-  const JOKES_FR = ['Pourquoi l’ordinateur est-il allé chez le médecin? Il avait un virus.', 'Pourquoi les programmeurs aiment le mode sombre? Parce que la lumière attire les bogues.', 'Que dit un zéro à un huit? Belle ceinture!', 'Pourquoi le livre de maths est triste? Il a trop de problèmes.', 'Quel est le comble pour un électricien? De ne pas être au courant.'];
-  const FACTS_FR = ['Une journée sur Vénus dure plus longtemps qu’une année sur Vénus.', 'Les pieuvres ont trois cœurs.', 'Le miel ne se gâte jamais. On a trouvé du miel de 3 000 ans encore mangeable.', 'La tour Eiffel peut grandir d’environ 15 cm en été parce que le métal se dilate.', 'Les bananes sont des baies, mais pas les fraises.'];
-  /* French commands are turned into the matching English command first */
-  function fromFrench(t) {
-    const rules = [[/^(?:mets|règle|regle|programme)\s+un\s+minuteur\s+(?:de|pour)\s+(.+)/i, 'timer $1'], [/^minuteur\s+(?:de\s+)?(.+)/i, 'timer $1'], [/^(?:réveille-moi|reveille-moi|mets un réveil|mets un reveil)\s+(?:à|a)\s+(\d{1,2})\s*(?:h|:)?\s*(\d{2})?\s*$/i, (m) => 'wake me at ' + m[1] + ':' + (m[2] || '00')],
-      [/^(?:qu['’]est-ce que j['’]ai|mon calendrier|mon horaire|mon agenda)\s*(?:aujourd['’]hui|demain)?/i, (m, t) => 'calendar ' + (/demain/i.test(t) ? 'tomorrow' : 'today')], [/^(?:ajoute|ajouter|crée|cree)\s+(?:un\s+)?(?:événement|evenement)\s*:?\s*(.+)/i, 'add event $1'], [/^(?:mes rappels|qu['’]est-ce que j['’]ai à faire|quoi à faire)/i, 'my reminders'],
-      [/^convertis?\s+(.+)/i, '$1'], [/^(?:trouve|cherche)\s+(?:le\s+)?fichier\s+(.+)/i, 'find file $1'], [/^ouvre\s+(?:le\s+)?fichier\s+(.+)/i, 'open file $1'], [/^(?:choisis|choisi)\s+(?:entre\s+)?(.+)/i, 'pick $1'], [/^(?:efface|vide)\s+(?:la\s+)?conversation$/i, 'clear'],[/^(salut|bonjour|allo|allô|coucou)\b.*/i, 'hi'], [/^(aide|que peux-tu faire|qu'est-ce que tu peux faire).*/i, 'help'], [/^(ouvre|ouvrir|lance|lancer|démarre)\s+(?:l'|l’|la |le |les )?(.+)/i, 'open $2'],
-      [/quelle heure/i, 'time'], [/quel jour|quelle date|la date/i, 'date'], [/^(rappelle-moi|rappelle moi)\s+(?:de |d'|d’)?(.+)/i, 'remind me to $2'], [/^(?:prends une note|note)\s*:?\s*(.+)/i, 'note: $1'],
-      [/blague/i, 'joke'], [/anecdote|fait amusant|un fait/i, 'fact'], [/pile ou face/i, 'flip a coin'], [/lance (?:un |le )?dé/i, 'roll a die'], [/mode sombre/i, 'dark mode'], [/mode clair/i, 'light mode'],
-      [/fond d.?écran/i, 'wallpaper'], [/(joue|mets) (de la musique|une chanson)/i, 'play music'], [/météo/i, 'weather'], [/merci/i, 'thanks'], [/qui es-tu|ton nom/i, 'who are you'], [/comment (ça|ca) va|ça va\?/i, 'how are you'],
-      [/^(cherche|recherche)\s+(.+)/i, 'search $2'], [/^(définis|définition de|que veut dire)\s+(.+)/i, 'define $2'], [/liste des apps|quelles apps/i, 'list apps'], [/^combien (font|fait)\s+(.+)/i, '$2']];
-    for (const [re, rep] of rules) if (re.test(t)) return typeof rep === 'function' ? rep(re.exec(t), t) : t.replace(re, rep);
-    return t;
-  }
-  /* ---------- what Pat can do ----------
-     Pat is a command helper, not an AI: it matches what you type against a fixed list of commands. */
-  const today = () => PatOS.dateKey(new Date());
-  const fmtTime = (hm) => { const [h2, m2] = hm.split(':').map(Number); const d = new Date(); d.setHours(h2, m2, 0, 0); return d.toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' }); };
-  function lev(a, b) { const d = Array.from({ length: a.length + 1 }, (_, i) => [i]); for (let j = 1; j <= b.length; j++) d[0][j] = j; for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1)); return d[a.length][b.length]; }
-  const appNames = (k) => [PatOS.apps[k].name.toLowerCase(), PatOS.t(PatOS.apps[k].name).toLowerCase()];
-  function findApp(q) {
-    q = q.toLowerCase().replace(/[.!?]$/, '').replace(/^(the|my|le|la|les|l['’])\s*/, '').trim(); if (!q) return null;
-    const ids = PatOS.appOrder.filter((k) => PatOS.apps[k] && !PatOS.apps[k].hidden);
-    return ids.find((k) => appNames(k).includes(q) || k === q) || ids.find((k) => appNames(k).some((n) => n.startsWith(q))) || ids.find((k) => appNames(k).some((n) => n.includes(q)));
-  }
-  function suggestApp(q) {
-    q = q.toLowerCase().trim(); let best = null, bd = 3;
-    PatOS.appOrder.filter((k) => PatOS.apps[k] && !PatOS.apps[k].hidden).forEach((k) => appNames(k).forEach((n) => { const d = lev(q, n); if (d < bd && d <= Math.max(1, Math.floor(n.length / 3))) { bd = d; best = k; } }));
-    return best;
-  }
-  function findFiles(q) {
-    q = q.toLowerCase().trim(); const out = [];
-    PatOS.fs.walk('/', (p, n) => { if (!p.startsWith('/.Trash') && n.type === 'file' && PatOS.fs.basename(p).toLowerCase().includes(q)) out.push(p); });
-    return out;
-  }
-  function reply(text) {
-    let t = text.trim(); if (FR()) t = fromFrench(t);
-    const l = t.toLowerCase(); let m;
-    const name = PatOS.settings.userName;
-    if (/^(hi|hey|hello|yo|sup)\b/.test(l)) return L(`Hey ${name}. What do you need? I can open an app, set a timer, check your calendar, do a quick calculation, add a reminder, or just tell you a bad joke. Type "help" for the full list.`, `Salut ${name}. Qu’est-ce qu’il te faut? Je peux ouvrir une app, mettre un minuteur, regarder ton calendrier, faire un calcul, ajouter un rappel ou te raconter une mauvaise blague. Écris « aide » pour la liste complète.`);
-    if (/\bhelp\b|what can you do/.test(l)) return L('Here’s what you can ask me (I follow a list of commands, I’m not an AI):\n• open galaxy\n• timer 10 min\n• wake me at 7:30\n• what’s on my calendar today?\n• add event math test friday 2pm\n• my reminders\n• remind me to study for math\n• note: buy pencils\n• 24 * 17 + 3   ·   15% of 80\n• 5 km to mi   ·   20 c to f\n• find file essay\n• pick pizza or tacos\n• what time is it?   ·   tell me a joke / a fact\n• flip a coin / roll a die\n• dark mode / light mode / change wallpaper\n• play music   ·   clear', 'Voici ce que tu peux me demander (je suis une liste de commandes, je ne suis pas une IA) :\n• ouvre galaxie\n• minuteur 10 min\n• réveille-moi à 7h30\n• qu’est-ce que j’ai aujourd’hui?\n• ajoute un événement test de maths vendredi 14h\n• mes rappels\n• rappelle-moi d’étudier\n• note : acheter des crayons\n• 24 * 17 + 3   ·   15% de 80\n• convertis 5 km en mi   ·   20 c en f\n• trouve le fichier devoir\n• choisis pizza ou tacos\n• quelle heure est-il?   ·   raconte une blague / un fait\n• pile ou face / lance un dé\n• mode sombre / mode clair / change le fond d’écran\n• joue de la musique   ·   efface la conversation');
-    if ((m = l.match(/^(?:open|launch|start)\s+file\s+(.+)/))) {
-      const f = findFiles(m[1]); if (!f.length) return L(`I couldn’t find a file called “${m[1]}”.`, `Je n’ai pas trouvé de fichier appelé « ${m[1]} ».`);
-      setTimeout(() => PatOS.openFile(f[0]), 400); return L(`Opening ${PatOS.fs.basename(f[0])}.`, `J’ouvre ${PatOS.fs.basename(f[0])}.`);
-    }
-    if ((m = l.match(/^(?:open|launch|start)\s+(.+)/))) {
-      const q = m[1].replace(/[.!?]$/, '').trim(); const id = findApp(q);
-      if (id) { setTimeout(() => PatOS.launch(id), 500); return L(`Sure, opening ${PatOS.apps[id].name}.`, `D’accord, j’ouvre ${PatOS.t(PatOS.apps[id].name)}.`); }
-      const near = suggestApp(q); if (near) return L(`I don’t have an app called "${q}". Did you mean ${PatOS.apps[near].name}? Say "open ${PatOS.apps[near].name.toLowerCase()}".`, `Je n’ai pas d’app appelée « ${q} ». Tu voulais dire ${PatOS.t(PatOS.apps[near].name)}? Écris « ouvre ${PatOS.t(PatOS.apps[near].name).toLowerCase()} ».`);
-      return L(`Hmm, I don’t have an app called "${q}". Say "list apps" and I’ll show you what’s there.`, `Hmm, je n’ai pas d’app appelée « ${q} ». Écris « liste des apps » et je te montre ce qu’il y a.`);
-    }
-    if (/list (all )?apps|what apps/.test(l)) return L('Here’s everything you’ve got: ', 'Voici tout ce que tu as : ') + PatOS.appOrder.filter((k) => !PatOS.apps[k].hidden).map((k) => PatOS.t(PatOS.apps[k].name)).join(', ') + '.';
-    // timers and alarms are rung by PatOS.alarms, so they ring even with Messages closed
-    if ((m = l.match(/^(?:set (?:a )?|start (?:a )?)?timer(?: for)?\s+(.+)/))) {
-      const ms = PatOS.parseDuration ? PatOS.parseDuration(m[1]) : 0;
-      if (ms > 0 && ms <= 24 * 3600000) { PatOS.quickTimer(Math.round(ms / 1000), ''); const mins = Math.round(ms / 60000); return L(`Timer set for ${mins >= 60 ? Math.floor(mins / 60) + ' h' + (mins % 60 ? ' ' + mins % 60 + ' min' : '') : mins < 1 ? Math.round(ms / 1000) + ' s' : mins + ' min'}. It will ring even if you close Messages.`, `Minuteur réglé pour ${mins >= 60 ? Math.floor(mins / 60) + ' h' + (mins % 60 ? ' ' + mins % 60 + ' min' : '') : mins < 1 ? Math.round(ms / 1000) + ' s' : mins + ' min'}. Il sonnera même si tu fermes Messages.`); }
-      return L('How long? Try “timer 10 min” or “timer 1h 20m”.', 'Combien de temps? Essaie « minuteur 10 min » ou « minuteur 1h 20m ».');
-    }
-    if ((m = l.match(/^(?:wake me(?: up)? at|set (?:an )?alarm(?: for| at)?)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/))) {
-      let hh = +m[1]; const mm = +(m[2] || 0); if (m[3] === 'pm' && hh < 12) hh += 12; if (m[3] === 'am' && hh === 12) hh = 0;
-      if (hh > 23 || mm > 59) return L('That isn’t a time I can use. Try “wake me at 7:30”.', 'Ce n’est pas une heure valide. Essaie « réveille-moi à 7h30 ».');
-      const time = String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
-      const list = PatOS.store.get('alarms', []); list.push({ id: PatOS.uid(), time, label: 'Pat', repeat: 'once', on: true }); PatOS.store.set('alarms', list); PatOS.emit('alarms'); PatOS.alarms && PatOS.alarms.askPermission();
-      return L(`Alarm set for ${fmtTime(time)}. It rings once; you can change it in Clock.`, `Alarme réglée à ${fmtTime(time)}. Elle sonne une fois; tu peux la changer dans Horloge.`);
-    }
-    // calendar and reminders
-    if ((m = l.match(/^(?:what(?:’s|'s| is)?(?: on)?|show|check)?\s*(?:my\s+)?(?:calendar|schedule|agenda)\s*(today|tomorrow)?\??$/)) || (m = l.match(/^what do i have\s*(today|tomorrow)?\??$/))) {
-      const d = new Date(); if (m[1] === 'tomorrow') d.setDate(d.getDate() + 1);
-      const evs = PatOS.calendarOn ? PatOS.calendarOn(d) : []; const day = m[1] === 'tomorrow' ? L('tomorrow', 'demain') : L('today', 'aujourd’hui');
-      if (!evs.length) return L(`Nothing on your calendar ${day}.`, `Rien dans ton calendrier ${day}.`);
-      return L(`On your calendar ${day}:\n`, `Dans ton calendrier ${day} :\n`) + evs.map((e) => '• ' + (e.time ? fmtTime(e.time) + '  ' : L('All day  ', 'Toute la journée  ')) + e.title).join('\n');
-    }
-    if ((m = t.match(/^(?:add event|event|schedule)\s*:?\s+(.+)/i))) {
-      const p = PatOS.parseReminder ? PatOS.parseReminder(m[1], null) : { text: m[1] }; const key = p.due || today();
-      const cal = PatOS.store.get('calendar', {}) || {}; (cal[key] = cal[key] || []).push({ id: PatOS.uid(), title: p.text, time: p.time || '', end: '', color: '#0a84ff', notes: '', repeat: '', alert: p.time ? '0' : 'none' });
-      PatOS.store.set('calendar', cal); PatOS.emit('calendar'); PatOS.calendarSync && PatOS.calendarSync();
-      return L(`Added “${p.text}” to your calendar on ${new Date(key + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' })}${p.time ? ' at ' + fmtTime(p.time) : ''}.`, `J’ai ajouté « ${p.text} » à ton calendrier le ${new Date(key + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' })}${p.time ? ' à ' + fmtTime(p.time) : ''}.`);
-    }
-    if (/^(?:my reminders|show (?:my )?reminders|what(?:’s|'s| is) due|what do i (?:need|have) to do)\??$/.test(l)) {
-      const k = today(); const due = (PatOS.store.get('reminders', []) || []).filter((r) => !r.done && r.due && r.due <= k).sort((a, b) => (a.due + (a.time || '')).localeCompare(b.due + (b.time || '')));
-      if (!due.length) return L('You’re all caught up. Nothing is due today.', 'Tu es à jour. Rien n’est dû aujourd’hui.');
-      return L('Due today or overdue:\n', 'Dû aujourd’hui ou en retard :\n') + due.slice(0, 8).map((r) => '• ' + r.text + (r.time ? ' (' + fmtTime(r.time) + ')' : '') + (r.due < k ? L(' · overdue', ' · en retard') : '')).join('\n') + (due.length > 8 ? '\n… +' + (due.length - 8) : '');
-    }
-    if (/^clear( chat| the chat| conversation)?$/.test(l)) return '\u0000clear';
-    if (/\btime\b/.test(l) && !/timer/.test(l)) return L('It’s ', 'Il est ') + new Date().toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' }) + '.';
-    if (/\b(date|day is it|today)\b/.test(l) && !/calendar|due/.test(l)) return L('Today is ', 'On est le ') + new Date().toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + '.';
-    if ((m = t.match(/^(?:remind me to|reminder:?|add reminder:?)\s+(.+)/i))) {
-      const p = PatOS.parseReminder ? PatOS.parseReminder(m[1], null) : { text: m[1] };
-      const items = PatOS.store.get('reminders', []) || []; const r = { id: Date.now(), text: p.text, done: false }; if (p.due) r.due = p.due; if (p.time) { r.time = p.time; PatOS.alarms && PatOS.alarms.askPermission(); } if (p.prio) r.prio = p.prio; items.push(r); PatOS.store.set('reminders', items); PatOS.emit('reminders');
-      return L(`Got it. I added “${p.text}” to your reminders` + (p.due ? ' for ' + new Date(p.due + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'short', day: 'numeric' }) + (p.time ? ' at ' + fmtTime(p.time) : '') : '') + '.', `C’est noté. J’ai ajouté « ${p.text} » à tes rappels` + (p.due ? ' pour le ' + new Date(p.due + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'short', day: 'numeric' }) + (p.time ? ' à ' + fmtTime(p.time) : '') : '') + '.');
-    }
-    if ((m = t.match(/^(?:note:?|take a note:?|write down:?)\s+(.+)/i))) {
-      const notes = PatOS.store.get('notes', []) || []; notes.unshift({ id: PatOS.uid(), title: m[1].slice(0, 40), body: '<div>' + PatOS.esc(m[1]) + '</div>', mtime: Date.now() }); PatOS.store.set('notes', notes);
-      return L('Saved. You’ll find it at the top of Notes.', 'C’est enregistré. Tu la trouveras en haut de Notes.');
-    }
-    if ((m = l.match(/^find (?:the )?files?\s+(.+)/))) {
-      const f = findFiles(m[1]); if (!f.length) return L(`I couldn’t find a file with “${m[1]}” in its name.`, `Je n’ai pas trouvé de fichier avec « ${m[1]} » dans son nom.`);
-      return L(`Found ${f.length}:\n`, `${f.length} trouvé${f.length > 1 ? 's' : ''} :\n`) + f.slice(0, 6).map((p) => '• ' + p).join('\n') + (f.length > 6 ? '\n… +' + (f.length - 6) : '') + L('\nSay “open file ' + m[1] + '” to open the first one.', '\nÉcris « ouvre le fichier ' + m[1] + ' » pour ouvrir le premier.');
-    }
-    if ((m = l.match(/^(?:pick|choose)\s+(?:between\s+)?(.+)/)) && /,|\bor\b|\bou\b/.test(m[1])) { const opts = t.replace(/^(?:pick|choose)\s+(?:between\s+)?/i, '').split(/\s*,\s*|\s+or\s+|\s+ou\s+/i).map((x) => x.trim()).filter(Boolean); if (opts.length > 1) return L('I pick: ', 'Je choisis : ') + pick(opts) + '.'; }
-    if (/joke/.test(l)) return pick(FR() ? JOKES_FR : JOKES);
-    if (/fact/.test(l)) return L('Fun fact: ', 'Le savais-tu? ') + pick(FR() ? FACTS_FR : FACTS);
-    if (/flip a coin|coin flip/.test(l)) return Math.random() < 0.5 ? L('Heads.', 'Pile.') : L('Tails.', 'Face.');
-    if ((m = l.match(/roll (?:a )?(?:die|dice|d(\d+))/))) { const n = Math.max(2, Math.min(1000, +(m[1] || 6))); return L('You rolled a ', 'Tu as fait ') + (1 + Math.floor(Math.random() * n)) + '.'; }
-    if (/dark mode/.test(l)) { PatOS.setSetting('theme', 'dark'); return L('Done, dark mode is on.', 'C’est fait, le mode sombre est activé.'); }
-    if (/light mode/.test(l)) { PatOS.setSetting('theme', 'light'); return L('Done, light mode is on.', 'C’est fait, le mode clair est activé.'); }
-    if (/wallpaper/.test(l)) { const all = [...Object.keys(PatOS.wallpaper.live), ...Object.keys(PatOS.wallpaper.palettes)]; const next = all[(all.indexOf(PatOS.settings.wallpaper) + 1) % all.length]; PatOS.setSetting('wallpaper', next); return L('New wallpaper: ', 'Nouveau fond d’écran : ') + PatOS.t((PatOS.wallpaper.live[next] || PatOS.wallpaper.palettes[next]).name) + '.'; }
-    if (/play (some )?music|play a song/.test(l)) { PatOS.launch('music'); setTimeout(() => PatOS.music && !PatOS.music.nowPlaying() && PatOS.music.toggle(), 600); return L('Putting on a song.', 'Je mets une chanson.'); }
-    if (/weather/.test(l)) { setTimeout(() => PatOS.launch('weather'), 400); return L('Here’s the weather.', 'Voici la météo.'); }
-    if (/who are you|your name/.test(l)) return L('I’m Pat, a command helper. I’m not an AI: I understand a fixed list of commands (type "help" to see them), and I run on your device, so I work without internet.', 'Moi c’est Pat, un assistant à commandes. Je ne suis pas une IA : je comprends une liste fixe de commandes (écris « aide » pour la voir), et je fonctionne sur ton appareil, même sans Internet.');
-    if (/thank/.test(l)) return L('Anytime.', 'Avec plaisir.');
-    if (/how are you/.test(l)) return L('Pretty good, thanks. How about you?', 'Ça va bien, merci. Et toi?');
-    // percent and unit conversions
-    if ((m = l.match(/^(-?\d+(?:[.,]\d+)?)\s*%\s*(?:of|de)\s*(-?\d+(?:[.,]\d+)?)$/))) { const v = parseFloat(m[1].replace(',', '.')) * parseFloat(m[2].replace(',', '.')) / 100; return m[1] + '% ' + L('of', 'de') + ' ' + m[2] + ' = ' + (+v.toPrecision(12)); }
-    if (PatOS.convertUnits) { const c = PatOS.convertUnits(t); if (c) return c.text; }
-    const expr = t.replace(/[x×]/g, '*').replace(/÷/g, '/').replace(/what is|what's|calculate|=|\?/gi, '').replace(/,/g, '.').trim();
-    if (/^[\d\s+\-*/().%^]+$/.test(expr) && /\d/.test(expr) && expr.length < 200) { try { const v = Function('"use strict";return (' + expr.replace(/\^/g, '**') + ')')(); if (Number.isFinite(v)) return expr + ' = ' + (+v.toPrecision(12)); } catch (e) {} }
-    if (/^(search|google|look up)\s+/.test(l)) { const q = t.replace(/^(search|google|look up)\s+/i, ''); setTimeout(() => PatOS.launch('browser', { url: q }), 400); return L('Looking up “', 'Je cherche « ') + q + L('” on the web.', ' » sur le Web.'); }
-    if ((m = l.match(/^(?:define|meaning of|what does (.+) mean)\s*(.*)/))) { const w = (m[1] || m[2]).trim(); setTimeout(() => PatOS.launch('dictionary', { word: w }), 400); return L('Let me look up “' + w + '”.', 'Je cherche « ' + w + ' ».'); }
-    // a lone app name opens it ("galaxy", "notes")
-    if (l.length < 24 && !/\s{2,}/.test(l)) { const id = findApp(l); if (id && appNames(id).some((n) => n === l)) { setTimeout(() => PatOS.launch(id), 400); return L(`Opening ${PatOS.apps[id].name}.`, `J’ouvre ${PatOS.t(PatOS.apps[id].name)}.`); } const near = suggestApp(l); if (near) return L(`Did you mean ${PatOS.apps[near].name}? Say "open ${PatOS.apps[near].name.toLowerCase()}".`, `Tu voulais dire ${PatOS.t(PatOS.apps[near].name)}? Écris « ouvre ${PatOS.t(PatOS.apps[near].name).toLowerCase()} ».`); }
-    return pick(FR() ? ['Je ne suis pas sûr de comprendre. Écris « aide » pour voir ce que je sais faire.', 'Ça, je ne sais pas encore le faire. Essaie « aide ».'] : ['I’m not sure what you mean. Type "help" to see what I can do.', 'That one’s beyond me for now. Try "help".', 'I can’t answer that, sorry. I’m better at opening apps, timers, quick math and reminders.']);
-  }
-  PatOS.assistantReply = reply;
-
-  /* Pat, the command helper: the same chat as always, now in a panel that opens from the Pat button in the top bar */
-  function patHelper(win) {
-      let log = PatOS.store.get('chatLog', null) || [{ from: 'pat', text: PatOS.lang === 'fr' ? `Salut ${PatOS.settings.userName}, moi c’est Pat. Demande-moi d’ouvrir une app, de faire un calcul ou d’ajouter un rappel. Écris « aide » si tu veux la liste.` : `Hi ${PatOS.settings.userName}, I’m Pat. Ask me to open an app, do some math or add a reminder. Type "help" if you want the list.`, t: Date.now() }];
-      const list = h('div', { class: 'msg-list' });
-      const input = h('input', { class: 'msg-in', placeholder: PatOS.t('Ask Pat') + '…', spellcheck: 'true', autocomplete: 'off', enterkeyhint: 'send', 'aria-label': PatOS.t('Message Pat') });
-      const send = h('button', { class: 'msg-send', 'aria-label': 'Send' }, '↑');
-      const chips = h('div', { class: 'msg-chips' }, ...(PatOS.lang === 'fr' ? ['aide', 'minuteur 10 min', 'qu’est-ce que j’ai aujourd’hui?', 'mes rappels', 'raconte une blague', 'ouvre galaxie', 'rappelle-moi d’étudier'] : ['help', 'timer 10 min', 'what’s on my calendar today?', 'my reminders', 'tell me a joke', 'open galaxy', 'remind me to study']).map((c) => h('button', { class: 'no-tr', onclick: () => submit(c) }, c)));
-      const head = h('div', { class: 'msg-head' }, h('div', { class: 'msg-av sm' }, 'P'), h('b', {}, 'Pat'));
-      const mic = PatOS.voice && PatOS.voice.supported() ? h('button', { class: 'msg-mic', title: PatOS.t('Ask with your voice'), 'aria-label': PatOS.t('Ask with your voice'), html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>' }) : null;
-      const root = h('div', { class: 'msg-main pat-main' }, head, list, chips, h('div', { class: 'msg-bar' }, mic, input, send));
-      function bubble(m, anim) {
-        const b = h('div', { class: 'msg-b ' + (m.from === 'me' ? 'me' : 'them') + (anim ? ' pop' : ''), title: m.t ? new Date(m.t).toLocaleString(PatOS.locale, { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : null }, m.text);
-        list.appendChild(b); list.scrollTop = list.scrollHeight;
-      }
-      function render() { list.innerHTML = ''; log.slice(-80).forEach((m) => bubble(m)); }
-      function submit(text) {
-        text = (text || input.value).trim(); if (!text) return; input.value = '';
-        sent.push(text); sent = sent.slice(-50); histAt = -1;
-        const me = { from: 'me', text, t: Date.now() }; log.push(me); bubble(me, true);
-        PatOS.sound.tone(1100, 0.08, { vol: 0.06, slide: 1500 });
-        const typing = h('div', { class: 'msg-b them typing' }, h('i'), h('i'), h('i')); list.appendChild(typing); list.scrollTop = list.scrollHeight;
-        setTimeout(() => {
-          typing.remove();
-          let out = PatOS.assistantReply ? PatOS.assistantReply(text) : reply(text);
-          if (out === '\u0000clear') { clearChat(); return; }
-          const r = { from: 'pat', text: out, t: Date.now() }; log.push(r); bubble(r, true);
-          PatOS.sound.tone(700, 0.12, { vol: 0.06 }); PatOS.sound.tone(1050, 0.12, { vol: 0.05, delay: 0.08 });
-          if (log.length > 200) log = log.slice(-200);
-          PatOS.store.set('chatLog', log);
-        }, 500 + Math.random() * 500);
-      }
-      // up and down bring back what you typed before
-      let sent = log.filter((x) => x.from === 'me').map((x) => x.text).slice(-50), histAt = -1;
-      input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') submit();
-        else if (e.key === 'ArrowUp' && sent.length) { e.preventDefault(); histAt = histAt < 0 ? sent.length - 1 : Math.max(0, histAt - 1); input.value = sent[histAt]; }
-        else if (e.key === 'ArrowDown' && histAt >= 0) { e.preventDefault(); histAt++; if (histAt >= sent.length) { histAt = -1; input.value = ''; } else input.value = sent[histAt]; }
-      });
-      function clearChat() { log = []; PatOS.store.remove('chatLog'); sent = []; list.innerHTML = ''; const hi = { from: 'pat', text: PatOS.lang === 'fr' ? 'C’est effacé. Écris « aide » si tu veux la liste des commandes.' : 'Cleared. Type "help" if you want the list of commands.', t: Date.now() }; log.push(hi); bubble(hi, true); PatOS.store.set('chatLog', log); }
-      const clearAsk = async () => { if (await PatOS.confirmBox(PatOS.t('Clear this conversation?'), PatOS.t('The messages will be deleted.'), { ok: PatOS.t('Clear'), danger: true, icon: 'messages' })) clearChat(); };
-      if (mic) { let stop = null; mic.onclick = () => { if (stop) { stop(); return; } mic.classList.add('on'); input.placeholder = PatOS.t('Listening…'); stop = PatOS.voice.listenOnce((t) => { submit(t); }, (err) => { stop = null; mic.classList.remove('on'); input.placeholder = PatOS.t('Ask Pat') + '…'; if (err) PatOS.notify({ title: 'Pat', body: err.message, icon: 'messages' }); }); }; }
-      send.onclick = () => submit();
-      render();
-      return { el: root, focus: () => input.focus(), clear: clearAsk };
-  }
-
-  /* ---------- Messages: people with PatOS accounts (the Pat helper is the button in the top bar) ---------- */
+  /* ---------- Messages: people with PatOS accounts. (Pat, the command helper, is in the top bar: js/pat.js) ---------- */
   const clock = (t) => { const d = new Date(t), now = new Date(); const hm = d.toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' }); return d.toDateString() === now.toDateString() ? hm : d.toLocaleDateString(PatOS.locale, { month: 'short', day: 'numeric' }) + ' ' + hm; };
   PatOS.registerApp({
     id: 'messages', name: 'Messages', icon: 'messages', width: 860, height: 600, minWidth: 340, minHeight: 360, keywords: 'chat messages friends people users username request pat helper commands text timer calendar',
@@ -19416,19 +19518,14 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
     launch(win, args) {
       win.el.classList.add('has-toolbar');
       const C = PatOS.chat, A = PatOS.account;
-      const bPat = h('button', { class: 'btn pat-btn', title: PatOS.t('Pat, the command helper') }, 'Pat'); const who = h('span', { class: 'm2-who' });
-      win.toolbar.append(bPat, h('div', { style: { flex: 1 } }), who); win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px'; win.toolbar.style.gap = '8px';
-      const side = h('div', { class: 'm2-side' }), main = h('div', { class: 'm2-main' }), patBox = h('div', { class: 'm2-pat', 'aria-hidden': 'true' });
-      const root = h('div', { class: 'm2' }, side, main, patBox); win.body.appendChild(root);
-      let helper = null, query = '', results = null, cur = null /* a conversation id */, target = null /* someone new */, searchTimer = null, listEl = null;
+      const who = h('span', { class: 'm2-who' });
+      win.toolbar.append(h('div', { style: { flex: 1 } }), who); win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '76px'; win.toolbar.style.gap = '8px';
+      const side = h('div', { class: 'm2-side' }), main = h('div', { class: 'm2-main' });
+      const root = h('div', { class: 'm2' }, side, main); win.body.appendChild(root);
+      let query = '', results = null, cur = null /* a conversation id */, target = null /* someone new */, searchTimer = null, listEl = null;
       const T = (x) => PatOS.t(x);
       const msg = (title, body) => PatOS.alertBox(title, body, { icon: 'messages' });
       const fail = (e) => msg(T('That didn’t work'), String((e && e.message) || e));
-      /* Pat's panel */
-      bPat.onclick = () => {
-        if (!helper) { helper = patHelper(win); patBox.appendChild(helper.el); win._clearChat = helper.clear; }
-        const open = patBox.classList.toggle('open'); patBox.setAttribute('aria-hidden', String(!open)); bPat.classList.toggle('primary', open); if (open) setTimeout(() => helper.focus(), 220);
-      };
       const av = (name) => h('div', { class: 'msg-av' }, (name || '?').charAt(0).toUpperCase());
       const signedIn = () => A && A.signedIn();
 
@@ -19466,7 +19563,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         if (!signedIn()) {
           main.appendChild(h('div', { class: 'm2-card' }, h('h2', {}, T('Message your friends')), h('p', {}, T('Messages now work between PatOS accounts. Create a free account with just a username and a password, then find your friends by username. They accept your request first.')),
             h('div', { class: 'm2-cbtns' }, h('button', { class: 'btn primary', onclick: () => PatOS.accountUI.open('signup') }, T('Create Account')), h('button', { class: 'btn', onclick: () => PatOS.accountUI.open('signin') }, T('Sign In'))),
-            h('p', { class: 'm2-fine' }, T('Pat, the command helper, works without an account: press Pat in the top bar.')))); return;
+            h('p', { class: 'm2-fine' }, T('Pat, the command helper, works without an account: click the speech bubble in the top bar.')))); return;
         }
         const c = cur ? C.find(cur) : null;
         if (!c && !target) { main.appendChild(h('div', { class: 'm2-card' }, h('h2', {}, T('Messages')), h('p', {}, T('Pick a conversation, or find someone by username in the search box.')), C.outbox() ? h('p', { class: 'm2-fine' }, C.outbox() + ' ' + T('waiting to be sent (you are offline or the connection is slow)')) : null)); return; }
@@ -19511,8 +19608,6 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
     onArgs(win, a) { if (a.chat && win._open) win._open(a.chat); },
     menus(win) {
       return { file: [
-        { label: PatOS.t('Clear Pat Conversation…'), action: () => win._clearChat && win._clearChat() },
-        { divider: true },
         { label: PatOS.t('Close Window'), shortcut: 'Alt+W', action: () => win.close() }
       ] };
     }
@@ -27049,6 +27144,7 @@ PatOS.sendWithPatDrop = async function (paths) {
         off.addEventListener('pointerdown', () => (PatOS._leaving = true, location.reload()), { once: true });
       }
     });
+    if (PatOS.sortApps) PatOS.sortApps();
     boot();
     // offline support / installable app when served over http(s)
     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !PatOS.singleFile) setupUpdates();

@@ -353,8 +353,12 @@
   };
 
   PatOS.launch = function (appId, args) {
-    const app = PatOS.apps[appId];
+    let app = PatOS.apps[appId];
     if (!app) { PatOS.notify && PatOS.notify({ title: 'App not found', body: appId }); return null; }
+    if (app.lazy) { // an app whose code has not been read yet: read it now (js/appmeta.js)
+      if (!PatOS.loadLazy(app.lazy)) return null;
+      app = PatOS.apps[appId]; if (!app || app.lazy) { PatOS.notify && PatOS.notify({ title: 'App not found', body: appId }); return null; }
+    }
     if (app.action) { app.action(args || {}); PatOS.emit('app:launch', appId); return null; }
     const existing = PatOS.wm.windowsOf(appId);
     if (app.single && existing.length) {

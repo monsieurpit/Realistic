@@ -670,8 +670,56 @@
   PatOS.appOrder = [];
   PatOS.registerApp = function (def) {
     def = Object.assign({ width: 760, height: 520, minWidth: 320, minHeight: 220, single: true, category: 'Apps', resizable: true }, def);
+    const had = !!PatOS.apps[def.id];
     PatOS.apps[def.id] = def;
-    PatOS.appOrder.push(def.id);
+    if (!had) PatOS.appOrder.push(def.id); // (a name-only entry replaced by the real app keeps its place)
+  };
+
+  /* ---------- apps that load when first opened (see scripts/appmeta.js and js/appmeta.js) ----------
+     Launchpad, the Dock and search know these apps by name from the start. Their code is read from their own file the first
+     time they are opened (or the first time something they share is used), from the copy PatOS keeps on the device. */
+  const lazyLoaded = new Set(), lazyText = new Map(), lazySrcs = new Set();
+  /* Soon after start, the text of these files is read from the device's offline copy (nothing is run, so it is cheap). That way an app
+     opens at once, also offline, and from the same version as the rest of PatOS even if an update arrives meanwhile. */
+  PatOS.prefetchLazy = function () {
+    const queue = [...lazySrcs].filter((x) => !lazyText.has(x)); const worker = async () => { while (queue.length) { const src = queue.shift(); try { const r = await fetch(src); if (r.ok) lazyText.set(src, await r.text()); } catch (e) {} } };
+    return Promise.all([worker(), worker(), worker()]);
+  };
+  PatOS.loadLazy = function (src) {
+    if (lazyLoaded.has(src)) return true; lazyLoaded.add(src);
+    try {
+      let text = lazyText.get(src);
+      if (text == null) { // not read yet (a very early click): ask the network (a synchronous request does not go through the offline copy)
+        const x = new XMLHttpRequest(); x.open('GET', src, false); x.send();
+        if (x.status !== 200 && !(x.status === 0 && x.responseText)) throw new Error('HTTP ' + x.status); text = x.responseText;
+      }
+      const s = document.createElement('script'); s.text = text + '\n//# sourceURL=' + src; document.head.appendChild(s); s.remove(); lazyText.delete(src);
+      return true;
+    } catch (e) {
+      lazyLoaded.delete(src); console.error('PatOS could not load ' + src, e);
+      if (PatOS.notify) PatOS.notify({ title: 'This app could not open', body: 'Its files are not ready yet. Try again in a moment.', icon: 'settings' });
+      return false;
+    }
+  };
+  PatOS.lazyApps = (list) => { list.forEach((m) => { lazySrcs.add(m.lazy); PatOS.registerApp(m); }); setTimeout(() => PatOS.prefetchLazy(), 400); };
+  /* PatOS.theHelper: loads the file that makes it the first time it is read. The file's own assignment replaces this entry. */
+  PatOS.lazyExports = function (map) {
+    Object.keys(map).forEach((key) => {
+      if (Object.prototype.hasOwnProperty.call(PatOS, key)) return; const src = map[key]; lazySrcs.add(src);
+      const plain = (v) => Object.defineProperty(PatOS, key, { value: v, writable: true, configurable: true, enumerable: true });
+      Object.defineProperty(PatOS, key, { configurable: true, enumerable: true,
+        get() { plain(undefined); delete PatOS[key]; PatOS.loadLazy(src); const d = Object.getOwnPropertyDescriptor(PatOS, key); return d && 'value' in d ? d.value : undefined; },
+        set(v) { plain(v); } });
+    });
+  };
+  /* the order apps had when everything loaded at start (name-only entries are registered first, so put them back in place) */
+  PatOS.sortApps = function () {
+    if (!PatOS.appRank) return; const rank = new Map(PatOS.appRank.map((id, i) => [id, i])); const cur = PatOS.appOrder.slice();
+    const lazy = cur.filter((id) => PatOS.apps[id] && PatOS.apps[id].lazy).sort((a, b) => (rank.get(a) || 0) - (rank.get(b) || 0)); const real = cur.filter((id) => !(PatOS.apps[id] && PatOS.apps[id].lazy));
+    const out = []; let li = 0;
+    real.forEach((id) => { if (rank.has(id)) while (li < lazy.length && rank.get(lazy[li]) < rank.get(id)) out.push(lazy[li++]); out.push(id); });
+    while (li < lazy.length) out.push(lazy[li++]);
+    PatOS.appOrder.splice(0, PatOS.appOrder.length, ...out);
   };
 
   /* ---------- open a file with the right app ---------- */
