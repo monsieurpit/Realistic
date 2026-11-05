@@ -375,8 +375,21 @@
         try { if (proj) { saveFile(); } const name = placeProject(pr, how, target); PatOS.notify({ title: T('Project imported'), body: name, icon: 'pitstudio' }); open(name); } catch (e) { fail(e); }
       }
       function pickProjectFile() {
-        const i = h('input', { type: 'file' }); // (no file type filter: phones gray out extensions they do not know, like .patappproject. The file is checked after it is picked.) i.style.display = 'none'; document.body.appendChild(i);
-        i.onchange = async () => { const f = i.files[0]; i.remove(); if (f) { try { importText(await f.text()); } catch (e) { fail(e); } } }; i.addEventListener('cancel', () => i.remove()); i.click();
+        // the input stays in the page (out of sight) until a file is chosen: phones are happier that way. No file type filter (phones gray out types they do not know).
+        const i = h('input', { type: 'file', style: { position: 'fixed', left: '-9999px', top: '0', opacity: '0' } }); document.body.appendChild(i); let used = false;
+        const done = async () => {
+          const f = i.files && i.files[0]; if (!f || used) return; used = true;
+          try { const t = await f.text(); i.remove(); if (!t.trim()) throw new Error(T('That file is empty.')); await importText(t); } catch (e) { i.remove(); fail(e); }
+        };
+        i.addEventListener('change', done); i.addEventListener('input', done); i.addEventListener('cancel', () => i.remove()); i.click();
+      }
+      /* the same, from text: copy the file's text (the Claude app shows it) and paste it here */
+      function pasteProject() {
+        const ta = h('textarea', { class: 'field ps-pastebox', rows: '10', spellcheck: 'false', placeholder: T('Paste the whole file here') });
+        const ok = h('button', { class: 'btn primary' }, T('Import')), no = h('button', { class: 'btn' }, T('Cancel'));
+        const box = h('div', { class: 'ps-paste' }, h('div', { class: 'ps-pastecard' }, h('h2', {}, T('Import from text')), ta, h('div', { class: 'ps-row' }, ok, no)));
+        no.onclick = () => box.remove(); ok.onclick = async () => { const t = ta.value; if (!t.trim()) return; box.remove(); await importText(t); };
+        root.appendChild(box); ta.focus();
       }
       /* the first screen: new project or open one */
       function welcome() {
@@ -387,7 +400,7 @@
           langRow.innerHTML = ''; [['pitcode', 'PitCode'], ['web', 'HTML + JavaScript']].forEach(([k, l]) => langRow.appendChild(h('button', { class: 'btn' + (lang === k ? ' primary' : ''), onclick: () => { lang = k; tpl = 'blank'; drawTpl(); } }, l)));
           tplRow.innerHTML = ''; TEMPLATES[lang].forEach((t) => tplRow.appendChild(h('button', { class: 'ps-tpl' + (tpl === t.id ? ' on' : ''), onclick: () => { tpl = t.id; drawTpl(); } }, h('b', {}, T(t.name)), h('small', {}, T(t.note)))));
         };
-        const make = h('button', { class: 'btn primary' }, T('Create Project')), imp = h('button', { class: 'btn', onclick: pickProjectFile }, T('Import Project…'));
+        const make = h('button', { class: 'btn primary' }, T('Create Project')), imp = h('button', { class: 'btn', onclick: pickProjectFile }, T('Import Project…')), pasteBtn = h('button', { class: 'btn', onclick: pasteProject }, T('Paste Project…'));
         make.onclick = () => { const n = nameIn.value.trim().replace(/[\/\\]/g, '') || T('My App'); try { mkdirs(ROOT); open(newProject({ name: n, language: lang, template: tpl })); } catch (e) { fail(e); } };
         nameIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') make.click(); });
         const list = listProjects().sort((a, b) => b.mtime - a.mtime);
@@ -395,7 +408,7 @@
         drawTpl();
         root.appendChild(h('div', { class: 'ps-welcome' },
           h('div', { class: 'ps-wcol' }, h('h1', {}, 'PitCode Studio'), h('p', { class: 'ps-note' }, ''),
-            h('label', { class: 'ps-field' }, h('span', {}, T('App name')), nameIn), h('div', { class: 'ps-field' }, h('span', {}, T('Language')), langRow), h('div', { class: 'ps-field' }, h('span', {}, T('Start from')), tplRow), h('div', { class: 'ps-row' }, make, imp),
+            h('label', { class: 'ps-field' }, h('span', {}, T('App name')), nameIn), h('div', { class: 'ps-field' }, h('span', {}, T('Language')), langRow), h('div', { class: 'ps-field' }, h('span', {}, T('Start from')), tplRow), h('div', { class: 'ps-row' }, make, imp, pasteBtn),
             h('p', { class: 'ps-note' }, '')),
           h('div', { class: 'ps-wcol' }, h('h2', {}, T('Your projects')), mine)));
       }

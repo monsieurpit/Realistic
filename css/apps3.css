@@ -929,3 +929,9 @@ html[data-theme="dark"] .ytx { --yb: #0f0f0f; --yb2: #272727; --yb3: #3f3f3f; --
 .sl-btns { display: flex; gap: 10px; justify-content: center; }
 .sl-boost { display: none; position: absolute; left: 16px; bottom: 90px; width: 74px; height: 74px; border-radius: 50%; background: rgba(255,214,10,.85); color: #111; font-weight: 800; touch-action: none; }
 @media (pointer: coarse) { .sl-boost { display: block; } }
+
+/* PitCode Studio: import from pasted text */
+.ps { position: relative; }
+.ps-paste { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; background: rgba(0,0,0,.5); }
+.ps-pastecard { width: min(92%, 560px); max-height: 90%; padding: 16px; border-radius: 12px; background: var(--win-solid, #222); display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
+.ps-pastecard h2 { margin: 0; font-size: 16px; } .ps-pastebox { width: 100%; font: 12px ui-monospace, Menlo, monospace; resize: vertical; }

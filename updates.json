@@ -1,5 +1,21 @@
 [
   {
+    "version": "2.1.2",
+    "date": "2026-11-06",
+    "title": {
+      "en": "Importing projects, made sturdier",
+      "fr": "Importer des projets, en plus solide"
+    },
+    "notes": {
+      "en": [
+        "PitCode Studio: importing a project is more reliable on phones, and there is a new Paste Project… button: copy the text of a .patappproject file and paste it in, no file picker needed"
+      ],
+      "fr": [
+        "PitCode Studio : l’importation d’un projet est plus fiable sur téléphone, et un nouveau bouton Coller un projet… permet de copier le texte d’un fichier .patappproject et de le coller, sans sélecteur de fichier"
+      ]
+    }
+  },
+  {
     "version": "2.1.1",
     "date": "2026-11-06",
     "title": {

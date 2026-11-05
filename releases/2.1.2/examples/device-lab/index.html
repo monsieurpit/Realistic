@@ -1,0 +1,62 @@
+<header class="top">
+  <div>
+    <h1>Device Lab</h1>
+    <p class="sub" id="who"></p>
+  </div>
+  <div class="actions">
+    <button class="btn primary" id="runAll">Run every test</button>
+    <button class="btn" id="runSafe">Run the quiet tests</button>
+  </div>
+</header>
+
+<nav class="perms" id="perms" aria-label="Permissions"></nav>
+
+<main class="grid">
+  <section class="card" id="c-storage"><h2>Storage</h2><p class="hint">Private to this app. No permission needed.</p>
+    <div class="row"><input id="sKey" placeholder="key" value="color"><input id="sVal" placeholder="value" value="blue"></div>
+    <div class="row"><button class="btn" id="sSet">Set</button><button class="btn" id="sGet">Get</button><button class="btn" id="sRemove">Remove</button><button class="btn" id="sKeys">Keys</button><button class="btn danger" id="sClear">Clear</button></div>
+    <pre class="out" id="sOut"></pre></section>
+
+  <section class="card" id="c-files"><h2>Files</h2><p class="hint">Permission: files. Saved in Documents &rsaquo; Apps &rsaquo; Device Lab.</p>
+    <div class="row"><input id="fName" placeholder="folder/name.txt" value="lab/hello.txt"></div>
+    <textarea id="fText" rows="4" placeholder="Text to save">Hello from Device Lab</textarea>
+    <div class="row"><button class="btn" id="fSave">Save</button><button class="btn" id="fOpen">Open</button><button class="btn" id="fDelete">Delete</button><button class="btn" id="fList">List folder</button></div>
+    <div class="row"><input id="fDir" placeholder="folder to list (empty = all)" value=""></div>
+    <div class="files" id="fFiles"></div><pre class="out" id="fOut"></pre></section>
+
+  <section class="card" id="c-notify"><h2>Notifications</h2><p class="hint">Permission: notifications. They show while this app is open.</p>
+    <div class="row"><input id="nTitle" placeholder="title" value="Device Lab"></div><div class="row"><input id="nBody" placeholder="message" value="This is a test notification."></div>
+    <div class="row"><button class="btn" id="nNow">Send now</button><button class="btn" id="nLater">Send in 5 seconds</button><button class="btn" id="nThree">Send 3</button></div>
+    <pre class="out" id="nOut"></pre></section>
+
+  <section class="card" id="c-clip"><h2>Clipboard</h2><p class="hint">Permission: clipboard.</p>
+    <textarea id="cText" rows="3" placeholder="Text to copy">Copied by Device Lab</textarea>
+    <div class="row"><button class="btn" id="cCopy">Copy this text</button><button class="btn" id="cPaste">Paste from clipboard</button></div>
+    <pre class="out" id="cOut"></pre></section>
+
+  <section class="card" id="c-camera"><h2>Camera</h2><p class="hint">Permission: camera. One picture per press.</p>
+    <div class="row"><button class="btn" id="camSnap">Take a photo</button><button class="btn" id="camSave" disabled>Save to files</button></div>
+    <img id="camImg" class="photo" alt="" hidden><div class="gallery" id="gallery"></div><pre class="out" id="camOut"></pre></section>
+
+  <section class="card" id="c-mic"><h2>Microphone</h2><p class="hint">Permission: microphone. Records, then plays it back.</p>
+    <div class="row"><select id="micSecs"><option value="1000">1 second</option><option value="3000" selected>3 seconds</option><option value="5000">5 seconds</option><option value="10000">10 seconds</option></select><button class="btn" id="micRec">Record</button><button class="btn" id="micSave" disabled>Save to files</button></div>
+    <div class="meter"><div id="micBar"></div></div><audio id="micAudio" controls hidden></audio><pre class="out" id="micOut"></pre></section>
+
+  <section class="card" id="c-loc"><h2>Location</h2><p class="hint">Permission: location.</p>
+    <div class="row"><button class="btn" id="locGet">Where am I?</button><button class="btn" id="locCopy" disabled>Copy coordinates</button><button class="btn" id="locPlace" disabled>Find the place name</button></div>
+    <div class="stat" id="locStat"></div><pre class="out" id="locOut"></pre></section>
+
+  <section class="card wide" id="c-net"><h2>Internet</h2><p class="hint">Permission: network. Only https addresses. Sites must allow being read by other pages (CORS).</p>
+    <div class="row"><input id="uUrl" value="https://api.github.com/zen" aria-label="Address"><button class="btn" id="uGet">GET</button></div>
+    <div class="row"><button class="btn" id="uZen">Random advice</button><button class="btn" id="uIp">My public address</button><button class="btn" id="uImg">Load a picture</button><button class="btn" id="uPing">Speed test</button><span class="chip" id="online"></span></div>
+    <img id="uPic" class="photo" alt="" hidden><pre class="out" id="uOut"></pre></section>
+
+  <section class="card" id="c-win"><h2>Window and theme</h2><p class="hint">No permission needed.</p>
+    <div class="row"><input id="wTitle" value="Device Lab - testing"><button class="btn" id="wSet">Set the title</button></div>
+    <div class="row"><button class="btn" id="wInfo">Show info</button><button class="btn danger" id="wClose">Close this app</button></div>
+    <div class="swatches" id="swatches"></div><pre class="out" id="wOut"></pre></section>
+
+  <section class="card wide" id="c-report"><h2>Report</h2><p class="hint">Every test result, newest last.</p>
+    <div class="row"><button class="btn" id="rCopy">Copy the report</button><button class="btn" id="rSave">Save it as a file</button><button class="btn danger" id="rClear">Clear</button></div>
+    <ol class="report" id="report"></ol></section>
+</main>
