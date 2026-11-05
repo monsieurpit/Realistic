@@ -1087,12 +1087,14 @@
     document.documentElement.dataset.theme = t;
     document.documentElement.style.setProperty('--accent', s.accent);
     document.documentElement.classList.toggle('reduce-motion', !!s.reduceMotion);
-    document.documentElement.classList.toggle('reduce-transparency', !!s.reduceTransparency);
+    document.documentElement.classList.toggle('reduce-transparency', !!s.reduceTransparency || PatOS.perf.light());
+    document.documentElement.classList.toggle('perf-light', PatOS.perf.light());
+    document.documentElement.classList.toggle('win', !!PatOS.hw.windows);
     ['highContrast', 'boldText', 'showFocus', 'bigTargets'].forEach((k) => document.documentElement.classList.toggle(k.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase()), !!s[k]));
     $('#dimmer').style.opacity = String(1 - s.brightness);
     const chromium = !!window.chrome && !PatOS.isIOS && !/Firefox/.test(navigator.userAgent);
     document.documentElement.classList.toggle('lg-on', !!s.liquidGlass);
-    document.documentElement.classList.toggle('lg-refract', !!(s.liquidGlass && s.glassRefraction && chromium && s.quality3d !== 'low' && !s.reduceTransparency));
+    document.documentElement.classList.toggle('lg-refract', !!(s.liquidGlass && s.glassRefraction && chromium && s.quality3d !== 'low' && !s.reduceTransparency && !PatOS.perf.light()));
   }
   PatOS.applyTheme = applyTheme;
   /* Liquid Glass light follows the pointer */
@@ -1170,7 +1172,7 @@
       applyTheme();
       setupMenubar(); setupLaunchpad(); setupSpotlight(); setupDesktop(); setupDockMagnify(); setupKeys();
       PatOS.on('setting', (s) => {
-        if (['theme', 'accent', 'brightness', 'reduceMotion', 'reduceTransparency', 'liquidGlass', 'glassRefraction', 'quality3d'].includes(s.key)) applyTheme();
+        if (['theme', 'accent', 'brightness', 'reduceMotion', 'reduceTransparency', 'liquidGlass', 'glassRefraction', 'quality3d', 'perfMode'].includes(s.key)) applyTheme();
         if (['dockSize', 'dockAutohide'].includes(s.key)) applyDockSize();
         if (s.key === 'dockPinned') renderDock();
       });

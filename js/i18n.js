@@ -1031,6 +1031,8 @@
     'Take Picture': 'Prendre une photo',
     'Start Recording': 'Démarrer l’enregistrement',
     'This Chromebook': 'Ce Chromebook',
+    'Speed mode': 'Mode vitesse', 'Lighter (faster on slow computers)': 'Allégé (plus rapide sur les ordinateurs lents)', 'Full looks': 'Tous les effets',
+    'Lighter turns off the see-through blur and shortens animations. Automatic tests this computer each time PatOS starts.': 'Allégé désactive le flou transparent et raccourcit les animations. Automatique teste cet ordinateur à chaque démarrage de PatOS.',
     'Open Files…': 'Ouvrir des fichiers…',
     'Link a Folder…': 'Lier un dossier…',
     'Compress': 'Compresser',
@@ -2337,7 +2339,17 @@
     const u = { year: 'an', month: 'mois', week: 'semaine', day: 'jour', hour: 'heure', minute: 'minute' }[m[2]] || m[2];
     return 'il y a ' + m[1] + ' ' + u + (+m[1] > 1 && u !== 'mois' ? 's' : '');
   }
-  function t(s) {
+  /* "Chromebook" is only true on a Chromebook: on a Windows laptop (EliteBook...), a Mac or a phone the same sentences say "computer" */
+  const onChromeOS = /CrOS/.test(navigator.userAgent);
+  const NOT_CB_EN = [[/computer or Chromebook/g, 'computer'], [/\bThis Chromebook/g, 'This Computer'], [/\bChromebooks\b/g, 'computers'], [/\bChromebook\b/g, 'computer']];
+  const NOT_CB_FR = [[/ordinateur ou un Chromebook/g, 'ordinateur'], [/\bCe Chromebook/g, 'Cet ordinateur'], [/\bce Chromebook/g, 'cet ordinateur'], [/\bdu Chromebook/g, 'de l’ordinateur'], [/\ble Chromebook/g, 'l’ordinateur'], [/\bles Chromebooks/g, 'les ordinateurs'], [/\bChromebooks\b/g, 'ordinateurs'], [/\bChromebook\b/g, 'ordinateur']];
+  function notCb(s) {
+    if (onChromeOS || typeof s !== 'string' || s.indexOf('Chromebook') < 0) return s;
+    for (const [re, to] of PatOS.lang === 'fr' ? NOT_CB_FR : NOT_CB_EN) s = s.replace(re, to);
+    return s;
+  }
+  function t(s) { return notCb(t0(s)); }
+  function t0(s) {
     if (PatOS.lang !== 'fr' || s == null) return s;
     const k = String(s);
     if (FR[k] !== undefined) return FR[k];

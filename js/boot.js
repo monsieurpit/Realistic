@@ -38,7 +38,12 @@
     setTimeout(() => pass.focus(), 300);
   }
 
+  /* If someone signs in within the first moments, wait for the app files to be read first, so every app opens at once (also offline) */
   function login() {
+    if (PatOS.lazyPending && PatOS.lazyPending() && !$('#lock').classList.contains('need-pass')) { PatOS.prefetchLazy().then(loginNow); return; }
+    loginNow();
+  }
+  function loginNow() {
     const s = PatOS.settings; const pass = $('.lock-pass');
     if (PatOS.isMobile && s.password && !$('#lock').classList.contains('need-pass')) { $('#lock').classList.add('need-pass'); setTimeout(() => pass.focus(), 50); return; }
     if (s.password && pass.value !== s.password) {
@@ -108,12 +113,12 @@
   function boot() {
     const fill = $('.boot-fill');
     if (soft) { const m = h('div', { class: 'boot-msg' }, PatOS.t(soft.update ? 'Updating PatOS…' : 'Restarting…')); $('#boot').appendChild(m); fill.style.transition = 'none'; fill.style.width = '45%'; } else bootParticles();
-    const minMs = soft ? 250 : PatOS.store.get('seenWelcome', false) ? 400 : 1500, t0 = performance.now();
+    const minMs = soft ? 120 : PatOS.store.get('seenWelcome', false) ? 120 : 1500, t0 = performance.now();
     requestAnimationFrame(() => { fill.style.transition = ''; fill.style.width = soft ? '70%' : '35%'; });
     const fonts = document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]) : Promise.resolve();
     fonts.then(() => { fill.style.width = '75%'; return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))); })
       .catch(() => {})
-      .then(() => setTimeout(() => { fill.style.width = '100%'; setTimeout(showLock, 250); }, Math.max(0, minMs - (performance.now() - t0))));
+      .then(() => setTimeout(() => { fill.style.width = '100%'; setTimeout(showLock, 80); }, Math.max(0, minMs - (performance.now() - t0))));
   }
   /* ---------- Software Update ----------
      The browser only looks for a new PatOS when the page loads, so PatOS asks the server itself every few
@@ -217,6 +222,8 @@
 
   (document.readyState === 'loading' ? (fn) => document.addEventListener('DOMContentLoaded', fn) : (fn) => fn())(() => {
     PatOS.applyTheme && PatOS.applyTheme();
+    // once the page has settled, measure how fast this computer is; a slow one gets the light look (Settings › Speed mode can change it)
+    setTimeout(() => (window.requestIdleCallback || setTimeout)(() => { if (PatOS.perf.measure() === 'light' && PatOS.perf.light()) PatOS.applyTheme(); }, { timeout: 4000 }), 2500);
     $('.lock-form').addEventListener('submit', (e) => { e.preventDefault(); login(); });
     document.addEventListener('keydown', (e) => {
       if ($('#lock').classList.contains('hidden') || PatOS.loggedIn || e.target === $('.lock-pass')) return;

@@ -147,6 +147,7 @@
         const key = { name: (x) => x.name.toLowerCase(), date: (x) => x.mtime || 0, size: (x) => (x.app ? 0 : PatOS.fs.size(x)), kind: (x) => kindLabel(x) }[sort.by];
         return out.sort((a, b) => { if (!a.app && (a.type === 'dir') !== (b.type === 'dir')) return a.type === 'dir' ? -1 : 1; const x = key(a), y = key(b); return (x < y ? -1 : x > y ? 1 : 0) * sort.dir || a.name.localeCompare(b.name); });
       }
+      let renderToken = 0;
       function render() {
         renderSide();
         const label = cwd === 'apps' ? 'Applications' : cwd === '/.Trash' ? 'Trash' : cwd === 'tag' ? TAG_NAMES[tagFilter] : cwd === '/' ? 'Home' : PatOS.fs.basename(cwd);
@@ -160,7 +161,10 @@
           const hd = (by, l) => h('span', { class: 'fd-lhc' + (sort.by === by ? ' on' : ''), onclick: () => { sort = { by, dir: sort.by === by ? -sort.dir : 1 }; PatOS.store.set('finderSort', sort); render(); } }, l, sort.by === by ? (sort.dir > 0 ? ' ▲' : ' ▼') : '');
           main.appendChild(h('div', { class: 'fd-lh' }, hd('name', 'Name'), hd('date', 'Date Modified'), hd('size', 'Size'), hd('kind', 'Kind')));
         }
-        list.forEach((it, i) => main.appendChild(item(it, i)));
+        /* a folder with thousands of files draws the first screenful at once and the rest a moment later, so it opens at once */
+        const token = ++renderToken, FIRST = 120; const firstEnd = Math.min(list.length, FIRST);
+        for (let i = 0; i < firstEnd; i++) main.appendChild(item(list[i], i));
+        if (list.length > firstEnd) { let at = firstEnd; const more = () => { if (token !== renderToken || !main.isConnected) return; const end = Math.min(list.length, at + 250); const frag = document.createDocumentFragment(); for (; at < end; at++) frag.appendChild(item(list[at], at)); main.appendChild(frag); if (at < list.length) requestAnimationFrame(more); }; requestAnimationFrame(more); }
         if (!list.length) main.appendChild(h('div', { class: 'fd-empty' }, h('b', {}, PatOS.t(search.value ? 'No results' : cwd === '/.Trash' ? 'Trash is empty' : cwd === 'tag' ? 'No files with this tag' : 'This folder is empty')),
           canWrite() && !search.value ? h('small', {}, PatOS.t(PatOS.isMobile ? 'Press Import to add files from your phone.' : 'Drag files here from your computer, or press Import.')) : null));
         // path bar

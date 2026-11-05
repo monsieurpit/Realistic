@@ -54,10 +54,13 @@
       ctx.closePath(); ctx.fill();
     }
     ctx.filter = 'none';
-    // subtle grain
-    const img = ctx.getImageData(0, 0, w, hgt); const d = img.data;
-    for (let i = 0; i < d.length; i += 4) { const n = (r() - 0.5) * 10; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
-    ctx.putImageData(img, 0, 0);
+    // subtle grain: one small noise tile, repeated (touching every pixel one by one took over a second on a modest laptop)
+    ctx.globalCompositeOperation = 'overlay'; ctx.fillStyle = grainPattern(ctx, r); ctx.fillRect(0, 0, w, hgt); ctx.globalCompositeOperation = 'source-over';
+  }
+  let grainTile = null;
+  function grainPattern(ctx, r) {
+    if (!grainTile) { grainTile = document.createElement('canvas'); grainTile.width = grainTile.height = 96; const g = grainTile.getContext('2d'); const img = g.createImageData(96, 96); for (let i = 0; i < img.data.length; i += 4) { const v = 118 + Math.floor(r() * 20); img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255; } g.putImageData(img, 0, 0); }
+    return ctx.createPattern(grainTile, 'repeat');
   }
 
   const thumbCache = {};
@@ -294,9 +297,11 @@
     if (lockCache[id]) return lockCache[id];
     const saved = PatOS.store.get('wpLockCache', null);
     if (saved && saved.id === id && saved.url) return (lockCache[id] = saved.url);
+    const all = PatOS.store.get('wpThumbs', {}); if (all[id]) return (lockCache[id] = all[id]);
     const c = document.createElement('canvas'); paint(c, LIVE[id] ? LIVE[id].fallback : id, 640, 400);
     lockCache[id] = c.toDataURL('image/jpeg', 0.8);
     PatOS.store.set('wpLockCache', { id, url: lockCache[id] });
+    if (id !== PatOS.settings.wallpaper) { all[id] = lockCache[id]; PatOS.store.set('wpThumbs', all); } // (made again by itself if lost)
     return lockCache[id];
   }
 

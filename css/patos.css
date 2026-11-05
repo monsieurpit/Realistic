@@ -393,3 +393,11 @@ body.patos-fs #desktop-widgets, body.patos-fs .desk-widgets { transition: opacit
 /* the boot screen also shows over PatOS when it restarts for an update */
 #boot.boot-over { z-index: 100002; }
 .boot-msg { position: absolute; bottom: 22%; left: 0; right: 0; text-align: center; color: rgba(255,255,255,.7); font-size: 14px; letter-spacing: .2px; }
+
+/* light look on slow computers: no blur, short animations */
+.perf-light *, .perf-light *::before, .perf-light *::after { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+.perf-light .window, .perf-light .menu, .perf-light .panel { transition-duration: .08s !important; }
+/* Windows scrollbars: thin, so they do not eat a small laptop screen */
+.win ::-webkit-scrollbar { width: 10px; height: 10px; }
+.win ::-webkit-scrollbar-thumb { background: rgba(128,128,128,.45); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
+.win ::-webkit-scrollbar-track { background: transparent; }

@@ -410,6 +410,14 @@ body.patos-fs #desktop-widgets, body.patos-fs .desk-widgets { transition: opacit
 #boot.boot-over { z-index: 100002; }
 .boot-msg { position: absolute; bottom: 22%; left: 0; right: 0; text-align: center; color: rgba(255,255,255,.7); font-size: 14px; letter-spacing: .2px; }
 
+/* light look on slow computers: no blur, short animations */
+.perf-light *, .perf-light *::before, .perf-light *::after { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+.perf-light .window, .perf-light .menu, .perf-light .panel { transition-duration: .08s !important; }
+/* Windows scrollbars: thin, so they do not eat a small laptop screen */
+.win ::-webkit-scrollbar { width: 10px; height: 10px; }
+.win ::-webkit-scrollbar-thumb { background: rgba(128,128,128,.45); border-radius: 10px; border: 2px solid transparent; background-clip: padding-box; }
+.win ::-webkit-scrollbar-track { background: transparent; }
+
 </style>
   <style>
 /* ================= PatOS app styles ================= */
@@ -4323,7 +4331,7 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
     peek(key) { return KV ? KV[key] : undefined; },
     /* everything worth keeping, for backups: all saved data except the file tree (that comes from fs.exportTree)
        and caches that are made again by themselves */
-    backupData() { const o = {}; const skip = new Set(['fs', 'wpCache', 'wpLockCache', 'wxCache', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'accountPrompt', 'msgRead', 'msgOutbox']); const src = KV || (function () { const r = {}; try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => { try { r[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {} return r; })(); Object.keys(src).forEach((k) => { if (!skip.has(k)) o[k] = clone(src[k]); }); return o; },
+    backupData() { const o = {}; const skip = new Set(['fs', 'wpCache', 'wpLockCache', 'wpThumbs', 'wxCache', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'accountPrompt', 'msgRead', 'msgOutbox']); const src = KV || (function () { const r = {}; try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => { try { r[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {} return r; })(); Object.keys(src).forEach((k) => { if (!skip.has(k)) o[k] = clone(src[k]); }); return o; },
     /* put saved data back from a backup: keys that are not in it are removed */
     restoreData(data) {
       const keep = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'accountPrompt', 'msgRead', 'msgOutbox']); const neverRemove = new Set(['syncKey']); const old = KV ? Object.keys(KV) : [];
@@ -4381,6 +4389,7 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
     reduceMotion: false, highContrast: false, boldText: false, showFocus: false, bigTargets: false, srAnnounce: true, systemNotifications: true,
     reduceTransparency: false,
     quality3d: 'auto',       // low | auto | high
+    perfMode: 'auto',        // auto | light | full (Speed mode: light turns off the see-through blur and the long animations)
     askFullscreen: true,
     reopenWindows: true,
     betaUpdates: false,      // Settings › Software Update › Beta updates
@@ -4415,6 +4424,20 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
     standalone: () => navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches),
     touch: navigator.maxTouchPoints > 0 || 'ontouchstart' in window
   };
+  PatOS.hw.windows = /Windows NT/.test(UA); PatOS.hw.chromeos = /CrOS/.test(UA);
+  // a laptop that is also a tablet (EliteBook x360...): a touch screen on a computer
+  PatOS.hw.touchLaptop = PatOS.hw.touch && !PatOS.hw.phone && !PatOS.hw.ios && !PatOS.hw.android;
+  /* Speed: a 15 ms test of how fast this computer thinks. Slow ones (an old school laptop) get the light look by default. Nothing is stored: each start measures again. */
+  PatOS.perf = (function () {
+    let tier = null;
+    function measure() {
+      if (tier) return tier;
+      let best = 0, x = 1;
+      for (let k = 0; k < 3; k++) { let n = 0; const end = performance.now() + 15; while (performance.now() < end) { for (let i = 0; i < 2000; i++) x = (x * 1.0000001 + i) % 1000003; n++; } best = Math.max(best, n); }
+      PatOS.perf.score = best; tier = best < 200 ? 'light' : 'full'; return tier; // about 500 on a fast laptop, about 150 on a 4x slower school computer
+    }
+    return { score: 0, tier: () => tier || 'full', measure, light: () => { const m = PatOS.settings.perfMode; return m === 'light' || (m !== 'full' && tier === 'light'); } };
+  })();
   PatOS.isIOS = PatOS.hw.ios;
   PatOS.detectMobile = function () {
     const m = PatOS.settings.deviceMode;
@@ -4846,9 +4869,13 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
   const lazyLoaded = new Set(), lazyText = new Map(), lazySrcs = new Set();
   /* Soon after start, the text of these files is read from the device's offline copy (nothing is run, so it is cheap). That way an app
      opens at once, also offline, and from the same version as the rest of PatOS even if an update arrives meanwhile. */
+  let prefetching = null, prefetched = false;
+  PatOS.lazyPending = () => lazySrcs.size > 0 && !prefetched; // true until the app files have been read (usually done long before anyone types a password)
   PatOS.prefetchLazy = function () {
+    if (prefetching) return prefetching;
     const queue = [...lazySrcs].filter((x) => !lazyText.has(x)); const worker = async () => { while (queue.length) { const src = queue.shift(); try { const r = await fetch(src); if (r.ok) lazyText.set(src, await r.text()); } catch (e) {} } };
-    return Promise.all([worker(), worker(), worker()]);
+    prefetching = Promise.all([worker(), worker(), worker()]).then(() => { prefetched = true; });
+    return prefetching;
   };
   PatOS.loadLazy = function (src) {
     if (lazyLoaded.has(src)) return true; lazyLoaded.add(src);
@@ -4866,7 +4893,7 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
       return false;
     }
   };
-  PatOS.lazyApps = (list) => { list.forEach((m) => { lazySrcs.add(m.lazy); PatOS.registerApp(m); }); setTimeout(() => PatOS.prefetchLazy(), 400); };
+  PatOS.lazyApps = (list) => { list.forEach((m) => { lazySrcs.add(m.lazy); PatOS.registerApp(m); }); setTimeout(() => PatOS.prefetchLazy(), 60); };
   /* PatOS.theHelper: loads the file that makes it the first time it is read. The file's own assignment replaces this entry. */
   PatOS.lazyExports = function (map) {
     Object.keys(map).forEach((key) => {
@@ -5065,7 +5092,7 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
 /* generated by build.js from updates.json: do not edit */
 PatOS.version = "1.7.0";
 PatOS.releases = [{"version":"1.7.0","date":"2026-11-04","title":{"en":"Better apps","fr":"De meilleures apps"},"notes":{"en":["Calendar: Day and Year views, repeating events with an end date, alerts before events (even with Calendar closed), quick add in plain words (“Math class monday 9am weekly”), search, drag events to another day, and .ics import and export (Google Calendar)","Contacts: several phone numbers and emails per person, company, tap to call or email, search that ignores accents, Undo after deleting, merge duplicates, and better vCard import and export with photos","Weather: 10-day forecast, a one-line summary of the next hours, city suggestions as you type, gusts, pressure, visibility and rain today, wind and rain in mph and inches with °F, refreshes by itself, and real icons instead of emoji","Photos: much faster with many photos, your own albums, select several photos at once, search, zoom and pan with the wheel or pinch, swipe between photos, photo info, drop pictures to add them, and large photos now show up","Paint: choose your canvas size, zoom, text, filled shapes, opacity that doesn’t darken overlaps, Shift for straight lines and circles, rotate and flip, more undo, keyboard shortcuts, and open or save over a picture (Photos › More › Open in Paint)","Reliability and security: a failed save keeps your deletions, stricter checks for private network addresses, the password vault only counts use of the vault as activity and locks when you close Passwords, and the French translation is complete","Messages: Pat can set timers and alarms, show your calendar and what is due, add events and reminders with dates in plain words, convert units, work out percentages, find files, pick between options, and suggest the app you meant. Up arrow brings back what you typed","Terminal: variables ($NAME), aliases, !! to repeat the last command, new tools (cut, tr, sed, diff, nl, tee, stat, basename, dirname, which, sleep), and Tab fills in what several matches share","Flashcards: spaced repetition (cards you know come back later, cards you miss come back today), a mode where you type the answer, either side first, paste a list or a Quizlet export to make a deck, a study streak, and no more pre-made decks","Security: programs run in Terminal and Python can no longer reach PatOS’s storage, Terminal’s node command is labeled as a JavaScript runner, and About, Terminal and Settings show the exact version you are running"],"fr":["Calendrier : vues Jour et Année, événements récurrents avec date de fin, alertes avant les événements (même avec Calendrier fermé), ajout rapide en mots simples (« Cours de maths lundi 9h chaque semaine »), recherche, glisser les événements vers un autre jour, et import et export .ics (Google Agenda)","Contacts : plusieurs numéros et courriels par personne, entreprise, toucher pour appeler ou écrire, recherche sans tenir compte des accents, Annuler après une suppression, fusion des doublons, et meilleur import et export vCard avec les photos","Météo : prévisions sur 10 jours, un résumé des prochaines heures, suggestions de villes en écrivant, rafales, pression, visibilité et pluie du jour, vent et pluie en mph et pouces avec les °F, actualisation automatique, et de vraies icônes au lieu des émojis","Photos : beaucoup plus rapide avec beaucoup de photos, vos propres albums, sélection de plusieurs photos, recherche, zoom et déplacement à la molette ou au pincement, balayage entre les photos, infos de la photo, glisser des images pour les ajouter, et les grandes photos apparaissent maintenant","Paint : choisissez la taille du canevas, zoom, texte, formes pleines, opacité qui ne s’assombrit pas aux croisements, Maj pour des lignes droites et des cercles, rotation et retournement, plus d’annulations, raccourcis clavier, et ouverture ou enregistrement par-dessus une image (Photos › Plus › Ouvrir dans Paint)","Fiabilité et sécurité : un enregistrement échoué garde vos suppressions, vérifications plus strictes des adresses de réseau privé, le coffre de mots de passe ne compte que son propre usage comme activité et se verrouille à la fermeture de Mots de passe, et la traduction française est complète","Messages : Pat peut régler des minuteurs et des alarmes, montrer ton calendrier et ce qui est dû, ajouter des événements et des rappels avec des dates en mots simples, convertir des unités, calculer des pourcentages, trouver des fichiers, choisir entre des options, et suggérer l’app que tu voulais. La flèche du haut rappelle ce que tu as écrit","Terminal : variables ($NOM), alias, !! pour répéter la dernière commande, nouveaux outils (cut, tr, sed, diff, nl, tee, stat, basename, dirname, which, sleep), et Tab complète ce que plusieurs correspondances ont en commun","Cartes mémoire : répétition espacée (les cartes que vous savez reviennent plus tard, celles que vous ratez reviennent aujourd’hui), un mode où vous écrivez la réponse, recto ou verso d’abord, coller une liste ou un export Quizlet pour faire un jeu, une série de jours d’étude, et plus de jeux préfaits","Sécurité : les programmes lancés dans Terminal et Python ne peuvent plus accéder au stockage de PatOS, la commande node du Terminal est présentée comme un exécuteur JavaScript, et À propos, Terminal et Réglages affichent la version exacte que vous utilisez"]}},{"version":"1.6.0","date":"2026-11-03","title":{"en":"Software Update","fr":"Mise à jour de logiciels"},"notes":{"en":["New Settings › Software Update: see your version, what changed, and install updates","PatOS finds new versions by itself while it is open, without refreshing","Installing an update restarts PatOS only, and your windows come back"],"fr":["Nouveau Réglages › Mise à jour de logiciels : votre version, ce qui a changé, et l’installation des mises à jour","PatOS trouve les nouvelles versions tout seul pendant qu’il est ouvert, sans rafraîchir","Installer une mise à jour redémarre seulement PatOS, et vos fenêtres reviennent"]}},{"version":"1.5.0","date":"2026-11-03","title":{"en":"iPhone swipe up, Reminders in plain words","fr":"Balayage sur iPhone, Rappels en mots simples"},"notes":{"en":["iPhone: swipe up from the bar at the bottom to leave an app, swipe up and pause for the app switcher","Reminders: type “Math test friday at 3pm !!” and the date, time and priority are filled in","Reminders can repeat, and there is search and Undo"],"fr":["iPhone : balayez vers le haut depuis la barre du bas pour quitter une app, et faites une pause pour le sélecteur d’apps","Rappels : écrivez « Examen de maths vendredi à 15h !! » et la date, l’heure et la priorité se remplissent","Les rappels peuvent se répéter, avec recherche et Annuler"]}},{"version":"1.4.0","date":"2026-11-03","title":{"en":"Clock and Calculator","fr":"Horloge et Calculatrice"},"notes":{"en":["Clock: add any city, a stopwatch that keeps running when closed, a timer with hours and a name, editable alarms","Calculator: history you can reuse, copy and paste, real percent, inverse trig"],"fr":["Horloge : ajoutez n’importe quelle ville, un chronomètre qui continue fermé, un minuteur avec heures et nom, des alarmes modifiables","Calculatrice : historique réutilisable, copier-coller, vrai pourcentage, trigonométrie inverse"]}},{"version":"1.3.0","date":"2026-11-03","title":{"en":"Finder and TextEdit","fr":"Finder et TextEdit"},"notes":{"en":["Finder: copy, cut and paste files, drag a box to select, drop files from your computer","TextEdit: find and replace, line and column, word wrap, Markdown preview, recent files, print"],"fr":["Finder : copier, couper et coller des fichiers, sélection en tirant un cadre, déposer des fichiers de l’ordinateur","TextEdit : rechercher et remplacer, ligne et colonne, retour à la ligne, aperçu Markdown, fichiers récents, impression"]}},{"version":"1.2.0","date":"2026-11-03","title":{"en":"Faster start, smoother 3D","fr":"Démarrage plus rapide, 3D plus fluide"},"notes":{"en":["PatOS starts in about a second instead of several","3D waits for the graphics chip, so slower Chromebooks don’t lag"],"fr":["PatOS démarre en environ une seconde au lieu de plusieurs","La 3D attend la puce graphique, donc les Chromebooks plus lents ne ralentissent plus"]}},{"version":"1.1.0","date":"2026-11-03","title":{"en":"Security","fr":"Sécurité"},"notes":{"en":["Passwords are always encrypted, and lock with your master password","Documents and pasted text can no longer run code","Pat in Messages is described honestly: a command helper, not an AI"],"fr":["Les mots de passe sont toujours chiffrés et se verrouillent avec votre mot de passe principal","Les documents et le texte collé ne peuvent plus exécuter de code","Pat dans Messages est décrit honnêtement : un assistant à commandes, pas une IA"]}}];
-PatOS.beta = {"version":"2.0.0","beta":8,"date":"2026-11-04","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"notes":{"en":["Backup & Restore: a snapshot every day (restore PatOS to how it was on Tuesday), a backup file you can lock with a password, and on a Chromebook an auto-backup folder on your real disk, so your data survives even if PatOS or the website is deleted. You can restore from the very first screen on a new device","Sync (optional): your files, notes, calendar, reminders, contacts, flashcards and some settings follow you between your Chromebook and your iPhone. Everything is encrypted on the device with a key only you have, so the server sees nothing readable. It works offline, never blocks PatOS, and if you delete your Railway and make a new one, your devices fill it again by themselves (restoring a backup brings your Sync code back too). Turn it on in Settings › Sync","Everything on your real disk: the backup folder now also keeps a full copy of your big files (videos, recordings, up to 1 GB) and your Sync code, so if PatOS or the website is deleted, restoring from the folder brings it all back. In Settings › Sync you can make a new code to share, or point an old PatOS at a new server address","App SDK and PitCode Studio: make your own PatOS apps in PatOS, like Xcode. Write them in PitCode (your own language, built in) or in HTML and JavaScript, run them in a preview with a console, then install them, save them as a .patapp file, or send them for review. Apps run in a locked box and must ask before using the camera, microphone, location, files, clipboard, notifications or the internet. New Settings › Privacy shows what every app may do and did. The App Store has new Community and Develop tabs, and accepted apps are reviewed at /apprequests","PatDrop: a chat for you and your friend (or your own devices). Make a code, type it on the other PatOS, and send messages, files, photos, links, clipboard text and even apps made in PitCode Studio, straight into each other's PatOS. It is encrypted on your device, works offline (things wait in an outbox), tells you when something arrives, and Finder has a Send with PatDrop item","PatOS Accounts: make an account with just a username and a password (no email) and everything you have (files, photos, notes, calendar, apps and your own apps, the dock, every setting, even your open windows and where they are) is saved in the cloud, locked with your password, and follows you to every device. A copy stays on each device, so PatOS still works offline. Everyone gets a big invitation to create their account, and everything already on the device is saved into it","Messages is now for people: search a username, send a message request, and they get notifications from you only after they accept. Every conversation is saved in the cloud and is the same on all your devices. Pat, the command helper, moved to a button in the top bar","Shortcuts: a new app for little automations. Open apps, ask Pat for a timer, change the theme, show messages, and more, one step after the other. Start them by hand, when you unlock PatOS, every day at a time, or by saying “Hey Pat, …”. Turn on Hey Pat in Settings › Pat Voice (it is off until you do): Pat listens for its name, answers out loud and runs your shortcuts. There is also a microphone button in Pat’s panel in Messages","Pat moved to the top bar: click the speech bubble next to Control Center to talk to Pat from anywhere (it is no longer inside Messages). On a phone, Pat is an app in Launchpad that opens the same panel","Faster start: apps now load when you open them. PatOS reads about a third of the app code at start instead of all of it, and every app still works offline"],"fr":["Sauvegarde et restauration : un instantané chaque jour (remettez PatOS comme il était mardi), un fichier de sauvegarde que vous pouvez verrouiller par mot de passe, et sur un Chromebook un dossier de sauvegarde automatique sur votre vrai disque, pour que vos données survivent même si PatOS ou le site est supprimé. Vous pouvez restaurer dès le tout premier écran sur un nouvel appareil","Synchronisation (facultative) : vos fichiers, notes, calendrier, rappels, contacts, cartes mémoire et certains réglages vous suivent entre votre Chromebook et votre iPhone. Tout est chiffré sur l’appareil avec une clé que vous seul avez, donc le serveur ne voit rien de lisible. Cela fonctionne hors ligne, ne bloque jamais PatOS, et si vous supprimez votre Railway pour en créer un nouveau, vos appareils le remplissent tout seuls (restaurer une sauvegarde ramène aussi votre code). Activez-la dans Réglages › Synchronisation","Tout sur votre vrai disque : le dossier de sauvegarde garde maintenant aussi une copie complète de vos gros fichiers (vidéos, enregistrements, jusqu’à 1 Go) et votre code de synchronisation, donc si PatOS ou le site est supprimé, restaurer depuis le dossier ramène tout. Dans Réglages › Synchronisation vous pouvez créer un nouveau code à partager, ou diriger un ancien PatOS vers une nouvelle adresse de serveur","SDK d’apps et PitCode Studio : faites vos propres apps PatOS dans PatOS, comme Xcode. Écrivez-les en PitCode (votre propre langage, intégré) ou en HTML et JavaScript, lancez-les dans un aperçu avec une console, puis installez-les, enregistrez-les en fichier .patapp, ou envoyez-les pour examen. Les apps tournent dans une boîte verrouillée et doivent demander avant d’utiliser la caméra, le micro, la position, les fichiers, le presse-papiers, les notifications ou internet. Le nouveau Réglages › Confidentialité montre ce que chaque app peut faire et a fait. L’App Store a de nouveaux onglets Communauté et Développer, et les apps acceptées sont examinées sur /apprequests","PatDrop : une discussion pour vous et votre ami (ou vos propres appareils). Créez un code, écrivez-le sur l’autre PatOS, et envoyez messages, fichiers, photos, liens, texte du presse-papiers et même des apps faites dans PitCode Studio, directement dans le PatOS de l’autre. C’est chiffré sur votre appareil, ça marche hors ligne (les choses attendent dans une boîte d’envoi), ça vous prévient quand quelque chose arrive, et le Finder a un élément Envoyer avec PatDrop","Comptes PatOS : créez un compte avec seulement un nom d’utilisateur et un mot de passe (pas de courriel) et tout ce que vous avez (fichiers, photos, notes, calendrier, apps et vos propres apps, le dock, tous les réglages, même vos fenêtres ouvertes et leur place) est enregistré dans le nuage, verrouillé par votre mot de passe, et vous suit sur chaque appareil. Une copie reste sur chaque appareil, donc PatOS marche toujours hors ligne. Tout le monde reçoit une grande invitation à créer son compte, et tout ce qui est déjà sur l’appareil y est enregistré","Messages est maintenant pour les gens : cherchez un nom d’utilisateur, envoyez une demande de message, et la personne reçoit des notifications de vous seulement après avoir accepté. Chaque conversation est enregistrée dans le nuage et identique sur tous vos appareils. Pat, l’assistant à commandes, est passé dans un bouton de la barre du haut","Raccourcis : une nouvelle app pour de petites automatisations. Ouvrir des apps, demander un minuteur à Pat, changer le thème, afficher des messages, et plus, une étape après l’autre. Lancez-les à la main, quand vous déverrouillez PatOS, chaque jour à une heure, ou en disant « Hey Pat, … ». Activez Hey Pat dans Réglages › Voix de Pat (désactivé tant que vous ne le faites pas) : Pat écoute son nom, répond à voix haute et lance vos raccourcis. Il y a aussi un bouton micro dans le panneau de Pat dans Messages","Pat est passé dans la barre du haut : cliquez sur la bulle à côté du Centre de contrôle pour parler à Pat de n’importe où (il n’est plus dans Messages). Sur un téléphone, Pat est une app dans Launchpad qui ouvre le même panneau","Démarrage plus rapide : les apps se chargent maintenant à leur ouverture. PatOS lit environ un tiers du code des apps au démarrage au lieu de tout, et chaque app marche toujours hors ligne"]}};
+PatOS.beta = {"version":"2.0.0","beta":9,"date":"2026-11-04","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"notes":{"en":["Backup & Restore: a snapshot every day (restore PatOS to how it was on Tuesday), a backup file you can lock with a password, and on a Chromebook an auto-backup folder on your real disk, so your data survives even if PatOS or the website is deleted. You can restore from the very first screen on a new device","Sync (optional): your files, notes, calendar, reminders, contacts, flashcards and some settings follow you between your Chromebook and your iPhone. Everything is encrypted on the device with a key only you have, so the server sees nothing readable. It works offline, never blocks PatOS, and if you delete your Railway and make a new one, your devices fill it again by themselves (restoring a backup brings your Sync code back too). Turn it on in Settings › Sync","Everything on your real disk: the backup folder now also keeps a full copy of your big files (videos, recordings, up to 1 GB) and your Sync code, so if PatOS or the website is deleted, restoring from the folder brings it all back. In Settings › Sync you can make a new code to share, or point an old PatOS at a new server address","App SDK and PitCode Studio: make your own PatOS apps in PatOS, like Xcode. Write them in PitCode (your own language, built in) or in HTML and JavaScript, run them in a preview with a console, then install them, save them as a .patapp file, or send them for review. Apps run in a locked box and must ask before using the camera, microphone, location, files, clipboard, notifications or the internet. New Settings › Privacy shows what every app may do and did. The App Store has new Community and Develop tabs, and accepted apps are reviewed at /apprequests","PatDrop: a chat for you and your friend (or your own devices). Make a code, type it on the other PatOS, and send messages, files, photos, links, clipboard text and even apps made in PitCode Studio, straight into each other's PatOS. It is encrypted on your device, works offline (things wait in an outbox), tells you when something arrives, and Finder has a Send with PatDrop item","PatOS Accounts: make an account with just a username and a password (no email) and everything you have (files, photos, notes, calendar, apps and your own apps, the dock, every setting, even your open windows and where they are) is saved in the cloud, locked with your password, and follows you to every device. A copy stays on each device, so PatOS still works offline. Everyone gets a big invitation to create their account, and everything already on the device is saved into it","Messages is now for people: search a username, send a message request, and they get notifications from you only after they accept. Every conversation is saved in the cloud and is the same on all your devices. Pat, the command helper, moved to a button in the top bar","Shortcuts: a new app for little automations. Open apps, ask Pat for a timer, change the theme, show messages, and more, one step after the other. Start them by hand, when you unlock PatOS, every day at a time, or by saying “Hey Pat, …”. Turn on Hey Pat in Settings › Pat Voice (it is off until you do): Pat listens for its name, answers out loud and runs your shortcuts. There is also a microphone button in Pat’s panel in Messages","Pat moved to the top bar: click the speech bubble next to Control Center to talk to Pat from anywhere (it is no longer inside Messages). On a phone, Pat is an app in Launchpad that opens the same panel","Faster everywhere: Photos opens without making every picture first, Files shows long folders in pieces so they appear at once, the start-up and lock screen wait less, and Pat answers quicker. PatOS also tests how fast your computer is and, on a slow one, turns off the see-through blur by itself (Settings › Speed mode lets you choose)","Made for Windows laptops too (like an HP EliteBook): PatOS no longer says “Chromebook” when you are not on one, scrollbars are thin on Windows, and everything fits a 1366 by 768 screen","Faster start: apps now load when you open them. PatOS reads about a third of the app code at start instead of all of it, and every app still works offline"],"fr":["Sauvegarde et restauration : un instantané chaque jour (remettez PatOS comme il était mardi), un fichier de sauvegarde que vous pouvez verrouiller par mot de passe, et sur un Chromebook un dossier de sauvegarde automatique sur votre vrai disque, pour que vos données survivent même si PatOS ou le site est supprimé. Vous pouvez restaurer dès le tout premier écran sur un nouvel appareil","Synchronisation (facultative) : vos fichiers, notes, calendrier, rappels, contacts, cartes mémoire et certains réglages vous suivent entre votre Chromebook et votre iPhone. Tout est chiffré sur l’appareil avec une clé que vous seul avez, donc le serveur ne voit rien de lisible. Cela fonctionne hors ligne, ne bloque jamais PatOS, et si vous supprimez votre Railway pour en créer un nouveau, vos appareils le remplissent tout seuls (restaurer une sauvegarde ramène aussi votre code). Activez-la dans Réglages › Synchronisation","Tout sur votre vrai disque : le dossier de sauvegarde garde maintenant aussi une copie complète de vos gros fichiers (vidéos, enregistrements, jusqu’à 1 Go) et votre code de synchronisation, donc si PatOS ou le site est supprimé, restaurer depuis le dossier ramène tout. Dans Réglages › Synchronisation vous pouvez créer un nouveau code à partager, ou diriger un ancien PatOS vers une nouvelle adresse de serveur","SDK d’apps et PitCode Studio : faites vos propres apps PatOS dans PatOS, comme Xcode. Écrivez-les en PitCode (votre propre langage, intégré) ou en HTML et JavaScript, lancez-les dans un aperçu avec une console, puis installez-les, enregistrez-les en fichier .patapp, ou envoyez-les pour examen. Les apps tournent dans une boîte verrouillée et doivent demander avant d’utiliser la caméra, le micro, la position, les fichiers, le presse-papiers, les notifications ou internet. Le nouveau Réglages › Confidentialité montre ce que chaque app peut faire et a fait. L’App Store a de nouveaux onglets Communauté et Développer, et les apps acceptées sont examinées sur /apprequests","PatDrop : une discussion pour vous et votre ami (ou vos propres appareils). Créez un code, écrivez-le sur l’autre PatOS, et envoyez messages, fichiers, photos, liens, texte du presse-papiers et même des apps faites dans PitCode Studio, directement dans le PatOS de l’autre. C’est chiffré sur votre appareil, ça marche hors ligne (les choses attendent dans une boîte d’envoi), ça vous prévient quand quelque chose arrive, et le Finder a un élément Envoyer avec PatDrop","Comptes PatOS : créez un compte avec seulement un nom d’utilisateur et un mot de passe (pas de courriel) et tout ce que vous avez (fichiers, photos, notes, calendrier, apps et vos propres apps, le dock, tous les réglages, même vos fenêtres ouvertes et leur place) est enregistré dans le nuage, verrouillé par votre mot de passe, et vous suit sur chaque appareil. Une copie reste sur chaque appareil, donc PatOS marche toujours hors ligne. Tout le monde reçoit une grande invitation à créer son compte, et tout ce qui est déjà sur l’appareil y est enregistré","Messages est maintenant pour les gens : cherchez un nom d’utilisateur, envoyez une demande de message, et la personne reçoit des notifications de vous seulement après avoir accepté. Chaque conversation est enregistrée dans le nuage et identique sur tous vos appareils. Pat, l’assistant à commandes, est passé dans un bouton de la barre du haut","Raccourcis : une nouvelle app pour de petites automatisations. Ouvrir des apps, demander un minuteur à Pat, changer le thème, afficher des messages, et plus, une étape après l’autre. Lancez-les à la main, quand vous déverrouillez PatOS, chaque jour à une heure, ou en disant « Hey Pat, … ». Activez Hey Pat dans Réglages › Voix de Pat (désactivé tant que vous ne le faites pas) : Pat écoute son nom, répond à voix haute et lance vos raccourcis. Il y a aussi un bouton micro dans le panneau de Pat dans Messages","Pat est passé dans la barre du haut : cliquez sur la bulle à côté du Centre de contrôle pour parler à Pat de n’importe où (il n’est plus dans Messages). Sur un téléphone, Pat est une app dans Launchpad qui ouvre le même panneau","Plus rapide partout : Photos s’ouvre sans fabriquer toutes les images d’abord, Fichiers affiche les longs dossiers par morceaux pour qu’ils apparaissent tout de suite, le démarrage et l’écran de verrouillage attendent moins, et Pat répond plus vite. PatOS teste aussi la vitesse de votre ordinateur et, sur un ordinateur lent, désactive seul le flou transparent (Réglages › Mode vitesse permet de choisir)","Pensé aussi pour les portables Windows (comme un HP EliteBook) : PatOS ne dit plus « Chromebook » quand vous n’en avez pas un, les barres de défilement sont fines sous Windows, et tout tient sur un écran de 1366 par 768","Démarrage plus rapide : les apps se chargent maintenant à leur ouverture. PatOS lit environ un tiers du code des apps au démarrage au lieu de tout, et chaque app marche toujours hors ligne"]}};
 
 </script>
   <script type="patos/js">
@@ -7213,6 +7240,8 @@ PatOS.beta = {"version":"2.0.0","beta":8,"date":"2026-11-04","title":{"en":"PatO
     'Take Picture': 'Prendre une photo',
     'Start Recording': 'Démarrer l’enregistrement',
     'This Chromebook': 'Ce Chromebook',
+    'Speed mode': 'Mode vitesse', 'Lighter (faster on slow computers)': 'Allégé (plus rapide sur les ordinateurs lents)', 'Full looks': 'Tous les effets',
+    'Lighter turns off the see-through blur and shortens animations. Automatic tests this computer each time PatOS starts.': 'Allégé désactive le flou transparent et raccourcit les animations. Automatique teste cet ordinateur à chaque démarrage de PatOS.',
     'Open Files…': 'Ouvrir des fichiers…',
     'Link a Folder…': 'Lier un dossier…',
     'Compress': 'Compresser',
@@ -8519,7 +8548,17 @@ PatOS.beta = {"version":"2.0.0","beta":8,"date":"2026-11-04","title":{"en":"PatO
     const u = { year: 'an', month: 'mois', week: 'semaine', day: 'jour', hour: 'heure', minute: 'minute' }[m[2]] || m[2];
     return 'il y a ' + m[1] + ' ' + u + (+m[1] > 1 && u !== 'mois' ? 's' : '');
   }
-  function t(s) {
+  /* "Chromebook" is only true on a Chromebook: on a Windows laptop (EliteBook...), a Mac or a phone the same sentences say "computer" */
+  const onChromeOS = /CrOS/.test(navigator.userAgent);
+  const NOT_CB_EN = [[/computer or Chromebook/g, 'computer'], [/\bThis Chromebook/g, 'This Computer'], [/\bChromebooks\b/g, 'computers'], [/\bChromebook\b/g, 'computer']];
+  const NOT_CB_FR = [[/ordinateur ou un Chromebook/g, 'ordinateur'], [/\bCe Chromebook/g, 'Cet ordinateur'], [/\bce Chromebook/g, 'cet ordinateur'], [/\bdu Chromebook/g, 'de l’ordinateur'], [/\ble Chromebook/g, 'l’ordinateur'], [/\bles Chromebooks/g, 'les ordinateurs'], [/\bChromebooks\b/g, 'ordinateurs'], [/\bChromebook\b/g, 'ordinateur']];
+  function notCb(s) {
+    if (onChromeOS || typeof s !== 'string' || s.indexOf('Chromebook') < 0) return s;
+    for (const [re, to] of PatOS.lang === 'fr' ? NOT_CB_FR : NOT_CB_EN) s = s.replace(re, to);
+    return s;
+  }
+  function t(s) { return notCb(t0(s)); }
+  function t0(s) {
     if (PatOS.lang !== 'fr' || s == null) return s;
     const k = String(s);
     if (FR[k] !== undefined) return FR[k];
@@ -9324,10 +9363,13 @@ PatOS.beta = {"version":"2.0.0","beta":8,"date":"2026-11-04","title":{"en":"PatO
       ctx.closePath(); ctx.fill();
     }
     ctx.filter = 'none';
-    // subtle grain
-    const img = ctx.getImageData(0, 0, w, hgt); const d = img.data;
-    for (let i = 0; i < d.length; i += 4) { const n = (r() - 0.5) * 10; d[i] += n; d[i + 1] += n; d[i + 2] += n; }
-    ctx.putImageData(img, 0, 0);
+    // subtle grain: one small noise tile, repeated (touching every pixel one by one took over a second on a modest laptop)
+    ctx.globalCompositeOperation = 'overlay'; ctx.fillStyle = grainPattern(ctx, r); ctx.fillRect(0, 0, w, hgt); ctx.globalCompositeOperation = 'source-over';
+  }
+  let grainTile = null;
+  function grainPattern(ctx, r) {
+    if (!grainTile) { grainTile = document.createElement('canvas'); grainTile.width = grainTile.height = 96; const g = grainTile.getContext('2d'); const img = g.createImageData(96, 96); for (let i = 0; i < img.data.length; i += 4) { const v = 118 + Math.floor(r() * 20); img.data[i] = img.data[i + 1] = img.data[i + 2] = v; img.data[i + 3] = 255; } g.putImageData(img, 0, 0); }
+    return ctx.createPattern(grainTile, 'repeat');
   }
 
   const thumbCache = {};
@@ -9564,9 +9606,11 @@ PatOS.beta = {"version":"2.0.0","beta":8,"date":"2026-11-04","title":{"en":"PatO
     if (lockCache[id]) return lockCache[id];
     const saved = PatOS.store.get('wpLockCache', null);
     if (saved && saved.id === id && saved.url) return (lockCache[id] = saved.url);
+    const all = PatOS.store.get('wpThumbs', {}); if (all[id]) return (lockCache[id] = all[id]);
     const c = document.createElement('canvas'); paint(c, LIVE[id] ? LIVE[id].fallback : id, 640, 400);
     lockCache[id] = c.toDataURL('image/jpeg', 0.8);
     PatOS.store.set('wpLockCache', { id, url: lockCache[id] });
+    if (id !== PatOS.settings.wallpaper) { all[id] = lockCache[id]; PatOS.store.set('wpThumbs', all); } // (made again by itself if lost)
     return lockCache[id];
   }
 
@@ -10674,12 +10718,14 @@ PatOS.beta = {"version":"2.0.0","beta":8,"date":"2026-11-04","title":{"en":"PatO
     document.documentElement.dataset.theme = t;
     document.documentElement.style.setProperty('--accent', s.accent);
     document.documentElement.classList.toggle('reduce-motion', !!s.reduceMotion);
-    document.documentElement.classList.toggle('reduce-transparency', !!s.reduceTransparency);
+    document.documentElement.classList.toggle('reduce-transparency', !!s.reduceTransparency || PatOS.perf.light());
+    document.documentElement.classList.toggle('perf-light', PatOS.perf.light());
+    document.documentElement.classList.toggle('win', !!PatOS.hw.windows);
     ['highContrast', 'boldText', 'showFocus', 'bigTargets'].forEach((k) => document.documentElement.classList.toggle(k.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase()), !!s[k]));
     $('#dimmer').style.opacity = String(1 - s.brightness);
     const chromium = !!window.chrome && !PatOS.isIOS && !/Firefox/.test(navigator.userAgent);
     document.documentElement.classList.toggle('lg-on', !!s.liquidGlass);
-    document.documentElement.classList.toggle('lg-refract', !!(s.liquidGlass && s.glassRefraction && chromium && s.quality3d !== 'low' && !s.reduceTransparency));
+    document.documentElement.classList.toggle('lg-refract', !!(s.liquidGlass && s.glassRefraction && chromium && s.quality3d !== 'low' && !s.reduceTransparency && !PatOS.perf.light()));
   }
   PatOS.applyTheme = applyTheme;
   /* Liquid Glass light follows the pointer */
@@ -10757,7 +10803,7 @@ PatOS.beta = {"version":"2.0.0","beta":8,"date":"2026-11-04","title":{"en":"PatO
       applyTheme();
       setupMenubar(); setupLaunchpad(); setupSpotlight(); setupDesktop(); setupDockMagnify(); setupKeys();
       PatOS.on('setting', (s) => {
-        if (['theme', 'accent', 'brightness', 'reduceMotion', 'reduceTransparency', 'liquidGlass', 'glassRefraction', 'quality3d'].includes(s.key)) applyTheme();
+        if (['theme', 'accent', 'brightness', 'reduceMotion', 'reduceTransparency', 'liquidGlass', 'glassRefraction', 'quality3d', 'perfMode'].includes(s.key)) applyTheme();
         if (['dockSize', 'dockAutohide'].includes(s.key)) applyDockSize();
         if (s.key === 'dockPinned') renderDock();
       });
@@ -10947,7 +10993,7 @@ PatOS.beta = {"version":"2.0.0","beta":8,"date":"2026-11-04","title":{"en":"PatO
           PatOS.sound.tone(700, 0.12, { vol: 0.06 }); PatOS.sound.tone(1050, 0.12, { vol: 0.05, delay: 0.08 });
           if (log.length > 200) log = log.slice(-200);
           PatOS.store.set('chatLog', log);
-        }, 500 + Math.random() * 500);
+        }, PatOS.settings.reduceMotion ? 0 : 120 + Math.random() * 120);
       }
       // up and down bring back what you typed before
       let sent = log.filter((x) => x.from === 'me').map((x) => x.text).slice(-50), histAt = -1;
@@ -12137,7 +12183,7 @@ PatOS.beta = {"version":"2.0.0","beta":8,"date":"2026-11-04","title":{"en":"PatO
   let mode = 'code'; // 'code' (a sync code and the PatOS server) or 'account' (a PatOS account in the cloud)
   const DENY = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncKey', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'accountPrompt', 'accountSeen', 'msgRead', 'patAppGrants', 'privacyLog',
     'setupStep', 'installOffered', 'iosHint', 'notifAsked', 'appInstalled', 'alarmQueue',
-    'wpCache', 'wpLockCache', 'wxCache', 'dictCache', 'googleCx', 'patosServer', 'ytKey', 'pwVault', 'musicState', 'settings']);
+    'wpCache', 'wpLockCache', 'wpThumbs', 'wxCache', 'dictCache', 'googleCx', 'patosServer', 'ytKey', 'pwVault', 'musicState', 'settings']);
   const DENY_PREFIX = ['newsCache:', 'ytHome:'];
   const denied = (k) => DENY.has(k) || DENY_PREFIX.some((x) => k.indexOf(x) === 0);
   const isKV = (k) => (mode === 'account' ? !denied(k) : KV_KEYS.indexOf(k) >= 0);
@@ -13270,6 +13316,7 @@ PatOS.beta = {"version":"2.0.0","beta":8,"date":"2026-11-04","title":{"en":"PatO
         const key = { name: (x) => x.name.toLowerCase(), date: (x) => x.mtime || 0, size: (x) => (x.app ? 0 : PatOS.fs.size(x)), kind: (x) => kindLabel(x) }[sort.by];
         return out.sort((a, b) => { if (!a.app && (a.type === 'dir') !== (b.type === 'dir')) return a.type === 'dir' ? -1 : 1; const x = key(a), y = key(b); return (x < y ? -1 : x > y ? 1 : 0) * sort.dir || a.name.localeCompare(b.name); });
       }
+      let renderToken = 0;
       function render() {
         renderSide();
         const label = cwd === 'apps' ? 'Applications' : cwd === '/.Trash' ? 'Trash' : cwd === 'tag' ? TAG_NAMES[tagFilter] : cwd === '/' ? 'Home' : PatOS.fs.basename(cwd);
@@ -13283,7 +13330,10 @@ PatOS.beta = {"version":"2.0.0","beta":8,"date":"2026-11-04","title":{"en":"PatO
           const hd = (by, l) => h('span', { class: 'fd-lhc' + (sort.by === by ? ' on' : ''), onclick: () => { sort = { by, dir: sort.by === by ? -sort.dir : 1 }; PatOS.store.set('finderSort', sort); render(); } }, l, sort.by === by ? (sort.dir > 0 ? ' ▲' : ' ▼') : '');
           main.appendChild(h('div', { class: 'fd-lh' }, hd('name', 'Name'), hd('date', 'Date Modified'), hd('size', 'Size'), hd('kind', 'Kind')));
         }
-        list.forEach((it, i) => main.appendChild(item(it, i)));
+        /* a folder with thousands of files draws the first screenful at once and the rest a moment later, so it opens at once */
+        const token = ++renderToken, FIRST = 120; const firstEnd = Math.min(list.length, FIRST);
+        for (let i = 0; i < firstEnd; i++) main.appendChild(item(list[i], i));
+        if (list.length > firstEnd) { let at = firstEnd; const more = () => { if (token !== renderToken || !main.isConnected) return; const end = Math.min(list.length, at + 250); const frag = document.createDocumentFragment(); for (; at < end; at++) frag.appendChild(item(list[at], at)); main.appendChild(frag); if (at < list.length) requestAnimationFrame(more); }; requestAnimationFrame(more); }
         if (!list.length) main.appendChild(h('div', { class: 'fd-empty' }, h('b', {}, PatOS.t(search.value ? 'No results' : cwd === '/.Trash' ? 'Trash is empty' : cwd === 'tag' ? 'No files with this tag' : 'This folder is empty')),
           canWrite() && !search.value ? h('small', {}, PatOS.t(PatOS.isMobile ? 'Press Import to add files from your phone.' : 'Drag files here from your computer, or press Import.')) : null));
         // path bar
@@ -17760,8 +17810,10 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
   const samples = [];
   function sampleArt() {
     if (samples.length) return samples;
-    ['sonora', 'aurora', 'monterra', 'ocean', 'sunrise', 'mint', 'ember', 'midnight'].forEach((k) => samples.push({ name: PatOS.wallpaper.palettes[k].name, src: PatOS.wallpaper.thumbLarge(k), sample: true }));
-    const gen = (name, fn) => { const c = document.createElement('canvas'); c.width = 640; c.height = 400; fn(c.getContext('2d'), 640, 400); samples.push({ name, src: c.toDataURL('image/jpeg', 0.85), sample: true }); };
+    /* each picture is made the first time it is looked at (counting the album must not make them all) */
+    const lazy = (name, make) => { const it = { name, sample: true }; let url = null; Object.defineProperty(it, 'src', { enumerable: true, get() { return url || (url = make()); }, set(v) { url = v; } }); return it; };
+    ['sonora', 'aurora', 'monterra', 'ocean', 'sunrise', 'mint', 'ember', 'midnight'].forEach((k) => samples.push(lazy(PatOS.wallpaper.palettes[k].name, () => PatOS.wallpaper.thumbLarge(k))));
+    const gen = (name, fn) => samples.push(lazy(name, () => { const c = document.createElement('canvas'); c.width = 640; c.height = 400; fn(c.getContext('2d'), 640, 400); return c.toDataURL('image/jpeg', 0.85); }));
     gen('Circles', (x, W, H) => { x.fillStyle = '#0d1b2a'; x.fillRect(0, 0, W, H); for (let i = 0; i < 70; i++) { x.fillStyle = `hsla(${180 + Math.random() * 140},80%,60%,.35)`; x.beginPath(); x.arc(Math.random() * W, Math.random() * H, 10 + Math.random() * 70, 0, 7); x.fill(); } });
     gen('Mountains', (x, W, H) => { const g = x.createLinearGradient(0, 0, 0, H); g.addColorStop(0, '#ff9a8b'); g.addColorStop(1, '#ff6a88'); x.fillStyle = g; x.fillRect(0, 0, W, H); x.fillStyle = '#fff6'; x.beginPath(); x.arc(W * 0.7, H * 0.35, 50, 0, 7); x.fill(); ['#7a3b69', '#563d7c', '#2d1e4f'].forEach((c, j) => { x.fillStyle = c; x.beginPath(); x.moveTo(0, H); for (let i = 0; i <= W; i += 20) x.lineTo(i, H * (0.45 + j * 0.15) - Math.abs(Math.sin(i * 0.01 * (j + 1) + j)) * 90); x.lineTo(W, H); x.fill(); }); });
     gen('Grid City', (x, W, H) => { x.fillStyle = '#090018'; x.fillRect(0, 0, W, H); x.strokeStyle = '#ff2fa3'; for (let i = -20; i <= 20; i++) { x.beginPath(); x.moveTo(W / 2 + i * 12, H * 0.55); x.lineTo(W / 2 + i * 90, H); x.stroke(); } for (let j = 0; j < 12; j++) { const y = H * 0.55 + Math.pow(j / 12, 2) * H * 0.45; x.beginPath(); x.moveTo(0, y); x.lineTo(W, y); x.stroke(); } const g = x.createLinearGradient(0, 60, 0, 220); g.addColorStop(0, '#ffd319'); g.addColorStop(1, '#ff2975'); x.fillStyle = g; x.beginPath(); x.arc(W / 2, H * 0.55, 120, Math.PI, 0); x.fill(); });
@@ -18605,7 +18657,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         general() {
           const name = h('input', { class: 'field', value: S().userName, style: { width: '180px' } });
           name.onchange = () => PatOS.setSetting('userName', name.value.trim() || 'Pat');
-          return [h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('about') }), h('div', {}, h('h2', {}, 'PatOS ' + (PatOS.versionNow ? PatOS.versionNow() : PatOS.version)), h('p', {}, 'A full desktop that runs in your browser, even on a school Chromebook.'))),
+          return [h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('about') }), h('div', {}, h('h2', {}, 'PatOS ' + (PatOS.versionNow ? PatOS.versionNow() : PatOS.version)), h('p', {}, T('A full desktop that runs in your browser, even on a school Chromebook.')))),
             group(row('Your name', name), row('Language', (() => { const s2 = h('select', { class: 'field' }, ...[['auto', 'Automatic (device language)'], ['en', 'English'], ['fr', 'French']].map(([v, l]) => h('option', { value: v, selected: (S().language || 'auto') === v }, l))); s2.onchange = async () => { const v = s2.value; if (await PatOS.confirmBox(PatOS.t('Language'), PatOS.t('PatOS restarts to change the language.'), { ok: PatOS.t('Restart'), icon: 'settings' })) { PatOS.setSetting('language', v); setTimeout(() => (PatOS._leaving = true, location.reload()), 200); } else s2.value = S().language || 'auto'; }; return s2; })(), PatOS.lang === 'fr' ? 'Langue de l’appareil : ' + (PatOS.deviceLang === 'fr' ? 'français' : 'anglais') : 'Device language: ' + (PatOS.deviceLang === 'fr' ? 'French' : 'English')), row('Layout', select('deviceMode', [['auto', 'Automatic (phone or computer)'], ['desktop', 'Computer'], ['mobile', 'Phone']]), 'Automatic uses the phone layout on small touch screens'), row('Ask for full screen at login', toggle('askFullscreen'), 'Makes PatOS feel like a real OS'), row(T('Reopen windows when PatOS starts'), toggle('reopenWindows'), T('Your open apps and files come back after a reload or a crash.')), row('24-hour clock', toggle('clock24')), row('Show seconds in menu bar', toggle('showSeconds'))),
             group(row('About this computer', h('button', { class: 'btn', onclick: () => PatOS.launch('about') }, 'About PatOS…')))];
         },
@@ -18867,7 +18919,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           });
           const acc = h('div', { class: 'st-acc' });
           ACCENTS.forEach((c) => { const b = h('button', { class: 'st-dot' + (S().accent === c ? ' on' : ''), style: { background: c } }); b.onclick = () => { PatOS.setSetting('accent', c); render(); }; acc.appendChild(b); });
-          return [h('h3', {}, 'Appearance'), modes, group(row('Highlight color', acc), row('Liquid Glass', toggle('liquidGlass'), 'See-through glass for the dock, menus, panels and widgets'), row('Glass bends the background', toggle('glassRefraction'), 'Works in Chrome. Uses more battery.'), row('Reduce transparency', toggle('reduceTransparency'), 'Solid windows. Runs faster on older Chromebooks.'), row('Fewer animations', toggle('reduceMotion')))];
+          return [h('h3', {}, 'Appearance'), modes, group(row('Highlight color', acc), row('Liquid Glass', toggle('liquidGlass'), 'See-through glass for the dock, menus, panels and widgets'), row('Glass bends the background', toggle('glassRefraction'), 'Works in Chrome. Uses more battery.'), row('Reduce transparency', toggle('reduceTransparency'), T('Solid windows. Runs faster on older Chromebooks.')), row('Fewer animations', toggle('reduceMotion')))];
         },
         wallpaper() {
           const grid = (ids, src) => { const g = h('div', { class: 'st-wps' }); ids.forEach((id) => { const b = h('button', { class: 'st-wp' + (S().wallpaper === id ? ' on' : '') }, h('img', { src: PatOS.wallpaper.thumb(id), alt: '' }), h('span', {}, src[id].name + (src[id].live ? ' ✦' : ''))); b.onclick = () => { PatOS.setSetting('wallpaper', id); if (src[id].live && !S().live3d) PatOS.setSetting('live3d', true); render(); }; g.appendChild(b); }); return g; };
@@ -18893,7 +18945,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         },
         display() {
           return [h('h3', {}, 'Display'), group(row('Brightness', range('brightness', 0.2, 1, 0.01, (v) => Math.round(v * 100) + '%')), row('Full screen', h('button', { class: 'btn', onclick: PatOS.toggleFullscreen }, document.fullscreenElement ? 'Exit Full Screen' : 'Enter Full Screen'))),
-            h('h3', {}, '3D Graphics'), group(row('3D quality', select('quality3d', [['low', 'Low (best for older Chromebooks)'], ['auto', 'Balanced'], ['high', 'High (sharpest)']])), row('WebGL', h('span', { class: 'st-val' }, PatOS.has3D ? 'Available (three.js r' + THREE.REVISION + ')' : 'Not available on this device')))];
+            h('h3', {}, T('Speed')), group(row(T('Speed mode'), select('perfMode', [['auto', T('Automatic')], ['light', T('Lighter (faster on slow computers)')], ['full', T('Full looks')]]), T('Lighter turns off the see-through blur and shortens animations. Automatic tests this computer each time PatOS starts.'))), h('h3', {}, '3D Graphics'), group(row('3D quality', select('quality3d', [['low', T('Low (best for older Chromebooks)')], ['auto', 'Balanced'], ['high', 'High (sharpest)']])), row('WebGL', h('span', { class: 'st-val' }, PatOS.has3D ? 'Available (three.js r' + THREE.REVISION + ')' : 'Not available on this device')))];
         },
         sound() { return [h('h3', {}, 'Sound'), group(row('Output volume', range('volume', 0, 1, 0.01, (v) => Math.round(v * 100) + '%')), row('Play user interface sounds', toggle('uiSounds')), row('Test', h('button', { class: 'btn', onclick: () => PatOS.sound.startup() }, 'Play Startup Chime')))]; },
         lock() {
@@ -19021,7 +19073,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         },
         keyboard() {
           const sc = [['Ctrl+Space / Alt+Space', 'Spotlight search'], ['Alt+L or F4', 'Launchpad'], ['Alt+↑ or F3', 'Mission Control'], ['Alt+W', 'Close window'], ['Alt+Q', 'Quit app'], ['Alt+M', 'Minimize'], ['Alt+F', 'Zoom window'], ['Alt+← / Alt+→', 'Tile window left / right'], ['Alt+N', 'New window'], ['Alt+`', 'Cycle windows'], ['Alt+T', 'Terminal'], ['Alt+E', 'Finder'], ['Alt+B', 'Patoogle browser'], ['Alt+,', 'Settings'], ['Alt+Esc', 'Lock screen'], ['Esc', 'Close menus & overlays']];
-          return [h('h3', {}, 'Keyboard Shortcuts'), h('p', { class: 'st-note' }, 'PatOS uses Alt because Chromebooks reserve most Ctrl shortcuts.'), group(...sc.map(([k, d]) => row(d, h('kbd', {}, k))))];
+          return [h('h3', {}, 'Keyboard Shortcuts'), h('p', { class: 'st-note' }, T('PatOS uses Alt because Chromebooks reserve most Ctrl shortcuts.')), group(...sc.map(([k, d]) => row(d, h('kbd', {}, k))))];
         },
         storage() {
           const bar = h('div', { class: 'st-storage' }, h('div', { class: 'fd-bar big' }, h('span', { style: { width: '2%' } })), h('small', {}, T('Checking…')));
@@ -26939,7 +26991,12 @@ PatOS.sendWithPatDrop = async function (paths) {
     setTimeout(() => pass.focus(), 300);
   }
 
+  /* If someone signs in within the first moments, wait for the app files to be read first, so every app opens at once (also offline) */
   function login() {
+    if (PatOS.lazyPending && PatOS.lazyPending() && !$('#lock').classList.contains('need-pass')) { PatOS.prefetchLazy().then(loginNow); return; }
+    loginNow();
+  }
+  function loginNow() {
     const s = PatOS.settings; const pass = $('.lock-pass');
     if (PatOS.isMobile && s.password && !$('#lock').classList.contains('need-pass')) { $('#lock').classList.add('need-pass'); setTimeout(() => pass.focus(), 50); return; }
     if (s.password && pass.value !== s.password) {
@@ -27009,12 +27066,12 @@ PatOS.sendWithPatDrop = async function (paths) {
   function boot() {
     const fill = $('.boot-fill');
     if (soft) { const m = h('div', { class: 'boot-msg' }, PatOS.t(soft.update ? 'Updating PatOS…' : 'Restarting…')); $('#boot').appendChild(m); fill.style.transition = 'none'; fill.style.width = '45%'; } else bootParticles();
-    const minMs = soft ? 250 : PatOS.store.get('seenWelcome', false) ? 400 : 1500, t0 = performance.now();
+    const minMs = soft ? 120 : PatOS.store.get('seenWelcome', false) ? 120 : 1500, t0 = performance.now();
     requestAnimationFrame(() => { fill.style.transition = ''; fill.style.width = soft ? '70%' : '35%'; });
     const fonts = document.fonts && document.fonts.ready ? Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]) : Promise.resolve();
     fonts.then(() => { fill.style.width = '75%'; return new Promise((r) => requestAnimationFrame(() => requestAnimationFrame(r))); })
       .catch(() => {})
-      .then(() => setTimeout(() => { fill.style.width = '100%'; setTimeout(showLock, 250); }, Math.max(0, minMs - (performance.now() - t0))));
+      .then(() => setTimeout(() => { fill.style.width = '100%'; setTimeout(showLock, 80); }, Math.max(0, minMs - (performance.now() - t0))));
   }
   /* ---------- Software Update ----------
      The browser only looks for a new PatOS when the page loads, so PatOS asks the server itself every few
@@ -27118,6 +27175,8 @@ PatOS.sendWithPatDrop = async function (paths) {
 
   (document.readyState === 'loading' ? (fn) => document.addEventListener('DOMContentLoaded', fn) : (fn) => fn())(() => {
     PatOS.applyTheme && PatOS.applyTheme();
+    // once the page has settled, measure how fast this computer is; a slow one gets the light look (Settings › Speed mode can change it)
+    setTimeout(() => (window.requestIdleCallback || setTimeout)(() => { if (PatOS.perf.measure() === 'light' && PatOS.perf.light()) PatOS.applyTheme(); }, { timeout: 4000 }), 2500);
     $('.lock-form').addEventListener('submit', (e) => { e.preventDefault(); login(); });
     document.addEventListener('keydown', (e) => {
       if ($('#lock').classList.contains('hidden') || PatOS.loggedIn || e.target === $('.lock-pass')) return;

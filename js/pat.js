@@ -165,7 +165,7 @@
           PatOS.sound.tone(700, 0.12, { vol: 0.06 }); PatOS.sound.tone(1050, 0.12, { vol: 0.05, delay: 0.08 });
           if (log.length > 200) log = log.slice(-200);
           PatOS.store.set('chatLog', log);
-        }, 500 + Math.random() * 500);
+        }, PatOS.settings.reduceMotion ? 0 : 120 + Math.random() * 120);
       }
       // up and down bring back what you typed before
       let sent = log.filter((x) => x.from === 'me').map((x) => x.text).slice(-50), histAt = -1;

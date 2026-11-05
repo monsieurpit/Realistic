@@ -158,7 +158,7 @@
     peek(key) { return KV ? KV[key] : undefined; },
     /* everything worth keeping, for backups: all saved data except the file tree (that comes from fs.exportTree)
        and caches that are made again by themselves */
-    backupData() { const o = {}; const skip = new Set(['fs', 'wpCache', 'wpLockCache', 'wxCache', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'accountPrompt', 'msgRead', 'msgOutbox']); const src = KV || (function () { const r = {}; try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => { try { r[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {} return r; })(); Object.keys(src).forEach((k) => { if (!skip.has(k)) o[k] = clone(src[k]); }); return o; },
+    backupData() { const o = {}; const skip = new Set(['fs', 'wpCache', 'wpLockCache', 'wpThumbs', 'wxCache', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'accountPrompt', 'msgRead', 'msgOutbox']); const src = KV || (function () { const r = {}; try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => { try { r[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {} return r; })(); Object.keys(src).forEach((k) => { if (!skip.has(k)) o[k] = clone(src[k]); }); return o; },
     /* put saved data back from a backup: keys that are not in it are removed */
     restoreData(data) {
       const keep = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'accountPrompt', 'msgRead', 'msgOutbox']); const neverRemove = new Set(['syncKey']); const old = KV ? Object.keys(KV) : [];
@@ -216,6 +216,7 @@
     reduceMotion: false, highContrast: false, boldText: false, showFocus: false, bigTargets: false, srAnnounce: true, systemNotifications: true,
     reduceTransparency: false,
     quality3d: 'auto',       // low | auto | high
+    perfMode: 'auto',        // auto | light | full (Speed mode: light turns off the see-through blur and the long animations)
     askFullscreen: true,
     reopenWindows: true,
     betaUpdates: false,      // Settings › Software Update › Beta updates
@@ -250,6 +251,20 @@
     standalone: () => navigator.standalone === true || (window.matchMedia && matchMedia('(display-mode: standalone), (display-mode: fullscreen)').matches),
     touch: navigator.maxTouchPoints > 0 || 'ontouchstart' in window
   };
+  PatOS.hw.windows = /Windows NT/.test(UA); PatOS.hw.chromeos = /CrOS/.test(UA);
+  // a laptop that is also a tablet (EliteBook x360...): a touch screen on a computer
+  PatOS.hw.touchLaptop = PatOS.hw.touch && !PatOS.hw.phone && !PatOS.hw.ios && !PatOS.hw.android;
+  /* Speed: a 15 ms test of how fast this computer thinks. Slow ones (an old school laptop) get the light look by default. Nothing is stored: each start measures again. */
+  PatOS.perf = (function () {
+    let tier = null;
+    function measure() {
+      if (tier) return tier;
+      let best = 0, x = 1;
+      for (let k = 0; k < 3; k++) { let n = 0; const end = performance.now() + 15; while (performance.now() < end) { for (let i = 0; i < 2000; i++) x = (x * 1.0000001 + i) % 1000003; n++; } best = Math.max(best, n); }
+      PatOS.perf.score = best; tier = best < 200 ? 'light' : 'full'; return tier; // about 500 on a fast laptop, about 150 on a 4x slower school computer
+    }
+    return { score: 0, tier: () => tier || 'full', measure, light: () => { const m = PatOS.settings.perfMode; return m === 'light' || (m !== 'full' && tier === 'light'); } };
+  })();
   PatOS.isIOS = PatOS.hw.ios;
   PatOS.detectMobile = function () {
     const m = PatOS.settings.deviceMode;
@@ -681,9 +696,13 @@
   const lazyLoaded = new Set(), lazyText = new Map(), lazySrcs = new Set();
   /* Soon after start, the text of these files is read from the device's offline copy (nothing is run, so it is cheap). That way an app
      opens at once, also offline, and from the same version as the rest of PatOS even if an update arrives meanwhile. */
+  let prefetching = null, prefetched = false;
+  PatOS.lazyPending = () => lazySrcs.size > 0 && !prefetched; // true until the app files have been read (usually done long before anyone types a password)
   PatOS.prefetchLazy = function () {
+    if (prefetching) return prefetching;
     const queue = [...lazySrcs].filter((x) => !lazyText.has(x)); const worker = async () => { while (queue.length) { const src = queue.shift(); try { const r = await fetch(src); if (r.ok) lazyText.set(src, await r.text()); } catch (e) {} } };
-    return Promise.all([worker(), worker(), worker()]);
+    prefetching = Promise.all([worker(), worker(), worker()]).then(() => { prefetched = true; });
+    return prefetching;
   };
   PatOS.loadLazy = function (src) {
     if (lazyLoaded.has(src)) return true; lazyLoaded.add(src);
@@ -701,7 +720,7 @@
       return false;
     }
   };
-  PatOS.lazyApps = (list) => { list.forEach((m) => { lazySrcs.add(m.lazy); PatOS.registerApp(m); }); setTimeout(() => PatOS.prefetchLazy(), 400); };
+  PatOS.lazyApps = (list) => { list.forEach((m) => { lazySrcs.add(m.lazy); PatOS.registerApp(m); }); setTimeout(() => PatOS.prefetchLazy(), 60); };
   /* PatOS.theHelper: loads the file that makes it the first time it is read. The file's own assignment replaces this entry. */
   PatOS.lazyExports = function (map) {
     Object.keys(map).forEach((key) => {
