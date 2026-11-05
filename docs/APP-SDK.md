@@ -510,6 +510,8 @@ Owner routes need `Authorization: Bearer <token>`. The review page itself is `/a
 
 **Device Lab** (`examples/device-lab.patapp`, and its project `examples/device-lab.patappproject` to open in Studio): a big app that uses **every** permission (files, notifications, clipboard, camera, microphone, location, internet), has a button for each call, shows what each permission did, and has **Run every test** with a report you can copy or save. Its source is in `examples/device-lab/` (rebuild the two files with `node scripts/build-example.js`).
 
+**Device Lab in PitCode** (`examples/device-lab-pit.patapp`, and its project `examples/device-lab-pit.patappproject`): the same app written entirely in PitCode, in four files you can read in Studio: `main.pitx` (the screen), `lab.pit` (what every button does, calling `js.patos`), `tools.pit` (the shared state and helpers, with `share` and `use`) and `styles.pitoss` (the look). Its sources are in `examples/device-lab-pit/` (rebuild the two files with `node scripts/build-example-pit.js`).
+
 **An app that saves notes in a file** (permission `files`):
 
 ```html
