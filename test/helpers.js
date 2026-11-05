@@ -11,9 +11,12 @@ const ROOT = path.join(__dirname, '..');
 function freePort() {
   return new Promise((res, rej) => { const s = net.createServer(); s.listen(0, () => { const p = s.address().port; s.close(() => res(p)); }); s.on('error', rej); });
 }
-async function startServer() {
+/* opts.root: what the plain address shows to a new visitor. 'beta' (the default here) is the files being built, which is what most
+   tests are about; 'stable' is the real behavior of the website (the newest finished version). opts.cwd runs a copy of PatOS. */
+async function startServer(opts) {
+  opts = opts || {};
   const port = await freePort();
-  const child = spawn(process.execPath, ['server.js'], { cwd: ROOT, env: Object.assign({}, process.env, { PORT: String(port) }), stdio: ['ignore', 'ignore', 'pipe'] });
+  const child = spawn(process.execPath, ['server.js'], { cwd: opts.cwd || ROOT, env: Object.assign({}, process.env, { PORT: String(port), PATOS_ROOT: opts.root || 'beta' }), stdio: ['ignore', 'ignore', 'pipe'] });
   let err = ''; child.stderr.on('data', (d) => { err += d; });
   const base = 'http://localhost:' + port;
   for (let i = 0; i < 100; i++) {
@@ -21,6 +24,14 @@ async function startServer() {
     await new Promise((r) => setTimeout(r, 100));
   }
   child.kill(); throw new Error('server did not start: ' + err);
+}
+/* A throw-away copy of PatOS (to change its files, add a release or bump a beta without touching the real ones). Remove it with the returned remove(). */
+function copyProject() {
+  const fs = require('fs'); const os = require('os');
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'patos-copy-'));
+  const skip = new Set(['node_modules', '.git', 'test', 'dist', 'data', 'sync-data', 'vendor-src']);
+  fs.cpSync(ROOT, dir, { recursive: true, filter: (src) => !skip.has(path.relative(ROOT, src).split(path.sep)[0]) });
+  return { dir, remove: () => fs.rmSync(dir, { recursive: true, force: true }) };
 }
 function playwright() { try { return require('playwright'); } catch (e) { return null; } }
 async function browser() {
@@ -46,4 +57,4 @@ async function reload(page) {
 }
 // pass "skip" to node:test when the browser isn't there
 const skipNoBrowser = !playwright() ? 'Playwright is not installed (npm i -D playwright && npx playwright install chromium)' : false;
-module.exports = { ROOT, startServer, browser, boot, reload, skipNoBrowser, playwright };
+module.exports = { ROOT, copyProject, startServer, browser, boot, reload, skipNoBrowser, playwright };

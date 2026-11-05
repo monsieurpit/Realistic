@@ -71,14 +71,14 @@
                 h('p', { class: 'su-small' }, T('PatOS restarts in a few seconds. Your work is saved and your windows come back.')),
                 h('div', { class: 'su-btns' }, h('button', { class: 'btn primary', onclick: () => U.restart() }, T('Restart PatOS to Update')))));
             } else if (U) {
-              out.appendChild(group(row(T('Check for updates'), h('button', { class: 'btn', disabled: st === 'checking' || st === 'downloading', onclick: () => U.check(true) }, T(st === 'checking' ? 'Checking…' : 'Check Now')), T('Updates are found and downloaded on their own. You choose when to install.'))));
+              out.appendChild(group(row(T('Check for updates'), h('button', { class: 'btn', disabled: st === 'checking' || st === 'downloading', onclick: () => U.check(true) }, T(st === 'checking' ? 'Checking…' : 'Check Now')), T('Updates are found on their own. You choose when to download and install them.'))));
             }
             // the beta switch
             if (U) {
               const sw = h('button', { class: 'switch' + (U.betaOn() ? ' on' : ''), role: 'switch', 'aria-checked': String(U.betaOn()), 'aria-label': T('Beta updates') });
               sw.onclick = () => { U.setBeta(!U.betaOn()); paint(); };
               const nb = U.newestBeta;
-              out.appendChild(group(row(T('Beta updates'), sw, (U.betaOn() ? (nb ? T('You are told about each beta as soon as it is ready. Now testing:') + ' ' + label(nb) + '.' : T('You are told about each beta as soon as it is ready. There is no beta right now.')) : T('You are only told about finished updates. Betas can have bugs.')) + ' ' + T('This chooses what you are told, not what is downloaded: PatOS always keeps the newest files from the website, so a beta can start running at your next restart.'))));
+              out.appendChild(group(row(T('Beta updates'), sw, (U.betaOn() ? (nb ? T('You are told about each beta as soon as it is ready. Now testing:') + ' ' + label(nb) + '.' : T('You are told about each beta as soon as it is ready. There is no beta right now.')) : T('You are only told about finished updates. Betas can have bugs.')) + ' ' + T('PatOS never changes version by itself, except a beta (with this on), which is downloaded quietly and used the next time PatOS starts. A finished version only installs when you press the update button.'))));
             }
             // what's in the version you have, and the ones before
             if (cur && cur.notes) out.append(h('h3', {}, T('What’s new in') + ' ' + label(cur)), h('div', { class: 'su-card' }, h('div', { class: 'su-chead' }, h('b', {}, rt(cur, 'title'), ' ', badge(cur)), cur.date ? h('small', {}, fmtDate(cur.date)) : null), notesOf(cur)));

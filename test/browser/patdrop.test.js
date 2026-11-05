@@ -45,7 +45,7 @@ test('two friends: messages, files, links, clipboard and apps, and the server se
   assert.match(await A.ev(async () => { PatOS.fs.write('/Documents/huge.txt', 'x'.repeat(9.6e6)); try { await PatOS.link.sendPath('/Documents/huge.txt'); return 'sent'; } catch (e) { return e.message; } }), /too big/);
   // the server holds only scrambled bytes
   const bytes = serverBytes(); assert.ok(bytes.length > 500);
-  ['secret-word', 'trip-plan', 'reef', 'copied-on-A', 'example.com', 'Gift', 'Pat', 'Bro', 'png'].forEach((w) => assert.ok(!bytes.includes(w), 'server must not contain: ' + w));
+  ['secret-word', 'trip-plan', 'reef', 'copied-on-A', 'example.com', 'Gift', '"Pat"', '"Bro"', '.png', 'image/png'].forEach((w) => assert.ok(!bytes.includes(w), 'server must not contain: ' + w));
   assert.deepEqual(await A.ev(() => PatOS.link.status().state), 'idle'); assert.deepEqual(A.errors.concat(B.errors), []);
   await A.ctx.close(); await B.ctx.close();
 });

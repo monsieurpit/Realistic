@@ -18,8 +18,8 @@ test('exactly the self-contained app files are marked to load on demand', () => 
   marked.forEach(([, type, file]) => assert.equal(type, lazy.has(file) ? 'lazy' : 'js', file + ' is marked wrong (node build.js)'));
   assert.ok(r.lazy.length >= 40, 'most apps load on demand: ' + r.lazy.length);
   assert.ok(html.indexOf('js/appmeta.js') > html.indexOf('js/core.js') && html.indexOf('js/appmeta.js') < html.indexOf('js/apps/'), 'the name list loads after the core and before the apps');
-  // every lazy file is cached for offline use (the service worker's list comes from index.html)
-  const sw = fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8'); r.lazy.forEach((f) => assert.ok(sw.includes('"' + f + '"'), f + ' is not in the offline cache'));
+  // every lazy file is saved on the device for offline use (the list of a version's files comes from its index.html: update-manager.js)
+  const saved = require('../../update-manager.js').filesOf(ROOT); r.lazy.forEach((f) => assert.ok(saved.includes(f), f + ' is not in the offline cache'));
 });
 test('the single-file build (one HTML file, for Artifacts and offline use) has every app inside and no on-demand marks', () => {
   const single = fs.readFileSync(path.join(ROOT, 'dist', 'PatOS.html'), 'utf8');

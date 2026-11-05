@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="PatOS">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
+  <title>PatOS</title>
+  <meta name="description" content="PatOS — a desktop operating system that runs in your browser.">
+  <meta name="theme-color" content="#0b0b14">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="preconnect" href="https://www.youtube.com">
+  <link rel="preconnect" href="https://i.ytimg.com">
+  <link rel="preconnect" href="https://www.google.com">
+  <link rel="dns-prefetch" href="https://www.gstatic.com">
+  <link rel="dns-prefetch" href="https://yt3.ggpht.com">
+  <link rel="dns-prefetch" href="https://play.google.com">
+  <link rel="icon" href="assets/icon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/patos.css">
+  <link rel="stylesheet" href="css/apps.css">
+  <link rel="stylesheet" href="css/apps2.css">
+  <link rel="stylesheet" href="css/mobile.css">
+  <link rel="stylesheet" href="css/apps3.css">
+  <link rel="stylesheet" href="css/office.css">
+  <link rel="stylesheet" href="css/glass.css">
+</head>
+<body>
+  <!-- Liquid Glass refraction filter (used by Chromium browsers) -->
+  <svg width="0" height="0" style="position:absolute" aria-hidden="true">
+    <filter id="lg-refract" x="0%" y="0%" width="100%" height="100%" color-interpolation-filters="sRGB">
+      <feTurbulence type="fractalNoise" baseFrequency="0.009 0.012" numOctaves="2" seed="7" result="noise"/>
+      <feGaussianBlur in="noise" stdDeviation="2.5" result="soft"/>
+      <feDisplacementMap in="SourceGraphic" in2="soft" scale="46" xChannelSelector="R" yChannelSelector="G"/>
+    </filter>
+  </svg>
+
+  <!-- Boot screen -->
+  <div id="boot" class="screen">
+    <div class="boot-logo"><span>P</span></div>
+    <div class="boot-bar"><div class="boot-fill"></div></div>
+  </div>
+
+  <!-- Lock / login screen -->
+  <div id="lock" class="screen hidden">
+    <div class="lock-bg"></div>
+    <div class="lock-clock">
+      <div class="lock-date"></div>
+      <div class="lock-time"></div>
+    </div>
+    <div class="lock-user">
+      <div class="lock-avatar"></div>
+      <div class="lock-name"></div>
+      <form class="lock-form" autocomplete="off">
+        <input type="password" class="lock-pass" placeholder="Enter Password">
+        <button type="submit" class="lock-go" aria-label="Log in">&#10140;</button>
+      </form>
+      <div class="lock-hint"></div>
+    </div>
+    <div class="lock-actions">
+      <button data-act="sleep"><span>&#9790;</span>Sleep</button>
+      <button data-act="restart"><span>&#8635;</span>Restart</button>
+      <button data-act="shutdown"><span>&#9211;</span>Shut Down</button>
+    </div>
+  </div>
+
+  <!-- Off screen -->
+  <div id="off" class="screen hidden"><div class="off-msg">PatOS is shut down.<br><small>Click anywhere to start up.</small></div></div>
+
+  <!-- Desktop -->
+  <div id="desktop" class="hidden">
+    <canvas id="wallpaper"></canvas>
+    <canvas id="wallpaper3d"></canvas>
+    <div id="desktop-icons"></div>
+    <div id="windows"></div>
+    <div id="selection-box"></div>
+
+    <header id="menubar">
+      <div class="mb-left">
+        <button class="mb-logo" data-menu="system" aria-label="PatOS menu">P</button>
+        <button class="mb-app" data-menu="app">Finder</button>
+        <button class="mb-item" data-menu="file">File</button>
+        <button class="mb-item" data-menu="edit">Edit</button>
+        <button class="mb-item" data-menu="view">View</button>
+        <button class="mb-item" data-menu="window">Window</button>
+        <button class="mb-item" data-menu="help">Help</button>
+      </div>
+      <div class="mb-right">
+        <span class="mb-status" id="mb-battery" title="Battery"></span>
+        <button class="mb-status" id="mb-wifi" title="Wi-Fi"></button>
+        <button class="mb-status" id="mb-search" title="Spotlight (Ctrl+Space)"></button>
+        <button class="mb-status" id="mb-cc" title="Control Center"></button>
+        <button class="mb-clock" id="mb-clock"></button>
+      </div>
+    </header>
+
+    <nav id="dock-wrap"><div id="dock"></div></nav>
+
+    <div id="launchpad" class="hidden">
+      <input class="lp-search" placeholder="Search" spellcheck="false">
+      <div class="lp-grid"></div>
+    </div>
+
+    <div id="spotlight" class="hidden">
+      <div class="sp-box">
+        <div class="sp-row"><span class="sp-icon"></span><input class="sp-input" placeholder="Spotlight Search" spellcheck="false"></div>
+        <div class="sp-results"></div>
+      </div>
+    </div>
+
+    <div id="control-center" class="panel hidden"></div>
+    <div id="notif-center" class="panel hidden"></div>
+    <div id="toasts"></div>
+    <div id="menu-layer"></div>
+    <div id="mission" class="hidden"><div class="mc-hint">Click a window to focus it &middot; Esc to exit</div></div>
+    <div id="dimmer"></div>
+  </div>
+
+  <noscript><div style="padding:40px;font:16px system-ui;color:#fff;background:#111">PatOS needs JavaScript turned on.</div></noscript>
+
+  <script src="js/preload.js"></script>
+  <script type="patos/3d" src="vendor/three.min.js"></script>
+  <script type="patos/js" src="js/core.js"></script>
+  <script type="patos/js" src="js/version.js"></script>
+  <script type="patos/js" src="js/updatemanager.js"></script>
+  <script type="patos/js" src="js/device.js"></script>
+  <script type="patos/js" src="js/install.js"></script>
+  <script type="patos/js" src="js/zip.js"></script>
+  <script type="patos/js" src="js/fmt-docx.js"></script>
+  <script type="patos/js" src="js/fmt-xlsx.js"></script>
+  <script type="patos/js" src="js/fmt-pptx.js"></script>
+  <script type="patos/js" src="js/formats.js"></script>
+  <script type="patos/js" src="js/pyrun.js"></script>
+  <script type="patos/js" src="js/i18n.js"></script>
+  <script type="patos/js" src="js/icons.js"></script>
+  <script type="patos/js" src="js/wm.js"></script>
+  <script type="patos/js" src="js/wallpaper.js"></script>
+  <script type="patos/js" src="js/shell.js"></script>
+  <script type="patos/js" src="js/mobile.js"></script>
+  <script type="patos/js" src="js/alarms.js"></script>
+  <script type="patos/js" src="js/session.js"></script>
+  <script type="patos/js" src="js/setup.js"></script>
+  <script type="patos/js" src="js/apps/finder.js"></script>
+  <script type="patos/js" src="js/apps/office.js"></script>
+  <script type="patos/js" src="js/apps/passwords.js"></script>
+  <script type="patos/js" src="js/apps/browser.js"></script>
+  <script type="patos/js" src="js/apps/webapps.js"></script>
+  <script type="patos/js" src="js/apps/youtube.js"></script>
+  <script type="patos/js" src="js/apps/notes.js"></script>
+  <script type="patos/js" src="js/apps/textedit.js"></script>
+  <script type="patos/js" src="js/apps/calculator.js"></script>
+  <script type="patos/js" src="js/apps/terminal.js"></script>
+  <script type="patos/js" src="js/apps/calendar.js"></script>
+  <script type="patos/js" src="js/apps/clock.js"></script>
+  <script type="patos/js" src="js/apps/weather.js"></script>
+  <script type="patos/js" src="js/apps/music.js"></script>
+  <script type="patos/js" src="js/apps/photos.js"></script>
+  <script type="patos/js" src="js/apps/paint.js"></script>
+  <script type="patos/js" src="js/apps/photobooth.js"></script>
+  <script type="patos/js" src="js/apps/reminders.js"></script>
+  <script type="patos/js" src="js/apps/settings.js"></script>
+  <script type="patos/js" src="js/apps/activity.js"></script>
+  <script type="patos/js" src="js/apps/galaxy.js"></script>
+  <script type="patos/js" src="js/apps/orbrunner.js"></script>
+  <script type="patos/js" src="js/apps/studio.js"></script>
+  <script type="patos/js" src="js/apps/tictactoe.js"></script>
+  <script type="patos/js" src="js/apps/messages.js"></script>
+  <script type="patos/js" src="js/apps/appstore.js"></script>
+  <script type="patos/js" src="js/apps/codestudio.js"></script>
+  <script type="patos/js" src="js/apps/piano.js"></script>
+  <script type="patos/js" src="js/apps/flashcards.js"></script>
+  <script type="patos/js" src="js/apps/typing.js"></script>
+  <script type="patos/js" src="js/apps/voicememos.js"></script>
+  <script type="patos/js" src="js/apps/stickies.js"></script>
+  <script type="patos/js" src="js/apps/dictionary.js"></script>
+  <script type="patos/js" src="js/apps/docs.js"></script>
+  <script type="patos/js" src="js/apps/sheets.js"></script>
+  <script type="patos/js" src="js/apps/slides.js"></script>
+  <script type="patos/js" src="js/apps/drive.js"></script>
+  <script type="patos/js" src="js/apps/forms.js"></script>
+  <script type="patos/js" src="js/apps/translate.js"></script>
+  <script type="patos/js" src="js/apps/contacts.js"></script>
+  <script type="patos/js" src="js/apps/freeform.js"></script>
+  <script type="patos/js" src="js/apps/pdfview.js"></script>
+  <script type="patos/js" src="js/apps/preview.js"></script>
+  <script type="patos/js" src="js/apps/scanner.js"></script>
+  <script type="patos/js" src="js/apps/chess.js"></script>
+  <script type="patos/js" src="js/apps/screenshot.js"></script>
+  <script type="patos/js" src="js/apps/grapher.js"></script>
+  <script type="patos/js" src="js/apps/elements.js"></script>
+  <script type="patos/js" src="js/apps/focus.js"></script>
+  <script type="patos/js" src="js/apps/journal.js"></script>
+  <script type="patos/js" src="js/apps/sudoku.js"></script>
+  <script type="patos/js" src="js/apps/news.js"></script>
+  <script type="patos/js" src="js/apps/books.js"></script>
+  <script type="patos/js" src="js/apps/radio.js"></script>
+  <script type="patos/js" src="js/apps/videos.js"></script>
+  <script type="patos/js" src="js/apps/solitaire.js"></script>
+  <script type="patos/js" src="js/apps/games.js"></script>
+  <script type="patos/js" src="js/apps/getapps.js"></script>
+  <script type="patos/js" src="js/apps/about.js"></script>
+  <script type="patos/js" src="js/boot.js"></script>
+</body>
+</html>
