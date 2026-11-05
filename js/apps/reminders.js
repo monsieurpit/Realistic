@@ -132,7 +132,7 @@
             items.push(r); add.value = ''; hint.textContent = ''; save(); render(); main.querySelector('.rm-add').focus();
           });
           main.append(add, hint);
-          if (!items.length) main.appendChild(h('div', { class: 'rm-tip' }, PatOS.t('Tip: write the date and time in the reminder, like “Science project friday at 3pm !!” or “Lire le chapitre 4 demain 19h”.')));
+          if (!items.length) main.appendChild(h('div', { class: 'rm-tip' }, ''));
         }
       }
       function row(r, color) {

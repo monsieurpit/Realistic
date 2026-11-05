@@ -7,7 +7,7 @@
     launch(win) {
       const canvas = h('canvas', { class: 'ab-canvas', width: 200, height: 200 });
       const ua = navigator.userAgent;
-      const info = [['Version', 'PatOS ' + (PatOS.versionNow ? PatOS.versionNow() : PatOS.version) + ' “Nebula”'], ['Device', ua.includes('CrOS') ? 'Chromebook' : (navigator.platform || 'Computer')], ['Browser', (ua.match(/(Chrome|Firefox|Safari|Edg)\/[\d]+/) || ['Web browser'])[0].replace('/', ' ')],
+      const info = [['Version', 'PatOS ' + (PatOS.versionNow ? PatOS.versionNow() : PatOS.version)], ['Device', ua.includes('CrOS') ? 'Chromebook' : (navigator.platform || 'Computer')], ['Browser', (ua.match(/(Chrome|Firefox|Safari|Edg)\/[\d]+/) || ['Web browser'])[0].replace('/', ' ')],
         ['Graphics', PatOS.has3D ? 'WebGL · three.js r' + THREE.REVISION : PatOS.webgl ? 'WebGL' : 'No WebGL'], ['Display', screen.width + ' × ' + screen.height], ['Apps', PatOS.appOrder.length + ' installed'], ['Storage', PatOS.fmtBytes(PatOS.store.usage()) + ' used']];
       win.body.appendChild(h('div', { class: 'ab' }, canvas, h('div', { class: 'ab-info' }, h('h1', {}, 'PatOS'), h('div', { class: 'ab-ver' }, 'Version ' + (PatOS.versionNow ? PatOS.versionNow() : PatOS.version)),
         ...info.map(([k, v]) => h('div', { class: 'ab-row' }, h('span', {}, k), h('b', {}, v))),

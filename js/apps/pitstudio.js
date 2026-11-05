@@ -298,9 +298,9 @@
         const mine = h('div', { class: 'ps-projects' }, ...(list.length ? list.map((p) => { const b = h('button', { class: 'ps-proj', onclick: () => open(p.name) }, h('div', { class: 'as-ic', html: '<div class="icon-tile" style="background:linear-gradient(160deg,rgba(255,255,255,.28),rgba(0,0,0,.22)),' + PatOS.esc(p.meta.color || '#0a84ff') + '"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><text x="32" y="44" font-size="34" font-family="system-ui,sans-serif" text-anchor="middle" fill="#fff">' + PatOS.esc(p.meta.icon || '?') + '</text></svg></div>' }), h('div', {}, h('b', {}, p.name), h('small', {}, (p.meta.language === 'pitcode' ? 'PitCode' : 'HTML + JavaScript') + ' · ' + p.meta.version))); return b; }) : [h('p', { class: 'ps-note' }, T('No projects yet. Make your first app on the left.'))]));
         drawTpl();
         root.appendChild(h('div', { class: 'ps-welcome' },
-          h('div', { class: 'ps-wcol' }, h('h1', {}, 'PitCode Studio'), h('p', { class: 'ps-note' }, T('Make apps for PatOS, like Xcode. Write in PitCode (your own language) or in HTML and JavaScript, run the app right here, then install it or send it to the store.')),
+          h('div', { class: 'ps-wcol' }, h('h1', {}, 'PitCode Studio'), h('p', { class: 'ps-note' }, ''),
             h('label', { class: 'ps-field' }, h('span', {}, T('App name')), nameIn), h('div', { class: 'ps-field' }, h('span', {}, T('Language')), langRow), h('div', { class: 'ps-field' }, h('span', {}, T('Start from')), tplRow), make,
-            h('p', { class: 'ps-note' }, T('Projects are folders in Documents › Studio, so Backup and Sync keep them safe. Learn the SDK in the App Store, Develop tab.'))),
+            h('p', { class: 'ps-note' }, '')),
           h('div', { class: 'ps-wcol' }, h('h2', {}, T('Your projects')), mine)));
       }
 

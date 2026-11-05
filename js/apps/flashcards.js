@@ -68,7 +68,7 @@
         const st = streak();
         main.appendChild(h('div', { class: 'fc-top' }, h('h1', { class: 'fc-h1' }, T('Your Decks')), st.n ? h('div', { class: 'fc-streak', title: T('Days in a row you studied') }, h('b', {}, st.n), ' ' + T(st.n === 1 ? 'day' : 'days') + ' ' + T('in a row')) : null));
         if (!decks.length) {
-          main.appendChild(h('div', { class: 'fc-empty' }, h('div', { class: 'fc-big', html: PatOS.iconHTML('flashcards') }), h('b', {}, T('No decks yet')), h('p', {}, T('Make a deck for a test, a language or a chapter. Cards you know come back later; the ones you miss come back today.')),
+          main.appendChild(h('div', { class: 'fc-empty' }, h('div', { class: 'fc-big', html: PatOS.iconHTML('flashcards') }), h('b', {}, T('No decks yet')), h('p', {}, ''),
             h('div', { class: 'fc-ebtns' }, h('button', { class: 'btn primary', onclick: newDeck }, T('New Deck')), h('button', { class: 'btn', onclick: () => importDialog() }, T('Paste a List…')))));
           return;
         }

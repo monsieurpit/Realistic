@@ -350,7 +350,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         return h('div', { class: 'pg-setup' },
           h('div', { class: 'pg-logo big' }, 'Patoogle'),
           h('h2', {}, PatOS.t('Search engine')),
-          h('p', {}, PatOS.t('When you search, Patoogle opens the results in your device’s own browser and closes itself.')),
+          h('p', {}, ''),
           opt('google', 'Google', 'The usual Google, with your account and history.'),
           opt('bing', 'Bing', 'Some school networks block Bing.'));
       }
@@ -392,7 +392,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           h('div', { class: 'nt-greet' }, greet + ', ' + PatOS.settings.userName),
           h('div', { class: 'pb-ntsearch' }, q), engineRow, grid,
           recent.length ? h('div', { class: 'pb-recent' }, h('b', {}, T('Continue where you left off')), ...recent.map((r) => h('button', { onclick: () => navigate(r.u) }, favicon(r.u) ? h('img', { src: favicon(r.u), alt: '' }) : null, h('span', {}, host(r.u))))) : null,
-          h('div', { class: 'nt-tip' }, T('Most sites open right here. A few big ones, like Gmail, won’t load inside other apps, so use the PatOS app for those.')));
+          h('div', { class: 'nt-tip' }, ''));
       }
       function historyPage() {
         const q = h('input', { class: 'field pb-hsearch', placeholder: T('Search history') });

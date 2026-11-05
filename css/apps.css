@@ -335,3 +335,5 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .st-link { display: flex; align-items: center; gap: 12px; width: 100%; text-align: left; padding: 10px 14px; } .st-link:hover { background: var(--hover); } .st-link-l { flex: 1; font-size: 13.5px; }
 .st-back { color: var(--accent); font-size: 13px; margin: -4px 0 6px; padding: 2px 0; }
 .st-me { text-align: center; padding: 6px 0 14px; } .st-me-av { width: 84px; height: 84px; font-size: 36px; margin: 0 auto 8px; } .st-me h2 { margin: 0; } .st-me p { margin: 4px 0 0; color: var(--text2); }
+/* paragraphs that have no text are not shown */
+.st-note:empty, .as-note:empty, .su-small:empty, .su-sub:empty, .st-hero p:empty { display: none; }

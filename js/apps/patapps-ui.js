@@ -20,7 +20,7 @@
   function community(main, q, again) {
     const P = PatOS.patapps;
     main.appendChild(h('h1', { class: 'as-h1' }, T('Community')));
-    main.appendChild(h('p', { class: 'as-note' }, T('Apps that people made for PatOS. The owner of this PatOS reads each one before it shows up here. Installed apps work offline.')));
+    main.appendChild(h('p', { class: 'as-note' }, ''));
     const box = h('div'); main.appendChild(box);
     const row = (a, inst) => {
       const have = P.get(a.id); const newer = have && P.cmp(a.version, have.version) > 0;
@@ -47,7 +47,7 @@
   function develop(main, again) {
     const P = PatOS.patapps;
     main.appendChild(h('h1', { class: 'as-h1' }, T('Develop')));
-    main.appendChild(h('p', { class: 'as-note' }, T('A PatOS app is one .patapp file: a web page with a name, an icon and a list of what it needs. It runs in a locked box and talks to PatOS through patos.storage, patos.notify, patos.files and a few more. Each sensitive thing is asked on the device before first use.')));
+    main.appendChild(h('p', { class: 'as-note' }, ''));
     const open = h('button', { class: 'btn primary' }, T('Open a .patapp File…')); open.onclick = async () => { const f = await pickFile('.patapp,.json,application/json'); if (f) { try { const a = P.parse(await f.text()); if (await P.install(a, { source: 'file' })) edit(a); } catch (e) { fail(e); } } };
     const send = h('button', { class: 'btn' }, T('Send a File for Review…')); send.onclick = async () => { const f = await pickFile('.patapp,.json,application/json'); if (f) { try { await sendIt(P.parse(await f.text())); } catch (e) { fail(e); } } };
     const guide = h('button', { class: 'btn', onclick: () => PatOS.openExternal(location.origin + '/docs/APP-SDK.md') }, T('Developer Guide'));
