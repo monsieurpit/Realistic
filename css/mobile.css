@@ -265,3 +265,5 @@ html.mobile.m-kb { --app-bottom: 0px; }
 .mobile .mh-grid { grid-template-columns: repeat(var(--mh-cols, 4), 1fr); }
 @media (orientation: landscape) { .mobile .mh-grid { max-width: none; } .mobile .mh-ic { width: 56px; height: 56px; } .mobile .mh-search { margin-bottom: 6px; } }
 .real-phone.standalone #lock::after { display: none; } /* iOS draws its own home bar there */
+
+.mobile .st-card { display: none; } .mobile .m-stack .st-card { display: flex; margin: 4px 0 14px; }

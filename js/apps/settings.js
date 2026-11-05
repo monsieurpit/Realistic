@@ -7,16 +7,26 @@
   const PANES = [
     ['general', 'General', '⚙️'], ['account', 'Account', '👤'], ['voice', 'Pat Voice', '🎙'], ['update', 'Software Update', '⬇️'], ['appearance', 'Appearance', '🎨'], ['accessibility', 'Accessibility', '♿'], ['wallpaper', 'Wallpaper', '🖼'], ['dock', 'Home Screen & Dock', '🧭'],
     ['display', 'Displays & 3D', '🖥'], ['sound', 'Sound', '🔊'], ['lock', 'Lock Screen', '🔒'], ['network', 'Network', '📶'], ['startup', 'Install & Start Up', '🚀'], ['permissions', 'Permissions', '🛡'], ['system', 'This Device', '💻'],
-    ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾'], ['backup', 'Backup & Restore', '🕘'], ['sync', 'Sync', '☁️'], ['privacy', 'Privacy', '🔐']
+    ['keyboard', 'Keyboard', '⌨️'], ['storage', 'Storage', '💾'], ['backup', 'Backup & Restore', '🕘'], ['sync', 'Sync', '☁️'], ['privacy', 'Privacy', '🔐'], ['me', 'Account Info', '👤']
   ];
-  const KW = { voice: 'voice hey pat microphone speech listen talk say wake voix micro parler ecouter', account: 'account username password sign in sign up cloud save login compte nom utilisateur mot de passe connexion creer', privacy: 'privacy apps permissions camera microphone location log confidentialite applications permissions camera micro position journal', sync: 'sync cloud devices iphone chromebook account encrypted key code synchroniser appareils compte chiffre cle', backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
+  /* the sidebar shows these groups; a group opens a list of its settings */
+  const CATS = [
+    ['general', 'General', '⚙️', ['general', 'update', 'network', 'storage', 'startup', 'keyboard', 'system']],
+    ['cloud', 'Account & Cloud', '☁️', ['account', 'sync', 'backup']],
+    ['looks', 'Appearance & Display', '🎨', ['appearance', 'wallpaper', 'dock', 'display']],
+    ['access', 'Accessibility', '♿', ['accessibility']],
+    ['sound', 'Sound & Voice', '🔊', ['sound', 'voice']],
+    ['safe', 'Privacy & Security', '🔐', ['privacy', 'permissions', 'lock']]
+  ];
+  const catOf = (pane) => (CATS.find((c) => c[3].includes(pane)) || [])[0] || null;
+  const KW = { me: 'me user computer device info about name account profile utilisateur ordinateur appareil informations profil', voice: 'voice hey pat microphone speech listen talk say wake voix micro parler ecouter', account: 'account username password sign in sign up cloud save login compte nom utilisateur mot de passe connexion creer', privacy: 'privacy apps permissions camera microphone location log confidentialite applications permissions camera micro position journal', sync: 'sync cloud devices iphone chromebook account encrypted key code synchroniser appareils compte chiffre cle', backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
   // Spotlight searches Settings with this list
   PatOS.settingsIndex = () => PANES.map(([k, l]) => ({ pane: k, label: l, keywords: KW[k] || '' }));
   PatOS.registerApp({
     id: 'settings', name: 'System Settings', icon: 'settings', width: 800, height: 560, minWidth: 600, keywords: 'preferences settings control wallpaper theme dark parametres paramètres réglages reglages préférences',
     launch(win, args) {
       const toast = (t) => PatOS.notify({ title: t, body: '', icon: 'settings' });
-      let pane = args.pane || 'general';
+      let pane = args.pane || (args.cat ? null : 'general'); let cat = args.cat || catOf(pane) || 'general'; if (args.cat && !args.pane) pane = null;
       const side = h('div', { class: 'st-side' });
       const main = h('div', { class: 'st-main' });
       win.body.appendChild(h('div', { class: 'st-wrap' }, side, main));
@@ -352,6 +362,21 @@
           win.on('closed', () => { removeEventListener('online', rerun); removeEventListener('offline', rerun); });
           paint(); return out;
         },
+        me() {
+          const acct = PatOS.account && PatOS.account.signedIn() ? PatOS.account.info() : null;
+          const info = (k, v) => v ? row(k, h('span', { class: 'st-val st-wrapval' }, String(v))) : null;
+          const made = acct && acct.at ? new Date(acct.at).toLocaleDateString() : '';
+          const who = h('div', { class: 'st-me' }, h('div', { class: 'lock-avatar st-me-av' }, S().userName.charAt(0).toUpperCase()), h('h2', {}, S().userName), h('p', {}, acct ? '@' + acct.username : T('Not signed in to a PatOS account')));
+          const go = (p) => { pane = p; cat = catOf(p) || cat; render(); if (MB && MB.detail) MB.detail(win, true, paneName(p)); };
+          return [who,
+            h('h3', {}, T('You')), group(
+              row(T('Name'), h('span', { class: 'st-val' }, S().userName)),
+              info(T('Username'), acct ? '@' + acct.username : ''),
+              row(T('PatOS account'), h('span', { class: 'st-inline' }, h('span', { class: 'st-val' }, acct ? T('Signed in') : T('Not signed in')), h('button', { class: 'btn', onclick: () => go('account') }, acct ? T('Manage') : T('Sign in')))),
+              info(T('Signed in on this device since'), made),
+              info(T('Language'), PatOS.lang === 'fr' ? 'Français' : 'English')),
+            h('h3', {}, T('This computer')), ...panes.system()];
+        },
         system() {
           const box = h('div'); const ua = navigator.userAgent;
           const os = /CrOS/.test(ua) ? 'ChromeOS' : /Android/.test(ua) ? 'Android' : /iPhone|iPad/.test(ua) ? 'iOS' : /Windows/.test(ua) ? 'Windows' : /Mac/.test(ua) ? 'macOS' : /Linux/.test(ua) ? 'Linux' : T('Unknown');
@@ -476,27 +501,38 @@
       sq.addEventListener('input', () => { filter = sq.value.trim().toLowerCase(); drawSide(); const hits = PANES.filter(match); if (filter && hits.length && !hits.some((p) => p[0] === pane)) { pane = hits[0][0]; renderMain(); drawSide(); } });
       sq.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const hits = PANES.filter(match); if (hits[0]) { pane = hits[0][0]; renderMain(); drawSide(); } } });
       const match = ([k, l]) => !filter || (l + ' ' + PatOS.t(l) + ' ' + KW[k]).toLowerCase().includes(filter);
+      const goPane = (k) => { pane = k; cat = catOf(k) || cat; renderMain(); drawSide(); if (PatOS.mobile && PatOS.mobile.detail) PatOS.mobile.detail(win, true, PatOS.t(PANES.find((x) => x[0] === k)[1])); };
+      const goCat = (c) => { cat = c; pane = null; renderMain(); drawSide(); if (PatOS.mobile && PatOS.mobile.detail) PatOS.mobile.detail(win, true, PatOS.t(CATS.find((x) => x[0] === c)[1])); };
       function drawSide() {
         side.querySelectorAll('.st-si, .st-noresult').forEach((e) => e.remove());
+        side.querySelector('.st-card').classList.toggle('on', pane === 'me');
+        if (!filter) { CATS.forEach(([c, l, ic]) => side.appendChild(h('button', { class: 'st-si' + (c === cat && pane !== 'me' ? ' on' : ''), onclick: () => goCat(c) }, h('span', { class: 'st-ic' }, ic), PatOS.t(l)))); return; }
         const hits = PANES.filter(match);
-        hits.forEach(([k, l, ic]) => { const b = h('button', { class: 'st-si' + (k === pane ? ' on' : '') }, h('span', { class: 'st-ic' }, ic), l); b.onclick = () => { pane = k; renderMain(); drawSide(); if (PatOS.mobile && PatOS.mobile.detail) PatOS.mobile.detail(win, true, PatOS.t(l)); }; side.appendChild(b); });
+        hits.forEach(([k, l, ic]) => side.appendChild(h('button', { class: 'st-si' + (k === pane ? ' on' : ''), onclick: () => goPane(k) }, h('span', { class: 'st-ic' }, ic), PatOS.t(l))));
         if (!hits.length) side.appendChild(h('div', { class: 'st-noresult' }, 'No results'));
       }
       function render(keepSearch) {
         side.innerHTML = '';
-        side.appendChild(h('div', { class: 'st-user' }, h('div', { class: 'lock-avatar sm' }, S().userName.charAt(0).toUpperCase()), h('div', {}, h('b', {}, S().userName), h('small', {}, PatOS.account && PatOS.account.signedIn() ? '@' + PatOS.account.info().username : PatOS.t('Sign in or create an account')))));
+        const acct = PatOS.account && PatOS.account.signedIn() ? PatOS.account.info() : null;
+        side.appendChild(h('button', { class: 'st-card', onclick: () => goPane('me') }, h('div', { class: 'lock-avatar st-card-av' }, S().userName.charAt(0).toUpperCase()), h('div', { class: 'st-card-t' }, h('b', {}, S().userName), h('small', {}, acct ? '@' + acct.username : PatOS.t('Sign in or create an account'))), h('span', { class: 'st-card-go' }, '›')));
         side.appendChild(sq); if (!keepSearch) { sq.value = filter; }
         drawSide();
         renderMain();
       }
       function renderMain() {
-        PatOS.remember && PatOS.remember(win, { pane });
+        PatOS.remember && PatOS.remember(win, pane ? { pane } : { cat });
         main.innerHTML = '';
-        main.append(h('h1', {}, PANES.find((p) => p[0] === pane)[1]), ...panes[pane]());
-        win.setTitle(PANES.find((p) => p[0] === pane)[1]);
+        if (!pane) { // a group: the list of its settings
+          const c = CATS.find((x) => x[0] === cat) || CATS[0];
+          main.append(h('h1', {}, PatOS.t(c[1])), h('div', { class: 'st-group' }, ...c[3].map((k) => { const p = PANES.find((x) => x[0] === k); return h('button', { class: 'st-row st-link', onclick: () => goPane(k) }, h('span', { class: 'st-ic' }, p[2]), h('span', { class: 'st-link-l' }, PatOS.t(p[1])), h('span', { class: 'st-card-go' }, '›')); })));
+          win.setTitle(c[1]); return;
+        }
+        const p = PANES.find((x) => x[0] === pane); const c = CATS.find((x) => x[0] === catOf(pane));
+        main.append(c ? h('button', { class: 'st-back', onclick: () => goCat(c[0]) }, '‹ ' + PatOS.t(c[1])) : null, h('h1', {}, PatOS.t(p[1])), ...panes[pane]());
+        win.setTitle(p[1]);
       }
       const paneName = (k) => PatOS.t((PANES.find((x) => x[0] === k) || [k, k])[1]);
-      win._pane = (p) => { pane = p; render(); if (MB && MB.detail) MB.detail(win, true, paneName(p)); };
+      win._pane = (p) => { pane = p; cat = catOf(p) || cat; render(); if (MB && MB.detail) MB.detail(win, true, paneName(p)); };
       render();
       if (args.pane && MB && MB.detail) MB.detail(win, true, paneName(args.pane));
     },

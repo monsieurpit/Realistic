@@ -1031,6 +1031,8 @@
     'Take Picture': 'Prendre une photo',
     'Start Recording': 'Démarrer l’enregistrement',
     'This Chromebook': 'Ce Chromebook',
+    'Account & Cloud': 'Compte et nuage', 'Appearance & Display': 'Apparence et écran', 'Sound & Voice': 'Son et voix', 'Privacy & Security': 'Confidentialité et sécurité', 'Account Info': 'Infos du compte',
+    'Not signed in to a PatOS account': 'Pas connecté à un compte PatOS', 'Signed in': 'Connecté', 'Not signed in': 'Non connecté', 'Manage': 'Gérer', 'Signed in on this device since': 'Connecté sur cet appareil depuis', 'This computer': 'Cet ordinateur',
     'Speed mode': 'Mode vitesse', 'Lighter (faster on slow computers)': 'Allégé (plus rapide sur les ordinateurs lents)', 'Full looks': 'Tous les effets',
     'Lighter turns off the see-through blur and shortens animations. Automatic tests this computer each time PatOS starts.': 'Allégé désactive le flou transparent et raccourcit les animations. Automatique teste cet ordinateur à chaque démarrage de PatOS.',
     'Open Files…': 'Ouvrir des fichiers…',
