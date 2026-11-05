@@ -375,7 +375,7 @@
         try { if (proj) { saveFile(); } const name = placeProject(pr, how, target); PatOS.notify({ title: T('Project imported'), body: name, icon: 'pitstudio' }); open(name); } catch (e) { fail(e); }
       }
       function pickProjectFile() {
-        const i = h('input', { type: 'file', accept: '.patappproject,.json,application/json' }); i.style.display = 'none'; document.body.appendChild(i);
+        const i = h('input', { type: 'file' }); // (no file type filter: phones gray out extensions they do not know, like .patappproject. The file is checked after it is picked.) i.style.display = 'none'; document.body.appendChild(i);
         i.onchange = async () => { const f = i.files[0]; i.remove(); if (f) { try { importText(await f.text()); } catch (e) { fail(e); } } }; i.addEventListener('cancel', () => i.remove()); i.click();
       }
       /* the first screen: new project or open one */

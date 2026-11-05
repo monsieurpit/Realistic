@@ -1,5 +1,21 @@
 [
   {
+    "version": "2.1.1",
+    "date": "2026-11-06",
+    "title": {
+      "en": "Importing files on phones",
+      "fr": "Importer des fichiers sur téléphone"
+    },
+    "notes": {
+      "en": [
+        "Fix: Import Project… in PitCode Studio, and Open a .patapp File… in the App Store, now let you pick the file on an iPhone or iPad (the file was grayed out because phones do not know the .patappproject and .patapp types). Any file can be picked, and PatOS checks what is inside"
+      ],
+      "fr": [
+        "Correctif : Importer un projet… dans PitCode Studio, et Ouvrir un fichier .patapp… dans l’App Store, vous laissent maintenant choisir le fichier sur un iPhone ou un iPad (le fichier était grisé parce que les téléphones ne connaissent pas les types .patappproject et .patapp). N’importe quel fichier peut être choisi, et PatOS vérifie son contenu"
+      ]
+    }
+  },
+  {
     "version": "2.1.0",
     "date": "2026-11-05",
     "title": {

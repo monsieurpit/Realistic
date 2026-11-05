@@ -6,7 +6,8 @@
   const tile = (a) => '<div class="icon-tile" style="background:linear-gradient(160deg,rgba(255,255,255,.28),rgba(0,0,0,.22)),' + (/^#[0-9a-f]{6}$/i.test(a.color) ? a.color : '#0a84ff') + '"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><text x="32" y="44" font-size="34" font-family="system-ui,-apple-system,sans-serif" text-anchor="middle" fill="#fff">' + esc(a.icon || '?') + '</text></svg></div>';
   const fail = (e) => PatOS.alertBox(T('That didn’t work'), String((e && e.message) || e), { icon: 'appstore' });
   const permTags = (a) => h('div', { class: 'as-tags' }, ...(a.permissions && a.permissions.length ? a.permissions.map((p) => h('span', {}, PatOS.patapps.permInfo(p)[0])) : [h('span', {}, T('nothing special'))]));
-  const pickFile = (accept) => new Promise((res) => { const i = h('input', { type: 'file', accept }); i.style.display = 'none'; document.body.appendChild(i); i.onchange = () => { const f = i.files[0]; i.remove(); res(f || null); }; i.addEventListener('cancel', () => { i.remove(); res(null); }); i.click(); });
+  const pickFile = () => new Promise((res) => { const i = h('input', { type: 'file' }); // (no file type filter: phones gray out extensions they do not know, like .patapp. The file is checked after it is picked.)
+    i.style.display = 'none'; document.body.appendChild(i); i.onchange = () => { const f = i.files[0]; i.remove(); res(f || null); }; i.addEventListener('cancel', () => { i.remove(); res(null); }); i.click(); });
 
   /* what is typed in the Develop form is kept (in memory and on the device), so installing to try an app, or leaving and coming back, never empties it */
   let draft = PatOS.store.get('patappDraft', null);

@@ -1,0 +1,269 @@
+/* ================= PatOS Mobile (phone) ================= */
+:root { --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px); --sal: env(safe-area-inset-left, 0px); --sar: env(safe-area-inset-right, 0px); --mtop: max(var(--sat), 20px); }
+#m-status, #m-home, #m-indicator, #m-switcher { display: none; }
+html.mobile, html.mobile body { overscroll-behavior: none; touch-action: manipulation; -webkit-tap-highlight-color: transparent; -webkit-touch-callout: none; }
+.mobile input, .mobile textarea, .mobile select, .mobile [contenteditable] { font-size: 16px !important; } /* stops iOS zooming into fields */
+
+/* hide the computer chrome */
+.mobile #menubar, .mobile #dock-wrap, .mobile #desktop-icons, .mobile #desk-widgets, .mobile #launchpad, .mobile #selection-box, .mobile #mission, .mobile #app-switcher { display: none !important; }
+
+/* ---------- status bar + Dynamic Island ---------- */
+.mobile #m-status { display: flex; position: fixed; top: 0; left: 0; right: 0; z-index: 9500; height: calc(var(--mtop) + 26px); padding: calc(var(--mtop) - 8px) max(26px, calc(var(--sar) + 18px)) 0 max(26px, calc(var(--sal) + 18px)); align-items: center; justify-content: space-between; color: #fff; font-weight: 600; font-size: 15px; pointer-events: auto; transition: color .3s; }
+.mobile.m-in-app #m-status { color: var(--text); }
+.mobile.m-in-app .tb-hidden ~ #m-status, .mobile.m-in-app.m-dark-app #m-status { color: #fff; }
+.ms-l, .ms-r { display: flex; align-items: center; gap: 6px; min-width: 70px; }
+.ms-r { justify-content: flex-end; }
+.ms-time { font-variant-numeric: tabular-nums; letter-spacing: .2px; }
+.ms-ic svg { width: 17px; height: 12px; fill: currentColor; }
+.ms-bat { width: 25px; height: 12px; border-radius: 4px; border: 1.2px solid currentColor; padding: 1.3px; position: relative; opacity: .95; }
+.ms-bat::after { content: ""; position: absolute; right: -4px; top: 3px; width: 2px; height: 4px; border-radius: 0 2px 2px 0; background: currentColor; opacity: .5; }
+.ms-bat-fill { display: block; height: 100%; width: 100%; border-radius: 2px; background: currentColor; }
+.ms-bat.charging .ms-bat-fill { background: #32d74b; }
+#m-island { position: absolute; left: 50%; top: calc(var(--mtop) - 9px); transform: translateX(-50%); width: 112px; height: 33px; border-radius: 20px; background: #000; display: flex; align-items: center; gap: 8px; padding: 0 6px; overflow: hidden; transition: width .45s cubic-bezier(.3,1.4,.5,1), height .45s cubic-bezier(.3,1.4,.5,1), border-radius .45s, top .45s; color: #fff; font-size: 12px; box-shadow: 0 0 0 .5px rgba(255,255,255,.04); }
+.mi-art { width: 22px; height: 22px; border-radius: 6px; flex: 0 0 auto; opacity: 0; transition: opacity .3s; display: grid; place-items: center; }
+.mi-text { flex: 1; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; opacity: 0; transition: opacity .3s; font-weight: 600; }
+.mi-bars { display: flex; gap: 2px; align-items: center; height: 14px; opacity: 0; transition: opacity .3s; }
+.mi-bars i { width: 3px; height: 100%; border-radius: 2px; background: #ff6482; animation: miBar .9s ease-in-out infinite; transform-origin: center; }
+.mi-bars i:nth-child(2) { animation-delay: -.3s; background: #ff9f0a; } .mi-bars i:nth-child(3) { animation-delay: -.6s; background: #bf5af2; } .mi-bars i:nth-child(4) { animation-delay: -.15s; background: #64d2ff; }
+@keyframes miBar { 0%, 100% { transform: scaleY(.3); } 50% { transform: scaleY(1); } }
+#m-island.playing, #m-island.alert { width: 210px; }
+#m-island.playing .mi-art, #m-island.playing .mi-text, #m-island.playing .mi-bars, #m-island.alert .mi-art, #m-island.alert .mi-text { opacity: 1; }
+#m-island.big { width: min(360px, calc(100vw - 20px)); height: 76px; border-radius: 38px; top: calc(var(--mtop) - 6px); }
+#m-island.big .mi-art { width: 50px; height: 50px; border-radius: 12px; }
+#m-island.big .mi-text { font-size: 15px; }
+
+/* ---------- home screen ---------- */
+.mobile #m-home { display: flex; flex-direction: column; position: absolute; inset: 0; z-index: 3; padding-top: calc(var(--mtop) + 34px); padding-bottom: calc(var(--sab) + 8px); transition: transform .45s cubic-bezier(.2,.9,.3,1), filter .45s, opacity .45s; }
+.mobile.m-in-app #m-home { transform: scale(.88); filter: blur(8px); opacity: .6; pointer-events: none; }
+.mobile.m-switching #m-home { transform: scale(.92); filter: blur(14px) brightness(.6); pointer-events: none; }
+.mh-pages { flex: 1; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.mh-pages::-webkit-scrollbar { display: none; }
+.mh-page { flex: 0 0 100%; scroll-snap-align: start; padding: 10px max(18px, calc(var(--sal) + 14px)) 0 max(18px, calc(var(--sar) + 14px)); }
+.mh-grid { display: grid; grid-template-columns: repeat(4, 1fr); column-gap: 10px; max-width: 520px; margin: 0 auto; }
+.mh-app { display: flex; flex-direction: column; align-items: center; gap: 6px; color: #fff; font-size: 11.5px; font-weight: 500; text-shadow: 0 1px 4px rgba(0,0,0,.45); transition: transform .15s; }
+.mh-app:active { transform: scale(.9); filter: brightness(.8); }
+.mh-ic { width: min(62px, 17vw); height: min(62px, 17vw); }
+.mh-app span { max-width: 78px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+#m-home.jiggle .mh-app .mh-ic { animation: jiggle .28s ease-in-out infinite alternate; }
+#m-home.jiggle .mh-app:nth-child(2n) .mh-ic { animation-delay: -.14s; }
+@keyframes jiggle { from { transform: rotate(-2.2deg); } to { transform: rotate(2.2deg); } }
+.mw { grid-column: span 2; grid-row: span 2; margin: 4px 6px 14px; border-radius: 24px; background: rgba(255,255,255,.18); backdrop-filter: blur(30px) saturate(1.6); -webkit-backdrop-filter: blur(30px) saturate(1.6); color: #fff; box-shadow: inset 0 0 0 .5px rgba(255,255,255,.25); overflow: hidden; }
+:root[data-theme="dark"] .mw { background: rgba(30,30,40,.4); }
+.mw-clock { display: grid; place-items: center; } .mw-clock canvas { width: 82%; height: auto; aspect-ratio: 1; max-height: 92%; }
+.mw-cal { padding: 14px 16px; display: flex; flex-direction: column; text-shadow: 0 1px 3px rgba(0,0,0,.2); }
+.mw-day { color: #ff6961; font-weight: 700; font-size: 12px; letter-spacing: .5px; }
+.mw-num { font-size: 46px; font-weight: 300; line-height: 1.05; }
+.mw-ev { margin-top: auto; font-size: 12.5px; font-weight: 600; line-height: 1.3; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.mh-dots { display: flex; justify-content: center; gap: 8px; padding: 8px 0 12px; }
+.mh-dots span { width: 7px; height: 7px; border-radius: 50%; background: rgba(255,255,255,.4); transition: background .2s, transform .2s; }
+.mh-dots span.on { background: #fff; transform: scale(1.1); }
+.mh-dock { display: flex; justify-content: space-around; align-items: center; margin: 0 max(12px, calc(var(--sal) + 10px)); padding: 14px 10px; border-radius: 32px; background: rgba(255,255,255,.2); backdrop-filter: blur(30px) saturate(1.6); -webkit-backdrop-filter: blur(30px) saturate(1.6); box-shadow: inset 0 0 0 .5px rgba(255,255,255,.25); max-width: 520px; width: calc(100% - 24px); align-self: center; }
+:root[data-theme="dark"] .mh-dock { background: rgba(40,40,50,.38); }
+
+/* ---------- home indicator ---------- */
+.mobile #m-indicator { display: flex; position: fixed; left: 0; right: 0; bottom: 0; height: calc(var(--sab) + 26px); z-index: 9400; align-items: flex-end; justify-content: center; padding-bottom: calc(var(--sab) * .35 + 8px); touch-action: none; cursor: grab; }
+#m-indicator span { width: 134px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.85); box-shadow: 0 0 4px rgba(0,0,0,.25); opacity: 0; transition: opacity .3s, background .3s; }
+.mobile.m-in-app #m-indicator span { opacity: 1; background: var(--text); }
+
+/* ---------- windows become full-screen apps ---------- */
+.mobile #windows { z-index: 10; }
+.mobile .window { position: fixed; left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; border-radius: 0; box-shadow: none; backdrop-filter: none; -webkit-backdrop-filter: none; background: var(--win-solid); contain: strict; }
+.mobile .window .rz, .mobile .window .traffic { display: none; }
+.mobile .titlebar { height: auto; min-height: calc(var(--mtop) + 64px); padding: calc(var(--mtop) + 26px) max(12px, calc(var(--sar) + 10px)) 8px max(12px, calc(var(--sal) + 10px)); align-items: flex-end; gap: 6px; background: var(--toolbar); }
+.mobile .titlebar { flex-wrap: wrap; row-gap: 4px; }
+.mobile .win-title { position: static; order: 2; flex: 0 0 100%; padding: 0 2px; text-align: left; font-size: 28px; font-weight: 800; letter-spacing: -.4px; opacity: 1; max-width: none; }
+.mobile .has-toolbar .win-title { display: block; }
+.mobile .win-toolbar { order: 1; padding-left: 0 !important; justify-content: flex-end !important; overflow-x: auto; scrollbar-width: none; flex: 1 1 100%; min-width: 0; }
+.mobile .win-toolbar:empty { display: none; }
+.mobile .win-toolbar::-webkit-scrollbar { display: none; }
+.mobile .win-toolbar .tbtn { min-width: 34px; height: 34px; font-size: 16px; }
+.mobile .win-body { padding-bottom: calc(var(--sab) + 18px); }
+.mobile .tb-hidden .titlebar { display: none; }
+.mobile .tb-hidden .win-body { padding-top: calc(var(--mtop) + 26px); }
+.mobile .window.m-card { border-radius: 32px; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.5); pointer-events: auto; }
+.mobile .window.m-card * { pointer-events: none !important; }
+.mobile .window.m-card::after { content: attr(data-mc-label); position: absolute; top: -40px; left: 20px; color: #fff; font-size: 26px; font-weight: 700; }
+.mobile #m-switcher { position: absolute; inset: 0; z-index: 9; background: rgba(0,0,0,.25); }
+.mobile #m-switcher.hidden { display: none !important; }
+.mobile #m-switcher:not(.hidden) { display: block; }
+.msw-empty { display: none; position: absolute; inset: 0; place-items: center; color: rgba(255,255,255,.75); font-size: 17px; }
+#m-switcher.empty .msw-empty { display: grid; }
+
+/* ---------- system overlays on the phone ---------- */
+.mobile .panel { top: calc(var(--mtop) + 30px); left: max(8px, var(--sal)); right: max(8px, var(--sar)); width: auto !important; max-height: calc(100% - var(--mtop) - 60px); border-radius: 26px; animation: mPanel .38s cubic-bezier(.2,.9,.3,1.05); }
+@keyframes mPanel { from { opacity: 0; transform: translateY(-40px) scale(.96); } }
+.mobile #notif-center { left: 0; right: 0; top: 0; bottom: 0; max-height: none; border-radius: 0; padding: calc(var(--mtop) + 40px) 12px 30px !important; background: rgba(0,0,0,.35) !important; backdrop-filter: blur(30px) !important; -webkit-backdrop-filter: blur(30px) !important; overflow-y: auto; }
+.mobile #control-center { background: rgba(30,30,40,.55); }
+.mobile .nc-widgets { grid-template-columns: 1fr 1fr; }
+.mobile #toasts { left: 8px; right: 8px; top: calc(var(--mtop) + 34px); align-items: center; }
+.mobile .toast { width: 100%; max-width: 460px; border-radius: 22px; transform: translateY(-140px); }
+.mobile .toast.in { transform: none; } .mobile .toast.static { transform: none; }
+.mobile .sp-box { top: calc(var(--mtop) + 40px); border-radius: 18px; }
+.mobile .sp-input { font-size: 18px !important; }
+.mobile .menu { min-width: 230px; border-radius: 14px; padding: 6px; }
+.mobile .menu-item { height: 40px; font-size: 15px; }
+.mobile #lock .lock-actions { display: none; }
+.mobile #lock .lock-form { display: none; }
+.mobile #lock.need-pass .lock-form { display: flex; }
+.mobile #lock .lock-user { margin-bottom: calc(var(--sab) + 50px); }
+.mobile #lock .lock-hint { font-size: 14px; height: auto; animation: hintPulse 2s ease-in-out infinite; }
+.mobile #lock .lock-avatar { width: 64px; height: 64px; font-size: 28px; }
+.mobile #lock::after { content: ""; position: absolute; bottom: calc(var(--sab) + 10px); left: 50%; transform: translateX(-50%); width: 134px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.9); }
+.mobile .lock-clock { margin-top: calc(var(--mtop) + 40px); }
+.mobile .lock-time { font-size: 92px; }
+@keyframes hintPulse { 0%, 100% { opacity: .5; transform: translateY(0); } 50% { opacity: 1; transform: translateY(-4px); } }
+.mobile .dlg { border-radius: 18px; }
+
+/* ---------- apps reshaped for a phone ---------- */
+.mobile .fd-wrap, .mobile .notes-wrap, .mobile .st-wrap, .mobile .cal-wrap { flex-direction: column; }
+.mobile .fd-side { width: auto; display: flex; gap: 4px; overflow-x: auto; padding: 6px 10px; border-right: 0; border-bottom: 1px solid var(--border); scrollbar-width: none; flex: 0 0 auto; }
+.mobile .fd-sh, .mobile .fd-storage { display: none; }
+.mobile .fd-si { flex: 0 0 auto; height: 32px; border-radius: 16px; background: var(--hover); padding: 0 12px; }
+.mobile .fd-main.grid { grid-template-columns: repeat(auto-fill, minmax(84px, 1fr)); }
+.mobile .fd-lh, .mobile .fd-row { grid-template-columns: 1fr 70px; } .mobile .fd-lh span:nth-child(2), .mobile .fd-lh span:nth-child(4), .mobile .fd-row span:nth-child(2), .mobile .fd-row span:nth-child(4) { display: none; }
+.mobile .fd-search { width: 110px; }
+.mobile .notes-side { width: auto; max-height: 34%; border-right: 0; border-bottom: 1px solid var(--border); }
+.mobile .notes-ed { padding: 0 18px 18px; }
+.mobile .st-side { width: auto; display: flex; gap: 6px; overflow-x: auto; padding: 8px 10px; border-right: 0; border-bottom: 1px solid var(--border); flex: 0 0 auto; scrollbar-width: none; }
+.mobile .st-user { display: none; }
+.mobile .st-si { flex: 0 0 auto; width: auto; border-radius: 18px; background: var(--hover); padding: 0 12px; height: 34px; }
+.mobile .st-main { padding: 14px 16px 30px; }
+.mobile .st-row { flex-wrap: wrap; }
+.mobile .st-range input { width: 130px; }
+.mobile .cal-side { width: auto; border-left: 0; border-top: 1px solid var(--border); max-height: 36%; }
+.mobile .cal-title { font-size: 15px; }
+.mobile .cal-ev { font-size: 0; height: 5px; padding: 0; border-left-width: 0; border-radius: 3px; background: var(--c); }
+.mobile .cal-more { display: none; }
+.mobile .mu-wrap { flex-direction: column; }
+.mobile .mu-stage { flex: 0 0 42%; }
+.mobile .mu-list { width: auto; flex: 1; }
+.mobile .mu-bar { flex-wrap: wrap; height: auto; padding: 10px 14px; gap: 8px; }
+.mobile .mu-time { order: 5; flex-basis: 100%; } .mobile .mu-vol, .mobile .mu-bar > span { display: none; } .mobile .mu-info { display: block; flex: 1; }
+.mobile .win-body:has(.pt-wrap) { flex-direction: column-reverse; }
+.mobile .pt-tools { width: auto; flex-direction: row; overflow-x: auto; border-right: 0; border-top: 1px solid var(--border); padding: 6px; flex: 0 0 auto; }
+.mobile .pt-sw { display: flex; } .mobile .pt-size { writing-mode: horizontal-tb; direction: ltr; width: 90px; height: 20px; } .mobile .pt-sep { width: 1px; height: 30px; margin: 0 4px; }
+.mobile .br-bm { display: none; }
+.mobile .br-nav .tbtn:nth-child(3), .mobile .br-nav .tbtn:nth-child(4) { display: none; }
+.mobile .br-tab { min-width: 90px; }
+.mobile .nt-grid { grid-template-columns: repeat(4, 1fr); width: 100%; max-width: 420px; } .mobile .nt-tile { padding: 8px 2px; } .mobile .nt-logo { font-size: 54px; } .mobile .nt-page { padding: 30px 16px; }
+.mobile .g3d-panel { top: auto; bottom: calc(var(--sab) + 30px); left: 10px; right: 10px; width: auto; max-height: 42%; }
+.mobile .am-stats { grid-template-columns: repeat(3, 1fr); }
+.mobile .am-row { grid-template-columns: 1fr 50px 50px 90px; }
+.mobile .ph-grid { grid-template-columns: repeat(3, 1fr); gap: 2px; }
+.mobile .clk-row { gap: 60px; } .mobile .clk-big { font-size: 64px; }
+.mobile .ab { flex-direction: column; text-align: center; overflow-y: auto; } .mobile .ab-row { justify-content: center; }
+.mobile .calc { padding: 20px 14px 14px; justify-content: flex-end; }
+.mobile .calc-disp { font-size: 84px !important; flex: 0 0 auto; padding-bottom: 14px; }
+.mobile .ck { height: auto; aspect-ratio: 1; border-radius: 50%; font-size: 32px; }
+.mobile .ck.zero { aspect-ratio: auto; border-radius: 100px; }
+.mobile .calc-keys { gap: 14px; }
+.mobile .wx { padding-top: 14px; } .mobile .wx-top { position: static; margin-bottom: 10px; } .mobile .wx-search { flex: 1; }
+.mobile .term { font-size: 12px; }
+.mobile .pb-ctl { flex-wrap: wrap; justify-content: center; } .mobile .pb-fx { order: 3; flex-basis: 100%; }
+.mobile .ttt-grid { grid-template-columns: repeat(3, 28vw); grid-template-rows: repeat(3, 28vw); }
+.mobile .rm { padding: 14px 16px; }
+.mobile.m-in-app.m-dark-app #m-indicator span { background: #fff; }
+
+/* ================= Phone, remade (real phones first: iPhone 14 Pro Max = 430 × 932) ================= */
+/* --app-top: where an app's own bar starts. On a real phone that is just below the real status bar
+   (the safe area: 59px on a 14 Pro Max added to the Home Screen, 0 in a Safari tab). In phone layout on a
+   computer, PatOS draws its own status bar, so the bar starts below that. */
+html.mobile { --app-top: calc(var(--mtop) + 26px); --app-bottom: var(--sab); }
+html.real-phone { --mtop: var(--sat); --app-top: var(--sat); }
+.real-phone #m-status { display: none !important; }
+/* the swipe-up bar on a real phone: iOS keeps the very bottom edge for its own home bar (it leaves PatOS),
+   so PatOS's bar sits just above it, across the whole width, like the iPhone's own */
+.real-phone #m-indicator { bottom: var(--sab); height: 34px; padding-bottom: 9px; }
+.real-phone.m-in-app { --app-bottom: calc(var(--sab) + 20px); }
+.mobile.m-kb #m-indicator, .mobile:not(.m-in-app) #m-indicator { pointer-events: none; }
+.mobile.m-kb #m-indicator span { opacity: 0 !important; }
+html.mobile.m-kb { --app-bottom: 0px; }
+
+/* Home Screen */
+.real-phone #m-home { padding-top: calc(var(--sat) + 14px); }
+.mobile .mh-grid { row-gap: 0; }
+.mobile .mh-ic { width: min(64px, calc((100vw - 96px) / 4)); height: min(64px, calc((100vw - 96px) / 4)); border-radius: 22%; }
+.mobile .mh-app { font-size: 12px; gap: 7px; }
+.mobile .mh-app span { max-width: 84px; }
+.mh-search { display: none; }
+.mobile .mh-search { display: flex; align-items: center; gap: 6px; align-self: center; margin: 0 auto 12px; padding: 7px 16px; border: 0; border-radius: 999px; background: rgba(255,255,255,.24); -webkit-backdrop-filter: blur(24px) saturate(1.6); backdrop-filter: blur(24px) saturate(1.6); color: #fff; font: 600 13.5px -apple-system, system-ui, sans-serif; text-shadow: 0 1px 3px rgba(0,0,0,.25); }
+:root[data-theme="dark"] .mobile .mh-search, .mobile:root[data-theme="dark"] .mh-search { background: rgba(60,60,70,.45); }
+.mobile .mh-dots { padding: 6px 0 10px; }
+.mobile .mh-dock { padding: 12px 10px; border-radius: 34px; margin-bottom: 4px; }
+
+/* apps: a native-style bar (Home or Back · title · more) and the app's tools in a row underneath */
+.mobile .window { top: var(--vvt, 0px) !important; height: var(--vvh, 100%) !important; }
+.mobile .titlebar { display: flex !important; flex-direction: column !important; align-items: stretch !important; justify-content: flex-start !important; flex-wrap: nowrap !important; gap: 0 !important; min-height: 0 !important; height: auto !important; max-height: none !important; padding: var(--app-top) max(6px, var(--sar)) 0 max(6px, var(--sal)) !important; }
+.mobile .win-title { display: none !important; }
+.m-appbar { display: none; }
+.mobile .m-appbar { display: grid; grid-template-columns: minmax(44px, 1fr) auto minmax(44px, 1fr); align-items: center; height: 44px; padding: 0 4px; }
+.mobile .mab-left, .mobile .mab-more { height: 40px; min-width: 40px; border: 0; background: none; color: var(--accent); display: flex; align-items: center; gap: 2px; padding: 0 6px; border-radius: 10px; font: 400 16px -apple-system, system-ui, sans-serif; cursor: pointer; justify-self: start; max-width: 42vw; }
+.mobile .mab-more { justify-self: end; }
+.mobile .mab-left span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.mobile .mab-left:active, .mobile .mab-more:active { opacity: .45; }
+.mobile .mab-title { font: 600 17px -apple-system, system-ui, sans-serif; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 56vw; color: var(--text); }
+.mobile .force-dark .mab-title { color: #fff; }
+.mobile .win-toolbar { order: 0 !important; flex: 0 0 auto !important; display: flex; align-items: center; gap: 6px; padding: 0 8px 8px !important; justify-content: flex-start !important; overflow-x: auto; overflow-y: hidden; -webkit-overflow-scrolling: touch; }
+.mobile .win-toolbar > [style*="flex: 1"], .mobile .win-toolbar > [style*="flex:1"] { flex: 0 0 4px !important; }
+.mobile .win-toolbar .field { max-width: 60vw; }
+.mobile .win-toolbar .tbtn { min-width: 38px; height: 38px; flex: none; }
+.mobile .win-toolbar .btn { flex: none; white-space: nowrap; }
+.mobile .win-body { padding-bottom: var(--app-bottom) !important; }
+.mobile .tb-hidden .titlebar { display: none !important; }
+.mobile .tb-hidden .win-body { padding-top: var(--app-top) !important; }
+
+/* list → detail screens */
+.mobile .m-stack:not(.m-show-detail) .m-detail { display: none !important; }
+.mobile .m-stack.m-show-detail .m-list { display: none !important; }
+.mobile .m-stack .m-list, .mobile .m-stack .m-detail { width: auto !important; max-width: none !important; min-width: 0 !important; flex: 1 1 auto !important; border-right: 0 !important; border-left: 0 !important; }
+.mobile .mab-left.back { color: var(--accent); }
+
+/* system overlays sit below the real status bar */
+.real-phone #toasts { top: calc(var(--sat) + 8px); }
+.real-phone .panel { top: calc(var(--sat) + 10px); max-height: calc(var(--vvh, 100%) - var(--sat) - 30px); }
+.real-phone #notif-center { padding-top: calc(var(--sat) + 20px) !important; }
+.mobile .toast { touch-action: none; }
+
+/* Spotlight: a search sheet at the top, results under it, no preview pane */
+.mobile #spotlight .sp-box { position: fixed !important; left: max(8px, var(--sal)); right: max(8px, var(--sar)); top: calc(var(--app-top) + 8px); width: auto !important; max-width: none !important; transform: none !important; margin: 0 !important; max-height: calc(var(--vvh, 100%) - var(--app-top) - 16px); display: flex; flex-direction: column; border-radius: 18px; }
+.mobile #spotlight .sp-preview { display: none !important; }
+.mobile #spotlight .sp-results { overflow-y: auto; max-height: none; flex: 1; }
+.mobile #spotlight .sp-res { min-height: 46px; }
+
+/* menus: bigger rows for fingers, never off the screen */
+.mobile .menu { min-width: 220px; max-width: calc(100vw - 16px); }
+.mobile .menu .menu-item { min-height: 40px; font-size: 15px; }
+
+/* landscape: keep away from the Dynamic Island side */
+@media (orientation: landscape) { .real-phone .titlebar { padding-left: max(10px, var(--sal)) !important; padding-right: max(10px, var(--sar)) !important; } }
+/* Notes on a phone: folders as chips over the list; the note on its own screen */
+.mobile .m-stack .notes-side.m-list { max-height: none !important; border-bottom: 0; }
+.mobile .m-stack .nf-side.m-list { flex: 0 0 auto !important; }
+.mobile .m-stack.m-show-detail .notes-main { display: flex; }
+/* Settings on a phone: a real list, like iPhone Settings */
+.mobile .m-stack .st-side.m-list { display: block; overflow-y: auto; padding: 8px 14px 24px; background: transparent; }
+.mobile .m-stack:not(.m-show-detail) .st-side .st-si { display: flex; width: 100%; height: 48px; border-radius: 0; background: var(--card); margin: 0; padding: 0 12px; gap: 12px; font-size: 16px; border-bottom: .5px solid var(--border); }
+.mobile .m-stack .st-side .st-si:first-of-type { border-radius: 12px 12px 0 0; }
+.mobile .m-stack .st-side .st-si:last-of-type { border-radius: 0 0 12px 12px; border-bottom: 0; }
+.mobile .m-stack .st-side .st-si::after { content: '›'; margin-left: auto; color: var(--text3); font-size: 20px; }
+.mobile .m-stack .st-side .st-si.on { background: var(--card); color: var(--text); }
+.mobile .m-stack .st-user { display: flex; margin: 4px 0 14px; }
+.mobile .m-stack .st-side .field { width: 100%; margin-bottom: 12px; }
+.mobile .m-stack .st-main.m-detail { overflow-y: auto; }
+.mobile .m-stack .st-main > h1:first-child { display: none; }
+/* apps without a title bar (Calculator, Weather, YouTube…) still get Home and ⋯, floating at the top */
+.mobile .tb-hidden .titlebar { display: flex !important; position: absolute !important; top: 0; left: 0; right: 0; z-index: 30; background: transparent !important; border: 0 !important; pointer-events: none; }
+.mobile .tb-hidden .titlebar .m-appbar { pointer-events: auto; }
+.mobile .tb-hidden .titlebar .mab-title, .mobile .tb-hidden .win-toolbar { display: none !important; }
+.mobile .tb-hidden .titlebar .mab-left, .mobile .tb-hidden .titlebar .mab-more { background: rgba(120,120,128,.28); -webkit-backdrop-filter: blur(18px); backdrop-filter: blur(18px); color: #fff; border-radius: 999px; width: 40px; justify-content: center; }
+.mobile .tb-hidden .win-body { padding-top: calc(var(--app-top) + 48px) !important; }
+/* Passwords on a phone: filters as a row of chips above the list */
+.mobile .pw-wrap { flex-direction: column; }
+.mobile .m-stack .pw-side.m-list { flex: 0 0 auto !important; display: flex; flex-direction: row; overflow-x: auto; gap: 6px; padding: 8px 10px; border-bottom: .5px solid var(--border); }
+.mobile .m-stack .pw-side.m-list > * { flex: none; white-space: nowrap; }
+.mobile .m-stack .pw-detail.m-detail, .mobile .m-stack .ct-card.m-detail, .mobile .m-stack .rm.m-detail, .mobile .m-stack .rm-side.m-list, .mobile .m-stack .ct-side.m-list { overflow-y: auto; max-height: none !important; }
+.mobile .mh-grid { grid-template-columns: repeat(var(--mh-cols, 4), 1fr); }
+@media (orientation: landscape) { .mobile .mh-grid { max-width: none; } .mobile .mh-ic { width: 56px; height: 56px; } .mobile .mh-search { margin-bottom: 6px; } }
+.real-phone.standalone #lock::after { display: none; } /* iOS draws its own home bar there */
+
+.mobile .st-card { display: none; } .mobile .m-stack .st-card { display: flex; margin: 4px 0 14px; }
