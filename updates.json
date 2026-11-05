@@ -1,7 +1,7 @@
 [
   {
     "version": "2.0.0",
-    "beta": 10,
+    "beta": 11,
     "date": "2026-11-04",
     "title": {
       "en": "PatOS 2.0: Everywhere",
@@ -18,6 +18,7 @@
         "Messages is now for people: search a username, send a message request, and they get notifications from you only after they accept. Every conversation is saved in the cloud and is the same on all your devices. Pat, the command helper, moved to a button in the top bar",
         "Shortcuts: a new app for little automations. Open apps, ask Pat for a timer, change the theme, show messages, and more, one step after the other. Start them by hand, when you unlock PatOS, every day at a time, or by saying “Hey Pat, …”. Turn on Hey Pat in Settings › Pat Voice (it is off until you do): Pat listens for its name, answers out loud and runs your shortcuts. There is also a microphone button in Pat’s panel in Messages",
         "Pat moved to the top bar: click the speech bubble next to Control Center to talk to Pat from anywhere (it is no longer inside Messages). On a phone, Pat is an app in Launchpad that opens the same panel",
+        "App Store › Develop fixes: trying an app no longer empties the form (your code stays, and trying again updates the same app instead of making a new one), the form is remembered after a restart, and an app you opened from a .patapp file now loads into the editor so you can change it. Apps installed from files have an Edit button in Community",
         "Settings has groups now: the sidebar shows General, Account & Cloud, Appearance & Display, Accessibility, Sound & Voice and Privacy & Security. A group opens the list of its settings (General has Software Update, Network, Storage and more), with a back link. The big account card at the top opens your info and your computer's info",
         "Faster everywhere: Photos opens without making every picture first, Files shows long folders in pieces so they appear at once, the start-up and lock screen wait less, and Pat answers quicker. PatOS also tests how fast your computer is and, on a slow one, turns off the see-through blur by itself (Settings › Speed mode lets you choose)",
         "Made for Windows laptops too (like an HP EliteBook): PatOS no longer says “Chromebook” when you are not on one, scrollbars are thin on Windows, and everything fits a 1366 by 768 screen",
@@ -33,6 +34,7 @@
         "Messages est maintenant pour les gens : cherchez un nom d’utilisateur, envoyez une demande de message, et la personne reçoit des notifications de vous seulement après avoir accepté. Chaque conversation est enregistrée dans le nuage et identique sur tous vos appareils. Pat, l’assistant à commandes, est passé dans un bouton de la barre du haut",
         "Raccourcis : une nouvelle app pour de petites automatisations. Ouvrir des apps, demander un minuteur à Pat, changer le thème, afficher des messages, et plus, une étape après l’autre. Lancez-les à la main, quand vous déverrouillez PatOS, chaque jour à une heure, ou en disant « Hey Pat, … ». Activez Hey Pat dans Réglages › Voix de Pat (désactivé tant que vous ne le faites pas) : Pat écoute son nom, répond à voix haute et lance vos raccourcis. Il y a aussi un bouton micro dans le panneau de Pat dans Messages",
         "Pat est passé dans la barre du haut : cliquez sur la bulle à côté du Centre de contrôle pour parler à Pat de n’importe où (il n’est plus dans Messages). Sur un téléphone, Pat est une app dans Launchpad qui ouvre le même panneau",
+        "Correctifs App Store › Développer : essayer une app ne vide plus le formulaire (votre code reste, et réessayer met à jour la même app au lieu d’en créer une nouvelle), le formulaire est gardé après un redémarrage, et une app ouverte depuis un fichier .patapp se charge dans l’éditeur pour que vous puissiez la modifier. Les apps installées depuis des fichiers ont un bouton Modifier dans Communauté",
         "Les Réglages ont maintenant des groupes : la barre latérale montre Général, Compte et nuage, Apparence et écran, Accessibilité, Son et voix, et Confidentialité et sécurité. Un groupe ouvre la liste de ses réglages (Général contient Mise à jour, Réseau, Stockage et plus), avec un lien de retour. La grande carte du compte en haut ouvre vos infos et celles de votre ordinateur",
         "Plus rapide partout : Photos s’ouvre sans fabriquer toutes les images d’abord, Fichiers affiche les longs dossiers par morceaux pour qu’ils apparaissent tout de suite, le démarrage et l’écran de verrouillage attendent moins, et Pat répond plus vite. PatOS teste aussi la vitesse de votre ordinateur et, sur un ordinateur lent, désactive seul le flou transparent (Réglages › Mode vitesse permet de choisir)",
         "Pensé aussi pour les portables Windows (comme un HP EliteBook) : PatOS ne dit plus « Chromebook » quand vous n’en avez pas un, les barres de défilement sont fines sous Windows, et tout tient sur un écran de 1366 par 768",

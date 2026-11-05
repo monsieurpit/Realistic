@@ -166,3 +166,24 @@ test('a .patapp file opens from Finder, and bad files say what is wrong', { skip
   assert.equal(r.installed, true); assert.match(r.bad, /not a PatOS app file/); assert.match(r.bad2, /does not offer/);
   await page.close();
 });
+
+test('Develop: trying an app keeps the code in the form, and an opened .patapp file can be edited', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1200, height: 760 } }); const errors = await boot(page, srv.base, { fresh: true }); await stub(page);
+  await page.evaluate(() => { PatOS.launch('appstore', { tab: 'develop' }); }); await page.waitForSelector('.as-form');
+  await page.fill('.as-form input[aria-label="Name"]', 'Keeper'); await page.fill('.as-form textarea', '<h2>my code</h2>');
+  await page.click('.as-form button:has-text("Install to Try It")'); await page.waitForTimeout(600);
+  const after = await page.evaluate(() => ({ name: document.querySelector('.as-form input[aria-label="Name"]').value, html: document.querySelector('.as-form textarea').value, id: document.querySelector('.as-form input[aria-label^="App id"]').value, count: PatOS.patapps.list().length }));
+  assert.equal(after.name, 'Keeper'); assert.equal(after.html, '<h2>my code</h2>'); assert.match(after.id, /^local\.keeper\./); assert.equal(after.count, 1);
+  await page.fill('.as-form textarea', '<h2>edited</h2>'); await page.click('.as-form button:has-text("Install to Try It")'); await page.waitForTimeout(500);
+  assert.equal(await page.evaluate(() => PatOS.patapps.list().length), 1, 'trying again updates the same app, not a new one');
+  assert.match(await page.evaluate(() => PatOS.patapps.list()[0].app.html), /edited/);
+  // an installed file app can be sent back to the editor
+  await page.evaluate(() => { PatOS.patappsUI.edit(PatOS.patapps.list()[0].app); }); await page.waitForTimeout(500);
+  const v = await page.evaluate(() => ({ name: document.querySelector('.as-form input[aria-label="Name"]').value, html: document.querySelector('.as-form textarea').value }));
+  assert.equal(v.name, 'Keeper'); assert.match(v.html, /edited/);
+  // after a restart the draft is still there
+  await page.evaluate(() => PatOS.flush()); await reload(page); await page.waitForSelector('#lock:not(.hidden)'); await page.evaluate(() => PatOS.boot.login());
+  await page.evaluate(() => { PatOS.launch('appstore', { tab: 'develop' }); }); await page.waitForSelector('.as-form');
+  assert.equal(await page.inputValue('.as-form input[aria-label="Name"]'), 'Keeper');
+  assert.deepEqual(errors, []); await page.close();
+});
