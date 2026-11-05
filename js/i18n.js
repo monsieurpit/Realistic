@@ -1023,6 +1023,7 @@
     'Edit this app': 'Modifier cette app',
     'Welcome to PatOS': 'Bienvenue dans PatOS', 'Now testing:': 'En test :',
     'Fewer animations': 'Moins d’animations', 'Live 3D Wallpapers': 'Fonds d’écran 3D animés', 'Animate 3D wallpaper': 'Animer le fond d’écran 3D', 'Choose your look': 'Choisissez votre style', 'Pick a wallpaper': 'Choisissez un fond d’écran',
+    'Boost': 'Turbo', 'Nickname': 'Pseudo', 'Best length': 'Meilleure longueur', 'Move the mouse to steer. Hold click or Space to boost.': 'Bougez la souris pour diriger. Maintenez le clic ou Espace pour accélérer.', 'You hit the wall': 'Vous avez touché le mur', 'You were eaten by': 'Vous avez été mangé par', 'Snakes eaten': 'Serpents mangés', 'Leaderboard': 'Classement', 'Rank': 'Rang', 'You ate': 'Vous avez mangé', 'Skin': 'Apparence', 'Magnet': 'Aimant', 'Shield': 'Bouclier', 'Far sight': 'Vue lointaine',
     'Speed mode': 'Mode vitesse', 'Lighter (faster on slow computers)': 'Allégé (plus rapide sur les ordinateurs lents)', 'Full looks': 'Tous les effets',
     'Open Files…': 'Ouvrir des fichiers…',
     'Link a Folder…': 'Lier un dossier…',

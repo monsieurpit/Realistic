@@ -1,5 +1,22 @@
 [
   {
+    "version": "2.1.0",
+    "beta": 1,
+    "date": "2026-11-05",
+    "title": {
+      "en": "Slither",
+      "fr": "Slither"
+    },
+    "notes": {
+      "en": [
+        "Slither: a new game in 3D & Games. Steer a glowing snake, eat dots to grow, and trap the other snakes so they crash into you. The other players are smart bots, so it works with no internet. Hold click or Space to boost, grab power-ups (Speed, Magnet, Shield, Double, Far sight), pick Easy, Normal or Hard, and climb the leaderboard. Pick your skin and nickname"
+      ],
+      "fr": [
+        "Slither : un nouveau jeu dans 3D et jeux. Dirigez un serpent lumineux, mangez des points pour grandir et piégez les autres serpents pour qu’ils vous foncent dedans. Les autres joueurs sont des robots malins, donc ça marche sans internet. Maintenez le clic ou Espace pour accélérer, ramassez des bonus (Vitesse, Aimant, Bouclier, Double, Vue lointaine), choisissez Facile, Normal ou Difficile et grimpez au classement. Choisissez votre apparence et votre pseudo"
+      ]
+    }
+  },
+  {
     "version": "2.0.0",
     "date": "2026-11-05",
     "title": {

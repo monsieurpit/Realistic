@@ -907,3 +907,25 @@ html[data-theme="dark"] .ytx { --yb: #0f0f0f; --yb2: #272727; --yb3: #3f3f3f; --
 .xw-card p { color: var(--text2); line-height: 1.5; margin: 0; }
 .xw-card small { color: var(--text3); }
 .xw-ic, .xw-ic .icon-tile { width: 88px; height: 88px; border-radius: 22px; }
+
+/* Slither */
+.sl-stage { flex: 1; position: relative; overflow: hidden; background: #0b1020; outline: 0; min-height: 0; color: #fff; user-select: none; -webkit-user-select: none; }
+.sl-canvas { position: absolute; inset: 0; width: 100%; height: 100%; touch-action: none; cursor: crosshair; }
+.sl-hud { position: absolute; inset: 0; pointer-events: none; font-size: 12px; }
+.sl-board { position: absolute; top: 12px; right: 12px; min-width: 150px; padding: 8px 10px; border-radius: 10px; background: rgba(0,0,0,.4); }
+.sl-bt { font-weight: 700; margin-bottom: 4px; opacity: .8; } .sl-row { display: flex; justify-content: space-between; gap: 10px; padding: 1px 0; opacity: .85; } .sl-row.me { color: #ffd60a; font-weight: 700; opacity: 1; }
+.sl-score { position: absolute; left: 12px; bottom: 12px; padding: 8px 12px; border-radius: 10px; background: rgba(0,0,0,.4); font-size: 14px; } .sl-score small { display: block; opacity: .75; font-size: 11px; margin-top: 2px; }
+.sl-map { position: absolute; right: 12px; bottom: 12px; width: 120px; height: 120px; }
+.sl-fx { position: absolute; left: 50%; bottom: 14px; transform: translateX(-50%); display: flex; gap: 6px; flex-wrap: wrap; justify-content: center; max-width: 60%; }
+.sl-chip { padding: 4px 10px; border-radius: 14px; color: #111; font-weight: 600; } .sl-chip b { margin-left: 4px; }
+.sl-banner { position: absolute; top: 18%; left: 50%; transform: translateX(-50%); font-size: 26px; font-weight: 800; text-shadow: 0 2px 12px rgba(0,0,0,.7); }
+.sl-menu, .sl-over { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(5,8,18,.55); backdrop-filter: blur(3px); }
+.sl-menu.hidden, .sl-over.hidden { display: none; }
+.sl-card { width: min(92%, 360px); padding: 22px; border-radius: 16px; background: rgba(20,26,46,.92); border: 1px solid rgba(255,255,255,.12); display: flex; flex-direction: column; gap: 14px; align-items: stretch; text-align: center; }
+.sl-card h1 { margin: 0; font-size: 34px; letter-spacing: .5px; } .sl-card h2 { margin: 0; font-size: 20px; }
+.sl-skins { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; } .sl-skin { width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; } .sl-skin.on { border-color: #fff; transform: scale(1.15); }
+.sl-card .seg { align-self: center; } .sl-play { height: 40px; font-size: 16px; } .sl-best, .sl-help { opacity: .65; }
+.sl-stats { display: flex; justify-content: space-around; } .sl-stats div { display: flex; flex-direction: column; } .sl-stats b { font-size: 24px; } .sl-stats span { font-size: 11px; opacity: .7; }
+.sl-btns { display: flex; gap: 10px; justify-content: center; }
+.sl-boost { display: none; position: absolute; left: 16px; bottom: 90px; width: 74px; height: 74px; border-radius: 50%; background: rgba(255,214,10,.85); color: #111; font-weight: 800; touch-action: none; }
+@media (pointer: coarse) { .sl-boost { display: block; } }

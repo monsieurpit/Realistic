@@ -23,7 +23,7 @@ const ready = (page) => until(page, () => window.PatOS && PatOS.boot && PatOS.fs
 const read = (f) => fs.readFileSync(f, 'utf8');
 /* the copy goes back to how PatOS was while 2.0.0 was still a beta: 1.7.0 is the newest finished version and 2.0.0 beta 13 is being built */
 function asBeta(dir) {
-  const uf = path.join(dir, 'updates.json'); const u = JSON.parse(read(uf)); u[0] = Object.assign({ version: u[0].version, beta: 13 }, u[0], { beta: 13 }); fs.writeFileSync(uf, JSON.stringify(u, null, 1));
+  const uf = path.join(dir, 'updates.json'); let u = JSON.parse(read(uf)).filter((r) => r.version === '2.0.0' || !r.beta || r.version < '2.0.0'); const i = u.findIndex((r) => r.version === '2.0.0'); u[i] = Object.assign({}, u[i], { beta: 13 }); u = u.slice(i); fs.writeFileSync(uf, JSON.stringify(u, null, 1));
   fs.rmSync(path.join(dir, 'releases', '2.0.0'), { recursive: true, force: true });
   execFileSync(process.execPath, ['build.js'], { cwd: dir, stdio: 'ignore' });
 }
