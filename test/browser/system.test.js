@@ -55,3 +55,13 @@ test('phone: back goes from a note to the list, then home', { skip: skipNoBrowse
   assert.ok(await page.evaluate(() => window.PatOS && !document.documentElement.classList.contains('m-in-app')), 'back at the Home Screen, still in PatOS');
   await ctx.close();
 });
+
+test('pages that are not part of PatOS (the /apprequests review page, /docs) still open while the service worker runs', { skip: skipNoBrowser }, async () => {
+  const ctx = await b.newContext(); const page = await ctx.newPage(); await boot(page, srv.base);
+  await page.evaluate(() => navigator.serviceWorker.ready); await page.waitForFunction(async () => { const s = await PatOS.updateManager.ask({ patosVersion: true }, 3000); return s && s.installed; }, null, { timeout: 20000 });
+  await page.reload(); await page.waitForFunction(() => !!navigator.serviceWorker.controller);
+  for (const [path, text] of [['/apprequests', 'PatOS app requests'], ['/docs/APP-SDK.md', 'patapp']]) {
+    const r = await page.goto(srv.base + path); assert.equal(r.status(), 200, path); assert.match(await page.content(), new RegExp(text, 'i'), path);
+  }
+  await page.goto(srv.base + '/'); await page.waitForFunction(() => window.PatOS && PatOS.fs); await ctx.close();
+});

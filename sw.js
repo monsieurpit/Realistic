@@ -209,7 +209,7 @@ self.addEventListener('fetch', (e) => {
     e.respondWith(new Promise((res) => { const id = url.pathname.split('/')[2]; const st = stdin[id] = stdin[id] || { q: [], w: [] }; const ans = (t) => res(t == null ? new Response('', { status: 204 }) : new Response(t)); if (st.q.length) ans(st.q.shift()); else st.w.push(ans); }));
     return;
   }
-  if (e.request.method !== 'GET' || url.origin !== location.origin || url.pathname.startsWith('/api/') || url.pathname.startsWith('/_v/')) return;
+  if (e.request.method !== 'GET' || url.origin !== location.origin || url.pathname.startsWith('/api/') || url.pathname.startsWith('/_v/') || url.pathname === '/apprequests' || url.pathname === '/apprequests/') return; // (the review page is not a part of PatOS)
   // Python's files never change for a given version, so they are kept apart and survive PatOS updates
   if (url.pathname.startsWith('/pyodide/') || url.pathname.startsWith('/vendor/pdf/')) {
     // the PDF tools are fetched the first time a PDF is opened; the cache name carries their version
@@ -231,8 +231,10 @@ async function serve(request, url) {
   if (hit) return hit;
   try {
     // not saved (a file that is not on the list): ask for it from the same version, never from a newer one
-    const r = LEGACY_ID.test(id) ? await fetch(request) : await fetch('/_v/' + id + url.pathname + url.search, { cache: 'no-store' });
-    if (r.ok && r.status === 200 && !LEGACY_ID.test(id)) c.put(request, r.clone());
+    if (LEGACY_ID.test(id)) return await fetch(request);
+    const r = await fetch('/_v/' + id + url.pathname + url.search, { cache: 'no-store' });
+    if (r.status === 404) return await fetch(request); // not one of this version's files (/apprequests, /docs/...): the website itself answers
+    if (r.ok && r.status === 200) c.put(request, r.clone());
     return r;
   } catch (er) { return (await c.match('/index.html')) || Response.error(); }
 }
