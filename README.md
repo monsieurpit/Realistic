@@ -151,7 +151,7 @@ An app is one `.patapp` file: a web page in a locked box that talks to PatOS thr
 - **PitCode Studio** (an app, like Xcode) makes them: projects live in Documents › Studio, written in [PitCode](https://github.com/monsieurpit/PitCode) (built in: `vendor/pitcode.js`, loaded only when needed) or in HTML and JavaScript, with Run, a console, project settings and Build.
 - **App Store › Develop** installs a file, makes one from a form, and sends it for review. **App Store › Community** lists accepted apps.
 - **Review:** submissions wait at `/apprequests`, a page protected by the password in the environment variable `APPS_ADMIN_PASSWORD` (set it on Railway; if it is unset, a random one is printed in the log at start-up; it is never in the code). The page only shows code as text. Files live in `PATOS_DATA/apps`.
-- Full guide: [docs/APP-SDK.md](docs/APP-SDK.md). Example: [examples/hello.patapp](examples/hello.patapp).
+- Full guide (file formats `.patapp` and `.patappproject`, every `patos.*` call, permissions, notifications, limits, publishing and updating, server API): [docs/APP-SDK.md](docs/APP-SDK.md). Example: [examples/hello.patapp](examples/hello.patapp).
 
 ## PatDrop (chat and sharing with a friend)
 
