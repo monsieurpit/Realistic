@@ -1,5 +1,21 @@
 [
   {
+    "version": "2.1.3",
+    "date": "2026-11-06",
+    "title": {
+      "en": "PitCode Studio on iPhone",
+      "fr": "PitCode Studio sur iPhone"
+    },
+    "notes": {
+      "en": [
+        "PitCode Studio is made for iPhone now: a compact top bar, and Files, Code and Preview each get the whole screen, with tabs at the bottom. The code and its colors line up properly, nothing zooms in when you tap, and the buttons, the file list, the settings and the first screen are bigger and easier to tap"
+      ],
+      "fr": [
+        "PitCode Studio est maintenant pensé pour l’iPhone : une barre du haut compacte, et Fichiers, Code et Aperçu prennent chacun tout l’écran, avec des onglets en bas. Le code et ses couleurs s’alignent bien, rien ne zoome quand vous touchez, et les boutons, la liste des fichiers, les réglages et le premier écran sont plus grands et plus faciles à toucher"
+      ]
+    }
+  },
+  {
     "version": "2.1.2",
     "date": "2026-11-06",
     "title": {

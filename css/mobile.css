@@ -267,3 +267,46 @@ html.mobile.m-kb { --app-bottom: 0px; }
 .real-phone.standalone #lock::after { display: none; } /* iOS draws its own home bar there */
 
 .mobile .st-card { display: none; } .mobile .m-stack .st-card { display: flex; margin: 4px 0 14px; }
+
+/* ---------- PitCode Studio on a phone: a compact top bar, one part at a time (files, code, preview), tabs at the bottom ---------- */
+.ps-tabs { display: none; }
+.mobile .ps-win .win-title { display: none !important; }
+.mobile .ps-win .titlebar { min-height: 0; padding-top: calc(var(--mtop) + 26px); padding-bottom: 8px; flex-wrap: nowrap; }
+.mobile .ps-win .win-toolbar { flex: 1 1 auto; flex-wrap: nowrap; justify-content: flex-start !important; gap: 6px; overflow: hidden; }
+.mobile .ps-win .win-toolbar .ps-title { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 17px; margin: 0 2px; }
+.mobile .ps-win .win-toolbar > div[style] { display: none; }
+.mobile .ps-win .win-toolbar .btn, .mobile .ps-win .win-toolbar .tbtn { height: 36px; min-width: 0; padding: 0 14px; border-radius: 18px; font-size: 15px; flex: none; }
+.mobile .ps-win .ps-projbtn::before { content: '\2039  '; font-size: 20px; line-height: 0; }
+.mobile .ps-home .ps-projbtn { display: none; }
+.mobile .ps-win .ps-narrow, .mobile .ps-win .ps-prevbtn { display: none !important; }
+.mobile .ps-win .ps-stop { display: none; } .mobile .ps-win.ps-running .ps-stop { display: inline-flex; }
+.mobile .ps-win .win-body { padding-bottom: 0; }
+.mobile .ps { height: 100%; }
+.mobile .ps-main { flex-direction: column; }
+.mobile .ps-side, .mobile .ps-center, .mobile .ps-prev { display: none; position: static; width: 100%; flex: 1; min-height: 0; transform: none !important; box-shadow: none; border: 0; background: transparent; }
+.mobile .ps-pane-files .ps-side, .mobile .ps-pane-code .ps-center, .mobile .ps-pane-prev .ps-prev { display: flex; }
+.mobile .ps-tabs { display: flex; gap: 6px; padding: 8px 12px calc(var(--sab) + 12px); border-top: 1px solid var(--line, #8883); background: var(--toolbar); flex: none; }
+.mobile .ps-tabs button { flex: 1; height: 42px; border: 0; border-radius: 14px; background: transparent; color: inherit; font: inherit; font-size: 15px; font-weight: 600; opacity: .65; }
+.mobile .ps-tabs button.on { background: var(--accent, #0a84ff); color: #fff; opacity: 1; }
+/* files */
+.mobile .ps-side { padding: 10px 12px; gap: 6px; overflow: auto; }
+.mobile .ps-sidehead { padding: 4px 4px 10px; font-size: 17px; } .mobile .ps-sidehead .tbtn { width: 40px; height: 40px; font-size: 22px; border-radius: 20px; }
+.mobile .ps-file { min-height: 50px; padding: 10px 14px; border-radius: 14px; font-size: 16px; background: var(--card, #8881); } .mobile .ps-file.on { background: var(--accent, #0a84ff); }
+.mobile .ps-tip { display: none; }
+/* code: the colors and the text box must use the same size, or they drift apart (and 16px stops iOS zooming into the box) */
+.mobile .ps-fname { padding: 8px 14px; font-size: 13px; }
+.mobile .ps-ed, .mobile .ps-hl, .mobile .ps-ta, .mobile .ps-gut { font-size: 15px !important; line-height: 23px !important; }
+.mobile .ps-ta { font-size: 16px !important; line-height: 23px !important; }
+.mobile .ps-hl, .mobile .ps-ed, .mobile .ps-gut { font-size: 16px !important; }
+.mobile .ps-gut { min-width: 30px; padding: 10px 6px 10px 8px; }
+.mobile .ps-problems { max-height: 96px; font-size: 13px; } .mobile .ps-prob { padding: 8px 14px; }
+/* preview and console */
+.mobile .ps-stage { flex: 1.3; min-height: 160px; } .mobile .ps-consbar { padding: 8px 14px; font-size: 13px; } .mobile .ps-console { min-height: 90px; padding: 6px 14px 12px; }
+/* project settings and the first screen */
+.mobile .ps-settings { padding: 14px 16px 24px; } .mobile .ps-grid, .mobile .ps-perms { grid-template-columns: 1fr; }
+.mobile .ps-welcome { padding: 18px 16px 30px; gap: 22px; grid-template-columns: 1fr; } .mobile .ps-wcol h1 { font-size: 30px; letter-spacing: -.5px; }
+.mobile .ps .btn { min-height: 44px; border-radius: 12px; font-size: 16px; } .mobile .ps-wcol .ps-row { flex-wrap: wrap; } .mobile .ps-wcol .ps-row .btn { flex: 1 1 auto; }
+.mobile .ps input.field, .mobile .ps select.field { height: 44px; border-radius: 12px; }
+.mobile .ps-tpls { grid-template-columns: 1fr 1fr 1fr; } .mobile .ps-tpl { padding: 10px; }
+.mobile .ps-proj { padding: 12px; }
+.mobile .ps-pastecard { width: calc(100% - 24px); }

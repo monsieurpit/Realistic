@@ -1,0 +1,161 @@
+// Device Lab (PitCode): the screen. The shared state is in tools.pit, what the buttons do is in lab.pit.
+
+use { state, PERMS, LABELS, kb, put } from "./tools"
+use { storageSet, storageGet, storageRemove, storageKeys, storageClear,
+  filesSave, filesOpen, filesDelete, filesList, filesPick, galleryLoad,
+  notifyNow, notifyLater, notifyThree, clipCopy, clipPaste,
+  cameraSnap, cameraSave, micRecord, micSave, locationGet, locationCopy, locationPlace,
+  netGet, netZen, netIp, netPicture, netSpeed, windowTitle, windowInfo, windowClose,
+  reportCopy, reportSave, reportClear, runAll, runQuiet } from "./lab"
+
+// A button. `go` is what it does; `tone` is "primary" or "danger"; `off` greys it out.
+Btn({label, go, tone, off}) => <button class={"btn " + (tone ?? "")} disabled={off ?? false} onClick={() => go()}>{label}</button>
+
+// The text under a card (green when it worked, red when it did not).
+Out({id}) => {
+  pit o = state.outs[id]
+  back <pre class={"out " + (o == nil ? "" : o.tone)}>{o == nil ? "" : o.text}</pre>
+}
+
+Card({title, hint, wide, children}) => <section class={wide ? "card wide" : "card"}>
+  <h2>{title}</h2>
+  <p class="hint">{hint}</p>
+  {children}
+</section>
+
+Text({value, set, place}) => <input value={value} placeholder={place} onInput={e => set(e.target.value)} />
+
+// One colored chip per permission: works, refused, or not tried yet.
+PermChips() => <nav class="perms">
+  {PERMS.map(p => {
+    pit status = state.perms[p]
+    pit shown = status == "ok" ? "works" : status == "no" ? "refused" : "not tried yet"
+    back <span key={p} class={"chip " + (status == "ok" ? "ok" : status == "no" ? "no" : "warn")}><i></i>{LABELS[p]}: {shown}</span>
+  })}
+</nav>
+
+App() => <div>
+  <header class="top">
+    <div>
+      <h1>Device Lab</h1>
+      <p class="sub">{state.who}</p>
+    </div>
+    <div class="actions">
+      <Btn label="Run every test" tone="primary" off={state.busy} go={runAll} />
+      <Btn label="Run the quiet tests" off={state.busy} go={runQuiet} />
+    </div>
+  </header>
+
+  <PermChips />
+
+  <main class="grid">
+    <Card title="Storage" hint="Private to this app. No permission needed.">
+      <div class="row"><Text value={state.sKey} set={v => { state.sKey = v }} place="key" /><Text value={state.sVal} set={v => { state.sVal = v }} place="value" /></div>
+      <div class="row"><Btn label="Set" go={storageSet} /><Btn label="Get" go={storageGet} /><Btn label="Remove" go={storageRemove} /><Btn label="Keys" go={storageKeys} /><Btn label="Clear" tone="danger" go={storageClear} /></div>
+      <Out id="storage" />
+    </Card>
+
+    <Card title="Files" hint="Permission: files. Saved in Documents, Apps, Device Lab (PitCode).">
+      <div class="row"><Text value={state.fName} set={v => { state.fName = v }} place="folder/name.txt" /></div>
+      <textarea rows="4" value={state.fText} onInput={e => { state.fText = e.target.value }}></textarea>
+      <div class="row"><Btn label="Save" go={filesSave} /><Btn label="Open" go={filesOpen} /><Btn label="Delete" go={filesDelete} /><Btn label="List folder" go={filesList} /></div>
+      <div class="row"><Text value={state.fDir} set={v => { state.fDir = v }} place="folder to list (empty = all)" /></div>
+      <div class="files">
+        {state.files.map(f => <button key={f.name} onClick={() => filesPick(f)}><span>{f.folder ? "[folder] " : ""}{f.name}</span><small>{f.folder ? "" : kb(f.size)}</small></button>)}
+      </div>
+      <Out id="files" />
+    </Card>
+
+    <Card title="Notifications" hint="Permission: notifications. They show while this app is open.">
+      <div class="row"><Text value={state.nTitle} set={v => { state.nTitle = v }} place="title" /></div>
+      <div class="row"><Text value={state.nBody} set={v => { state.nBody = v }} place="message" /></div>
+      <div class="row"><Btn label="Send now" go={notifyNow} /><Btn label="Send in 5 seconds" go={notifyLater} /><Btn label="Send 3" go={notifyThree} /></div>
+      <Out id="notify" />
+    </Card>
+
+    <Card title="Clipboard" hint="Permission: clipboard.">
+      <textarea rows="3" value={state.cText} onInput={e => { state.cText = e.target.value }}></textarea>
+      <div class="row"><Btn label="Copy this text" go={clipCopy} /><Btn label="Paste from clipboard" go={clipPaste} /></div>
+      <Out id="clip" />
+    </Card>
+
+    <Card title="Camera" hint="Permission: camera. One picture per press.">
+      <div class="row"><Btn label="Take a photo" go={cameraSnap} /><Btn label="Save to files" off={state.photo == nil} go={cameraSave} /><Btn label="Show saved photos" go={galleryLoad} /></div>
+      {state.photo == nil ? nil : <img class="photo" src={state.photo} alt="" />}
+      <div class="gallery">
+        {state.gallery.map(g => <img key={g.name} src={g.data} title={g.name} alt="" onClick={() => { state.photo = g.data }} />)}
+      </div>
+      <Out id="camera" />
+    </Card>
+
+    <Card title="Microphone" hint="Permission: microphone. Records, then plays it back.">
+      <div class="row">
+        <select value={state.micSecs} onChange={e => { state.micSecs = e.target.value }}>
+          <option value="1000">1 second</option>
+          <option value="3000">3 seconds</option>
+          <option value="5000">5 seconds</option>
+          <option value="10000">10 seconds</option>
+        </select>
+        <Btn label="Record" go={() => micRecord()} /><Btn label="Save to files" off={state.audio == nil} go={micSave} />
+      </div>
+      <div class="meter"><div style={{width: state.micPct + "%"}}></div></div>
+      {state.audio == nil ? nil : <audio controls src={state.audio}></audio>}
+      <Out id="mic" />
+    </Card>
+
+    <Card title="Location" hint="Permission: location.">
+      <div class="row"><Btn label="Where am I?" go={locationGet} /><Btn label="Copy coordinates" off={state.coords == nil} go={locationCopy} /><Btn label="Find the place name" off={state.coords == nil} go={locationPlace} /></div>
+      {state.coords == nil ? nil : <div class="stat">Latitude: {state.coords.lat.fixed(5)}   Longitude: {state.coords.lon.fixed(5)}   Accuracy: {math.round(state.coords.accuracy)} m</div>}
+      <Out id="loc" />
+    </Card>
+
+    <Card wide={true} title="Internet" hint="Permission: network. Only https addresses. Sites must allow being read by other pages (CORS).">
+      <div class="row"><Text value={state.uUrl} set={v => { state.uUrl = v }} place="https://..." /><Btn label="GET" go={netGet} /></div>
+      <div class="row">
+        <Btn label="Random advice" go={netZen} /><Btn label="My public address" go={netIp} /><Btn label="Load a picture" go={netPicture} /><Btn label="Speed test" go={netSpeed} />
+        <span class={"chip " + (state.online ? "ok" : "no")}><i></i>{state.online ? "Online" : "Offline"}</span>
+      </div>
+      {state.picture == nil ? nil : <img class="photo" src={state.picture} alt="" />}
+      <Out id="net" />
+    </Card>
+
+    <Card title="Window and theme" hint="No permission needed.">
+      <div class="row"><Text value={state.wTitle} set={v => { state.wTitle = v }} place="title" /><Btn label="Set the title" go={windowTitle} /></div>
+      <div class="row"><Btn label="Show info" go={windowInfo} /><Btn label="Close this app" tone="danger" go={windowClose} /></div>
+      <div class="swatches">
+        <div style={{background: state.theme.bg, color: state.theme.text}}>Background {state.theme.bg}</div>
+        <div style={{background: state.theme.text, color: state.theme.bg}}>Text {state.theme.text}</div>
+        <div style={{background: state.theme.accent, color: "#ffffff"}}>Accent {state.theme.accent}</div>
+      </div>
+      <Out id="win" />
+    </Card>
+
+    <Card wide={true} title="Report" hint="Every test result, newest last.">
+      <div class="row"><Btn label="Copy the report" go={reportCopy} /><Btn label="Save it as a file" go={reportSave} /><Btn label="Clear" tone="danger" go={reportClear} /></div>
+      <ol class="report">
+        {state.report.map((r, i) => <li key={i} class={r.ok ? "ok" : "no"}>{r.ok ? "Works: " : "Failed: "}{r.name} <small>{r.at}{r.detail == "" ? "" : " - " + r.detail}</small></li>)}
+      </ol>
+    </Card>
+  </main>
+</div>
+
+// ----- start -----
+start() => {
+  state.online = js.navigator.onLine
+  window.addEventListener("online", () => { state.online = true })
+  window.addEventListener("offline", () => { state.online = false })
+  js.patos.on("theme", t => { state.theme = {bg: t.bg, text: t.text, accent: t.accent} })
+  pit info = wait js.patos.info()
+  state.theme = {bg: info.bg, text: info.text, accent: info.accent}
+  pit look = info.dark ? "dark" : "light"
+  pit lang = info.language == "fr" ? "French" : "English"
+  pit net = js.patos.app.network ? "internet allowed" : "internet not allowed (or not asked yet)"
+  state.who = "{js.patos.app.name} {js.patos.app.version}  -  {look} theme, {lang}  -  {net}"
+  pit opens = ((wait js.patos.storage.get("opens")) ?? 0) + 1
+  js.patos.storage.set("opens", opens)
+  put("storage", "You have opened Device Lab {opens} time(s).")
+  js.patos.log("Device Lab started.", false)
+}
+
+draw(App)
+start()

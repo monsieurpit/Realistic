@@ -187,7 +187,7 @@
     id: 'pitstudio', name: 'PitCode Studio', icon: 'pitstudio', width: 1080, height: 680, minWidth: 360, minHeight: 320, category: 'Developer', keywords: 'studio xcode pitcode code develop app sdk patapp make build ide programming developer code',
     about: 'Make your own PatOS apps in PitCode or HTML and JavaScript, run them, and share them.',
     launch(win, args) {
-      win.el.classList.add('has-toolbar');
+      win.el.classList.add('has-toolbar', 'ps-win', 'ps-pane-code', 'ps-home');
       const P = PatOS.patapps;
       let proj = null, cur = null, view = 'code', saveTimer = null, run = null, problemsTimer = null, pubState = null;
       const root = h('div', { class: 'ps' }); win.body.appendChild(root);
@@ -196,7 +196,7 @@
       if (PatOS.pitcodeSource) PatOS.loadPitCode().then(() => { if (ed) ed.rerender(); if (proj) checkNow(); }).catch(() => {});
 
       /* toolbar */
-      const bProjects = h('button', { class: 'tbtn', title: T('Projects') }, T('Projects'));
+      const bProjects = h('button', { class: 'tbtn ps-projbtn', title: T('Projects') }, T('Projects'));
       const title = h('span', { class: 'ps-title' });
       const bRun = h('button', { class: 'btn primary ps-run' }, T('Run')), bStop = h('button', { class: 'btn ps-stop' }, T('Stop'));
       const bBuild = h('button', { class: 'btn ps-build' }, T('Build'));
@@ -218,6 +218,11 @@
       const codeBox = h('div', { class: 'ps-codebox' }, h('div', { class: 'ps-fname' }), ed.el, problems);
       center.append(codeBox, settings);
       const main = h('div', { class: 'ps-main' }, side, center, prev);
+      /* on a phone the three parts (files, code, preview) take turns on the whole screen, with tabs at the bottom */
+      const PANES = [['files', T('Files')], ['code', T('Code')], ['prev', T('Preview')]];
+      const tabs = h('div', { class: 'ps-tabs' }, ...PANES.map(([k, l]) => h('button', { 'data-pane': k, onclick: () => setPane(k) }, l)));
+      function setPane(k) { PANES.forEach(([n]) => win.el.classList.toggle('ps-pane-' + n, n === k)); [...tabs.children].forEach((b) => b.classList.toggle('on', b.dataset.pane === k)); }
+      setPane('code');
 
       const say = (text, err) => { const l = h('div', { class: 'ps-line' + (err ? ' err' : '') }, text); cons.appendChild(l); while (cons.childElementCount > 300) cons.firstChild.remove(); cons.scrollTop = cons.scrollHeight; };
       const optsFor = (name) => (/\.pitx$/.test(name) ? { jsx: true } : /\.pitoss$/.test(name) ? { css: true } : /\.pit$/.test(name) ? {} : null);
@@ -240,7 +245,7 @@
         side.append(h('div', { class: 'ps-sidehead' }, h('b', {}, proj.name), add), gen);
         Object.keys(proj.files).sort((a, b) => (a === proj.meta.entry ? -1 : b === proj.meta.entry ? 1 : a.localeCompare(b))).forEach((f) => {
           const b = h('button', { class: 'ps-file' + (view === 'code' && f === cur ? ' on' : '') }, h('span', { class: 'ps-ico' }, /\.pitx?$/.test(f) ? 'P' : /\.pitoss$/.test(f) ? '#' : /\.html$/.test(f) ? '<>' : /\.css$/.test(f) ? '#' : /\.js$/.test(f) ? 'JS' : '·'), h('b', {}, f), f === proj.meta.entry ? h('small', {}, T('start')) : null);
-          b.onclick = () => { saveFile(); cur = f; view = 'code'; drawAll(); win.el.classList.remove('ps-show-side'); };
+          b.onclick = () => { saveFile(); cur = f; view = 'code'; drawAll(); win.el.classList.remove('ps-show-side'); setPane('code'); };
           b.oncontextmenu = (e) => { e.preventDefault(); PatOS.menu([{ label: T('Rename'), action: () => renameFile(f) }, { label: T('Make this the start file'), action: () => { proj.meta.entry = f; saveMeta(); drawSide(); } }, { label: T('Delete'), action: () => delFile(f) }], e.clientX, e.clientY); };
           let t = null; b.addEventListener('touchstart', () => { t = setTimeout(() => b.oncontextmenu({ preventDefault() {}, clientX: b.getBoundingClientRect().left + 40, clientY: b.getBoundingClientRect().bottom }), 600); }, { passive: true }); ['touchend', 'touchmove', 'touchcancel'].forEach((ev) => b.addEventListener(ev, () => clearTimeout(t), { passive: true }));
           side.appendChild(b);
@@ -301,7 +306,7 @@
       /* run, build */
       function stopRun() { if (run) { run.stop(); run = null; } stage.innerHTML = ''; stage.appendChild(h('div', { class: 'ps-hint' }, T('Press Run to start your app here.'))); win.el.classList.remove('ps-running'); }
       async function doRun() {
-        if (!proj) return; saveFile(); stopRun(); cons.innerHTML = ''; win.el.classList.add('ps-show-prev');
+        if (!proj) return; saveFile(); stopRun(); cons.innerHTML = ''; win.el.classList.add('ps-show-prev'); if (PatOS.isMobile) setPane('prev');
         let app; try { app = toApp(proj); } catch (e) { say(String(e.message || e), true); return; }
         stage.innerHTML = '';
         try { run = await P.mount(app, stage, win, { onConsole: say }); win.el.classList.add('ps-running'); say(T('Started') + ' ' + app.name + ' ' + app.version, false); }
@@ -359,7 +364,7 @@
         const p = loadProject(name); if (!p) return fail(new Error(T('That project could not be opened.')));
         stopRun(); proj = p; cur = null; view = 'code'; pubState = null; win.setTitle('PitCode Studio'); drawProject(); drawAll(); refreshPub();
       }
-      function drawProject() { root.innerHTML = ''; root.append(main); bRun.style.display = bStop.style.display = bBuild.style.display = bPrev.style.display = ''; bFiles.style.display = ''; }
+      function drawProject() { win.el.classList.remove('ps-home'); root.innerHTML = ''; root.append(main, tabs); setPane('code'); bRun.style.display = bStop.style.display = bBuild.style.display = bPrev.style.display = ''; bFiles.style.display = ''; }
       function closeProject() { saveFile(); stopRun(); proj = null; cur = null; welcome(); }
       bProjects.onclick = () => { if (proj) closeProject(); else welcome(); };
 
@@ -393,7 +398,7 @@
       }
       /* the first screen: new project or open one */
       function welcome() {
-        root.innerHTML = ''; title.textContent = ''; bRun.style.display = bStop.style.display = bBuild.style.display = bPrev.style.display = 'none'; bFiles.style.display = 'none';
+        win.el.classList.add('ps-home'); root.innerHTML = ''; title.textContent = ''; bRun.style.display = bStop.style.display = bBuild.style.display = bPrev.style.display = 'none'; bFiles.style.display = 'none';
         let lang = 'pitcode', tpl = 'blank'; const nameIn = h('input', { class: 'field', value: T('My App'), maxlength: '40', 'aria-label': T('App name') });
         const langRow = h('div', { class: 'ps-seg' }); const tplRow = h('div', { class: 'ps-tpls' });
         const drawTpl = () => {
@@ -404,7 +409,7 @@
         make.onclick = () => { const n = nameIn.value.trim().replace(/[\/\\]/g, '') || T('My App'); try { mkdirs(ROOT); open(newProject({ name: n, language: lang, template: tpl })); } catch (e) { fail(e); } };
         nameIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') make.click(); });
         const list = listProjects().sort((a, b) => b.mtime - a.mtime);
-        const mine = h('div', { class: 'ps-projects' }, ...(list.length ? list.map((p) => { const b = h('button', { class: 'ps-proj', onclick: () => open(p.name) }, h('div', { class: 'as-ic', html: '<div class="icon-tile" style="background:linear-gradient(160deg,rgba(255,255,255,.28),rgba(0,0,0,.22)),' + PatOS.esc(p.meta.color || '#0a84ff') + '"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><text x="32" y="44" font-size="34" font-family="system-ui,sans-serif" text-anchor="middle" fill="#fff">' + PatOS.esc(p.meta.icon || '?') + '</text></svg></div>' }), h('div', {}, h('b', {}, p.name), h('small', {}, (p.meta.language === 'pitcode' ? 'PitCode' : 'HTML + JavaScript') + ' · ' + p.meta.version))); return b; }) : [h('p', { class: 'ps-note' }, T('No projects yet. Make your first app on the left.'))]));
+        const mine = h('div', { class: 'ps-projects' }, ...(list.length ? list.map((p) => { const b = h('button', { class: 'ps-proj', onclick: () => open(p.name) }, h('div', { class: 'as-ic', html: '<div class="icon-tile" style="background:linear-gradient(160deg,rgba(255,255,255,.28),rgba(0,0,0,.22)),' + PatOS.esc(p.meta.color || '#0a84ff') + '"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><text x="32" y="44" font-size="34" font-family="system-ui,sans-serif" text-anchor="middle" fill="#fff">' + PatOS.esc(p.meta.icon || '?') + '</text></svg></div>' }), h('div', {}, h('b', {}, p.name), h('small', {}, (p.meta.language === 'pitcode' ? 'PitCode' : 'HTML + JavaScript') + ' · ' + p.meta.version))); return b; }) : [h('p', { class: 'ps-note' }, T('No projects yet.'))]));
         drawTpl();
         root.appendChild(h('div', { class: 'ps-welcome' },
           h('div', { class: 'ps-wcol' }, h('h1', {}, 'PitCode Studio'), h('p', { class: 'ps-note' }, ''),
