@@ -508,6 +508,8 @@ Owner routes need `Authorization: Bearer <token>`. The review page itself is `/a
 </script>
 ```
 
+**Device Lab** (`examples/device-lab.patapp`, and its project `examples/device-lab.patappproject` to open in Studio): a big app that uses **every** permission (files, notifications, clipboard, camera, microphone, location, internet), has a button for each call, shows what each permission did, and has **Run every test** with a report you can copy or save. Its source is in `examples/device-lab/` (rebuild the two files with `node scripts/build-example.js`).
+
 **An app that saves notes in a file** (permission `files`):
 
 ```html
