@@ -4,6 +4,7 @@
 const test = require('node:test');
 const assert = require('node:assert');
 const fs = require('fs');
+const { execFileSync } = require('child_process');
 const path = require('path');
 const { startServer, copyProject, browser, boot, skipNoBrowser } = require('../helpers');
 
@@ -20,6 +21,18 @@ async function until(page, fn, ms, arg) {
 }
 const ready = (page) => until(page, () => window.PatOS && PatOS.boot && PatOS.fs && PatOS.update && PatOS.build && navigator.serviceWorker.controller !== undefined, 25000);
 const read = (f) => fs.readFileSync(f, 'utf8');
+/* the copy goes back to how PatOS was while 2.0.0 was still a beta: 1.7.0 is the newest finished version and 2.0.0 beta 13 is being built */
+function asBeta(dir) {
+  const uf = path.join(dir, 'updates.json'); const u = JSON.parse(read(uf)); u[0] = Object.assign({ version: u[0].version, beta: 13 }, u[0], { beta: 13 }); fs.writeFileSync(uf, JSON.stringify(u, null, 1));
+  fs.rmSync(path.join(dir, 'releases', '2.0.0'), { recursive: true, force: true });
+  execFileSync(process.execPath, ['build.js'], { cwd: dir, stdio: 'ignore' });
+}
+/* 2.0.0 is released: the beta number goes, the files are saved as releases/2.0.0 (the steps in docs/UPDATES.md) */
+function release(dir) {
+  const uf = path.join(dir, 'updates.json'); const u = JSON.parse(read(uf)); delete u[0].beta; fs.writeFileSync(uf, JSON.stringify(u, null, 1));
+  execFileSync(process.execPath, ['build.js'], { cwd: dir, stdio: 'ignore' });
+  execFileSync(process.execPath, ['scripts/freeze-release.js', '2.0.0'], { cwd: dir, stdio: 'ignore' });
+}
 /* a new finished version 1.8.0 appears on the website (a copy of 1.7.0 that says it is 1.8.0) */
 function addRelease(dir, v) {
   const from = path.join(dir, 'releases', '1.7.0'), to = path.join(dir, 'releases', v);
@@ -44,7 +57,7 @@ async function visit(srv, opts) {
 const reload = async (page) => { await page.reload(); await ready(page); };
 
 test('a device on a finished version keeps it: refreshing never brings the beta or a newer version, only the update button does', { skip: skipNoBrowser }, async () => {
-  const c = copyProject(); const srv = await startServer({ cwd: c.dir, root: 'stable' });
+  const c = copyProject(); asBeta(c.dir); const srv = await startServer({ cwd: c.dir, root: 'stable' });
   try {
     const { ctx, page, errors } = await visit(srv);
     assert.deepEqual(await page.evaluate(() => PatOS.build), { channel: 'stable', version: '1.7.0', beta: 0 }, 'a new visitor gets the finished version, not the beta that is being built');
@@ -69,7 +82,7 @@ test('a device on a finished version keeps it: refreshing never brings the beta 
 });
 
 test('a version that cannot be downloaded changes nothing', { skip: skipNoBrowser }, async () => {
-  const c = copyProject(); const srv = await startServer({ cwd: c.dir, root: 'stable' });
+  const c = copyProject(); asBeta(c.dir); const srv = await startServer({ cwd: c.dir, root: 'stable' });
   try {
     const { ctx, page } = await visit(srv);
     const bad = await page.evaluate(() => PatOS.updateManager.ask({ patosInstall: { id: '9.9.9' } }, 15000)); assert.equal(bad.ok, false);
@@ -80,7 +93,7 @@ test('a version that cannot be downloaded changes nothing', { skip: skipNoBrowse
 });
 
 test('with Beta updates on, the newest beta is downloaded quietly and used when PatOS starts; with it off, a beta never arrives', { skip: skipNoBrowser }, async () => {
-  const c = copyProject(); const srv = await startServer({ cwd: c.dir, root: 'stable' });
+  const c = copyProject(); asBeta(c.dir); const srv = await startServer({ cwd: c.dir, root: 'stable' });
   try {
     const { ctx, page, errors } = await visit(srv);
     assert.equal(await page.evaluate(() => PatOS.build.channel), 'stable');
@@ -109,7 +122,7 @@ test('with Beta updates on, the newest beta is downloaded quietly and used when 
 
 test('a device from before the update manager: Beta updates off goes to the finished version, on follows the beta, and the old copy stays as the way back', { skip: skipNoBrowser }, async () => {
   for (const betaOn of [false, true]) {
-    const c = copyProject(); const srv = await startServer({ cwd: c.dir, root: 'stable' });
+    const c = copyProject(); asBeta(c.dir); const srv = await startServer({ cwd: c.dir, root: 'stable' });
     try {
       const { ctx, page } = await visit(srv);
       // make this look like an old device: its choice saved, an old-style copy in the cache, no memory of the new system
@@ -131,4 +144,29 @@ test('a device from before the update manager: Beta updates off goes to the fini
       await ctx.close();
     } finally { srv.stop(); c.remove(); }
   }
+});
+
+test('releasing 2.0.0 (no longer a beta): devices that follow betas move to it by themselves, a finished-version device is offered it, and nobody goes down', { skip: skipNoBrowser }, async () => {
+  const c = copyProject(); asBeta(c.dir); const srv = await startServer({ cwd: c.dir, root: 'stable' });
+  try {
+    // device A follows betas and runs the beta; device B stays on the finished 1.7.0
+    const A = await visit(srv); await A.page.evaluate(() => PatOS.update.setBeta(true));
+    await until(A.page, async () => { const s = await PatOS.updateManager.ask({ patosVersion: true }, 5000); return s && s.pending; }, 30000);
+    await reload(A.page); assert.deepEqual(await A.page.evaluate(() => [PatOS.build.channel, PatOS.build.beta]), ['beta', 13]);
+    const B = await visit(srv); assert.equal(await B.page.evaluate(() => PatOS.build.version), '1.7.0');
+    release(c.dir); // 2.0.0 is now a finished version
+    // A: the finished 2.0.0 is downloaded quietly and used when PatOS starts; it keeps following betas after that
+    await A.page.evaluate(() => PatOS.updateManager.ask({ patosCheck: true }, 40000));
+    let st = await status(A.page); assert.equal(st.pending, '2.0.0'); assert.equal(st.channel, 'beta');
+    await reload(A.page); assert.deepEqual(await A.page.evaluate(() => [PatOS.build.channel, PatOS.build.version, PatOS.build.beta]), ['stable', '2.0.0', 0]);
+    st = await status(A.page); assert.equal(st.installed, '2.0.0'); assert.equal(st.channel, 'beta'); assert.match(st.previous, /^patos-2\.0\.0-beta\.13\./);
+    assert.equal(await A.page.evaluate(async () => { await PatOS.update.check(true); return PatOS.update.newer; }), false);
+    // B: offered, and only installed when it chooses
+    await reload(B.page); assert.equal(await B.page.evaluate(() => PatOS.build.version), '1.7.0', 'refreshing does not update it');
+    await B.page.evaluate(() => PatOS.update.check(true));
+    assert.deepEqual(await B.page.evaluate(() => [PatOS.update.state, PatOS.update.newer, PatOS.update.target.version, !!PatOS.update.target.beta]), ['ready', true, '2.0.0', false]);
+    await B.page.evaluate(() => { PatOS.update.restart(); });
+    await until(B.page, () => window.PatOS && PatOS.build && PatOS.build.version === '2.0.0', 30000);
+    await A.ctx.close(); await B.ctx.close();
+  } finally { srv.stop(); c.remove(); }
 });

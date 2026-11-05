@@ -1,0 +1,84 @@
+/* ================= Liquid Glass ================= */
+:root { --lg-tint: rgba(24,24,30,.38); --lg-tint-strong: rgba(28,28,34,.64); --lg-tint2: rgba(255,255,255,.14); --lg-rim: rgba(255,255,255,.55); --lg-rim2: rgba(255,255,255,.2); --lg-blur: 24px; --lg-text: #fff; --lg-shadow: 0 1px 2px rgba(0,0,0,.35); --mx: 30%; --my: 0%; }
+:root[data-theme="light"] { --lg-tint: rgba(255,255,255,.5); --lg-tint-strong: rgba(250,250,252,.76); --lg-tint2: rgba(255,255,255,.55); --lg-rim: rgba(255,255,255,.95); --lg-rim2: rgba(255,255,255,.55); --lg-text: #1d1d1f; --lg-shadow: 0 1px 1px rgba(255,255,255,.6); }
+
+/* the glass material */
+html.lg-on :is(#dock, .mh-dock, .menu, #control-center, .toast:not(.static), .sp-box, .dlg, .asw-row, .nc-list, .widget, .mw, .lp-search, .cc-tile, .dock-label, .seg, #m-switcher .msw, .lg) {
+  background: radial-gradient(120% 80% at var(--mx) var(--my), rgba(255,255,255,.07), transparent 55%), var(--lg-tint) !important;
+  -webkit-backdrop-filter: blur(var(--lg-blur)) saturate(1.7) !important;
+  backdrop-filter: blur(var(--lg-blur)) saturate(1.7) !important;
+  box-shadow: inset 0 1px 1px var(--lg-rim), inset 0 -1px 1px rgba(255,255,255,.14), inset 0 0 0 .5px var(--lg-rim2), inset 0 0 22px rgba(255,255,255,.06), 0 12px 40px rgba(0,0,0,.26) !important;
+  isolation: isolate;
+}
+/* specular rim: a bright edge that catches the light at the corners */
+html.lg-on :is(#dock, .mh-dock, .menu, #control-center, .toast:not(.static), .sp-box, .dlg, .asw-row, .nc-list, .widget, .mw, .lg)::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1.2px; pointer-events: none; z-index: 1;
+  background: linear-gradient(135deg, rgba(255,255,255,.85), rgba(255,255,255,.12) 30%, rgba(255,255,255,0) 55%, rgba(255,255,255,.12) 75%, rgba(255,255,255,.6));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+html.lg-on :is(#dock, .mh-dock, .asw-row, .dlg, .toast, .nc-list, .widget, .mw) { position: relative; }
+/* surfaces full of text get a thicker pane so words stay easy to read over any wallpaper */
+html.lg-on :is(.menu, #control-center, .toast:not(.static), .sp-box, .dlg, .nc-list, .cc-tile, .lp-search) { background: radial-gradient(120% 80% at var(--mx) var(--my), rgba(255,255,255,.06), transparent 55%), var(--lg-tint-strong) !important; }
+html.lg-on :is(.menu, #control-center, .toast, .sp-box, .dlg, .nc-list, .widget, .mw, .cc-tile, .dock-label) { color: var(--lg-text); text-shadow: var(--lg-shadow); }
+html.lg-on :is(.menu, .sp-box, .dlg, .toast, .nc-list, .widget, .mw, #control-center) :is(small, .sub, .t2, .muted) { opacity: .85; }
+
+/* bigger, softer shapes */
+html.lg-on #dock { border-radius: 28px; padding: 7px 8px; }
+html.lg-on .menu { border-radius: 14px; padding: 6px; }
+html.lg-on .menu-item { border-radius: 8px; }
+html.lg-on .sp-box { border-radius: 26px; }
+html.lg-on .dlg { border-radius: 26px; }
+html.lg-on .toast { border-radius: 22px; }
+html.lg-on .widget, html.lg-on .nc-list { border-radius: 24px; }
+html.lg-on .cc-tile { border-radius: 22px; }
+html.lg-on #control-center { border-radius: 30px; }
+html.lg-on .seg { border-radius: 12px; }
+html.lg-on .seg .tab { border-radius: 9px; }
+html.lg-on .seg .tab.on { background: rgba(255,255,255,.28); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 2px 8px rgba(0,0,0,.15); color: var(--text); }
+html.lg-on .lp-search { border-radius: 16px; height: 34px; }
+
+/* menu bar: fully clear like the newest Macs */
+html.lg-on #menubar { background: linear-gradient(180deg, rgba(0,0,0,.28), rgba(0,0,0,.08)); -webkit-backdrop-filter: blur(8px); backdrop-filter: blur(8px); text-shadow: 0 1px 3px rgba(0,0,0,.55); }
+:root[data-theme="light"].lg-on #menubar { background: linear-gradient(180deg, rgba(255,255,255,.45), rgba(255,255,255,.18)); text-shadow: 0 0 6px rgba(255,255,255,.7); }
+
+/* windows: rounder, with floating glass sidebars */
+html.lg-on:not(.mobile) .window { border-radius: 18px; }
+html.lg-on:not(.mobile) .window.maximized { border-radius: 0; }
+html.lg-on:not(.mobile) :is(.fd-side, .st-side, .notes-side, .msg-side, .dv-side) {
+  margin: 8px 0 8px 8px; border: 0 !important; border-radius: 14px;
+  background: radial-gradient(120% 60% at 30% 0%, rgba(255,255,255,.12), transparent 60%), var(--sidebar);
+  box-shadow: inset 0 1px 1px var(--lg-rim2), inset 0 0 0 .5px var(--border2), 0 4px 16px rgba(0,0,0,.12);
+}
+html.lg-on:not(.mobile) .titlebar { background: color-mix(in srgb, var(--toolbar) 80%, transparent); }
+
+/* buttons become little glass capsules */
+html.lg-on .btn:not(.primary):not(.danger) { background: var(--lg-tint2); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 0 0 .5px var(--border2), 0 1px 3px rgba(0,0,0,.12); border-radius: 10px; }
+html.lg-on .btn.primary { box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 4px 14px color-mix(in srgb, var(--accent) 45%, transparent); border-radius: 10px; }
+html.lg-on .btn, html.lg-on .tbtn, html.lg-on .ob, html.lg-on .cc-toggle, html.lg-on .lp-item, html.lg-on .mh-app { transition: transform .35s cubic-bezier(.3,1.6,.5,1), background .15s, box-shadow .2s; }
+html.lg-on .btn:active, html.lg-on .tbtn:active, html.lg-on .ob:active { transform: scale(.94); }
+html.lg-on .tbtn.on { background: var(--lg-tint2); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 0 0 .5px var(--border2); }
+html.lg-on .cc-dot { box-shadow: inset 0 1px 1px rgba(255,255,255,.5), inset 0 0 0 .5px rgba(255,255,255,.25); }
+html.lg-on .cc-toggle.on .cc-dot { box-shadow: inset 0 1px 1px rgba(255,255,255,.6), 0 4px 12px color-mix(in srgb, var(--accent) 50%, transparent); }
+html.lg-on .switch { box-shadow: inset 0 1px 2px rgba(0,0,0,.25), inset 0 0 0 .5px var(--border2); }
+html.lg-on .switch::after { width: 22px; border-radius: 11px; background: linear-gradient(180deg, #fff, #f1f1f4); box-shadow: 0 2px 6px rgba(0,0,0,.3), inset 0 -1px 1px rgba(0,0,0,.06); }
+html.lg-on .switch.on::after { transform: translateX(12px); }
+html.lg-on .field { border-radius: 10px; }
+
+/* dock icons: glassy shine */
+html.lg-on .dock-item:hover .dock-icon .icon-tile { filter: brightness(1.08) saturate(1.1); }
+html.lg-on .icon-tile::after { background: linear-gradient(180deg, rgba(255,255,255,.32), rgba(255,255,255,0) 42%), radial-gradient(90% 60% at 50% 110%, rgba(255,255,255,.18), transparent 60%); }
+
+/* phone */
+html.lg-on .mh-dock { border-radius: 36px; }
+html.lg-on .mw { border-radius: 26px; }
+html.lg-on.mobile .panel { border-radius: 34px; }
+html.lg-on.mobile #notif-center { background: rgba(0,0,0,.2) !important; }
+
+/* refraction: the glass bends whatever is behind it (Chromium browsers) */
+html.lg-refract :is(#dock, .mh-dock, .asw-row, .lp-search) {
+  -webkit-backdrop-filter: url(#lg-refract) blur(6px) saturate(1.7) !important;
+  backdrop-filter: url(#lg-refract) blur(6px) saturate(1.7) !important;
+}
+
+/* respect "Reduce transparency" */
+html.reduce-transparency.lg-on :is(#dock, .mh-dock, .menu, #control-center, .toast, .sp-box, .dlg, .asw-row, .nc-list, .widget, .mw, .cc-tile) { background: var(--win-solid) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }

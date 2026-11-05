@@ -133,7 +133,7 @@ test('Settings › Sync: turn on, show the code, join dialog, turn off', { skip:
     o.after = w.body.querySelector('.sy').innerText; o.on = PatOS.sync.on();
     return o;
   });
-  assert.match(r.offText, /optional/); assert.match(r.statusText, /Up to date|Syncing|Waiting/); assert.match(r.code, /^([0-9A-Z]{4}-){6}[0-9A-Z]{4}$/); assert.equal(r.matches, true); assert.equal(r.hidden, true);
+  assert.match(r.offText, /Turn On Sync/); assert.match(r.statusText, /Up to date|Syncing|Waiting/); assert.match(r.code, /^([0-9A-Z]{4}-){6}[0-9A-Z]{4}$/); assert.equal(r.matches, true); assert.equal(r.hidden, true);
   assert.equal(r.dlg, true); assert.match(r.after, /Turn On Sync/); assert.equal(r.on, false);
   assert.deepEqual(errors, []);
   await page.close();

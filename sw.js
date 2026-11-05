@@ -40,6 +40,14 @@ async function fetchManifest(name) {
   if (!m || typeof m.id !== 'string' || !Array.isArray(m.files) || !m.files.length) throw new Error('The version list is not valid.');
   return m;
 }
+// what a manifest says it is, for comparing versions (a beta is older than the finished version it leads to)
+const verOf = (m) => ({ version: m.version, beta: m.beta || 0 });
+function newerVer(a, b) {
+  const r = (v) => { const n = String(v.version).split('.').map(Number); return [n[0] || 0, n[1] || 0, n[2] || 0, v.beta ? 0 : 1, v.beta || 0]; };
+  const x = r(a), y = r(b); for (let i = 0; i < 5; i++) { if (x[i] !== y[i]) return x[i] > y[i]; } return false;
+}
+// the version a device that follows betas moves to: the beta being built, or, when there is none (it was finished), that finished version
+async function fetchBetaOrFinished() { try { return await fetchManifest('beta'); } catch (e) { return fetchManifest('stable'); } }
 async function isComplete(id) { if (!(await caches.has(cacheName(id)))) return false; return !!(await (await caches.open(cacheName(id))).match(DONE)); }
 async function getFile(c, m, f) {
   const r = await fetch('/_v/' + m.id + '/' + f.p, { cache: 'no-store' });
@@ -103,12 +111,12 @@ async function prepare() {
     return migrate();
   }
   const channel = state && state.channel === 'beta' ? 'beta' : 'stable';
-  const m = await fetchManifest(channel === 'beta' ? 'beta' : 'root'); await download(m);
-  await update(() => ({ v: 2, channel, installed: m.id, previous: null, pending: null, pendingMigrate: false, useOld: false, since: Date.now(), legacy: false }));
+  const m = channel === 'beta' ? await fetchBetaOrFinished() : await fetchManifest('root'); await download(m);
+  await update(() => ({ v: 2, channel, ver: verOf(m), installed: m.id, previous: null, pending: null, pendingMigrate: false, useOld: false, since: Date.now(), legacy: false }));
 }
 async function migrate() {
-  const m = await fetchManifest(state.channel === 'beta' ? 'beta' : 'stable'); await download(m);
-  await update((s) => Object.assign({}, s, { pending: m.id, pendingMigrate: true }));
+  const m = state.channel === 'beta' ? await fetchBetaOrFinished() : await fetchManifest('stable'); await download(m);
+  await update((s) => Object.assign({}, s, { pending: m.id, pendingVer: verOf(m), pendingMigrate: true }));
 }
 async function cleanup() {
   const keep = new Set([state && state.installed, state && state.previous, state && state.pending].filter(Boolean).map(cacheName));
@@ -117,8 +125,9 @@ async function cleanup() {
   await Promise.all(keys.filter((k) => k.startsWith('patos-') && !isData(k) && !keep.has(k)).map((k) => caches.delete(k)));
 }
 /* switch to a downloaded version; the one that was running stays as "previous" */
-async function promote(id) {
-  await update((s) => Object.assign({}, s, { previous: s.installed && s.installed !== id ? s.installed : s.previous, installed: id, pending: null, pendingMigrate: false, useOld: false, since: Date.now(), legacy: false }));
+async function promote(m) {
+  const id = m.id;
+  await update((s) => Object.assign({}, s, { previous: s.installed && s.installed !== id ? s.installed : s.previous, installed: id, ver: verOf(m), pendingVer: null, pending: null, pendingMigrate: false, useOld: false, since: Date.now(), legacy: false }));
   await cleanup();
 }
 // at the start of PatOS: a beta that was downloaded earlier (Beta updates on), or an old copy's move, is used now
@@ -128,26 +137,29 @@ async function promoteAtStart() {
   await update((s) => {
     if (s.pending !== id) return null; // changed meanwhile
     if (!ok) return Object.assign({}, s, { pending: null, pendingMigrate: false });
-    return Object.assign({}, s, { previous: s.installed && s.installed !== id ? s.installed : s.previous, installed: id, pending: null, pendingMigrate: false, useOld: false, since: Date.now(), legacy: false });
+    return Object.assign({}, s, { previous: s.installed && s.installed !== id ? s.installed : s.previous, installed: id, ver: s.pendingVer || null, pending: null, pendingVer: null, pendingMigrate: false, useOld: false, since: Date.now(), legacy: false });
   });
   await cleanup();
 }
 // Beta updates on: download the newest beta quietly (it is used the next time PatOS starts)
 async function checkBeta() {
   await stateReady; if (!state || state.channel !== 'beta') return;
-  let m; try { m = await fetchManifest('beta'); } catch (e) { return; }
+  let m; try { m = await fetchBetaOrFinished(); } catch (e) { return; }
   if (m.id === state.installed || m.id === state.pending) return;
+  // never go down: only a newer beta, a rebuilt copy of the same beta, or the finished version the beta led to
+  const same = m.channel === 'beta' && state.ver && state.ver.version === m.version && (state.ver.beta || 0) === (m.beta || 0);
+  if (state.ver && !newerVer(m, state.ver) && !same) return;
   await download(m);
   // (the choice may have changed while it downloaded: then the files are simply thrown away by cleanup)
-  await update((s) => (s.channel === 'beta' && m.id !== s.installed ? Object.assign({}, s, { pending: m.id, pendingMigrate: false }) : null)); await cleanup();
+  await update((s) => (s.channel === 'beta' && m.id !== s.installed ? Object.assign({}, s, { pending: m.id, pendingVer: verOf(m), pendingMigrate: false }) : null)); await cleanup();
 }
 async function setChannel(ch) {
   await prepare().catch(() => {}); if (!state) return;
-  await update((s) => (s.channel === ch ? null : Object.assign({}, s, { channel: ch, pending: ch !== 'beta' && s.pending && !s.pendingMigrate ? null : s.pending }))); // a beta that was waiting is no longer wanted
+  await update((s) => (s.channel === ch ? null : Object.assign({}, s, { channel: ch }, ch !== 'beta' && s.pending && !s.pendingMigrate ? { pending: null, pendingVer: null } : {}))); // a beta that was waiting is no longer wanted
   await cleanup();
 }
 const runningId = () => (state.useOld && state.previous ? state.previous : state.installed);
-const status = () => ({ ok: true, running: cacheName(runningId()), newest: cacheName(state.installed), current: cacheName(state.installed), previous: state.previous ? cacheName(state.previous) : null, useOld: !!state.useOld, since: state.since, channel: state.channel, installed: state.installed, pending: state.pending || null, legacy: !!state.legacy });
+const status = () => ({ ok: true, running: cacheName(runningId()), newest: cacheName(state.installed), current: cacheName(state.installed), previous: state.previous ? cacheName(state.previous) : null, useOld: !!state.useOld, since: state.since, channel: state.channel, installed: state.installed, pending: state.pending || null, ver: state.ver || null, legacy: !!state.legacy });
 
 self.addEventListener('install', (e) => { e.waitUntil((async () => { try { await prepare(); } catch (er) { /* the page still works from the network; this is tried again on the next start */ } await self.skipWaiting(); })()); });
 self.addEventListener('activate', (e) => { e.waitUntil((async () => {
@@ -182,7 +194,7 @@ self.addEventListener('message', (e) => {
         const want = d.patosInstall.beta ? 'beta' : String(d.patosInstall.id || '');
         if (want !== 'beta' && !STABLE_ID.test(want)) return reply({ ok: false, error: 'That is not a version.' });
         let m; try { m = await fetchManifest(want); await download(m); } catch (er) { return reply({ ok: false, error: String((er && er.message) || er) }); }
-        await promote(m.id);
+        await promote(m);
       }
       if (d.patosRollback) { if (!state.previous || !(await caches.has(cacheName(state.previous)))) return reply({ ok: false, reason: 'none' }); await update((s) => Object.assign({}, s, { useOld: true })); }
       if (d.patosUseNewest) await update((s) => Object.assign({}, s, { useOld: false }));

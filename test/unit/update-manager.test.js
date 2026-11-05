@@ -12,6 +12,8 @@ const { startServer, copyProject, ROOT } = require('../helpers');
 
 const sha = (b) => crypto.createHash('sha256').update(b).digest('hex');
 const REAL = um.create({ root: ROOT });
+/* a copy of PatOS while a beta is being built (a made-up beta of a later version is added to its updates.json) */
+function withBeta(dir) { const f = path.join(dir, 'updates.json'); const u = JSON.parse(fs.readFileSync(f, 'utf8')).filter((r) => !r.beta); u.unshift({ version: '9.0.0', beta: 1, date: '2026-11-05', title: { en: 'x', fr: 'x' }, notes: { en: ['x'], fr: ['x'] } }); fs.writeFileSync(f, JSON.stringify(u)); }
 
 test('a finished version is saved in its own folder, and it still matches what was saved (it never changes)', () => {
   const { stable, beta } = REAL.info();
@@ -60,20 +62,20 @@ test('versions are compared like a person would: a beta is older than its finish
 test('freezing makes releases/<version>/ from the files, refuses to overwrite, and a build is stopped when a beta has no finished version saved', () => {
   const c = copyProject();
   try {
-    const m = um.create({ root: c.dir });
+    withBeta(c.dir); const m = um.create({ root: c.dir }); const sv = m.info().stable.version;
     fs.rmSync(path.join(c.dir, 'releases'), { recursive: true });
-    assert.ok(m.problems().some((x) => /releases\/1\.7\.0/.test(x)), 'beta without a saved finished version is a problem');
-    // freeze the live files as 1.7.0 (just to have something): it is a complete, working version
-    const r = m.freeze('1.7.0'); assert.ok(r.files > 50);
+    assert.ok(m.problems().some((x) => x.includes('releases/' + sv)), 'beta without a saved finished version is a problem');
+    // freeze the live files as the finished version (just to have something): it is a complete, working version
+    const r = m.freeze(sv); assert.ok(r.files > 50);
     assert.deepEqual(m.problems(), []);
-    assert.throws(() => m.freeze('1.7.0'), /already exists/); assert.throws(() => m.freeze('x'), /looks like/);
-    assert.ok(!fs.existsSync(path.join(c.dir, 'releases', '1.7.0', 'sw.js')) && !fs.existsSync(path.join(c.dir, 'releases', '1.7.0', 'server.js')) && !fs.existsSync(path.join(c.dir, 'releases', '1.7.0', 'releases')));
-    const saved = JSON.parse(fs.readFileSync(path.join(c.dir, 'releases', '1.7.0', 'patos-release.json'), 'utf8')); assert.equal(saved.files.length, r.files);
+    assert.throws(() => m.freeze(sv), /already exists/); assert.throws(() => m.freeze('x'), /looks like/);
+    assert.ok(!fs.existsSync(path.join(c.dir, 'releases', sv, 'sw.js')) && !fs.existsSync(path.join(c.dir, 'releases', sv, 'server.js')) && !fs.existsSync(path.join(c.dir, 'releases', sv, 'releases')));
+    const saved = JSON.parse(fs.readFileSync(path.join(c.dir, 'releases', sv, 'patos-release.json'), 'utf8')); assert.equal(saved.files.length, r.files);
     // changing the live files afterwards does not touch the frozen ones
     fs.appendFileSync(path.join(c.dir, 'css', 'patos.css'), '\n/* later */\n');
-    assert.ok(!fs.readFileSync(path.join(c.dir, 'releases', '1.7.0', 'css', 'patos.css'), 'utf8').includes('/* later */'));
+    assert.ok(!fs.readFileSync(path.join(c.dir, 'releases', sv, 'css', 'patos.css'), 'utf8').includes('/* later */'));
     // the CLI does the same thing
-    const out = execFileSync(process.execPath, [path.join(c.dir, 'scripts', 'freeze-release.js'), '1.7.1'], { encoding: 'utf8' }); assert.match(out, /Saved \d+ files/);
+    const out = execFileSync(process.execPath, [path.join(c.dir, 'scripts', 'freeze-release.js'), '9.9.9'], { encoding: 'utf8' }); assert.match(out, /Saved \d+ files/);
   } finally { c.remove(); }
 });
 
@@ -105,5 +107,5 @@ test('build.js does not write sw.js (it is the same for every version) and stops
   assert.equal(fs.readFileSync(path.join(ROOT, 'sw.js'), 'utf8'), before);
   assert.ok(!/const CACHE = /.test(before), 'no version-specific cache name inside sw.js');
   const c = copyProject();
-  try { fs.rmSync(path.join(c.dir, 'releases'), { recursive: true }); let failed = false; try { execFileSync(process.execPath, ['build.js'], { cwd: c.dir, stdio: 'pipe' }); } catch (e) { failed = /releases\/1\.7\.0/.test(String(e.stderr)); } assert.equal(failed, true, 'build.js stops'); } finally { c.remove(); }
+  try { withBeta(c.dir); const sv = um.create({ root: c.dir }).info().stable.version; fs.rmSync(path.join(c.dir, 'releases'), { recursive: true }); let failed = false; try { execFileSync(process.execPath, ['build.js'], { cwd: c.dir, stdio: 'pipe' }); } catch (e) { failed = String(e.stderr).includes('releases/' + sv); } assert.equal(failed, true, 'build.js stops'); } finally { c.remove(); }
 });
