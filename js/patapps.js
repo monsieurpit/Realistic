@@ -10,7 +10,7 @@
 (function () {
   'use strict';
   const { h } = PatOS; const T = (s) => PatOS.t(s); const F = window.PatAppFormat;
-  const K = { apps: 'patApps', data: 'patAppData', grants: 'patAppGrants', log: 'privacyLog', subs: 'patAppSubmits' };
+  const K = { apps: 'patApps', data: 'patAppData', grants: 'patAppGrants', log: 'privacyLog', subs: 'patAppSubmits', keys: 'patAppKeys' };
   const get = (k, d) => PatOS.store.get(k, d), set = (k, v) => PatOS.store.set(k, v);
   const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   const DATA_CAP = 5e6;
@@ -227,9 +227,18 @@ call('hello').then(function(t){theme(t);});})();`;
   }
   const storeList = async () => (await api('GET', 'store')).apps;
   async function storeInstall(id) { const j = await api('GET', 'get?id=' + encodeURIComponent(id)); const v = F.validate(j.app); if (!v.ok) throw new Error(T(v.error)); return install(v.app, { source: 'store' }); }
-  async function submit(app) {
-    const j = await api('POST', 'submit', { app }); const l = get(K.subs, []); l.unshift({ ticket: j.ticket, id: app.id, name: app.name, version: app.version, t: Date.now(), status: 'pending', note: '' }); set(K.subs, l.slice(0, 30)); PatOS.emit('patapps'); return j.ticket;
+  /* Each app id has a secret publisher key, made the first time you send that app and kept on your devices (it follows you with Sync and
+     Backup). The server remembers only its fingerprint, so only you can send a new version of the app: it updates the app in the store. */
+  function keyOf(id, create) {
+    const k = get(K.keys, {}); if (k[id] || !create) return k[id] || '';
+    const b = new Uint8Array(24); crypto.getRandomValues(b); let t = ''; b.forEach((x) => { t += String.fromCharCode(x); });
+    k[id] = btoa(t).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, ''); set(K.keys, k); return k[id];
   }
+  async function submit(app) {
+    const j = await api('POST', 'submit', { app, key: keyOf(app.id, true) }); const l = get(K.subs, []); l.unshift({ ticket: j.ticket, id: app.id, name: app.name, version: app.version, t: Date.now(), status: 'pending', note: '', update: !!j.update, previous: j.previous || null }); set(K.subs, l.slice(0, 30)); PatOS.emit('patapps'); return j.ticket;
+  }
+  /* is this app already in the store, is it mine, and which version is there? (null when the store cannot be reached) */
+  async function appState(id) { try { return await api('POST', 'app-state', { id, key: keyOf(id, false) }); } catch (e) { return null; } }
   async function refreshSubmits() {
     const l = get(K.subs, []); let ch = false;
     for (const s of l) { if (s.status !== 'pending') continue; try { const j = await api('GET', 'status?ticket=' + encodeURIComponent(s.ticket)); if (j.status !== s.status || j.note !== s.note) { s.status = j.status; s.note = j.note || ''; ch = true; } } catch (e) {} }
@@ -248,7 +257,7 @@ call('hello').then(function(t){theme(t);});})();`;
     list: () => Object.keys(all()).map((id) => Object.assign({ id }, all()[id])), get: recOf, isInstalled: (id) => !!all()[id],
     permInfo, grants: grantsOf, setGrant, logOf: () => get(K.log, []).slice().reverse(), clearLog: () => { set(K.log, []); PatOS.emit('patapps'); },
     mount, parse, install, uninstall, installFromFile, open: (id) => PatOS.launch('pa:' + id),
-    store: { list: storeList, install: storeInstall }, submit, submits: () => get(K.subs, []), refreshSubmits, make, example: EXAMPLE, validate: F.validate, cmp: F.cmp
+    store: { list: storeList, install: storeInstall }, submit, appState, submits: () => get(K.subs, []), refreshSubmits, make, example: EXAMPLE, validate: F.validate, cmp: F.cmp
   };
   /* what is saved comes to life at start-up, and again whenever Sync changes it */
   syncRegistry(); PatOS.on('store:set', (k) => { if (k === K.apps) syncRegistry(); });

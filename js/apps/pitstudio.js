@@ -63,6 +63,60 @@
     return { name, meta, files };
   }
 
+  /* ---------- a whole project in one file: .patappproject ----------
+     { format: 'patappproject', formatVersion: 1, meta: { name, id, version, ... }, files: { 'main.pit': '...code...', ... } }
+     Every file of the project is inside, with its code. The publisher key is never in it (it stays on your devices). */
+  const FILE_NAME = /^[\w.-]{1,60}$/, LIMITS = { files: 60, file: 500000, total: 3000000 };
+  const str = (v, max) => (typeof v === 'string' ? v.trim().slice(0, max) : '');
+  function exportProject(p) {
+    const m = p.meta, meta = { name: m.name, id: m.id, version: m.version, author: m.author || '', description: m.description || '', icon: m.icon || '', color: m.color || '', permissions: (m.permissions || []).slice(), language: m.language, entry: m.entry, width: m.width, height: m.height };
+    const files = {}; Object.keys(p.files).sort().forEach((f) => { files[f] = p.files[f]; });
+    return { format: 'patappproject', formatVersion: 1, exported: new Date().toISOString().slice(0, 10), meta, files };
+  }
+  /* reads a .patappproject (as text) and checks everything; returns { meta, files } or throws a message a person can read */
+  function parseProject(text) {
+    let raw; try { raw = JSON.parse(text); } catch (e) { throw new Error(T('This is not a PatOS project file.')); }
+    if (!raw || typeof raw !== 'object' || raw.format !== 'patappproject') throw new Error(T('This is not a PatOS project file.'));
+    if (raw.formatVersion !== 1) throw new Error(T('This project was made for a different version of PitCode Studio.'));
+    const src = raw.files; if (!src || typeof src !== 'object' || Array.isArray(src)) throw new Error(T('The project has no files.'));
+    const names = Object.keys(src); if (!names.length) throw new Error(T('The project has no files.'));
+    if (names.length > LIMITS.files) throw new Error(T('The project has too many files.'));
+    const files = {}; let total = 0;
+    names.forEach((n) => {
+      if (!FILE_NAME.test(n) || !EXT_OK.test(n) || n === META) throw new Error(T('A file name in the project is not allowed:') + ' ' + n.slice(0, 40));
+      if (typeof src[n] !== 'string') throw new Error(T('A file in the project is not text:') + ' ' + n);
+      if (src[n].length > LIMITS.file) throw new Error(T('A file in the project is too big:') + ' ' + n);
+      total += src[n].length; files[n] = src[n];
+    });
+    if (total > LIMITS.total) throw new Error(T('The project is too big.'));
+    const m = raw.meta && typeof raw.meta === 'object' ? raw.meta : {};
+    const name = str(m.name, 40).replace(/[\/\\]/g, '') || T('My App');
+    const language = m.language === 'web' || m.language === 'pitcode' ? m.language : (names.some((n) => /\.pitx?$/.test(n)) ? 'pitcode' : 'web');
+    const startable = (language === 'pitcode' ? /\.pitx?$/ : /\.html$/);
+    let entry = typeof m.entry === 'string' && files[m.entry] != null ? m.entry : (language === 'web' && files['index.html'] != null ? 'index.html' : (language === 'pitcode' ? (files['main.pitx'] != null ? 'main.pitx' : names.find((n) => /\.pitx$/.test(n)) || names.find((n) => /\.pit$/.test(n))) : names.find((n) => startable.test(n))));
+    if (!entry) throw new Error(language === 'pitcode' ? T('There is no PitCode file to start from. Add a main.pitx.') : T('There is no index.html to start from.'));
+    const id = window.PatAppFormat && window.PatAppFormat.ID.test(str(m.id, 60)) ? str(m.id, 60) : 'local.' + slug(name) + '.' + Math.random().toString(36).slice(2, 6);
+    const num = (v, lo, hi, d) => (Number.isFinite(+v) && v !== '' && v != null ? Math.max(lo, Math.min(hi, Math.round(+v))) : d);
+    const meta = { name, id, version: /^\d{1,4}\.\d{1,4}\.\d{1,4}$/.test(str(m.version, 20)) ? str(m.version, 20) : '1.0.0', author: str(m.author, 40), description: str(m.description, 300), icon: Array.from(str(m.icon, 8)).slice(0, 2).join('') || '✨',
+      color: /^#[0-9a-fA-F]{6}$/.test(m.color || '') ? m.color : colors[0], permissions: Array.isArray(m.permissions) ? PERMS.filter((q) => m.permissions.indexOf(q) >= 0) : [], language, entry, width: num(m.width, 240, 1600, 520), height: num(m.height, 200, 1200, 420) };
+    return { meta, files };
+  }
+  /* puts a parsed project in Documents › Studio: as a new project, or over the project that has the same app id (how = 'replace' | 'copy' | 'new') */
+  function placeProject(pr, how, existingName) {
+    const meta = Object.assign({}, pr.meta); let folder;
+    if (how === 'replace' && existingName) {
+      const old = readMeta(existingName) || {}; if (old.published) meta.published = old.published;
+      fsx().list(pdir(existingName)).forEach((x) => { if (x.type === 'file' && x.name !== META && !x.blob) fsx().remove(pdir(existingName) + '/' + x.name); });
+      folder = existingName; if (meta.name !== existingName && !fsx().exists(pdir(meta.name))) { fsx().rename(pdir(existingName), meta.name); folder = meta.name; }
+    } else {
+      if (how === 'copy') meta.id = 'local.' + slug(meta.name) + '.' + Math.random().toString(36).slice(2, 6);
+      let nm = meta.name, i = 2; while (fsx().exists(pdir(nm))) nm = meta.name + ' ' + i++; folder = nm; mkdirs(ROOT); mkdirs(pdir(folder));
+    }
+    meta.name = folder; fsx().write(pdir(folder) + '/' + META, JSON.stringify(meta, null, 2));
+    Object.keys(pr.files).forEach((f) => fsx().write(pdir(folder) + '/' + f, pr.files[f]));
+    return folder;
+  }
+
   /* ---------- from a project to an app file ---------- */
   const forHtml = (s) => s.replace(/<\/script/gi, '<\\/script');
   function buildHtml(p) {
@@ -135,7 +189,7 @@
     launch(win, args) {
       win.el.classList.add('has-toolbar');
       const P = PatOS.patapps;
-      let proj = null, cur = null, view = 'code', saveTimer = null, run = null, problemsTimer = null;
+      let proj = null, cur = null, view = 'code', saveTimer = null, run = null, problemsTimer = null, pubState = null;
       const root = h('div', { class: 'ps' }); win.body.appendChild(root);
       const msg = (title, body) => PatOS.alertBox(title, body, { icon: 'pitstudio' });
       const fail = (e) => msg(T('That didn’t work'), String((e && e.message) || e));
@@ -216,6 +270,10 @@
         const m = proj.meta; settings.innerHTML = '';
         const field = (label, el, note) => h('label', { class: 'ps-field' }, h('span', {}, label), el, note ? h('small', {}, note) : null);
         const txt = (key, max, after) => { const i = h('input', { class: 'field', value: m[key] || '', maxlength: String(max) }); i.onchange = () => { m[key] = i.value.trim(); saveMeta(); if (after) after(); }; return i; };
+        // the identifier and the version must be valid, and the identifier cannot change once the app is in the store (that would be another app)
+        const idIn = txt('id', 49); idIn.onchange = () => { const v = idIn.value.trim(); if (!window.PatAppFormat.ID.test(v)) { idIn.value = m.id; return msg(T('That doesn’t work'), T('The app id must be 3 to 49 characters: lowercase letters, numbers, dots and dashes (like com.maya.timer).')); } m.id = v; saveMeta(); pubState = null; refreshPub(); };
+        if (m.published) idIn.readOnly = true;
+        const verIn = txt('version', 14); verIn.onchange = () => { const v = verIn.value.trim(); if (!/^\d{1,4}\.\d{1,4}\.\d{1,4}$/.test(v)) { verIn.value = m.version; return msg(T('That doesn’t work'), T('The version must look like 1.0.0.')); } m.version = v; saveMeta(); };
         const nameIn = h('input', { class: 'field', value: proj.name, maxlength: '40' });
         nameIn.onchange = async () => {
           const n = nameIn.value.trim().replace(/[\/\\]/g, ''); if (!n || n === proj.name) { nameIn.value = proj.name; return; }
@@ -234,7 +292,7 @@
         const del = h('button', { class: 'btn danger' }, T('Delete Project…')); del.onclick = async () => { if (!(await PatOS.confirmBox(T('Delete') + ' “' + proj.name + '”?', T('The project folder goes to the Trash. An app you installed from it stays installed.'), { ok: T('Delete'), danger: true, icon: 'pitstudio' }))) return; fsx().remove(pdir(proj.name)); closeProject(); };
         settings.append(
           h('h2', {}, T('Project Settings')),
-          h('div', { class: 'ps-grid' }, field(T('App name'), nameIn), field(T('Identifier'), txt('id', 49), T('Like com.maya.timer. Keep it the same for updates.')), field(T('Version'), txt('version', 14), T('Like 1.0.0. Raise it when you update.')), field(T('Your name'), txt('author', 40)), field(T('What it does'), txt('description', 300))),
+          h('div', { class: 'ps-grid' }, field(T('App name'), nameIn), field(T('Identifier'), idIn, m.published ? T('Locked: this app is in the store.') : T('Like com.maya.timer. Keep it the same for updates.')), field(T('Version'), verIn, T('Like 1.0.0. Raise it when you update.')), field(T('Your name'), txt('author', 40)), field(T('What it does'), txt('description', 300))),
           h('div', { class: 'ps-grid' }, field(T('Icon'), h('div', { class: 'ps-row' }, pi, icon, color), T('An emoji or a letter, and a color.')), field(T('Language'), lang, T('PitCode is the language from github.com/monsieurpit/PitCode.')), field(T('Start file'), entry), field(T('Window size'), h('div', { class: 'ps-row' }, num('width', 240, 1600), '×', num('height', 200, 1200)))),
           h('h3', {}, T('Permissions')), h('p', { class: 'ps-note' }, T('Tick only what the app really needs. People are asked again, on their device, the first time it is used.')), h('div', { class: 'ps-perms' }, ...permRows),
           h('h3', {}, T('Danger zone')), del);
@@ -250,7 +308,29 @@
         catch (e) { say(String((e && e.message) || e), true); }
       }
       bRun.onclick = doRun; bStop.onclick = () => { stopRun(); say(T('Stopped'), false); };
+      /* the store: is this app already in it? Then sending it again is an update (same app, a higher version), never a second app. */
+      const isUpdate = () => !!(pubState ? pubState.mine && (pubState.accepted || pubState.pending) : proj && proj.meta.published);
+      async function refreshPub() { if (!proj) return; const id = proj.meta.id; const st = await P.appState(id); if (proj && proj.meta.id === id) pubState = st; }
+      const nextPatch = (v) => { const n = v.split('.').map(Number); n[2]++; return n.join('.'); };
+      async function publish() {
+        if (!proj) return; saveFile(); saveMeta(); let app; try { app = toApp(proj); } catch (e) { return fail(e); }
+        const st = await P.appState(app.id); pubState = st;
+        if (!st) return msg(T('That didn’t work'), T('The store can’t be reached right now.'));
+        if (st.taken && !st.mine) return msg(T('This identifier is taken'), T('Another publisher already uses this identifier. Change it in Project Settings.'));
+        const live = st.mine ? st.accepted : null;
+        if (live && P.cmp(app.version, live) <= 0) { // the store already has this version: offer the next one
+          const next = nextPatch(live);
+          if (!(await PatOS.confirmBox(T('Version') + ' ' + live + ' ' + T('is already in the store'), T('Use version') + ' ' + next + '?', { ok: T('Use') + ' ' + next, icon: 'pitstudio' }))) return;
+          proj.meta.version = next; saveMeta(); try { app = toApp(proj); } catch (e) { return fail(e); } if (view !== 'code') drawSettings();
+        }
+        const upd = !!(live || (st.mine && st.pending));
+        const ok = await PatOS.confirmBox(upd ? T('Update') + ' “' + app.name + '” ' + app.version + '?' : T('Publish') + ' “' + app.name + '” ' + app.version + '?',
+          upd ? (live ? T('It replaces version') + ' ' + live + ' ' + T('once the owner accepts it.') : T('It replaces the version waiting for review.')) : T('The owner of this PatOS reads the app and decides. If it is accepted, it shows up in Community for everyone who uses this server. You can follow its status below.'), { ok: upd ? T('Update') : T('Publish'), icon: 'pitstudio' });
+        if (!ok) return;
+        try { await P.submit(app); proj.meta.published = { version: app.version, at: Date.now() }; saveMeta(); PatOS.notify({ title: upd ? T('Update sent for review') : T('Sent for review'), body: app.name + ' ' + app.version, icon: 'pitstudio' }); refreshPub(); if (view !== 'code') drawSettings(); } catch (e) { fail(e); }
+      }
       async function buildMenu() {
+        refreshPub();
         const r = bBuild.getBoundingClientRect();
         PatOS.menu([
           { label: T('Install on this PatOS'), action: async () => { try { const app = toApp(proj); if (await P.install(app, { source: 'file' })) PatOS.notify({ title: T('Installed'), body: app.name, icon: 'pitstudio' }); } catch (e) { fail(e); } } },
@@ -258,7 +338,8 @@
           { label: T('Download .patapp'), action: () => { try { const app = toApp(proj); PatOS.downloadFile(app.id + '.patapp', JSON.stringify(app, null, 2)); } catch (e) { fail(e); } } },
           { label: T('Send to a friend with PatDrop'), action: () => { try { if (!PatOS.link.linked()) { PatOS.launch('patdrop'); return msg(T('Link PatDrop first'), T('Make or enter a code in PatDrop, then try again.')); } const app = toApp(proj); PatOS.link.sendApp(app); PatOS.notify({ title: T('Sent to your friend'), body: app.name, icon: 'pitstudio' }); } catch (e) { fail(e); } } },
           { divider: true },
-          { label: T('Send for review…'), action: async () => { try { const app = toApp(proj); if (!(await PatOS.confirmBox(T('Send') + ' “' + app.name + '” ' + T('for review?'), T('The owner of this PatOS reads the app and decides. If it is accepted, it shows up in Community for everyone who uses this server. You can follow its status below.'), { ok: T('Send'), icon: 'pitstudio' }))) return; await P.submit(app); PatOS.notify({ title: T('Sent for review'), body: app.name, icon: 'pitstudio' }); } catch (e) { fail(e); } } }
+          { label: isUpdate() ? T('Update in the store…') : T('Publish to the store…'), action: publish },
+          { label: T('Export project (.patappproject)'), action: () => { try { PatOS.downloadFile(slug(proj.name) + '.patappproject', JSON.stringify(exportProject(proj), null, 2)); } catch (e) { fail(e); } } },
         ], r.left, r.bottom + 4);
       }
       bBuild.onclick = buildMenu;
@@ -276,12 +357,27 @@
       }
       function open(name) {
         const p = loadProject(name); if (!p) return fail(new Error(T('That project could not be opened.')));
-        stopRun(); proj = p; cur = null; view = 'code'; win.setTitle('PitCode Studio'); drawProject(); drawAll();
+        stopRun(); proj = p; cur = null; view = 'code'; pubState = null; win.setTitle('PitCode Studio'); drawProject(); drawAll(); refreshPub();
       }
       function drawProject() { root.innerHTML = ''; root.append(main); bRun.style.display = bStop.style.display = bBuild.style.display = bPrev.style.display = ''; bFiles.style.display = ''; }
       function closeProject() { saveFile(); stopRun(); proj = null; cur = null; welcome(); }
       bProjects.onclick = () => { if (proj) closeProject(); else welcome(); };
 
+      /* importing a .patappproject: a new project, or (when this app is already here) replace it or make a copy */
+      async function importText(text) {
+        let pr; try { pr = parseProject(text); } catch (e) { return fail(e); }
+        const same = listProjects().find((x) => x.meta.id === pr.meta.id); let how = 'new', target = null;
+        if (same) {
+          if (await PatOS.confirmBox(T('Replace') + ' “' + same.name + '”?', T('A project for this app is already here. Replace its files with the ones in this file?'), { ok: T('Replace'), icon: 'pitstudio' })) { how = 'replace'; target = same.name; }
+          else if (await PatOS.confirmBox(T('Import as a copy?'), T('It becomes a separate project with its own identifier.'), { ok: T('Make a Copy'), icon: 'pitstudio' })) how = 'copy';
+          else return;
+        }
+        try { if (proj) { saveFile(); } const name = placeProject(pr, how, target); PatOS.notify({ title: T('Project imported'), body: name, icon: 'pitstudio' }); open(name); } catch (e) { fail(e); }
+      }
+      function pickProjectFile() {
+        const i = h('input', { type: 'file', accept: '.patappproject,.json,application/json' }); i.style.display = 'none'; document.body.appendChild(i);
+        i.onchange = async () => { const f = i.files[0]; i.remove(); if (f) { try { importText(await f.text()); } catch (e) { fail(e); } } }; i.addEventListener('cancel', () => i.remove()); i.click();
+      }
       /* the first screen: new project or open one */
       function welcome() {
         root.innerHTML = ''; title.textContent = ''; bRun.style.display = bStop.style.display = bBuild.style.display = bPrev.style.display = 'none'; bFiles.style.display = 'none';
@@ -291,7 +387,7 @@
           langRow.innerHTML = ''; [['pitcode', 'PitCode'], ['web', 'HTML + JavaScript']].forEach(([k, l]) => langRow.appendChild(h('button', { class: 'btn' + (lang === k ? ' primary' : ''), onclick: () => { lang = k; tpl = 'blank'; drawTpl(); } }, l)));
           tplRow.innerHTML = ''; TEMPLATES[lang].forEach((t) => tplRow.appendChild(h('button', { class: 'ps-tpl' + (tpl === t.id ? ' on' : ''), onclick: () => { tpl = t.id; drawTpl(); } }, h('b', {}, T(t.name)), h('small', {}, T(t.note)))));
         };
-        const make = h('button', { class: 'btn primary' }, T('Create Project'));
+        const make = h('button', { class: 'btn primary' }, T('Create Project')), imp = h('button', { class: 'btn', onclick: pickProjectFile }, T('Import Project…'));
         make.onclick = () => { const n = nameIn.value.trim().replace(/[\/\\]/g, '') || T('My App'); try { mkdirs(ROOT); open(newProject({ name: n, language: lang, template: tpl })); } catch (e) { fail(e); } };
         nameIn.addEventListener('keydown', (e) => { if (e.key === 'Enter') make.click(); });
         const list = listProjects().sort((a, b) => b.mtime - a.mtime);
@@ -299,17 +395,19 @@
         drawTpl();
         root.appendChild(h('div', { class: 'ps-welcome' },
           h('div', { class: 'ps-wcol' }, h('h1', {}, 'PitCode Studio'), h('p', { class: 'ps-note' }, ''),
-            h('label', { class: 'ps-field' }, h('span', {}, T('App name')), nameIn), h('div', { class: 'ps-field' }, h('span', {}, T('Language')), langRow), h('div', { class: 'ps-field' }, h('span', {}, T('Start from')), tplRow), make,
+            h('label', { class: 'ps-field' }, h('span', {}, T('App name')), nameIn), h('div', { class: 'ps-field' }, h('span', {}, T('Language')), langRow), h('div', { class: 'ps-field' }, h('span', {}, T('Start from')), tplRow), h('div', { class: 'ps-row' }, make, imp),
             h('p', { class: 'ps-note' }, '')),
           h('div', { class: 'ps-wcol' }, h('h2', {}, T('Your projects')), mine)));
       }
 
       win.on('closed', () => { saveFile(); stopRun(); });
-      win._open = open;
-      if (args && args.project && readMeta(args.project)) open(args.project); else welcome();
+      win._open = open; win._import = importText;
+      const fromPath = (path) => { const t = fsx().read(path); if (t == null) return fail(new Error(T('That file could not be read.'))); return importText(String(t)); };
+      win._importPath = fromPath;
+      if (args && args.importPath) { welcome(); fromPath(args.importPath); } else if (args && args.project && readMeta(args.project)) open(args.project); else welcome();
     },
-    onArgs(win, a) { if (a.project && win._open) win._open(a.project); }
+    onArgs(win, a) { if (a.importPath && win._importPath) win._importPath(a.importPath); else if (a.project && win._open) win._open(a.project); }
   });
   PatOS.iconDefs.pitstudio = { bg: 'linear-gradient(160deg,#0e6a7e,#0b2e38)', svg: () => '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path d="M22 20 12 32l10 12M42 20l10 12-10 12" stroke="#7ff0e0" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M36 16 28 48" stroke="#fff" stroke-width="5" stroke-linecap="round"/></svg>' };
-  PatOS.studio = { TEMPLATES, buildHtml, loadProject, newProject, listProjects, toApp };
+  PatOS.studio = { TEMPLATES, buildHtml, loadProject, newProject, listProjects, toApp, exportProject, parseProject, placeProject };
 })();

@@ -1,7 +1,7 @@
 [
   {
     "version": "2.1.0",
-    "beta": 1,
+    "beta": 2,
     "date": "2026-11-05",
     "title": {
       "en": "Slither",
@@ -9,10 +9,12 @@
     },
     "notes": {
       "en": [
-        "Slither: a new game in 3D & Games. Steer a glowing snake, eat dots to grow, and trap the other snakes so they crash into you. The other players are smart bots, so it works with no internet. Hold click or Space to boost, grab power-ups (Speed, Magnet, Shield, Double, Far sight), pick Easy, Normal or Hard, and climb the leaderboard. Pick your skin and nickname"
+        "Slither: a new game in 3D & Games. Steer a glowing snake, eat dots to grow, and trap the other snakes so they crash into you. The other players are smart bots, so it works with no internet. Hold click or Space to boost, grab power-ups (Speed, Magnet, Shield, Double, Far sight), pick Easy, Normal or Hard, and climb the leaderboard. Pick your skin and nickname",
+        "PitCode Studio: open a whole project from one .patappproject file (Import Project…, or double-click it in Finder). It holds the project settings and every file with its code, and is checked when you import it. Publishing is now an update: once an app is in the store, Publish becomes Update in the store, which sends a new version of the same app (higher version needed) instead of making another one. The identifier is locked once published, and only you can update your app"
       ],
       "fr": [
-        "Slither : un nouveau jeu dans 3D et jeux. Dirigez un serpent lumineux, mangez des points pour grandir et piégez les autres serpents pour qu’ils vous foncent dedans. Les autres joueurs sont des robots malins, donc ça marche sans internet. Maintenez le clic ou Espace pour accélérer, ramassez des bonus (Vitesse, Aimant, Bouclier, Double, Vue lointaine), choisissez Facile, Normal ou Difficile et grimpez au classement. Choisissez votre apparence et votre pseudo"
+        "Slither : un nouveau jeu dans 3D et jeux. Dirigez un serpent lumineux, mangez des points pour grandir et piégez les autres serpents pour qu’ils vous foncent dedans. Les autres joueurs sont des robots malins, donc ça marche sans internet. Maintenez le clic ou Espace pour accélérer, ramassez des bonus (Vitesse, Aimant, Bouclier, Double, Vue lointaine), choisissez Facile, Normal ou Difficile et grimpez au classement. Choisissez votre apparence et votre pseudo",
+        "PitCode Studio : ouvrez un projet entier depuis un seul fichier .patappproject (Importer un projet…, ou double-clic dans le Finder). Il contient les réglages du projet et chaque fichier avec son code, et il est vérifié à l’importation. Publier devient une mise à jour : une fois l’app dans la boutique, Publier devient Mettre à jour dans la boutique, qui envoie une nouvelle version de la même app (version plus haute requise) au lieu d’en créer une autre. L’identifiant est verrouillé une fois publié, et vous seul pouvez mettre votre app à jour"
       ]
     }
   },

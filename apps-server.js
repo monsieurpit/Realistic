@@ -4,6 +4,9 @@
      it comes from the environment variable APPS_ADMIN_PASSWORD (set it on Railway). If it is not set, a random
      one is made at start-up and printed in the log.
    - Accepted apps appear in App Store › Community for everyone. A new version of an app goes back to review.
+   - An app id belongs to whoever sent it first (a secret publisher key kept on their devices; only its fingerprint is stored here).
+     Only that publisher can send a new version of the app, and the version must be higher than the one in the store, so an
+     update replaces the app instead of making another one.
    Files live in PATOS_DATA/apps (pending/, accepted/, tickets/). */
 'use strict';
 const fs = require('fs');
@@ -30,7 +33,10 @@ function goodToken(t) {
   const [exp, sig] = String(t || '').split('.'); if (!exp || !sig || !(+exp > Date.now())) return false;
   const a = Buffer.from(sign(exp)), b = Buffer.from(sig); return a.length === b.length && crypto.timingSafeEqual(a, b);
 }
-const fails = new Map(), subs = new Map();
+const fails = new Map(), subs = new Map(), states = new Map();
+const KEY = /^[A-Za-z0-9_-]{22,64}$/;
+const ownersFile = () => path.join(DATA(), 'owners.json');
+const fingerprint = (k) => crypto.createHash('sha256').update('patos-publisher:' + k).digest('hex');
 function tooMany(map, key, max, ms) { const now = Date.now(); let h = map.get(key); if (!h || now - h.t > ms) { h = { t: now, n: 0 }; map.set(key, h); } if (map.size > 5000) for (const [k, v] of map) if (now - v.t > ms) map.delete(k); return h.n >= max; }
 const bump = (map, key) => { const h = map.get(key); if (h) h.n++; };
 
@@ -63,12 +69,25 @@ async function handle(req, res, url) {
       if (tooMany(subs, ip(req), LIM.perHour, 3600e3)) return json(res, 429, { error: 'Too many submissions. Try again later.' });
       const body = await readBody(req, LIM.body); const v = fmt.validate(body.app);
       if (!v.ok) return json(res, 400, { error: v.error });
-      if (list('pending').length >= LIM.pending) return json(res, 507, { error: 'The review list is full. Try again later.' });
+      const key = String(body.key || ''); if (!KEY.test(key)) return json(res, 400, { error: 'Update PatOS and try again: sending an app needs a publisher key.' });
+      const fp = fingerprint(key), id = v.app.id, owners = readJSON(ownersFile()) || {};
+      if (owners[id] && owners[id] !== fp) return json(res, 403, { error: 'This app id already belongs to another publisher. Choose a different identifier.' });
+      const acc = readJSON(path.join(dir('accepted'), id + '.json'));
+      if (acc && fmt.cmp(v.app.version, acc.app.version) <= 0) return json(res, 409, { error: 'Version ' + acc.app.version + ' is already in the store. Raise the version above it to send an update.', accepted: acc.app.version });
+      if (list('pending').length >= LIM.pending && !fs.existsSync(path.join(dir('pending'), id + '.json'))) return json(res, 507, { error: 'The review list is full. Try again later.' });
       bump(subs, ip(req));
+      if (!owners[id]) { owners[id] = fp; writeJSON(ownersFile(), owners); }
       const ticket = crypto.randomBytes(16).toString('base64url');
-      writeJSON(path.join(dir('pending'), v.app.id + '.json'), { ticket, app: v.app, submitted: Date.now() });
-      writeJSON(path.join(dir('tickets'), ticket + '.json'), { id: v.app.id, name: v.app.name, version: v.app.version, status: 'pending', at: Date.now() });
-      return json(res, 200, { ticket, status: 'pending' });
+      writeJSON(path.join(dir('pending'), id + '.json'), { ticket, app: v.app, submitted: Date.now() }); // (sending again replaces the one waiting)
+      writeJSON(path.join(dir('tickets'), ticket + '.json'), { id, name: v.app.name, version: v.app.version, status: 'pending', at: Date.now() });
+      return json(res, 200, { ticket, status: 'pending', update: !!acc, previous: acc ? acc.app.version : null });
+    }
+    if (route === 'app-state' && req.method === 'POST') { // is this app already in the store, and is it mine?
+      if (tooMany(states, ip(req), 200, 3600e3)) return json(res, 429, { error: 'Too many tries. Try again later.' });
+      bump(states, ip(req)); const body = await readBody(req, 2048); const id = String(body.id || ''); if (!fmt.ID.test(id)) return json(res, 400, { error: 'Bad id.' });
+      const owners = readJSON(ownersFile()) || {}; const mine = KEY.test(String(body.key || '')) && owners[id] === fingerprint(body.key);
+      const acc = readJSON(path.join(dir('accepted'), id + '.json')), pen = readJSON(path.join(dir('pending'), id + '.json'));
+      return json(res, 200, { taken: !!(owners[id] || acc || pen), mine, accepted: acc ? acc.app.version : null, pending: mine && pen ? pen.app.version : null });
     }
     if (route === 'admin/login' && req.method === 'POST') {
       const k = ip(req); if (tooMany(fails, k, 5, 15 * 60e3)) return json(res, 429, { error: 'Too many tries. Wait 15 minutes.' });
@@ -80,7 +99,7 @@ async function handle(req, res, url) {
     if (route.startsWith('admin/')) {
       if (!goodToken(String(req.headers.authorization || '').replace(/^Bearer\s+/i, ''))) return json(res, 401, { error: 'Sign in again.' });
       if (route === 'admin/list' && req.method === 'GET') return json(res, 200, {
-        pending: list('pending').map((r) => Object.assign(meta(r.app), { ticket: r.ticket, submitted: r.submitted })).sort((a, b) => a.submitted - b.submitted),
+        pending: list('pending').map((r) => { const a = readJSON(path.join(dir('accepted'), r.app.id + '.json')); return Object.assign(meta(r.app), { ticket: r.ticket, submitted: r.submitted, update: a ? a.app.version : null }); }).sort((a, b) => a.submitted - b.submitted),
         accepted: list('accepted').map((r) => Object.assign(meta(r.app), { accepted: r.accepted })) });
       if (route === 'admin/app' && req.method === 'GET') {
         const id = url.searchParams.get('id') || ''; if (!fmt.ID.test(id)) return json(res, 400, { error: 'Bad id.' });

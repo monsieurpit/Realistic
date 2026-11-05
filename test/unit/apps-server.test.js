@@ -10,6 +10,7 @@ const F = require('../../js/patapp-format.js');
 const dir = fs.mkdtempSync(path.join(os.tmpdir(), 'patos-apps-'));
 process.env.PATOS_DATA = dir; process.env.APPS_ADMIN_PASSWORD = 'unit-test-password';
 const mk = (o) => Object.assign({ format: 'patapp', formatVersion: 1, id: 'com.test.timer', name: 'Timer', version: '1.0.0', author: 'Tester', description: 'Counts.', icon: '⏱', color: '#ff9f0a', permissions: ['notifications'], html: '<h1>hi</h1>' }, o || {});
+const KEY = 'k'.repeat(30); // the publisher key an app is sent with
 const api = async (base, method, route, body, token) => { const r = await fetch(base + '/api/apps/' + route, { method, headers: Object.assign(body ? { 'Content-Type': 'application/json' } : {}, token ? { Authorization: 'Bearer ' + token } : {}), body: body ? JSON.stringify(body) : undefined }); return { status: r.status, body: await r.json().catch(() => null) }; };
 
 test('the format: good files pass, bad ones say why', () => {
@@ -28,8 +29,8 @@ test('sending, reviewing and publishing: nothing is public until the owner accep
   const srv = await startServer();
   try {
     const b = srv.base;
-    let r = await api(b, 'POST', 'submit', { app: mk() }); assert.equal(r.status, 200); const ticket = r.body.ticket; assert.ok(ticket);
-    assert.equal((await api(b, 'POST', 'submit', { app: mk({ id: 'x' }) })).status, 400);
+    let r = await api(b, 'POST', 'submit', { app: mk(), key: KEY }); assert.equal(r.status, 200); const ticket = r.body.ticket; assert.ok(ticket);
+    assert.equal((await api(b, 'POST', 'submit', { app: mk({ id: 'x' }), key: KEY })).status, 400);
     assert.deepEqual((await api(b, 'GET', 'store')).body.apps, []); // still waiting
     assert.equal((await api(b, 'GET', 'get?id=com.test.timer')).status, 404);
     assert.equal((await api(b, 'GET', 'status?ticket=' + ticket)).body.status, 'pending');
@@ -47,7 +48,7 @@ test('sending, reviewing and publishing: nothing is public until the owner accep
     assert.equal((await api(b, 'GET', 'get?id=com.test.timer')).body.app.html, '<h1>hi</h1>');
     r = await api(b, 'GET', 'status?ticket=' + ticket); assert.equal(r.body.status, 'accepted'); assert.equal(r.body.note, 'Nice');
     // a new version is reviewed again, and the old one stays up meanwhile
-    const t2 = (await api(b, 'POST', 'submit', { app: mk({ version: '1.1.0', html: '<h1>v2</h1>' }) })).body.ticket;
+    const t2 = (await api(b, 'POST', 'submit', { app: mk({ version: '1.1.0', html: '<h1>v2</h1>' }), key: KEY })).body.ticket;
     assert.equal((await api(b, 'GET', 'get?id=com.test.timer')).body.app.version, '1.0.0');
     assert.equal((await api(b, 'POST', 'admin/decide', { id: 'com.test.timer', decision: 'reject', note: 'Too many notifications' }, tok)).body.status, 'rejected');
     assert.equal((await api(b, 'GET', 'get?id=com.test.timer')).body.app.version, '1.0.0');
@@ -88,3 +89,32 @@ test('the review page script is valid JavaScript and only builds the page with t
   assert.ok(!/innerHTML|insertAdjacentHTML|document\.write\(|[^\w]eval\(/.test(m[1]), 'nothing an app sends may be turned into markup');
 });
 test.after(() => fs.rmSync(dir, { recursive: true, force: true }));
+
+test('an app id belongs to the first publisher: only they can send a new version, and the version has to go up', async () => {
+  const srv = await startServer();
+  try {
+    const b = srv.base, OTHER = 'o'.repeat(30); const id = 'com.test.owned';
+    const tok = (await api(b, 'POST', 'admin/login', { password: 'unit-test-password' })).body.token;
+    let r = await api(b, 'POST', 'submit', { app: mk({ id }), key: KEY }); assert.equal(r.status, 200); assert.equal(r.body.update, false);
+    assert.equal((await api(b, 'POST', 'submit', { app: mk({ id }), key: OTHER })).status, 403); // someone else, even before it is accepted
+    assert.equal((await api(b, 'POST', 'submit', { app: mk({ id }) })).status, 400); // no key
+    assert.equal((await api(b, 'POST', 'submit', { app: mk({ id }), key: 'short' })).status, 400);
+    r = await api(b, 'POST', 'submit', { app: mk({ id, html: '<h1>fixed</h1>' }), key: KEY }); assert.equal(r.status, 200, 'the owner can send it again while it waits (it replaces the one waiting)');
+    r = await api(b, 'GET', 'admin/list', null, tok); assert.equal(r.body.pending.filter((x) => x.id === id).length, 1); assert.equal(r.body.pending.find((x) => x.id === id).update, null);
+    await api(b, 'POST', 'admin/decide', { id, decision: 'accept' }, tok);
+    assert.equal((await api(b, 'POST', 'submit', { app: mk({ id }), key: KEY })).status, 409); // the same version is already in the store
+    assert.equal((await api(b, 'POST', 'submit', { app: mk({ id, version: '0.9.0' }), key: KEY })).status, 409);
+    assert.equal((await api(b, 'POST', 'submit', { app: mk({ id, version: '1.1.0' }), key: OTHER })).status, 403);
+    r = await api(b, 'POST', 'submit', { app: mk({ id, version: '1.1.0' }), key: KEY }); assert.equal(r.status, 200); assert.equal(r.body.update, true); assert.equal(r.body.previous, '1.0.0');
+    r = await api(b, 'GET', 'admin/list', null, tok); assert.equal(r.body.pending.find((x) => x.id === id).update, '1.0.0');
+    await api(b, 'POST', 'admin/decide', { id, decision: 'accept' }, tok);
+    r = await api(b, 'GET', 'admin/list', null, tok); assert.equal(r.body.accepted.filter((x) => x.id === id).length, 1, 'still one app'); assert.equal(r.body.accepted.find((x) => x.id === id).version, '1.1.0');
+    // asking about an app
+    r = await api(b, 'POST', 'app-state', { id, key: KEY }); assert.deepEqual(r.body, { taken: true, mine: true, accepted: '1.1.0', pending: null });
+    r = await api(b, 'POST', 'app-state', { id, key: OTHER }); assert.deepEqual(r.body, { taken: true, mine: false, accepted: '1.1.0', pending: null });
+    r = await api(b, 'POST', 'app-state', { id: 'com.test.nobody' }); assert.deepEqual(r.body, { taken: false, mine: false, accepted: null, pending: null });
+    assert.equal((await api(b, 'POST', 'app-state', { id: '../x' })).status, 400);
+    // the owners list is kept, and holds only fingerprints, never a key
+    const owners = fs.readFileSync(path.join(dir, 'apps', 'owners.json'), 'utf8'); assert.ok(!owners.includes(KEY) && !owners.includes(OTHER));
+  } finally { srv.stop(); }
+});

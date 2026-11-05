@@ -31,7 +31,7 @@ pre { background:#0d0e11; border:1px solid var(--line); border-radius:10px; padd
     var ic = el('div', { class: 'ic', text: a.icon }); ic.style.background = /^#[0-9a-f]{6}$/i.test(a.color) ? a.color : '#0a84ff';
     var acts = el('div', { class: 'row' }, el('button', { class: 'primary', text: kind === 'pending' ? 'Review' : 'Look', onclick: function () { detail(a, kind); } }));
     if (kind === 'accepted') acts.appendChild(el('button', { class: 'bad', text: 'Remove from store', onclick: function () { if (confirm('Remove ' + a.name + ' from the store? People who installed it keep it.')) api('POST', 'admin/remove', { id: a.id }).then(refresh).catch(function (e) { alert(e.message); }); } }));
-    return el('div', { class: 'card' }, el('div', { class: 'row' }, ic, el('div', { class: 'grow' }, el('b', { text: a.name + ' ' + a.version }), el('div', { class: 'dim', text: (a.author || 'unknown author') + ' · ' + a.id + ' · ' + Math.round(a.size / 1024 * 10) / 10 + ' KB' }), el('div', { text: a.description }), tags(a)), acts));
+    return el('div', { class: 'card' }, el('div', { class: 'row' }, ic, el('div', { class: 'grow' }, el('b', { text: a.name + ' ' + a.version + (a.update ? '  (update of ' + a.update + ')' : kind === 'pending' ? '  (new app)' : '') }), el('div', { class: 'dim', text: (a.author || 'unknown author') + ' · ' + a.id + ' · ' + Math.round(a.size / 1024 * 10) / 10 + ' KB' }), el('div', { text: a.description }), tags(a)), acts));
   }
   function refresh() {
     $('detail').textContent = '';

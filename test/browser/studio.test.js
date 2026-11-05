@@ -3,10 +3,12 @@
 'use strict';
 const test = require('node:test');
 const assert = require('node:assert');
+const fs = require('fs'); const os = require('os'); const path = require('path');
 const { startServer, browser, boot, reload, skipNoBrowser } = require('../helpers');
 
 let srv, b;
-test.before(async () => { if (skipNoBrowser) return; srv = await startServer(); b = await browser(); });
+const ADMIN = 'studio-test-pw';
+test.before(async () => { if (skipNoBrowser) return; process.env.PATOS_DATA = fs.mkdtempSync(path.join(os.tmpdir(), 'patos-studio-')); process.env.APPS_ADMIN_PASSWORD = ADMIN; srv = await startServer(); b = await browser(); });
 test.after(async () => { if (b) await b.close(); if (srv) srv.stop(); });
 const stub = (page) => page.evaluate(() => { window.__asked = []; PatOS.confirmBox = async (title, text, o) => { window.__asked.push({ title, text }); return true; }; PatOS.alertBox = async (t, x) => { window.__alert = t + ': ' + x; }; PatOS.notify = (n) => { (window.__notes = window.__notes || []).push(n); }; });
 async function setup() { const page = await b.newPage({ viewport: { width: 1280, height: 800 } }); const errors = await boot(page, srv.base, { fresh: true }); await stub(page); return { page, errors }; }
@@ -96,7 +98,7 @@ test('project settings, new files, and Build: install, save the file, send for r
   await page.click('.ps-build'); await page.click('.menu >> text=Save .patapp in the project'); await page.waitForTimeout(400);
   const saved = await page.evaluate(() => { const f = PatOS.fs.list('/Documents/Studio/Pocket').find((x) => /\.patapp$/.test(x.name)); return f && JSON.parse(PatOS.fs.read('/Documents/Studio/Pocket/' + f.name)); });
   assert.equal(saved.format, 'patapp'); assert.equal(saved.engine, 'pitcode'); assert.match(saved.html, /pit-files/); assert.ok(saved.html.includes('PitCode.run')); assert.ok(!/<\/script>[^]*<\/script>[^]*<\/script>[^]*<\/script>/.test(saved.html.replace(/<script/g, '<SCRIPT')) || true);
-  await page.click('.ps-build'); await page.click('.menu >> text=Send for review'); await page.waitForTimeout(800);
+  await page.click('.ps-build'); await page.click('.menu >> text=Publish to the store'); await page.waitForTimeout(800);
   assert.equal(await page.evaluate(() => PatOS.patapps.submits()[0].name), 'Pocket');
   // the installed app runs
   await page.evaluate(() => PatOS.launch('pa:' + PatOS.patapps.list()[0].id)); await waitFrameText(page, /^0\s/);
@@ -120,4 +122,81 @@ test('web projects: the page, style and script are put into one file, and the fi
   });
   assert.equal(ok, true);
   await page.close();
+});
+
+test('a whole project is one .patappproject file: export it, import it, and bad files are refused', { skip: skipNoBrowser }, async () => {
+  const { page, errors } = await setup();
+  const r = await page.evaluate(async () => {
+    const S = PatOS.studio, o = {};
+    S.newProject({ name: 'Pack', language: 'pitcode', template: 'blank' }); PatOS.fs.write('/Documents/Studio/Pack/extra.pit', 'say "extra code"\n'); PatOS.fs.write('/Documents/Studio/Pack/main.pitx', 'App() => <p>mine</p>\ndraw(App)\n');
+    const p = S.loadProject('Pack'); p.meta.description = 'Does things'; PatOS.fs.write('/Documents/Studio/Pack/project.patproj', JSON.stringify(p.meta));
+    const exp = S.exportProject(S.loadProject('Pack')); o.keys = Object.keys(exp).sort(); o.files = Object.keys(exp.files).sort(); o.code = exp.files['extra.pit']; o.noKey = JSON.stringify(exp).indexOf('ublisher') < 0; o.meta = { id: exp.meta.id, desc: exp.meta.description, lang: exp.meta.language, entry: exp.meta.entry };
+    const text = JSON.stringify(exp); window.__text = text; window.__id = exp.meta.id;
+    // parse it back
+    const back = S.parseProject(text); o.same = JSON.stringify(back.files) === JSON.stringify(exp.files) && back.meta.id === exp.meta.id;
+    // bad files
+    const bad = (mut) => { const x = JSON.parse(text); mut(x); try { S.parseProject(JSON.stringify(x)); return 'accepted'; } catch (e) { return e.message; } };
+    o.bad = [bad((x) => { x.files['../evil.js'] = '1'; }), bad((x) => { x.files['project.patproj'] = '{}'; }), bad((x) => { x.files['a.exe'] = '1'; }), bad((x) => { x.files['x.js'] = 5; }), bad((x) => { x.files = {}; }), bad((x) => { x.format = 'other'; }), bad((x) => { x.formatVersion = 9; }), bad((x) => { for (let i = 0; i < 70; i++) x.files['f' + i + '.js'] = ''; }), bad((x) => { x.files['big.js'] = 'x'.repeat(600000); })];
+    try { S.parseProject('not json'); o.notJson = 'accepted'; } catch (e) { o.notJson = e.message; }
+    // a project with odd settings is cleaned up, never trusted
+    const odd = JSON.parse(text); odd.meta.id = 'BAD ID!'; odd.meta.permissions = ['files', 'root']; odd.meta.entry = 'nothing.pitx'; odd.meta.version = 'x'; odd.meta.color = 'red'; const cl = S.parseProject(JSON.stringify(odd)).meta; o.clean = { id: /^local\.pack\./.test(cl.id), perms: cl.permissions.join(), entry: cl.entry, version: cl.version, color: cl.color };
+    return o;
+  });
+  assert.deepEqual(r.keys, ['exported', 'files', 'format', 'formatVersion', 'meta']); assert.deepEqual(r.files, ['extra.pit', 'main.pitx', 'styles.pitoss']); assert.equal(r.code, 'say "extra code"\n'); assert.equal(r.noKey, true);
+  assert.deepEqual(r.meta, { id: r.meta.id, desc: 'Does things', lang: 'pitcode', entry: 'main.pitx' }); assert.equal(r.same, true);
+  r.bad.forEach((m, i) => assert.notEqual(m, 'accepted', 'bad file ' + i)); assert.match(r.bad[0], /not allowed/); assert.match(r.bad[4], /no files/); assert.match(r.bad[5], /not a PatOS project/); assert.match(r.bad[6], /different version/); assert.match(r.bad[7], /too many/); assert.match(r.bad[8], /too big/); assert.match(r.notJson, /not a PatOS project/);
+  assert.deepEqual(r.clean, { id: true, perms: 'files', entry: 'main.pitx', version: '1.0.0', color: '#0a84ff' });
+  // importing in the window: a new project, then the same app again (replace, or a copy), then from a file in PatOS
+  await page.evaluate(() => PatOS.launch('pitstudio')); await page.waitForSelector('.ps-welcome');
+  assert.equal(await page.locator('.ps-welcome >> text=Import Project').count(), 1);
+  const imp = await page.evaluate(async () => {
+    const g = PatOS.wm.windowsOf('pitstudio')[0], S = PatOS.studio, o = {}; const ids = () => S.listProjects().map((x) => x.name + ':' + x.meta.id).sort();
+    PatOS.fs.remove('/Documents/Studio/Pack'); await g._import(window.__text); o.afterNew = ids();
+    // same app again: answer "Replace"
+    const edited = JSON.parse(window.__text); edited.files['main.pitx'] = 'App() => <p>from the file</p>\ndraw(App)\n'; delete edited.files['extra.pit']; window.__asked = []; PatOS.confirmBox = async (t) => { window.__asked.push(t); return true; };
+    await g._import(JSON.stringify(edited)); o.replaced = { files: Object.keys(S.loadProject('Pack').files).sort(), main: S.loadProject('Pack').files['main.pitx'], count: ids().length, asked: window.__asked.slice() };
+    // same app again: say no to Replace, yes to Make a copy
+    let n = 0; PatOS.confirmBox = async () => (++n === 2); await g._import(window.__text); o.copy = ids();
+    // from a .patappproject file in PatOS (what double-clicking it in Finder does)
+    PatOS.fs.write('/Documents/Drop.patappproject', JSON.stringify(Object.assign(JSON.parse(window.__text), { meta: Object.assign(JSON.parse(window.__text).meta, { name: 'Dropped', id: 'local.dropped.zz99' }) })));
+    PatOS.confirmBox = async () => true; PatOS.openFile('/Documents/Drop.patappproject'); await new Promise((r) => setTimeout(r, 700)); o.dropped = ids().filter((x) => /Dropped/.test(x));
+    return o;
+  });
+  assert.equal(imp.afterNew.length, 1); assert.match(imp.afterNew[0], /^Pack:/); assert.deepEqual(imp.replaced.files, ['main.pitx', 'styles.pitoss']); assert.match(imp.replaced.main, /from the file/); assert.equal(imp.replaced.count, 1); assert.match(imp.replaced.asked[0], /Replace “Pack”/);
+  assert.equal(imp.copy.length, 2); assert.notEqual(imp.copy[0].split(':')[1], imp.copy[1].split(':')[1], 'a copy gets its own identifier'); assert.deepEqual(imp.dropped, ['Dropped:local.dropped.zz99']);
+  assert.deepEqual(errors, []); await page.close();
+});
+
+test('publishing: the first time publishes, after that it is an update of the same app; the identifier is locked, the version must go up, and nobody else can take it', { skip: skipNoBrowser }, async () => {
+  const { page, errors } = await setup(); const api = async (route, body, token) => { const r = await fetch(srv.base + '/api/apps/' + route, { method: body ? 'POST' : 'GET', headers: Object.assign(body ? { 'Content-Type': 'application/json' } : {}, token ? { Authorization: 'Bearer ' + token } : {}), body: body ? JSON.stringify(body) : undefined }); return { status: r.status, json: await r.json() }; };
+  const token = (await api('admin/login', { password: ADMIN })).json.token; const adminList = async () => { const j = (await api('admin/list', null, token)).json; return { pending: j.pending.filter((x) => x.id === window__id), accepted: j.accepted }; }; let window__id = '';
+  await page.evaluate(() => { PatOS.studio.newProject({ name: 'Clock', language: 'web', template: 'blank' }); PatOS.launch('pitstudio', { project: 'Clock' }); }); await page.waitForSelector('.ps-sidehead');
+  const id = await page.evaluate(() => PatOS.studio.loadProject('Clock').meta.id); window__id = id;
+  const buildItem = async (text) => { await page.click('.ps-build'); await page.click('.menu >> text=' + text); await page.waitForTimeout(900); };
+  // first time: Publish
+  await page.click('.ps-build'); assert.equal(await page.locator('.menu >> text=Publish to the store').count(), 1); assert.equal(await page.locator('.menu >> text=Update in the store').count(), 0); await page.keyboard.press('Escape'); await page.mouse.click(5, 5);
+  await buildItem('Publish to the store');
+  let l = await adminList(); assert.equal(l.pending.length, 1); assert.equal(l.pending[0].id, id); assert.equal(l.pending[0].version, '1.0.0'); assert.equal(l.pending[0].update, null);
+  assert.match(await page.evaluate(() => window.__asked.pop().title), /Publish “Clock” 1\.0\.0\?/);
+  assert.equal((await api('admin/decide', { id, decision: 'accept' }, token)).status, 200);
+  // now it is in the store: the same menu says Update, and the same version is not allowed again (the next one is offered)
+  await page.click('.ps-build'); assert.equal(await page.locator('.menu >> text=Update in the store').count(), 1); await page.keyboard.press('Escape'); await page.mouse.click(5, 5);
+  await buildItem('Update in the store');
+  const asked = await page.evaluate(() => window.__asked.slice(-2).map((x) => x.title)); assert.match(asked[0], /Version 1\.0\.0 is already in the store/); assert.match(asked[1], /Update “Clock” 1\.0\.1\?/);
+  l = await adminList(); assert.equal(l.pending.length, 1); assert.equal(l.pending[0].version, '1.0.1'); assert.equal(l.pending[0].update, '1.0.0', 'it says it is an update of 1.0.0');
+  assert.equal(await page.evaluate(() => PatOS.studio.loadProject('Clock').meta.version), '1.0.1');
+  assert.equal((await api('admin/decide', { id, decision: 'accept' }, token)).status, 200);
+  l = await adminList(); assert.equal(l.accepted.filter((x) => x.id === id).length, 1, 'one app, not two'); assert.equal(l.accepted.find((x) => x.id === id).version, '1.0.1');
+  const subs = await page.evaluate(() => PatOS.patapps.submits().map((x) => [x.version, x.update, x.previous])); assert.deepEqual(subs, [['1.0.1', true, '1.0.0'], ['1.0.0', false, null]]);
+  // the identifier is locked in Project Settings once the app is in the store
+  await page.click('.ps-gen'); await page.waitForSelector('.ps-settings:not([style*="none"])');
+  assert.equal(await page.locator('.ps-settings input[value="' + id + '"]').evaluate((i) => i.readOnly), true);
+  // the server's own rules: only the publisher can update, and the version has to go up
+  const app = await page.evaluate(() => JSON.parse(JSON.stringify(PatOS.studio.toApp(PatOS.studio.loadProject('Clock'))))); app.version = '1.0.2';
+  const otherKey = 'x'.repeat(30); const stranger = await api('submit', { app, key: otherKey }); assert.equal(stranger.status, 403); assert.match(stranger.json.error, /another publisher/);
+  assert.equal((await api('submit', { app })).status, 400, 'an old PatOS without a key is refused');
+  const mine = await page.evaluate(async (a) => { const r = await PatOS.patapps.appState(a.id); return r; }, app); assert.deepEqual(mine, { taken: true, mine: true, accepted: '1.0.1', pending: null });
+  const state = await api('app-state', { id, key: otherKey }); assert.deepEqual(state.json, { taken: true, mine: false, accepted: '1.0.1', pending: null });
+  const low = await page.evaluate(async (a) => { a.version = '1.0.1'; try { await PatOS.patapps.submit(a); return 'sent'; } catch (e) { return e.message; } }, app); assert.match(low, /Version 1\.0\.1 is already in the store/);
+  assert.deepEqual(errors, []); await page.close();
 });

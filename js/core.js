@@ -753,6 +753,7 @@
     if (/^(docx|xlsx|pptx)$/.test(ext) && PatOS.openOffice) return PatOS.openOffice(path);
     if (ext === 'zip' && PatOS.openZip) return PatOS.openZip(path);
     if (ext === 'patapp' && PatOS.patapps) return PatOS.patapps.installFromFile(path).catch((e) => PatOS.alertBox(PatOS.t('That didn’t work'), String(e.message || e), { icon: 'appstore' }));
+    if (ext === 'patappproject' && PatOS.apps.pitstudio) return PatOS.launch('pitstudio', { importPath: path });
     if (ext === 'ics' && PatOS.apps.calendar) return PatOS.launch('calendar', { ics: path });
     if (ext === 'py' && PatOS.apps.code) return PatOS.launch('code', { path });
     if (kind === 'image') return PatOS.launch('photos', { path });

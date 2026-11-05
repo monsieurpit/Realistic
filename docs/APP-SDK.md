@@ -118,7 +118,29 @@ Open **PitCode Studio** from the Launchpad. A project is a folder in **Documents
 * **Edit:** colors from the real PitCode lexer, mistakes listed under the code (click one to jump to it), Tab and Enter indent like an editor, it saves as you type. Right-click a file (press and hold on a phone) to rename it, delete it, or make it the start file.
 * **Run** (or Ctrl/Cmd+Enter): the app starts in the preview, in the same locked box as an installed app, with a console for `say`, `console.log` and errors.
 * **Project Settings:** name, identifier, version, author, description, icon and color, language, start file, window size and permissions (like Xcode's General tab).
-* **Build:** install on this PatOS, save the `.patapp` in the project, download it, or send it for review.
+* **Build:** install on this PatOS, save the `.patapp` in the project, download it, export the project, or publish it to the store.
+* **Import Project…** (and double-clicking a `.patappproject` file in Finder) opens a whole project from one file. If a project for the same app is already here, you can replace its files or import a copy (a copy gets its own identifier).
+
+### The `.patappproject` file
+
+A project in one JSON file: the settings and every file with its code. Studio checks it on import (file names, sizes, settings), so a bad file is refused with a message.
+
+```json
+{ "format": "patappproject", "formatVersion": 1,
+  "meta": { "name": "Clock", "id": "com.maya.clock", "version": "1.0.0", "author": "", "description": "", "icon": "⏰", "color": "#0a84ff",
+            "permissions": [], "language": "pitcode", "entry": "main.pitx", "width": 520, "height": 420 },
+  "files": { "main.pitx": "...the code...", "styles.pitoss": "...", "tools.pit": "..." } }
+```
+
+Files are flat (no folders), up to 60 files, 500 KB each, and end in `.pitx`, `.pit`, `.pitoss`, `.html`, `.css`, `.js`, `.json`, `.txt` or `.md`.
+
+### Publishing and updating
+
+**Publish to the store…** sends the app for review. After that, the same menu says **Update in the store…**: it sends a new version of the same app (it replaces the old one when accepted), never a second app.
+
+* The identifier (like `com.maya.clock`) is locked once the app is published. A different identifier would be a different app.
+* The version has to be higher than the one in the store. If it is not, Studio offers the next one (1.0.0 to 1.0.1).
+* The first time you send an app, your device makes a secret publisher key for it (it follows you with Sync and Backup). The server keeps only a fingerprint of it, so only you can send updates for your app, and nobody else can take its identifier. The key is never in a `.patappproject` file.
 
 For an HTML + JavaScript project, `style.css` and `app.js` linked from `index.html` are put into the single page when you build.
 
@@ -126,7 +148,7 @@ For an HTML + JavaScript project, `style.css` and `app.js` linked from `index.ht
 
 1. The easiest way: open **PitCode Studio** (above).
 2. Or open the **App Store**, then the **Develop** tab. Paste your HTML into the box, fill in a name, tick what it needs, then press **Install to Try It**.
-3. When you are happy, press **Save .patapp** to keep the file, or **Send for Review**.
+3. When you are happy, press **Save .patapp** to keep the file, or **Send for Review**. (Sending the same app again, with a higher version, is an update.)
 
 You can also double-click a `.patapp` file in Finder, or use **Open a .patapp File…**.
 
