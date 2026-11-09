@@ -289,6 +289,29 @@
     if (!e.target.closest('#notif-center, #mb-clock')) $('#notif-center') && $('#notif-center').classList.add('hidden');
   });
 
+  /* panels follow the pointer: drag Control Center, notifications or Pat up and they leave with your movement (fast or far
+     enough), or spring back if you let go early */
+  ['#control-center', '#notif-center', '#pat-panel'].forEach((sel) => {
+    const p = $(sel); if (!p) return;
+    p.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0 || e.target.closest('button, input, select, textarea, a, [contenteditable], .cc-range, .no-drag')) return;
+      const y0 = e.clientY, t0 = performance.now(); let dy = 0, moved = false, lastY = y0, lastT = t0, vel = 0;
+      const move = (ev) => {
+        dy = Math.min(0, ev.clientY - y0); if (!moved && dy > -6) return;
+        if (!moved) { moved = true; p.classList.add('dragging'); try { p.setPointerCapture(e.pointerId); } catch (er) {} }
+        const now = performance.now(); vel = (ev.clientY - lastY) / Math.max(1, now - lastT); lastY = ev.clientY; lastT = now;
+        p.style.transform = `translateY(${dy}px)`; p.style.opacity = String(Math.max(.25, 1 + dy / 260));
+      };
+      const up = () => {
+        p.removeEventListener('pointermove', move); p.removeEventListener('pointerup', up); p.removeEventListener('pointercancel', up);
+        if (!moved) return;
+        p.classList.remove('dragging'); p.classList.add('springing');
+        if (dy < -70 || vel < -0.5) { p.style.transform = 'translateY(-110%)'; p.style.opacity = '0'; setTimeout(() => { p.classList.add('hidden'); p.classList.remove('springing'); p.style.transform = ''; p.style.opacity = ''; }, 260); }
+        else { p.style.transform = ''; p.style.opacity = ''; setTimeout(() => p.classList.remove('springing'), 500); }
+      };
+      p.addEventListener('pointermove', move); p.addEventListener('pointerup', up); p.addEventListener('pointercancel', up);
+    });
+  });
   PatOS.panels = { toggle: (sel) => togglePanel(sel), closeAll: () => { $('#control-center').classList.add('hidden'); $('#notif-center').classList.add('hidden'); } };
   PatOS.focusMode = false;
   let wakeLock = null, muted = false, preMute = 0.7;

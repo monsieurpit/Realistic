@@ -20,7 +20,7 @@
     'focusCfg', 'focusHistory', 'boards', 'patApps', 'patAppData', 'linkRoom', 'searchEngine', 'translatePrefs', 'solStats', 'sudokuBest', 'typingBest', 'orbBest', 'gamesBest', 'tttScore'];
   const SETTING_KEYS = ['userName', 'theme', 'accent', 'wallpaper', 'dockSize', 'magnify', 'magnifyScale', 'dockAutohide', 'dockPinned', 'mobileDock',
     'hiddenApps', 'language', 'clock24', 'showSeconds', 'uiSounds', 'volume', 'reduceMotion', 'highContrast', 'boldText', 'showFocus', 'bigTargets',
-    'reduceTransparency', 'liquidGlass', 'glassStyle', 'showWidgets', 'reopenWindows'];
+    'reduceTransparency', 'liquidGlass', 'glassStyle', 'motion', 'showWidgets', 'reopenWindows'];
   const FILE_CAP = 9 * 1024 * 1024; // a file bigger than this stays where it is
   const BATCH_BYTES = 6 * 1024 * 1024, BATCH_COUNT = 150;
   const enc = new TextEncoder(), dec = new TextDecoder();

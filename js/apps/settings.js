@@ -314,7 +314,7 @@
           });
           const acc = h('div', { class: 'st-acc' });
           ACCENTS.forEach((c) => { const b = h('button', { class: 'st-dot' + (S().accent === c ? ' on' : ''), style: { background: c } }); b.onclick = () => { PatOS.setSetting('accent', c); render(); }; acc.appendChild(b); });
-          return [h('h3', {}, 'Appearance'), modes, group(row('Highlight color', acc), row('Fewer animations', toggle('reduceMotion'))),
+          return [h('h3', {}, 'Appearance'), modes, group(row('Highlight color', acc), row(T('Motion'), select('motion', [['calm', T('Calm')], ['natural', T('Natural')], ['playful', T('Playful')]]), T('How windows, menus and panels move')), row('Fewer animations', toggle('reduceMotion'))),
             h('h3', {}, 'Liquid Glass'),
             group(row('Liquid Glass', toggle('liquidGlass', render), ''),
               S().liquidGlass ? row(T('Glass style'), select('glassStyle', [['clear', T('Transparent')], ['tinted', T('Tinted (more contrast)')]]), '') : null,

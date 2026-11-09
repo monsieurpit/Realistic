@@ -93,3 +93,13 @@ select.field { padding-right: var(--sp-6); }
 .window.stage-thumb * { pointer-events: none !important; }
 .window.stage-thumb:hover { filter: brightness(1.08); }
 body.stage-on .window { transition: left .32s cubic-bezier(.2,.8,.2,1), top .32s cubic-bezier(.2,.8,.2,1), width .32s cubic-bezier(.2,.8,.2,1), height .32s cubic-bezier(.2,.8,.2,1), transform .32s cubic-bezier(.2,.8,.2,1); }
+
+/* ================= motion: everything moves on the system spring (--spring, set by js/wm.js) ================= */
+:root { --spring: cubic-bezier(.2,.95,.25,1.08); --spring-dur: 520ms; --spring-dur-short: 320ms; }
+.window.animating, body.stage-on .window { transition-property: left, top, width, height, transform; transition-duration: var(--spring-dur) !important; transition-timing-function: var(--spring) !important; }
+html:not(.reduce-motion) :is(.menu, .panel, .sp-box) { animation-duration: var(--spring-dur-short) !important; animation-timing-function: var(--spring) !important; }
+html:not(.reduce-motion) .dlg { animation: dlgIn var(--spring-dur-short) var(--spring); }
+@keyframes dlgIn { from { opacity: 0; transform: scale(.9) translateY(10px); } }
+/* a panel being dragged follows the pointer; let go and it springs back or away */
+.panel.dragging { animation: none !important; transition: none !important; }
+.panel.springing { transition: transform var(--spring-dur-short) var(--spring), opacity .2s !important; }

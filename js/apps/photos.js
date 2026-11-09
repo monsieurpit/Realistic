@@ -127,7 +127,7 @@
           const img = h('img', { alt: p.name, 'data-i': String(i), draggable: 'false' });
           const isSel = p.path && sel.has(p.path);
           const t = h('div', { class: 'ph-thumb' + (isSel ? ' sel' : ''), tabindex: '0', role: 'button', 'aria-label': p.name }, img, p.path && favs().includes(p.path) ? h('span', { class: 'ph-heart', html: PatOS.sym('star') }) : null, selecting ? h('span', { class: 'ph-check' }, isSel ? '✓' : '') : null);
-          const act = () => { if (selecting && p.path) { if (sel.has(p.path)) sel.delete(p.path); else sel.add(p.path); t.classList.toggle('sel', sel.has(p.path)); const ck = t.querySelector('.ph-check'); if (ck) ck.textContent = sel.has(p.path) ? '✓' : ''; paintSelBar(); } else open(i); };
+          const act = () => { flyFrom = (t.querySelector('img') || t).getBoundingClientRect(); if (selecting && p.path) { if (sel.has(p.path)) sel.delete(p.path); else sel.add(p.path); t.classList.toggle('sel', sel.has(p.path)); const ck = t.querySelector('.ph-check'); if (ck) ck.textContent = sel.has(p.path) ? '✓' : ''; paintSelBar(); } else open(i); };
           t.onclick = act; t.onkeydown = (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); act(); } };
           t.oncontextmenu = (e) => { if (!p.path) return; e.preventDefault(); PatOS.menu([{ label: T('Open'), action: () => open(i) }, { label: favs().includes(p.path) ? T('Remove from Favorites') : T('Favorite'), action: () => toggleFav(p.path) }, { label: T('Add to Album'), action: () => addToAlbum([p.path], t) }, { label: T('Download'), action: () => download(p) }, { divider: true }, { label: T('Move to Trash'), action: () => trash([p.path]) }], e.clientX, e.clientY); };
           grid.appendChild(t); io.observe(img);
@@ -156,6 +156,7 @@
       }
 
       /* ---------- the viewer: zoom with the wheel or a pinch, drag to pan, swipe or arrows to move on ---------- */
+      let flyFrom = null; // where the photo was tapped: it flies from there into the viewer
       async function open(i) {
         const p = list[i]; if (!p) return;
         const src = await srcOf(p); if (!src) return;
@@ -209,6 +210,14 @@
         };
         stage.addEventListener('pointerup', up); stage.addEventListener('pointercancel', (e) => { pts.delete(e.pointerId); drag = null; apply(true); });
         viewer.append(bar, stage);
+        // shared element: the photo grows from its thumbnail into place, on the system spring
+        const from = flyFrom; flyFrom = null;
+        if (from && from.width && !PatOS.settings.reduceMotion && img.animate) {
+          const fly = () => { const r = img.getBoundingClientRect(); if (!r.width) return; const s2 = Math.max(from.width / r.width, from.height / r.height), sp = PatOS.motion ? PatOS.motion.get() : { dur: 420, easing: 'ease-out' };
+            img.animate([{ transform: `translate(${from.left + from.width / 2 - (r.left + r.width / 2)}px, ${from.top + from.height / 2 - (r.top + r.height / 2)}px) scale(${s2})`, borderRadius: '12px' }, { transform: 'none', borderRadius: '0px' }], { duration: sp.dur, easing: sp.easing });
+            bar.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 250 }); };
+          if (img.complete && img.naturalWidth) requestAnimationFrame(fly); else img.addEventListener('load', () => requestAnimationFrame(fly), { once: true });
+        }
         win._viewIdx = i; win._viewer = { go, close, zoom: (f) => setZoom(f === 0 ? 1 : z * f), info: () => bInfo.click(), fav: () => heart && heart.click(), edit: () => openEdit(p), del: removeCurrent };
         win.setTitle(p.name);
       }

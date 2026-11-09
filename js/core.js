@@ -226,7 +226,8 @@
     deviceMode: 'auto',
     liquidGlass: true,
     glassRefraction: true,
-    glassStyle: 'clear',     // clear | tinted (Liquid Glass: Tinted is thicker, for more contrast)
+    glassStyle: 'clear',
+    motion: 'natural',       // calm | natural | playful (the springs every animation uses, js/wm.js)     // clear | tinted (Liquid Glass: Tinted is thicker, for more contrast)
     language: 'auto',      // auto | en | fr      // auto | desktop | mobile
     showWidgets: true,
     hiddenApps: [],

@@ -140,6 +140,26 @@
     return win;
   }
 
+  /* ---------- springs: one physical motion for the whole system ----------
+     A damped spring (stiffness k, damping c, mass 1) is simulated once and turned into a native linear() easing curve, so
+     windows, menus, panels and sheets all settle the same way. Settings › Appearance › Motion: Calm (no overshoot), Natural
+     (a hint of settle) or Playful (bouncier). Browsers without linear() get a close cubic-bezier. */
+  const SPRINGS = { calm: [190, 28], natural: [230, 21], playful: [270, 14] };
+  const linearOK = (() => { try { return CSS.supports('animation-timing-function', 'linear(0, 1)'); } catch (e) { return false; } })();
+  function springCurve(k, c) {
+    let x = 0, v = 0, t = 0; const dt = 1 / 240, pts = [];
+    while (t < 2) { const a = -k * (x - 1) - c * v; v += a * dt; x += v * dt; t += dt; pts.push([t, x]); if (t > .2 && Math.abs(x - 1) < .0015 && Math.abs(v) < .02) break; }
+    const dur = Math.round(t * 1000), step = Math.max(1, Math.floor(pts.length / 44));
+    const list = ['0']; for (let i = step; i < pts.length; i += step) list.push(pts[i][1].toFixed(4) + ' ' + (pts[i][0] / t * 100).toFixed(1) + '%'); list.push('1');
+    return { easing: linearOK ? 'linear(' + list.join(', ') + ')' : 'cubic-bezier(.2,.95,.25,1.08)', dur: Math.min(900, Math.max(320, dur)) };
+  }
+  const motion = { calm: null, natural: null, playful: null };
+  PatOS.motion = {
+    get() { const m = PatOS.settings.motion in SPRINGS ? PatOS.settings.motion : 'natural'; return motion[m] || (motion[m] = springCurve(...SPRINGS[m])); },
+    apply() { const m = PatOS.motion.get(), r = document.documentElement.style; r.setProperty('--spring', m.easing); r.setProperty('--spring-dur', m.dur + 'ms'); r.setProperty('--spring-dur-short', Math.round(m.dur * .6) + 'ms'); }
+  };
+  PatOS.motion.apply(); PatOS.on('setting:motion', () => PatOS.motion.apply());
+
   /* zoom the window out of the icon that launched it (dock, Launchpad, home screen) */
   const motionOK = () => !PatOS.settings.reduceMotion && el0().animate;
   const el0 = () => document.body;
@@ -157,7 +177,7 @@
     const frames = src
       ? [{ transform: rectTransform(src, r), opacity: 0.2, borderRadius: '40px' }, { transform: 'none', opacity: 1, borderRadius: PatOS.isMobile ? '0px' : '12px' }]
       : [{ transform: 'scale(.9) translateY(14px)', opacity: 0, filter: 'blur(6px)' }, { transform: 'none', opacity: 1, filter: 'blur(0)' }];
-    el.animate(frames, { duration: src ? 460 : 300, easing: 'cubic-bezier(.2,.95,.25,1.04)' });
+    const sp = PatOS.motion.get(); el.animate(frames, { duration: src ? sp.dur : Math.round(sp.dur * .75), easing: sp.easing });
   }
   PatOS.rectTransform = rectTransform;
 
@@ -275,7 +295,7 @@
   function animateTo(win, r) {
     win.el.classList.add('animating');
     Object.assign(win.el.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
-    setTimeout(() => win.el.classList.remove('animating'), 320);
+    clearTimeout(win._animT); win._animT = setTimeout(() => win.el.classList.remove('animating'), PatOS.motion.get().dur);
   }
   function setMax(win, on) {
     win.maximized = on;
@@ -365,7 +385,7 @@
     const target = PatOS.dock && PatOS.dock.iconRect(win.app.id);
     if (target && motionOK()) {
       win.el.style.transformOrigin = 'center bottom';
-      win.el.animate(genieFrames(win.el.getBoundingClientRect(), target, true), { duration: 480, easing: 'cubic-bezier(.2,.7,.3,1)' }).onfinish = () => { win.el.style.transformOrigin = ''; };
+      win.el.animate(genieFrames(win.el.getBoundingClientRect(), target, true), { duration: PatOS.motion.get().dur, easing: PatOS.motion.get().easing }).onfinish = () => { win.el.style.transformOrigin = ''; };
     }
     focusWindow(win);
     win.emit('restore');
