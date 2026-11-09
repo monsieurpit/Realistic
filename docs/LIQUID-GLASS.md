@@ -41,6 +41,8 @@ Every glass surface is drawn as a thick, curved slab rather than a flat sheet:
 - **Busy wallpapers**: `readTone` also measures how much fine detail the wallpaper has (average brightness jump between
   neighbouring pixels of a 48×32 copy). Over a busy picture (`html[data-wp-busy]`), glass that holds words blurs 22–32px
   and gets a little more tint, and words get a stronger halo. The Dock stays clear.
+- **Highlights follow the light that is there** (`--g-glint`): every white rim, lip and glint is scaled by 1 over light
+  wallpapers, .75 in dark mode and .4 over a dark wallpaper, so glass on a night sky has a quiet edge, not a glowing frame.
 - **Pressed in**: buttons, menu items, tiles, toggles and app icons sink when pressed (shade moves inside the top edge, light to
   the bottom, a slight darkening and shrink).
 

@@ -25,7 +25,13 @@
   --g-angle: 150deg; --g-lx: 25%; --g-ly: 0%; --g-dx: 75%;
   /* 1. the rim is the same physical thickness on every surface, small or big (the lens in js/shell.js uses the same size) */
   --g-rim-w: 11px;
+  /* how strong white highlights are. Glass only bends light that is there: over a dark wallpaper the rims, lips and glints
+     must be faint, or they read as a glowing frame. Light theme 1, dark theme .75, dark wallpaper .4 (rules just below). */
+  --g-glint: .75;
 }
+:root[data-theme="light"] { --g-glint: 1; }
+html[data-wp-top="dark"][data-wp-bottom="dark"] { --g-glint: .4; }
+:root[data-theme="light"][data-wp-top="dark"][data-wp-bottom="dark"] { --g-glint: .55; }
 :root[data-theme="light"] {
   --g-tint-clear: rgba(255,255,255,.05); --g-tint: rgba(255,255,255,.3); --g-tint-elev: rgba(250,250,252,.56);
   --g-rim: rgba(255,255,255,.95); --g-rim-soft: rgba(255,255,255,.55); --g-inner: rgba(255,255,255,.2);
@@ -62,16 +68,16 @@ html.lg-on :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear) {
   background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0) 40%, rgba(255,255,255,.04)), var(--g-t) !important;
   -webkit-backdrop-filter: var(--lg-lens,) blur(var(--g-b)) saturate(1.4) brightness(1.06) !important;
   backdrop-filter: var(--lg-lens,) blur(var(--g-b)) saturate(1.4) brightness(1.06) !important;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.3), inset 0 1.5px 1px rgba(255,255,255,.8), inset 0 -1.5px 1px rgba(255,255,255,.4),
-    inset 0 0 16px 3px rgba(255,255,255,.2), inset 0 0 3px 1px rgba(255,255,255,.25), 0 10px 30px rgba(0,0,0,.22), 0 1px 2px rgba(0,0,0,.15) !important;
+  box-shadow: inset 0 0 0 .5px rgba(255,255,255,calc(.25 * var(--g-glint))), inset 0 1px 0 rgba(255,255,255,calc(.6 * var(--g-glint))), inset 0 -1px 0 rgba(255,255,255,calc(.25 * var(--g-glint))), 0 10px 30px rgba(0,0,0,.22), 0 1px 2px rgba(0,0,0,.15) !important;
 }
 html.lg-on :is(#dock, .mh-dock, .asw-row, .lg-clear)::before {
-  padding: 1.5px !important;
-  background: linear-gradient(var(--g-angle), rgba(255,255,255,.95), rgba(255,255,255,.35) 22%, rgba(255,255,255,.08) 50%, rgba(255,255,255,.35) 78%, rgba(255,255,255,.9)) !important;
+  padding: 1px !important; opacity: 1; /* (its colors already carry --g-glint) */
+  background: linear-gradient(var(--g-angle), rgba(255,255,255,calc(.7 * var(--g-glint))), rgba(255,255,255,calc(.18 * var(--g-glint))) 22%, transparent 50%, rgba(255,255,255,calc(.18 * var(--g-glint))) 78%, rgba(255,255,255,calc(.55 * var(--g-glint)))) !important;
 }
 html.lg-tinted :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear) { --g-b: 8px; }
 /* the specular rim: a thin edge that catches light at the top-left and bottom-right, like a real pane's bevel */
 html.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .lg-clear, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated)::before {
+  opacity: var(--g-glint);
   content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 1;
   background: linear-gradient(var(--g-angle), rgba(255,255,255,.8), rgba(255,255,255,.1) 28%, rgba(255,255,255,0) 52%, rgba(255,255,255,.1) 76%, rgba(255,255,255,.5));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
@@ -157,16 +163,16 @@ html.lg-on .icon-tile::after { background: linear-gradient(180deg, rgba(255,255,
    - a three-layer shadow (contact, near, far),
    - the lens on its edges in Chromium (js/shell.js), and on tiles and widgets a slight tilt toward the pointer. */
 html.lg-on :where(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear, .widget, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated) {
-  --g-depth: inset 0 1.5px 0 rgba(255,255,255,.9), inset 0 7px 10px -6px rgba(255,255,255,.6),
-    inset 0 -1px 0 rgba(255,255,255,.3), inset 0 -7px 12px -7px rgba(0,0,0,.32),
-    inset 0 0 0 .5px var(--g-rim-soft), inset 0 0 14px 1px rgba(255,255,255,.1);
+  --g-depth: inset 0 1px 0 rgba(255,255,255,calc(.75 * var(--g-glint))), inset 0 5px 8px -5px rgba(255,255,255,calc(.3 * var(--g-glint))),
+    inset 0 -1px 0 rgba(255,255,255,calc(.2 * var(--g-glint))), inset 0 -6px 10px -6px rgba(0,0,0,.28),
+    inset 0 0 0 .5px rgba(255,255,255,calc(.2 * var(--g-glint)));
   --g-float: 0 2px 3px rgba(0,0,0,.14), 0 10px 22px rgba(0,0,0,.17), 0 26px 60px rgba(0,0,0,.26);
 }
 html.lg-on :is(.widget, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated) {
   box-shadow: var(--g-depth), var(--g-float) !important;
 }
 html.lg-on :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear) {
-  box-shadow: var(--g-depth), inset 0 0 16px 3px rgba(255,255,255,.16), var(--g-float) !important;
+  box-shadow: var(--g-depth), var(--g-float) !important;
 }
 /* thickness: light that crosses more glass near the edge comes out deeper and more colorful. A band along every edge
    re-reads the glass itself (an element with backdrop-filter is the backdrop of its own ::after) a little darker and
@@ -178,8 +184,8 @@ html.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .cc-tile, .toast:not(.static)
   /* 2. light that enters at the top is focused by the curved bottom rim into a bright, curved line (a caustic), strongest on
      the side away from the light; a fainter arc along the top lip */
   background:
-    radial-gradient(48% calc(var(--g-band) * 1.6) at var(--g-dx) 100%, rgba(255,255,255,.55), rgba(255,255,255,.12) 55%, transparent 75%),
-    radial-gradient(60% calc(var(--g-band) * 1.2) at var(--g-lx) 0%, rgba(255,255,255,.3), transparent 70%),
+    radial-gradient(48% calc(var(--g-band) * 1.6) at var(--g-dx) 100%, rgba(255,255,255,calc(.3 * var(--g-glint))), rgba(255,255,255,calc(.06 * var(--g-glint))) 55%, transparent 75%),
+    radial-gradient(60% calc(var(--g-band) * 1.2) at var(--g-lx) 0%, rgba(255,255,255,calc(.15 * var(--g-glint))), transparent 70%),
     linear-gradient(180deg, rgba(255,255,255,.06), transparent 30%, transparent 70%, rgba(0,0,0,.06));
   -webkit-mask: linear-gradient(180deg, #000, transparent var(--g-band), transparent calc(100% - var(--g-band)), #000), linear-gradient(90deg, #000, transparent var(--g-band), transparent calc(100% - var(--g-band)), #000);
   mask: linear-gradient(180deg, #000, transparent var(--g-band), transparent calc(100% - var(--g-band)), #000), linear-gradient(90deg, #000, transparent var(--g-band), transparent calc(100% - var(--g-band)), #000);
