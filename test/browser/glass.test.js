@@ -26,7 +26,7 @@ test('the glass is see-through, the Dock bends at its edges, and only titlebars 
   await page.evaluate(() => PatOS.launch('textedit')); await page.waitForSelector('.window .titlebar'); await page.waitForTimeout(400);
   const g = await look(page);
   assert.match(g.cls, /\blg-on\b/); assert.match(g.cls, /\blg-refract\b/, 'Chromium gets the lens');
-  assert.match(g.dock, /blur\(0px\)/, 'the Dock is the clear tier (unblurred, like iOS): ' + g.dock);
+  assert.match(g.dock, /blur\(0\.5px\)/, 'the Dock is the clear tier (a blur you can almost not see): ' + g.dock);
   assert.match(g.dock, /saturate\(1\.06\) brightness\(1\.05\)/, 'the clear tier\'s own look wins over the shared rule: ' + g.dock);
   assert.match(g.dock, /url\("?#lg-lens-\d+"?\)/, 'the Dock uses a lens made for its size: ' + g.dock);
   const filterOk = await page.evaluate((id) => { const f = document.getElementById(id); return !!(f && f.querySelector('feImage') && f.querySelector('feDisplacementMap')); }, g.lens.replace(/^url\(#|\)$/g, ''));

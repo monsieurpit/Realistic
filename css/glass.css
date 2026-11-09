@@ -9,7 +9,7 @@
 /* ---------- tokens ---------- */
 :root {
   /* blur per tier (CSS blur takes a standard deviation, so even 3px softens fine detail) and the body tint */
-  --g-blur-clear: 0px; --g-blur: .4px; --g-blur-elev: 10px;
+  --g-blur-clear: .5px; --g-blur: .6px; --g-blur-elev: 10px; /* (a blur you can almost not see: it softens the picture just enough to feel like glass) */
   --g-tint-clear: rgba(255,255,255,.025); --g-tint: rgba(255,255,255,.035); --g-tint-elev: rgba(26,26,32,.42);
   --g-sat: 1.6; --g-bright: 1.04;
   --g-text: #fff; --g-text-shadow: 0 1px 3px rgba(0,0,0,.45);
@@ -228,9 +228,44 @@ html.lg-on :is(.btn, .tbtn, .ob):active { transform: scale(.95); }
 html.lg-on .menu { animation: lgIn .16s cubic-bezier(.2,.9,.3,1.15); transform-origin: top left; }
 @keyframes lgIn { from { opacity: 0; transform: scale(.96); } }
 
-/* dock icons: a glassy shine */
-html.lg-on .dock-item:hover .dock-icon .icon-tile { filter: brightness(1.08) saturate(1.1); }
-html.lg-on .icon-tile::after { background: linear-gradient(180deg, rgba(255,255,255,.32), rgba(255,255,255,0) 42%), radial-gradient(90% 60% at 50% 110%, rgba(255,255,255,.18), transparent 60%); }
+/* ---------- app icons: small 3D tiles ----------
+   Every icon is a little slab: a bright top lip and a shaded bottom edge (inset light), a glossy curved reflection across its
+   top (::after), and where icons live (Dock, Launchpad, the phone's home screen, the desktop, the app switcher) a two-layer
+   shadow, so they sit on what is under them. Pointing at one lifts it a little and sweeps a sheen of light across it once
+   (::before); pressing squishes it; Launchpad's icons pop in when it opens. Fewer animations turns the movement off. */
+html.lg-on .icon-tile:not(.flat) {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -2px 3px rgba(0,0,0,.16), inset 0 0 0 .5px rgba(0,0,0,.14), 0 1px 2px rgba(0,0,0,.22);
+}
+html.lg-on .icon-tile::after {
+  background:
+    radial-gradient(130% 75% at 50% -22%, rgba(255,255,255,.4), rgba(255,255,255,.1) 56%, rgba(255,255,255,0) 58%),
+    radial-gradient(90% 45% at 50% 112%, rgba(255,255,255,.16), transparent 70%);
+}
+html.lg-on :is(.dock-icon .icon-tile, .lp-item .icon-tile, .mh-app .icon-tile, .desk-icon .icon-tile, .asw-ic .icon-tile) {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 -2px 3px rgba(0,0,0,.18), inset 0 0 0 .5px rgba(0,0,0,.14),
+    0 1px 1.5px rgba(0,0,0,.24), 0 6px 14px -4px rgba(0,0,0,.36);
+  transition: transform .35s cubic-bezier(.2,.9,.3,1.35), box-shadow .3s, filter .2s;
+}
+/* the sheen: a band of light parked off to the left, swept across once when the icon is pointed at */
+html.lg-on :is(.dock-icon .icon-tile, .lp-item .icon-tile, .mh-app .icon-tile, .desk-icon .icon-tile, .asw-ic .icon-tile)::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
+  background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,.5) 50%, transparent 62%) no-repeat;
+  background-size: 260% 100%; background-position: 160% 0; opacity: 0;
+}
+html.lg-on:not(.reduce-motion) :is(.dock-item:hover .icon-tile, .lp-item:hover .icon-tile, .mh-app:hover .icon-tile, .desk-icon:hover .icon-tile, .asw-item.on .icon-tile)::before { animation: lgSheen .9s cubic-bezier(.3,.6,.3,1) 1; }
+@keyframes lgSheen { 0% { opacity: 1; background-position: 160% 0; } 100% { opacity: 1; background-position: -60% 0; } }
+html.lg-on:not(.reduce-motion) :is(.lp-item, .mh-app, .desk-icon):hover .icon-tile {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 3px rgba(0,0,0,.18), inset 0 0 0 .5px rgba(0,0,0,.14), 0 2px 3px rgba(0,0,0,.2), 0 12px 22px -6px rgba(0,0,0,.42);
+}
+html.lg-on .dock-item:hover .icon-tile { filter: brightness(1.06); }
+html.lg-on:not(.reduce-motion) :is(.lp-item, .mh-app, .desk-icon, .dock-item):active .icon-tile { transform: scale(.9); transition-duration: .12s; filter: brightness(.86); }
+/* Launchpad: the icons pop in with a little spring when it opens */
+html.lg-on:not(.reduce-motion) #launchpad:not(.hidden) .lp-item { animation: lgPop .42s cubic-bezier(.2,.9,.3,1.3) both; }
+html.lg-on:not(.reduce-motion) #launchpad:not(.hidden) .lp-item:nth-child(4n+2) { animation-delay: .03s; }
+html.lg-on:not(.reduce-motion) #launchpad:not(.hidden) .lp-item:nth-child(4n+3) { animation-delay: .06s; }
+html.lg-on:not(.reduce-motion) #launchpad:not(.hidden) .lp-item:nth-child(4n+4) { animation-delay: .09s; }
+@keyframes lgPop { from { opacity: 0; transform: scale(.82) translateY(10px); } }
 
 /* ---------- tilt: tiles and widgets lean a little toward the pointer, like picking up a piece of glass ---------- */
 html.lg-on:not(.reduce-motion) :is(.cc-tile, #desk-widgets .widget) {
@@ -243,7 +278,7 @@ html.lg-on:not(.reduce-motion) :is(.toast:not(.static), .cc-tile, #desk-widgets 
 }
 
 /* 5. pressed in: what you click on glass sinks into it for a moment (the shade moves to the top lip, the light to the bottom) */
-html.lg-on :is(.btn, .tbtn, .seg .tab, .menu-item, .cc-toggle .cc-dot, .lp-item .icon-tile, .mh-app .icon-tile, .ytx-btn, .ytx-pill, .ytx-sbtn, .as-get, .of-share, .mu-b, .rc-pb, .ph-nav, .wx-unit, .su-opt):active {
+html.lg-on :is(.btn, .tbtn, .seg .tab, .menu-item, .cc-toggle .cc-dot, .ytx-btn, .ytx-pill, .ytx-sbtn, .as-get, .of-share, .mu-b, .rc-pb, .ph-nav, .wx-unit, .su-opt):active {
   box-shadow: inset 0 2px 5px rgba(0,0,0,.3), inset 0 -1px 0 rgba(255,255,255,.4) !important;
   filter: brightness(.94);
 }
@@ -253,7 +288,6 @@ html.lg-on:not(#_) :is(.cc-tile, .toast:not(.static), #desk-widgets .widget, .lg
   box-shadow: inset 0 3px 8px rgba(0,0,0,.22), 0 1px 2px rgba(0,0,0,.14), 0 4px 10px rgba(0,0,0,.14) !important;
 }
 html.lg-on :is(.cc-tile, .toast:not(.static), #desk-widgets .widget, .lg):active::before { opacity: .45; }
-html.lg-on .dock-item:active .icon-tile { filter: brightness(.82); transition: filter .05s; }
 html.lg-on .menu-item:active { transition: none; }
 
 /* ---------- phone ---------- */

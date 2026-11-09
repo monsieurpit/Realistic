@@ -32,6 +32,15 @@ painted on the bevel. PatOS now does the same:
 - Over a busy wallpaper, regular glass frosts only 4px.
 - Pills for bars (Dock, sliders, Launchpad search, segmented controls), 30–34px corners for panels.
 
+## App icons (2.2.3)
+
+Icons are small 3D tiles (css/glass.css, "app icons"): inset light for a bright top lip and a shaded bottom edge, a glossy
+curved reflection across the top (`::after`), and where icons live (Dock, Launchpad, the phone's home screen, the desktop, the
+app switcher) a two-layer shadow. Pointing at one lifts it and sweeps a band of light across it once (`::before`, animated
+`background-position`), pressing squishes it (scale .9), and Launchpad's icons pop in with a spring. Fewer animations turns the
+movement off. Glass surfaces also have a blur you can almost not see (0.5px clear, 0.6px regular); buttons and search bars
+have none.
+
 ## Buttons and search bars (2.2.3)
 
 Every button and search bar uses the same glass, light enough for hundreds of controls (css/glass.css, "controls"):
