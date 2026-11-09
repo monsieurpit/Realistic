@@ -1,7 +1,7 @@
 {
   "name": "patos",
   "version": "1.0.0",
-  "description": "PatOS — a macOS-style desktop that runs in the browser (works on Chromebooks).",
+  "description": "PatOS \u2014 a macOS-style desktop that runs in the browser (works on Chromebooks).",
   "private": true,
   "scripts": {
     "start": "node server.js",
@@ -11,13 +11,15 @@
     "test:browser": "node --test --test-concurrency=1 \"test/browser/*.test.js\"",
     "test:ci": "node --test --test-concurrency=1 \"test/unit/*.test.js\" \"test/browser/*.test.js\"",
     "build:firebase": "node scripts/build-firebase.js",
-    "test:cloud": "node --test --test-concurrency=1 \"test/cloud/*.test.js\""
+    "test:cloud": "node --test --test-concurrency=1 \"test/cloud/*.test.js\"",
+    "baseline": "node scripts/baseline.js"
   },
   "engines": {
     "node": ">=18"
   },
   "license": "MIT",
   "devDependencies": {
+    "axe-core": "4.14.0",
     "esbuild": "^0.28.2",
     "firebase": "^13.2.0",
     "playwright": "1.63.0"

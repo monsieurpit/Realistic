@@ -24,3 +24,19 @@ npm i -D playwright && npx playwright install chromium
 | `browser/legal.test.js` | the Terms and Privacy Policy must be read and accepted before anything works (keys blocked too), once per version; Settings shows them from a link at the bottom of its sidebar |
 | `browser/glass.test.js` | Liquid Glass: see-through tiers, the Dock's lens, glass titlebars over opaque windows, the menu bar following the wallpaper, Tinted, Reduce transparency and the system preferences, notifications never covering Control Center, buttons and search bars made of the same glass |
 | `browser/system.test.js` | starting offline, windows coming back, timers ringing, Spotlight, the phone's back button |
+| `browser/timeline.test.js` | Timeline records apps, files, websites, notes and copies; nothing from Passwords or password fields; pause and off; never synced; Alt+V pastes; moments restore after a restart; forget |
+| `browser/signature.test.js` | PatOS window controls (drawn glyphs, still close and zoom), the PatOS mark, gliding segmented controls (and none with Reduce Motion), light/dark transition saving at once, the lock screen layout |
+| `unit/budget.test.js` | size budgets from the quality baseline: start-up JavaScript (raw and gzipped), CSS, and big libraries kept out of start-up |
+| other files | `finder`, `windows`, `shortcuts`, `settings`, `security`, `backup`, `sync`, `patapps`, `patdrop`, `studio`, `slither`, `textedit`, `updates`, `perf`, `phone`, `devicelab`, `lazy`, `utilities` cover what their names say; `cloud/` needs the Firestore emulator and runs with `npm run test:cloud` (not part of `npm test`) |
+
+## Quality baseline (not a test)
+
+```
+npm run baseline                                   # desktop, Chromebook-class and phone profiles
+npm run baseline -- --json docs/baseline/<version>.json
+npm run baseline -- --compare docs/baseline/3.0.0-beta7.json
+```
+
+Measures start-up, app opening, Spotlight typing, window dragging, storage, big files, memory after opening and closing apps,
+network, offline start, accessibility (axe-core) and code run during a smoke tour. Timings depend on the machine: compare
+runs made on the same host. See `docs/QUALITY-BASELINE.md`.
