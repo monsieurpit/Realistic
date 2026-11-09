@@ -1,7 +1,7 @@
 [
   {
     "version": "3.0.0",
-    "beta": 5,
+    "beta": 6,
     "date": "2026-11-09",
     "title": {
       "en": "PatOS 3: Timeline, one design, smarter windows",
@@ -12,6 +12,9 @@
         "New: Timeline. PatOS now remembers what you do (the apps and files you open, the files you save, the websites you visit, the notes you write and the text you copy) and shows it day by day. Search it in plain words (“lisbon yesterday”), and every few minutes it keeps a moment of the windows you had open: one click on Restore puts them all back where they were. After a restart, “Pick up where you left off” brings back your last session",
         "Clipboard history: press Alt+V anywhere to see what you copied, then press Enter (or 1–9) to paste it into the field you were typing in. Pin what you want to keep. Spotlight finds what you copied too",
         "Timeline is private by design: it stays on this device, it is never synced, it takes no screenshots, and nothing is recorded in Passwords or from password fields. Pause it, forget the last hour, a day or everything, choose how long it keeps things, or turn it off (Timeline app or Settings › Privacy)",
+        "A look that is PatOS’s own: windows have one control capsule with drawn close, minimize and zoom glyphs (instead of three colored dots), the window you are using wears a soft glow in your highlight color, and the PatOS mark sits in the menu bar and on the start screen",
+        "A new lock screen: the time large at the lower left, your login card at the lower right, and Sleep, Restart and Shut Down as capsules at the top",
+        "Smoother everywhere: after you log in, the wallpaper settles and the menu bar, Dock and desktop arrive in order; switching between light and dark grows from where you clicked; a new highlight color cross-fades; the selection in segmented controls glides to the tab you pick; Launchpad’s apps arrive in a wave; Settings pages settle in; menus and notifications open with a soft blur; buttons press in. Reduce Motion and Speed mode turn all of it off. Liquid Glass is unchanged",
         "A new design language for every app: bigger, bolder titles, comfortable 15-point text, one 8-point spacing rhythm, and the same buttons, fields, sidebars, lists, toggles and toolbars everywhere",
         "Snap layouts: drag a window toward the top of the screen and drop it on a layout (halves, thirds, two thirds, quarters or full screen)",
         "Window groups: Window › Save Window Group… keeps the windows you have open (like Write, Calendar and Patoogle for homework), and the Window menu reopens them all in one click",
@@ -24,6 +27,9 @@
         "Nouveau : Timeline. PatOS retient maintenant ce que vous faites (les apps et fichiers que vous ouvrez, les fichiers que vous enregistrez, les sites que vous visitez, les notes que vous écrivez et le texte que vous copiez) et le montre jour par jour. Cherchez avec des mots simples (« lisbonne hier »), et toutes les quelques minutes, elle garde un moment des fenêtres que vous aviez ouvertes : un clic sur Restaurer les remet toutes à leur place. Après un redémarrage, « Reprendre là où vous en étiez » ramène votre dernière session",
         "Historique du presse-papiers : appuyez sur Alt+V n’importe où pour voir ce que vous avez copié, puis sur Entrée (ou 1–9) pour le coller dans le champ où vous écriviez. Épinglez ce que vous voulez garder. Spotlight trouve aussi ce que vous avez copié",
         "Timeline est privée dès le départ : elle reste sur cet appareil, n’est jamais synchronisée, ne prend aucune capture d’écran, et rien n’est enregistré dans Mots de passe ni depuis un champ de mot de passe. Mettez-la en pause, oubliez la dernière heure, une journée ou tout, choisissez combien de temps elle garde les choses, ou désactivez-la (app Timeline ou Réglages › Confidentialité)",
+        "Un look propre à PatOS : les fenêtres ont une seule capsule de commandes avec des symboles dessinés pour fermer, réduire et agrandir (au lieu de trois points de couleur), la fenêtre que vous utilisez porte une douce lueur dans votre couleur d’accent, et la marque PatOS apparaît dans la barre des menus et à l’écran de démarrage",
+        "Un nouvel écran de verrouillage : l’heure en grand en bas à gauche, votre carte de connexion en bas à droite, et Suspendre, Redémarrer et Éteindre en capsules en haut",
+        "Plus fluide partout : après la connexion, le fond d’écran se pose et la barre des menus, le Dock et le bureau arrivent dans l’ordre ; passer du clair au sombre s’ouvre en cercle depuis l’endroit où vous avez cliqué ; une nouvelle couleur d’accent apparaît en fondu ; la sélection des contrôles segmentés glisse vers l’onglet choisi ; les apps du Launchpad arrivent en vague ; les pages des Réglages se posent en douceur ; les menus et notifications s’ouvrent avec un léger flou ; les boutons s’enfoncent. Réduire les animations et le mode Vitesse désactivent tout cela. Le Liquid Glass ne change pas",
         "Un nouveau langage visuel pour toutes les apps : des titres plus grands et plus affirmés, un texte confortable de 15 points, un seul rythme d’espacement de 8 points, et les mêmes boutons, champs, barres latérales, listes, interrupteurs et barres d’outils partout",
         "Dispositions : faites glisser une fenêtre vers le haut de l’écran et déposez-la sur une disposition (moitiés, tiers, deux tiers, quarts ou plein écran)",
         "Groupes de fenêtres : Fenêtre › Enregistrer un groupe de fenêtres… garde les fenêtres ouvertes (comme Écrire, Calendrier et Patoogle pour les devoirs), et le menu Fenêtre les rouvre toutes d’un clic",

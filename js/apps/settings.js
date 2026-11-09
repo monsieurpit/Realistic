@@ -214,11 +214,13 @@
             out.appendChild(h('h3', {}, T('Timeline')));
             const days = h('select', { class: 'field', 'aria-label': T('Keep for'), onchange: (e) => PatOS.setSetting('timelineDays', +e.target.value) },
               ...[7, 30, 90, 365].map((d) => h('option', { value: d, selected: (+S().timelineDays || 30) === d }, d === 365 ? T('1 year') : d + ' ' + T('days'))));
-            out.appendChild(group(
-              row(T('Timeline'), toggle('timeline'), T('Remembers the apps, files, websites and notes you open, and the windows you had open, so you can find them again. Only on this device, never synced, no screenshots, nothing from Passwords.')),
-              row(T('Clipboard History'), toggle('timelineClips'), T('Keeps what you copy. Alt+V opens it anywhere and pastes.')),
+            const tg = (k, lab) => { const t = toggle(k); t.setAttribute('role', 'switch'); t.setAttribute('aria-label', lab); return t; };
+            const tlg = group(
+              row(T('Timeline'), tg('timeline', T('Timeline')), T('Remembers the apps, files, websites and notes you open, and the windows you had open, so you can find them again. Only on this device, never synced, no screenshots, nothing from Passwords.')),
+              row(T('Clipboard History'), tg('timelineClips', T('Clipboard History')), T('Keeps what you copy. Alt+V opens it anywhere and pastes.')),
               row(T('Keep for'), days),
-              row(T('Open Timeline'), h('button', { class: 'btn', onclick: () => PatOS.launch('timeline') }, T('Open')), T('Pause it, forget the last hour, a day or everything from the Timeline app.'))));
+              row(T('Open Timeline'), h('button', { class: 'btn', onclick: () => PatOS.launch('timeline') }, T('Open')), T('Pause it, forget the last hour, a day or everything from the Timeline app.')));
+            tlg.classList.add('pv-tl'); out.appendChild(tlg);
             out.appendChild(h('h3', {}, T('Community apps')));
             const apps = A ? A.list() : [];
             if (!apps.length) out.appendChild(h('div', { class: 'bk-empty' }, T('No community apps are installed. PatOS’s own apps are not listed here.')));
@@ -391,7 +393,7 @@
           const info = (k, v) => v ? row(k, h('span', { class: 'st-val st-wrapval' }, String(v))) : null;
           const made = acct && acct.at ? new Date(acct.at).toLocaleDateString() : '';
           const who = h('div', { class: 'st-me' }, h('div', { class: 'lock-avatar st-me-av' }, S().userName.charAt(0).toUpperCase()), h('h2', {}, S().userName), h('p', {}, acct ? '@' + acct.username : T('Not signed in to a PatOS account')));
-          const go = (p) => { pane = p; cat = catOf(p) || cat; render(); if (MB && MB.detail) MB.detail(win, true, paneName(p)); };
+          const go = (p) => { pane = p; cat = catOf(p) || cat; render(); PatOS.paneIn && PatOS.paneIn(main); if (MB && MB.detail) MB.detail(win, true, paneName(p)); };
           return [who,
             h('h3', {}, T('You')), group(
               row(T('Name'), h('span', { class: 'st-val' }, S().userName)),
@@ -558,7 +560,7 @@
         win.setTitle(p[1]);
       }
       const paneName = (k) => PatOS.t((PANES.find((x) => x[0] === k) || [k, k])[1]);
-      win._pane = (p) => { pane = p; cat = catOf(p) || cat; render(); if (MB && MB.detail) MB.detail(win, true, paneName(p)); };
+      win._pane = (p) => { pane = p; cat = catOf(p) || cat; render(); PatOS.paneIn && PatOS.paneIn(main); if (MB && MB.detail) MB.detail(win, true, paneName(p)); };
       render();
       if (args.pane && MB && MB.detail) MB.detail(win, true, paneName(args.pane));
     },

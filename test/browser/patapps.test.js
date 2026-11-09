@@ -87,7 +87,7 @@ test('Settings › Privacy shows each app, lets you take permission back, and th
     const wait = (ms) => new Promise((res) => setTimeout(res, ms)); const o = {};
     const w = PatOS.launch('settings', { pane: 'privacy' }); await wait(700);
     o.head = w.body.querySelector('.pv').innerText;
-    const sw = [...w.body.querySelectorAll('.pv .switch')]; o.switches = sw.length; o.filesOn = sw.find((x) => x.getAttribute('aria-label') === 'Files').classList.contains('on');
+    const sw = [...w.body.querySelectorAll('.pv .switch')]; o.switches = sw.filter((x) => !x.closest('.pv-tl')).length; /* the permission switches, not the Timeline ones */ o.filesOn = sw.find((x) => x.getAttribute('aria-label') === 'Files').classList.contains('on');
     sw.find((x) => x.getAttribute('aria-label') === 'Files').click(); await wait(300); o.grant = PatOS.patapps.grants('com.test.probe').files;
     o.log = w.body.querySelector('.pv-log').innerText;
     [...w.body.querySelectorAll('.pv .btn')].find((x) => /Clear Activity/.test(x.textContent)).click(); await wait(300); o.cleared = PatOS.patapps.logOf().length;
