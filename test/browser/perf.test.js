@@ -12,7 +12,7 @@ test.after(async () => { if (b) await b.close(); if (srv) srv.stop(); });
 test('three.js waits until something 3D is needed', { skip: skipNoBrowser }, async () => {
   const page = await b.newPage();
   await page.goto(srv.base + '/manifest.webmanifest');
-  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('patos:setupDone', 'true'); localStorage.setItem('patos:seenWelcome', 'true'); localStorage.setItem('patos:settings', JSON.stringify({ live3d: false })); });
+  await page.evaluate(() => { localStorage.clear(); localStorage.setItem('patos:setupDone', 'true'); localStorage.setItem('patos-policy', JSON.stringify({ version: '2026-11-09' })); localStorage.setItem('patos:seenWelcome', 'true'); localStorage.setItem('patos:settings', JSON.stringify({ live3d: false })); });
   await page.goto(srv.base + '/');
   await page.waitForSelector('#lock:not(.hidden)', { timeout: 20000 });
   await page.evaluate(() => PatOS.boot.login()); await page.waitForTimeout(1500);

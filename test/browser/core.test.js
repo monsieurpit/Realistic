@@ -48,7 +48,7 @@ test('old data in localStorage moves to the database once', { skip: skipNoBrowse
   const page = await b.newPage();
   await page.goto(srv.base + '/manifest.webmanifest');
   await page.evaluate(() => new Promise((res) => { localStorage.clear(); const d = indexedDB.deleteDatabase('patos'); d.onsuccess = d.onerror = d.onblocked = () => res(); }));
-  await page.evaluate(() => { localStorage.setItem('patos:setupDone', 'true'); localStorage.setItem('patos:notes', JSON.stringify([{ id: 'old1', title: 'From before', body: '<div>From before</div>', mtime: 1 }])); });
+  await page.evaluate(() => { localStorage.setItem('patos:setupDone', 'true'); localStorage.setItem('patos-policy', JSON.stringify({ version: '2026-11-09' })); localStorage.setItem('patos:notes', JSON.stringify([{ id: 'old1', title: 'From before', body: '<div>From before</div>', mtime: 1 }])); });
   await page.goto(srv.base + '/'); await page.waitForFunction(() => window.PatOS && PatOS.store);
   const r = await page.evaluate(() => ({ notes: (PatOS.store.get('notes') || []).map((n) => n.id), lsLeft: Object.keys(localStorage).filter((k) => k === 'patos:notes').length }));
   assert.deepEqual(r.notes, ['old1']);

@@ -19,5 +19,6 @@ npm i -D playwright && npx playwright install chromium
 | `browser/core.test.js` | file system (create, rename, move, copy, trash, restore), saving across restarts (including a reload right after saving), moving old localStorage data, settings defaults |
 | `browser/apps.test.js` | every app opens in English, French and on an iPhone (with a way home); window maximize, minimize, restore, close |
 | `browser/formats.test.js` | Word, Excel, PowerPoint and zip round trips, the Scanner's PDF, spreadsheet formulas, the Grapher's math |
+| `browser/legal.test.js` | the Terms and Privacy Policy must be read and accepted before anything works (keys blocked too), once per version; Settings shows them from a link at the bottom of its sidebar |
 | `browser/glass.test.js` | Liquid Glass: see-through tiers, the Dock's lens, glass titlebars over opaque windows, the menu bar following the wallpaper, Tinted, Reduce transparency and the system preferences, notifications never covering Control Center, buttons and search bars made of the same glass |
 | `browser/system.test.js` | starting offline, windows coming back, timers ringing, Spotlight, the phone's back button |

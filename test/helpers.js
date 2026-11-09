@@ -7,6 +7,8 @@ const { spawn } = require('child_process');
 const path = require('path');
 const net = require('net');
 const ROOT = path.join(__dirname, '..');
+// the Terms and Privacy Policy version in js/legal.js: tests accept it unless they ask to see the screen (boot(..., { policy: false }))
+const POLICY = (require('fs').readFileSync(path.join(ROOT, 'js', 'legal.js'), 'utf8').match(/const VERSION = '([^']+)'/) || [])[1];
 
 function freePort() {
   return new Promise((res, rej) => { const s = net.createServer(); s.listen(0, () => { const p = s.address().port; s.close(() => res(p)); }); s.on('error', rej); });
@@ -43,7 +45,7 @@ async function boot(page, base, opts) {
   const errors = [];
   page.on('pageerror', (e) => errors.push(e.message + ' @ ' + (e.stack || '').split('\n').slice(1, 2).join('').trim()));
   await page.goto(base + '/manifest.webmanifest');
-  await page.evaluate((o) => { if (o.fresh) localStorage.clear(); localStorage.setItem('patos:setupDone', 'true'); localStorage.setItem('patos:seenWelcome', 'true'); localStorage.setItem('patos:iosHint', 'true'); }, opts);
+  await page.evaluate((o) => { if (o.fresh) localStorage.clear(); if (o.policy !== false) localStorage.setItem('patos-policy', JSON.stringify({ version: o.POLICY, at: Date.now() })); localStorage.setItem('patos:setupDone', 'true'); localStorage.setItem('patos:seenWelcome', 'true'); localStorage.setItem('patos:iosHint', 'true'); }, Object.assign({ POLICY }, opts));
   await page.goto(base + '/');
   await page.waitForFunction(() => window.PatOS && PatOS.boot && PatOS.fs, null, { timeout: 20000 });
   if (opts.login !== false) { await page.waitForSelector('#lock:not(.hidden)', { timeout: 20000 }); await page.evaluate(() => PatOS.boot.login()); await page.waitForTimeout(600); }
@@ -57,4 +59,4 @@ async function reload(page) {
 }
 // pass "skip" to node:test when the browser isn't there
 const skipNoBrowser = !playwright() ? 'Playwright is not installed (npm i -D playwright && npx playwright install chromium)' : false;
-module.exports = { ROOT, copyProject, startServer, browser, boot, reload, skipNoBrowser, playwright };
+module.exports = { POLICY, ROOT, copyProject, startServer, browser, boot, reload, skipNoBrowser, playwright };
