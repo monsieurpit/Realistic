@@ -249,6 +249,30 @@
     return true;
   }
 
+  /* How light the wallpaper is under the menu bar and under the Dock. Liquid Glass uses it so the menu bar's words are dark
+     over a light picture and white over a dark one, whatever the theme (html[data-wp-top] / [data-wp-bottom], css/glass.css).
+     Read once each time the wallpaper is drawn, from a few pixels: nothing runs in the background. */
+  function readTone(c) {
+    try {
+      if (!c.width || !c.height) return;
+      const s = document.createElement('canvas'); s.width = 48; s.height = 32;
+      const x = s.getContext('2d', { willReadFrequently: true }); x.drawImage(c, 0, 0, 48, 32);
+      const band = (y0, y1) => {
+        const d = x.getImageData(0, y0, 48, Math.max(1, y1 - y0)).data; let sum = 0;
+        for (let i = 0; i < d.length; i += 4) {
+          const lin = (v) => { v /= 255; return v <= 0.04045 ? v / 12.92 : Math.pow((v + 0.055) / 1.055, 2.4); };
+          sum += 0.2126 * lin(d[i]) + 0.7152 * lin(d[i + 1]) + 0.0722 * lin(d[i + 2]);
+        }
+        return sum / (d.length / 4);
+      };
+      const topRows = Math.max(1, Math.round(32 * 34 / Math.max(1, innerHeight)));
+      // 0.3 relative luminance: white text and black text have about the same contrast against it
+      const root = document.documentElement;
+      root.dataset.wpTop = band(0, topRows) > 0.3 ? 'light' : 'dark';
+      root.dataset.wpBottom = band(32 - Math.max(2, topRows * 3), 32) > 0.3 ? 'light' : 'dark';
+    } catch (e) { /* a picture the browser won't let PatOS read: the theme decides instead */ delete document.documentElement.dataset.wpTop; delete document.documentElement.dataset.wpBottom; }
+  }
+
   function drawStatic(id) {
     const c = $('#wallpaper');
     const scale = 0.5;
@@ -258,6 +282,7 @@
         c.width = innerWidth; c.height = innerHeight; const ctx = c.getContext('2d');
         const s = Math.max(c.width / img.width, c.height / img.height);
         ctx.drawImage(img, (c.width - img.width * s) / 2, (c.height - img.height * s) / 2, img.width * s, img.height * s);
+        readTone(c);
       };
       img.src = PatOS.settings.customWallpaper; return;
     }
@@ -266,11 +291,11 @@
     const key = src + '|' + w + 'x' + hh, saved = PatOS.store.get('wpCache', null);
     if (saved && saved.key === key && saved.url) {
       c.width = w; c.height = hh; const img = new Image(); const mine = ++drawN;
-      img.onload = () => { if (mine === drawN) c.getContext('2d').drawImage(img, 0, 0, w, hh); };
-      img.onerror = () => { if (mine === drawN) { PatOS.store.remove('wpCache'); paint(c, src, w, hh); } };
+      img.onload = () => { if (mine === drawN) { c.getContext('2d').drawImage(img, 0, 0, w, hh); readTone(c); } };
+      img.onerror = () => { if (mine === drawN) { PatOS.store.remove('wpCache'); paint(c, src, w, hh); readTone(c); } };
       img.src = saved.url; return;
     }
-    ++drawN; paint(c, src, w, hh);
+    ++drawN; paint(c, src, w, hh); readTone(c);
     const keep = () => { try { PatOS.store.set('wpCache', { key, url: c.toDataURL('image/jpeg', 0.88) }); } catch (e) {} };
     if (window.requestIdleCallback) requestIdleCallback(keep, { timeout: 4000 }); else setTimeout(keep, 1500);
   }

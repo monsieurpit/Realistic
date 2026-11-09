@@ -1,0 +1,67 @@
+// Device Lab (PitCode): the shared state and the small helpers the other files use.
+
+share lock PERMS = ["files", "notifications", "clipboard", "camera", "microphone", "location", "network"]
+share lock LABELS = {files: "Files", notifications: "Notifications", clipboard: "Clipboard", camera: "Camera", microphone: "Microphone", location: "Location", network: "Internet"}
+
+// Everything the screen shows lives here. Changing a key draws the page again.
+share lock state = store({
+  perms: {},          // what each permission did: "ok" or "no"
+  report: [],         // every test result
+  outs: {},           // the text under each card
+  sKey: "color", sVal: "blue",
+  fName: "lab/hello.txt", fText: "Hello from Device Lab", fDir: "", files: [],
+  nTitle: "Device Lab", nBody: "This is a test notification.", nCount: 0,
+  cText: "Copied by Device Lab",
+  photo: nil, gallery: [],
+  micSecs: "3000", micPct: 0, audio: nil,
+  coords: nil, place: "",
+  uUrl: "https://api.github.com/zen", picture: nil, online: true,
+  wTitle: "Device Lab - testing", theme: {bg: "#1c1c1e", text: "#f2f2f7", accent: "#0a84ff"},
+  who: "", busy: false
+})
+
+// PASS or FAIL, for the report and the console.
+share verdict(ok) => ok ? "PASS" : "FAIL"
+
+share kb(bytes) => "{(bytes / 1024).fixed(1)} KB"
+share stamp() => time.format(time.now(), "HH:mm:ss")
+
+// Write the text (and its color: "ok", "err" or "") under a card.
+share put(card, text, tone = "") => {
+  pit all = copy(state.outs)
+  all[card] = {text: text, tone: tone}
+  state.outs = all
+}
+
+share markPerm(perm, status) => {
+  pit all = copy(state.perms)
+  all[perm] = status
+  state.perms = all
+}
+
+// Add a line to the report (and to the Studio console).
+share note(name, ok, detail = "") => {
+  state.report = [...state.report, {name: name, ok: ok, detail: detail, at: stamp()}]
+  js.patos.log("{verdict(ok)} {name} {detail}", not ok)
+}
+
+// Run one thing, write down how it went, and note whether the permission was given or refused.
+// The error is raised again so the card can show it.
+share track(perm, name, task) => {
+  attempt {
+    pit value = wait task()
+    when perm != nil { markPerm(perm, "ok") }
+    note(name, true)
+    back value
+  } rescue e {
+    pit msg = text(e.message)
+    when perm != nil and ("did not allow" in msg or "did not ask" in msg) { markPerm(perm, "no") }
+    note(name, false, msg)
+    raise e
+  }
+}
+
+share reportText() => {
+  pit lines = state.report.map(r => "{verdict(r.ok)} {r.name} {r.detail}")
+  back "Device Lab report {stamp()}\n" + lines.join("\n")
+}

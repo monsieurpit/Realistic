@@ -7,12 +7,16 @@ const path = require('path');
 const { promisify } = require('util');
 const gzip = promisify(zlib.gzip), brotli = promisify(zlib.brotliCompress);
 
+/* Sent with every file: the browser must trust the Content-Type (no guessing a text file is a script), and PatOS's pages may only
+   be shown inside PatOS itself, so another site can't put PatOS in an invisible frame and trick clicks (passwords, accounts). */
+const SAFE = { 'X-Content-Type-Options': 'nosniff', 'Referrer-Policy': 'strict-origin-when-cross-origin' };
+const PAGE = { 'X-Frame-Options': 'SAMEORIGIN', 'Content-Security-Policy': "frame-ancestors 'self'" };
 const pick = (req) => { const a = String(req.headers['accept-encoding'] || ''); return /\bbr\b/.test(a) ? 'br' : /\bgzip\b/.test(a) ? 'gzip' : null; };
 const compressible = (type) => /^(text\/|application\/(json|javascript|manifest\+json|wasm)|image\/svg)/.test(type);
 
 async function sendJSON(req, res, code, obj, headers) {
   const body = Buffer.from(JSON.stringify(obj));
-  const h = Object.assign({ 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*', Vary: 'Accept-Encoding' }, headers || {});
+  const h = Object.assign({ 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store', 'Access-Control-Allow-Origin': '*', Vary: 'Accept-Encoding' }, SAFE, headers || {});
   const enc = body.length > 800 ? pick(req) : null;
   if (!enc) { res.writeHead(code, h); return res.end(body); }
   const out = await (enc === 'br' ? brotli(body, { params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 4 } }) : gzip(body));
@@ -29,7 +33,7 @@ async function sendFile(req, res, file, type, extra) {
     f = { mtimeMs: st.mtimeMs, raw, etag: '"' + crypto.createHash('sha1').update(raw).digest('base64').slice(0, 20) + '"', br: null, gz: null };
     files.set(file, f);
   }
-  const h = Object.assign({ 'Content-Type': type, 'Cache-Control': 'no-cache', ETag: f.etag, Vary: 'Accept-Encoding' }, extra || {});
+  const h = Object.assign({ 'Content-Type': type, 'Cache-Control': 'no-cache', ETag: f.etag, Vary: 'Accept-Encoding' }, SAFE, /^text\/html/.test(type) ? PAGE : null, extra || {});
   if (req.headers['if-none-match'] === f.etag) { res.writeHead(304, h); res.end(); return true; }
   let body = f.raw; const enc = compressible(type) && f.raw.length > 600 ? pick(req) : null;
   if (enc === 'br') { f.br = f.br || await brotli(f.raw, { params: { [zlib.constants.BROTLI_PARAM_QUALITY]: f.raw.length > 2e6 ? 5 : 9, [zlib.constants.BROTLI_PARAM_SIZE_HINT]: f.raw.length } }); body = f.br; h['Content-Encoding'] = 'br'; }

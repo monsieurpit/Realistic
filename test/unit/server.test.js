@@ -74,3 +74,14 @@ test('/api/updates lists the versions, newest first, matching js/version.js', as
   assert.equal(list[0].version, v, 'run npm run build after adding a version to updates.json');
   list.forEach((x) => { assert.ok(x.version && x.date && x.title && x.title.en && x.notes && x.notes.en && x.notes.fr, JSON.stringify(x).slice(0, 80)); });
 });
+test('every response says nosniff, and PatOS pages can only be framed by PatOS itself (no clickjacking)', async () => {
+  const page = await raw('/');
+  assert.equal(page.headers['x-content-type-options'], 'nosniff');
+  assert.equal(page.headers['x-frame-options'], 'SAMEORIGIN');
+  assert.match(page.headers['content-security-policy'] || '', /frame-ancestors 'self'/);
+  const js = await raw('/js/core.js');
+  assert.equal(js.headers['x-content-type-options'], 'nosniff');
+  assert.equal(js.headers['x-frame-options'], undefined, 'only pages need the frame rule');
+  const api = await raw('/api/updates');
+  assert.equal(api.headers['x-content-type-options'], 'nosniff');
+});

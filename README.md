@@ -23,7 +23,7 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 
 **Liquid Glass**
 - See-through glass on the dock, menus, Control Center, notifications, widgets and the iPhone home screen, with a light that follows your pointer
-- In Chrome the glass also bends what's behind it (System Settings › Appearance)
+- In Chrome the edges of the Dock bend what's behind them like a lens; the menu bar adapts to the wallpaper; Transparent or Tinted (System Settings › Appearance)
 
 **English and French**
 - PatOS uses French when your device is in French, English otherwise; change it in System Settings › General › Language
@@ -128,7 +128,12 @@ Plain HTML, CSS and JavaScript with no npm dependencies. `build.js` only makes t
 - Documents, notes, slides and pasted text are cleaned before they are shown, so a file can't run scripts inside PatOS.
 - Passwords are encrypted whenever the browser allows it. Without a master password the key belongs to this browser on this device (anyone using it can open them, so a master password is recommended). With one, the list stays locked until you type it, and locks again when PatOS locks, when you close Passwords, or after 15 minutes without using the vault (working in another app doesn't count). Only a very old browser, or one that can't keep the device key, falls back to plain text, and Passwords shows a red warning when that happens.
 - Programs you run in Terminal (JavaScript) and Python live in a Worker that is locked down before your code starts: it can't open PatOS's database, caches, file-system storage or service worker, or start more workers, so a program can't read your files or the password list's key. It can still compute and use the internet like any web page. This is a barrier, not a virtual machine, so the master password remains the real protection for passwords, and you should still only run code you trust. Terminal's `node` runs JavaScript in the browser; it isn't Node.js (no `require` or npm).
+- The server tells browsers not to guess file types (`nosniff`), and PatOS's pages can only be shown inside PatOS itself (`frame-ancestors 'self'`), so another site can't load PatOS in a hidden frame and trick clicks.
 - The PatOS server only checks public websites for Patoogle (no private or local network addresses, re-checked after every redirect), and never serves its own source, tests or `node_modules`.
+
+## Liquid Glass
+
+One glass material for the whole system, in three tiers (clear for the Dock and widgets, regular for tiles and notifications, elevated for menus, Spotlight and dialogs). It is truly see-through: the wallpaper and windows show through it, blurred and saturated, with a light rim and a highlight that follows the pointer. In Chrome, Edge and on Chromebooks the edges of the Dock bend what is behind them like a lens. The menu bar's words turn dark or white depending on the wallpaper under them. Window contents stay opaque and only titlebars are glass, so text is easy to read and windows are cheaper to draw. Settings › Appearance › Liquid Glass: on/off, Transparent or Tinted, lens edges, Reduce transparency (the device's own reduce-transparency and reduce-motion preferences are followed too). How it works and how it compares with macOS: [docs/LIQUID-GLASS.md](docs/LIQUID-GLASS.md).
 
 ## Backups
 

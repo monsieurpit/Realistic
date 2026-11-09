@@ -102,6 +102,7 @@
     'Ask for full screen at login': 'Demander le plein écran à l’ouverture', '24-hour clock': 'Horloge sur 24 heures',
     'Show seconds in menu bar': 'Afficher les secondes dans la barre des menus', 'About this computer': 'À propos de cet ordinateur', 'Highlight color': 'Couleur de mise en valeur', 'Liquid Glass': 'Liquid Glass',
     'Reduce transparency': 'Réduire la transparence',
+    'Glass style': 'Style du verre', 'Transparent': 'Transparent', 'Tinted (more contrast)': 'Teinté (plus de contraste)', 'Lens edges': 'Bords en lentille', 'The edges of the Dock bend what is behind them': 'Les bords du Dock courbent ce qui est derrière', 'Needs Chrome, Edge or a Chromebook': 'Demande Chrome, Edge ou un Chromebook', 'Your device asks for less transparency, so PatOS uses less': 'Votre appareil demande moins de transparence, donc PatOS en met moins',
     'Your own picture': 'Votre propre image', 'Choose a Photo…': 'Choisir une photo…', 'Grow icons under the pointer': 'Agrandir les icônes sous le pointeur', 'How much icons grow': 'Taille de l’agrandissement',
     'Automatically hide the Dock': 'Masquer automatiquement le Dock', 'Show desktop widgets': 'Afficher les widgets sur le bureau', 'Apps in the Dock': 'Apps dans le Dock', 'Desktop icons': 'Icônes du bureau', 'Clean Up': 'Ranger',
     'Dock (up to 4 apps)': 'Dock (jusqu’à 4 apps)', 'Apps on the Home Screen': 'Apps sur l’écran d’accueil', 'Brightness': 'Luminosité', '3D Graphics': 'Graphismes 3D', '3D quality': 'Qualité 3D',

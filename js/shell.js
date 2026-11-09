@@ -1065,6 +1065,7 @@
     const row = h('div', { class: 'asw-row' });
     switcher.list.forEach((id, j) => { const b = h('div', { class: 'asw-item' + (j === switcher.i ? ' on' : '') }, h('div', { class: 'asw-ic', html: PatOS.iconHTML(PatOS.apps[id].icon || id) })); b.onclick = () => { switcher.i = j; switcherCommit(); }; row.appendChild(b); });
     switcher.el.append(row, h('div', { class: 'asw-name' }, PatOS.apps[switcher.list[switcher.i]].name));
+    PatOS.glassLens.watch(row);
   }
   function switcherCommit() {
     if (!switcher.open) return;
@@ -1080,25 +1081,93 @@
   }
   PatOS.toggleFullscreen = toggleFullscreen;
 
+  const sysReduceTransparency = matchMedia('(prefers-reduced-transparency: reduce)');
+  const sysReduceMotion = matchMedia('(prefers-reduced-motion: reduce)');
   function applyTheme() {
     const s = PatOS.settings;
     let t = s.theme;
     if (t === 'auto') t = matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-    document.documentElement.dataset.theme = t;
-    document.documentElement.style.setProperty('--accent', s.accent);
-    document.documentElement.classList.toggle('reduce-motion', !!s.reduceMotion);
-    document.documentElement.classList.toggle('reduce-transparency', !!s.reduceTransparency || PatOS.perf.light());
-    document.documentElement.classList.toggle('perf-light', PatOS.perf.light());
-    document.documentElement.classList.toggle('win', !!PatOS.hw.windows);
-    ['highContrast', 'boldText', 'showFocus', 'bigTargets'].forEach((k) => document.documentElement.classList.toggle(k.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase()), !!s[k]));
+    const root = document.documentElement;
+    root.dataset.theme = t;
+    root.style.setProperty('--accent', s.accent);
+    // the system's own "reduce motion" and "reduce transparency" count as much as the settings
+    root.classList.toggle('reduce-motion', !!s.reduceMotion || sysReduceMotion.matches);
+    const lessGlass = !!s.reduceTransparency || sysReduceTransparency.matches || PatOS.perf.light();
+    root.classList.toggle('reduce-transparency', lessGlass);
+    root.classList.toggle('perf-light', PatOS.perf.light());
+    root.classList.toggle('win', !!PatOS.hw.windows);
+    ['highContrast', 'boldText', 'showFocus', 'bigTargets'].forEach((k) => root.classList.toggle(k.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase()), !!s[k]));
     $('#dimmer').style.opacity = String(1 - s.brightness);
-    const chromium = !!window.chrome && !PatOS.isIOS && !/Firefox/.test(navigator.userAgent);
-    document.documentElement.classList.toggle('lg-on', !!s.liquidGlass);
-    document.documentElement.classList.toggle('lg-refract', !!(s.liquidGlass && s.glassRefraction && chromium && s.quality3d !== 'low' && !s.reduceTransparency && !PatOS.perf.light()));
+    root.classList.toggle('lg-on', !!s.liquidGlass);
+    root.classList.toggle('lg-tinted', !!s.liquidGlass && s.glassStyle === 'tinted');
+    root.classList.toggle('lg-refract', !!(s.liquidGlass && s.glassRefraction && lens.supported() && s.quality3d !== 'low' && !lessGlass && !root.classList.contains('mobile')));
+    lens.refresh();
   }
   PatOS.applyTheme = applyTheme;
+  [sysReduceTransparency, sysReduceMotion].forEach((m) => m.addEventListener && m.addEventListener('change', () => applyTheme()));
+
+  /* Liquid Glass lens: the edges of the Dock, the app switcher and Launchpad's search bend what is behind them, like the rim of
+     a thick pane of glass, while the middle stays clear. A displacement map (red = sideways, green = up/down, 128 = no move)
+     is drawn for each bar's exact size and corner radius and used by an SVG filter in its backdrop-filter. Only Chromium
+     can use an SVG filter in backdrop-filter (Safari would drop the whole blur), so everywhere else the glass is the same
+     without the bend. Maps are made only when a bar settles at a new size (not on every frame of the Dock's magnification). */
+  const lens = (() => {
+    const SEL = '#dock, .asw-row, .lp-search';
+    const isChromium = (!!navigator.userAgentData || !!window.chrome || /Chrome\//.test(navigator.userAgent)) && !PatOS.isIOS && !/Firefox|FxiOS/.test(navigator.userAgent);
+    const maps = new Map(); // "w×h×r" -> filter id
+    let svg = null, ro = null, n = 0;
+    const on = () => document.documentElement.classList.contains('lg-refract');
+    function sdfMap(w, hh, r, bezel) {
+      const c = document.createElement('canvas'); c.width = w; c.height = hh;
+      const x = c.getContext('2d'); const d = x.createImageData(w, hh); const a = d.data;
+      r = Math.min(r, w / 2, hh / 2);
+      for (let j = 0; j < hh; j++) {
+        for (let i = 0; i < w; i++) {
+          const px = i + 0.5 - w / 2, py = j + 0.5 - hh / 2;
+          const qx = Math.abs(px) - (w / 2 - r), qy = Math.abs(py) - (hh / 2 - r);
+          const ox = Math.max(qx, 0), oy = Math.max(qy, 0);
+          const dist = -(Math.hypot(ox, oy) + Math.min(Math.max(qx, qy), 0) - r); // how far inside the rounded edge
+          const k = Math.pow(1 - Math.min(1, Math.max(0, dist / bezel)), 2.2); // 1 at the rim, 0 in the clear middle
+          let nx = 0, ny = 0;
+          if (qx > 0 && qy > 0) { const l = Math.hypot(ox, oy) || 1; nx = ox / l * Math.sign(px); ny = oy / l * Math.sign(py); }
+          else if (qx > qy) nx = Math.sign(px); else ny = Math.sign(py);
+          const o = (j * w + i) * 4;
+          a[o] = 128 - nx * k * 127; a[o + 1] = 128 - ny * k * 127; a[o + 2] = 128; a[o + 3] = 255;
+        }
+      }
+      x.putImageData(d, 0, 0); return c.toDataURL();
+    }
+    function filterFor(w, hh, r) {
+      const key = w + 'x' + hh + 'x' + r; if (maps.has(key)) return maps.get(key);
+      if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('width', '0'); svg.setAttribute('height', '0'); svg.setAttribute('aria-hidden', 'true'); svg.style.position = 'absolute'; document.body.appendChild(svg); }
+      if (maps.size > 24) { maps.clear(); svg.innerHTML = ''; } // sizes change rarely; never let old maps pile up
+      const id = 'lg-lens-' + (++n), bezel = Math.max(8, Math.min(22, Math.min(w, hh) * 0.3)), scale = Math.round(bezel * 1.3);
+      svg.insertAdjacentHTML('beforeend', '<filter id="' + id + '" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">' +
+        '<feImage href="' + sdfMap(w, hh, r, bezel) + '" x="0" y="0" width="' + w + '" height="' + hh + '" preserveAspectRatio="none" result="map"/>' +
+        '<feDisplacementMap in="SourceGraphic" in2="map" scale="' + scale + '" xChannelSelector="R" yChannelSelector="G"/></filter>');
+      maps.set(key, id); return id;
+    }
+    function fit(el) {
+      if (!on()) { el.style.removeProperty('--lg-lens'); return; }
+      const w = Math.round(el.offsetWidth), hh = Math.round(el.offsetHeight);
+      if (w < 24 || hh < 16) return;
+      const r = Math.round(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0);
+      el.style.setProperty('--lg-lens', 'url(#' + filterFor(w, hh, r) + ')');
+    }
+    const pending = new Set(); const flush = PatOS.debounce(() => { pending.forEach((el) => el.isConnected && fit(el)); pending.clear(); }, 160);
+    const settle = (els) => { els.forEach((el) => pending.add(el)); flush(); };
+    function refresh() {
+      const els = Array.from(document.querySelectorAll(SEL));
+      if (!on()) { els.forEach((el) => el.style.removeProperty('--lg-lens')); if (ro) { ro.disconnect(); ro = null; } return; }
+      if (!ro && window.ResizeObserver) ro = new ResizeObserver((entries) => settle(entries.map((e) => e.target)));
+      els.forEach((el) => { fit(el); if (ro) ro.observe(el); });
+    }
+    return { supported: () => isChromium, refresh, watch: (el) => { if (on()) { fit(el); if (ro) ro.observe(el); } } };
+  })();
+  PatOS.glassLens = lens;
+
   /* Liquid Glass light follows the pointer */
-  const GLASS_SEL = '#dock, .mh-dock, .menu, #control-center, .toast, .sp-box, .dlg, .widget, .mw, .cc-tile, .asw-row, .nc-list';
+  const GLASS_SEL = '#dock, .mh-dock, .menu, .toast, .sp-box, .dlg, .widget, .mw, .cc-tile, .asw-row, .nc-list, #pat-panel';
   document.addEventListener('pointermove', (e) => {
     if (e.pointerType === 'touch' || !document.documentElement.classList.contains('lg-on')) return;
     const g = e.target.closest && e.target.closest(GLASS_SEL); if (!g) return;
@@ -1172,7 +1241,7 @@
       applyTheme();
       setupMenubar(); setupLaunchpad(); setupSpotlight(); setupDesktop(); setupDockMagnify(); setupKeys();
       PatOS.on('setting', (s) => {
-        if (['theme', 'accent', 'brightness', 'reduceMotion', 'reduceTransparency', 'liquidGlass', 'glassRefraction', 'quality3d', 'perfMode'].includes(s.key)) applyTheme();
+        if (['theme', 'accent', 'brightness', 'reduceMotion', 'reduceTransparency', 'liquidGlass', 'glassRefraction', 'glassStyle', 'quality3d', 'perfMode'].includes(s.key)) applyTheme();
         if (['dockSize', 'dockAutohide'].includes(s.key)) applyDockSize();
         if (s.key === 'dockPinned') renderDock();
       });

@@ -1,5 +1,33 @@
 [
   {
+    "version": "2.2.0",
+    "date": "2026-11-09",
+    "title": {
+      "en": "Liquid Glass, rebuilt",
+      "fr": "Liquid Glass, refait"
+    },
+    "notes": {
+      "en": [
+        "Liquid Glass is one material everywhere now, in three thicknesses: clear for the Dock and widgets (the wallpaper shows right through), regular for Control Center and notifications, and thicker for menus, Spotlight and dialogs, so words stay easy to read",
+        "In Chrome, Edge and on Chromebooks, the edges of the Dock, the app switcher and Launchpad's search bend what is behind them like the rim of real glass, while the middle stays clear",
+        "The menu bar's words turn dark over a light wallpaper and white over a dark one, whatever the theme",
+        "Windows are faster: only their titlebar is glass now, and their contents are solid. With several windows open, PatOS blurs about 7 times less of the screen",
+        "Settings › Appearance has a Liquid Glass section: Transparent or Tinted (more contrast), Lens edges, and Reduce transparency. PatOS also follows your device's own reduce transparency and reduce motion settings",
+        "A new notification no longer covers an open Control Center",
+        "Safer website: browsers are told not to guess file types, and other sites can't show PatOS in a hidden frame"
+      ],
+      "fr": [
+        "Liquid Glass est maintenant une seule matière partout, en trois épaisseurs : claire pour le Dock et les widgets (le fond d’écran se voit au travers), normale pour le Centre de contrôle et les notifications, et plus épaisse pour les menus, Spotlight et les dialogues, pour que le texte reste facile à lire",
+        "Dans Chrome, Edge et sur Chromebook, les bords du Dock, du sélecteur d’apps et de la recherche du Launchpad courbent ce qui est derrière comme le bord d’un vrai verre, et le milieu reste net",
+        "Le texte de la barre des menus devient foncé sur un fond d’écran clair et blanc sur un fond sombre, quel que soit le thème",
+        "Les fenêtres sont plus rapides : seule leur barre de titre est en verre, et leur contenu est opaque. Avec plusieurs fenêtres ouvertes, PatOS floute environ 7 fois moins l’écran",
+        "Réglages › Apparence a une section Liquid Glass : Transparent ou Teinté (plus de contraste), Bords en lentille et Réduire la transparence. PatOS suit aussi les réglages de transparence et d’animations réduites de votre appareil",
+        "Une nouvelle notification ne cache plus le Centre de contrôle ouvert",
+        "Site plus sûr : les navigateurs ne devinent plus le type des fichiers, et d’autres sites ne peuvent pas afficher PatOS dans un cadre caché"
+      ]
+    }
+  },
+  {
     "version": "2.1.3",
     "date": "2026-11-06",
     "title": {

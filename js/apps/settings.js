@@ -305,7 +305,12 @@
           });
           const acc = h('div', { class: 'st-acc' });
           ACCENTS.forEach((c) => { const b = h('button', { class: 'st-dot' + (S().accent === c ? ' on' : ''), style: { background: c } }); b.onclick = () => { PatOS.setSetting('accent', c); render(); }; acc.appendChild(b); });
-          return [h('h3', {}, 'Appearance'), modes, group(row('Highlight color', acc), row('Liquid Glass', toggle('liquidGlass'), ''), row('', toggle('glassRefraction'), ''), row('Reduce transparency', toggle('reduceTransparency'), ''), row('Fewer animations', toggle('reduceMotion')))];
+          return [h('h3', {}, 'Appearance'), modes, group(row('Highlight color', acc), row('Fewer animations', toggle('reduceMotion'))),
+            h('h3', {}, 'Liquid Glass'),
+            group(row('Liquid Glass', toggle('liquidGlass', render), ''),
+              S().liquidGlass ? row(T('Glass style'), select('glassStyle', [['clear', T('Transparent')], ['tinted', T('Tinted (more contrast)')]]), '') : null,
+              S().liquidGlass ? row(T('Lens edges'), toggle('glassRefraction'), PatOS.glassLens && PatOS.glassLens.supported() ? T('The edges of the Dock bend what is behind them') : T('Needs Chrome, Edge or a Chromebook')) : null,
+              row('Reduce transparency', toggle('reduceTransparency'), matchMedia('(prefers-reduced-transparency: reduce)').matches ? T('Your device asks for less transparency, so PatOS uses less') : ''))];
         },
         wallpaper() {
           const grid = (ids, src) => { const g = h('div', { class: 'st-wps' }); ids.forEach((id) => { const b = h('button', { class: 'st-wp' + (S().wallpaper === id ? ' on' : '') }, h('img', { src: PatOS.wallpaper.thumb(id), alt: '' }), h('span', {}, src[id].name + (src[id].live ? ' ✦' : ''))); b.onclick = () => { PatOS.setSetting('wallpaper', id); if (src[id].live && !S().live3d) PatOS.setSetting('live3d', true); render(); }; g.appendChild(b); }); return g; };

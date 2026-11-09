@@ -288,6 +288,10 @@ body.mission-on #windows { z-index: 11; }
 
 /* ---------- toasts ---------- */
 #toasts { position: absolute; top: 36px; right: 10px; z-index: 9300; display: flex; flex-direction: column; gap: 8px; pointer-events: none; }
+/* a new notification never lands on top of an open Control Center or notification list: it shows just to their left */
+html:not(.mobile) #desktop:has(#control-center:not(.hidden)) #toasts { right: 352px; }
+html:not(.mobile) #desktop:has(#notif-center:not(.hidden)) #toasts { right: 382px; }
+#toasts { transition: right .25s var(--ease); }
 .toast { width: 340px; display: flex; gap: 10px; align-items: flex-start; padding: 12px; border-radius: 16px; background: var(--panel); backdrop-filter: blur(50px) saturate(1.8); -webkit-backdrop-filter: blur(50px) saturate(1.8); box-shadow: 0 10px 40px rgba(0,0,0,.3), 0 0 0 .5px var(--border2); pointer-events: auto; transform: translateX(380px); transition: transform .4s var(--spring), opacity .3s; cursor: default; }
 .toast.in { transform: none; }
 .toast.static { width: 100%; background: var(--card); backdrop-filter: none; box-shadow: none; margin-top: 6px; }
