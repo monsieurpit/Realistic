@@ -145,7 +145,7 @@
     'Didn’t know': 'Je ne savais pas', 'Knew it': 'Je savais', 'Click the card or press Space to flip': 'Cliquez sur la carte ou appuyez sur Espace pour la retourner', 'Study Again': 'Étudier encore', 'All Decks': 'Tous les paquets',
     '‹ Decks': '‹ Paquets', 'Perfect! ': 'Parfait! ', 'Great job! ': 'Bravo! ', 'Keep practicing! ': 'Continuez à pratiquer! ', 'Name your new deck': 'Nommez votre nouveau paquet',
     'New Text': 'Nouveau texte', 'WPM': 'MPM', 'Accuracy': 'Précision', 'Best': 'Record', 'Start typing to begin the timer. Press Esc to restart.': 'Commencez à taper pour lancer le chrono. Échap pour recommencer.',
-    'All Recordings': 'Tous les enregistrements', 'Tap the red button to record your first memo.': 'Touchez le bouton rouge pour enregistrer votre premier mémo.', 'Write something…': 'Écrivez quelque chose…', 'New sticky': 'Nouveau post-it',
+    'All Recordings': 'Tous les enregistrements', 'Memos': 'Mémos', 'memo': 'mémo', 'memos': 'mémos', 'Press record to capture your first memo.': 'Appuyez sur enregistrer pour capturer votre premier mémo.', 'Tap the red button to record your first memo.': 'Touchez le bouton rouge pour enregistrer votre premier mémo.', 'Write something…': 'Écrivez quelque chose…', 'New sticky': 'Nouveau post-it',
     'Look up a word': 'Chercher un mot', 'Type a word above and press Enter.': 'Tapez un mot ci-dessus et appuyez sur Entrée.', 'Looking up…': 'Recherche…', 'No definition found': 'Aucune définition trouvée', 'Synonyms: ': 'Synonymes : ',
     // office
     'Saved': 'Enregistré', 'Saving…': 'Enregistrement…', 'Not saved': 'Non enregistré', 'Normal text': 'Texte normal', 'Title': 'Titre', 'Heading 1': 'Titre 1', 'Heading 2': 'Titre 2', 'Quote': 'Citation', 'Code': 'Code',

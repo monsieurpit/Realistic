@@ -221,7 +221,7 @@
           presets.classList.toggle('dim', tm.running);
           const x = ring.getContext('2d'); x.clearRect(0, 0, 520, 520); x.lineWidth = 18; x.lineCap = 'round';
           x.strokeStyle = 'rgba(255,255,255,.12)'; x.beginPath(); x.arc(260, 260, 234, 0, Math.PI * 2); x.stroke();
-          if (l > 0) { x.strokeStyle = '#ff9f0a'; x.beginPath(); x.arc(260, 260, 234, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (l / tm.total)); x.stroke(); }
+          if (l > 0) { x.strokeStyle = getComputedStyle(win.body).getPropertyValue('--accent').trim() || '#0a84ff'; x.beginPath(); x.arc(260, 260, 234, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * (l / tm.total)); x.stroke(); }
         };
         const startPause = () => {
           const tm = tmState();

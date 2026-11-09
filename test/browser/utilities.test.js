@@ -244,7 +244,7 @@ test('Messages: Pat runs timers, alarms, calendar, reminders, conversions and fi
     PatOS.store.set('reminders', [{ id: 1, text: 'Math homework', done: false, due: PatOS.dateKey(new Date()) }]); out.due = say('my reminders');
     out.pct = say('15% of 80'); out.conv = say('5 km to mi'); out.math = say('2 + 3 * 4');
     PatOS.fs.write('/Documents/Zebra essay.txt', 'x'); out.find = say('find file zebra');
-    out.pick = say('pick pizza or tacos'); out.near = say('galxy'); out.open = say('open galaxy'); out.clear = say('clear');
+    out.pick = say('pick pizza or tacos'); out.near = say('calcluator'); out.open = say('open calculator'); out.clear = say('clear');
     PatOS.lang = 'fr'; out.frTimer = say('minuteur 5 min'); out.frAlarm = say('réveille-moi à 6h45'); out.frCal = say('qu’est-ce que j’ai aujourd’hui?'); out.frConv = say('convertis 5 km en mi'); PatOS.lang = 'en';
     return out;
   });
@@ -252,8 +252,8 @@ test('Messages: Pat runs timers, alarms, calendar, reminders, conversions and fi
   assert.match(r.alarm, /^Alarm set for/); assert.equal(r.alarms, '07:30once');
   assert.match(r.event, /^Added “lunch”/); assert.match(r.cal, /lunch/); assert.match(r.due, /Math homework/);
   assert.equal(r.pct, '15% of 80 = 12'); assert.equal(r.conv, "5 km = 3.107 mi"); assert.equal(r.math, '2 + 3 * 4 = 14');
-  assert.match(r.find, /Zebra essay\.txt/); assert.match(r.pick, /^I pick: (pizza|tacos)\.$/); assert.match(r.near, /Did you mean Galaxy/);
-  assert.match(r.open, /opening Galaxy/); assert.equal(r.clear, '\u0000clear');
+  assert.match(r.find, /Zebra essay\.txt/); assert.match(r.pick, /^I pick: (pizza|tacos)\.$/); assert.match(r.near, /Did you mean Calculator/);
+  assert.match(r.open, /opening Calculator/); assert.equal(r.clear, '\u0000clear');
   assert.match(r.frTimer, /^Minuteur réglé/); assert.match(r.frAlarm, /^Alarme réglée/); assert.match(r.frCal, /lunch|Rien|calendrier/); assert.match(r.frConv, /3[.,]107/);
   assert.deepEqual(errors, []);
   await page.close();

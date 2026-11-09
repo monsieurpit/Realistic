@@ -653,7 +653,7 @@ html.reduce-motion .gg-pop { transition: none; }
 .notes-ed .nt-chk { position: relative; padding-left: 28px; min-height: 1.55em; }
 .notes-ed .nt-chk::before { content: ''; position: absolute; left: 2px; top: .22em; width: 16px; height: 16px; border-radius: 50%; border: 1.6px solid var(--text3); box-sizing: border-box; cursor: pointer; background: transparent; }
 .notes-ed .nt-chk.done { color: var(--text2); text-decoration: line-through; text-decoration-color: var(--text3); }
-.notes-ed .nt-chk.done::before { border-color: #ff9f0a; background: #ff9f0a url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.3l2.6 2.6L12 5.4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px no-repeat; }
+.notes-ed .nt-chk.done::before { border-color: var(--accent); background: var(--accent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Cpath d='M4 8.3l2.6 2.6L12 5.4' fill='none' stroke='white' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/12px no-repeat; }
 .notes-ed > div:first-child.nt-chk { font-size: inherit; font-weight: inherit; }
 .notes-ed img.nt-drawing { background: #fff; border: .5px solid var(--border); }
 .nt-chkic { display: inline-block; width: 15px; height: 15px; border-radius: 50%; border: 1.7px solid currentColor; position: relative; }
@@ -677,9 +677,10 @@ html.reduce-motion .gg-pop { transition: none; }
 .nd-er.on { background: var(--accent); color: #fff; }
 .nd-wrap { max-width: 100%; overflow: auto; border-radius: 10px; border: .5px solid var(--border); }
 .nd-canvas { display: block; touch-action: none; cursor: crosshair; background: #fff; }
-.nf-side .nf-name { text-align: left; }
-.nt-item.on .nt-prog { background: rgba(0,0,0,.14); color: #1d1d1f; }
-.nt-item.on mark { background: rgba(0,0,0,.14); }
+:is(.nf-side, .rm-side) .nf-name { text-align: left; }
+.nf-side .fd-si.on .sym { color: #fff; }
+.nt-item.on .nt-prog { background: color-mix(in srgb, var(--accent) 22%, transparent); color: var(--text); }
+.nt-item.on mark { background: color-mix(in srgb, var(--accent) 30%, transparent); color: inherit; }
 
 /* ===== Scanner ===== */
 /* Scanner (js/apps/scanner.js). Every rule is inside .sc-win: Shortcuts also uses the sc- prefix (css/apps2.css). */
@@ -963,7 +964,7 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 .calc-hist.hidden { display: none; }
 .calc-hhead { position: sticky; top: -6px; display: flex; align-items: center; gap: 6px; padding: 8px; background: #1c1c1e; z-index: 1; }
 .calc-hhead b { flex: 1; font-size: 14px; }
-.calc-hclear { font-size: 12px; color: #ff9f0a; padding: 3px 6px; border-radius: 6px; }
+.calc-hclear { font-size: 12px; color: var(--accent); padding: 3px 6px; border-radius: 6px; }
 .calc-hclear:hover { background: rgba(255,255,255,.08); }
 .calc-hrow { display: flex; flex-direction: column; align-items: flex-end; width: 100%; padding: 7px 10px; border-radius: 9px; text-align: right; }
 .calc-hrow:hover { background: rgba(255,255,255,.08); }
@@ -977,13 +978,13 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 /* Clock */
 .clk { position: relative; }
 .clk-wtop { width: 100%; display: flex; justify-content: flex-end; margin: -6px 0 10px; }
-.clk-wtop .btn { background: #1c1c1e; color: #ff9f0a; }
+.clk-wtop .btn { background: color-mix(in srgb, var(--accent) 22%, transparent); color: #fff; }
 .clk-city { position: relative; }
-.clk-cx { position: absolute; top: -4px; right: 10px; width: 22px; height: 22px; border-radius: 50%; background: #2c2c2e; color: #fff; font-size: 15px; line-height: 1; opacity: 0; transition: opacity .15s; }
+.clk-cx { position: absolute; top: 8px; right: 8px; width: 22px; height: 22px; border-radius: 50%; background: rgba(255,255,255,.16); color: #fff; font-size: 15px; line-height: 1; opacity: 0; transition: opacity .15s; }
 .clk-city:hover .clk-cx, .clk-cx:focus-visible { opacity: 1; }
 .mobile .clk-cx, .real-phone .clk-cx { opacity: .8; }
 .clk-pick { position: absolute; inset: 0; z-index: 5; background: rgba(0,0,0,.55); display: grid; place-items: start center; padding: 24px 16px; }
-.clk-pcard { width: min(440px, 100%); max-height: 100%; display: flex; flex-direction: column; gap: 10px; background: #1c1c1e; border-radius: 14px; padding: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
+.clk-pcard { width: min(440px, 100%); max-height: 100%; display: flex; flex-direction: column; gap: 10px; background: #1d1e24; border-radius: 18px; padding: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.6); }
 .clk-phead { display: flex; align-items: center; justify-content: space-between; }
 .clk-pcard .field { background: #2c2c2e; color: #fff; }
 .clk-plist { overflow-y: auto; min-height: 0; display: flex; flex-direction: column; }

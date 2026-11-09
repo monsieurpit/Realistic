@@ -1,7 +1,7 @@
 [
   {
     "version": "3.0.0",
-    "beta": 3,
+    "beta": 4,
     "date": "2026-11-09",
     "title": {
       "en": "PatOS 3: one design, smarter windows",
@@ -14,7 +14,8 @@
         "Window groups: Window › Save Window Group… keeps the windows you have open (like Write, Calendar and Patoogle for homework), and the Window menu reopens them all in one click",
         "Stage focus (Window menu or Alt+S): the window you use sits large in the middle, the others wait as live thumbnails on the left; click one to bring it on stage",
         "Everything moves on one natural spring: windows growing out of the Dock, snapping, maximizing, menus, panels and dialogs. Settings › Appearance › Motion: Calm, Natural or Playful",
-        "Drag Control Center, notifications or Pat up to close them; in Photos, a photo flies from its thumbnail into the viewer"
+        "Drag Control Center, notifications or Pat up to close them; in Photos, a photo flies from its thumbnail into the viewer",
+        "Apps that looked like a Mac now look like PatOS: Calculator has a glass display and rounded keys in your highlight color, Clock shows cities and alarms on cards with pill buttons, Voice Memos is a studio with memo cards, level bars and a glass record dock, Reminders lists its smart lists as rows, and Notes selects in your highlight color instead of yellow"
       ],
       "fr": [
         "Un nouveau langage visuel pour toutes les apps : des titres plus grands et plus affirmés, un texte confortable de 15 points, un seul rythme d’espacement de 8 points, et les mêmes boutons, champs, barres latérales, listes, interrupteurs et barres d’outils partout",
@@ -22,7 +23,8 @@
         "Groupes de fenêtres : Fenêtre › Enregistrer un groupe de fenêtres… garde les fenêtres ouvertes (comme Écrire, Calendrier et Patoogle pour les devoirs), et le menu Fenêtre les rouvre toutes d’un clic",
         "Focus sur la scène (menu Fenêtre ou Alt+S) : la fenêtre que vous utilisez est grande au milieu, les autres attendent en miniatures vivantes à gauche ; cliquez-en une pour la mettre en scène",
         "Tout bouge sur un même ressort naturel : les fenêtres qui sortent du Dock, les dispositions, l’agrandissement, les menus, les panneaux et les dialogues. Réglages › Apparence › Mouvement : Calme, Naturel ou Enjoué",
-        "Faites glisser le Centre de contrôle, les notifications ou Pat vers le haut pour les fermer ; dans Photos, une photo s’envole de sa miniature jusqu’au visualiseur"
+        "Faites glisser le Centre de contrôle, les notifications ou Pat vers le haut pour les fermer ; dans Photos, une photo s’envole de sa miniature jusqu’au visualiseur",
+        "Les apps qui ressemblaient à un Mac ressemblent maintenant à PatOS : la Calculatrice a un écran en verre et des touches arrondies dans votre couleur d’accent, l’Horloge présente villes et alarmes sur des cartes avec des boutons en pilule, Mémos vocaux devient un studio avec des cartes, des barres de niveau et un dock d’enregistrement en verre, Rappels affiche ses listes intelligentes en rangées, et Notes sélectionne dans votre couleur d’accent au lieu du jaune"
       ]
     }
   },

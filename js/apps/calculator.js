@@ -4,7 +4,7 @@
   'use strict';
   const { h } = PatOS;
   PatOS.registerApp({
-    id: 'calculator', name: 'Calculator', icon: 'calculator', width: 260, height: 410, resizable: false, titlebar: 'hidden', dark: true, category: 'Utilities', keywords: 'math calc scientific',
+    id: 'calculator', name: 'Calculator', icon: 'calculator', width: 260, height: 430, resizable: false, titlebar: 'hidden', dark: true, category: 'Utilities', keywords: 'math calc scientific',
     launch(win) {
       let sci = PatOS.store.get('calcSci', false);
       let cur = '0', prev = null, op = null, fresh = true;   // basic mode state
@@ -104,7 +104,7 @@
         modeBtn.textContent = sci ? '123' : 'ƒ(x)';
         const keyList = (sci ? SCI : BASIC).map(([k, cls]) => [second && { sin: 1, cos: 1, tan: 1 }[k] ? k + '⁻¹' : k, cls + (k === '2nd' && second ? ' on' : '')]);
         keyList.forEach(([k, cls]) => { const b = h('button', { class: 'ck ' + (cls || 'num'), 'data-k': k }, k); b.onclick = () => { PatOS.sound.click(); sci ? pressSci(b.dataset.k) : pressBasic(b.dataset.k); }; keys.appendChild(b); });
-        if (!PatOS.isMobile) { win.el.style.width = (sci ? 440 : 260) + 'px'; win.el.style.height = (sci ? 530 : 410) + 'px'; }
+        if (!PatOS.isMobile) { win.el.style.width = (sci ? 440 : 260) + 'px'; win.el.style.height = (sci ? 550 : 430) + 'px'; }
         if (sci) { disp.textContent = pretty(expr) || '0'; sub.textContent = deg ? 'DEG' : 'RAD'; } else { disp.textContent = fmt(cur); sub.textContent = ''; }
         size();
       }

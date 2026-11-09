@@ -73,7 +73,7 @@
       win.body.appendChild(h('div', { class: 'rm-wrap' }, side, main));
       if (PatOS.mobile && PatOS.mobile.stack) { PatOS.mobile.stack(win, PatOS.t('Reminders')); side.classList.add('m-list'); main.classList.add('m-detail'); }
       const openView = (k, label) => { view = k; render(); PatOS.mobile && PatOS.mobile.detail && PatOS.mobile.detail(win, true, label); };
-      const SMART = [['today', 'Today', '#0a84ff', (r) => !r.done && r.due && r.due <= todayKey()], ['scheduled', 'Scheduled', '#ff453a', (r) => !r.done && r.due], ['all', 'All', '#3a3a3c', (r) => !r.done], ['flagged', 'Flagged', '#ff9f0a', (r) => !r.done && r.flag], ['completed', 'Completed', '#8e8e93', (r) => r.done]];
+      const SMART = [['today', 'Today', '#0a84ff', (r) => !r.done && r.due && r.due <= todayKey()], ['scheduled', 'Scheduled', '#ff453a', (r) => !r.done && r.due], ['all', 'All', '#5e5ce6', (r) => !r.done], ['flagged', 'Flagged', '#ff9f0a', (r) => !r.done && r.flag], ['completed', 'Completed', '#8e8e93', (r) => r.done]];
       let lastView = 'today';
       function listFilter() { if (view === 'search') { const q = query.trim().toLowerCase(); return (r) => (r.text + ' ' + (r.notes || '')).toLowerCase().includes(q); } const sm = SMART.find((s) => s[0] === view); if (sm) return sm[3]; return (r) => (r.list || 'default') === view && (showDone || !r.done); }
       function renderSide() {
@@ -82,7 +82,9 @@
         search.addEventListener('input', () => { query = search.value; if (query.trim()) { if (view !== 'search') { lastView = view; view = 'search'; } } else if (view === 'search') view = lastView || 'today'; renderMain(); side.querySelectorAll('.rm-tile, .fd-si').forEach((x) => x.classList.toggle('on', false)); });
         side.appendChild(search);
         const grid = h('div', { class: 'rm-smart' });
-        SMART.forEach(([k, l, c, fn]) => { const b = h('button', { class: 'rm-tile' + (view === k ? ' on' : '') }, h('span', { class: 'rm-dot', style: { background: c } }), h('b', {}, items.filter(fn).length), h('span', {}, PatOS.t(l))); b.onclick = () => openView(k, PatOS.t(l)); grid.appendChild(b); });
+        // PatOS's smart lists: rows with a small colored glass tile and a drawn symbol (like Settings), the name and a count
+        const SYM = { today: 'sun', scheduled: 'calendar', all: 'list', flagged: 'flag', completed: 'check' };
+        SMART.forEach(([k, l, c, fn]) => { const b = h('button', { class: 'rm-tile' + (view === k ? ' on' : '') }, h('span', { class: 'rm-dot st-ic', style: { '--ic': c }, html: PatOS.sym(SYM[k]) }), h('span', { class: 'rm-tl' }, PatOS.t(l)), h('b', {}, items.filter(fn).length || '')); b.onclick = () => openView(k, PatOS.t(l)); grid.appendChild(b); });
         side.append(grid, h('div', { class: 'fd-sh' }, PatOS.t('My Lists')));
         lists.forEach((L) => {
           const n = items.filter((r) => (r.list || 'default') === L.id && !r.done).length;
