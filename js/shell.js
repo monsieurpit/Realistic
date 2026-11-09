@@ -1126,7 +1126,7 @@
       const q = W * H > 60000 ? 2 : 1; // big panes: draw the (smooth) map at half size, the filter stretches it back
       const w = Math.ceil(W / q), hh = Math.ceil(H / q), bezel = B / q; const r = Math.min(R / q, w / 2, hh / 2);
       const magX = Math.min(W / 2 * (1 - 1 / MAG), MAG_MAX), magY = Math.min(H / 2 * (1 - 1 / MAG), MAG_MAX); // in screen px
-      const rim = B * 1.3; // the rim's strongest bend, in screen px
+      const rim = B * 1.6; // the bevel's strongest bend, in screen px
       const scale = 2 * (rim + Math.max(magX, magY)); // the largest shift fits in 0..255
       const c = document.createElement('canvas'); c.width = w; c.height = hh;
       const x = c.getContext('2d'); const d = x.createImageData(w, hh); const a = d.data;
@@ -1134,6 +1134,9 @@
       // a band along the edge, strongest at the bottom, half on the sides, none at the top (the top is where light enters)
       const c2 = document.createElement('canvas'); c2.width = w; c2.height = hh;
       const x2 = c2.getContext('2d'); const d2 = x2.createImageData(w, hh); const a2 = d2.data;
+      // third picture: the upper bevel, where light enters, shows the background a little lighter
+      const c3 = document.createElement('canvas'); c3.width = w; c3.height = hh;
+      const x3 = c3.getContext('2d'); const d3 = x3.createImageData(w, hh); const a3 = d3.data;
       for (let j = 0; j < hh; j++) {
         for (let i = 0; i < w; i++) {
           const px = i + 0.5 - w / 2, py = j + 0.5 - hh / 2;
@@ -1151,19 +1154,20 @@
           a[o] = Math.max(0, Math.min(255, Math.round(128 + 255 * dx / scale)));
           a[o + 1] = Math.max(0, Math.min(255, Math.round(128 + 255 * dy / scale)));
           a[o + 2] = 128; a[o + 3] = 255;
-          const t = 1 - Math.min(1, Math.max(0, dist / (bezel * 1.7))), side = Math.min(1, Math.max(0, 0.5 + 0.55 * ny));
-          a2[o] = a2[o + 1] = a2[o + 2] = 255; a2[o + 3] = Math.round(255 * Math.pow(t, 1.25) * side);
+          const t = dist < bezel ? (1 - 0.35 * dist / bezel) * Math.min(1, (bezel - dist) / (0.35 * bezel)) : 0, side = Math.min(1, Math.max(0, 0.5 + 0.55 * ny)); // the bevel band (--g-rim-w), flowing into the face (no hard line)
+          a2[o] = a2[o + 1] = a2[o + 2] = 255; a2[o + 3] = Math.round(255 * t * side);
+          const up = Math.min(1, Math.max(0, 0.45 - 0.6 * ny)); // top 1, sides about half, bottom 0
+          a3[o] = a3[o + 1] = a3[o + 2] = 255; a3[o + 3] = Math.round(255 * t * up);
         }
       }
-      x.putImageData(d, 0, 0); x2.putImageData(d2, 0, 0);
-      return { url: c.toDataURL(), rim: c2.toDataURL(), scale: Math.round(scale) };
+      x.putImageData(d, 0, 0); x2.putImageData(d2, 0, 0); x3.putImageData(d3, 0, 0);
+      return { url: c.toDataURL(), rim: c2.toDataURL(), top: c3.toDataURL(), scale: Math.round(scale) };
     }
-    const rimW = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--g-rim-w')) || 14;
-    function filterFor(w, hh, r) {
-      const key = w + 'x' + hh + 'x' + r; if (maps.has(key)) return maps.get(key);
+    function filterFor(w, hh, r, rimW) {
+      const key = w + 'x' + hh + 'x' + r + 'x' + rimW; if (maps.has(key)) return maps.get(key);
       if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('width', '0'); svg.setAttribute('height', '0'); svg.setAttribute('aria-hidden', 'true'); svg.style.position = 'absolute'; document.body.appendChild(svg); }
       if (maps.size > 48) { maps.clear(); svg.innerHTML = ''; } // sizes change rarely; never let old maps pile up
-      const id = 'lg-lens-' + (++n), bezel = Math.round(Math.min(rimW(), Math.min(w, hh) * 0.32)); // the same rim width as the CSS (--g-rim-w)
+      const id = 'lg-lens-' + (++n), bezel = Math.round(Math.min(rimW, Math.min(w, hh) * 0.3)); // the same band as the CSS bevel ring (--g-rim-w, at most 30%)
       const m = domeMap(w, hh, r, bezel);
       svg.insertAdjacentHTML('beforeend', '<filter id="' + id + '" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">' +
         // under the map, a flat 128 grey (= "do not move"). Wherever the map is missing (the frames before its picture is
@@ -1173,22 +1177,27 @@
         '<feImage href="' + m.url + '" x="0" y="0" width="' + w + '" height="' + hh + '" preserveAspectRatio="none" result="img"/>' +
         '<feComposite in="img" in2="still" operator="over" result="map"/>' +
         '<feDisplacementMap in="SourceGraphic" in2="map" scale="' + m.scale + '" xChannelSelector="R" yChannelSelector="G" result="bent"/>' +
-        // thickness: light that crosses more glass comes out deeper and more colorful. A deeper, more saturated copy of what is
-        // behind is laid over the bent picture through the rim picture (bottom strongest, sides half, top none). The color is
-        // always the background's own. (This has to happen here: a ::after can't re-read the backdrop of glass in Chromium.)
-        '<feColorMatrix in="bent" type="saturate" values="3.2" result="sat"/>' +
-        '<feComponentTransfer in="sat" result="deep"><feFuncR type="linear" slope=".72"/><feFuncG type="linear" slope=".72"/><feFuncB type="linear" slope=".72"/></feComponentTransfer>' +
+        // thickness: light that crosses more glass comes out a little deeper. A slightly darker copy of what is behind is laid
+        // over the bent picture through the rim picture (the bevel band: bottom full, sides half, top none). The color is always
+        // the background's own. (This has to happen here: a ::after can't re-read the backdrop of glass in Chromium.)
+        // (no saturation boost: more glass makes the same color a little deeper, it does not make a brighter one)
+        '<feComponentTransfer in="bent" result="deep"><feFuncR type="linear" slope=".93"/><feFuncG type="linear" slope=".93"/><feFuncB type="linear" slope=".93"/></feComponentTransfer>' +
+        '<feComponentTransfer in="bent" result="lit"><feFuncR type="linear" slope="1.04" intercept=".02"/><feFuncG type="linear" slope="1.04" intercept=".02"/><feFuncB type="linear" slope="1.04" intercept=".02"/></feComponentTransfer>' +
+        '<feImage href="' + m.top + '" x="0" y="0" width="' + w + '" height="' + hh + '" preserveAspectRatio="none" result="topMask"/>' +
+        '<feComposite in="lit" in2="topMask" operator="in" result="litTop"/>' +
         '<feImage href="' + m.rim + '" x="0" y="0" width="' + w + '" height="' + hh + '" preserveAspectRatio="none" result="rimMask"/>' +
         '<feComposite in="deep" in2="rimMask" operator="in" result="rim"/>' +
-        '<feComposite in="rim" in2="bent" operator="over"/></filter>');
+        '<feComposite in="rim" in2="bent" operator="over" result="deepened"/>' +
+        '<feComposite in="litTop" in2="deepened" operator="over"/></filter>');
       maps.set(key, id); return id;
     }
     function fit(el) {
       if (!on()) { el.style.removeProperty('--lg-lens'); return; }
       const w = Math.round(el.offsetWidth), hh = Math.round(el.offsetHeight);
       if (w < 24 || hh < 16) return;
-      const r = Math.round(parseFloat(getComputedStyle(el).borderTopLeftRadius) || 0);
-      el.style.setProperty('--lg-lens', 'url(#' + filterFor(w, hh, r) + ')');
+      const cs = getComputedStyle(el), r = Math.round(parseFloat(cs.borderTopLeftRadius) || 0);
+      const rimW = Math.round(parseFloat(cs.getPropertyValue('--g-rim-w')) || 12);
+      el.style.setProperty('--lg-lens', 'url(#' + filterFor(w, hh, r, rimW) + ')');
     }
     const pending = new Set(); const flush = PatOS.debounce(() => { pending.forEach((el) => el.isConnected && fit(el)); pending.clear(); }, 160);
     const settle = (els) => { els.forEach((el) => { if (!el.style.getPropertyValue('--lg-lens')) fit(el); else pending.add(el); }); flush(); };

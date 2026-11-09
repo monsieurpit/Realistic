@@ -18,6 +18,20 @@ corners), a soft inner highlight that follows the pointer (`--mx`/`--my`), and a
 
 **Tinted** (Settings › Appearance › Glass style) raises every tint for more contrast, for busy wallpapers.
 
+## Clear glass, read from an iPhone (2.2.3)
+
+Read from an iOS 26 lock screen (notifications over a dark car photo): the glass adds no color and almost no frost (the photo
+stays sharp through the cards), the edge is a 1px specular line whose brightness changes around the shape (brightest upper
+left, a second highlight lower right, dim between), the picture bends only where it crosses the rounded edge, and nothing is
+painted on the bevel. PatOS now does the same:
+
+- Tints near zero (clear 2.5%, regular 3.5% white in dark mode), blur 0 / 0.4px; menus keep 10px because they hold text.
+- `::before` is a 1.25px ring with a `conic-gradient` (angle around the shape → brightness).
+- Saturation ≈ 1 everywhere. **2.2.2 saturated the backdrop 1.6–3.2×, which turned purple wallpapers pink**; the deeper
+  bevel is now only 7% darker, and the lighter top 4%, both of the background's own color.
+- Over a busy wallpaper, regular glass frosts only 4px.
+- Pills for bars (Dock, sliders, Launchpad search, segmented controls), 30–34px corners for panels.
+
 ## Thick glass (2.2.2)
 
 Modeled on a thick gel slab lit from above (the reference was an iOS lock screen: a pink clock slab and a flashlight/camera

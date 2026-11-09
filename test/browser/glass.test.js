@@ -26,8 +26,8 @@ test('the glass is see-through, the Dock bends at its edges, and only titlebars 
   await page.evaluate(() => PatOS.launch('textedit')); await page.waitForSelector('.window .titlebar'); await page.waitForTimeout(400);
   const g = await look(page);
   assert.match(g.cls, /\blg-on\b/); assert.match(g.cls, /\blg-refract\b/, 'Chromium gets the lens');
-  assert.match(g.dock, /blur\(0\.6px\)/, 'the Dock is the clear tier (barely blurred): ' + g.dock);
-  assert.match(g.dock, /saturate\(1\.3\) brightness\(1\.05\)/, 'the clear tier\'s own look wins over the shared rule: ' + g.dock);
+  assert.match(g.dock, /blur\(0px\)/, 'the Dock is the clear tier (unblurred, like iOS): ' + g.dock);
+  assert.match(g.dock, /saturate\(1\.06\) brightness\(1\.05\)/, 'the clear tier\'s own look wins over the shared rule: ' + g.dock);
   assert.match(g.dock, /url\("?#lg-lens-\d+"?\)/, 'the Dock uses a lens made for its size: ' + g.dock);
   const filterOk = await page.evaluate((id) => { const f = document.getElementById(id); return !!(f && f.querySelector('feImage') && f.querySelector('feDisplacementMap')); }, g.lens.replace(/^url\(#|\)$/g, ''));
   assert.ok(filterOk, 'the lens filter exists: ' + g.lens);
@@ -79,14 +79,16 @@ test('every glass surface is a thick pane: Control Center tiles and menus get a 
   const page = await b.newPage({ viewport: { width: 1280, height: 800 } }); const errors = await boot(page, srv.base, { fresh: true });
   await page.click('#mb-cc'); await page.waitForSelector('#control-center:not(.hidden) .cc-tile'); await page.waitForTimeout(400);
   const tile = await page.evaluate(() => { const t = document.querySelector('#control-center .cc-tile'); const id = t.style.getPropertyValue('--lg-lens').replace(/^url\(#|\)$/g, ''); const f = document.getElementById(id);
-    return { lens: t.style.getPropertyValue('--lg-lens'), bf: getComputedStyle(t).backdropFilter, sat: f && f.querySelector('feColorMatrix[type="saturate"]') && f.querySelector('feColorMatrix').getAttribute('values'),
+    return { lens: t.style.getPropertyValue('--lg-lens'), bf: getComputedStyle(t).backdropFilter, boost: f ? f.querySelectorAll('feColorMatrix').length : -1, slopes: f ? Array.from(f.querySelectorAll('feComponentTransfer feFuncR')).map((e) => Number(e.getAttribute('slope'))) : [],
       masks: f ? f.querySelectorAll('feImage').length : 0, flood: f && f.querySelector('feFlood').getAttribute('flood-color'), after: getComputedStyle(t, '::after').content }; });
   assert.match(tile.lens, /^url\(#lg-lens-\d+\)$/, 'a tile has its own lens');
   assert.match(tile.bf, /url\(/, 'and uses it: ' + tile.bf);
-  assert.ok(Number(tile.sat) > 1, 'the rim is a more saturated copy of what is behind (no color of its own): ' + tile.sat);
-  assert.equal(tile.masks, 2, 'one picture bends, one says where the rim is');
+  assert.equal(tile.boost, 0, 'no color is boosted or added: the glass is the color of what is behind');
+  assert.ok(tile.slopes.some((v) => v < 1) && tile.slopes.some((v) => v > 1), 'the bevel shows the same background, deeper at the bottom and lighter at the top: ' + tile.slopes);
+  assert.equal(tile.masks, 3, 'one picture bends, two say where the bevel is deeper (bottom) and lighter (top)');
   assert.equal(tile.flood, 'rgb(128,128,128)', 'where the map is missing nothing moves (no flashing bar)');
-  assert.equal(tile.after, 'none', 'with the lens, no stand-in shade is drawn on top');
+  assert.equal(tile.after, 'none', 'with the lens, nothing is painted on the bevel (it stays clear glass)');
+  assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('#control-center .cc-tile.cc-slider')).borderTopLeftRadius), '999px', 'a slider tile is a pill');
   await page.keyboard.press('Escape'); await page.click('.mb-logo'); await page.waitForSelector('.menu'); await page.waitForTimeout(300);
   assert.match(await page.evaluate(() => document.querySelector('.menu').style.getPropertyValue('--lg-lens')), /lg-lens/, 'a menu that just opened gets a lens too');
   assert.deepEqual(errors, []); await page.close();
@@ -105,13 +107,18 @@ test('one fixed light for all the glass, readable words over busy pictures, and 
   const busy = await page.evaluate(() => { const c = document.createElement('canvas'); c.width = 960; c.height = 640; const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, 960, 640); x.fillStyle = '#000'; for (let i = 0; i < 960; i += 20) for (let j = 0; j < 640; j += 20) if ((i + j) % 40 === 0) x.fillRect(i, j, 20, 20); return c.toDataURL('image/png'); });
   await page.evaluate((u) => { PatOS.setSetting('customWallpaper', u); PatOS.setSetting('wallpaper', 'custom'); }, busy); await page.waitForTimeout(800);
   assert.equal(await page.evaluate(() => document.documentElement.dataset.wpBusy || null), '1');
-  assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--g-blur').trim()), '14px');
+  assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--g-blur').trim()), '4px');
   // pressing a Control Center tile pushes it in: the shade moves inside the top edge
   await page.click('#mb-cc'); await page.waitForSelector('#control-center:not(.hidden) .cc-tile'); await page.waitForTimeout(300);
-  const box = await page.locator('#control-center .cc-tile').nth(2).boundingBox();
-  await page.mouse.move(box.x + box.width - 6, box.y + 6); await page.mouse.down(); await page.waitForTimeout(80);
-  const pressed = await page.evaluate(() => getComputedStyle(document.querySelectorAll('#control-center .cc-tile')[2]).boxShadow);
-  await page.mouse.up();
+  // (the pressed state is forced through the DevTools protocol: a real held click is flaky, because Control Center can redraw
+  // its tiles while the button is down, and a redrawn tile is no longer the one being pressed)
+  const cdp = await page.context().newCDPSession(page);
+  await cdp.send('DOM.enable'); await cdp.send('CSS.enable');
+  const { root } = await cdp.send('DOM.getDocument');
+  const { nodeId } = await cdp.send('DOM.querySelector', { nodeId: root.nodeId, selector: '#control-center .cc-tile.cc-slider' });
+  await cdp.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: ['active'] }); await page.waitForTimeout(500);
+  const pressed = await page.evaluate(() => getComputedStyle(document.querySelector('#control-center .cc-tile.cc-slider')).boxShadow);
+  await cdp.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: [] });
   assert.match(pressed, /^rgba\(0, 0, 0, 0\.22\) 0px 3px 8px 0px inset/, 'pressed in: ' + pressed);
   assert.deepEqual(errors, []); await page.close();
 });
