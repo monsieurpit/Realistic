@@ -137,19 +137,94 @@ html.lg-on:not(.mobile) :is(.fd-side, .st-side, .notes-side, .msg-side, .dv-side
   box-shadow: inset 0 1px 1px var(--g-rim-soft), inset 0 0 0 .5px var(--border2), 0 4px 16px rgba(0,0,0,.12);
 }
 
-/* ---------- controls: little glass capsules that react to the pointer ---------- */
-html.lg-on .btn:not(.primary):not(.danger) { background: var(--g-pill); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 0 0 .5px var(--border2), 0 1px 3px rgba(0,0,0,.12); border-radius: 10px; }
-html.lg-on .btn:not(.primary):not(.danger):hover { background: var(--g-pill-on); }
-html.lg-on .btn.primary { box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 4px 14px color-mix(in srgb, var(--accent) 45%, transparent); border-radius: 10px; }
-html.lg-on :is(.btn, .tbtn, .ob, .cc-toggle, .lp-item, .mh-app) { transition: transform .35s cubic-bezier(.3,1.5,.5,1), background .15s, box-shadow .2s; }
-html.lg-on :is(.btn, .tbtn, .ob):active { transform: scale(.95); }
-html.lg-on .tbtn.on { background: var(--g-pill); box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 0 0 .5px var(--border2); }
-html.lg-on .cc-dot { box-shadow: inset 0 1px 1px rgba(255,255,255,.5), inset 0 0 0 .5px rgba(255,255,255,.25); }
-html.lg-on .cc-toggle.on .cc-dot { box-shadow: inset 0 1px 1px rgba(255,255,255,.6), 0 4px 12px color-mix(in srgb, var(--accent) 50%, transparent); }
+/* ---------- controls: every button and search bar is a small piece of the same glass ----------
+   Buttons, toolbar buttons, fields and search bars (and the apps' own buttons and search bars) get the material of the big
+   surfaces, made light enough for hundreds of controls: a near-clear tint, a 1px rim whose brightness follows the angle (the
+   border, painted with a conic gradient: brightest upper left, a second highlight lower right), a highlight on the top half
+   and a soft lifted shadow. Inside a window what is behind a control is the window itself, so there is no backdrop blur on
+   them (it would show nothing and cost a layer per button); controls that float over pictures (Photos' arrows, Weather)
+   do blur what is behind them. Buttons and search bars are capsules; fields (inputs, menus) are recessed: their rim catches
+   the light at the bottom right, and a little shade sits inside their top edge. */
+html.lg-on {
+  --gc-base: var(--win-solid); /* (the rim is painted under the whole control: an opaque base keeps it to the 1px border) */
+  --gc-tint: rgba(255,255,255,.07); --gc-tint-on: rgba(255,255,255,.14); --gc-hi: rgba(255,255,255,.1); --gc-field: rgba(0,0,0,.18);
+  --gc-rim: conic-gradient(from 0deg, rgba(255,255,255,.42), rgba(255,255,255,.16) 50deg, rgba(255,255,255,.08) 95deg, rgba(255,255,255,.3) 140deg, rgba(255,255,255,.12) 190deg, rgba(255,255,255,.06) 235deg, rgba(255,255,255,.22) 280deg, rgba(255,255,255,.7) 318deg, rgba(255,255,255,.42));
+  --gc-rim-in: conic-gradient(from 180deg, rgba(255,255,255,.3), rgba(255,255,255,.1) 50deg, rgba(255,255,255,.05) 95deg, rgba(255,255,255,.18) 140deg, rgba(255,255,255,.08) 190deg, rgba(255,255,255,.04) 235deg, rgba(255,255,255,.14) 280deg, rgba(255,255,255,.45) 318deg, rgba(255,255,255,.3));
+  --gc-shadow: 0 1px 2px rgba(0,0,0,.2), 0 3px 10px -3px rgba(0,0,0,.28);
+}
+:root[data-theme="light"].lg-on {
+  --gc-tint: rgba(255,255,255,.62); --gc-tint-on: rgba(255,255,255,.9); --gc-hi: rgba(255,255,255,.65); --gc-field: rgba(0,0,0,.035);
+  --gc-rim: conic-gradient(from 0deg, rgba(255,255,255,1), rgba(0,0,0,.08) 60deg, rgba(0,0,0,.13) 110deg, rgba(0,0,0,.19) 180deg, rgba(0,0,0,.13) 250deg, rgba(255,255,255,.9) 318deg, rgba(255,255,255,1));
+  --gc-rim-in: conic-gradient(from 180deg, rgba(255,255,255,1), rgba(0,0,0,.06) 60deg, rgba(0,0,0,.12) 110deg, rgba(0,0,0,.18) 180deg, rgba(0,0,0,.12) 250deg, rgba(255,255,255,.9) 318deg, rgba(255,255,255,1));
+  --gc-shadow: 0 1px 2px rgba(0,0,0,.1), 0 3px 10px -3px rgba(0,0,0,.16);
+}
+/* controls over a picture use the dark glass in every theme (their words are white), blur what is behind them, and have no
+   opaque base (the picture must show through) */
+html.lg-on :is(.ph-nav, .wx-unit, .wx-search, .rc-pb) {
+  --gc-tint: rgba(255,255,255,.14); --gc-tint-on: rgba(255,255,255,.24); --gc-hi: rgba(255,255,255,.14); --gc-field: rgba(255,255,255,.14);
+  --gc-rim: conic-gradient(from 0deg, rgba(255,255,255,.5), rgba(255,255,255,.18) 50deg, rgba(255,255,255,.1) 95deg, rgba(255,255,255,.36) 140deg, rgba(255,255,255,.14) 190deg, rgba(255,255,255,.08) 235deg, rgba(255,255,255,.26) 280deg, rgba(255,255,255,.85) 318deg, rgba(255,255,255,.5));
+  --gc-rim-in: var(--gc-rim); --gc-shadow: 0 1px 2px rgba(0,0,0,.2), 0 4px 14px -4px rgba(0,0,0,.35);
+  -webkit-backdrop-filter: blur(8px) saturate(1.1); backdrop-filter: blur(8px) saturate(1.1);
+}
+html.lg-on:not(#_) :is(.ph-nav, .wx-unit, .wx-search, .rc-pb) {
+  border-color: transparent !important;
+  background: linear-gradient(180deg, var(--gc-hi), transparent 62%), var(--gc-tint) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 0 0 1px rgba(255,255,255,.2), inset 0 -1px 0 rgba(255,255,255,.25), var(--gc-shadow) !important;
+}
+html.lg-on :is(.btn:not(.primary):not(.danger), .tbtn, .ytx-btn, .ytx-pill, .ytx-sbtn, .as-get, .of-share, .mu-b, .rc-pb, .ph-nav, .wx-unit, .su-opt) {
+  border: 1px solid transparent !important; border-radius: 999px;
+  background: linear-gradient(180deg, var(--gc-hi), transparent 62%) padding-box, linear-gradient(var(--gc-tint), var(--gc-tint)) padding-box, linear-gradient(var(--gc-base), var(--gc-base)) padding-box, var(--gc-rim) border-box !important;
+  box-shadow: var(--gc-shadow) !important;
+}
+html.lg-on :is(.btn:not(.primary):not(.danger), .tbtn, .ytx-btn, .ytx-pill, .ytx-sbtn, .as-get, .of-share, .mu-b, .rc-pb, .ph-nav, .wx-unit, .su-opt):is(:hover, .on) {
+  background: linear-gradient(180deg, var(--gc-hi), transparent 62%) padding-box, linear-gradient(var(--gc-tint-on), var(--gc-tint-on)) padding-box, linear-gradient(var(--gc-base), var(--gc-base)) padding-box, var(--gc-rim) border-box !important;
+  filter: none;
+}
+html.lg-on .tbtn { color: var(--text); }
+html.lg-on .tbtn:disabled { box-shadow: none !important; }
+/* the colored buttons: the same glass, filled with their color */
+html.lg-on :is(.btn.primary, .btn.danger) {
+  --gc-fill: var(--accent);
+  border: 1px solid transparent !important; border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,255,255,.3), rgba(255,255,255,0) 62%) padding-box, linear-gradient(var(--gc-fill), var(--gc-fill)) padding-box,
+    conic-gradient(from 0deg, rgba(255,255,255,.6), rgba(255,255,255,.2) 60deg, rgba(0,0,0,.12) 180deg, rgba(255,255,255,.2) 280deg, rgba(255,255,255,.85) 318deg, rgba(255,255,255,.6)) border-box !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.18), 0 4px 14px -4px color-mix(in srgb, var(--gc-fill) 70%, transparent) !important;
+}
+html.lg-on .btn.danger { --gc-fill: #ff453a; }
+/* fields and search bars: recessed glass */
+html.lg-on :is(.field, .fd-search, .st-search, .rm-search, .ph-search, .pb-hsearch, .m2-search, .cal-search, .nt-search, .of-ssearch, .wx-search, .pg-qwrap, .br-omniwrap, .ytx-q, input[type="search"]) {
+  border: 1px solid transparent !important; outline: 0;
+  background: linear-gradient(var(--gc-field), var(--gc-field)) padding-box, linear-gradient(var(--gc-base), var(--gc-base)) padding-box, var(--gc-rim-in) border-box !important;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.14) !important;
+}
+html.lg-on .field { border-radius: 12px; }
+html.lg-on :is(.fd-search, .st-search, .rm-search, .ph-search, .pb-hsearch, .m2-search, .cal-search, .nt-search, .of-ssearch, .wx-search, .pg-qwrap, .br-omniwrap, .ytx-q, input[type="search"]) { border-radius: 999px; padding-left: 14px; padding-right: 14px; }
+html.lg-on :is(.field, .fd-search, .st-search, .rm-search, .ph-search, .pb-hsearch, .m2-search, .cal-search, .nt-search, .of-ssearch, .wx-search, .pg-qwrap, .br-omniwrap, .ytx-q, input[type="search"]):focus-within { box-shadow: inset 0 1px 3px rgba(0,0,0,.14), 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent) !important; }
+/* controls in a window's titlebar sit on glass, so they stay see-through: no opaque base, the rim drawn as inset light */
+html.lg-on:not(.mobile):not(#_) .titlebar :is(.btn:not(.primary):not(.danger), .tbtn, .ytx-btn, .ytx-pill, .ytx-sbtn, .as-get, .of-share, .mu-b) {
+  border-color: transparent !important;
+  background: linear-gradient(180deg, var(--gc-hi), transparent 62%), var(--gc-tint) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 0 0 1px rgba(255,255,255,.14), inset 0 -1px 0 rgba(255,255,255,.18), var(--gc-shadow) !important;
+}
+html.lg-on:not(.mobile):not(#_) .titlebar :is(.btn:not(.primary):not(.danger), .tbtn, .ytx-btn, .ytx-pill, .ytx-sbtn, .as-get, .of-share, .mu-b):is(:hover, .on) { background: linear-gradient(180deg, var(--gc-hi), transparent 62%), var(--gc-tint-on) !important; }
+html.lg-on:not(.mobile):not(#_) .titlebar :is(.field, .fd-search, .st-search, .rm-search, .ph-search, .pb-hsearch, .m2-search, .cal-search, .nt-search, .of-ssearch, .pg-qwrap, .br-omniwrap, .ytx-q, input[type="search"]) {
+  border-color: transparent !important;
+  background: var(--gc-field) !important;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.16), inset 0 -1px 0 rgba(255,255,255,.3), inset 0 0 0 1px rgba(255,255,255,.1) !important;
+}
+:root[data-theme="light"].lg-on:not(.mobile):not(#_) .titlebar :is(.field, .fd-search, .st-search, .rm-search, .ph-search, .pb-hsearch, .m2-search, .cal-search, .nt-search, .of-ssearch, .pg-qwrap, .br-omniwrap, .ytx-q, input[type="search"]) { background: rgba(255,255,255,.35) !important; }
+/* (a search bar that is a box around an input: the input inside is plain) */
+html.lg-on :is(.pg-qwrap, .br-omniwrap) input { background: transparent !important; border: 0 !important; box-shadow: none !important; }
+/* YouTube's search is one capsule in two parts: the field on the left, its button on the right */
+html.lg-on .ytx-q { border-radius: 999px 0 0 999px; border-right: 0 !important; }
+html.lg-on .ytx-sbtn { border-radius: 0 999px 999px 0; }
 html.lg-on .switch { box-shadow: inset 0 1px 2px rgba(0,0,0,.25), inset 0 0 0 .5px var(--border2); }
 html.lg-on .switch::after { width: 22px; border-radius: 11px; background: linear-gradient(180deg, #fff, #f1f1f4); box-shadow: 0 2px 6px rgba(0,0,0,.3), inset 0 -1px 1px rgba(0,0,0,.06); }
 html.lg-on .switch.on::after { transform: translateX(12px); }
-html.lg-on .field { border-radius: 10px; }
+html.lg-on .cc-dot { box-shadow: inset 0 1px 1px rgba(255,255,255,.5), inset 0 0 0 .5px rgba(255,255,255,.25); }
+html.lg-on .cc-toggle.on .cc-dot { box-shadow: inset 0 1px 1px rgba(255,255,255,.6), 0 4px 12px color-mix(in srgb, var(--accent) 50%, transparent); }
+html.lg-on :is(.btn, .tbtn, .ob, .cc-toggle, .lp-item, .mh-app) { transition: transform .35s cubic-bezier(.3,1.5,.5,1), background .15s, box-shadow .2s; }
+html.lg-on :is(.btn, .tbtn, .ob):active { transform: scale(.95); }
 html.lg-on .menu { animation: lgIn .16s cubic-bezier(.2,.9,.3,1.15); transform-origin: top left; }
 @keyframes lgIn { from { opacity: 0; transform: scale(.96); } }
 
@@ -166,14 +241,10 @@ html.lg-on:not(.reduce-motion) :is(.cc-tile, #desk-widgets .widget):active { tra
 html.lg-on:not(.reduce-motion) :is(.toast:not(.static), .cc-tile, #desk-widgets .widget):hover {
   box-shadow: 0 2px 2px rgba(0,0,0,.1), 0 12px 24px -4px rgba(0,0,0,.2), 0 30px 56px -12px rgba(0,0,0,.28) !important;
 }
-/* small controls get the same bevel, so buttons look like little pieces of the same glass */
-html.lg-on .btn:not(.primary):not(.danger), html.lg-on .seg .tab.on, html.lg-on .cc-dot {
-  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 4px -2px rgba(0,0,0,.25), inset 0 0 0 .5px var(--border2), 0 1px 2px rgba(0,0,0,.14), 0 3px 8px rgba(0,0,0,.1);
-}
 
 /* 5. pressed in: what you click on glass sinks into it for a moment (the shade moves to the top lip, the light to the bottom) */
-html.lg-on :is(.btn:not(.primary):not(.danger), .tbtn, .seg .tab, .menu-item, .cc-toggle .cc-dot, .lp-item .icon-tile, .mh-app .icon-tile):active {
-  box-shadow: inset 0 2px 5px rgba(0,0,0,.3), inset 0 -1px 0 rgba(255,255,255,.4), inset 0 0 0 .5px var(--border2) !important;
+html.lg-on :is(.btn, .tbtn, .seg .tab, .menu-item, .cc-toggle .cc-dot, .lp-item .icon-tile, .mh-app .icon-tile, .ytx-btn, .ytx-pill, .ytx-sbtn, .as-get, .of-share, .mu-b, .rc-pb, .ph-nav, .wx-unit, .su-opt):active {
+  box-shadow: inset 0 2px 5px rgba(0,0,0,.3), inset 0 -1px 0 rgba(255,255,255,.4) !important;
   filter: brightness(.94);
 }
 html.lg-on :is(.btn, .tbtn, .seg .tab, .cc-dot):active { transform: scale(.95); }

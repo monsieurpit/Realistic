@@ -32,6 +32,23 @@ painted on the bevel. PatOS now does the same:
 - Over a busy wallpaper, regular glass frosts only 4px.
 - Pills for bars (Dock, sliders, Launchpad search, segmented controls), 30–34px corners for panels.
 
+## Buttons and search bars (2.2.3)
+
+Every button and search bar uses the same glass, light enough for hundreds of controls (css/glass.css, "controls"):
+
+- **Which:** the shared `.btn`, `.tbtn`, `.field`, `input[type=search]`, and the apps' own buttons and search bars (`.ytx-btn`,
+  `.ytx-pill`, `.ytx-q`/`.ytx-sbtn`, `.as-get`, `.of-share`, `.mu-b`, `.ph-nav`, `.wx-unit`, `.wx-search`, `.rc-pb`, `.su-opt`,
+  `.pg-qwrap`, `.br-omniwrap`, `.nt-search`, `.of-ssearch`, `.fd-search`, `.st-search`, `.rm-search`, `.ph-search`,
+  `.pb-hsearch`, `.m2-search`, `.cal-search`). Text links, list rows, the stopwatch's ring and the game's button keep their design.
+- **How:** a 1px border painted with a conic gradient (brightest upper left, second highlight lower right), a highlight on the
+  top half, a near-clear tint and a soft shadow. Because the rim is painted under the whole control, an opaque base (the
+  window's color) keeps it to the border. Buttons and search bars are capsules; fields are recessed (inner shade at the top,
+  the rim turned 180°). Colored buttons (primary, danger) are the same glass filled with their color.
+- **In a titlebar** (which is glass) controls have no opaque base: see-through, with the rim drawn as inset light.
+- **Over pictures** (Photos' arrows, Weather's controls, the recorder) controls use the dark glass and blur what is behind.
+- **No backdrop blur inside windows:** what is behind a button there is the window itself, so a blur would show nothing and
+  cost a compositing layer per button.
+
 ## Thick glass (2.2.2)
 
 Modeled on a thick gel slab lit from above (the reference was an iOS lock screen: a pink clock slab and a flashlight/camera

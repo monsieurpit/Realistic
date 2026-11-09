@@ -1,7 +1,7 @@
 [
   {
     "version": "2.2.3",
-    "beta": 1,
+    "beta": 2,
     "date": "2026-11-09",
     "title": {
       "en": "Liquid Glass you can see is 3D",
@@ -12,12 +12,14 @@
         "Liquid Glass is now clear like the newest iPhone: notifications, Control Center, widgets and the Dock add no color and almost no blur, so the wallpaper behind stays sharp and true",
         "Every glass edge is a thin line of light that is brightest on the upper left and catches a second highlight on the lower right, and the picture behind bends where it crosses into the glass",
         "Rounder everywhere: the Dock, sliders, Launchpad's search and segmented controls are pills, and panels have big, soft corners",
+        "Buttons and search bars in every app are made of the same glass: rounded capsules with a thin line of light around them; search bars and text fields sit a little into the glass; in window title bars they stay see-through, and over pictures (Photos, Weather) they blur what is behind them. This covers the shared buttons and fields and the apps' own (Patoogle, YouTube, App Store, Office, Music, Photos, Weather and more)",
         "Fixed: glass could look pink or too colorful over purple wallpapers (it boosted the colors behind it); it is now exactly the color of what is behind"
       ],
       "fr": [
         "Liquid Glass est maintenant clair comme sur le dernier iPhone : les notifications, le Centre de contrôle, les widgets et le Dock n’ajoutent aucune couleur et presque aucun flou, donc le fond d’écran derrière reste net et fidèle",
         "Chaque bord de verre est une fine ligne de lumière, plus vive en haut à gauche avec un second reflet en bas à droite, et l’image derrière se courbe là où elle entre dans le verre",
         "Plus arrondi partout : le Dock, les curseurs, la recherche du Launchpad et les contrôles segmentés sont des pilules, et les panneaux ont de grands coins doux",
+        "Les boutons et les barres de recherche de toutes les apps sont faits du même verre : des capsules arrondies entourées d’une fine ligne de lumière ; les barres de recherche et les champs de texte sont légèrement enfoncés dans le verre ; dans les barres de titre ils restent transparents, et sur les images (Photos, Météo) ils floutent ce qui est derrière. Cela couvre les boutons et champs communs et ceux des apps (Patoogle, YouTube, App Store, Office, Musique, Photos, Météo et plus)",
         "Corrigé : le verre pouvait paraître rose ou trop coloré sur les fonds violets (il renforçait les couleurs derrière) ; il a maintenant exactement la couleur de ce qui est derrière"
       ]
     }

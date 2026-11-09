@@ -122,3 +122,20 @@ test('one fixed light for all the glass, readable words over busy pictures, and 
   assert.match(pressed, /^rgba\(0, 0, 0, 0\.22\) 0px 3px 8px 0px inset/, 'pressed in: ' + pressed);
   assert.deepEqual(errors, []); await page.close();
 });
+
+test('buttons and search bars are glass: capsules with a light rim, see-through in a titlebar, recessed fields', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1280, height: 800 } }); const errors = await boot(page, srv.base, { fresh: true });
+  await page.evaluate(() => PatOS.launch('settings', { pane: 'appearance' })); await page.waitForSelector('.st-search'); await page.waitForTimeout(300);
+  const st = await page.evaluate(() => { const cs = (e) => getComputedStyle(e);
+    const search = document.querySelector('.st-search'), btn = document.querySelector('.window .st-main .btn:not(.primary):not(.danger)') || document.querySelector('.window .btn:not(.primary):not(.danger)');
+    return { searchBg: cs(search).backgroundImage, searchR: cs(search).borderTopLeftRadius, searchShadow: cs(search).boxShadow, btnBg: btn ? cs(btn).backgroundImage : null, btnR: btn ? cs(btn).borderTopLeftRadius : null }; });
+  assert.match(st.searchBg, /conic-gradient/, 'the search bar has the glass rim: ' + st.searchBg);
+  assert.equal(st.searchR, '999px', 'search bars are capsules');
+  assert.match(st.searchShadow, /inset/, 'fields are recessed');
+  if (st.btnBg) { assert.match(st.btnBg, /conic-gradient/, 'buttons have the glass rim'); assert.equal(st.btnR, '999px', 'buttons are capsules'); }
+  await page.evaluate(() => { PatOS.wm.closeAll(); PatOS.launch('finder'); }); await page.waitForSelector('.window .titlebar .tbtn'); await page.waitForTimeout(300);
+  const tb = await page.evaluate(() => { const t = document.querySelector('.window .titlebar .tbtn'); const c = getComputedStyle(t); return { bg: c.backgroundImage, r: c.borderTopLeftRadius }; });
+  assert.doesNotMatch(tb.bg, /conic-gradient/, 'a titlebar button has no opaque base: it is see-through: ' + tb.bg);
+  assert.equal(tb.r, '999px');
+  assert.deepEqual(errors, []); await page.close();
+});
