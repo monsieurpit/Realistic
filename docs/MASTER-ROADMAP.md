@@ -22,8 +22,8 @@ The governing plan is [`docs/LONG-TERM-ROADMAP.md`](LONG-TERM-ROADMAP.md) (writt
 | Task | Status | Notes |
 | --- | --- | --- |
 | 1. Architecture and quality audit | **Done** (this document) | |
-| 2. Quality baseline | Not started | **Recommended next** (see §10) |
-| 3–6. Reliability, recovery, storage, diagnostics | Not started | Some groundwork exists: write journal, session restore, Activity Monitor |
+| 2. Quality baseline | **Done** (3.0.0 beta 7) | `npm run baseline`, [`docs/QUALITY-BASELINE.md`](QUALITY-BASELINE.md), size budgets in `test/unit/budget.test.js` |
+| 3–6. Reliability, recovery, storage, diagnostics | Not started (Task 3 recommended next) | Some groundwork exists: write journal, session restore, Activity Monitor |
 | 8. Advanced window management | Partly there | Snap layouts picker, window groups, Stage Focus (3.0 beta 1) |
 | 11. Spotlight evolution | Largely there | Apps, file names and contents, notes, reminders, contacts, passwords (site/user only), websites, settings, math, units, timers, actions, clipboard. Missing: calendar events, messages, filters, an index |
 | 13. Design-system audit | Partly there | `css/design.css` tokens and component kit (3.0 beta 1); adoption is uneven across apps |
@@ -132,6 +132,8 @@ Focus, session restore, Timeline, clipboard history, legal gate, Sync, Backup, a
    change (debounced 250 ms), and text file contents are inline in the tree. Cost grows with the number and size of files;
    an autosaving editor triggers it every few seconds. [H] This becomes noticeable on Chromebooks with large Documents
    folders; a damaged `fs` record would affect every file. → Task 2 (measure), Task 5 (per-node or chunked records with migration).
+   **Measured in Task 2:** one edit plus a full save with 1,027 nodes costs 2 ms (desktop) to 14–18 ms (4× slower CPU), so the
+   performance side is not a problem at that scale (re-measure at 10,000 files); the single-record integrity risk remains.
 3. **Server data may not survive a redeploy** [H]. Sync, PatDrop and app-store data are JSON files under `PATOS_DATA`
    (default `./data`). On Railway the container filesystem is replaced on each deploy unless a volume is mounted; the repo
    has no Railway config saying which. If no volume is attached, code-based sync data and community-app submissions are lost
@@ -141,7 +143,7 @@ Focus, session restore, Timeline, clipboard history, legal gate, Sync, Backup, a
 4. **Reads deep-copy every time** [C]. `PatOS.store.get` returns `structuredClone` of the value (`js/core.js:79`). Hot paths read
    large lists repeatedly: Spotlight reads notes, reminders, contacts, bookmarks and up to 300 history entries on each
    keystroke (`js/shell.js`, `search`); Timeline reads the browser history on every history write. [H] Measurable typing lag
-   with big notes collections.
+   with big notes collections. **Measured in Task 2:** ≈2 ms per read of 300 notes on a 4× slower CPU: low priority.
 5. **Silent failures** [C]. 154 empty `catch (e) {}` blocks across `js/`. Many are deliberate (feature detection), but there is
    no central error log, so real failures disappear. → Task 3 / Task 6.
 6. **Listener and timer lifecycle** [C/H]. 589 `addEventListener` vs 69 `removeEventListener`, 48 `setInterval`. Most listeners
@@ -237,4 +239,7 @@ Order of the roadmap is kept, with two evidence-based notes:
    locations), and checking the Railway volume for finding 3.
 4. Security (Phase 10) should not wait for the end: S1/S2/S3 are cheap to start once the evaluators are unified.
 
-**Next recommended task: Task 2 — Establish a measurable quality baseline.**
+**Next recommended task (after Task 2): Task 3 — Core reliability improvements.** The baseline found no leak in the
+open/close cycle, but start-up long tasks (548 ms on the phone profile), 154 silent catches and unchecked listener cleanup
+make reliability the next foundation. Performance-specific targets from the baseline (first start on slow CPUs, Timeline and
+Notes open time, Spotlight's worst keystroke) are queued for Tasks 55–56.
