@@ -1,7 +1,7 @@
 [
   {
     "version": "2.3.1",
-    "beta": 5,
+    "beta": 6,
     "date": "2026-11-09",
     "title": {
       "en": "Drawn glass icons",
@@ -13,6 +13,7 @@
         "Terms of Use and Privacy Policy: everyone is asked to read and accept them once (new people and everyone updating) before using PatOS. They are always in Settings, from the small link at the bottom of the sidebar",
         "Photo Booth is now Camera, rebuilt like a phone camera: Photo, Video (with sound), Square and Burst modes, a screen flash, a 3 or 10 second timer, a grid, mirror, 1×/2×/3× zoom, filters you can see, the last shot one tap away, front and back cameras, and Space to shoot",
         "Scanner is redesigned: it outlines the page live while you aim, can take the scan by itself when the page holds still (Auto), shows each filter on your own page, and has a new page shelf",
+        "Every app looks richer: windows are a deep night in dark mode and a soft white with white cards in light mode, with a faint glow of your highlight color; Settings has drawn icons on colored glass tiles",
         "Every PatOS app has a new icon, drawn like real glass on a dark graphite tile: each picture is a see-through glass object in the app's color that glows brighter toward the bottom, with a bright rim on top and a soft halo of light around it (57 icons: Finder, Messages, Notes, Music, Photos, Calendar, Clock, Weather, Settings, the games and all the others)",
         "Docs, Sheets, Slides, Forms and Drive have their own glass icons (they no longer look like Google's)",
         "Files and folders are drawn in glass too: folders, documents with their file type, pictures, music and links",
@@ -27,6 +28,7 @@
         "Conditions d’utilisation et politique de confidentialité : tout le monde doit les lire et les accepter une fois (les nouveaux et tous ceux qui mettent à jour) avant d’utiliser PatOS. Elles sont toujours dans les Réglages, par le petit lien au bas de la barre latérale",
         "Photo Booth devient Caméra, refaite comme l’appareil photo d’un téléphone : modes Photo, Vidéo (avec le son), Carré et Rafale, flash d’écran, minuterie de 3 ou 10 secondes, grille, miroir, zoom 1×/2×/3×, filtres visibles, la dernière photo à portée de main, caméras avant et arrière, et Espace pour prendre la photo",
         "Le Numériseur est refait : il entoure la page en direct pendant que vous visez, peut prendre la numérisation tout seul quand la page ne bouge plus (Auto), montre chaque filtre sur votre propre page et a une nouvelle étagère de pages",
+        "Toutes les apps sont plus belles : les fenêtres sont d’un noir profond en mode sombre et d’un blanc doux avec des cartes blanches en mode clair, avec une légère lueur de votre couleur de mise en valeur ; les Réglages ont des icônes dessinées sur des tuiles de verre colorées",
         "Chaque app PatOS a une nouvelle icône, dessinée comme du vrai verre sur une tuile graphite sombre : chaque dessin est un objet en verre transparent de la couleur de l’app, qui brille de plus en plus vers le bas, avec un bord lumineux en haut et un doux halo de lumière autour (57 icônes : Finder, Messages, Notes, Musique, Photos, Calendrier, Horloge, Météo, Réglages, les jeux et toutes les autres)",
         "Documents, Feuilles, Présentations, Formulaires et Drive ont leurs propres icônes en verre (elles ne ressemblent plus à celles de Google)",
         "Les fichiers et les dossiers sont aussi dessinés en verre : dossiers, documents avec leur type, images, musique et liens",

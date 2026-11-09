@@ -123,7 +123,9 @@ html.lg-on:not(.mobile) .window.maximized { border-radius: 0; }
 html.lg-on:not(.mobile) .window:not(.tb-hidden) {
   background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none;
 }
-html.lg-on:not(.mobile) .window:not(.tb-hidden) > .win-body { background: linear-gradient(var(--win), var(--win)), var(--win-solid); }
+/* the window's own surface: a faint glow of the highlight color in its top left corner (seen wherever an app leaves its
+   background to the window), over the opaque window color */
+html.lg-on:not(.mobile) .window:not(.tb-hidden) > .win-body { background: radial-gradient(70% 38% at 0% 0%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%), linear-gradient(var(--win), var(--win)), var(--win-solid); }
 html.lg-on:not(.mobile) .window:not(.tb-hidden) > .titlebar {
   background: linear-gradient(180deg, rgba(255,255,255,.06), transparent), color-mix(in srgb, var(--toolbar) var(--g-titlebar), transparent);
   -webkit-backdrop-filter: blur(20px) saturate(1.8); backdrop-filter: blur(20px) saturate(1.8); /* (window titles sit on it: always well frosted) */
@@ -157,6 +159,13 @@ html.lg-on {
   --gc-rim: conic-gradient(from 0deg, rgba(255,255,255,1), rgba(0,0,0,.08) 60deg, rgba(0,0,0,.13) 110deg, rgba(0,0,0,.19) 180deg, rgba(0,0,0,.13) 250deg, rgba(255,255,255,.9) 318deg, rgba(255,255,255,1));
   --gc-rim-in: conic-gradient(from 180deg, rgba(255,255,255,1), rgba(0,0,0,.06) 60deg, rgba(0,0,0,.12) 110deg, rgba(0,0,0,.18) 180deg, rgba(0,0,0,.12) 250deg, rgba(255,255,255,.9) 318deg, rgba(255,255,255,1));
   --gc-shadow: 0 1px 2px rgba(0,0,0,.1), 0 3px 10px -3px rgba(0,0,0,.16);
+}
+/* apps that are always dark (Music, Camera, the games...) use the dark glass for their controls in every theme */
+html.lg-on .force-dark {
+  --gc-base: #16171c; --gc-tint: rgba(255,255,255,.07); --gc-tint-on: rgba(255,255,255,.14); --gc-hi: rgba(255,255,255,.1); --gc-field: rgba(0,0,0,.18);
+  --gc-rim: conic-gradient(from 0deg, rgba(255,255,255,.42), rgba(255,255,255,.16) 50deg, rgba(255,255,255,.08) 95deg, rgba(255,255,255,.3) 140deg, rgba(255,255,255,.12) 190deg, rgba(255,255,255,.06) 235deg, rgba(255,255,255,.22) 280deg, rgba(255,255,255,.7) 318deg, rgba(255,255,255,.42));
+  --gc-rim-in: conic-gradient(from 180deg, rgba(255,255,255,.3), rgba(255,255,255,.1) 50deg, rgba(255,255,255,.05) 95deg, rgba(255,255,255,.18) 140deg, rgba(255,255,255,.08) 190deg, rgba(255,255,255,.04) 235deg, rgba(255,255,255,.14) 280deg, rgba(255,255,255,.45) 318deg, rgba(255,255,255,.3));
+  --gc-shadow: 0 1px 2px rgba(0,0,0,.2), 0 3px 10px -3px rgba(0,0,0,.28);
 }
 /* controls over a picture use the dark glass in every theme (their words are white), blur what is behind them, and have no
    opaque base (the picture must show through) */
@@ -213,6 +222,7 @@ html.lg-on:not(.mobile):not(#_) .titlebar :is(.field, .fd-search, .st-search, .r
   box-shadow: inset 0 1px 3px rgba(0,0,0,.16), inset 0 -1px 0 rgba(255,255,255,.3), inset 0 0 0 1px rgba(255,255,255,.1) !important;
 }
 :root[data-theme="light"].lg-on:not(.mobile):not(#_) .titlebar :is(.field, .fd-search, .st-search, .rm-search, .ph-search, .pb-hsearch, .m2-search, .cal-search, .nt-search, .of-ssearch, .pg-qwrap, .br-omniwrap, .ytx-q, input[type="search"]) { background: rgba(255,255,255,.35) !important; }
+:root[data-theme="light"].lg-on:not(.mobile):not(#_) .force-dark .titlebar :is(.field, .fd-search, .st-search, .rm-search, .ph-search, .pb-hsearch, .m2-search, .cal-search, .nt-search, .of-ssearch, .pg-qwrap, .br-omniwrap, .ytx-q, input[type="search"]) { background: rgba(255,255,255,.1) !important; }
 /* (a search bar that is a box around an input: the input inside is plain) */
 html.lg-on :is(.pg-qwrap, .br-omniwrap) input { background: transparent !important; border: 0 !important; box-shadow: none !important; }
 /* YouTube's search is one capsule in two parts: the field on the left, its button on the right */

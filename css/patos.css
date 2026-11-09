@@ -9,21 +9,23 @@
   --spring: cubic-bezier(.3, 1.35, .5, 1);
 }
 :root[data-theme="dark"] {
-  --text: #f2f2f7; --text2: rgba(235,235,245,.62); --text3: rgba(235,235,245,.35);
-  --win: rgba(30,30,34,.92); --win-solid: #1e1e22; --sidebar: rgba(40,40,46,.72); --toolbar: rgba(44,44,50,.9);
-  --border: rgba(255,255,255,.1); --border2: rgba(255,255,255,.16); --hover: rgba(255,255,255,.08); --hover2: rgba(255,255,255,.14);
-  --field: rgba(255,255,255,.08); --menu: rgba(38,38,44,.82); --panel: rgba(36,36,42,.66);
+  /* a deep, slightly cool night instead of flat gray; sidebars float on it as translucent panels, cards are a step lighter */
+  --text: #f2f2f7; --text2: rgba(235,235,245,.64); --text3: rgba(235,235,245,.36);
+  --win: rgba(19,20,25,.95); --win-solid: #141519; --sidebar: rgba(255,255,255,.05); --toolbar: rgba(30,31,37,.9);
+  --border: rgba(255,255,255,.08); --border2: rgba(255,255,255,.14); --hover: rgba(255,255,255,.07); --hover2: rgba(255,255,255,.12);
+  --field: rgba(255,255,255,.07); --menu: rgba(30,31,37,.84); --panel: rgba(30,31,37,.66);
   --shadow: 0 22px 70px rgba(0,0,0,.55), 0 0 0 .5px rgba(255,255,255,.14);
-  --card: rgba(255,255,255,.05);
+  --card: rgba(255,255,255,.06);
   color-scheme: dark;
 }
 :root[data-theme="light"] {
-  --text: #1d1d1f; --text2: rgba(60,60,67,.66); --text3: rgba(60,60,67,.36);
-  --win: rgba(250,250,252,.94); --win-solid: #fafafc; --sidebar: rgba(232,232,238,.75); --toolbar: rgba(240,240,244,.92);
+  /* like a phone's grouped screens: a soft gray-white window, pure white cards on it */
+  --text: #1d1d1f; --text2: rgba(60,60,67,.68); --text3: rgba(60,60,67,.38);
+  --win: rgba(245,246,250,.96); --win-solid: #f5f6fa; --sidebar: rgba(0,0,0,.035); --toolbar: rgba(240,241,246,.92);
   --border: rgba(0,0,0,.1); --border2: rgba(0,0,0,.16); --hover: rgba(0,0,0,.05); --hover2: rgba(0,0,0,.09);
   --field: rgba(0,0,0,.05); --menu: rgba(246,246,248,.82); --panel: rgba(240,240,245,.7);
   --shadow: 0 22px 70px rgba(0,0,0,.28), 0 0 0 .5px rgba(0,0,0,.18);
-  --card: rgba(0,0,0,.035);
+  --card: rgba(255,255,255,.9);
   color-scheme: light;
 }
 * { box-sizing: border-box; }
@@ -360,8 +362,11 @@ html:not(.mobile) #desktop:has(#notif-center:not(.hidden)) #toasts { right: 382p
 .cc-dot .sym { width: 16px; height: 16px; }
 .sym.wx { width: 1.6em; height: 1.6em; stroke-width: 1.5; }
 .fd-si .sym, .st-ic .sym, .dv-si .sym { width: 16px; height: 16px; }
-.st-ic { background: var(--accent) !important; color: #fff; }
-.st-si.on .st-ic { background: rgba(255,255,255,.25) !important; }
+.st-ic { width: 24px; height: 24px; border-radius: 7px; display: grid; place-items: center; flex: none; color: #fff;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--ic, #8e8e93) 72%, #fff), var(--ic, #8e8e93) 55%, color-mix(in srgb, var(--ic, #8e8e93) 82%, #000)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.4), inset 0 -1px 1px rgba(0,0,0,.18), 0 1px 2px rgba(0,0,0,.25); }
+.st-ic .sym { width: 15px; height: 15px; filter: drop-shadow(0 1px 1px rgba(0,0,0,.25)); }
+.st-si.on .st-ic { box-shadow: inset 0 1px 0 rgba(255,255,255,.4), 0 0 0 1.5px rgba(255,255,255,.5); }
 
 /* Spotlight preview */
 .sp-box { display: grid; grid-template-columns: 1fr; }
