@@ -159,7 +159,7 @@ html.mobile, html.mobile body { overscroll-behavior: none; touch-action: manipul
 .mobile .calc-keys { gap: 14px; }
 .mobile .wx { padding-top: 14px; } .mobile .wx-top { position: static; margin-bottom: 10px; } .mobile .wx-search { flex: 1; }
 .mobile .term { font-size: 12px; }
-.mobile .pb-ctl { flex-wrap: wrap; justify-content: center; } .mobile .pb-fx { order: 3; flex-basis: 100%; }
+.mobile .cm-row { padding: 0 22px; } .mobile .cm-body .cm-top { padding-top: 6px; }
 .mobile .ttt-grid { grid-template-columns: repeat(3, 28vw); grid-template-rows: repeat(3, 28vw); }
 .mobile .rm { padding: 14px 16px; }
 .mobile.m-in-app.m-dark-app #m-indicator span { background: #fff; }

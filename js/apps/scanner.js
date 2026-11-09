@@ -9,7 +9,7 @@
   const { h } = PatOS;
   const T = (s) => PatOS.t(s);
 
-  PatOS.iconDefs.scanner = { bg: 'linear-gradient(160deg,#5ac8fa,#0a60ff)', svg: () => '<svg viewBox="0 0 64 64" width="100%" height="100%"><rect x="17" y="12" width="30" height="40" rx="4" fill="#fff"/><path d="M23 22h18M23 28h18M23 34h12" stroke="#0a60ff" stroke-width="3" stroke-linecap="round"/><path d="M10 20v-6a4 4 0 0 1 4-4h6M54 20v-6a4 4 0 0 0-4-4h-6M10 44v6a4 4 0 0 0 4 4h6M54 44v6a4 4 0 0 1-4 4h-6" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/><rect x="8" y="30" width="48" height="4" rx="2" fill="#ffd60a"/></svg>' };
+  if (!PatOS.glassIcons || !PatOS.glassIcons.scanner) PatOS.iconDefs.scanner = { bg: 'linear-gradient(160deg,#5ac8fa,#0a60ff)', svg: () => '<svg viewBox="0 0 64 64" width="100%" height="100%"><rect x="17" y="12" width="30" height="40" rx="4" fill="#fff"/><path d="M23 22h18M23 28h18M23 34h12" stroke="#0a60ff" stroke-width="3" stroke-linecap="round"/><path d="M10 20v-6a4 4 0 0 1 4-4h6M54 20v-6a4 4 0 0 0-4-4h-6M10 44v6a4 4 0 0 0 4 4h6M54 44v6a4 4 0 0 1-4 4h-6" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round"/><rect x="8" y="30" width="48" height="4" rx="2" fill="#ffd60a"/></svg>' };
 
   /* ---------- image helpers ---------- */
   const canvas = (w, hh) => { const c = document.createElement('canvas'); c.width = w; c.height = hh; return c; };
@@ -35,7 +35,7 @@
       if (size > bestSize) { bestSize = size; bestLab = i; }
     }
     const inset = () => [[0.06, 0.06], [0.94, 0.06], [0.94, 0.94], [0.06, 0.94]].map(([a, b]) => [a * src.width, b * src.height]);
-    if (bestSize < total * 0.12 || bestSize > total * 0.97) return inset();
+    if (bestSize < total * 0.12 || bestSize > total * 0.97) { const r = inset(); r.none = true; return r; } // (no page found)
     let tl = null, tr = null, br = null, bl = null;
     for (let i = 0; i < W * H; i++) {
       if (lab[i] !== bestLab) continue; const px = i % W, py = (i / W) | 0;
@@ -151,12 +151,32 @@
         const video = h('video', { class: 'sc-video', autoplay: true, playsinline: true, muted: true });
         const shutter = h('button', { class: 'sc-shutter', title: T('Take Picture'), 'aria-label': T('Take Picture') });
         const hint = h('div', { class: 'sc-hint' }, T('Put the page on a dark table, fill the frame, then press the button or Space.'));
-        stage.append(h('div', { class: 'sc-live' }, video, h('div', { class: 'sc-guide' }), hint), shutter);
+        // the page's outline, found live several times a second (like a phone scanner); with Auto, a page that holds still is taken
+        const outline = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); outline.setAttribute('class', 'sc-outline'); outline.setAttribute('preserveAspectRatio', 'xMidYMid meet');
+        const oPoly = document.createElementNS('http://www.w3.org/2000/svg', 'polygon'); outline.appendChild(oPoly);
+        const bAuto = h('button', { class: 'sc-auto' + (PatOS.store.get('scanAuto', true) ? ' on' : ''), html: PatOS.sym('scan') + '<span>' + T('Auto') + '</span>', title: T('Take the scan by itself when the page holds still') });
+        bAuto.onclick = () => { const on = !PatOS.store.get('scanAuto', true); PatOS.store.set('scanAuto', on); bAuto.classList.toggle('on', on); };
+        const shutterBar = h('div', { class: 'sc-bar' }, bAuto, shutter, h('button', { class: 'sc-pickc', html: PatOS.sym('image'), title: T('Choose Photos…'), onclick: () => pick() }));
+        stage.append(h('div', { class: 'sc-live' }, video, outline, hint), shutterBar);
         try {
           if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) throw new Error('none');
           stream = await navigator.mediaDevices.getUserMedia({ video: deviceId ? { deviceId: { exact: deviceId }, width: { ideal: 1920 }, height: { ideal: 1080 } } : { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } }, audio: false });
           if (!win.el.isConnected) return stopCam();
           video.srcObject = stream; await video.play().catch(() => {}); listCams();
+          let prev = null, still = 0, taken = false;
+          const look = setInterval(() => {
+            if (!stream || !video.isConnected || editing) return clearInterval(look);
+            if (!video.videoWidth) return;
+            outline.setAttribute('viewBox', '0 0 ' + video.videoWidth + ' ' + video.videoHeight);
+            const small = fitCanvas(video, 320), q = findCorners(small), k = video.videoWidth / small.width;
+            if (q.none) { outline.classList.remove('on'); prev = null; still = 0; return; }
+            const pts = q.map(([a, b]) => [a * k, b * k]);
+            oPoly.setAttribute('points', pts.map((c) => c.join(',')).join(' ')); outline.classList.add('on');
+            const moved = prev ? Math.max(...pts.map((c, i) => dist(c, prev[i]))) / video.videoWidth : 1;
+            still = moved < 0.025 ? still + 1 : 0; prev = pts;
+            outline.classList.toggle('steady', still >= 2);
+            if (!taken && still >= 3 && PatOS.store.get('scanAuto', true)) { taken = true; shutter.click(); }
+          }, 350);
         } catch (e) {
           stage.innerHTML = '';
           stage.appendChild(h('div', { class: 'sc-empty' }, h('div', { class: 'sc-bigic', html: PatOS.iconHTML('scanner') }), h('h2', {}, T('The camera isn’t available')),
@@ -202,10 +222,17 @@
           const up = () => { svg.removeEventListener('pointermove', mv); svg.removeEventListener('pointerup', up); svg.removeEventListener('pointercancel', up); };
           svg.addEventListener('pointermove', mv); svg.addEventListener('pointerup', up); svg.addEventListener('pointercancel', up);
         });
-        const fsel = h('div', { class: 'seg sc-filters' }, ...FILTERS.map(([k, l]) => { const b = h('button', { class: 'tab' + (pg.mode === k ? ' on' : '') }, T(l)); b.onclick = () => { pg.mode = k; mode = k; PatOS.store.set('scanFilter', k); fsel.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === b)); }; return b; }));
-        const bAuto = h('button', { class: 'btn' }, T('Find Edges')); bAuto.onclick = () => { pg.corners = findCorners(pg.src); draw(); };
-        const bAll = h('button', { class: 'btn' }, T('Whole Photo')); bAll.onclick = () => { pg.corners = [[0, 0], [W, 0], [W, H], [0, H]]; draw(); };
-        const bRot = h('button', { class: 'btn' }); const rotLabel = () => { bRot.textContent = T('Rotate') + (pg.turns ? ' · ' + pg.turns * 90 + '°' : ''); }; rotLabel(); bRot.onclick = () => { pg.turns = (pg.turns + 1) % 4; rotLabel(); };
+        const fsel = h('div', { class: 'sc-chips' }, ...FILTERS.map(([k, l]) => { const b = h('button', { class: 'tab sc-chip' + (pg.mode === k ? ' on' : ''), 'data-k': k }, h('canvas', { class: 'sc-chip-pv' }), h('span', {}, T(l))); b.onclick = () => { pg.mode = k; mode = k; PatOS.store.set('scanFilter', k); fsel.querySelectorAll('.tab').forEach((x) => x.classList.toggle('on', x === b)); }; return b; }));
+        // each filter chip shows this page with that filter (a small straightened copy)
+        const previews = () => { try {
+          const small = fitCanvas(pg.src, 360), k = small.width / W, flat = straighten(small, pg.corners.map(([a, b]) => [a * k, b * k]));
+          fsel.querySelectorAll('.sc-chip').forEach((b) => { const pv = b.querySelector('canvas'), out = filter(flat, b.dataset.k), r = 56 / Math.max(out.width, out.height);
+            pv.width = Math.round(out.width * r); pv.height = Math.round(out.height * r); pv.getContext('2d').drawImage(out, 0, 0, pv.width, pv.height); });
+        } catch (e) {} };
+        setTimeout(previews, 30); svg.addEventListener('pointerup', () => setTimeout(previews, 30));
+        const bAuto = h('button', { class: 'btn sc-ib', html: PatOS.sym('scan') + '<span>' + T('Find Edges') + '</span>' }); bAuto.onclick = () => { pg.corners = findCorners(pg.src); draw(); previews(); };
+        const bAll = h('button', { class: 'btn sc-ib', html: PatOS.sym('crop') + '<span>' + T('Whole Photo') + '</span>' }); bAll.onclick = () => { pg.corners = [[0, 0], [W, 0], [W, H], [0, H]]; draw(); previews(); };
+        const bRot = h('button', { class: 'btn sc-ib' }); const rotLabel = () => { bRot.innerHTML = PatOS.sym('rotate') + '<span>' + PatOS.esc(T('Rotate') + (pg.turns ? ' · ' + pg.turns * 90 + '°' : '')) + '</span>'; }; rotLabel(); bRot.onclick = () => { pg.turns = (pg.turns + 1) % 4; rotLabel(); };
         const bCancel = h('button', { class: 'btn' }, T(isNew ? 'Retake' : 'Cancel'));
         bCancel.onclick = () => { if (!isNew && pg._backup) Object.assign(pg, pg._backup); camera(); };
         const bKeep = h('button', { class: 'btn primary' }, T(isNew ? 'Keep Scan' : 'Done'));
@@ -228,9 +255,9 @@
         pages.forEach((pg, i) => {
           const t = h('div', { class: 'sc-th' + (editing === pg ? ' on' : '') }, h('img', { src: pg.thumb, alt: T('Page') + ' ' + (i + 1) }), h('span', {}, String(i + 1)),
             h('div', { class: 'sc-th-btns' },
-              h('button', { class: 'tbtn', title: T('Move Up'), disabled: i === 0, onclick: (e) => { e.stopPropagation(); [pages[i - 1], pages[i]] = [pages[i], pages[i - 1]]; drawStrip(); } }, '↑'),
-              h('button', { class: 'tbtn', title: T('Move Down'), disabled: i === pages.length - 1, onclick: (e) => { e.stopPropagation(); [pages[i + 1], pages[i]] = [pages[i], pages[i + 1]]; drawStrip(); } }, '↓'),
-              h('button', { class: 'tbtn', title: T('Delete'), onclick: (e) => { e.stopPropagation(); pages.splice(i, 1); drawStrip(); } }, '×')));
+              h('button', { class: 'tbtn', title: T('Move Up'), 'aria-label': T('Move Up'), html: PatOS.sym('up'), disabled: i === 0, onclick: (e) => { e.stopPropagation(); [pages[i - 1], pages[i]] = [pages[i], pages[i - 1]]; drawStrip(); } }),
+              h('button', { class: 'tbtn', title: T('Move Down'), 'aria-label': T('Move Down'), html: PatOS.sym('down'), disabled: i === pages.length - 1, onclick: (e) => { e.stopPropagation(); [pages[i + 1], pages[i]] = [pages[i], pages[i + 1]]; drawStrip(); } }),
+              h('button', { class: 'tbtn', title: T('Delete'), 'aria-label': T('Delete'), html: PatOS.sym('close'), onclick: (e) => { e.stopPropagation(); pages.splice(i, 1); drawStrip(); } })));
           t.onclick = () => edit(pg, false);
           strip.appendChild(t);
         });
