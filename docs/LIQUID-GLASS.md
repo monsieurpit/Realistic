@@ -32,6 +32,15 @@ painted on the bevel. PatOS now does the same:
 - Over a busy wallpaper, regular glass frosts only 4px.
 - Pills for bars (Dock, sliders, Launchpad search, segmented controls), 30–34px corners for panels.
 
+## Drawn glass icons (2.3.1)
+
+PatOS's own 57 app icons are drawn as glass objects (js/icons.js, `GLASS`), read from an iOS 26 dark-mode icon (a light bulb):
+a graphite tile lit from above, and a toolkit of four layers: `glass()` (a translucent shape in the app's color, see-through at
+the top and building to a luminous core near the bottom, a rim bright on top and fading down, and a halo of its color),
+`light()` (glowing strokes: halo, bright stroke, white-hot core), `solid()` (opaque parts with a gradient and a bright top
+edge) and `bead()` (small glass dots). Each icon's halos share one blur, so an icon costs one blur pass. They carry their own
+light, so the embossing filter is not used on them. Google and YouTube keep their logos; file icons are unchanged.
+
 ## App icons (2.3)
 
 Icons are small 3D tiles (css/glass.css, "app icons"): inset light for a bright top lip and a shaded bottom edge, a glossy

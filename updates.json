@@ -1,5 +1,26 @@
 [
   {
+    "version": "2.3.1",
+    "beta": 1,
+    "date": "2026-11-09",
+    "title": {
+      "en": "Drawn glass icons",
+      "fr": "Des icônes dessinées en verre"
+    },
+    "notes": {
+      "en": [
+        "Every PatOS app has a new icon, drawn like real glass on a dark graphite tile: each picture is a see-through glass object in the app's color that glows brighter toward the bottom, with a bright rim on top and a soft halo of light around it (57 icons: Finder, Messages, Notes, Music, Photos, Calendar, Clock, Weather, Settings, the games and all the others)",
+        "No more letters or emoji on icons: Solitaire's card suits, Elements, Sudoku, Translate and Dictionary are drawn",
+        "Google apps and YouTube keep their own logos"
+      ],
+      "fr": [
+        "Chaque app PatOS a une nouvelle icône, dessinée comme du vrai verre sur une tuile graphite sombre : chaque dessin est un objet en verre transparent de la couleur de l’app, qui brille de plus en plus vers le bas, avec un bord lumineux en haut et un doux halo de lumière autour (57 icônes : Finder, Messages, Notes, Musique, Photos, Calendrier, Horloge, Météo, Réglages, les jeux et toutes les autres)",
+        "Plus de lettres ni d’emoji sur les icônes : les enseignes du Solitaire, Éléments, Sudoku, Traduction et Dictionnaire sont dessinés",
+        "Les apps Google et YouTube gardent leurs propres logos"
+      ]
+    }
+  },
+  {
     "version": "2.3.0",
     "date": "2026-11-09",
     "title": {

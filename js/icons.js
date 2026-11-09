@@ -191,8 +191,223 @@
   }
   const wrapGlyph = (svg) => svg.replace(/(<svg\b[^>]*>)([\s\S]*)(<\/svg>\s*)$/, '$1<g class="pi-g">$2</g>$3');
 
+
+  /* ================= Glass icons =================
+     PatOS's own apps are drawn as glass objects on a graphite tile, read from an iOS 26 dark-mode icon (a light bulb):
+       - the tile: deep graphite, lit from above (lighter at the top, darkest at the bottom); no drawn edge
+       - glass(): a translucent shape in the app's color, see-through at the top and building to a luminous core near the bottom,
+         a thin rim that is bright on top and fades down the sides, and a soft halo of its color behind it
+       - light(): glowing strokes (the filament): a colored halo, a bright stroke and a white-hot core
+       - solid(): opaque parts (the bulb's base, metal, colored bands): a gradient and a bright top edge
+       - bead(): a small glass dot
+     Every halo of an icon goes through one shared blur, so an icon costs one blur pass. These icons carry their own light, so
+     the embossing filter (pi-gloss) is not used on them. Google and YouTube keep their own logos; file icons are unchanged. */
+  const hex = (c) => { c = c.replace('#', ''); return [0, 2, 4].map((i) => parseInt(c.substr(i, 2), 16)); };
+  const mix = (c, w, t) => { const a = hex(c), b = hex(w); return '#' + a.map((v, i) => Math.round(v + (b[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
+  const circ = (cx, cy, r) => `M${cx - r} ${cy}a${r} ${r} 0 1 0 ${2 * r} 0a${r} ${r} 0 1 0 ${-2 * r} 0z`;
+  const ell = (cx, cy, rx, ry) => `M${cx - rx} ${cy}a${rx} ${ry} 0 1 0 ${2 * rx} 0a${rx} ${ry} 0 1 0 ${-2 * rx} 0z`;
+  const rr = (x, y, w, h, r) => `M${x + r} ${y}h${w - 2 * r}a${r} ${r} 0 0 1 ${r} ${r}v${h - 2 * r}a${r} ${r} 0 0 1 ${-r} ${r}h${-(w - 2 * r)}a${r} ${r} 0 0 1 ${-r} ${-r}v${-(h - 2 * r)}a${r} ${r} 0 0 1 ${r} ${-r}z`;
+  function gear(cx, cy, n, ro, ri, hole) {
+    let d = ''; const st = Math.PI * 2 / n;
+    for (let i = 0; i < n; i++) {
+      const a = i * st, pts = [[a - st * .22, ro], [a + st * .22, ro], [a + st * .32, ri], [a + st * .68, ri]];
+      pts.forEach(([t, r], j) => { d += (i === 0 && j === 0 ? 'M' : 'L') + (cx + r * Math.sin(t)).toFixed(2) + ' ' + (cy - r * Math.cos(t)).toFixed(2); });
+    }
+    return d + 'Z' + circ(cx, cy, hole);
+  }
+  const GT = 'radial-gradient(125% 90% at 50% -6%, #48484e 0%, #28282c 42%, #141416 100%)';
+  function painter(id) {
+    const P = 'gi-' + id.replace(/[^a-z0-9]/gi, '') + '-'; let defs = '', halos = '', k = 0;
+    function glass(d, col, o = {}) {
+      const i = P + (k++), lite = mix(col, '#ffffff', .62), core = o.core || [50, 80], fr = o.evenodd ? ' fill-rule="evenodd"' : '';
+      defs += `<linearGradient id="${i}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity="${o.top != null ? o.top : .45}"/><stop offset=".6" stop-color="${col}" stop-opacity=".8"/><stop offset="1" stop-color="${lite}" stop-opacity=".97"/></linearGradient>` +
+        `<radialGradient id="${i}c" cx="${core[0]}%" cy="${core[1]}%" r="${o.coreR || 55}%"><stop offset="0" stop-color="#fff" stop-opacity="${o.glow != null ? o.glow : .8}"/><stop offset=".45" stop-color="${lite}" stop-opacity=".3"/><stop offset="1" stop-color="${lite}" stop-opacity="0"/></radialGradient>` +
+        `<linearGradient id="${i}r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".45" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity=".12"/></linearGradient>`;
+      if (o.halo !== 0) halos += `<path d="${d}"${fr} fill="${col}" opacity="${o.halo || .5}"/>`;
+      return `<path d="${d}"${fr} fill="url(#${i}b)"/><path d="${d}"${fr} fill="url(#${i}c)"/><path d="${d}"${fr} fill="none" stroke="url(#${i}r)" stroke-width="${o.rim || 1.1}" stroke-linejoin="round"/>`;
+    }
+    function solid(d, top, bottom, o = {}) {
+      const i = P + (k++);
+      defs += `<linearGradient id="${i}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${top}"/><stop offset="1" stop-color="${bottom}"/></linearGradient>`;
+      return `<path d="${d}" fill="url(#${i}s)"${o.evenodd ? ' fill-rule="evenodd"' : ''}/>` + (o.edge === 0 ? '' : `<path d="${d}" fill="none" stroke="#fff" stroke-opacity="${o.edge || .4}" stroke-width=".8"/>`);
+    }
+    function light(d, col, w, o = {}) {
+      halos += `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w * 2.6}" stroke-linecap="round" stroke-linejoin="round" opacity="${o.halo || .6}"/>`;
+      return `<path d="${d}" fill="none" stroke="${mix(col, '#ffffff', .5)}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>` +
+        `<path d="${d}" fill="none" stroke="#fff" stroke-width="${(w * .42).toFixed(2)}" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>`;
+    }
+    const bead = (cx, cy, r, col) => glass(circ(cx, cy, r), col, { core: [38, 32], coreR: 75, top: .75, glow: .9, rim: .8 });
+    const g = (t, s) => `<g transform="${t}">${s}</g>`;
+    const done = (body) => `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs>${defs}<filter id="${P}h" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.6"/></filter></defs><g filter="url(#${P}h)">${halos}</g>${body}</svg>`;
+    return { glass, solid, light, bead, g, done };
+  }
+  const draw = (fn) => ({ bg: GT, glass: true, svg: (arg) => fn(arg) });
+  const RAINBOW = ['#ff453a', '#ff9f0a', '#ffd60a', '#30d158', '#64d2ff', '#0a84ff', '#5e5ce6', '#bf5af2', '#ff375f'];
+  const GLASS = {
+    finder: draw(() => { const p = painter('finder'); return p.done(
+      p.glass('M11 21a5 5 0 0 1 5-5h9.5l5 5H48a5 5 0 0 1 5 5v19a6 6 0 0 1-6 6H17a6 6 0 0 1-6-6z', '#2f8bff') +
+      p.light('M26 31v4M38 31v4', '#cfe6ff', 2.2) + p.light('M24 41q8 6 16 0', '#9fd0ff', 2)); }),
+    launchpad: draw(() => { const p = painter('launchpad'); let s = '';
+      RAINBOW.forEach((c, i) => { s += p.glass(rr(12 + (i % 3) * 14.5, 12 + Math.floor(i / 3) * 14.5, 11, 11, 3.5), c, { core: [40, 35], coreR: 75, top: .7, rim: .8 }); });
+      return p.done(s); }),
+    browser: draw(() => { const p = painter('browser'); return p.done(
+      p.solid('M37.6 40.4l3.6-3.6 11.6 11.6a2.6 2.6 0 0 1-3.6 3.6z', '#ffd36b', '#e07b00') +
+      p.glass(circ(28, 28, 15) + circ(28, 28, 9.5), '#c36bff', { evenodd: 1, core: [60, 85] }) +
+      p.glass(circ(28, 28, 9.5), '#ff7ad9', { top: .12, glow: .35, halo: 0, rim: .5 }) + p.light('M22.5 24.5a7 7 0 0 1 5.5-4', '#ffd9f5', 1.4)); }),
+    messages: draw(() => { const p = painter('messages'); return p.done(
+      p.glass('M32 12C19.8 12 10 19.8 10 29.5c0 5.6 3.3 10.6 8.4 13.8-.4 3-2 5.7-4.4 7.7 4.4.4 8.6-1 11.6-3.7 2 .5 4.2.7 6.4.7 12.2 0 22-7.8 22-17.5S44.2 12 32 12z', '#30d158') +
+      p.light('M23 30h.01M32 30h.01M41 30h.01', '#d9ffe4', 3.6, { halo: .4 })); }),
+    notes: draw(() => { const p = painter('notes'); return p.done(
+      p.glass(rr(14, 10, 36, 44, 6), '#f5c542', { top: .3 }) + p.solid('M20 10h24a6 6 0 0 1 6 6v4H14v-4a6 6 0 0 1 6-6z', '#ffd84a', '#f0a500') +
+      p.light('M20 29h24M20 36h24M20 43h16', '#fff1b8', 1.2, { halo: .35 })); }),
+    textedit: draw(() => { const p = painter('textedit'); return p.done(
+      p.glass(rr(13, 10, 32, 44, 5), '#a9bdd8', { top: .3 }) + p.light('M19 21h20M19 28h20M19 35h14M19 42h17', '#e8f0ff', 1.2, { halo: .3 }) +
+      p.solid('M49 15.5l4 4-19.5 19.5-6.2 2.2 2.2-6.2z', '#ffd36b', '#e07b00') + p.solid('M47 17.5l4 4 2-2a2.8 2.8 0 0 0-4-4z', '#ff8a7a', '#d0402f')); }),
+    calculator: draw(() => { const p = painter('calculator'); let s = p.glass(rr(13, 9, 38, 10, 3), '#8e9aa8', { top: .3, glow: .4 });
+      for (let r = 0; r < 4; r++) for (let c = 0; c < 4; c++) s += p.glass(rr(13 + c * 10, 22 + r * 8.5, 8, 6.6, 2.6), c === 3 ? '#ff9f0a' : r === 0 ? '#c7c7cc' : '#6e7480', { core: [40, 35], coreR: 75, top: .65, rim: .7, halo: c === 3 ? .5 : .25 });
+      return p.done(s); }),
+    terminal: draw(() => { const p = painter('terminal'); return p.done(
+      p.glass(rr(9, 13, 46, 38, 7), '#5f6b66', { top: .25, glow: .25, halo: .2 }) +
+      p.light('M18 26l8 7-8 7', '#32d74b', 2.6) + p.light('M30 41h13', '#32d74b', 2.6)); }),
+    calendar: draw(() => { const p = painter('calendar'); const day = new Date().getDate(), wkd = new Date().toLocaleDateString(undefined, { weekday: 'short' }).toUpperCase();
+      return p.done(p.glass(rr(10, 10, 44, 44, 8), '#d9dbe3', { top: .25, glow: .55 }) + p.solid('M18 10h28a8 8 0 0 1 8 8v4H10v-4a8 8 0 0 1 8-8z', '#ff6a5f', '#d82c22') +
+        `<text x="32" y="19.6" font-size="7.4" font-family="system-ui,sans-serif" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing=".5">${wkd}</text>` +
+        `<text x="32" y="47" font-size="24" font-family="system-ui,sans-serif" font-weight="600" fill="#fff" text-anchor="middle" filter="url(#gi-calendar-h)" opacity=".6">${day}</text>` +
+        `<text x="32" y="47" font-size="24" font-family="system-ui,sans-serif" font-weight="600" fill="#fff" text-anchor="middle">${day}</text>`); }),
+    clock: draw(() => { const p = painter('clock'); const d = new Date(), h = (d.getHours() % 12 + d.getMinutes() / 60) * 30, m = d.getMinutes() * 6;
+      let t = ''; for (let i = 0; i < 12; i++) t += `<path d="M32 13.5v${i % 3 ? 2.6 : 4}" stroke="#fff" stroke-opacity="${i % 3 ? .45 : .85}" stroke-width="${i % 3 ? 1 : 1.6}" stroke-linecap="round" transform="rotate(${i * 30} 32 32)"/>`;
+      return p.done(p.glass(circ(32, 32, 21), '#b8c4d6', { top: .25, core: [50, 50], coreR: 60, glow: .45 }) + t +
+        p.g(`rotate(${h} 32 32)`, p.light('M32 32V21', '#ffb340', 2.6)) + p.g(`rotate(${m} 32 32)`, p.light('M32 32V15', '#ffd08a', 1.7)) + p.bead(32, 32, 2.2, '#ff9f0a')); }),
+    weather: draw(() => { const p = painter('weather'); return p.done(
+      p.glass(circ(25, 25, 10), '#ffcc33', { core: [45, 45], coreR: 70, glow: .95, halo: .8 }) +
+      p.glass('M22 50a9 9 0 0 1-.6-18 12 12 0 0 1 23 2.4A8 8 0 0 1 45 50z', '#a9cfff', { top: .55, core: [50, 70] })); }),
+    music: draw(() => { const p = painter('music'); return p.done(
+      p.glass('M26 15l22-5.2v30a6.6 5.6 0 1 1-3.4-4.8V19l-15.2 3.6v22.5a6.6 5.6 0 1 1-3.4-4.8z', '#ff375f', { core: [40, 85] })); }),
+    photos: draw(() => { const p = painter('photos'); let s = '';
+      ['#ff9f0a', '#ffd60a', '#30d158', '#64d2ff', '#0a84ff', '#bf5af2', '#ff375f', '#ff453a'].forEach((c, i) => { s += p.g(`rotate(${i * 45} 32 32)`, p.glass(ell(32, 19.5, 6.2, 10.5), c, { top: .55, core: [50, 30], coreR: 70, rim: .8, halo: .35 })); });
+      return p.done(s); }),
+    paint: draw(() => { const p = painter('paint'); return p.done(
+      p.glass('M32 11C19 11 10 20 10 31c0 10.5 8.5 19 19 19 4 0 5.2-3.2 3.2-6-2.2-3 0-6.4 4-6.4H42c6.6 0 12-4.4 12-11.2C54 17.4 44.6 11 32 11z', '#e9c79a', { top: .4 }) +
+      p.bead(21, 28, 3.6, '#ff453a') + p.bead(27, 19.5, 3.6, '#ffd60a') + p.bead(37.5, 18.5, 3.6, '#30d158') + p.bead(45.5, 25.5, 3.6, '#0a84ff')); }),
+    photobooth: draw(() => { const p = painter('photobooth'); return p.done(
+      p.glass(rr(10, 20, 44, 30, 7), '#ff453a', { top: .5 }) + p.solid(rr(23, 15, 18, 7, 2.5), '#ff7a70', '#c0251c') +
+      p.glass(circ(32, 35, 10.5), '#3a3d48', { top: .7, glow: .3, halo: 0 }) + p.glass(circ(32, 35, 6), '#0a84ff', { core: [38, 32], coreR: 75, glow: .9 }) + p.bead(46, 25.5, 1.8, '#ffd60a')); }),
+    reminders: draw(() => { const p = painter('reminders'); return p.done(
+      p.bead(18, 21, 4.4, '#0a84ff') + p.bead(18, 32, 4.4, '#ff453a') + p.bead(18, 43, 4.4, '#ff9f0a') +
+      p.light('M27 21h21M27 32h21M27 43h21', '#d1d1d6', 1.6, { halo: .25 })); }),
+    settings: draw(() => { const p = painter('settings'); return p.done(
+      p.glass(gear(32, 32, 9, 22, 17, 7.5), '#b6bdc9', { evenodd: 1, top: .4, core: [50, 85] }) + p.glass(circ(32, 32, 4), '#e3e8f0', { halo: 0, glow: .6 })); }),
+    activity: draw(() => { const p = painter('activity'); return p.done(
+      p.glass(rr(9, 13, 46, 38, 7), '#3f5a47', { top: .25, glow: .25, halo: .2 }) + p.light('M14 34h8l4-10 6 19 5-13 3 4h10', '#30d158', 2.2)); }),
+    galaxy: draw(() => { const p = painter('galaxy'); return p.done(
+      p.light('M32 32c7-1 11-7 8.5-13-2.4-5.4-10-8-16.5-4.5', '#bf5af2', 2.4) + p.light('M32 32c-7 1-11 7-8.5 13 2.4 5.4 10 8 16.5 4.5', '#5e9bff', 2.4) +
+      p.light('M32 32c5 4 12 4 15.5-1M32 32c-5-4-12-4-15.5 1', '#ff7ad9', 1.4, { halo: .45 }) + p.glass(circ(32, 32, 5), '#ffe7ff', { core: [50, 50], coreR: 70, glow: 1, halo: .9 })); }),
+    orbrunner: draw(() => { const p = painter('orbrunner'); return p.done(
+      p.light('M14 53l14-17M50 53L36 36M19 47h26M25 40.5h14', '#ff2d92', 1.6) + p.glass(circ(32, 23, 8.5), '#38e1ff', { core: [40, 35], coreR: 75, glow: 1, halo: .9 })); }),
+    studio: draw(() => { const p = painter('studio'); return p.done(
+      p.glass('M14 22l18 10v21L14 43z', '#2f6bff', { top: .6 }) + p.glass('M50 22L32 32v21l18-10z', '#1b45c9', { top: .6 }) + p.glass('M32 11l18 11-18 10-18-10z', '#7fdcff', { top: .7, core: [50, 50] })); }),
+    tictactoe: draw(() => { const p = painter('tictactoe'); return p.done(
+      p.light('M26 13v38M38 13v38M13 26h38M13 38h38', '#8e8e93', 1.2, { halo: .2 }) + p.light('M15.5 15.5l7 7M22.5 15.5l-7 7M41.5 41.5l7 7M48.5 41.5l-7 7', '#ff453a', 2.2) +
+      p.glass(circ(45, 19, 4.4) + circ(45, 19, 2.4), '#0a84ff', { evenodd: 1 }) + p.glass(circ(19, 45, 4.4) + circ(19, 45, 2.4), '#0a84ff', { evenodd: 1 })); }),
+    about: draw(() => { const p = painter('about'); return p.done(
+      p.glass(circ(32, 32, 21), '#0a84ff', { top: .45 }) + p.light('M32 29v13', '#e6f2ff', 3) + p.light('M32 21.5h.01', '#e6f2ff', 4)); }),
+    trash: draw(() => { const p = painter('trash'); return p.done(
+      p.glass('M18 22h28l-2.6 27a5 5 0 0 1-5 4.5H25.6a5 5 0 0 1-5-4.5z', '#c7ccd4', { top: .3 }) + p.solid(rr(14, 15.5, 36, 5.5, 2.75), '#eef0f4', '#9aa1ad') +
+      p.light('M27 28l1 19M37 28l-1 19', '#ffffff', 1, { halo: .2 })); }),
+    maps: draw(() => { const p = painter('maps'); return p.done(
+      p.glass('M10 18l14-5 16 5 14-5v34l-14 5-16-5-14 5z', '#5ec98a', { top: .5 }) + p.light('M24 13v34M40 18v34', '#e6fff0', .9, { halo: .2 }) +
+      p.light('M10 38c10-6 22 4 44-6', '#ffd36b', 2) + p.glass('M32 12a8.5 8.5 0 0 0-8.5 8.5c0 6.3 8.5 14.5 8.5 14.5s8.5-8.2 8.5-14.5A8.5 8.5 0 0 0 32 12z', '#ff3b30', { core: [45, 35] }) + p.bead(32, 20.5, 2.8, '#ffffff')); }),
+    translate: draw(() => { const p = painter('translate'); return p.done(
+      p.glass('M12 14h22a5 5 0 0 1 5 5v12a5 5 0 0 1-5 5H22l-7 5v-5h-3a5 5 0 0 1-5-5V19a5 5 0 0 1 5-5z', '#0a84ff') +
+      p.glass('M30 30h22a5 5 0 0 1 5 5v10a5 5 0 0 1-5 5h-3v5l-7-5H30a5 5 0 0 1-5-5V35a5 5 0 0 1 5-5z', '#8e8e93', { top: .6 }) +
+      p.light('M14 22h16M18 28h8', '#e6f2ff', 1.6) + p.light('M32 38c4 0 6 6 10 6s6-6 10-6', '#ffffff', 1.6)); }),
+    appstore: draw(() => { const p = painter('appstore'); return p.done(
+      p.glass('M14 22h36l-3 26a5 5 0 0 1-5 4.4H22a5 5 0 0 1-5-4.4z', '#2f8bff') + p.light('M24 22v-3a8 8 0 0 1 16 0v3', '#cfe6ff', 2.2) +
+      p.light('M32 31.5l1.8 4 4.2.4-3.2 2.8 1 4.2-3.8-2.2-3.8 2.2 1-4.2-3.2-2.8 4.2-.4z', '#ffffff', 1.2)); }),
+    code: draw(() => { const p = painter('code'); return p.done(
+      p.glass(rr(9, 12, 46, 40, 8), '#3a4a7a', { top: .3, glow: .3, halo: .2 }) + p.light('M24 23l-9 9 9 9M40 23l9 9-9 9', '#64d2ff', 2.6) + p.light('M35 19l-6 26', '#bf5af2', 2.2)); }),
+    piano: draw(() => { const p = painter('piano'); let s = '';
+      for (let i = 0; i < 5; i++) s += p.glass(rr(10 + i * 9, 14, 8, 36, 2.5), '#e9ecf2', { top: .45, core: [50, 90], rim: .7, halo: .2 });
+      [17.5, 26.5, 44.5].forEach((x) => { s += p.solid(rr(x - 2.6, 14, 5.2, 21, 1.6), '#4a4a50', '#0e0e10', { edge: .25 }); });
+      return p.done(s); }),
+    flashcards: draw(() => { const p = painter('flashcards'); return p.done(
+      p.g('rotate(-10 32 32)', p.glass(rr(12, 17, 34, 24, 4), '#bf5af2', { top: .55 })) + p.g('rotate(6 32 32)', p.glass(rr(18, 23, 34, 24, 4), '#ff9f0a')) +
+      p.light('M35 29.5l1.6 3.6 3.9.4-2.9 2.6.9 3.8-3.5-2-3.5 2 .9-3.8-2.9-2.6 3.9-.4z', '#fff3d6', 1.1)); }),
+    voicememos: draw(() => { const p = painter('voicememos'); let d = ''; [6, 12, 20, 28, 18, 24, 12, 8, 16, 6].forEach((hh, i) => { d += `M${14 + i * 4} ${32 - hh / 2}v${hh}`; });
+      return p.done(p.light(d, '#ff375f', 2.4)); }),
+    stickies: draw(() => { const p = painter('stickies'); return p.done(
+      p.glass('M12 12h40v28L40 52H12z', '#ffd60a', { top: .55 }) + p.solid('M40 52V40h12z', '#fff3a0', '#e0b400') + p.light('M18 22h26M18 29h26M18 36h16', '#fff6c8', 1.2, { halo: .3 })); }),
+    typing: draw(() => { const p = painter('typing'); let s = p.glass(rr(8, 20, 48, 26, 6), '#7d8696', { top: .35, glow: .35 }); let d = '';
+      for (let r = 0; r < 3; r++) for (let c = 0; c < 7; c++) d += `M${14 + c * 6} ${27 + r * 6}h.01`;
+      return p.done(s + p.light(d, '#dfe6f2', 2.6, { halo: .2 }) + p.light('M22 44.5h20', '#64d2ff', 2)); }),
+    dictionary: draw(() => { const p = painter('dictionary'); return p.done(
+      p.solid(rr(17, 13, 32, 40, 4), '#f4f1ea', '#c9c3b4') + p.glass(rr(13, 10, 32, 40, 4), '#c4302b', { top: .6 }) +
+      p.light('M21 22h16M21 28h12', '#ffd0cc', 1.4, { halo: .3 }) + p.solid('M36 10h5v16l-2.5-2-2.5 2z', '#ffd36b', '#e07b00')); }),
+    contacts: draw(() => { const p = painter('contacts'); return p.done(
+      p.glass(circ(32, 24, 8), '#c8a27a', { core: [45, 40] }) + p.glass('M16 50c1.5-9 8-14 16-14s14.5 5 16 14z', '#a8835c')); }),
+    freeform: draw(() => { const p = painter('freeform'); return p.done(
+      p.glass(rr(10, 12, 20, 20, 4), '#ffd60a', { top: .6 }) + p.glass(circ(42, 22, 9), '#64d2ff') +
+      p.light('M14 46c6-8 12 4 18-3s10-6 18 1', '#ff375f', 2.4)); }),
+    preview: draw(() => { const p = painter('preview'); return p.done(
+      p.g('rotate(-8 32 32)', p.glass(rr(12, 14, 30, 36, 4), '#c7ccd4', { top: .3 })) + p.glass(rr(22, 18, 30, 34, 4), '#e6ebf2', { top: .35 }) +
+      p.glass('M25 46l7-9 5 6 4-4 8 7z', '#30d158', { halo: .3 }) + p.bead(43, 27, 3, '#ffd60a')); }),
+    chess: draw(() => { const p = painter('chess'); return p.done(
+      p.glass('M32 11a6.5 6.5 0 0 0-3.8 11.8C25.6 25 24.6 28.4 24.6 31h14.8c0-2.6-1-6-3.6-8.2A6.5 6.5 0 0 0 32 11zM23 47c0-6 3.6-11.4 5.8-14.6h6.4C37.4 35.6 41 41 41 47z', '#d9d9de', { top: .4 }) +
+      p.solid(rr(18, 47, 28, 6, 2.5), '#f0f0f4', '#8e8e96')); }),
+    slither: draw(() => { const p = painter('slither'); return p.done(
+      p.light('M14 47c8 0 8-10 16-10s8 10 16 0c4-5 2-14-6-16-6-1.5-10 3-14 1', '#30d158', 4, { halo: .5 }) + p.bead(26, 22, 4.2, '#7dffa0')); }),
+    screenshot: draw(() => { const p = painter('screenshot'); return p.done(
+      p.glass(circ(32, 32, 20) + circ(32, 32, 15), '#c7ccd4', { evenodd: 1, top: .4 }) + p.glass(circ(32, 32, 11), '#ff3b30', { core: [40, 35], coreR: 75, glow: .9, halo: .9 })); }),
+    grapher: draw(() => { const p = painter('grapher'); return p.done(
+      p.light('M12 32h40M32 12v40', '#8e8e93', 1.1, { halo: .15 }) + p.light('M12 40c6 0 8-22 14-22s7 28 13 28 8-18 13-18', '#30d158', 2.4) + p.light('M12 22c10 4 30 4 40 20', '#64d2ff', 1.6, { halo: .4 })); }),
+    elements: draw(() => { const p = painter('elements'); return p.done(
+      p.g('rotate(0 32 32)', p.light(ell(32, 32, 21, 8), '#64d2ff', 1.2, { halo: .4 })) + p.g('rotate(60 32 32)', p.light(ell(32, 32, 21, 8), '#64d2ff', 1.2, { halo: .4 })) +
+      p.g('rotate(120 32 32)', p.light(ell(32, 32, 21, 8), '#64d2ff', 1.2, { halo: .4 })) + p.glass(circ(32, 32, 5), '#ff9f0a', { core: [40, 35], coreR: 75, glow: 1, halo: .9 })); }),
+    focus: draw(() => { const p = painter('focus'); return p.done(
+      p.glass('M38 11a21 21 0 1 0 15 30A17 17 0 0 1 38 11z', '#7d7aff', { core: [40, 70] }) + p.bead(46, 18, 1.6, '#ffffff') + p.bead(50, 26, 1.1, '#ffffff')); }),
+    journal: draw(() => { const p = painter('journal'); return p.done(
+      p.glass(rr(14, 9, 36, 46, 5), '#ff6f61', { top: .5 }) + p.solid('M20 9h4v46h-4z', '#ffd0c8', '#e06a5c', { edge: 0 }) + p.light('M29 22h14M29 29h14M29 36h9', '#ffe2dc', 1.3, { halo: .3 }) +
+      p.solid('M41 9h5v15l-2.5-2-2.5 2z', '#ffd36b', '#e07b00')); }),
+    sudoku: draw(() => { const p = painter('sudoku'); return p.done(
+      p.glass(rr(11, 11, 42, 42, 6), '#8e9aa8', { top: .2, glow: .3, halo: .2 }) + p.light('M25 11v42M39 11v42M11 25h42M11 39h42', '#c7ccd4', 1, { halo: .15 }) +
+      p.bead(18, 18, 3, '#64d2ff') + p.bead(46, 32, 3, '#64d2ff') + p.bead(32, 46, 3, '#ff9f0a') + p.bead(32, 18, 3, '#30d158')); }),
+    news: draw(() => { const p = painter('news'); return p.done(
+      p.glass(rr(10, 12, 44, 40, 6), '#ff375f', { top: .5 }) + p.glass(rr(16, 19, 15, 12, 2), '#ffd0da', { halo: 0, top: .6 }) +
+      p.light('M36 21h12M36 27h12M16 37h32M16 44h24', '#ffe3ea', 1.4, { halo: .3 })); }),
+    books: draw(() => { const p = painter('books'); return p.done(
+      p.glass('M32 18c-6-4-13-4-20-2v32c7-2 14-2 20 2z', '#ff9f0a') + p.glass('M32 18c6-4 13-4 20-2v32c-7-2-14-2-20 2z', '#ffb340') + p.light('M32 18v32', '#fff1d6', 1, { halo: .3 })); }),
+    radio: draw(() => { const p = painter('radio'); return p.done(
+      p.light('M24 24a11 11 0 0 0 0 16M40 24a11 11 0 0 1 0 16M18 18a20 20 0 0 0 0 28M46 18a20 20 0 0 1 0 28', '#ff2d55', 2.2) + p.glass(circ(32, 32, 5.5), '#ff7a95', { core: [40, 35], coreR: 75, glow: 1, halo: .9 })); }),
+    videos: draw(() => { const p = painter('videos'); return p.done(
+      p.glass(rr(9, 16, 46, 32, 7), '#5e6b8a', { top: .35, glow: .35 }) + p.glass('M27 24v16l13-8z', '#ffffff', { top: .8, glow: 1, halo: .7, rim: .6 })); }),
+    solitaire: draw(() => { const p = painter('solitaire'); return p.done(
+      p.g('rotate(-12 32 34)', p.glass(rr(12, 14, 24, 34, 4), '#e9ecf2', { top: .45 })) + p.g('rotate(8 32 34)', p.glass(rr(27, 15, 24, 34, 4), '#f4f6fa', { top: .5 })) +
+      p.glass('M39 26.5c-2.4-3.4-7-1.6-6.2 1.8.5 2.4 3.6 4.4 6.2 7.2 2.6-2.8 5.7-4.8 6.2-7.2.8-3.4-3.8-5.2-6.2-1.8z', '#ff3b30', { halo: .4 }) +
+      p.glass('M21 30c-2.6 3-6.2 5-6.2 8 0 2.4 3 3.4 5 1.6l-1 4.4h4.4l-1-4.4c2 1.8 5 .8 5-1.6 0-3-3.6-5-6.2-8z', '#3a3d48', { halo: 0, top: .8 })); }),
+    passwords: draw(() => { const p = painter('passwords'); return p.done(
+      p.glass(circ(24, 38, 11) + circ(24, 38, 5), '#ffcc00', { evenodd: 1 }) + p.solid('M31.5 31.5l15-15 3.6 3.6-2.6 2.6 3 3-3 3-3-3-2.4 2.4-3 3z', '#ffe08a', '#d79a00')); }),
+    pat: draw(() => { const p = painter('pat'); return p.done(
+      p.glass('M32 12C19.8 12 10 19.8 10 29.5c0 5.6 3.3 10.6 8.4 13.8-.4 3-2 5.7-4.4 7.7 4.4.4 8.6-1 11.6-3.7 2 .5 4.2.7 6.4.7 12.2 0 22-7.8 22-17.5S44.2 12 32 12z', '#a35cff') +
+      p.light('M32 21l2.4 5.6 5.6 2.4-5.6 2.4L32 37l-2.4-5.6-5.6-2.4 5.6-2.4z', '#ffd0f0', 1.4)); }),
+    patdrop: draw(() => { const p = painter('patdrop'); return p.done(
+      p.glass('M32 10c8 10 16 18 16 27a16 16 0 0 1-32 0c0-9 8-17 16-27z', '#35d6c4', { core: [45, 75] }) + p.light('M32 28v14M26 37l6 6 6-6', '#e6fffb', 2.2)); }),
+    shortcuts: draw(() => { const p = painter('shortcuts'); return p.done(
+      p.g('rotate(45 32 38)', p.glass(rr(21, 27, 22, 22, 6), '#5e5ce6', { top: .55 })) + p.g('rotate(45 32 26)', p.glass(rr(21, 15, 22, 22, 6), '#ff5a8a'))); }),
+    games: draw(() => { const p = painter('games'); return p.done(
+      p.glass('M20 20h24c7 0 11 6 12 14l1 6c.6 4.6-4.6 7.2-7.8 4L44 38H20l-5.2 6c-3.2 3.2-8.4.6-7.8-4l1-6C9 26 13 20 20 20z', '#af52de') +
+      p.light('M20 27v8M16 31h8', '#f2dcff', 2) + p.bead(42, 28, 2.4, '#30d158') + p.bead(47, 33, 2.4, '#ff453a')); }),
+    scanner: draw(() => { const p = painter('scanner'); return p.done(
+      p.glass(rr(15, 9, 34, 46, 5), '#d9e2ef', { top: .3 }) + p.light('M21 20h22M21 26h22M21 44h16', '#ffffff', 1.1, { halo: .2 }) + p.light('M10 34h44', '#38e1ff', 2.2)); }),
+    pitstudio: draw(() => { const p = painter('pitstudio'); return p.done(
+      p.light('M25 15c-4 0-5.5 2-5.5 5.5v5c0 2.5-1.2 4.5-4.5 6.5 3.3 2 4.5 4 4.5 6.5v5c0 3.5 1.5 5.5 5.5 5.5M39 15c4 0 5.5 2 5.5 5.5v5c0 2.5 1.2 4.5 4.5 6.5-3.3 2-4.5 4-4.5 6.5v5c0 3.5-1.5 5.5-5.5 5.5', '#2ee6c8', 2.4) +
+      p.glass(circ(32, 32, 4.5), '#ffd36b', { core: [40, 35], coreR: 75, glow: 1, halo: .9 })); }),
+  };
+  PatOS.glassIcons = GLASS;
+
   PatOS.iconDefs = ICONS;
   PatOS.iconHTML = function (id, arg) {
+    const gi = GLASS[id];
+    if (gi) return `<div class="icon-tile gi" style="background:${gi.bg}">${gi.svg(arg)}</div>`; // drawn in glass (above)
     const def = ICONS[id] || letterIcon((id || '?')[0].toUpperCase());
     const flat = def.bg === 'transparent';
     glossFilter();
