@@ -246,6 +246,9 @@ html.lg-on :is(.dock-icon .icon-tile, .lp-item .icon-tile, .mh-app .icon-tile, .
     0 1px 1.5px rgba(0,0,0,.24), 0 6px 14px -4px rgba(0,0,0,.36);
   transition: transform .35s cubic-bezier(.2,.9,.3,1.35), box-shadow .3s, filter .2s;
 }
+/* the glyph is raised and lit (js/icons.js: an embossing filter with a specular highlight from the upper left, and a soft
+   shadow under the glyph), only where icons are big; not with Reduce transparency or Speed mode */
+html.lg-on:not(.reduce-transparency) :is(.dock-icon .icon-tile, .lp-item .icon-tile, .mh-app .icon-tile, .desk-icon .icon-tile, .asw-ic .icon-tile) .pi-g { filter: url(#pi-gloss); }
 /* the sheen: a band of light parked off to the left, swept across once when the icon is pointed at */
 html.lg-on :is(.dock-icon .icon-tile, .lp-item .icon-tile, .mh-app .icon-tile, .desk-icon .icon-tile, .asw-ic .icon-tile)::before {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;

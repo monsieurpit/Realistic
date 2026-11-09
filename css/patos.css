@@ -206,11 +206,15 @@ body.mission-on #windows { z-index: 11; }
 .reduce-transparency #dock { background: var(--win-solid); }
 .dock-item { position: relative; display: flex; flex-direction: column; align-items: center; }
 .dock-icon { width: var(--dock); height: var(--dock); transition: width .12s ease-out, height .12s ease-out; will-change: width; }
+/* a magnified icon grows up out of the Dock: the slot keeps the Dock's height, the tile is pinned to its bottom and is as tall
+   as it is wide (js/shell.js widens the slot), so the Dock itself never gets taller */
+.dock-icon { position: relative; }
+.dock-icon > .icon-tile { position: absolute; left: 0; bottom: 0; width: 100%; height: auto; aspect-ratio: 1 / 1; }
 .dock-item:active .dock-icon { filter: brightness(.7); }
 .dock-dot { width: 4px; height: 4px; border-radius: 50%; margin-top: 2px; background: transparent; }
 :root[data-theme="dark"] .dock-item.running .dock-dot { background: rgba(255,255,255,.85); }
 :root[data-theme="light"] .dock-item.running .dock-dot { background: rgba(0,0,0,.7); }
-.dock-label { position: absolute; bottom: calc(100% + 12px); padding: 4px 11px; border-radius: 7px; font-size: 13px; white-space: nowrap; background: var(--menu); color: var(--text); backdrop-filter: blur(20px); box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 0 .5px var(--border2); opacity: 0; pointer-events: none; transition: opacity .12s; }
+.dock-label { position: absolute; bottom: calc(100% + 12px + var(--lift, 0px)); padding: 4px 11px; border-radius: 7px; font-size: 13px; white-space: nowrap; background: var(--menu); color: var(--text); backdrop-filter: blur(20px); box-shadow: 0 4px 14px rgba(0,0,0,.25), 0 0 0 .5px var(--border2); opacity: 0; pointer-events: none; transition: opacity .12s; }
 .dock-label::after { content: ""; position: absolute; left: 50%; bottom: -5px; transform: translateX(-50%) rotate(45deg); width: 9px; height: 9px; background: inherit; }
 .dock-item:hover .dock-label { opacity: 1; }
 .dock-sep { width: 1px; align-self: stretch; margin: 6px 5px 8px; background: rgba(255,255,255,.3); }

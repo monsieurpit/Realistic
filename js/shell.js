@@ -530,7 +530,10 @@
           const dist = Math.abs(mx - c);
           if (dist < range) size = base + (maxS - base) * Math.cos((dist / range) * (Math.PI / 2)) ** 2;
         }
-        ic.style.width = ic.style.height = size + 'px';
+        // the slot widens (so neighbours make room) but keeps the Dock's height: the icon itself grows up out of the Dock
+        // (css: .dock-icon > .icon-tile is pinned to the slot's bottom), and its label rises with it
+        ic.style.width = size + 'px'; ic.style.height = base + 'px';
+        it.style.setProperty('--lift', Math.max(0, size - base).toFixed(1) + 'px');
       });
     };
     d.addEventListener('pointermove', (e) => { if (e.pointerType === 'touch') return; mx = e.clientX; if (!raf) raf = requestAnimationFrame(run); });

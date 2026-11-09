@@ -1,7 +1,7 @@
 [
   {
     "version": "2.2.3",
-    "beta": 3,
+    "beta": 4,
     "date": "2026-11-09",
     "title": {
       "en": "Liquid Glass you can see is 3D",
@@ -15,6 +15,8 @@
         "Rounder everywhere: the Dock, sliders, Launchpad's search and segmented controls are pills, and panels have big, soft corners",
         "Buttons and search bars in every app are made of the same glass: rounded capsules with a thin line of light around them; search bars and text fields sit a little into the glass; in window title bars they stay see-through, and over pictures (Photos, Weather) they blur what is behind them. This covers the shared buttons and fields and the apps' own (Patoogle, YouTube, App Store, Office, Music, Photos, Weather and more)",
         "App icons are little 3D tiles: a glossy curved reflection, a bright top edge and a soft shadow. Pointing at one in the Dock, Launchpad, the desktop or the phone's home screen lifts it and sweeps a shine across it, pressing squishes it, and Launchpad's icons pop in when it opens",
+        "App icons look embossed: the picture on each icon is raised, catches the light from the upper left and floats on a soft shadow (in the Dock, Launchpad, the desktop and the phone's home screen)",
+        "Dock: pointing at an app makes only that app bigger, rising up out of the Dock; the Dock itself no longer grows taller",
         "Fixed: glass could look pink or too colorful over purple wallpapers (it boosted the colors behind it); it is now exactly the color of what is behind"
       ],
       "fr": [
@@ -24,6 +26,8 @@
         "Plus arrondi partout : le Dock, les curseurs, la recherche du Launchpad et les contrôles segmentés sont des pilules, et les panneaux ont de grands coins doux",
         "Les boutons et les barres de recherche de toutes les apps sont faits du même verre : des capsules arrondies entourées d’une fine ligne de lumière ; les barres de recherche et les champs de texte sont légèrement enfoncés dans le verre ; dans les barres de titre ils restent transparents, et sur les images (Photos, Météo) ils floutent ce qui est derrière. Cela couvre les boutons et champs communs et ceux des apps (Patoogle, YouTube, App Store, Office, Musique, Photos, Météo et plus)",
         "Les icônes des apps sont de petites tuiles en 3D : un reflet courbe brillant, un bord supérieur clair et une ombre douce. Pointer une icône dans le Dock, le Launchpad, le bureau ou l’écran d’accueil du téléphone la soulève et fait passer un reflet dessus, appuyer l’écrase un peu, et les icônes du Launchpad apparaissent avec un petit rebond",
+        "Les icônes des apps ont l’air en relief : le dessin de chaque icône est surélevé, accroche la lumière venant d’en haut à gauche et flotte sur une ombre douce (dans le Dock, le Launchpad, le bureau et l’écran d’accueil du téléphone)",
+        "Dock : pointer une app agrandit seulement cette app, qui sort du Dock vers le haut ; le Dock lui-même ne grandit plus en hauteur",
         "Corrigé : le verre pouvait paraître rose ou trop coloré sur les fonds violets (il renforçait les couleurs derrière) ; il a maintenant exactement la couleur de ce qui est derrière"
       ]
     }

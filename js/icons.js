@@ -171,11 +171,32 @@
     return { bg: bg || 'linear-gradient(160deg,#8e8e93,#48484a)', svg: () => S(`<text x="32" y="43" font-size="28" font-family="system-ui,sans-serif" font-weight="700" fill="#fff" text-anchor="middle">${letter}</text>`) };
   }
 
+  /* The glyph of every icon goes in a <g class="pi-g">, so css/glass.css can raise and light it where icons are shown large
+     (Dock, Launchpad, home screen, desktop, app switcher) with the filter below: its shapes are embossed and lit from the
+     upper left (a specular highlight on their edges), and it floats above its tile on a soft shadow. Inside an icon's own SVG,
+     the filter works in the icon's 64-unit drawing, so it looks the same at every size. One copy, made once. */
+  function glossFilter() {
+    if (document.getElementById('pi-gloss') || !document.body) return;
+    const box = document.createElementNS('http://www.w3.org/2000/svg', 'svg');
+    box.setAttribute('width', '0'); box.setAttribute('height', '0'); box.setAttribute('aria-hidden', 'true'); box.style.position = 'absolute';
+    box.innerHTML = '<filter id="pi-gloss" x="-15%" y="-15%" width="130%" height="140%" color-interpolation-filters="sRGB">' +
+      '<feGaussianBlur in="SourceAlpha" stdDeviation="1.1" result="soft"/>' +
+      '<feSpecularLighting in="soft" surfaceScale="2.6" specularConstant=".85" specularExponent="18" lighting-color="#fff" result="spec"><feDistantLight azimuth="225" elevation="52"/></feSpecularLighting>' +
+      '<feComposite in="spec" in2="SourceAlpha" operator="in" result="specIn"/>' +
+      '<feComposite in="SourceGraphic" in2="specIn" operator="arithmetic" k2="1" k3=".6" result="lit"/>' +
+      '<feOffset in="SourceAlpha" dy="1.6" result="drop"/><feGaussianBlur in="drop" stdDeviation="1.5" result="dropSoft"/>' +
+      '<feFlood flood-color="#000" flood-opacity=".3"/><feComposite in2="dropSoft" operator="in" result="shadow"/>' +
+      '<feMerge><feMergeNode in="shadow"/><feMergeNode in="lit"/></feMerge></filter>';
+    document.body.appendChild(box);
+  }
+  const wrapGlyph = (svg) => svg.replace(/(<svg\b[^>]*>)([\s\S]*)(<\/svg>\s*)$/, '$1<g class="pi-g">$2</g>$3');
+
   PatOS.iconDefs = ICONS;
   PatOS.iconHTML = function (id, arg) {
     const def = ICONS[id] || letterIcon((id || '?')[0].toUpperCase());
     const flat = def.bg === 'transparent';
-    return `<div class="icon-tile${flat ? ' flat' : ''}" style="background:${def.bg}">${def.svg(arg)}</div>`;
+    glossFilter();
+    return `<div class="icon-tile${flat ? ' flat' : ''}" style="background:${def.bg}">${wrapGlyph(def.svg(arg))}</div>`;
   };
   PatOS.icon = function (id, arg) {
     const wrap = document.createElement('div');
