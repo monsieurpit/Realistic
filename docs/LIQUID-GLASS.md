@@ -18,7 +18,7 @@ corners), a soft inner highlight that follows the pointer (`--mx`/`--my`), and a
 
 **Tinted** (Settings › Appearance › Glass style) raises every tint for more contrast, for busy wallpapers.
 
-## Clear glass, read from an iPhone (2.2.3)
+## Clear glass, read from an iPhone (2.3)
 
 Read from an iOS 26 lock screen (notifications over a dark car photo): the glass adds no color and almost no frost (the photo
 stays sharp through the cards), the edge is a 1px specular line whose brightness changes around the shape (brightest upper
@@ -32,7 +32,7 @@ painted on the bevel. PatOS now does the same:
 - Over a busy wallpaper, regular glass frosts only 4px.
 - Pills for bars (Dock, sliders, Launchpad search, segmented controls), 30–34px corners for panels.
 
-## App icons (2.2.3)
+## App icons (2.3)
 
 Icons are small 3D tiles (css/glass.css, "app icons"): inset light for a bright top lip and a shaded bottom edge, a glossy
 curved reflection across the top (`::after`), and where icons live (Dock, Launchpad, the phone's home screen, the desktop, the
@@ -41,7 +41,7 @@ app switcher) a two-layer shadow. Pointing at one lifts it and sweeps a band of 
 movement off. Glass surfaces also have a blur you can almost not see (0.5px clear, 0.6px regular); buttons and search bars
 have none.
 
-## Buttons and search bars (2.2.3)
+## Buttons and search bars (2.3)
 
 Every button and search bar uses the same glass, light enough for hundreds of controls (css/glass.css, "controls"):
 

@@ -1,0 +1,483 @@
+// Device Lab (PitCode): what every button does. Each one calls the PatOS SDK through js.patos.
+// Storage, window and theme need no permission. The others ask the first time.
+
+use { state, put, track, kb, stamp, reportText } from "./tools"
+
+// ----- storage -----
+share storageSet() => {
+  attempt {
+    when state.sKey.trim() == "" { raise "Type a key first." }
+    wait track(nil, "storage.set", () => js.patos.storage.set(state.sKey.trim(), state.sVal))
+    put("storage", "Saved \"{state.sKey.trim()}\".", "ok")
+  } rescue e {
+    put("storage", e.message, "err")
+  }
+}
+
+share storageGet() => {
+  attempt {
+    pit value = wait track(nil, "storage.get", () => js.patos.storage.get(state.sKey.trim()))
+    put("storage", value == nil ? "Nothing is saved under \"{state.sKey.trim()}\"." : "\"{state.sKey.trim()}\" = {json.text(value)}", "ok")
+  } rescue e {
+    put("storage", e.message, "err")
+  }
+}
+
+share storageRemove() => {
+  attempt {
+    wait track(nil, "storage.remove", () => js.patos.storage.remove(state.sKey.trim()))
+    put("storage", "Removed \"{state.sKey.trim()}\".", "ok")
+  } rescue e {
+    put("storage", e.message, "err")
+  }
+}
+
+share storageKeys() => {
+  attempt {
+    pit keys = wait track(nil, "storage.keys", () => js.patos.storage.keys())
+    put("storage", keys.size == 0 ? "No keys yet." : "Keys: " + [...keys].join(", "), "ok")
+  } rescue e {
+    put("storage", e.message, "err")
+  }
+}
+
+share storageClear() => {
+  attempt {
+    wait track(nil, "storage.clear", () => js.patos.storage.clear())
+    put("storage", "Everything was cleared.", "ok")
+  } rescue e {
+    put("storage", e.message, "err")
+  }
+}
+
+// ----- files -----
+fileName() => {
+  pit name = state.fName.trim()
+  when name == "" { raise "Type a file name first." }
+  back name
+}
+
+share filesList() => {
+  attempt {
+    pit dir = state.fDir.trim()
+    pit found = wait track("files", "files.list", () => js.patos.files.list(dir))
+    state.files = [...found].map(f => ({name: f.name, folder: f.folder, size: f.size}))
+    pit where = dir == "" ? "the app folder" : dir
+    put("files", state.files.size == 0 ? "Nothing in {where} yet." : "{state.files.size} item(s) in {where}.", "ok")
+  } rescue e {
+    put("files", e.message, "err")
+  }
+}
+
+share filesSave() => {
+  attempt {
+    pit name = fileName()
+    wait track("files", "files.write", () => js.patos.files.write(name, state.fText))
+    put("files", "Saved {name} ({kb(state.fText.size)}).", "ok")
+    wait filesList()
+  } rescue e {
+    put("files", e.message, "err")
+  }
+}
+
+share filesOpen() => {
+  attempt {
+    pit name = fileName()
+    pit content = wait track("files", "files.read", () => js.patos.files.read(name))
+    when content == nil {
+      put("files", "There is no file called {name}.", "ok")
+      back
+    }
+    state.fText = content
+    put("files", "Opened {name} ({kb(content.size)}).", "ok")
+  } rescue e {
+    put("files", e.message, "err")
+  }
+}
+
+share filesDelete() => {
+  attempt {
+    pit name = fileName()
+    wait track("files", "files.remove", () => js.patos.files.remove(name))
+    put("files", "Deleted {name}.", "ok")
+    wait filesList()
+  } rescue e {
+    put("files", e.message, "err")
+  }
+}
+
+// Click on a name in the list: a folder opens, a file loads.
+share filesPick(item) => {
+  pit prefix = state.fDir.trim() == "" ? "" : state.fDir.trim() + "/"
+  state.fName = prefix + item.name
+  when item.folder {
+    state.fDir = prefix + item.name
+    filesList()
+  } other {
+    filesOpen()
+  }
+}
+
+// ----- notifications -----
+sendNote(extra) => js.patos.notify({title: state.nTitle, body: state.nBody + extra})
+
+share notifyNow() => {
+  attempt {
+    wait track("notifications", "notify (now)", () => sendNote(""))
+    put("notify", "Sent. Look at the top right of PatOS.", "ok")
+  } rescue e {
+    put("notify", e.message, "err")
+  }
+}
+
+share notifyLater() => {
+  attempt {
+    loop left in 5..0 {
+      put("notify", "Sending in {left}...")
+      wait sleep(1000)
+    }
+    wait track("notifications", "notify (after 5 seconds)", () => sendNote(""))
+    put("notify", "Sent after 5 seconds.", "ok")
+  } rescue e {
+    put("notify", e.message, "err")
+  }
+}
+
+share notifyThree() => {
+  attempt {
+    wait track("notifications", "notify (3 in a row)", () => {
+      loop n in 1..=3 {
+        wait sendNote(" ({n})")
+        wait sleep(600)
+      }
+    })
+    put("notify", "Sent 3 notifications.", "ok")
+  } rescue e {
+    put("notify", e.message, "err")
+  }
+}
+
+// ----- clipboard -----
+share clipCopy() => {
+  attempt {
+    wait track("clipboard", "clipboard.write", () => js.patos.clipboard.write(state.cText))
+    put("clip", "Copied. Paste it anywhere to check.", "ok")
+  } rescue e {
+    put("clip", e.message, "err")
+  }
+}
+
+share clipPaste() => {
+  attempt {
+    pit pasted = wait track("clipboard", "clipboard.read", () => js.patos.clipboard.read())
+    state.cText = pasted
+    put("clip", "Pasted {pasted.size} character(s) into the box above.", "ok")
+  } rescue e {
+    put("clip", e.message, "err")
+  }
+}
+
+// ----- camera -----
+share galleryLoad() => {
+  attempt {
+    pit found = [...(wait js.patos.files.list("photos"))].keep(f => not f.folder).takeLast(6)
+    pit shots = []
+    loop f in found {
+      pit data = wait js.patos.files.read("photos/{f.name}")
+      when data != nil { shots = [...shots, {name: f.name, data: data}] }
+    }
+    state.gallery = shots
+  } rescue e {
+    state.gallery = []
+  }
+}
+
+share cameraSnap() => {
+  attempt {
+    put("camera", "Asking the camera...")
+    pit picture = wait track("camera", "camera.snapshot", () => js.patos.camera.snapshot())
+    state.photo = picture
+    put("camera", "Got a picture ({kb(picture.size * 0.75)}).", "ok")
+  } rescue e {
+    put("camera", e.message, "err")
+  }
+}
+
+share cameraSave() => {
+  attempt {
+    when state.photo == nil { back }
+    pit name = "photos/photo-{time.now()}.jpg"
+    wait track("files", "files.write (photo)", () => js.patos.files.write(name, state.photo))
+    put("camera", "Saved {name}", "ok")
+    wait galleryLoad()
+  } rescue e {
+    put("camera", e.message, "err")
+  }
+}
+
+// ----- microphone -----
+share micRecord(ms = nil) => {
+  pit length = ms ?? int(state.micSecs)
+  pit started = time.now()
+  pit timer = every(200, () => { state.micPct = math.min(100, (time.now() - started) / length * 100) })
+  attempt {
+    put("mic", "Recording... speak now.")
+    pit sound = wait track("microphone", "microphone.record ({length / 1000} s)", () => js.patos.microphone.record(length))
+    state.audio = sound
+    state.micPct = 100
+    put("mic", "Recorded {kb(sound.size * 0.75)}. Press play to hear it.", "ok")
+  } rescue e {
+    state.micPct = 0
+    put("mic", e.message, "err")
+  } always {
+    cancel(timer)
+  }
+}
+
+share micSave() => {
+  attempt {
+    when state.audio == nil { back }
+    pit name = "audio/recording-{time.now()}.txt"
+    wait track("files", "files.write (recording)", () => js.patos.files.write(name, state.audio))
+    put("mic", "Saved {name} (the sound as a data: address).", "ok")
+  } rescue e {
+    put("mic", e.message, "err")
+  }
+}
+
+// ----- location -----
+share locationGet() => {
+  attempt {
+    put("loc", "Finding you (up to 15 seconds)...")
+    pit p = wait track("location", "location.get", () => js.patos.location.get())
+    state.coords = {lat: p.lat, lon: p.lon, accuracy: p.accuracy}
+    put("loc", "Found at {stamp()}.", "ok")
+  } rescue e {
+    put("loc", e.message, "err")
+  }
+}
+
+share locationCopy() => {
+  attempt {
+    when state.coords == nil { back }
+    pit line = "{state.coords.lat.fixed(5)}, {state.coords.lon.fixed(5)}"
+    wait track("clipboard", "clipboard.write (coordinates)", () => js.patos.clipboard.write(line))
+    put("loc", "Copied {line}", "ok")
+  } rescue e {
+    put("loc", e.message, "err")
+  }
+}
+
+share locationPlace() => {
+  attempt {
+    when state.coords == nil { back }
+    pit address = "https://nominatim.openstreetmap.org/reverse?format=json&zoom=14&lat={state.coords.lat}&lon={state.coords.lon}"
+    pit found = wait track("network", "internet (place name)", () => getJson(address))
+    put("loc", "Near: " + (found.display_name ?? "somewhere"), "ok")
+  } rescue e {
+    put("loc", e.message, "err")
+  }
+}
+
+// ----- internet -----
+getJson(address) => {
+  pit r = wait fetch(address, {timeout: 12000})
+  when not r.ok { raise "The server said {r.status}." }
+  back wait r.json()
+}
+
+// A GET that reports the status, the time it took, and the start of the answer.
+get(address) => {
+  when not address.startsWith("https://") { raise "Only https:// addresses work." }
+  pit began = js.performance.now()
+  pit r = wait fetch(address, {timeout: 12000})
+  pit body = wait r.text()
+  back {status: r.status, ms: math.round(js.performance.now() - began), body: body}
+}
+
+showGet(res) => {
+  pit more = res.body.size > 700 ? "\n... ({res.body.size} characters)" : ""
+  put("net", "{res.status} in {res.ms} ms\n\n{res.body.part(0, 700)}{more}", "ok")
+}
+
+netFail(e) => {
+  pit msg = text(e.message)
+  put("net", "Could not reach it. Check the address starts with https://, that you are online, and that the site allows other pages to read it. ({msg})", "err")
+}
+
+share netGet() => {
+  attempt {
+    put("net", "Asking...")
+    showGet(wait track("network", "internet GET", () => get(state.uUrl.trim())))
+  } rescue e {
+    netFail(e)
+  }
+}
+
+share netZen() => {
+  attempt {
+    put("net", "Asking...")
+    state.uUrl = "https://api.github.com/zen"
+    showGet(wait track("network", "internet (advice)", () => get(state.uUrl)))
+  } rescue e {
+    netFail(e)
+  }
+}
+
+share netIp() => {
+  attempt {
+    put("net", "Asking...")
+    state.uUrl = "https://api.ipify.org?format=json"
+    showGet(wait track("network", "internet (public address)", () => get(state.uUrl)))
+  } rescue e {
+    netFail(e)
+  }
+}
+
+share netPicture() => {
+  attempt {
+    put("net", "Loading a picture...")
+    state.picture = nil
+    pit address = "https://picsum.photos/seed/patos/600/260?t={time.now()}"
+    wait track("network", "internet (picture)", () => js.Promise((ok, no) => {
+      pit img = js.Image()
+      img.onload = () => ok(true)
+      img.onerror = () => no(js.Error("The picture did not load."))
+      img.src = address
+    }))
+    state.picture = address
+    put("net", "The picture loaded.", "ok")
+  } rescue e {
+    put("net", e.message, "err")
+  }
+}
+
+share netSpeed() => {
+  attempt {
+    put("net", "Testing 5 times...")
+    pit times = wait track("network", "internet (speed test)", () => speedRuns())
+    pit list = times.join(", ")
+    pit average = math.round(times.average())
+    put("net", "Round trips: {list} ms\nAverage: {average} ms", "ok")
+  } rescue e {
+    netFail(e)
+  }
+}
+
+speedRuns() => {
+  pit times = []
+  loop 5 times {
+    pit res = wait get("https://api.github.com/zen?t={time.now()}")
+    times = [...times, res.ms]
+  }
+  back times
+}
+
+// ----- window and theme -----
+share windowTitle() => {
+  attempt {
+    wait track(nil, "window.setTitle", () => js.patos.window.setTitle(state.wTitle))
+    put("win", "The window title changed.", "ok")
+  } rescue e {
+    put("win", e.message, "err")
+  }
+}
+
+share windowInfo() => {
+  attempt {
+    pit info = wait track(nil, "info", () => js.patos.info())
+    state.theme = {bg: info.bg, text: info.text, accent: info.accent}
+    put("win", json.text({dark: info.dark, bg: info.bg, text: info.text, accent: info.accent, language: info.language, mobile: info.mobile}, 2), "ok")
+  } rescue e {
+    put("win", e.message, "err")
+  }
+}
+
+share windowClose() => js.patos.window.close()
+
+// ----- the report -----
+share reportCopy() => {
+  attempt {
+    wait track("clipboard", "clipboard.write (report)", () => js.patos.clipboard.write(reportText()))
+  } rescue e {
+  }
+}
+
+share reportSave() => {
+  attempt {
+    pit name = "reports/report-{time.now()}.txt"
+    wait track("files", "files.write (report)", () => js.patos.files.write(name, reportText()))
+    js.patos.notify({title: "Report saved", body: name})
+  } rescue e {
+  }
+}
+
+share reportClear() => {
+  state.report = []
+}
+
+// ----- the two test runs -----
+// Each step is allowed to fail: the report says which ones did.
+step(task) => {
+  attempt {
+    wait task()
+  } rescue e {
+  }
+}
+
+quietTests() => {
+  wait step(() => track(nil, "storage.set/get", () => {
+    wait js.patos.storage.set("selftest", stamp())
+    when (wait js.patos.storage.get("selftest")) == nil { raise "Nothing came back." }
+  }))
+  wait step(() => track(nil, "info", () => {
+    pit info = wait js.patos.info()
+    state.theme = {bg: info.bg, text: info.text, accent: info.accent}
+  }))
+  wait step(() => track(nil, "window.setTitle", () => js.patos.window.setTitle("Device Lab - self test")))
+  wait step(() => track("files", "files write, read, list, remove", () => {
+    pit path = "lab/self-test.txt"
+    pit want = "self test {stamp()}"
+    wait js.patos.files.write(path, want)
+    when (wait js.patos.files.read(path)) != want { raise "The file came back different." }
+    pit found = [...(wait js.patos.files.list("lab"))]
+    when not found.any(f => f.name == "self-test.txt") { raise "The file is not in the list." }
+    wait js.patos.files.remove(path)
+    when (wait js.patos.files.read(path)) != nil { raise "The file was not removed." }
+  }))
+}
+
+share runQuiet() => {
+  state.busy = true
+  wait quietTests()
+  wait filesList()
+  state.busy = false
+}
+
+share runAll() => {
+  state.busy = true
+  wait quietTests()
+  wait step(() => track("notifications", "notify (self test)", () => js.patos.notify({title: "Device Lab", body: "Self test: notifications work."})))
+  wait step(() => track("clipboard", "clipboard write and read", () => {
+    pit word = "device-lab-{time.now()}"
+    wait js.patos.clipboard.write(word)
+    when (wait js.patos.clipboard.read()) != word { raise "The clipboard has something else now." }
+  }))
+  wait step(() => track("location", "location.get (self test)", () => {
+    pit p = wait js.patos.location.get()
+    state.coords = {lat: p.lat, lon: p.lon, accuracy: p.accuracy}
+  }))
+  wait step(() => track("network", "internet (self test)", () => {
+    pit res = wait get("https://api.github.com/zen")
+    when res.status != 200 { raise "Got status {res.status}" }
+  }))
+  wait step(() => track("camera", "camera.snapshot (self test)", () => {
+    state.photo = wait js.patos.camera.snapshot()
+  }))
+  wait step(() => track("microphone", "microphone.record 1 s (self test)", () => {
+    state.audio = wait js.patos.microphone.record(1000)
+  }))
+  pit bad = state.report.count(r => not r.ok)
+  wait step(() => js.patos.notify({title: "Device Lab", body: bad > 0 ? "{bad} test(s) failed. See the report." : "Everything works."}))
+  state.busy = false
+}

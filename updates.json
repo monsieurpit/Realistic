@@ -1,11 +1,10 @@
 [
   {
-    "version": "2.2.3",
-    "beta": 4,
+    "version": "2.3.0",
     "date": "2026-11-09",
     "title": {
-      "en": "Liquid Glass you can see is 3D",
-      "fr": "Un Liquid Glass qu’on voit en 3D"
+      "en": "Liquid Glass, everywhere",
+      "fr": "Liquid Glass, partout"
     },
     "notes": {
       "en": [
