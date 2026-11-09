@@ -3650,47 +3650,67 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
    Window titlebars are glass and window contents are opaque: long text, editors and tables stay solid, and only the
    40px titlebar pays for a blur instead of the whole window. */
 :root {
-  --g-blur-clear: 9px; --g-blur: 20px; --g-blur-elev: 32px; --g-sat: 1.9; --g-bright: 1.04;
-  --g-tint-clear: rgba(26,26,32,.16); --g-tint: rgba(30,30,36,.42); --g-tint-elev: rgba(34,34,40,.66);
+  --g-blur-clear: .8px; --g-blur: 14px; --g-blur-elev: 24px; --g-sat: 1.9; --g-bright: 1.04;
+  --g-tint-clear: rgba(255,255,255,.015); --g-tint: rgba(30,30,36,.24); --g-tint-elev: rgba(34,34,40,.46);
   --g-rim: rgba(255,255,255,.55); --g-rim-soft: rgba(255,255,255,.18); --g-inner: rgba(255,255,255,.07);
-  --g-text: #fff; --g-text-shadow: 0 1px 2px rgba(0,0,0,.3);
+  --g-text: #fff; --g-text-shadow: 0 1px 3px rgba(0,0,0,.45);
   --g-shadow: 0 10px 34px rgba(0,0,0,.28), 0 1px 3px rgba(0,0,0,.18);
   --g-pill: rgba(255,255,255,.14); --g-pill-on: rgba(255,255,255,.26);
-  --g-titlebar: 72%;
+  --g-titlebar: 52%;
   --mx: 30%; --my: 0%;
+  /* the light: where it comes from (an angle for gradients, and the lit point on a surface in %); js/shell.js moves it */
+  --g-angle: 150deg; --g-lx: 25%; --g-ly: 0%; --g-dx: 75%;
+  /* 1. the rim is the same physical thickness on every surface, small or big (the lens in js/shell.js uses the same size) */
+  --g-rim-w: 11px;
 }
 :root[data-theme="light"] {
-  --g-tint-clear: rgba(255,255,255,.2); --g-tint: rgba(255,255,255,.5); --g-tint-elev: rgba(250,250,252,.74);
+  --g-tint-clear: rgba(255,255,255,.05); --g-tint: rgba(255,255,255,.3); --g-tint-elev: rgba(250,250,252,.56);
   --g-rim: rgba(255,255,255,.95); --g-rim-soft: rgba(255,255,255,.55); --g-inner: rgba(255,255,255,.2);
-  --g-text: #1d1d1f; --g-text-shadow: 0 1px 1px rgba(255,255,255,.5);
+  --g-text: #1d1d1f; --g-text-shadow: 0 0 4px rgba(255,255,255,.7);
   --g-shadow: 0 10px 34px rgba(0,0,0,.16), 0 1px 3px rgba(0,0,0,.1);
   --g-pill: rgba(255,255,255,.5); --g-pill-on: rgba(255,255,255,.8);
 }
 /* Tinted: the same glass, thicker, for people who want more contrast (and over very busy wallpapers) */
-html.lg-tinted { --g-tint-clear: rgba(26,26,32,.38); --g-tint: rgba(30,30,36,.6); --g-tint-elev: rgba(34,34,40,.8); --g-titlebar: 86%; }
+html.lg-tinted { --g-tint-clear: rgba(26,26,32,.34); --g-tint: rgba(30,30,36,.6); --g-tint-elev: rgba(34,34,40,.8); --g-titlebar: 86%; }
 :root[data-theme="light"].lg-tinted { --g-tint-clear: rgba(255,255,255,.46); --g-tint: rgba(255,255,255,.68); --g-tint-elev: rgba(250,250,252,.86); }
 
 /* ---------- the three tiers ---------- */
-html.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .lp-search, .lg-clear) {
+html.lg-on :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear) {
   --g-b: var(--g-blur-clear); --g-t: var(--g-tint-clear);
 }
-html.lg-on :is(.cc-tile, .toast:not(.static), .seg, .mw, .dock-label, #m-switcher .msw, .lg) {
+html.lg-on :is(.widget, .cc-tile, .toast:not(.static), .seg, .mw, .dock-label, #m-switcher .msw, .lg) {
   --g-b: var(--g-blur); --g-t: var(--g-tint);
 }
 html.lg-on :is(.menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated) {
   --g-b: var(--g-blur-elev); --g-t: var(--g-tint-elev);
 }
-html.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .lp-search, .lg-clear, .cc-tile, .toast:not(.static), .seg, .mw, .dock-label, #m-switcher .msw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated) {
+/* (:where keeps this shared rule light, so each tier's own rule below can override it: inside :is() the heaviest name,
+   "#m-switcher .msw", would otherwise make this rule outweigh every tier) */
+html.lg-on :where(#dock, .mh-dock, .asw-row, .widget, .lp-search, .lg-clear, .cc-tile, .toast:not(.static), .seg, .mw, .dock-label, #m-switcher .msw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated) {
   background: radial-gradient(120% 90% at var(--mx) var(--my), var(--g-inner), transparent 60%), var(--g-t) !important;
   -webkit-backdrop-filter: var(--lg-lens,) blur(var(--g-b)) saturate(var(--g-sat)) brightness(var(--g-bright)) !important;
   backdrop-filter: var(--lg-lens,) blur(var(--g-b)) saturate(var(--g-sat)) brightness(var(--g-bright)) !important;
   box-shadow: inset 0 1px 1px var(--g-rim), inset 0 -1px 1px rgba(255,255,255,.1), inset 0 0 0 .5px var(--g-rim-soft), var(--g-shadow) !important;
   isolation: isolate;
 }
+/* clear glass, like the newest Mac Dock: hardly any blur or tint, the picture behind is lifted a little toward white,
+   and the light lives in a thick, bright bevel around the edge (with the lens in js/shell.js bending what is under it) */
+html.lg-on :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear) {
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,0) 40%, rgba(255,255,255,.04)), var(--g-t) !important;
+  -webkit-backdrop-filter: var(--lg-lens,) blur(var(--g-b)) saturate(1.4) brightness(1.06) !important;
+  backdrop-filter: var(--lg-lens,) blur(var(--g-b)) saturate(1.4) brightness(1.06) !important;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.3), inset 0 1.5px 1px rgba(255,255,255,.8), inset 0 -1.5px 1px rgba(255,255,255,.4),
+    inset 0 0 16px 3px rgba(255,255,255,.2), inset 0 0 3px 1px rgba(255,255,255,.25), 0 10px 30px rgba(0,0,0,.22), 0 1px 2px rgba(0,0,0,.15) !important;
+}
+html.lg-on :is(#dock, .mh-dock, .asw-row, .lg-clear)::before {
+  padding: 1.5px !important;
+  background: linear-gradient(var(--g-angle), rgba(255,255,255,.95), rgba(255,255,255,.35) 22%, rgba(255,255,255,.08) 50%, rgba(255,255,255,.35) 78%, rgba(255,255,255,.9)) !important;
+}
+html.lg-tinted :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear) { --g-b: 8px; }
 /* the specular rim: a thin edge that catches light at the top-left and bottom-right, like a real pane's bevel */
 html.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .lg-clear, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated)::before {
   content: ""; position: absolute; inset: 0; border-radius: inherit; padding: 1px; pointer-events: none; z-index: 1;
-  background: linear-gradient(135deg, rgba(255,255,255,.8), rgba(255,255,255,.1) 28%, rgba(255,255,255,0) 52%, rgba(255,255,255,.1) 76%, rgba(255,255,255,.5));
+  background: linear-gradient(var(--g-angle), rgba(255,255,255,.8), rgba(255,255,255,.1) 28%, rgba(255,255,255,0) 52%, rgba(255,255,255,.1) 76%, rgba(255,255,255,.5));
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor; mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
 }
 :root[data-theme="dark"].lg-on :is(.menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated)::before { opacity: .55; }
@@ -3766,6 +3786,85 @@ html.lg-on .menu { animation: lgIn .16s cubic-bezier(.2,.9,.3,1.15); transform-o
 html.lg-on .dock-item:hover .dock-icon .icon-tile { filter: brightness(1.08) saturate(1.1); }
 html.lg-on .icon-tile::after { background: linear-gradient(180deg, rgba(255,255,255,.32), rgba(255,255,255,0) 42%), radial-gradient(90% 60% at 50% 110%, rgba(255,255,255,.18), transparent 60%); }
 
+/* ---------- depth: every glass surface is a thick, curved pane ----------
+   A pane of real glass has thickness: its top edge catches the light, its bottom edge is in shade, its face bulges a little
+   (brighter toward the light, darker away from it) and it floats above what it covers. Each glass surface gets:
+   - a bevel (bright top lip, shaded bottom lip, a glow just inside the edge),
+   - a convex sheen (::after, behind the contents) whose bright spot follows the pointer,
+   - a three-layer shadow (contact, near, far),
+   - the lens on its edges in Chromium (js/shell.js), and on tiles and widgets a slight tilt toward the pointer. */
+html.lg-on :where(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear, .widget, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated) {
+  --g-depth: inset 0 1.5px 0 rgba(255,255,255,.9), inset 0 7px 10px -6px rgba(255,255,255,.6),
+    inset 0 -1px 0 rgba(255,255,255,.3), inset 0 -7px 12px -7px rgba(0,0,0,.32),
+    inset 0 0 0 .5px var(--g-rim-soft), inset 0 0 14px 1px rgba(255,255,255,.1);
+  --g-float: 0 2px 3px rgba(0,0,0,.14), 0 10px 22px rgba(0,0,0,.17), 0 26px 60px rgba(0,0,0,.26);
+}
+html.lg-on :is(.widget, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated) {
+  box-shadow: var(--g-depth), var(--g-float) !important;
+}
+html.lg-on :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear) {
+  box-shadow: var(--g-depth), inset 0 0 16px 3px rgba(255,255,255,.16), var(--g-float) !important;
+}
+/* thickness: light that crosses more glass near the edge comes out deeper and more colorful. A band along every edge
+   re-reads the glass itself (an element with backdrop-filter is the backdrop of its own ::after) a little darker and
+   much more saturated, so the rim takes the color of whatever is behind it, like a thick gel slab. No blur: cheap. */
+html.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-clear, .lg-elevated)::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+  --g-band: min(var(--g-rim-w), 30%);
+  -webkit-backdrop-filter: saturate(2.1) brightness(.9) contrast(1.05); backdrop-filter: saturate(2.1) brightness(.9) contrast(1.05);
+  /* 2. light that enters at the top is focused by the curved bottom rim into a bright, curved line (a caustic), strongest on
+     the side away from the light; a fainter arc along the top lip */
+  background:
+    radial-gradient(48% calc(var(--g-band) * 1.6) at var(--g-dx) 100%, rgba(255,255,255,.55), rgba(255,255,255,.12) 55%, transparent 75%),
+    radial-gradient(60% calc(var(--g-band) * 1.2) at var(--g-lx) 0%, rgba(255,255,255,.3), transparent 70%),
+    linear-gradient(180deg, rgba(255,255,255,.06), transparent 30%, transparent 70%, rgba(0,0,0,.06));
+  -webkit-mask: linear-gradient(180deg, #000, transparent var(--g-band), transparent calc(100% - var(--g-band)), #000), linear-gradient(90deg, #000, transparent var(--g-band), transparent calc(100% - var(--g-band)), #000);
+  mask: linear-gradient(180deg, #000, transparent var(--g-band), transparent calc(100% - var(--g-band)), #000), linear-gradient(90deg, #000, transparent var(--g-band), transparent calc(100% - var(--g-band)), #000);
+}
+/* the face bulges: brighter toward the light (top left, and wherever the pointer is), a little darker away from it */
+html.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-clear, .lg-elevated) {
+  background-image: radial-gradient(60% 50% at var(--mx) var(--my), rgba(255,255,255,.14), transparent 70%),
+    linear-gradient(var(--g-angle), rgba(255,255,255,.16), rgba(255,255,255,0) 40%, rgba(0,0,0,0) 72%, rgba(0,0,0,.07)) !important;
+}
+:root[data-theme="light"].lg-on :is(#dock, .mh-dock, .asw-row, .widget, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-clear, .lg-elevated) {
+  background-image: radial-gradient(60% 50% at var(--mx) var(--my), rgba(255,255,255,.32), transparent 70%),
+    linear-gradient(var(--g-angle), rgba(255,255,255,.34), rgba(255,255,255,0) 42%, rgba(0,0,0,0) 72%, rgba(0,0,0,.05)) !important;
+}
+html.lg-on :is(.menu, .sp-box, .dlg, .nc-list, #pat-panel, .toast, .mw) { position: relative; }
+/* tiles and widgets tilt a little toward the pointer, and rise when pressed less (they sink) */
+html.lg-on:not(.reduce-motion) :is(.cc-tile, #desk-widgets .widget) {
+  transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+  transition: transform .4s cubic-bezier(.2,.9,.3,1.2), box-shadow .3s;
+}
+html.lg-on:not(.reduce-motion) :is(.cc-tile, #desk-widgets .widget):active { transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(.975); }
+html.lg-on:not(.reduce-motion) :is(.toast:not(.static), .cc-tile, #desk-widgets .widget):hover {
+  box-shadow: var(--g-depth), 0 2px 2px rgba(0,0,0,.12), 0 8px 18px rgba(0,0,0,.16), 0 26px 56px rgba(0,0,0,.26) !important;
+}
+/* small controls get the same bevel, so buttons look like little pieces of the same glass */
+html.lg-on .btn:not(.primary):not(.danger), html.lg-on .seg .tab.on, html.lg-on .cc-dot {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 4px -2px rgba(0,0,0,.25), inset 0 0 0 .5px var(--border2), 0 1px 2px rgba(0,0,0,.14), 0 3px 8px rgba(0,0,0,.1);
+}
+
+/* 4. a very busy wallpaper (lots of fine detail, js/wallpaper.js measures it once per wallpaper): glass that holds words
+   blurs more and gets a little more body, so letters never sit on top of sharp shapes; icon bars (the Dock) stay clear */
+html.lg-on[data-wp-busy] { --g-blur: 22px; --g-blur-elev: 32px; --g-tint: rgba(30,30,36,.36); --g-tint-elev: rgba(34,34,40,.56); --g-text-shadow: 0 0 1px rgba(0,0,0,.55), 0 1px 4px rgba(0,0,0,.55); }
+:root[data-theme="light"].lg-on[data-wp-busy] { --g-tint: rgba(255,255,255,.44); --g-tint-elev: rgba(250,250,252,.66); --g-text-shadow: 0 0 1px rgba(255,255,255,.8), 0 0 6px rgba(255,255,255,.85); }
+html.lg-on[data-wp-busy].lg-tinted { --g-tint: rgba(30,30,36,.62); --g-tint-elev: rgba(34,34,40,.8); }
+:root[data-theme="light"].lg-on[data-wp-busy].lg-tinted { --g-tint: rgba(255,255,255,.7); --g-tint-elev: rgba(250,250,252,.86); }
+
+/* 5. pressed in: what you click on glass sinks into it for a moment (the shade moves to the top lip, the light to the bottom) */
+html.lg-on :is(.btn:not(.primary):not(.danger), .tbtn, .seg .tab, .menu-item, .cc-toggle .cc-dot, .lp-item .icon-tile, .mh-app .icon-tile):active {
+  box-shadow: inset 0 2px 5px rgba(0,0,0,.3), inset 0 -1px 0 rgba(255,255,255,.4), inset 0 0 0 .5px var(--border2) !important;
+  filter: brightness(.94);
+}
+html.lg-on :is(.btn, .tbtn, .seg .tab, .cc-dot):active { transform: scale(.95); }
+/* (:not(#_) only adds weight, so pressing wins over the hover shadow, which also applies while pressing) */
+html.lg-on:not(#_) :is(.cc-tile, .toast:not(.static), #desk-widgets .widget, .lg):active {
+  box-shadow: inset 0 3px 8px rgba(0,0,0,.22), inset 0 -1.5px 0 rgba(255,255,255,.5), inset 0 0 0 .5px var(--g-rim-soft), 0 1px 2px rgba(0,0,0,.14), 0 4px 10px rgba(0,0,0,.14) !important;
+}
+html.lg-on .dock-item:active .icon-tile { filter: brightness(.82); transition: filter .05s; }
+html.lg-on .menu-item:active { transition: none; }
+
 /* ---------- phone ---------- */
 html.lg-on .mh-dock { border-radius: 36px; }
 html.lg-on .mw { border-radius: 26px; }
@@ -3791,13 +3890,15 @@ html.reduce-transparency.lg-on:not(.mobile) .window:not(.tb-hidden) > .titlebar 
   html.lg-on { --g-tint-clear: rgba(30,30,36,.82); --g-tint: rgba(30,30,36,.9); --g-tint-elev: rgba(34,34,40,.95); --g-titlebar: 100%; }
   :root[data-theme="light"].lg-on { --g-tint-clear: rgba(250,250,252,.86); --g-tint: rgba(250,250,252,.92); --g-tint-elev: rgba(250,250,252,.96); }
 }
+html.reduce-transparency.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .cc-tile, .toast, .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-clear, .lg-elevated)::after { display: none; }
 /* Windows High Contrast and other forced colors: plain system surfaces with real borders */
 @media (forced-colors: active) {
   html.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .lp-search, .cc-tile, .toast, .seg, .mw, .dock-label, .menu, .sp-box, .dlg, .nc-list, #pat-panel, #menubar, .titlebar) {
     background: Canvas !important; color: CanvasText !important; border: 1px solid CanvasText; box-shadow: none !important; text-shadow: none !important;
     backdrop-filter: none !important; -webkit-backdrop-filter: none !important; forced-color-adjust: none;
   }
-  html.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .cc-tile, .toast, .mw, .menu, .sp-box, .dlg, .nc-list, #pat-panel)::before { display: none; }
+  html.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .cc-tile, .toast, .mw, .menu, .sp-box, .dlg, .nc-list, #pat-panel)::before, html.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .cc-tile, .toast, .mw, .menu, .sp-box, .dlg, .nc-list, #pat-panel)::after { display: none; }
+  html.lg-on :is(.cc-tile, #desk-widgets .widget) { transform: none !important; }
 }
 
 </style>
@@ -5254,8 +5355,8 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
 /* generated by build.js from updates.json: do not edit */
 PatOS.version = "2.2.0";
 PatOS.releases = [{"version":"2.2.0","date":"2026-11-09","title":{"en":"Liquid Glass, rebuilt","fr":"Liquid Glass, refait"},"notes":{"en":["Liquid Glass is one material everywhere now, in three thicknesses: clear for the Dock and widgets (the wallpaper shows right through), regular for Control Center and notifications, and thicker for menus, Spotlight and dialogs, so words stay easy to read","In Chrome, Edge and on Chromebooks, the edges of the Dock, the app switcher and Launchpad's search bend what is behind them like the rim of real glass, while the middle stays clear","The menu bar's words turn dark over a light wallpaper and white over a dark one, whatever the theme","Windows are faster: only their titlebar is glass now, and their contents are solid. With several windows open, PatOS blurs about 7 times less of the screen","Settings › Appearance has a Liquid Glass section: Transparent or Tinted (more contrast), Lens edges, and Reduce transparency. PatOS also follows your device's own reduce transparency and reduce motion settings","A new notification no longer covers an open Control Center","Safer website: browsers are told not to guess file types, and other sites can't show PatOS in a hidden frame"],"fr":["Liquid Glass est maintenant une seule matière partout, en trois épaisseurs : claire pour le Dock et les widgets (le fond d’écran se voit au travers), normale pour le Centre de contrôle et les notifications, et plus épaisse pour les menus, Spotlight et les dialogues, pour que le texte reste facile à lire","Dans Chrome, Edge et sur Chromebook, les bords du Dock, du sélecteur d’apps et de la recherche du Launchpad courbent ce qui est derrière comme le bord d’un vrai verre, et le milieu reste net","Le texte de la barre des menus devient foncé sur un fond d’écran clair et blanc sur un fond sombre, quel que soit le thème","Les fenêtres sont plus rapides : seule leur barre de titre est en verre, et leur contenu est opaque. Avec plusieurs fenêtres ouvertes, PatOS floute environ 7 fois moins l’écran","Réglages › Apparence a une section Liquid Glass : Transparent ou Teinté (plus de contraste), Bords en lentille et Réduire la transparence. PatOS suit aussi les réglages de transparence et d’animations réduites de votre appareil","Une nouvelle notification ne cache plus le Centre de contrôle ouvert","Site plus sûr : les navigateurs ne devinent plus le type des fichiers, et d’autres sites ne peuvent pas afficher PatOS dans un cadre caché"]}},{"version":"2.1.3","date":"2026-11-06","title":{"en":"PitCode Studio on iPhone","fr":"PitCode Studio sur iPhone"},"notes":{"en":["PitCode Studio is made for iPhone now: a compact top bar, and Files, Code and Preview each get the whole screen, with tabs at the bottom. The code and its colors line up properly, nothing zooms in when you tap, and the buttons, the file list, the settings and the first screen are bigger and easier to tap"],"fr":["PitCode Studio est maintenant pensé pour l’iPhone : une barre du haut compacte, et Fichiers, Code et Aperçu prennent chacun tout l’écran, avec des onglets en bas. Le code et ses couleurs s’alignent bien, rien ne zoome quand vous touchez, et les boutons, la liste des fichiers, les réglages et le premier écran sont plus grands et plus faciles à toucher"]}},{"version":"2.1.2","date":"2026-11-06","title":{"en":"Importing projects, made sturdier","fr":"Importer des projets, en plus solide"},"notes":{"en":["PitCode Studio: importing a project is more reliable on phones, and there is a new Paste Project… button: copy the text of a .patappproject file and paste it in, no file picker needed"],"fr":["PitCode Studio : l’importation d’un projet est plus fiable sur téléphone, et un nouveau bouton Coller un projet… permet de copier le texte d’un fichier .patappproject et de le coller, sans sélecteur de fichier"]}},{"version":"2.1.1","date":"2026-11-06","title":{"en":"Importing files on phones","fr":"Importer des fichiers sur téléphone"},"notes":{"en":["Fix: Import Project… in PitCode Studio, and Open a .patapp File… in the App Store, now let you pick the file on an iPhone or iPad (the file was grayed out because phones do not know the .patappproject and .patapp types). Any file can be picked, and PatOS checks what is inside"],"fr":["Correctif : Importer un projet… dans PitCode Studio, et Ouvrir un fichier .patapp… dans l’App Store, vous laissent maintenant choisir le fichier sur un iPhone ou un iPad (le fichier était grisé parce que les téléphones ne connaissent pas les types .patappproject et .patapp). N’importe quel fichier peut être choisi, et PatOS vérifie son contenu"]}},{"version":"2.1.0","date":"2026-11-05","title":{"en":"PatOS 2.1: Slither and a better Studio","fr":"PatOS 2.1 : Slither et un meilleur Studio"},"notes":{"en":["Slither: a new game in 3D & Games. Steer a glowing snake, eat dots to grow, and trap the other snakes so they crash into you. The other players are smart bots, so it works with no internet. Hold click or Space to boost, grab power-ups (Speed, Magnet, Shield, Double, Far sight), pick Easy, Normal or Hard, and climb the leaderboard. Pick your skin and nickname","PitCode Studio: open a whole project from one .patappproject file (Import Project…, or double-click it in Finder). It holds the project settings and every file with its code, and is checked when you import it. Publishing is now an update: once an app is in the store, Publish becomes Update in the store, which sends a new version of the same app (higher version needed) instead of making another one. The identifier is locked once published, and only you can update your app","For people who make apps: examples/device-lab.patapp and examples/device-lab-pit.patapp are big test apps that use every permission (files, notifications, clipboard, camera, microphone, location, internet), one in HTML and JavaScript and one written in PitCode, each with its project file to open in PitCode Studio. The App SDK guide now covers every call, the file formats, the limits and publishing"],"fr":["Slither : un nouveau jeu dans 3D et jeux. Dirigez un serpent lumineux, mangez des points pour grandir et piégez les autres serpents pour qu’ils vous foncent dedans. Les autres joueurs sont des robots malins, donc ça marche sans internet. Maintenez le clic ou Espace pour accélérer, ramassez des bonus (Vitesse, Aimant, Bouclier, Double, Vue lointaine), choisissez Facile, Normal ou Difficile et grimpez au classement. Choisissez votre apparence et votre pseudo","PitCode Studio : ouvrez un projet entier depuis un seul fichier .patappproject (Importer un projet…, ou double-clic dans le Finder). Il contient les réglages du projet et chaque fichier avec son code, et il est vérifié à l’importation. Publier devient une mise à jour : une fois l’app dans la boutique, Publier devient Mettre à jour dans la boutique, qui envoie une nouvelle version de la même app (version plus haute requise) au lieu d’en créer une autre. L’identifiant est verrouillé une fois publié, et vous seul pouvez mettre votre app à jour","Pour celles et ceux qui font des apps : examples/device-lab.patapp et examples/device-lab-pit.patapp sont de grosses apps de test qui utilisent toutes les permissions (fichiers, notifications, presse-papiers, caméra, micro, position, internet), l’une en HTML et JavaScript et l’autre écrite en PitCode, chacune avec son fichier de projet à ouvrir dans PitCode Studio. Le guide du SDK couvre maintenant chaque appel, les formats de fichier, les limites et la publication"]}},{"version":"2.0.0","date":"2026-11-05","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"notes":{"en":["Backup & Restore: a snapshot every day (restore PatOS to how it was on Tuesday), a backup file you can lock with a password, and on a Chromebook an auto-backup folder on your real disk, so your data survives even if PatOS or the website is deleted. You can restore from the very first screen on a new device","Sync (optional): your files, notes, calendar, reminders, contacts, flashcards and some settings follow you between your Chromebook and your iPhone. Everything is encrypted on the device with a key only you have, so the server sees nothing readable. It works offline, never blocks PatOS, and if you delete your Railway and make a new one, your devices fill it again by themselves (restoring a backup brings your Sync code back too). Turn it on in Settings › Sync","Everything on your real disk: the backup folder now also keeps a full copy of your big files (videos, recordings, up to 1 GB) and your Sync code, so if PatOS or the website is deleted, restoring from the folder brings it all back. In Settings › Sync you can make a new code to share, or point an old PatOS at a new server address","App SDK and PitCode Studio: make your own PatOS apps in PatOS, like Xcode. Write them in PitCode (your own language, built in) or in HTML and JavaScript, run them in a preview with a console, then install them, save them as a .patapp file, or send them for review. Apps run in a locked box and must ask before using the camera, microphone, location, files, clipboard, notifications or the internet. New Settings › Privacy shows what every app may do and did. The App Store has new Community and Develop tabs, and accepted apps are reviewed at /apprequests","PatDrop: a chat for you and your friend (or your own devices). Make a code, type it on the other PatOS, and send messages, files, photos, links, clipboard text and even apps made in PitCode Studio, straight into each other's PatOS. It is encrypted on your device, works offline (things wait in an outbox), tells you when something arrives, and Finder has a Send with PatDrop item","PatOS Accounts: make an account with just a username and a password (no email) and everything you have (files, photos, notes, calendar, apps and your own apps, the dock, every setting, even your open windows and where they are) is saved in the cloud, locked with your password, and follows you to every device. A copy stays on each device, so PatOS still works offline. Everyone gets a big invitation to create their account, and everything already on the device is saved into it","Messages is now for people: search a username, send a message request, and they get notifications from you only after they accept. Every conversation is saved in the cloud and is the same on all your devices. Pat, the command helper, moved to a button in the top bar","Shortcuts: a new app for little automations. Open apps, ask Pat for a timer, change the theme, show messages, and more, one step after the other. Start them by hand, when you unlock PatOS, every day at a time, or by saying “Hey Pat, …”. Turn on Hey Pat in Settings › Pat Voice (it is off until you do): Pat listens for its name, answers out loud and runs your shortcuts. There is also a microphone button in Pat’s panel in Messages","Pat moved to the top bar: click the speech bubble next to Control Center to talk to Pat from anywhere (it is no longer inside Messages). On a phone, Pat is an app in Launchpad that opens the same panel","Cleaner wording: the extra descriptions, taglines and tips are gone from Settings, Backup, Sync, App Store, Studio and more. Only what you need to read is left","Updates are yours to choose: each version now has its own files. PatOS never switches to a new finished version by itself (refreshing or reopening keeps the version you have); Settings › Software Update shows it and the button installs it. A beta only reaches devices with Beta updates on, and is downloaded quietly and used the next time PatOS starts. A version is saved completely, and checked, before PatOS switches to it, and the version before stays as the way back","App Store › Develop fixes: trying an app no longer empties the form (your code stays, and trying again updates the same app instead of making a new one), the form is remembered after a restart, and an app you opened from a .patapp file now loads into the editor so you can change it. Apps installed from files have an Edit button in Community","Settings has groups now: the sidebar shows General, Account & Cloud, Appearance & Display, Accessibility, Sound & Voice and Privacy & Security. A group opens the list of its settings (General has Software Update, Network, Storage and more), with a back link. The big account card at the top opens your info and your computer's info","Faster everywhere: Photos opens without making every picture first, Files shows long folders in pieces so they appear at once, the start-up and lock screen wait less, and Pat answers quicker. PatOS also tests how fast your computer is and, on a slow one, turns off the see-through blur by itself (Settings › Speed mode lets you choose)","Made for Windows laptops too (like an HP EliteBook): PatOS no longer says “Chromebook” when you are not on one, scrollbars are thin on Windows, and everything fits a 1366 by 768 screen","Faster start: apps now load when you open them. PatOS reads about a third of the app code at start instead of all of it, and every app still works offline"],"fr":["Sauvegarde et restauration : un instantané chaque jour (remettez PatOS comme il était mardi), un fichier de sauvegarde que vous pouvez verrouiller par mot de passe, et sur un Chromebook un dossier de sauvegarde automatique sur votre vrai disque, pour que vos données survivent même si PatOS ou le site est supprimé. Vous pouvez restaurer dès le tout premier écran sur un nouvel appareil","Synchronisation (facultative) : vos fichiers, notes, calendrier, rappels, contacts, cartes mémoire et certains réglages vous suivent entre votre Chromebook et votre iPhone. Tout est chiffré sur l’appareil avec une clé que vous seul avez, donc le serveur ne voit rien de lisible. Cela fonctionne hors ligne, ne bloque jamais PatOS, et si vous supprimez votre Railway pour en créer un nouveau, vos appareils le remplissent tout seuls (restaurer une sauvegarde ramène aussi votre code). Activez-la dans Réglages › Synchronisation","Tout sur votre vrai disque : le dossier de sauvegarde garde maintenant aussi une copie complète de vos gros fichiers (vidéos, enregistrements, jusqu’à 1 Go) et votre code de synchronisation, donc si PatOS ou le site est supprimé, restaurer depuis le dossier ramène tout. Dans Réglages › Synchronisation vous pouvez créer un nouveau code à partager, ou diriger un ancien PatOS vers une nouvelle adresse de serveur","SDK d’apps et PitCode Studio : faites vos propres apps PatOS dans PatOS, comme Xcode. Écrivez-les en PitCode (votre propre langage, intégré) ou en HTML et JavaScript, lancez-les dans un aperçu avec une console, puis installez-les, enregistrez-les en fichier .patapp, ou envoyez-les pour examen. Les apps tournent dans une boîte verrouillée et doivent demander avant d’utiliser la caméra, le micro, la position, les fichiers, le presse-papiers, les notifications ou internet. Le nouveau Réglages › Confidentialité montre ce que chaque app peut faire et a fait. L’App Store a de nouveaux onglets Communauté et Développer, et les apps acceptées sont examinées sur /apprequests","PatDrop : une discussion pour vous et votre ami (ou vos propres appareils). Créez un code, écrivez-le sur l’autre PatOS, et envoyez messages, fichiers, photos, liens, texte du presse-papiers et même des apps faites dans PitCode Studio, directement dans le PatOS de l’autre. C’est chiffré sur votre appareil, ça marche hors ligne (les choses attendent dans une boîte d’envoi), ça vous prévient quand quelque chose arrive, et le Finder a un élément Envoyer avec PatDrop","Comptes PatOS : créez un compte avec seulement un nom d’utilisateur et un mot de passe (pas de courriel) et tout ce que vous avez (fichiers, photos, notes, calendrier, apps et vos propres apps, le dock, tous les réglages, même vos fenêtres ouvertes et leur place) est enregistré dans le nuage, verrouillé par votre mot de passe, et vous suit sur chaque appareil. Une copie reste sur chaque appareil, donc PatOS marche toujours hors ligne. Tout le monde reçoit une grande invitation à créer son compte, et tout ce qui est déjà sur l’appareil y est enregistré","Messages est maintenant pour les gens : cherchez un nom d’utilisateur, envoyez une demande de message, et la personne reçoit des notifications de vous seulement après avoir accepté. Chaque conversation est enregistrée dans le nuage et identique sur tous vos appareils. Pat, l’assistant à commandes, est passé dans un bouton de la barre du haut","Raccourcis : une nouvelle app pour de petites automatisations. Ouvrir des apps, demander un minuteur à Pat, changer le thème, afficher des messages, et plus, une étape après l’autre. Lancez-les à la main, quand vous déverrouillez PatOS, chaque jour à une heure, ou en disant « Hey Pat, … ». Activez Hey Pat dans Réglages › Voix de Pat (désactivé tant que vous ne le faites pas) : Pat écoute son nom, répond à voix haute et lance vos raccourcis. Il y a aussi un bouton micro dans le panneau de Pat dans Messages","Pat est passé dans la barre du haut : cliquez sur la bulle à côté du Centre de contrôle pour parler à Pat de n’importe où (il n’est plus dans Messages). Sur un téléphone, Pat est une app dans Launchpad qui ouvre le même panneau","Textes plus sobres : les descriptions superflues, slogans et conseils ont disparu des Réglages, de la Sauvegarde, de la Synchronisation, de l’App Store, du Studio et d’autres. Il ne reste que ce qu’il faut lire","Les mises à jour, c’est vous qui choisissez : chaque version a maintenant ses propres fichiers. PatOS ne passe jamais tout seul à une nouvelle version terminée (actualiser ou rouvrir garde la version que vous avez) ; Réglages › Mise à jour la montre et le bouton l’installe. Une bêta n’arrive que sur les appareils avec les mises à jour bêta activées, et elle est téléchargée discrètement puis utilisée au prochain démarrage de PatOS. Une version est enregistrée en entier, et vérifiée, avant que PatOS passe dessus, et la version d’avant reste comme chemin de retour","Correctifs App Store › Développer : essayer une app ne vide plus le formulaire (votre code reste, et réessayer met à jour la même app au lieu d’en créer une nouvelle), le formulaire est gardé après un redémarrage, et une app ouverte depuis un fichier .patapp se charge dans l’éditeur pour que vous puissiez la modifier. Les apps installées depuis des fichiers ont un bouton Modifier dans Communauté","Les Réglages ont maintenant des groupes : la barre latérale montre Général, Compte et nuage, Apparence et écran, Accessibilité, Son et voix, et Confidentialité et sécurité. Un groupe ouvre la liste de ses réglages (Général contient Mise à jour, Réseau, Stockage et plus), avec un lien de retour. La grande carte du compte en haut ouvre vos infos et celles de votre ordinateur","Plus rapide partout : Photos s’ouvre sans fabriquer toutes les images d’abord, Fichiers affiche les longs dossiers par morceaux pour qu’ils apparaissent tout de suite, le démarrage et l’écran de verrouillage attendent moins, et Pat répond plus vite. PatOS teste aussi la vitesse de votre ordinateur et, sur un ordinateur lent, désactive seul le flou transparent (Réglages › Mode vitesse permet de choisir)","Pensé aussi pour les portables Windows (comme un HP EliteBook) : PatOS ne dit plus « Chromebook » quand vous n’en avez pas un, les barres de défilement sont fines sous Windows, et tout tient sur un écran de 1366 par 768","Démarrage plus rapide : les apps se chargent maintenant à leur ouverture. PatOS lit environ un tiers du code des apps au démarrage au lieu de tout, et chaque app marche toujours hors ligne"]}},{"version":"1.7.0","date":"2026-11-04","title":{"en":"Better apps","fr":"De meilleures apps"},"notes":{"en":["Calendar: Day and Year views, repeating events with an end date, alerts before events (even with Calendar closed), quick add in plain words (“Math class monday 9am weekly”), search, drag events to another day, and .ics import and export (Google Calendar)","Contacts: several phone numbers and emails per person, company, tap to call or email, search that ignores accents, Undo after deleting, merge duplicates, and better vCard import and export with photos","Weather: 10-day forecast, a one-line summary of the next hours, city suggestions as you type, gusts, pressure, visibility and rain today, wind and rain in mph and inches with °F, refreshes by itself, and real icons instead of emoji","Photos: much faster with many photos, your own albums, select several photos at once, search, zoom and pan with the wheel or pinch, swipe between photos, photo info, drop pictures to add them, and large photos now show up","Paint: choose your canvas size, zoom, text, filled shapes, opacity that doesn’t darken overlaps, Shift for straight lines and circles, rotate and flip, more undo, keyboard shortcuts, and open or save over a picture (Photos › More › Open in Paint)","Reliability and security: a failed save keeps your deletions, stricter checks for private network addresses, the password vault only counts use of the vault as activity and locks when you close Passwords, and the French translation is complete","Messages: Pat can set timers and alarms, show your calendar and what is due, add events and reminders with dates in plain words, convert units, work out percentages, find files, pick between options, and suggest the app you meant. Up arrow brings back what you typed","Terminal: variables ($NAME), aliases, !! to repeat the last command, new tools (cut, tr, sed, diff, nl, tee, stat, basename, dirname, which, sleep), and Tab fills in what several matches share","Flashcards: spaced repetition (cards you know come back later, cards you miss come back today), a mode where you type the answer, either side first, paste a list or a Quizlet export to make a deck, a study streak, and no more pre-made decks","Security: programs run in Terminal and Python can no longer reach PatOS’s storage, Terminal’s node command is labeled as a JavaScript runner, and About, Terminal and Settings show the exact version you are running"],"fr":["Calendrier : vues Jour et Année, événements récurrents avec date de fin, alertes avant les événements (même avec Calendrier fermé), ajout rapide en mots simples (« Cours de maths lundi 9h chaque semaine »), recherche, glisser les événements vers un autre jour, et import et export .ics (Google Agenda)","Contacts : plusieurs numéros et courriels par personne, entreprise, toucher pour appeler ou écrire, recherche sans tenir compte des accents, Annuler après une suppression, fusion des doublons, et meilleur import et export vCard avec les photos","Météo : prévisions sur 10 jours, un résumé des prochaines heures, suggestions de villes en écrivant, rafales, pression, visibilité et pluie du jour, vent et pluie en mph et pouces avec les °F, actualisation automatique, et de vraies icônes au lieu des émojis","Photos : beaucoup plus rapide avec beaucoup de photos, vos propres albums, sélection de plusieurs photos, recherche, zoom et déplacement à la molette ou au pincement, balayage entre les photos, infos de la photo, glisser des images pour les ajouter, et les grandes photos apparaissent maintenant","Paint : choisissez la taille du canevas, zoom, texte, formes pleines, opacité qui ne s’assombrit pas aux croisements, Maj pour des lignes droites et des cercles, rotation et retournement, plus d’annulations, raccourcis clavier, et ouverture ou enregistrement par-dessus une image (Photos › Plus › Ouvrir dans Paint)","Fiabilité et sécurité : un enregistrement échoué garde vos suppressions, vérifications plus strictes des adresses de réseau privé, le coffre de mots de passe ne compte que son propre usage comme activité et se verrouille à la fermeture de Mots de passe, et la traduction française est complète","Messages : Pat peut régler des minuteurs et des alarmes, montrer ton calendrier et ce qui est dû, ajouter des événements et des rappels avec des dates en mots simples, convertir des unités, calculer des pourcentages, trouver des fichiers, choisir entre des options, et suggérer l’app que tu voulais. La flèche du haut rappelle ce que tu as écrit","Terminal : variables ($NOM), alias, !! pour répéter la dernière commande, nouveaux outils (cut, tr, sed, diff, nl, tee, stat, basename, dirname, which, sleep), et Tab complète ce que plusieurs correspondances ont en commun","Cartes mémoire : répétition espacée (les cartes que vous savez reviennent plus tard, celles que vous ratez reviennent aujourd’hui), un mode où vous écrivez la réponse, recto ou verso d’abord, coller une liste ou un export Quizlet pour faire un jeu, une série de jours d’étude, et plus de jeux préfaits","Sécurité : les programmes lancés dans Terminal et Python ne peuvent plus accéder au stockage de PatOS, la commande node du Terminal est présentée comme un exécuteur JavaScript, et À propos, Terminal et Réglages affichent la version exacte que vous utilisez"]}},{"version":"1.6.0","date":"2026-11-03","title":{"en":"Software Update","fr":"Mise à jour de logiciels"},"notes":{"en":["New Settings › Software Update: see your version, what changed, and install updates","PatOS finds new versions by itself while it is open, without refreshing","Installing an update restarts PatOS only, and your windows come back"],"fr":["Nouveau Réglages › Mise à jour de logiciels : votre version, ce qui a changé, et l’installation des mises à jour","PatOS trouve les nouvelles versions tout seul pendant qu’il est ouvert, sans rafraîchir","Installer une mise à jour redémarre seulement PatOS, et vos fenêtres reviennent"]}},{"version":"1.5.0","date":"2026-11-03","title":{"en":"iPhone swipe up, Reminders in plain words","fr":"Balayage sur iPhone, Rappels en mots simples"},"notes":{"en":["iPhone: swipe up from the bar at the bottom to leave an app, swipe up and pause for the app switcher","Reminders: type “Math test friday at 3pm !!” and the date, time and priority are filled in","Reminders can repeat, and there is search and Undo"],"fr":["iPhone : balayez vers le haut depuis la barre du bas pour quitter une app, et faites une pause pour le sélecteur d’apps","Rappels : écrivez « Examen de maths vendredi à 15h !! » et la date, l’heure et la priorité se remplissent","Les rappels peuvent se répéter, avec recherche et Annuler"]}},{"version":"1.4.0","date":"2026-11-03","title":{"en":"Clock and Calculator","fr":"Horloge et Calculatrice"},"notes":{"en":["Clock: add any city, a stopwatch that keeps running when closed, a timer with hours and a name, editable alarms","Calculator: history you can reuse, copy and paste, real percent, inverse trig"],"fr":["Horloge : ajoutez n’importe quelle ville, un chronomètre qui continue fermé, un minuteur avec heures et nom, des alarmes modifiables","Calculatrice : historique réutilisable, copier-coller, vrai pourcentage, trigonométrie inverse"]}},{"version":"1.3.0","date":"2026-11-03","title":{"en":"Finder and TextEdit","fr":"Finder et TextEdit"},"notes":{"en":["Finder: copy, cut and paste files, drag a box to select, drop files from your computer","TextEdit: find and replace, line and column, word wrap, Markdown preview, recent files, print"],"fr":["Finder : copier, couper et coller des fichiers, sélection en tirant un cadre, déposer des fichiers de l’ordinateur","TextEdit : rechercher et remplacer, ligne et colonne, retour à la ligne, aperçu Markdown, fichiers récents, impression"]}},{"version":"1.2.0","date":"2026-11-03","title":{"en":"Faster start, smoother 3D","fr":"Démarrage plus rapide, 3D plus fluide"},"notes":{"en":["PatOS starts in about a second instead of several","3D waits for the graphics chip, so slower Chromebooks don’t lag"],"fr":["PatOS démarre en environ une seconde au lieu de plusieurs","La 3D attend la puce graphique, donc les Chromebooks plus lents ne ralentissent plus"]}},{"version":"1.1.0","date":"2026-11-03","title":{"en":"Security","fr":"Sécurité"},"notes":{"en":["Passwords are always encrypted, and lock with your master password","Documents and pasted text can no longer run code","Pat in Messages is described honestly: a command helper, not an AI"],"fr":["Les mots de passe sont toujours chiffrés et se verrouillent avec votre mot de passe principal","Les documents et le texte collé ne peuvent plus exécuter de code","Pat dans Messages est décrit honnêtement : un assistant à commandes, pas une IA"]}}];
-PatOS.beta = null;
-PatOS.build = {"channel":"stable","version":"2.2.0","beta":0};
+PatOS.beta = {"version":"2.2.1","date":"2026-11-09","title":{"en":"Thick, clear Liquid Glass","fr":"Liquid Glass épais et clair"},"notes":{"en":["Liquid Glass is far more transparent: the Dock barely blurs, so the wallpaper reads right through it, and menus, Control Center and notifications let much more through while their words stay clear","Every glass surface now looks like a thick slab of glass: a glossy top edge, a rounded rim that bends what is behind it, edges that take on a deeper version of the color behind them, and a soft shadow underneath","In Chrome, Edge and on Chromebooks, menus, Control Center, notifications, widgets, Spotlight and dialogs bend what is behind their edges, not only the Dock","The glass is lit by one light that leans toward your pointer, so every shine and edge agrees; the rims are the same thickness on big and small panels, and a curved glint runs along their bottom edge","Over very busy wallpapers, glass with words on it frosts a little more so text stays easy to read","Buttons, menu items, tiles and icons sink into the glass when you press them","Control Center tiles and desktop widgets tilt slightly toward the pointer","Fixed: the Dock's own clear look was being overridden by the shared glass style"],"fr":["Liquid Glass est beaucoup plus transparent : le Dock floute à peine, le fond d’écran se voit au travers, et les menus, le Centre de contrôle et les notifications laissent passer bien plus tout en gardant un texte net","Chaque surface en verre ressemble maintenant à une plaque épaisse : un bord supérieur brillant, un bord arrondi qui courbe ce qui est derrière, des bords qui prennent une version plus profonde de la couleur derrière, et une ombre douce dessous","Dans Chrome, Edge et sur Chromebook, les menus, le Centre de contrôle, les notifications, les widgets, Spotlight et les dialogues courbent ce qui est derrière leurs bords, pas seulement le Dock","Le verre est éclairé par une seule lumière qui suit votre pointeur, donc tous les reflets et les bords s’accordent ; les bords ont la même épaisseur sur les grands et les petits panneaux, et un reflet courbe longe leur bord inférieur","Sur les fonds d’écran très chargés, le verre qui porte du texte devient un peu plus dépoli pour que le texte reste facile à lire","Les boutons, éléments de menu, tuiles et icônes s’enfoncent dans le verre quand vous appuyez dessus","Les tuiles du Centre de contrôle et les widgets du bureau s’inclinent légèrement vers le pointeur","Corrigé : l’aspect clair du Dock était remplacé par le style de verre commun"]},"beta":2};
+PatOS.build = {"channel":"beta","version":"2.2.1","beta":2};
 
 </script>
   <script type="patos/js">
@@ -9799,7 +9900,14 @@ PatOS.build = {"channel":"stable","version":"2.2.0","beta":0};
       const root = document.documentElement;
       root.dataset.wpTop = band(0, topRows) > 0.3 ? 'light' : 'dark';
       root.dataset.wpBottom = band(32 - Math.max(2, topRows * 3), 32) > 0.3 ? 'light' : 'dark';
-    } catch (e) { /* a picture the browser won't let PatOS read: the theme decides instead */ delete document.documentElement.dataset.wpTop; delete document.documentElement.dataset.wpBottom; }
+      // how busy the picture is: the average jump in brightness between neighbouring pixels (smooth gradients are near 0,
+      // photos of leaves or text are high). Glass that holds words thickens a little over busy pictures (css/glass.css).
+      const d = x.getImageData(0, 0, 48, 32).data, L = new Float32Array(48 * 32);
+      for (let i = 0; i < L.length; i++) L[i] = (d[i * 4] * 0.2126 + d[i * 4 + 1] * 0.7152 + d[i * 4 + 2] * 0.0722) / 255;
+      let edge = 0, n = 0;
+      for (let y = 0; y < 31; y++) for (let x2 = 0; x2 < 47; x2++) { const i = y * 48 + x2; edge += Math.abs(L[i] - L[i + 1]) + Math.abs(L[i] - L[i + 48]); n += 2; }
+      if (edge / n > 0.06) root.dataset.wpBusy = '1'; else delete root.dataset.wpBusy;
+    } catch (e) { /* a picture the browser won't let PatOS read: the theme decides instead */ delete document.documentElement.dataset.wpTop; delete document.documentElement.dataset.wpBottom; delete document.documentElement.dataset.wpBusy; }
   }
 
   function drawStatic(id) {
@@ -10988,12 +11096,15 @@ PatOS.build = {"channel":"stable","version":"2.2.0","beta":0};
      can use an SVG filter in backdrop-filter (Safari would drop the whole blur), so everywhere else the glass is the same
      without the bend. Maps are made only when a bar settles at a new size (not on every frame of the Dock's magnification). */
   const lens = (() => {
-    const SEL = '#dock, .asw-row, .lp-search';
+    // every glass surface gets a lens on its edges (the 3D look); tiny things (labels, segmented controls) do not
+    const SEL = '#dock, .asw-row, .lp-search, .widget, .cc-tile, .toast:not(.static), .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg, .lg-clear, .lg-elevated';
     const isChromium = (!!navigator.userAgentData || !!window.chrome || /Chrome\//.test(navigator.userAgent)) && !PatOS.isIOS && !/Firefox|FxiOS/.test(navigator.userAgent);
     const maps = new Map(); // "w×h×r" -> filter id
     let svg = null, ro = null, n = 0;
     const on = () => document.documentElement.classList.contains('lg-refract');
-    function sdfMap(w, hh, r, bezel) {
+    function sdfMap(W, H, R, B) {
+      const q = W * H > 60000 ? 2 : 1; // big panes: draw the (smooth) map at half size, the filter stretches it back
+      const w = Math.ceil(W / q), hh = Math.ceil(H / q); let r = R / q; const bezel = B / q;
       const c = document.createElement('canvas'); c.width = w; c.height = hh;
       const x = c.getContext('2d'); const d = x.createImageData(w, hh); const a = d.data;
       r = Math.min(r, w / 2, hh / 2);
@@ -11003,7 +11114,8 @@ PatOS.build = {"channel":"stable","version":"2.2.0","beta":0};
           const qx = Math.abs(px) - (w / 2 - r), qy = Math.abs(py) - (hh / 2 - r);
           const ox = Math.max(qx, 0), oy = Math.max(qy, 0);
           const dist = -(Math.hypot(ox, oy) + Math.min(Math.max(qx, qy), 0) - r); // how far inside the rounded edge
-          const k = Math.pow(1 - Math.min(1, Math.max(0, dist / bezel)), 2.2); // 1 at the rim, 0 in the clear middle
+          const u = 1 - Math.min(1, Math.max(0, dist / bezel)); // 1 at the rim, 0 where the flat face starts
+          const k = 1 - Math.sqrt(1 - u * u); // a rounded (quarter-circle) edge: flat face, steepest right at the rim, like a thick slab // 1 at the rim, 0 in the clear middle
           let nx = 0, ny = 0;
           if (qx > 0 && qy > 0) { const l = Math.hypot(ox, oy) || 1; nx = ox / l * Math.sign(px); ny = oy / l * Math.sign(py); }
           else if (qx > qy) nx = Math.sign(px); else ny = Math.sign(py);
@@ -11013,11 +11125,12 @@ PatOS.build = {"channel":"stable","version":"2.2.0","beta":0};
       }
       x.putImageData(d, 0, 0); return c.toDataURL();
     }
+    const rimW = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--g-rim-w')) || 11;
     function filterFor(w, hh, r) {
       const key = w + 'x' + hh + 'x' + r; if (maps.has(key)) return maps.get(key);
       if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('width', '0'); svg.setAttribute('height', '0'); svg.setAttribute('aria-hidden', 'true'); svg.style.position = 'absolute'; document.body.appendChild(svg); }
-      if (maps.size > 24) { maps.clear(); svg.innerHTML = ''; } // sizes change rarely; never let old maps pile up
-      const id = 'lg-lens-' + (++n), bezel = Math.max(8, Math.min(22, Math.min(w, hh) * 0.3)), scale = Math.round(bezel * 1.3);
+      if (maps.size > 48) { maps.clear(); svg.innerHTML = ''; } // sizes change rarely; never let old maps pile up
+      const id = 'lg-lens-' + (++n), bezel = Math.round(Math.min(rimW(), Math.min(w, hh) * 0.3)), scale = Math.round(bezel * 2.8); // the same rim width as the CSS (--g-rim-w)
       svg.insertAdjacentHTML('beforeend', '<filter id="' + id + '" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">' +
         '<feImage href="' + sdfMap(w, hh, r, bezel) + '" x="0" y="0" width="' + w + '" height="' + hh + '" preserveAspectRatio="none" result="map"/>' +
         '<feDisplacementMap in="SourceGraphic" in2="map" scale="' + scale + '" xChannelSelector="R" yChannelSelector="G"/></filter>');
@@ -11031,11 +11144,15 @@ PatOS.build = {"channel":"stable","version":"2.2.0","beta":0};
       el.style.setProperty('--lg-lens', 'url(#' + filterFor(w, hh, r) + ')');
     }
     const pending = new Set(); const flush = PatOS.debounce(() => { pending.forEach((el) => el.isConnected && fit(el)); pending.clear(); }, 160);
-    const settle = (els) => { els.forEach((el) => pending.add(el)); flush(); };
+    const settle = (els) => { els.forEach((el) => { if (!el.style.getPropertyValue('--lg-lens')) fit(el); else pending.add(el); }); flush(); };
+    // menus, notifications, dialogs and Spotlight come and go: new ones are picked up when they appear
+    let mo = null;
+    const scan = (nodes) => { const found = []; nodes.forEach((n) => { if (n.nodeType !== 1) return; if (n.matches(SEL)) found.push(n); n.querySelectorAll && n.querySelectorAll(SEL).forEach((e) => found.push(e)); }); found.forEach((el) => { if (ro) ro.observe(el); }); };
     function refresh() {
       const els = Array.from(document.querySelectorAll(SEL));
-      if (!on()) { els.forEach((el) => el.style.removeProperty('--lg-lens')); if (ro) { ro.disconnect(); ro = null; } return; }
+      if (!on()) { els.forEach((el) => el.style.removeProperty('--lg-lens')); if (ro) { ro.disconnect(); ro = null; } if (mo) { mo.disconnect(); mo = null; } return; }
       if (!ro && window.ResizeObserver) ro = new ResizeObserver((entries) => settle(entries.map((e) => e.target)));
+      if (!mo && window.MutationObserver) { mo = new MutationObserver((recs) => recs.forEach((r) => scan(r.addedNodes))); mo.observe(document.getElementById('desktop') || document.body, { childList: true, subtree: true }); }
       els.forEach((el) => { fit(el); if (ro) ro.observe(el); });
     }
     return { supported: () => isChromium, refresh, watch: (el) => { if (on()) { fit(el); if (ro) ro.observe(el); } } };
@@ -11043,13 +11160,35 @@ PatOS.build = {"channel":"stable","version":"2.2.0","beta":0};
   PatOS.glassLens = lens;
 
   /* Liquid Glass light follows the pointer */
-  const GLASS_SEL = '#dock, .mh-dock, .menu, .toast, .sp-box, .dlg, .widget, .mw, .cc-tile, .asw-row, .nc-list, #pat-panel';
+  const GLASS_SEL = '#dock, .mh-dock, .menu, .toast, .sp-box, .dlg, .widget, .mw, .cc-tile, .asw-row, .nc-list, #pat-panel, .lg, .lg-clear, .lg-elevated';
+  const TILT_SEL = '.cc-tile, #desk-widgets .widget'; let tilted = null;
+  const untilt = () => { if (tilted) { tilted.style.removeProperty('--rx'); tilted.style.removeProperty('--ry'); tilted = null; } };
   document.addEventListener('pointermove', (e) => {
     if (e.pointerType === 'touch' || !document.documentElement.classList.contains('lg-on')) return;
-    const g = e.target.closest && e.target.closest(GLASS_SEL); if (!g) return;
-    const r = g.getBoundingClientRect();
-    g.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
-    g.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+    const g = e.target.closest && e.target.closest(GLASS_SEL); if (!g) { untilt(); return; }
+    const r = g.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+    g.style.setProperty('--mx', (fx * 100).toFixed(1) + '%');
+    g.style.setProperty('--my', (fy * 100).toFixed(1) + '%');
+    // a small tilt (at most 5 degrees) toward the pointer, like picking up a piece of glass
+    const t = g.matches(TILT_SEL) ? g : null;
+    if (tilted && tilted !== t) untilt();
+    if (t && !document.documentElement.classList.contains('reduce-motion')) {
+      t.style.setProperty('--rx', ((0.5 - fy) * 10).toFixed(2) + 'deg'); t.style.setProperty('--ry', ((fx - 0.5) * 10).toFixed(2) + 'deg'); tilted = t;
+    }
+  }, { passive: true });
+  document.addEventListener('pointerleave', untilt);
+  /* 3. one light for all the glass. It sits above the screen and leans toward the pointer: every rim, sheen and caustic is
+     drawn from it, so highlights agree with each other. It only moves in 15° steps, and never with Fewer animations. */
+  let lightStep = null;
+  document.addEventListener('pointermove', (e) => {
+    const root = document.documentElement;
+    if (e.pointerType === 'touch' || !root.classList.contains('lg-on') || root.classList.contains('reduce-motion')) return;
+    const fx = e.clientX / innerWidth; // 0 (left) .. 1 (right)
+    const step = Math.round(fx * 6); if (step === lightStep) return; lightStep = step;
+    const f = step / 6; // light from the upper left (pointer left) to the upper right (pointer right)
+    root.style.setProperty('--g-angle', Math.round(120 + f * 120) + 'deg');
+    root.style.setProperty('--g-lx', Math.round(15 + f * 70) + '%');
+    root.style.setProperty('--g-dx', Math.round(85 - f * 70) + '%');
   }, { passive: true });
 
   function setupKeys() {

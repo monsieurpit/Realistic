@@ -270,7 +270,14 @@
       const root = document.documentElement;
       root.dataset.wpTop = band(0, topRows) > 0.3 ? 'light' : 'dark';
       root.dataset.wpBottom = band(32 - Math.max(2, topRows * 3), 32) > 0.3 ? 'light' : 'dark';
-    } catch (e) { /* a picture the browser won't let PatOS read: the theme decides instead */ delete document.documentElement.dataset.wpTop; delete document.documentElement.dataset.wpBottom; }
+      // how busy the picture is: the average jump in brightness between neighbouring pixels (smooth gradients are near 0,
+      // photos of leaves or text are high). Glass that holds words thickens a little over busy pictures (css/glass.css).
+      const d = x.getImageData(0, 0, 48, 32).data, L = new Float32Array(48 * 32);
+      for (let i = 0; i < L.length; i++) L[i] = (d[i * 4] * 0.2126 + d[i * 4 + 1] * 0.7152 + d[i * 4 + 2] * 0.0722) / 255;
+      let edge = 0, n = 0;
+      for (let y = 0; y < 31; y++) for (let x2 = 0; x2 < 47; x2++) { const i = y * 48 + x2; edge += Math.abs(L[i] - L[i + 1]) + Math.abs(L[i] - L[i + 48]); n += 2; }
+      if (edge / n > 0.06) root.dataset.wpBusy = '1'; else delete root.dataset.wpBusy;
+    } catch (e) { /* a picture the browser won't let PatOS read: the theme decides instead */ delete document.documentElement.dataset.wpTop; delete document.documentElement.dataset.wpBottom; delete document.documentElement.dataset.wpBusy; }
   }
 
   function drawStatic(id) {

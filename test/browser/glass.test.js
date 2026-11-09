@@ -26,11 +26,12 @@ test('the glass is see-through, the Dock bends at its edges, and only titlebars 
   await page.evaluate(() => PatOS.launch('textedit')); await page.waitForSelector('.window .titlebar'); await page.waitForTimeout(400);
   const g = await look(page);
   assert.match(g.cls, /\blg-on\b/); assert.match(g.cls, /\blg-refract\b/, 'Chromium gets the lens');
-  assert.match(g.dock, /blur\(9px\)/, 'the Dock is the clear tier: ' + g.dock);
+  assert.match(g.dock, /blur\(0\.8px\)/, 'the Dock is the clear tier (barely blurred): ' + g.dock);
+  assert.match(g.dock, /saturate\(1\.4\) brightness\(1\.06\)/, 'the clear tier\'s own look wins over the shared rule: ' + g.dock);
   assert.match(g.dock, /url\("?#lg-lens-\d+"?\)/, 'the Dock uses a lens made for its size: ' + g.dock);
   const filterOk = await page.evaluate((id) => { const f = document.getElementById(id); return !!(f && f.querySelector('feImage') && f.querySelector('feDisplacementMap')); }, g.lens.replace(/^url\(#|\)$/g, ''));
   assert.ok(filterOk, 'the lens filter exists: ' + g.lens);
-  const alpha = Number((g.dockBg.match(/[\d.]+(?=\))/) || ['1'])[0]); assert.ok(alpha < 0.5, 'the Dock tint is transparent: ' + g.dockBg);
+  const alpha = Number((g.dockBg.match(/[\d.]+(?=\))/) || ['1'])[0]); assert.ok(alpha <= 0.06, 'the Dock tint is transparent: ' + g.dockBg);
   assert.equal(g.window, 'none', 'a window does not blur everything behind it');
   assert.match(g.titlebar, /blur/, 'its titlebar is glass');
   assert.match(g.body, /linear-gradient/, 'its contents sit on an opaque layer');
@@ -72,4 +73,42 @@ test('a notification does not cover an open Control Center', { skip: skipNoBrows
   const [cc, t] = await page.evaluate(() => [document.querySelector('#control-center').getBoundingClientRect().toJSON(), document.querySelector('#toasts .toast').getBoundingClientRect().toJSON()]);
   assert.ok(t.right <= cc.left + 1, 'the toast is beside the panel: ' + JSON.stringify({ cc, t }));
   await page.close();
+});
+
+test('every glass surface is a thick pane: Control Center tiles and menus get a lens, and their rim takes the color behind them', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1280, height: 800 } }); const errors = await boot(page, srv.base, { fresh: true });
+  await page.click('#mb-cc'); await page.waitForSelector('#control-center:not(.hidden) .cc-tile'); await page.waitForTimeout(400);
+  const tile = await page.evaluate(() => { const t = document.querySelector('#control-center .cc-tile'); const a = getComputedStyle(t, '::after');
+    return { lens: t.style.getPropertyValue('--lg-lens'), bf: getComputedStyle(t).backdropFilter, rim: a.backdropFilter, rimBg: a.backgroundColor }; });
+  assert.match(tile.lens, /^url\(#lg-lens-\d+\)$/, 'a tile has its own lens');
+  assert.match(tile.bf, /url\(/, 'and uses it: ' + tile.bf);
+  assert.match(tile.rim, /saturate\(2\.1\)/, 'the rim deepens what is behind: ' + tile.rim);
+  assert.equal(tile.rimBg, 'rgba(0, 0, 0, 0)', 'the rim adds no color of its own');
+  await page.keyboard.press('Escape'); await page.click('.mb-logo'); await page.waitForSelector('.menu'); await page.waitForTimeout(300);
+  assert.match(await page.evaluate(() => document.querySelector('.menu').style.getPropertyValue('--lg-lens')), /lg-lens/, 'a menu that just opened gets a lens too');
+  assert.deepEqual(errors, []); await page.close();
+});
+
+test('one light for all the glass, readable words over busy pictures, and glass that sinks when pressed', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1280, height: 800 } }); const errors = await boot(page, srv.base, { fresh: true });
+  // the light leans toward the pointer
+  const angle = () => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--g-angle').trim());
+  await page.mouse.move(20, 400); await page.waitForTimeout(50); const left = await angle();
+  await page.mouse.move(1260, 400); await page.waitForTimeout(50); const right = await angle();
+  assert.equal(left, '120deg'); assert.equal(right, '240deg');
+  // a smooth wallpaper is not busy; a picture full of fine detail is, and glass with words thickens over it
+  await page.evaluate(() => PatOS.setSetting('wallpaper', 'sunrise')); await page.waitForTimeout(400);
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.wpBusy || null), null);
+  const busy = await page.evaluate(() => { const c = document.createElement('canvas'); c.width = 960; c.height = 640; const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, 960, 640); x.fillStyle = '#000'; for (let i = 0; i < 960; i += 20) for (let j = 0; j < 640; j += 20) if ((i + j) % 40 === 0) x.fillRect(i, j, 20, 20); return c.toDataURL('image/png'); });
+  await page.evaluate((u) => { PatOS.setSetting('customWallpaper', u); PatOS.setSetting('wallpaper', 'custom'); }, busy); await page.waitForTimeout(800);
+  assert.equal(await page.evaluate(() => document.documentElement.dataset.wpBusy || null), '1');
+  assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--g-blur').trim()), '22px');
+  // pressing a Control Center tile pushes it in: the shade moves inside the top edge
+  await page.click('#mb-cc'); await page.waitForSelector('#control-center:not(.hidden) .cc-tile'); await page.waitForTimeout(300);
+  const box = await page.locator('#control-center .cc-tile').nth(2).boundingBox();
+  await page.mouse.move(box.x + box.width - 6, box.y + 6); await page.mouse.down(); await page.waitForTimeout(80);
+  const pressed = await page.evaluate(() => getComputedStyle(document.querySelectorAll('#control-center .cc-tile')[2]).boxShadow);
+  await page.mouse.up();
+  assert.match(pressed, /^rgba\(0, 0, 0, 0\.22\) 0px 3px 8px 0px inset/, 'pressed in: ' + pressed);
+  assert.deepEqual(errors, []); await page.close();
 });

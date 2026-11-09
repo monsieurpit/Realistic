@@ -1,5 +1,36 @@
 [
   {
+    "version": "2.2.1",
+    "date": "2026-11-09",
+    "title": {
+      "en": "Thick, clear Liquid Glass",
+      "fr": "Liquid Glass épais et clair"
+    },
+    "notes": {
+      "en": [
+        "Liquid Glass is far more transparent: the Dock barely blurs, so the wallpaper reads right through it, and menus, Control Center and notifications let much more through while their words stay clear",
+        "Every glass surface now looks like a thick slab of glass: a glossy top edge, a rounded rim that bends what is behind it, edges that take on a deeper version of the color behind them, and a soft shadow underneath",
+        "In Chrome, Edge and on Chromebooks, menus, Control Center, notifications, widgets, Spotlight and dialogs bend what is behind their edges, not only the Dock",
+        "The glass is lit by one light that leans toward your pointer, so every shine and edge agrees; the rims are the same thickness on big and small panels, and a curved glint runs along their bottom edge",
+        "Over very busy wallpapers, glass with words on it frosts a little more so text stays easy to read",
+        "Buttons, menu items, tiles and icons sink into the glass when you press them",
+        "Control Center tiles and desktop widgets tilt slightly toward the pointer",
+        "Fixed: the Dock's own clear look was being overridden by the shared glass style"
+      ],
+      "fr": [
+        "Liquid Glass est beaucoup plus transparent : le Dock floute à peine, le fond d’écran se voit au travers, et les menus, le Centre de contrôle et les notifications laissent passer bien plus tout en gardant un texte net",
+        "Chaque surface en verre ressemble maintenant à une plaque épaisse : un bord supérieur brillant, un bord arrondi qui courbe ce qui est derrière, des bords qui prennent une version plus profonde de la couleur derrière, et une ombre douce dessous",
+        "Dans Chrome, Edge et sur Chromebook, les menus, le Centre de contrôle, les notifications, les widgets, Spotlight et les dialogues courbent ce qui est derrière leurs bords, pas seulement le Dock",
+        "Le verre est éclairé par une seule lumière qui suit votre pointeur, donc tous les reflets et les bords s’accordent ; les bords ont la même épaisseur sur les grands et les petits panneaux, et un reflet courbe longe leur bord inférieur",
+        "Sur les fonds d’écran très chargés, le verre qui porte du texte devient un peu plus dépoli pour que le texte reste facile à lire",
+        "Les boutons, éléments de menu, tuiles et icônes s’enfoncent dans le verre quand vous appuyez dessus",
+        "Les tuiles du Centre de contrôle et les widgets du bureau s’inclinent légèrement vers le pointeur",
+        "Corrigé : l’aspect clair du Dock était remplacé par le style de verre commun"
+      ]
+    },
+    "beta": 2
+  },
+  {
     "version": "2.2.0",
     "date": "2026-11-09",
     "title": {

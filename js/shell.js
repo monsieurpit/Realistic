@@ -1112,12 +1112,15 @@
      can use an SVG filter in backdrop-filter (Safari would drop the whole blur), so everywhere else the glass is the same
      without the bend. Maps are made only when a bar settles at a new size (not on every frame of the Dock's magnification). */
   const lens = (() => {
-    const SEL = '#dock, .asw-row, .lp-search';
+    // every glass surface gets a lens on its edges (the 3D look); tiny things (labels, segmented controls) do not
+    const SEL = '#dock, .asw-row, .lp-search, .widget, .cc-tile, .toast:not(.static), .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg, .lg-clear, .lg-elevated';
     const isChromium = (!!navigator.userAgentData || !!window.chrome || /Chrome\//.test(navigator.userAgent)) && !PatOS.isIOS && !/Firefox|FxiOS/.test(navigator.userAgent);
     const maps = new Map(); // "w×h×r" -> filter id
     let svg = null, ro = null, n = 0;
     const on = () => document.documentElement.classList.contains('lg-refract');
-    function sdfMap(w, hh, r, bezel) {
+    function sdfMap(W, H, R, B) {
+      const q = W * H > 60000 ? 2 : 1; // big panes: draw the (smooth) map at half size, the filter stretches it back
+      const w = Math.ceil(W / q), hh = Math.ceil(H / q); let r = R / q; const bezel = B / q;
       const c = document.createElement('canvas'); c.width = w; c.height = hh;
       const x = c.getContext('2d'); const d = x.createImageData(w, hh); const a = d.data;
       r = Math.min(r, w / 2, hh / 2);
@@ -1127,7 +1130,8 @@
           const qx = Math.abs(px) - (w / 2 - r), qy = Math.abs(py) - (hh / 2 - r);
           const ox = Math.max(qx, 0), oy = Math.max(qy, 0);
           const dist = -(Math.hypot(ox, oy) + Math.min(Math.max(qx, qy), 0) - r); // how far inside the rounded edge
-          const k = Math.pow(1 - Math.min(1, Math.max(0, dist / bezel)), 2.2); // 1 at the rim, 0 in the clear middle
+          const u = 1 - Math.min(1, Math.max(0, dist / bezel)); // 1 at the rim, 0 where the flat face starts
+          const k = 1 - Math.sqrt(1 - u * u); // a rounded (quarter-circle) edge: flat face, steepest right at the rim, like a thick slab // 1 at the rim, 0 in the clear middle
           let nx = 0, ny = 0;
           if (qx > 0 && qy > 0) { const l = Math.hypot(ox, oy) || 1; nx = ox / l * Math.sign(px); ny = oy / l * Math.sign(py); }
           else if (qx > qy) nx = Math.sign(px); else ny = Math.sign(py);
@@ -1137,11 +1141,12 @@
       }
       x.putImageData(d, 0, 0); return c.toDataURL();
     }
+    const rimW = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--g-rim-w')) || 11;
     function filterFor(w, hh, r) {
       const key = w + 'x' + hh + 'x' + r; if (maps.has(key)) return maps.get(key);
       if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('width', '0'); svg.setAttribute('height', '0'); svg.setAttribute('aria-hidden', 'true'); svg.style.position = 'absolute'; document.body.appendChild(svg); }
-      if (maps.size > 24) { maps.clear(); svg.innerHTML = ''; } // sizes change rarely; never let old maps pile up
-      const id = 'lg-lens-' + (++n), bezel = Math.max(8, Math.min(22, Math.min(w, hh) * 0.3)), scale = Math.round(bezel * 1.3);
+      if (maps.size > 48) { maps.clear(); svg.innerHTML = ''; } // sizes change rarely; never let old maps pile up
+      const id = 'lg-lens-' + (++n), bezel = Math.round(Math.min(rimW(), Math.min(w, hh) * 0.3)), scale = Math.round(bezel * 2.8); // the same rim width as the CSS (--g-rim-w)
       svg.insertAdjacentHTML('beforeend', '<filter id="' + id + '" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">' +
         '<feImage href="' + sdfMap(w, hh, r, bezel) + '" x="0" y="0" width="' + w + '" height="' + hh + '" preserveAspectRatio="none" result="map"/>' +
         '<feDisplacementMap in="SourceGraphic" in2="map" scale="' + scale + '" xChannelSelector="R" yChannelSelector="G"/></filter>');
@@ -1155,11 +1160,15 @@
       el.style.setProperty('--lg-lens', 'url(#' + filterFor(w, hh, r) + ')');
     }
     const pending = new Set(); const flush = PatOS.debounce(() => { pending.forEach((el) => el.isConnected && fit(el)); pending.clear(); }, 160);
-    const settle = (els) => { els.forEach((el) => pending.add(el)); flush(); };
+    const settle = (els) => { els.forEach((el) => { if (!el.style.getPropertyValue('--lg-lens')) fit(el); else pending.add(el); }); flush(); };
+    // menus, notifications, dialogs and Spotlight come and go: new ones are picked up when they appear
+    let mo = null;
+    const scan = (nodes) => { const found = []; nodes.forEach((n) => { if (n.nodeType !== 1) return; if (n.matches(SEL)) found.push(n); n.querySelectorAll && n.querySelectorAll(SEL).forEach((e) => found.push(e)); }); found.forEach((el) => { if (ro) ro.observe(el); }); };
     function refresh() {
       const els = Array.from(document.querySelectorAll(SEL));
-      if (!on()) { els.forEach((el) => el.style.removeProperty('--lg-lens')); if (ro) { ro.disconnect(); ro = null; } return; }
+      if (!on()) { els.forEach((el) => el.style.removeProperty('--lg-lens')); if (ro) { ro.disconnect(); ro = null; } if (mo) { mo.disconnect(); mo = null; } return; }
       if (!ro && window.ResizeObserver) ro = new ResizeObserver((entries) => settle(entries.map((e) => e.target)));
+      if (!mo && window.MutationObserver) { mo = new MutationObserver((recs) => recs.forEach((r) => scan(r.addedNodes))); mo.observe(document.getElementById('desktop') || document.body, { childList: true, subtree: true }); }
       els.forEach((el) => { fit(el); if (ro) ro.observe(el); });
     }
     return { supported: () => isChromium, refresh, watch: (el) => { if (on()) { fit(el); if (ro) ro.observe(el); } } };
@@ -1167,13 +1176,35 @@
   PatOS.glassLens = lens;
 
   /* Liquid Glass light follows the pointer */
-  const GLASS_SEL = '#dock, .mh-dock, .menu, .toast, .sp-box, .dlg, .widget, .mw, .cc-tile, .asw-row, .nc-list, #pat-panel';
+  const GLASS_SEL = '#dock, .mh-dock, .menu, .toast, .sp-box, .dlg, .widget, .mw, .cc-tile, .asw-row, .nc-list, #pat-panel, .lg, .lg-clear, .lg-elevated';
+  const TILT_SEL = '.cc-tile, #desk-widgets .widget'; let tilted = null;
+  const untilt = () => { if (tilted) { tilted.style.removeProperty('--rx'); tilted.style.removeProperty('--ry'); tilted = null; } };
   document.addEventListener('pointermove', (e) => {
     if (e.pointerType === 'touch' || !document.documentElement.classList.contains('lg-on')) return;
-    const g = e.target.closest && e.target.closest(GLASS_SEL); if (!g) return;
-    const r = g.getBoundingClientRect();
-    g.style.setProperty('--mx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
-    g.style.setProperty('--my', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+    const g = e.target.closest && e.target.closest(GLASS_SEL); if (!g) { untilt(); return; }
+    const r = g.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+    g.style.setProperty('--mx', (fx * 100).toFixed(1) + '%');
+    g.style.setProperty('--my', (fy * 100).toFixed(1) + '%');
+    // a small tilt (at most 5 degrees) toward the pointer, like picking up a piece of glass
+    const t = g.matches(TILT_SEL) ? g : null;
+    if (tilted && tilted !== t) untilt();
+    if (t && !document.documentElement.classList.contains('reduce-motion')) {
+      t.style.setProperty('--rx', ((0.5 - fy) * 10).toFixed(2) + 'deg'); t.style.setProperty('--ry', ((fx - 0.5) * 10).toFixed(2) + 'deg'); tilted = t;
+    }
+  }, { passive: true });
+  document.addEventListener('pointerleave', untilt);
+  /* 3. one light for all the glass. It sits above the screen and leans toward the pointer: every rim, sheen and caustic is
+     drawn from it, so highlights agree with each other. It only moves in 15° steps, and never with Fewer animations. */
+  let lightStep = null;
+  document.addEventListener('pointermove', (e) => {
+    const root = document.documentElement;
+    if (e.pointerType === 'touch' || !root.classList.contains('lg-on') || root.classList.contains('reduce-motion')) return;
+    const fx = e.clientX / innerWidth; // 0 (left) .. 1 (right)
+    const step = Math.round(fx * 6); if (step === lightStep) return; lightStep = step;
+    const f = step / 6; // light from the upper left (pointer left) to the upper right (pointer right)
+    root.style.setProperty('--g-angle', Math.round(120 + f * 120) + 'deg');
+    root.style.setProperty('--g-lx', Math.round(15 + f * 70) + '%');
+    root.style.setProperty('--g-dx', Math.round(85 - f * 70) + '%');
   }, { passive: true });
 
   function setupKeys() {
