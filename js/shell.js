@@ -1137,9 +1137,7 @@
       // a band along the edge, strongest at the bottom, half on the sides, none at the top (the top is where light enters)
       const c2 = document.createElement('canvas'); c2.width = w; c2.height = hh;
       const x2 = c2.getContext('2d'); const d2 = x2.createImageData(w, hh); const a2 = d2.data;
-      // third picture: the upper bevel, where light enters, shows the background a little lighter
-      const c3 = document.createElement('canvas'); c3.width = w; c3.height = hh;
-      const x3 = c3.getContext('2d'); const d3 = x3.createImageData(w, hh); const a3 = d3.data;
+
       for (let j = 0; j < hh; j++) {
         for (let i = 0; i < w; i++) {
           const px = i + 0.5 - w / 2, py = j + 0.5 - hh / 2;
@@ -1158,13 +1156,15 @@
           a[o + 1] = Math.max(0, Math.min(255, Math.round(128 + 255 * dy / scale)));
           a[o + 2] = 128; a[o + 3] = 255;
           const t = dist < bezel ? (1 - 0.35 * dist / bezel) * Math.min(1, (bezel - dist) / (0.35 * bezel)) : 0, side = Math.min(1, Math.max(0, 0.5 + 0.55 * ny)); // the bevel band (--g-rim-w), flowing into the face (no hard line)
-          a2[o] = a2[o + 1] = a2[o + 2] = 255; a2[o + 3] = Math.round(255 * t * side);
+          // the bevel's shade, as one gray: the filter multiplies the bent picture by .85 + .3 × gray, so 128 leaves it as it
+          // is, the lower bevel comes out ~7% deeper and the upper bevel (where light enters) ~6% lighter
           const up = Math.min(1, Math.max(0, 0.45 - 0.6 * ny)); // top 1, sides about half, bottom 0
-          a3[o] = a3[o + 1] = a3[o + 2] = 255; a3[o + 3] = Math.round(255 * t * up);
+          const g = Math.round(255 * (0.5 - 0.2333 * t * side + 0.2 * t * up));
+          a2[o] = a2[o + 1] = a2[o + 2] = Math.max(0, Math.min(255, g)); a2[o + 3] = 255;
         }
       }
-      x.putImageData(d, 0, 0); x2.putImageData(d2, 0, 0); x3.putImageData(d3, 0, 0);
-      return { url: c.toDataURL(), rim: c2.toDataURL(), top: c3.toDataURL(), scale: Math.round(scale) };
+      x.putImageData(d, 0, 0); x2.putImageData(d2, 0, 0);
+      return { url: c.toDataURL(), rim: c2.toDataURL(), scale: Math.round(scale) };
     }
     function filterFor(w, hh, r, rimW) {
       const key = w + 'x' + hh + 'x' + r + 'x' + rimW; if (maps.has(key)) return maps.get(key);
@@ -1180,18 +1180,14 @@
         '<feImage href="' + m.url + '" x="0" y="0" width="' + w + '" height="' + hh + '" preserveAspectRatio="none" result="img"/>' +
         '<feComposite in="img" in2="still" operator="over" result="map"/>' +
         '<feDisplacementMap in="SourceGraphic" in2="map" scale="' + m.scale + '" xChannelSelector="R" yChannelSelector="G" result="bent"/>' +
-        // thickness: light that crosses more glass comes out a little deeper. A slightly darker copy of what is behind is laid
-        // over the bent picture through the rim picture (the bevel band: bottom full, sides half, top none). The color is always
-        // the background's own. (This has to happen here: a ::after can't re-read the backdrop of glass in Chromium.)
-        // (no saturation boost: more glass makes the same color a little deeper, it does not make a brighter one)
-        '<feComponentTransfer in="bent" result="deep"><feFuncR type="linear" slope=".93"/><feFuncG type="linear" slope=".93"/><feFuncB type="linear" slope=".93"/></feComponentTransfer>' +
-        '<feComponentTransfer in="bent" result="lit"><feFuncR type="linear" slope="1.04" intercept=".02"/><feFuncG type="linear" slope="1.04" intercept=".02"/><feFuncB type="linear" slope="1.04" intercept=".02"/></feComponentTransfer>' +
-        '<feImage href="' + m.top + '" x="0" y="0" width="' + w + '" height="' + hh + '" preserveAspectRatio="none" result="topMask"/>' +
-        '<feComposite in="lit" in2="topMask" operator="in" result="litTop"/>' +
-        '<feImage href="' + m.rim + '" x="0" y="0" width="' + w + '" height="' + hh + '" preserveAspectRatio="none" result="rimMask"/>' +
-        '<feComposite in="deep" in2="rimMask" operator="in" result="rim"/>' +
-        '<feComposite in="rim" in2="bent" operator="over" result="deepened"/>' +
-        '<feComposite in="litTop" in2="deepened" operator="over"/></filter>');
+        // the bevel, lit from above: a little deeper at the bottom and sides, a little lighter at the top, always in the background's
+        // own color. One shade picture and one arithmetic step (bent × (.85 + .3 × shade)), so the filter stays cheap: it runs
+        // again every time what is behind the glass changes (every frame of a 3D wallpaper). The shade under the map is 128
+        // (no change) where the picture is missing. (A ::after can't re-read the backdrop of glass in Chromium.)
+        '<feFlood flood-color="rgb(128,128,128)" result="even"/>' +
+        '<feImage href="' + m.rim + '" x="0" y="0" width="' + w + '" height="' + hh + '" preserveAspectRatio="none" result="shadeImg"/>' +
+        '<feComposite in="shadeImg" in2="even" operator="over" result="shade"/>' +
+        '<feComposite in="bent" in2="shade" operator="arithmetic" k1=".3" k2=".85" k3="0" k4="0"/></filter>');
       maps.set(key, id); return id;
     }
     function fit(el) {

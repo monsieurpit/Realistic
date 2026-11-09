@@ -423,10 +423,19 @@
   };
   PatOS.glassIcons = GLASS;
 
+  const giCache = new Map();
+  function giURL(svg) {
+    let u = giCache.get(svg);
+    if (!u) { u = 'data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg); if (giCache.size > 400) giCache.clear(); giCache.set(svg, u); }
+    return u;
+  }
   PatOS.iconDefs = ICONS;
   PatOS.iconHTML = function (id, arg) {
     const gi = GLASS[id];
-    if (gi) return `<div class="icon-tile gi${gi.bg === 'transparent' ? ' flat' : ''}" style="background:${gi.bg}">${gi.svg(arg)}</div>`; // drawn in glass (above)
+    // drawn in glass (above), shown as a picture: the browser draws each icon (its gradients and blurred halos) once and reuses it,
+    // where an SVG written into the page would be redrawn with all its filters every time it moves or changes size (the Dock's
+    // magnification did that every frame). It also keeps each icon's ids to itself.
+    if (gi) return `<div class="icon-tile gi${gi.bg === 'transparent' ? ' flat' : ''}" style="background:${gi.bg}"><img class="gi-img" src="${giURL(gi.svg(arg))}" alt="" draggable="false"></div>`;
     const def = ICONS[id] || letterIcon((id || '?')[0].toUpperCase());
     const flat = def.bg === 'transparent';
     glossFilter();

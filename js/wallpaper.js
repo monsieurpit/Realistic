@@ -286,19 +286,24 @@
     const resize = () => { renderer.setSize(innerWidth, innerHeight, false); camera.aspect = innerWidth / innerHeight; camera.updateProjectionMatrix(); };
     resize(); window.addEventListener('resize', resize);
     canvas.classList.add('on');
-    let last = performance.now(), t = 0, acc = 0;
-    // 30 frames a second on low quality, and on weaker devices with Balanced quality (saves battery)
-    const frameMs = low || (PatOS.settings.quality3d !== 'high' && PatOS.weakDevice) ? 1000 / 30 : 0;
+    let last = performance.now(), t = 0, acc = 0, pend = 0;
+    /* How often the 3D wallpaper draws. Every frame it draws, everything see-through over it (the Dock, widgets, menus, titlebars)
+       has to be filtered again, which is most of what PatOS costs to draw. So: 60 frames a second only with High quality; 30 with
+       Balanced and Low (the wallpapers drift slowly, 30 looks the same); 10 while PatOS is not the window you are using (it keeps
+       moving, but nobody is looking at it closely); none while a maximized window covers it (see js/shell.js). */
+    const frameMs = () => (!document.hasFocus() ? 100 : PatOS.settings.quality3d === 'high' && !PatOS.weakDevice ? 0 : 1000 / 30);
     three = { renderer, raf: 0, paused: false };
     const loop = (now) => {
       three.raf = requestAnimationFrame(loop);
       const dt = Math.min(0.05, (now - last) / 1000); last = now;
       if (three.paused || document.hidden) return;
-      if (frameMs) { acc += dt * 1000; if (acc < frameMs) return; acc = 0; }
+      // frames that are skipped still count as time, so the wallpaper moves at the same speed whatever the frame rate
+      pend += dt; const fm = frameMs(); if (fm) { acc += dt * 1000; if (acc < fm - 2) return; acc = 0; }
+      const step = Math.min(0.15, pend); pend = 0;
       mouse.x += (mouse.tx - mouse.x) * 0.05; mouse.y += (mouse.ty - mouse.y) * 0.05;
-      t += PatOS.settings.reduceMotion ? dt * 0.2 : dt;
+      t += PatOS.settings.reduceMotion ? step * 0.2 : step;
       if (!renderer.gpuReady()) return; // the graphics chip is still busy with the last frame
-      update(t, dt); renderer.paced(scene, camera);
+      update(t, step); renderer.paced(scene, camera);
     };
     three.raf = requestAnimationFrame(loop);
     three.dispose = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('resize', resize); disposables.forEach((d) => d.dispose()); };

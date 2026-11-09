@@ -1,7 +1,7 @@
 [
   {
     "version": "2.3.1",
-    "beta": 7,
+    "beta": 8,
     "date": "2026-11-09",
     "title": {
       "en": "Drawn glass icons",
@@ -22,7 +22,8 @@
         "Desktop labels stay readable on light wallpapers",
         "No more letters or emoji on icons: Solitaire's card suits, Elements, Sudoku, Translate and Dictionary are drawn",
         "Google apps and YouTube keep their own logos",
-        "Typing Trainer and Galaxy are removed"
+        "Typing Trainer and Galaxy are removed",
+        "Faster, especially with a 3D wallpaper: it now draws 30 times a second (60 with High quality) and 10 while you use another window, the glass is cheaper to draw, and app icons are drawn once instead of every time they move"
       ],
       "fr": [
         "Nos apps de bureautique ont leurs propres noms et leur propre style : Docs devient Écrire, Sheets devient Tableaux, Slides devient Scène, Forms devient Sondages et Drive devient Nuage. Chacune a sa couleur et un nouvel écran d’accueil ; vos documents s’ouvrent comme avant",
@@ -38,7 +39,8 @@
         "Les noms sur le bureau restent lisibles sur les fonds d’écran clairs",
         "Plus de lettres ni d’emoji sur les icônes : les enseignes du Solitaire, Éléments, Sudoku, Traduction et Dictionnaire sont dessinés",
         "Les apps Google et YouTube gardent leurs propres logos",
-        "Entraînement à la frappe et Galaxie sont retirés"
+        "Entraînement à la frappe et Galaxie sont retirés",
+        "Plus rapide, surtout avec un fond d’écran 3D : il se dessine maintenant 30 fois par seconde (60 en qualité Élevée) et 10 fois quand vous utilisez une autre fenêtre, le verre coûte moins cher à dessiner, et les icônes des apps sont dessinées une seule fois au lieu de chaque fois qu’elles bougent"
       ]
     }
   },
