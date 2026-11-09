@@ -256,7 +256,7 @@
         out.append(v, h('div', { class: 'ss-msg' }, PatOS.fs.basename(r.path) + ' · ' + PatOS.fmtBytes(r.size)), h('div', { class: 'ss-btns' },
           h('button', { class: 'btn primary', onclick: () => PatOS.launch('videos', { path: r.path }) }, T('Open')),
           h('button', { class: 'btn', onclick: () => PatOS.device.saveCopy(r.path) }, T('Save to This Chromebook…')),
-          h('button', { class: 'btn', onclick: () => PatOS.launch('finder', { path: PatOS.fs.dirname(r.path) }) }, T('Show in Finder'))));
+          h('button', { class: 'btn', onclick: () => PatOS.launch('finder', { path: PatOS.fs.dirname(r.path) }) }, T('Show in Piles'))));
       }
       win.on('closed', () => { stopPreview(); });
       if (session) session.listeners.add(() => {});

@@ -111,7 +111,7 @@
       file: extra.file || [
         { label: 'New Window', shortcut: 'Alt+N', action: () => newWindow(appId) },
         { label: 'New Folder on Desktop', action: () => newFolder('/Desktop') },
-        { label: 'Open Finder', action: () => PatOS.launch('finder') },
+        { label: 'Open Piles', action: () => PatOS.launch('finder') },
         { divider: true },
         { label: 'Close Window', shortcut: 'Alt+W', action: () => w && w.close(), disabled: !w }
       ],
@@ -890,7 +890,7 @@
       else pv.appendChild(h('div', { class: 'sp-pv-ic', html: PatOS.fileIconHTML(r.label, n) }));
       pv.append(h('b', {}, r.label), h('small', {}, '~' + r.filePath + (n.type === 'file' ? ' · ' + PatOS.fmtBytes(PatOS.fs.size(n)) : '')));
       if (n.type === 'file' && !n.blob && typeof n.content === 'string' && !n.content.startsWith('data:') && TEXTY.test(r.label)) pv.appendChild(snippet(n.content.slice(0, 200000), fq));
-      pv.appendChild(h('small', { class: 'sp-pv-hint' }, PatOS.t('Enter to open · Alt+Enter to show in Finder')));
+      pv.appendChild(h('small', { class: 'sp-pv-hint' }, PatOS.t('Enter to open · Alt+Enter to show in Piles')));
       return;
     }
     if (r.snippet) { pv.append(h('div', { class: 'sp-pv-ic', html: PatOS.iconHTML(r.icon) }), h('b', {}, r.label), snippet(r.snippet, fq)); return; }

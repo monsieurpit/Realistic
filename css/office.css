@@ -921,7 +921,7 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 .app-loading .spinner { width: 28px; height: 28px; border-radius: 50%; border: 3px solid var(--hover2, rgba(127,127,127,.25)); border-top-color: var(--accent, #0a84ff); animation: spin .7s linear infinite; }
 /* big containers that show their own selection don't get the keyboard ring around everything */
 .fd-main:focus-visible, .gm-body:focus-visible, .pdv-scroll:focus-visible, .sh-grid:focus-visible { outline: none; }
-/* Finder */
+/* Piles */
 .fd-main { position: relative; }
 .fd-main.drop-in { box-shadow: inset 0 0 0 2px var(--accent); background: color-mix(in srgb, var(--accent) 7%, transparent); border-radius: 6px; }
 .fd-band { position: absolute; border: 1px solid var(--accent); background: color-mix(in srgb, var(--accent) 18%, transparent); border-radius: 3px; pointer-events: none; z-index: 2; }

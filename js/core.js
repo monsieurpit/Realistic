@@ -792,7 +792,7 @@
       input.click();
     });
   };
-  /* files copied or cut in Finder or on the desktop, waiting to be pasted */
+  /* files copied or cut in Piles or on the desktop, waiting to be pasted */
   PatOS.fileClip = {
     paths: [], cut: false,
     set(paths, cut) { this.paths = paths.filter((p) => PatOS.fs.exists(p) && !p.startsWith('/.Trash')); this.cut = !!cut; PatOS.emit('fileclip'); return this.paths.length; },

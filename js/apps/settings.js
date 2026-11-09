@@ -484,7 +484,7 @@
             box.append(h('h3', { class: 'st-h3' }, T('Open your Chromebook’s files with PatOS')),
               h('p', { class: 'st-note' }, I && I.fileHandling()
                 ? T('Once PatOS is installed, right-click a file in the Chromebook’s Files app and choose Open with › PatOS. Word, Excel, PowerPoint, PDF, text, code, pictures, music and videos all work. When you save in PatOS, the real file is saved too.')
-                : T('This browser can’t hand files to PatOS. Use Finder › Open Files… instead.')),
+                : T('This browser can’t hand files to PatOS. Use Piles › Open Files… instead.')),
               h('h3', { class: 'st-h3' }, T('Shortcuts')),
               h('p', { class: 'st-note' }, ''));
           };
@@ -499,7 +499,7 @@
             h('p', { class: 'st-note' }, T('To make everything bigger, press Ctrl and + (and Ctrl and 0 to reset). PatOS rearranges itself to fit. On a Chromebook you can also use ChromeVox, the built-in screen reader (Ctrl+Alt+Z).'))];
         },
         keyboard() {
-          const sc = [['Ctrl+Space / Alt+Space', 'Spotlight search'], ['Alt+L or F4', 'Launchpad'], ['Alt+↑ or F3', 'Mission Control'], ['Alt+W', 'Close window'], ['Alt+Q', 'Quit app'], ['Alt+M', 'Minimize'], ['Alt+F', 'Zoom window'], ['Alt+← / Alt+→', 'Tile window left / right'], ['Alt+N', 'New window'], ['Alt+`', 'Cycle windows'], ['Alt+T', 'Terminal'], ['Alt+E', 'Finder'], ['Alt+B', 'Patoogle browser'], ['Alt+,', 'Settings'], ['Alt+Esc', 'Lock screen'], ['Esc', 'Close menus & overlays']];
+          const sc = [['Ctrl+Space / Alt+Space', 'Spotlight search'], ['Alt+L or F4', 'Launchpad'], ['Alt+↑ or F3', 'Mission Control'], ['Alt+W', 'Close window'], ['Alt+Q', 'Quit app'], ['Alt+M', 'Minimize'], ['Alt+F', 'Zoom window'], ['Alt+← / Alt+→', 'Tile window left / right'], ['Alt+N', 'New window'], ['Alt+`', 'Cycle windows'], ['Alt+T', 'Terminal'], ['Alt+E', 'Piles'], ['Alt+B', 'Patoogle browser'], ['Alt+,', 'Settings'], ['Alt+Esc', 'Lock screen'], ['Esc', 'Close menus & overlays']];
           return [h('h3', {}, 'Keyboard Shortcuts'), h('p', { class: 'st-note' }, ''), group(...sc.map(([k, d]) => row(d, h('kbd', {}, k))))];
         },
         storage() {
@@ -511,7 +511,7 @@
             const tree = JSON.parse(JSON.stringify(PatOS.fs.get('/'), (k, v) => (k === 'cid' ? undefined : v)));
             let blobs = 0; (function w(n) { if (n.type === 'dir') Object.values(n.children).forEach(w); else if (n.blob) blobs++; })(tree);
             PatOS.downloadFile('PatOS-backup.json', JSON.stringify({ patosBackup: 2, kv, fs: tree }));
-            if (blobs) PatOS.notify({ title: T('Backup saved'), body: blobs + ' ' + T('big files (videos and recordings) are not in the backup. Save them from Finder with “Save to This Chromebook…”.'), icon: 'settings' });
+            if (blobs) PatOS.notify({ title: T('Backup saved'), body: blobs + ' ' + T('big files (videos and recordings) are not in the backup. Save them from Piles with “Save to This Chromebook…”.'), icon: 'settings' });
           };
           const importAll = () => { const i = h('input', { type: 'file', accept: '.json' }); i.onchange = () => { const r = new FileReader(); r.onload = async () => { try { const d = JSON.parse(r.result); if (d.patosBackup) { Object.entries(d.kv || {}).forEach(([k, v]) => PatOS.store.set(k, v)); PatOS.store.set('fs', d.fs); } else Object.entries(d).forEach(([k, v]) => { if (k.startsWith('patos:')) PatOS.store.set(k.slice(6), JSON.parse(v)); }); await PatOS.store.flush(); PatOS._leaving = true; location.reload(); } catch (e) { PatOS.alertBox(T('That file is not a PatOS backup'), T('Choose a PatOS-backup.json file.'), { icon: 'settings' }); } }; r.readAsText(i.files[0]); }; i.click(); };
           return [bar,

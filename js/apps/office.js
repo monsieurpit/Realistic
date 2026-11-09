@@ -139,7 +139,7 @@
         const nm = PatOS.fs.basename(f.path).replace(/\.[^.]+$/, '');
         const row = h('div', { class: 'of-file' }, h('div', { class: 'of-fic', html: PatOS.iconHTML(o.icon) }), h('div', { class: 'of-fname' }, h('b', {}, nm), h('small', {}, PatOS.fs.dirname(f.path))), stars.includes(f.path) ? h('span', { class: 'of-fstar', html: icon('star', 14) }) : null, h('small', { class: 'of-fdate' }, f.mtime ? new Date(f.mtime).toLocaleDateString(PatOS.locale, { day: 'numeric', month: 'short', year: new Date(f.mtime).getFullYear() === new Date().getFullYear() ? undefined : 'numeric' }) : ''));
         row.onclick = () => { win.el.classList.remove('of-starting'); wrap.remove(); o.onOpen(f.path); };
-        row.oncontextmenu = (e) => { e.preventDefault(); PatOS.menu([{ label: PatOS.t('Open'), action: () => row.click() }, { label: PatOS.t('Show in Finder'), action: () => PatOS.launch('finder', { path: PatOS.fs.dirname(f.path) }) }, { label: PatOS.t('Move to Trash'), action: () => { PatOS.fs.remove(f.path); draw(); } }], e.clientX, e.clientY); };
+        row.oncontextmenu = (e) => { e.preventDefault(); PatOS.menu([{ label: PatOS.t('Open'), action: () => row.click() }, { label: PatOS.t('Show in Piles'), action: () => PatOS.launch('finder', { path: PatOS.fs.dirname(f.path) }) }, { label: PatOS.t('Move to Trash'), action: () => { PatOS.fs.remove(f.path); draw(); } }], e.clientX, e.clientY); };
         list.appendChild(row);
       });
     };

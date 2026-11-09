@@ -238,7 +238,7 @@ html.lg-on :is(.btn, .tbtn, .ob):active { transform: scale(.95); }
 html.lg-on .menu { animation: lgIn .16s cubic-bezier(.2,.9,.3,1.15); transform-origin: top left; }
 @keyframes lgIn { from { opacity: 0; transform: scale(.96); } }
 
-/* ---------- system symbols (Finder's sidebar, the menu bar, toolbars, Settings): small glass ----------
+/* ---------- system symbols (Piles's sidebar, the menu bar, toolbars, Settings): small glass ----------
    Every closed shape of a symbol gets a translucent body of its own color (the line stays crisp), and the symbol a soft glow
    of its color, so a 16px symbol reads as a little piece of glass. Not in Speed mode or with Reduce transparency. */
 html.lg-on svg.sym :is(rect, circle, ellipse, polygon, path[d$="z"], path[d$="Z"]) { fill: currentColor; fill-opacity: .2; }

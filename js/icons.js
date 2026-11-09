@@ -25,9 +25,9 @@
       <circle cx="32" cy="32" r="22" fill="url(#bw)"/>
       <g stroke="#fff" stroke-opacity=".55" stroke-width="1.6" fill="none"><ellipse cx="32" cy="32" rx="9" ry="22"/><path d="M10 32h44M13 21h38M13 43h38"/></g>
       <path d="M41 19 35 35 23 45 29 29z" fill="#ff3b30"/><path d="M41 19 35 35 29 29z" fill="#fff"/>`) },
-    notes: { bg: 'linear-gradient(180deg,#ffe37a 0 26%,#fffdf5 26%)', svg: () => S(`
-      <g stroke="#d9d1b8" stroke-width="2"><path d="M12 30h40M12 38h40M12 46h40M12 54h28"/></g>
-      <path d="M8 14h48" stroke="#e6c34a" stroke-width="2" stroke-dasharray="2 3"/>`) },
+    notes: { bg: 'linear-gradient(180deg,#5aa2ff 0 26%,#f5f9ff 26%)', svg: () => S(`
+      <g stroke="#c9d8ee" stroke-width="2"><path d="M12 30h40M12 38h40M12 46h40M12 54h28"/></g>
+      <path d="M8 14h48" stroke="#3d8bff" stroke-width="2" stroke-dasharray="2 3"/>`) },
     textedit: { bg: 'linear-gradient(160deg,#f7f7f7,#cfd4da)', svg: () => S(`
       <rect x="14" y="10" width="34" height="44" rx="3" fill="#fff" stroke="#c5c9cf"/>
       <g stroke="#9aa3ad" stroke-width="2.2" stroke-linecap="round"><path d="M20 20h22M20 27h22M20 34h16M20 41h20"/></g>
@@ -264,8 +264,8 @@
       p.glass('M32 12C19.8 12 10 19.8 10 29.5c0 5.6 3.3 10.6 8.4 13.8-.4 3-2 5.7-4.4 7.7 4.4.4 8.6-1 11.6-3.7 2 .5 4.2.7 6.4.7 12.2 0 22-7.8 22-17.5S44.2 12 32 12z', '#30d158') +
       p.light('M23 30h.01M32 30h.01M41 30h.01', '#d9ffe4', 3.6, { halo: .4 })); }),
     notes: draw(() => { const p = painter('notes'); return p.done(
-      p.glass(rr(14, 10, 36, 44, 6), '#f5c542', { top: .3 }) + p.solid('M20 10h24a6 6 0 0 1 6 6v4H14v-4a6 6 0 0 1 6-6z', '#ffd84a', '#f0a500') +
-      p.light('M20 29h24M20 36h24M20 43h16', '#fff1b8', 1.2, { halo: .35 })); }),
+      p.glass(rr(14, 10, 36, 44, 6), '#3d8bff', { top: .3 }) + p.solid('M20 10h24a6 6 0 0 1 6 6v4H14v-4a6 6 0 0 1 6-6z', '#7cb8ff', '#1f6fe0') +
+      p.light('M20 29h24M20 36h24M20 43h16', '#d6e8ff', 1.2, { halo: .35 })); }),
     textedit: draw(() => { const p = painter('textedit'); return p.done(
       p.glass(rr(13, 10, 32, 44, 5), '#a9bdd8', { top: .3 }) + p.light('M19 21h20M19 28h20M19 35h14M19 42h17', '#e8f0ff', 1.2, { halo: .3 }) +
       p.solid('M49 15.5l4 4-19.5 19.5-6.2 2.2 2.2-6.2z', '#ffd36b', '#e07b00') + p.solid('M47 17.5l4 4 2-2a2.8 2.8 0 0 0-4-4z', '#ff8a7a', '#d0402f')); }),

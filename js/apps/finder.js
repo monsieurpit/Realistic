@@ -1,4 +1,4 @@
-/* Finder — file manager: icons/list views, sorting, path bar, multi-select (click, Shift, Ctrl, or drag a box),
+/* Piles — file manager: icons/list views, sorting, path bar, multi-select (click, Shift, Ctrl, or drag a box),
    copy/cut/paste, drag and drop (also files dragged in from the computer), tags, Quick Look, info panel */
 (function () {
   'use strict';
@@ -51,7 +51,7 @@
   };
 
   PatOS.registerApp({
-    id: 'finder', name: 'Finder', icon: 'finder', single: false, width: 900, height: 560, keywords: 'files folders explorer',
+    id: 'finder', name: 'Piles', icon: 'finder', single: false, width: 900, height: 560, keywords: 'files folders explorer finder fichiers dossiers',
     about: 'Browse and organize everything stored in PatOS.',
     launch(win, args) {
       win.el.classList.add('has-toolbar');
@@ -345,7 +345,7 @@
       const F = win._finder || {};
       return {
         file: [
-          { label: PatOS.t('New Finder Window'), shortcut: 'Alt+N', action: () => PatOS.launch('finder', { path: win.el._finderPath() }) },
+          { label: PatOS.t('New Piles Window'), shortcut: 'Alt+N', action: () => PatOS.launch('finder', { path: win.el._finderPath() }) },
           { label: PatOS.t('New Folder'), action: () => F.newFolder && F.newFolder() },
           { divider: true },
           { label: PatOS.t('Import Copies…'), action: () => PatOS.importFiles(win.el._finderPath()) },

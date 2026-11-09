@@ -1,7 +1,7 @@
 /* PatOS.install — PatOS as a real app on the Chromebook.
    - Install: Chrome's own install prompt (PatOS then opens in its own window, with its own icon in the shelf)
    - Files: once installed, the Files app can open documents with PatOS (Open with › PatOS)
-   - Shortcuts: right-click the PatOS icon in the shelf to jump straight to Finder, Docs, Notes or Code Studio */
+   - Shortcuts: right-click the PatOS icon in the shelf to jump straight to Piles, Docs, Notes or Code Studio */
 (function () {
   'use strict';
   const T = (s) => (PatOS.t ? PatOS.t(s) : s);

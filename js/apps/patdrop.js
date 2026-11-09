@@ -47,7 +47,7 @@
         else if (x.k === 'file') {
           const ic = h('div', { class: 'pd-file' });
           if (x.path && /^image\//.test(x.mime || '') && x.size < 4e6) PatOS.fs.blobURL(x.path).then((u) => { if (u) { ic.innerHTML = ''; ic.appendChild(h('img', { src: u, alt: x.name })); } }).catch(() => {});
-          const acts = x.path ? h('div', { class: 'pd-acts' }, h('button', { class: 'btn', onclick: () => PatOS.openFile(x.path) }, T('Open')), h('button', { class: 'btn', onclick: () => PatOS.launch('finder', { path: PatOS.fs.dirname(x.path) }) }, T('Show in Finder'))) : h('small', {}, x.failed ? T('This file could not be saved.') : mine ? T('Sent from another of your devices.') : '');
+          const acts = x.path ? h('div', { class: 'pd-acts' }, h('button', { class: 'btn', onclick: () => PatOS.openFile(x.path) }, T('Open')), h('button', { class: 'btn', onclick: () => PatOS.launch('finder', { path: PatOS.fs.dirname(x.path) }) }, T('Show in Piles'))) : h('small', {}, x.failed ? T('This file could not be saved.') : mine ? T('Sent from another of your devices.') : '');
           body = h('div', { class: 'pd-card2' }, ic, h('b', {}, x.name), h('small', {}, fmtSize(x.size) + (x.path ? ' · ' + T('Saved in Downloads › PatDrop') : '')), acts);
         } else if (x.k === 'app') {
           const a = x.app, have = PatOS.patapps && PatOS.patapps.get(a.id);
@@ -114,7 +114,7 @@
   });
   PatOS.iconDefs.patdrop = { bg: 'linear-gradient(160deg,#35d6c4,#0a6cff)', svg: () => '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path d="M14 26h30m0 0-8-8m8 8-8 8" stroke="#fff" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/><path d="M50 40H20m0 0 8-8m-8 8 8 8" stroke="#fff" stroke-opacity=".75" stroke-width="5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>' };
 })();
-/* "Send with PatDrop" from Finder: files (not folders) go to the chat; if there is no chat yet, PatDrop opens to make one */
+/* "Send with PatDrop" from Piles: files (not folders) go to the chat; if there is no chat yet, PatDrop opens to make one */
 PatOS.sendWithPatDrop = async function (paths) {
   const files = (paths || []).filter((p) => { const n = PatOS.fs.get(p); return n && n.type === 'file'; });
   if (!files.length) return;

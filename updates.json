@@ -1,7 +1,7 @@
 [
   {
     "version": "3.0.0",
-    "beta": 6,
+    "beta": 7,
     "date": "2026-11-09",
     "title": {
       "en": "PatOS 3: Timeline, one design, smarter windows",
@@ -21,7 +21,8 @@
         "Stage focus (Window menu or Alt+S): the window you use sits large in the middle, the others wait as live thumbnails on the left; click one to bring it on stage",
         "Everything moves on one natural spring: windows growing out of the Dock, snapping, maximizing, menus, panels and dialogs. Settings › Appearance › Motion: Calm, Natural or Playful",
         "Drag Control Center, notifications or Pat up to close them; in Photos, a photo flies from its thumbnail into the viewer",
-        "Apps that looked like a Mac now look like PatOS: Calculator has a glass display and rounded keys in your highlight color, Clock shows cities and alarms on cards with pill buttons, Voice Memos is a studio with memo cards, level bars and a glass record dock, Reminders lists its smart lists as rows, and Notes selects in your highlight color instead of yellow"
+        "Apps that looked like a Mac now look like PatOS: Calculator has a glass display and rounded keys in your highlight color, Clock shows cities and alarms on cards with pill buttons, Voice Memos is a studio with memo cards, level bars and a glass record dock, Reminders lists its smart lists as rows, and Notes selects in your highlight color instead of yellow",
+        "Finder is now Piles (P for PatOS, and files in piles). Everything stays where it was, and searching “finder” still finds it. The Notes icon is now blue"
       ],
       "fr": [
         "Nouveau : Timeline. PatOS retient maintenant ce que vous faites (les apps et fichiers que vous ouvrez, les fichiers que vous enregistrez, les sites que vous visitez, les notes que vous écrivez et le texte que vous copiez) et le montre jour par jour. Cherchez avec des mots simples (« lisbonne hier »), et toutes les quelques minutes, elle garde un moment des fenêtres que vous aviez ouvertes : un clic sur Restaurer les remet toutes à leur place. Après un redémarrage, « Reprendre là où vous en étiez » ramène votre dernière session",
@@ -36,7 +37,8 @@
         "Focus sur la scène (menu Fenêtre ou Alt+S) : la fenêtre que vous utilisez est grande au milieu, les autres attendent en miniatures vivantes à gauche ; cliquez-en une pour la mettre en scène",
         "Tout bouge sur un même ressort naturel : les fenêtres qui sortent du Dock, les dispositions, l’agrandissement, les menus, les panneaux et les dialogues. Réglages › Apparence › Mouvement : Calme, Naturel ou Enjoué",
         "Faites glisser le Centre de contrôle, les notifications ou Pat vers le haut pour les fermer ; dans Photos, une photo s’envole de sa miniature jusqu’au visualiseur",
-        "Les apps qui ressemblaient à un Mac ressemblent maintenant à PatOS : la Calculatrice a un écran en verre et des touches arrondies dans votre couleur d’accent, l’Horloge présente villes et alarmes sur des cartes avec des boutons en pilule, Mémos vocaux devient un studio avec des cartes, des barres de niveau et un dock d’enregistrement en verre, Rappels affiche ses listes intelligentes en rangées, et Notes sélectionne dans votre couleur d’accent au lieu du jaune"
+        "Les apps qui ressemblaient à un Mac ressemblent maintenant à PatOS : la Calculatrice a un écran en verre et des touches arrondies dans votre couleur d’accent, l’Horloge présente villes et alarmes sur des cartes avec des boutons en pilule, Mémos vocaux devient un studio avec des cartes, des barres de niveau et un dock d’enregistrement en verre, Rappels affiche ses listes intelligentes en rangées, et Notes sélectionne dans votre couleur d’accent au lieu du jaune",
+        "Le Finder s’appelle maintenant Piles (P pour PatOS, et des fichiers en piles). Tout reste au même endroit, et chercher « finder » le trouve encore. L’icône de Notes est maintenant bleue"
       ]
     }
   },

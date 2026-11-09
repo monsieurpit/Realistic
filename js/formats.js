@@ -1,4 +1,4 @@
-/* Opening Word, Excel, PowerPoint and zip files from Finder, and the shared download helper. */
+/* Opening Word, Excel, PowerPoint and zip files from Piles, and the shared download helper. */
 (function () {
   'use strict';
   const T = (s) => PatOS.t(s);

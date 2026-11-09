@@ -86,7 +86,7 @@
         { label: T('Download'), action: () => download(menubar.firstChild) },
         { label: T('Print or save as PDF'), shortcut: 'Ctrl+P', action: printDoc },
         { divider: true },
-        { label: T('Show in Finder'), action: () => PatOS.launch('finder', { path: PatOS.fs.dirname(path) }) },
+        { label: T('Show in Piles'), action: () => PatOS.launch('finder', { path: PatOS.fs.dirname(path) }) },
         { label: T('Move to Trash'), action: async () => { if (await PatOS.confirmBox(T('Move this document to the Trash?'), '', { danger: true, ok: T('Move to Trash'), icon: 'docs' })) { trashed = true; PatOS.fs.remove(path); win.close(); } } }
       ]),
       menu('Edit', () => [

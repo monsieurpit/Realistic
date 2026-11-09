@@ -384,7 +384,7 @@
           { label: T('New Playlist…'), action: async () => { const pl = await newPlaylist([p]); if (pl) PatOS.notify({ title: T('Added to') + ' ' + pl.name, body: metaOf(p).title, icon: 'music', duration: 2500 }); } },
           { divider: true },
           inPl ? { label: T('Remove from Playlist'), action: () => { const l = playlists(); const pl = l.find((x2) => x2.id === inPl); pl.tracks = pl.tracks.filter((t) => t !== p); savePlaylists(l); renderMain(); } } : null,
-          { label: T('Show in Finder'), action: () => PatOS.launch('finder', { path: PatOS.fs.dirname(p) }) }
+          { label: T('Show in Piles'), action: () => PatOS.launch('finder', { path: PatOS.fs.dirname(p) }) }
         ].filter(Boolean), x, y);
       }
       function groups(kind) {

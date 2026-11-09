@@ -346,7 +346,7 @@
       if (kind === 'print') { const url = URL.createObjectURL(blob); PatOS.openExternal(url); setTimeout(() => URL.revokeObjectURL(url), 60000); return; }
       const dir = PatOS.fs.dirname(path); const name = PatOS.fs.uniqueName(dir, base + ' (' + T('with notes') + ').pdf');
       try { await PatOS.fs.writeBlob(dir + '/' + name, blob); } catch (e) { PatOS.alertBox(T('The PDF couldn’t be saved'), String(e && e.message || e), { icon: 'preview' }); return; }
-      PatOS.notify({ title: T('PDF saved'), body: name + ' · ' + T('Click to show it in Finder'), icon: 'preview', onClick: () => PatOS.launch('finder', { path: dir }) });
+      PatOS.notify({ title: T('PDF saved'), body: name + ' · ' + T('Click to show it in Piles'), icon: 'preview', onClick: () => PatOS.launch('finder', { path: dir }) });
     }
 
     /* ---------- start ---------- */

@@ -1,4 +1,4 @@
-/* Videos — plays your own video files (from Finder or imported from your device) */
+/* Videos — plays your own video files (from Piles or imported from your device) */
 (function () {
   'use strict';
   const { h } = PatOS;
@@ -22,7 +22,7 @@
         win.setTitle(PatOS.t('Videos')); main.innerHTML = '';
         const vids = library();
         if (!vids.length) {
-          main.appendChild(h('div', { class: 'vd-empty' }, h('div', { class: 'vd-big', html: PatOS.iconHTML('videos') }), h('h2', {}, PatOS.t('No videos yet')), h('p', {}, PatOS.t('Open an MP4 or WebM video from your computer or phone. Videos you put in Finder show up here too.')), h('button', { class: 'btn primary', onclick: pick }, PatOS.t('Open a video…'))));
+          main.appendChild(h('div', { class: 'vd-empty' }, h('div', { class: 'vd-big', html: PatOS.iconHTML('videos') }), h('h2', {}, PatOS.t('No videos yet')), h('p', {}, PatOS.t('Open an MP4 or WebM video from your computer or phone. Videos you put in Piles show up here too.')), h('button', { class: 'btn primary', onclick: pick }, PatOS.t('Open a video…'))));
           return;
         }
         const g = h('div', { class: 'vd-grid' });
