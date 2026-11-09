@@ -95,6 +95,7 @@
   let mode = 'code'; // 'code' (a sync code and the PatOS server) or 'account' (a PatOS account in the cloud)
   const DENY = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncKey', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'accountPrompt', 'accountSeen', 'msgRead', 'patAppGrants', 'privacyLog',
     'setupStep', 'installOffered', 'iosHint', 'notifAsked', 'appInstalled', 'alarmQueue',
+    'timeline', 'timelineMoments', 'clipHistory', 'timelinePause',
     'wpCache', 'wpLockCache', 'wpThumbs', 'wxCache', 'dictCache', 'googleCx', 'patosServer', 'ytKey', 'pwVault', 'musicState', 'settings']);
   const DENY_PREFIX = ['newsCache:', 'ytHome:'];
   const denied = (k) => DENY.has(k) || DENY_PREFIX.some((x) => k.indexOf(x) === 0);

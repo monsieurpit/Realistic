@@ -749,7 +749,9 @@
     { label: 'Empty Trash', kw: 'empty trash vider corbeille', icon: 'finder', run: async () => { if (await PatOS.confirmBox(PatOS.t('Empty Trash?'), PatOS.t('Items in the Trash will be deleted for good.'), { ok: PatOS.t('Empty'), danger: true, icon: 'finder' })) PatOS.fs.emptyTrash(); } },
     { label: 'Record the Screen', kw: 'record screen enregistrer ecran capture video screenshot', icon: 'screenshot', run: () => PatOS.launch('screenshot') },
     { label: () => (document.fullscreenElement ? 'Exit Full Screen' : 'Enter Full Screen'), kw: 'full screen plein ecran', icon: 'settings', run: () => { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else document.documentElement.requestFullscreen().catch(() => {}); } },
-    { label: 'Restart PatOS', kw: 'restart reload redemarrer recharger', icon: 'about', run: () => { PatOS._leaving = true; location.reload(); } }
+    { label: 'Restart PatOS', kw: 'restart reload redemarrer recharger', icon: 'about', run: () => { PatOS._leaving = true; location.reload(); } },
+    { label: 'Clipboard History', kw: 'clipboard history paste copied copy presse papiers historique coller copie', icon: 'timeline', run: () => PatOS.timeline && setTimeout(() => PatOS.timeline.clipPanel(), 80) },
+    { label: 'Pick Up Where You Left Off', kw: 'restore resume reopen windows moment last session timeline reprendre restaurer rouvrir fenetres', icon: 'timeline', run: () => { const T = PatOS.timeline; const m = T && (T.lastSession() || T.moments().slice(-1)[0]); if (m) T.restoreMoment(m); else PatOS.launch('timeline'); } }
   ];
   const actLabel = (a) => PatOS.t(typeof a.label === 'function' ? a.label() : a.label);
 
@@ -799,6 +801,8 @@
       const sc = Math.max(score(n.title, q), q.length >= 3 && fold(n.body).includes(q) ? 35 : 0);
       add('Notes', 'note:' + n.id, sc, { label: n.title || T('Untitled'), icon: 'notes', snippet: n.body, run: () => PatOS.launch('notes', { id: n.id }) });
     });
+    // what you copied (Timeline's clipboard history): Enter copies it again
+    if (PatOS.timeline) PatOS.timeline.searchClips(raw.trim(), 3).forEach((c) => add('Clipboard', 'clip:' + c.id, 36, { label: c.text.replace(/\s+/g, ' ').slice(0, 90), sub: T('Copied'), icon: 'timeline', snippet: c.text, run: () => PatOS.timeline.copy(c.text).then(() => PatOS.notify({ title: T('Copied'), body: c.text.slice(0, 80), icon: 'timeline', duration: 2000 })) }));
     (PatOS.store.get('reminders', []) || []).filter((r) => !r.done).forEach((r) => add('Reminders', 'rem:' + r.id, score(r.text, q), { label: r.text, sub: r.due ? r.due + (r.time ? ' ' + r.time : '') : '', icon: 'reminders', run: () => PatOS.launch('reminders') }));
     (PatOS.store.get('contacts', []) || []).forEach((ct) => {
       const name = ((ct.first || '') + ' ' + (ct.last || '')).trim() || ct.company || ct.email || '';
@@ -815,7 +819,7 @@
     });
     // groups in order of their best match; instant answers first; a "top hit" when one result clearly wins
     const groups = {}; out.forEach((r) => (groups[r.group] = groups[r.group] || []).push(r));
-    const LIMIT = { Applications: 6, 'System Settings': 4, Actions: 3, Files: 8, Folders: 4, Notes: 4, Reminders: 3, Contacts: 3, Passwords: 3, Websites: 4 };
+    const LIMIT = { Clipboard: 3, Applications: 6, 'System Settings': 4, Actions: 3, Files: 8, Folders: 4, Notes: 4, Reminders: 3, Contacts: 3, Passwords: 3, Websites: 4 };
     const ordered = Object.entries(groups).map(([g, list]) => { list.sort((a, b) => b.score - a.score); return [g, list.slice(0, LIMIT[g] || 4)]; }).sort((a, b) => b[1][0].score - a[1][0].score);
     let res = [].concat(...ordered.map(([, l]) => l));
     // leave out weak guesses when there are good matches
@@ -856,7 +860,7 @@
   }
   function go(r, reveal) {
     PatOS.spotlight.hide();
-    if (r.key && !/^(calc|cv|tm|web|def)$/.test(r.key)) used(r.key);
+    if (r.key && !/^(calc|cv|tm|web|def)$/.test(r.key) && !/^clip:/.test(r.key)) used(r.key);
     if (reveal && r.filePath) return PatOS.launch('finder', { path: PatOS.fs.dirname(r.filePath) });
     r.run();
   }

@@ -3786,6 +3786,149 @@ html.reduce-motion .mem-inner, html.reduce-motion .g2-tile { transition: none; }
 
 </style>
   <style>
+/* ================= Timeline (js/apps/timeline.js) and the clipboard panel (js/timeline.js) ================= */
+.tl-app { flex: 1; display: flex; min-height: 0; min-width: 0; }
+.tl-tbspace { flex: 1; }
+.tl-q { width: min(340px, 40%); }
+.tl-pill { display: inline-flex; align-items: center; gap: 8px; height: 32px; padding: 0 14px 0 12px; border-radius: 16px; font-size: 13px; font-weight: 650;
+  background: color-mix(in srgb, var(--text) 8%, transparent); color: var(--text); transition: background .2s, transform .2s var(--spring); }
+.tl-pill:hover { background: color-mix(in srgb, var(--text) 13%, transparent); } .tl-pill:active { transform: scale(.96); }
+.tl-dot { width: 8px; height: 8px; border-radius: 50%; background: #8e8e93; }
+.tl-pill.rec .tl-dot { background: var(--accent); box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 60%, transparent); animation: tlRec 2.4s ease-out infinite; }
+.tl-pill.paused .tl-dot { background: #ffb340; }
+@keyframes tlRec { 0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--accent) 55%, transparent); } 70%, 100% { box-shadow: 0 0 0 7px transparent; } }
+
+/* the rail */
+.tl-rail { width: 272px; flex: 0 0 auto; overflow-y: auto; padding: var(--sp-4) var(--sp-3); display: flex; flex-direction: column; gap: var(--sp-4);
+  background: var(--sidebar); border-right: 1px solid var(--border); }
+.tl-resume { display: flex; flex-direction: column; gap: 6px; padding: 14px; border-radius: 18px; animation: tlUp .5s var(--spring) both;
+  background: linear-gradient(160deg, color-mix(in srgb, var(--accent) 22%, transparent), color-mix(in srgb, var(--accent) 6%, transparent));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 30%, transparent); }
+.tl-resume > small:first-child { font-size: 11.5px; font-weight: 700; letter-spacing: .3px; text-transform: uppercase; color: var(--accent); }
+.tl-resume b { font-size: 14px; line-height: 1.3; } .tl-rs { color: var(--text2); font-size: 12px; }
+.tl-resume .btn { margin-top: 4px; }
+.tl-cal { display: flex; flex-direction: column; gap: 6px; }
+.tl-calh { display: flex; align-items: center; justify-content: space-between; } .tl-calh b { font-size: 13.5px; }
+.tl-calh .tbtn { height: 26px; min-width: 26px; } .tl-calh .tbtn svg { width: 14px; height: 14px; }
+.tl-calg { display: grid; grid-template-columns: repeat(7, 1fr); gap: 3px; }
+.tl-wd { font-size: 10.5px; font-weight: 700; color: var(--text3); text-align: center; padding-bottom: 2px; }
+.tl-day { aspect-ratio: 1; border-radius: 9px; font-size: 11.5px; font-weight: 600; color: var(--text2); display: grid; place-items: center; transition: transform .2s var(--spring), background .2s; }
+.tl-day:hover:not(:disabled) { transform: scale(1.12); }
+.tl-day:disabled { opacity: .3; }
+.tl-day.l1 { background: color-mix(in srgb, var(--accent) 16%, transparent); color: var(--text); }
+.tl-day.l2 { background: color-mix(in srgb, var(--accent) 32%, transparent); color: var(--text); }
+.tl-day.l3 { background: color-mix(in srgb, var(--accent) 52%, transparent); color: #fff; }
+.tl-day.l4 { background: color-mix(in srgb, var(--accent) 78%, transparent); color: #fff; }
+.tl-day.today { box-shadow: inset 0 0 0 1.5px var(--accent); }
+.tl-day.sel { background: var(--accent); color: #fff; box-shadow: 0 4px 12px -3px color-mix(in srgb, var(--accent) 70%, transparent); }
+.tl-filters { display: flex; flex-direction: column; gap: 2px; }
+.tl-f .tl-fl { flex: 1; text-align: left; } .tl-f small { font-size: 12px; color: var(--text3); font-variant-numeric: tabular-nums; } .tl-f.on small { color: rgba(255,255,255,.8); }
+.tl-f > span:first-child { display: grid; place-items: center; } .tl-f .sym { width: 17px; height: 17px; }
+.tl-private { margin-top: auto; display: flex; gap: 8px; align-items: flex-start; font-size: 11.5px; line-height: 1.4; color: var(--text3); padding: 0 6px; }
+.tl-private .sym { width: 14px; height: 14px; flex: 0 0 auto; margin-top: 1px; }
+
+/* the day */
+.tl-main { flex: 1; min-width: 0; overflow-y: auto; padding: var(--sp-5) var(--sp-6) var(--sp-6); scroll-behavior: smooth; }
+.tl-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: var(--sp-4); animation: tlUp .45s var(--spring) both; }
+.tl-head h1 { margin: 0 0 2px !important; } .tl-head p { margin: 0; color: var(--text2); font-size: 13.5px; }
+.tl-nav { display: flex; align-items: center; gap: 4px; }
+.tl-banner { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; margin-bottom: var(--sp-4); background: color-mix(in srgb, #ffb340 14%, transparent); }
+.tl-banner > span .sym { width: 20px; height: 20px; color: #ffb340; } .tl-banner > div { flex: 1; display: flex; flex-direction: column; } .tl-banner small { color: var(--text2); }
+.tl-rib { margin-bottom: var(--sp-5); }
+.tl-ribbon { display: grid; grid-template-columns: repeat(24, 1fr); gap: 3px; align-items: end; height: 64px; padding: 8px; border-radius: 16px; background: color-mix(in srgb, var(--text) 5%, transparent); }
+.tl-bar { height: 100%; display: flex; align-items: flex-end; border-radius: 4px; position: relative; }
+.tl-bar::before { content: ""; display: block; width: 100%; height: max(4px, calc(var(--v) * 100%)); border-radius: 4px;
+  background: linear-gradient(180deg, color-mix(in srgb, var(--accent) 70%, #fff), var(--accent)); transform-origin: bottom;
+  animation: tlGrow .7s var(--spring) both; animation-delay: var(--d); transition: filter .15s; }
+.tl-bar.none::before { background: color-mix(in srgb, var(--text) 12%, transparent); }
+.tl-bar.now::after { content: ""; position: absolute; left: 50%; bottom: -6px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--accent); }
+.tl-bar:hover::before { filter: brightness(1.2); }
+@keyframes tlGrow { from { transform: scaleY(0); } }
+.tl-rlab { display: flex; justify-content: space-between; padding: 6px 8px 0; font-size: 10.5px; color: var(--text3); font-variant-numeric: tabular-nums; }
+
+/* the stream: cards along a line */
+.tl-stream { position: relative; display: flex; flex-direction: column; gap: 8px; padding-left: 30px; }
+.tl-stream::before { content: ""; position: absolute; left: 9px; top: 6px; bottom: 6px; width: 2px; border-radius: 1px;
+  background: linear-gradient(180deg, var(--accent), color-mix(in srgb, var(--accent) 10%, transparent)); }
+.tl-hour { position: relative; margin: 10px 0 2px; font-size: 12px; font-weight: 700; color: var(--text2); letter-spacing: .2px; scroll-margin-top: 12px; }
+.tl-hour::before { content: ""; position: absolute; left: -26px; top: 50%; width: 12px; height: 12px; margin-top: -6px; border-radius: 50%;
+  background: var(--win-solid, #1c1c1e); box-shadow: inset 0 0 0 3px var(--accent); }
+.tl-dayh { font-size: 14px; color: var(--text); margin-top: 18px; }
+.tl-card { position: relative; display: flex; align-items: center; gap: 12px; padding: 10px 40px 10px 12px; border-radius: 16px; cursor: pointer;
+  background: color-mix(in srgb, var(--text) 5%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 7%, transparent);
+  transition: background .2s, transform .25s var(--spring), box-shadow .2s;
+  animation: tlUp .5s var(--spring) both; animation-delay: calc(var(--i) * 28ms); }
+.tl-card:hover { background: color-mix(in srgb, var(--text) 9%, transparent); transform: translateX(3px); }
+.tl-card:active { transform: scale(.985); }
+@keyframes tlUp { from { opacity: 0; transform: translateY(10px) scale(.985); filter: blur(3px); } }
+.tl-kind { display: block; font-size: 11.5px; color: var(--text3); font-weight: 600; margin-bottom: 1px; }
+.tl-ei { width: 38px; height: 38px; flex: 0 0 auto; display: grid; place-items: center; }
+.tl-ei > * { width: 38px !important; height: 38px !important; font-size: 38px; }
+.tl-ei .icon-tile, .tl-ei img { width: 38px; height: 38px; border-radius: 10px; }
+.tl-et { min-width: 0; flex: 1; display: flex; flex-direction: column; }
+.tl-et b { font-size: 14.5px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-et > small:not(.tl-kind) { font-size: 12px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.tl-card mark { background: color-mix(in srgb, var(--accent) 35%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; }
+.tl-x, .tl-pin { position: absolute; right: 8px; top: 50%; width: 26px; height: 26px; margin-top: -13px; border-radius: 9px; display: grid; place-items: center; color: var(--text2); opacity: 0; transition: opacity .15s, background .15s; }
+.tl-x .sym, .tl-pin .sym { width: 14px; height: 14px; }
+.tl-card:hover .tl-x, .tl-x:focus-visible, .tl-card:hover .tl-pin, .tl-pin.on { opacity: 1; }
+.tl-x:hover, .tl-pin:hover { background: color-mix(in srgb, var(--text) 12%, transparent); color: var(--text); }
+.tl-clip .tl-pin { right: 38px; } .tl-clip { padding-right: 72px; } .tl-pin.on { color: var(--accent); }
+.tl-ci { width: 38px; height: 38px; flex: 0 0 auto; border-radius: 11px; display: grid; place-items: center; color: var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); }
+.tl-ci .sym { width: 19px; height: 19px; }
+.tl-ct { flex: 1; min-width: 0; }
+.tl-ctext { font: 13px/1.45 var(--mono, ui-monospace, monospace); color: var(--text); white-space: pre-wrap; word-break: break-word; max-height: 4.4em; overflow: hidden; }
+.tl-clip.pin { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--accent) 45%, transparent); }
+
+/* moments: the windows, drawn small */
+.tl-moment { align-items: stretch; padding: 12px 40px 12px 12px; gap: 14px; }
+.tl-cm { display: flex; flex-direction: column; gap: 2px; min-width: 0; flex: 1; justify-content: center; }
+.tl-cm b { font-size: 15px; } .tl-cm > small:not(.tl-kind) { color: var(--text2); font-size: 12px; }
+.tl-restore { align-self: flex-start; margin-top: 6px; gap: 6px; display: inline-flex; align-items: center; }
+.tl-restore .sym { width: 15px; height: 15px; }
+.tl-desk { position: relative; flex: 0 0 auto; width: 150px; aspect-ratio: 16 / 10; border-radius: 10px; overflow: hidden;
+  background: radial-gradient(120% 90% at 20% 0%, color-mix(in srgb, var(--accent) 45%, #223), #0d0e14); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); }
+.tl-desk.big { width: 100%; }
+.tl-dw { position: absolute; border-radius: 4px; background: rgba(255,255,255,.18); box-shadow: inset 0 0 0 .5px rgba(255,255,255,.35), 0 2px 6px rgba(0,0,0,.35);
+  display: grid; place-items: center; overflow: hidden; animation: tlPop .45s var(--spring) both; animation-delay: var(--d); }
+.tl-dw.act { background: rgba(255,255,255,.3); }
+.tl-dwi { width: 18px; height: 18px; display: grid; place-items: center; } .tl-dwi > * { width: 18px !important; height: 18px !important; font-size: 18px; border-radius: 5px; }
+.tl-desk.big .tl-dwi { width: 22px; height: 22px; } .tl-desk.big .tl-dwi > * { width: 22px !important; height: 22px !important; font-size: 22px; }
+@keyframes tlPop { from { opacity: 0; transform: scale(.7); } }
+
+.tl-empty { display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 60px 24px; color: var(--text2); animation: tlUp .5s var(--spring) both; }
+.tl-empty b { font-size: 18px; color: var(--text); } .tl-empty p { max-width: 440px; margin: 0; line-height: 1.5; font-size: 14px; }
+.tl-eic { width: 72px; height: 72px; margin-bottom: 6px; } .tl-eic > * { width: 72px !important; height: 72px !important; font-size: 72px; border-radius: 18px; }
+.mobile .tl-rail { display: none; } .mobile .tl-main { padding: 16px; } .mobile .tl-q { width: 100%; }
+
+/* ---------- the clipboard panel (Alt+V) ---------- */
+#clip-panel { position: fixed; z-index: 9600; left: 50%; top: 16vh; width: min(560px, calc(100vw - 24px)); max-height: 64vh; display: flex; flex-direction: column; gap: 8px; padding: 12px;
+  border-radius: 24px; transform: translateX(-50%); animation: cpIn .38s var(--spring) both; }
+#clip-panel.out { animation: cpOut .2s ease-in both; pointer-events: none; }
+@keyframes cpIn { from { opacity: 0; transform: translateX(-50%) translateY(-14px) scale(.96); } }
+@keyframes cpOut { to { opacity: 0; transform: translateX(-50%) translateY(-8px) scale(.97); } }
+.cp-head { display: flex; align-items: center; gap: 8px; padding: 2px 4px; }
+.cp-head b { font-size: 15px; } .cp-head small { flex: 1; color: var(--text3); font-size: 12px; }
+.cp-ic { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; background: var(--accent); color: #fff; } .cp-ic .sym { width: 15px; height: 15px; }
+.cp-open { font-size: 12.5px; font-weight: 600; color: var(--accent); padding: 4px 8px; border-radius: 8px; } .cp-open:hover { background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.cp-q { height: 40px; border-radius: 14px; padding: 0 14px; font-size: 15px; border: 0; outline: 0; color: var(--text); background: color-mix(in srgb, var(--text) 8%, transparent); }
+.cp-list { overflow-y: auto; display: flex; flex-direction: column; gap: 3px; min-height: 0; }
+.cp-row { display: flex; align-items: center; gap: 10px; padding: 8px 8px 8px 6px; border-radius: 14px; cursor: pointer; animation: tlUp .35s var(--spring) both; animation-delay: calc(var(--i) * 18ms); }
+.cp-row.sel { background: color-mix(in srgb, var(--accent) 85%, transparent); color: #fff; }
+.cp-row.sel small, .cp-row.sel .cp-k { color: rgba(255,255,255,.75); }
+.cp-k { width: 18px; text-align: center; font-size: 12px; font-weight: 700; color: var(--text3); font-variant-numeric: tabular-nums; flex: 0 0 auto; }
+.cp-txt { flex: 1; min-width: 0; } .cp-txt > div { font-size: 13.5px; line-height: 1.4; white-space: pre-wrap; word-break: break-word; max-height: 2.8em; overflow: hidden; }
+.cp-txt small { font-size: 11.5px; color: var(--text3); }
+.cp-b { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: inherit; opacity: 0; flex: 0 0 auto; } .cp-b .sym { width: 14px; height: 14px; }
+.cp-row:hover .cp-b, .cp-row.sel .cp-b, .cp-b.on { opacity: .85; } .cp-b:hover { background: rgba(127,127,127,.25); opacity: 1; }
+.cp-row:not(.sel) .cp-b.on { color: var(--accent); }
+.cp-empty { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 26px 16px; color: var(--text2); text-align: center; font-size: 13.5px; }
+.cp-empty .sym { width: 28px; height: 28px; color: var(--accent); }
+html.reduce-motion :is(.tl-card, .tl-head, .tl-resume, .tl-empty, .cp-row, .tl-dw, #clip-panel), html.reduce-motion .tl-bar::before { animation: none !important; }
+.tl-f.on .sym { color: #fff; }
+
+</style>
+  <style>
 /* ================= Liquid Glass =================
    One material for the whole of PatOS, modeled on a thick gel slab lit from above (docs/LIQUID-GLASS.md). Every glass surface
    uses one of three tiers, which differ only in blur and body:
@@ -4996,6 +5139,7 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
     perfMode: 'auto',        // auto | light | full (Speed mode: light turns off the see-through blur and the long animations)
     askFullscreen: true,
     reopenWindows: true,
+    timeline: true, timelineClips: true, timelineDays: 30,
     betaUpdates: false,      // Settings › Software Update › Beta updates
     clock24: false,
     showSeconds: false,
@@ -5699,8 +5843,8 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
 /* generated by build.js from updates.json: do not edit */
 PatOS.version = "2.3.1";
 PatOS.releases = [{"version":"2.3.1","date":"2026-11-09","title":{"en":"Drawn glass icons","fr":"Des icônes dessinées en verre"},"notes":{"en":["Our office apps have their own names and look: Docs is now Write, Sheets is Tables, Slides is Stage, Forms is Surveys and Drive is Cloud. Each has its own color and a new start screen; your documents open as before","Terms of Use and Privacy Policy: everyone is asked to read and accept them once (new people and everyone updating) before using PatOS. They are always in Settings, from the small link at the bottom of the sidebar","Photo Booth is now Camera, rebuilt like a phone camera: Photo, Video (with sound), Square and Burst modes, a screen flash, a 3 or 10 second timer, a grid, mirror, 1×/2×/3× zoom, filters you can see, the last shot one tap away, front and back cameras, and Space to shoot","Scanner is redesigned: it outlines the page live while you aim, can take the scan by itself when the page holds still (Auto), shows each filter on your own page, and has a new page shelf","Every app looks richer: windows are a deep night in dark mode and a soft white with white cards in light mode, with a faint glow of your highlight color; Settings has drawn icons on colored glass tiles","Every PatOS app has a new icon, drawn like real glass on a dark graphite tile: each picture is a see-through glass object in the app's color that glows brighter toward the bottom, with a bright rim on top and a soft halo of light around it (57 icons: Finder, Messages, Notes, Music, Photos, Calendar, Clock, Weather, Settings, the games and all the others)","Docs, Sheets, Slides, Forms and Drive have their own glass icons (they no longer look like Google's)","Files and folders are drawn in glass too: folders, documents with their file type, pictures, music and links","The small symbols everywhere (Finder's sidebar, toolbars, Settings, the menu bar) are little pieces of glass: a see-through body of their color and a soft glow","Five new wallpapers made of silk, lit from above: Silk (violet and blue on deep night), Obsidian (one silver fold on black), Flame (orange and rose), Glacier (pale blue) and Dune (warm sand). New installs start on Silk; Settings › Wallpaper has them all","Desktop labels stay readable on light wallpapers","No more letters or emoji on icons: Solitaire's card suits, Elements, Sudoku, Translate and Dictionary are drawn","Google apps and YouTube keep their own logos","Typing Trainer and Galaxy are removed","Faster, especially with a 3D wallpaper: it now draws 30 times a second (60 with High quality) and 10 while you use another window, the glass is cheaper to draw, and app icons are drawn once instead of every time they move"],"fr":["Nos apps de bureautique ont leurs propres noms et leur propre style : Docs devient Écrire, Sheets devient Tableaux, Slides devient Scène, Forms devient Sondages et Drive devient Nuage. Chacune a sa couleur et un nouvel écran d’accueil ; vos documents s’ouvrent comme avant","Conditions d’utilisation et politique de confidentialité : tout le monde doit les lire et les accepter une fois (les nouveaux et tous ceux qui mettent à jour) avant d’utiliser PatOS. Elles sont toujours dans les Réglages, par le petit lien au bas de la barre latérale","Photo Booth devient Caméra, refaite comme l’appareil photo d’un téléphone : modes Photo, Vidéo (avec le son), Carré et Rafale, flash d’écran, minuterie de 3 ou 10 secondes, grille, miroir, zoom 1×/2×/3×, filtres visibles, la dernière photo à portée de main, caméras avant et arrière, et Espace pour prendre la photo","Le Numériseur est refait : il entoure la page en direct pendant que vous visez, peut prendre la numérisation tout seul quand la page ne bouge plus (Auto), montre chaque filtre sur votre propre page et a une nouvelle étagère de pages","Toutes les apps sont plus belles : les fenêtres sont d’un noir profond en mode sombre et d’un blanc doux avec des cartes blanches en mode clair, avec une légère lueur de votre couleur de mise en valeur ; les Réglages ont des icônes dessinées sur des tuiles de verre colorées","Chaque app PatOS a une nouvelle icône, dessinée comme du vrai verre sur une tuile graphite sombre : chaque dessin est un objet en verre transparent de la couleur de l’app, qui brille de plus en plus vers le bas, avec un bord lumineux en haut et un doux halo de lumière autour (57 icônes : Finder, Messages, Notes, Musique, Photos, Calendrier, Horloge, Météo, Réglages, les jeux et toutes les autres)","Documents, Feuilles, Présentations, Formulaires et Drive ont leurs propres icônes en verre (elles ne ressemblent plus à celles de Google)","Les fichiers et les dossiers sont aussi dessinés en verre : dossiers, documents avec leur type, images, musique et liens","Les petits symboles partout (la barre latérale du Finder, les barres d’outils, les Réglages, la barre des menus) sont de petits morceaux de verre : un corps transparent de leur couleur et une douce lueur","Cinq nouveaux fonds d’écran en soie, éclairés d’en haut : Soie (violet et bleu sur nuit profonde), Obsidienne (un pli argenté sur noir), Flamme (orange et rose), Glacier (bleu pâle) et Dune (sable chaud). Les nouvelles installations commencent sur Soie ; Réglages › Fond d’écran les propose tous","Les noms sur le bureau restent lisibles sur les fonds d’écran clairs","Plus de lettres ni d’emoji sur les icônes : les enseignes du Solitaire, Éléments, Sudoku, Traduction et Dictionnaire sont dessinés","Les apps Google et YouTube gardent leurs propres logos","Entraînement à la frappe et Galaxie sont retirés","Plus rapide, surtout avec un fond d’écran 3D : il se dessine maintenant 30 fois par seconde (60 en qualité Élevée) et 10 fois quand vous utilisez une autre fenêtre, le verre coûte moins cher à dessiner, et les icônes des apps sont dessinées une seule fois au lieu de chaque fois qu’elles bougent"]}},{"version":"2.3.0","date":"2026-11-09","title":{"en":"Liquid Glass, everywhere","fr":"Liquid Glass, partout"},"notes":{"en":["Liquid Glass is now clear like the newest iPhone: notifications, Control Center, widgets and the Dock add no color and almost no blur, so the wallpaper behind stays sharp and true","Glass has a blur you can almost not see: it softens what is behind just enough to feel like real glass (buttons and search bars are unchanged)","Every glass edge is a thin line of light that is brightest on the upper left and catches a second highlight on the lower right, and the picture behind bends where it crosses into the glass","Rounder everywhere: the Dock, sliders, Launchpad's search and segmented controls are pills, and panels have big, soft corners","Buttons and search bars in every app are made of the same glass: rounded capsules with a thin line of light around them; search bars and text fields sit a little into the glass; in window title bars they stay see-through, and over pictures (Photos, Weather) they blur what is behind them. This covers the shared buttons and fields and the apps' own (Patoogle, YouTube, App Store, Office, Music, Photos, Weather and more)","App icons are little 3D tiles: a glossy curved reflection, a bright top edge and a soft shadow. Pointing at one in the Dock, Launchpad, the desktop or the phone's home screen lifts it and sweeps a shine across it, pressing squishes it, and Launchpad's icons pop in when it opens","App icons look embossed: the picture on each icon is raised, catches the light from the upper left and floats on a soft shadow (in the Dock, Launchpad, the desktop and the phone's home screen)","Dock: pointing at an app makes only that app bigger, rising up out of the Dock; the Dock itself no longer grows taller","Fixed: glass could look pink or too colorful over purple wallpapers (it boosted the colors behind it); it is now exactly the color of what is behind"],"fr":["Liquid Glass est maintenant clair comme sur le dernier iPhone : les notifications, le Centre de contrôle, les widgets et le Dock n’ajoutent aucune couleur et presque aucun flou, donc le fond d’écran derrière reste net et fidèle","Le verre a un flou presque invisible : il adoucit juste assez ce qui est derrière pour ressembler à du vrai verre (les boutons et les barres de recherche ne changent pas)","Chaque bord de verre est une fine ligne de lumière, plus vive en haut à gauche avec un second reflet en bas à droite, et l’image derrière se courbe là où elle entre dans le verre","Plus arrondi partout : le Dock, les curseurs, la recherche du Launchpad et les contrôles segmentés sont des pilules, et les panneaux ont de grands coins doux","Les boutons et les barres de recherche de toutes les apps sont faits du même verre : des capsules arrondies entourées d’une fine ligne de lumière ; les barres de recherche et les champs de texte sont légèrement enfoncés dans le verre ; dans les barres de titre ils restent transparents, et sur les images (Photos, Météo) ils floutent ce qui est derrière. Cela couvre les boutons et champs communs et ceux des apps (Patoogle, YouTube, App Store, Office, Musique, Photos, Météo et plus)","Les icônes des apps sont de petites tuiles en 3D : un reflet courbe brillant, un bord supérieur clair et une ombre douce. Pointer une icône dans le Dock, le Launchpad, le bureau ou l’écran d’accueil du téléphone la soulève et fait passer un reflet dessus, appuyer l’écrase un peu, et les icônes du Launchpad apparaissent avec un petit rebond","Les icônes des apps ont l’air en relief : le dessin de chaque icône est surélevé, accroche la lumière venant d’en haut à gauche et flotte sur une ombre douce (dans le Dock, le Launchpad, le bureau et l’écran d’accueil du téléphone)","Dock : pointer une app agrandit seulement cette app, qui sort du Dock vers le haut ; le Dock lui-même ne grandit plus en hauteur","Corrigé : le verre pouvait paraître rose ou trop coloré sur les fonds violets (il renforçait les couleurs derrière) ; il a maintenant exactement la couleur de ce qui est derrière"]}},{"version":"2.2.2","date":"2026-11-09","title":{"en":"Liquid Glass without the light bar","fr":"Liquid Glass sans la barre de lumière"},"notes":{"en":["Liquid Glass rebuilt after a careful look at thick glass: every glass panel magnifies what is behind it a little, its edges bend it harder, its bottom and sides take a deeper, richer version of the color behind it, a soft shine follows its top curve and a thin bright line its bottom, with no outline at all","Glass is crisper: what is behind tiles and widgets stays sharp (it frosts more only over very busy wallpapers, so words stay readable)","Fixed: a bright bar could flash along glass edges (for example while the Dock magnified)","Fixed: the light no longer jumps when the pointer moves","Fixed: the deeper colored rim of 2.2.1 never actually appeared in Chrome; it does now"],"fr":["Liquid Glass refait après une étude attentive du verre épais : chaque panneau de verre grossit un peu ce qui est derrière, ses bords le courbent davantage, son bas et ses côtés prennent une version plus profonde et plus riche de la couleur derrière, un reflet doux suit sa courbe du haut et une fine ligne claire celle du bas, sans aucun contour","Le verre est plus net : ce qui est derrière les tuiles et les widgets reste net (il ne se dépolit plus que sur les fonds très chargés, pour que le texte reste lisible)","Corrigé : une barre claire pouvait clignoter le long des bords du verre (par exemple quand le Dock grossit)","Corrigé : la lumière ne saute plus quand le pointeur bouge","Corrigé : le bord coloré plus profond de la 2.2.1 n’apparaissait jamais dans Chrome ; il apparaît maintenant"]}},{"version":"2.2.1","date":"2026-11-09","title":{"en":"Thick, clear Liquid Glass","fr":"Liquid Glass épais et clair"},"notes":{"en":["Liquid Glass is far more transparent: the Dock barely blurs, so the wallpaper reads right through it, and menus, Control Center and notifications let much more through while their words stay clear","Every glass surface now looks like a thick slab of glass: a glossy top edge, a rounded rim that bends what is behind it, edges that take on a deeper version of the color behind them, and a soft shadow underneath","In Chrome, Edge and on Chromebooks, menus, Control Center, notifications, widgets, Spotlight and dialogs bend what is behind their edges, not only the Dock","The glass is lit by one light that leans toward your pointer, so every shine and edge agrees; the rims are the same thickness on big and small panels, and a curved glint runs along their bottom edge","Over very busy wallpapers, glass with words on it frosts a little more so text stays easy to read","Buttons, menu items, tiles and icons sink into the glass when you press them","Control Center tiles and desktop widgets tilt slightly toward the pointer","Fixed: the Dock's own clear look was being overridden by the shared glass style","Glass on dark wallpapers has a quiet edge instead of a bright frame"],"fr":["Liquid Glass est beaucoup plus transparent : le Dock floute à peine, le fond d’écran se voit au travers, et les menus, le Centre de contrôle et les notifications laissent passer bien plus tout en gardant un texte net","Chaque surface en verre ressemble maintenant à une plaque épaisse : un bord supérieur brillant, un bord arrondi qui courbe ce qui est derrière, des bords qui prennent une version plus profonde de la couleur derrière, et une ombre douce dessous","Dans Chrome, Edge et sur Chromebook, les menus, le Centre de contrôle, les notifications, les widgets, Spotlight et les dialogues courbent ce qui est derrière leurs bords, pas seulement le Dock","Le verre est éclairé par une seule lumière qui suit votre pointeur, donc tous les reflets et les bords s’accordent ; les bords ont la même épaisseur sur les grands et les petits panneaux, et un reflet courbe longe leur bord inférieur","Sur les fonds d’écran très chargés, le verre qui porte du texte devient un peu plus dépoli pour que le texte reste facile à lire","Les boutons, éléments de menu, tuiles et icônes s’enfoncent dans le verre quand vous appuyez dessus","Les tuiles du Centre de contrôle et les widgets du bureau s’inclinent légèrement vers le pointeur","Corrigé : l’aspect clair du Dock était remplacé par le style de verre commun","Le verre sur les fonds d’écran sombres a un bord discret au lieu d’un cadre lumineux"]}},{"version":"2.2.0","date":"2026-11-09","title":{"en":"Liquid Glass, rebuilt","fr":"Liquid Glass, refait"},"notes":{"en":["Liquid Glass is one material everywhere now, in three thicknesses: clear for the Dock and widgets (the wallpaper shows right through), regular for Control Center and notifications, and thicker for menus, Spotlight and dialogs, so words stay easy to read","In Chrome, Edge and on Chromebooks, the edges of the Dock, the app switcher and Launchpad's search bend what is behind them like the rim of real glass, while the middle stays clear","The menu bar's words turn dark over a light wallpaper and white over a dark one, whatever the theme","Windows are faster: only their titlebar is glass now, and their contents are solid. With several windows open, PatOS blurs about 7 times less of the screen","Settings › Appearance has a Liquid Glass section: Transparent or Tinted (more contrast), Lens edges, and Reduce transparency. PatOS also follows your device's own reduce transparency and reduce motion settings","A new notification no longer covers an open Control Center","Safer website: browsers are told not to guess file types, and other sites can't show PatOS in a hidden frame"],"fr":["Liquid Glass est maintenant une seule matière partout, en trois épaisseurs : claire pour le Dock et les widgets (le fond d’écran se voit au travers), normale pour le Centre de contrôle et les notifications, et plus épaisse pour les menus, Spotlight et les dialogues, pour que le texte reste facile à lire","Dans Chrome, Edge et sur Chromebook, les bords du Dock, du sélecteur d’apps et de la recherche du Launchpad courbent ce qui est derrière comme le bord d’un vrai verre, et le milieu reste net","Le texte de la barre des menus devient foncé sur un fond d’écran clair et blanc sur un fond sombre, quel que soit le thème","Les fenêtres sont plus rapides : seule leur barre de titre est en verre, et leur contenu est opaque. Avec plusieurs fenêtres ouvertes, PatOS floute environ 7 fois moins l’écran","Réglages › Apparence a une section Liquid Glass : Transparent ou Teinté (plus de contraste), Bords en lentille et Réduire la transparence. PatOS suit aussi les réglages de transparence et d’animations réduites de votre appareil","Une nouvelle notification ne cache plus le Centre de contrôle ouvert","Site plus sûr : les navigateurs ne devinent plus le type des fichiers, et d’autres sites ne peuvent pas afficher PatOS dans un cadre caché"]}},{"version":"2.1.3","date":"2026-11-06","title":{"en":"PitCode Studio on iPhone","fr":"PitCode Studio sur iPhone"},"notes":{"en":["PitCode Studio is made for iPhone now: a compact top bar, and Files, Code and Preview each get the whole screen, with tabs at the bottom. The code and its colors line up properly, nothing zooms in when you tap, and the buttons, the file list, the settings and the first screen are bigger and easier to tap"],"fr":["PitCode Studio est maintenant pensé pour l’iPhone : une barre du haut compacte, et Fichiers, Code et Aperçu prennent chacun tout l’écran, avec des onglets en bas. Le code et ses couleurs s’alignent bien, rien ne zoome quand vous touchez, et les boutons, la liste des fichiers, les réglages et le premier écran sont plus grands et plus faciles à toucher"]}},{"version":"2.1.2","date":"2026-11-06","title":{"en":"Importing projects, made sturdier","fr":"Importer des projets, en plus solide"},"notes":{"en":["PitCode Studio: importing a project is more reliable on phones, and there is a new Paste Project… button: copy the text of a .patappproject file and paste it in, no file picker needed"],"fr":["PitCode Studio : l’importation d’un projet est plus fiable sur téléphone, et un nouveau bouton Coller un projet… permet de copier le texte d’un fichier .patappproject et de le coller, sans sélecteur de fichier"]}},{"version":"2.1.1","date":"2026-11-06","title":{"en":"Importing files on phones","fr":"Importer des fichiers sur téléphone"},"notes":{"en":["Fix: Import Project… in PitCode Studio, and Open a .patapp File… in the App Store, now let you pick the file on an iPhone or iPad (the file was grayed out because phones do not know the .patappproject and .patapp types). Any file can be picked, and PatOS checks what is inside"],"fr":["Correctif : Importer un projet… dans PitCode Studio, et Ouvrir un fichier .patapp… dans l’App Store, vous laissent maintenant choisir le fichier sur un iPhone ou un iPad (le fichier était grisé parce que les téléphones ne connaissent pas les types .patappproject et .patapp). N’importe quel fichier peut être choisi, et PatOS vérifie son contenu"]}},{"version":"2.1.0","date":"2026-11-05","title":{"en":"PatOS 2.1: Slither and a better Studio","fr":"PatOS 2.1 : Slither et un meilleur Studio"},"notes":{"en":["Slither: a new game in 3D & Games. Steer a glowing snake, eat dots to grow, and trap the other snakes so they crash into you. The other players are smart bots, so it works with no internet. Hold click or Space to boost, grab power-ups (Speed, Magnet, Shield, Double, Far sight), pick Easy, Normal or Hard, and climb the leaderboard. Pick your skin and nickname","PitCode Studio: open a whole project from one .patappproject file (Import Project…, or double-click it in Finder). It holds the project settings and every file with its code, and is checked when you import it. Publishing is now an update: once an app is in the store, Publish becomes Update in the store, which sends a new version of the same app (higher version needed) instead of making another one. The identifier is locked once published, and only you can update your app","For people who make apps: examples/device-lab.patapp and examples/device-lab-pit.patapp are big test apps that use every permission (files, notifications, clipboard, camera, microphone, location, internet), one in HTML and JavaScript and one written in PitCode, each with its project file to open in PitCode Studio. The App SDK guide now covers every call, the file formats, the limits and publishing"],"fr":["Slither : un nouveau jeu dans 3D et jeux. Dirigez un serpent lumineux, mangez des points pour grandir et piégez les autres serpents pour qu’ils vous foncent dedans. Les autres joueurs sont des robots malins, donc ça marche sans internet. Maintenez le clic ou Espace pour accélérer, ramassez des bonus (Vitesse, Aimant, Bouclier, Double, Vue lointaine), choisissez Facile, Normal ou Difficile et grimpez au classement. Choisissez votre apparence et votre pseudo","PitCode Studio : ouvrez un projet entier depuis un seul fichier .patappproject (Importer un projet…, ou double-clic dans le Finder). Il contient les réglages du projet et chaque fichier avec son code, et il est vérifié à l’importation. Publier devient une mise à jour : une fois l’app dans la boutique, Publier devient Mettre à jour dans la boutique, qui envoie une nouvelle version de la même app (version plus haute requise) au lieu d’en créer une autre. L’identifiant est verrouillé une fois publié, et vous seul pouvez mettre votre app à jour","Pour celles et ceux qui font des apps : examples/device-lab.patapp et examples/device-lab-pit.patapp sont de grosses apps de test qui utilisent toutes les permissions (fichiers, notifications, presse-papiers, caméra, micro, position, internet), l’une en HTML et JavaScript et l’autre écrite en PitCode, chacune avec son fichier de projet à ouvrir dans PitCode Studio. Le guide du SDK couvre maintenant chaque appel, les formats de fichier, les limites et la publication"]}},{"version":"2.0.0","date":"2026-11-05","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"notes":{"en":["Backup & Restore: a snapshot every day (restore PatOS to how it was on Tuesday), a backup file you can lock with a password, and on a Chromebook an auto-backup folder on your real disk, so your data survives even if PatOS or the website is deleted. You can restore from the very first screen on a new device","Sync (optional): your files, notes, calendar, reminders, contacts, flashcards and some settings follow you between your Chromebook and your iPhone. Everything is encrypted on the device with a key only you have, so the server sees nothing readable. It works offline, never blocks PatOS, and if you delete your Railway and make a new one, your devices fill it again by themselves (restoring a backup brings your Sync code back too). Turn it on in Settings › Sync","Everything on your real disk: the backup folder now also keeps a full copy of your big files (videos, recordings, up to 1 GB) and your Sync code, so if PatOS or the website is deleted, restoring from the folder brings it all back. In Settings › Sync you can make a new code to share, or point an old PatOS at a new server address","App SDK and PitCode Studio: make your own PatOS apps in PatOS, like Xcode. Write them in PitCode (your own language, built in) or in HTML and JavaScript, run them in a preview with a console, then install them, save them as a .patapp file, or send them for review. Apps run in a locked box and must ask before using the camera, microphone, location, files, clipboard, notifications or the internet. New Settings › Privacy shows what every app may do and did. The App Store has new Community and Develop tabs, and accepted apps are reviewed at /apprequests","PatDrop: a chat for you and your friend (or your own devices). Make a code, type it on the other PatOS, and send messages, files, photos, links, clipboard text and even apps made in PitCode Studio, straight into each other's PatOS. It is encrypted on your device, works offline (things wait in an outbox), tells you when something arrives, and Finder has a Send with PatDrop item","PatOS Accounts: make an account with just a username and a password (no email) and everything you have (files, photos, notes, calendar, apps and your own apps, the dock, every setting, even your open windows and where they are) is saved in the cloud, locked with your password, and follows you to every device. A copy stays on each device, so PatOS still works offline. Everyone gets a big invitation to create their account, and everything already on the device is saved into it","Messages is now for people: search a username, send a message request, and they get notifications from you only after they accept. Every conversation is saved in the cloud and is the same on all your devices. Pat, the command helper, moved to a button in the top bar","Shortcuts: a new app for little automations. Open apps, ask Pat for a timer, change the theme, show messages, and more, one step after the other. Start them by hand, when you unlock PatOS, every day at a time, or by saying “Hey Pat, …”. Turn on Hey Pat in Settings › Pat Voice (it is off until you do): Pat listens for its name, answers out loud and runs your shortcuts. There is also a microphone button in Pat’s panel in Messages","Pat moved to the top bar: click the speech bubble next to Control Center to talk to Pat from anywhere (it is no longer inside Messages). On a phone, Pat is an app in Launchpad that opens the same panel","Cleaner wording: the extra descriptions, taglines and tips are gone from Settings, Backup, Sync, App Store, Studio and more. Only what you need to read is left","Updates are yours to choose: each version now has its own files. PatOS never switches to a new finished version by itself (refreshing or reopening keeps the version you have); Settings › Software Update shows it and the button installs it. A beta only reaches devices with Beta updates on, and is downloaded quietly and used the next time PatOS starts. A version is saved completely, and checked, before PatOS switches to it, and the version before stays as the way back","App Store › Develop fixes: trying an app no longer empties the form (your code stays, and trying again updates the same app instead of making a new one), the form is remembered after a restart, and an app you opened from a .patapp file now loads into the editor so you can change it. Apps installed from files have an Edit button in Community","Settings has groups now: the sidebar shows General, Account & Cloud, Appearance & Display, Accessibility, Sound & Voice and Privacy & Security. A group opens the list of its settings (General has Software Update, Network, Storage and more), with a back link. The big account card at the top opens your info and your computer's info","Faster everywhere: Photos opens without making every picture first, Files shows long folders in pieces so they appear at once, the start-up and lock screen wait less, and Pat answers quicker. PatOS also tests how fast your computer is and, on a slow one, turns off the see-through blur by itself (Settings › Speed mode lets you choose)","Made for Windows laptops too (like an HP EliteBook): PatOS no longer says “Chromebook” when you are not on one, scrollbars are thin on Windows, and everything fits a 1366 by 768 screen","Faster start: apps now load when you open them. PatOS reads about a third of the app code at start instead of all of it, and every app still works offline"],"fr":["Sauvegarde et restauration : un instantané chaque jour (remettez PatOS comme il était mardi), un fichier de sauvegarde que vous pouvez verrouiller par mot de passe, et sur un Chromebook un dossier de sauvegarde automatique sur votre vrai disque, pour que vos données survivent même si PatOS ou le site est supprimé. Vous pouvez restaurer dès le tout premier écran sur un nouvel appareil","Synchronisation (facultative) : vos fichiers, notes, calendrier, rappels, contacts, cartes mémoire et certains réglages vous suivent entre votre Chromebook et votre iPhone. Tout est chiffré sur l’appareil avec une clé que vous seul avez, donc le serveur ne voit rien de lisible. Cela fonctionne hors ligne, ne bloque jamais PatOS, et si vous supprimez votre Railway pour en créer un nouveau, vos appareils le remplissent tout seuls (restaurer une sauvegarde ramène aussi votre code). Activez-la dans Réglages › Synchronisation","Tout sur votre vrai disque : le dossier de sauvegarde garde maintenant aussi une copie complète de vos gros fichiers (vidéos, enregistrements, jusqu’à 1 Go) et votre code de synchronisation, donc si PatOS ou le site est supprimé, restaurer depuis le dossier ramène tout. Dans Réglages › Synchronisation vous pouvez créer un nouveau code à partager, ou diriger un ancien PatOS vers une nouvelle adresse de serveur","SDK d’apps et PitCode Studio : faites vos propres apps PatOS dans PatOS, comme Xcode. Écrivez-les en PitCode (votre propre langage, intégré) ou en HTML et JavaScript, lancez-les dans un aperçu avec une console, puis installez-les, enregistrez-les en fichier .patapp, ou envoyez-les pour examen. Les apps tournent dans une boîte verrouillée et doivent demander avant d’utiliser la caméra, le micro, la position, les fichiers, le presse-papiers, les notifications ou internet. Le nouveau Réglages › Confidentialité montre ce que chaque app peut faire et a fait. L’App Store a de nouveaux onglets Communauté et Développer, et les apps acceptées sont examinées sur /apprequests","PatDrop : une discussion pour vous et votre ami (ou vos propres appareils). Créez un code, écrivez-le sur l’autre PatOS, et envoyez messages, fichiers, photos, liens, texte du presse-papiers et même des apps faites dans PitCode Studio, directement dans le PatOS de l’autre. C’est chiffré sur votre appareil, ça marche hors ligne (les choses attendent dans une boîte d’envoi), ça vous prévient quand quelque chose arrive, et le Finder a un élément Envoyer avec PatDrop","Comptes PatOS : créez un compte avec seulement un nom d’utilisateur et un mot de passe (pas de courriel) et tout ce que vous avez (fichiers, photos, notes, calendrier, apps et vos propres apps, le dock, tous les réglages, même vos fenêtres ouvertes et leur place) est enregistré dans le nuage, verrouillé par votre mot de passe, et vous suit sur chaque appareil. Une copie reste sur chaque appareil, donc PatOS marche toujours hors ligne. Tout le monde reçoit une grande invitation à créer son compte, et tout ce qui est déjà sur l’appareil y est enregistré","Messages est maintenant pour les gens : cherchez un nom d’utilisateur, envoyez une demande de message, et la personne reçoit des notifications de vous seulement après avoir accepté. Chaque conversation est enregistrée dans le nuage et identique sur tous vos appareils. Pat, l’assistant à commandes, est passé dans un bouton de la barre du haut","Raccourcis : une nouvelle app pour de petites automatisations. Ouvrir des apps, demander un minuteur à Pat, changer le thème, afficher des messages, et plus, une étape après l’autre. Lancez-les à la main, quand vous déverrouillez PatOS, chaque jour à une heure, ou en disant « Hey Pat, … ». Activez Hey Pat dans Réglages › Voix de Pat (désactivé tant que vous ne le faites pas) : Pat écoute son nom, répond à voix haute et lance vos raccourcis. Il y a aussi un bouton micro dans le panneau de Pat dans Messages","Pat est passé dans la barre du haut : cliquez sur la bulle à côté du Centre de contrôle pour parler à Pat de n’importe où (il n’est plus dans Messages). Sur un téléphone, Pat est une app dans Launchpad qui ouvre le même panneau","Textes plus sobres : les descriptions superflues, slogans et conseils ont disparu des Réglages, de la Sauvegarde, de la Synchronisation, de l’App Store, du Studio et d’autres. Il ne reste que ce qu’il faut lire","Les mises à jour, c’est vous qui choisissez : chaque version a maintenant ses propres fichiers. PatOS ne passe jamais tout seul à une nouvelle version terminée (actualiser ou rouvrir garde la version que vous avez) ; Réglages › Mise à jour la montre et le bouton l’installe. Une bêta n’arrive que sur les appareils avec les mises à jour bêta activées, et elle est téléchargée discrètement puis utilisée au prochain démarrage de PatOS. Une version est enregistrée en entier, et vérifiée, avant que PatOS passe dessus, et la version d’avant reste comme chemin de retour","Correctifs App Store › Développer : essayer une app ne vide plus le formulaire (votre code reste, et réessayer met à jour la même app au lieu d’en créer une nouvelle), le formulaire est gardé après un redémarrage, et une app ouverte depuis un fichier .patapp se charge dans l’éditeur pour que vous puissiez la modifier. Les apps installées depuis des fichiers ont un bouton Modifier dans Communauté","Les Réglages ont maintenant des groupes : la barre latérale montre Général, Compte et nuage, Apparence et écran, Accessibilité, Son et voix, et Confidentialité et sécurité. Un groupe ouvre la liste de ses réglages (Général contient Mise à jour, Réseau, Stockage et plus), avec un lien de retour. La grande carte du compte en haut ouvre vos infos et celles de votre ordinateur","Plus rapide partout : Photos s’ouvre sans fabriquer toutes les images d’abord, Fichiers affiche les longs dossiers par morceaux pour qu’ils apparaissent tout de suite, le démarrage et l’écran de verrouillage attendent moins, et Pat répond plus vite. PatOS teste aussi la vitesse de votre ordinateur et, sur un ordinateur lent, désactive seul le flou transparent (Réglages › Mode vitesse permet de choisir)","Pensé aussi pour les portables Windows (comme un HP EliteBook) : PatOS ne dit plus « Chromebook » quand vous n’en avez pas un, les barres de défilement sont fines sous Windows, et tout tient sur un écran de 1366 par 768","Démarrage plus rapide : les apps se chargent maintenant à leur ouverture. PatOS lit environ un tiers du code des apps au démarrage au lieu de tout, et chaque app marche toujours hors ligne"]}},{"version":"1.7.0","date":"2026-11-04","title":{"en":"Better apps","fr":"De meilleures apps"},"notes":{"en":["Calendar: Day and Year views, repeating events with an end date, alerts before events (even with Calendar closed), quick add in plain words (“Math class monday 9am weekly”), search, drag events to another day, and .ics import and export (Google Calendar)","Contacts: several phone numbers and emails per person, company, tap to call or email, search that ignores accents, Undo after deleting, merge duplicates, and better vCard import and export with photos","Weather: 10-day forecast, a one-line summary of the next hours, city suggestions as you type, gusts, pressure, visibility and rain today, wind and rain in mph and inches with °F, refreshes by itself, and real icons instead of emoji","Photos: much faster with many photos, your own albums, select several photos at once, search, zoom and pan with the wheel or pinch, swipe between photos, photo info, drop pictures to add them, and large photos now show up","Paint: choose your canvas size, zoom, text, filled shapes, opacity that doesn’t darken overlaps, Shift for straight lines and circles, rotate and flip, more undo, keyboard shortcuts, and open or save over a picture (Photos › More › Open in Paint)","Reliability and security: a failed save keeps your deletions, stricter checks for private network addresses, the password vault only counts use of the vault as activity and locks when you close Passwords, and the French translation is complete","Messages: Pat can set timers and alarms, show your calendar and what is due, add events and reminders with dates in plain words, convert units, work out percentages, find files, pick between options, and suggest the app you meant. Up arrow brings back what you typed","Terminal: variables ($NAME), aliases, !! to repeat the last command, new tools (cut, tr, sed, diff, nl, tee, stat, basename, dirname, which, sleep), and Tab fills in what several matches share","Flashcards: spaced repetition (cards you know come back later, cards you miss come back today), a mode where you type the answer, either side first, paste a list or a Quizlet export to make a deck, a study streak, and no more pre-made decks","Security: programs run in Terminal and Python can no longer reach PatOS’s storage, Terminal’s node command is labeled as a JavaScript runner, and About, Terminal and Settings show the exact version you are running"],"fr":["Calendrier : vues Jour et Année, événements récurrents avec date de fin, alertes avant les événements (même avec Calendrier fermé), ajout rapide en mots simples (« Cours de maths lundi 9h chaque semaine »), recherche, glisser les événements vers un autre jour, et import et export .ics (Google Agenda)","Contacts : plusieurs numéros et courriels par personne, entreprise, toucher pour appeler ou écrire, recherche sans tenir compte des accents, Annuler après une suppression, fusion des doublons, et meilleur import et export vCard avec les photos","Météo : prévisions sur 10 jours, un résumé des prochaines heures, suggestions de villes en écrivant, rafales, pression, visibilité et pluie du jour, vent et pluie en mph et pouces avec les °F, actualisation automatique, et de vraies icônes au lieu des émojis","Photos : beaucoup plus rapide avec beaucoup de photos, vos propres albums, sélection de plusieurs photos, recherche, zoom et déplacement à la molette ou au pincement, balayage entre les photos, infos de la photo, glisser des images pour les ajouter, et les grandes photos apparaissent maintenant","Paint : choisissez la taille du canevas, zoom, texte, formes pleines, opacité qui ne s’assombrit pas aux croisements, Maj pour des lignes droites et des cercles, rotation et retournement, plus d’annulations, raccourcis clavier, et ouverture ou enregistrement par-dessus une image (Photos › Plus › Ouvrir dans Paint)","Fiabilité et sécurité : un enregistrement échoué garde vos suppressions, vérifications plus strictes des adresses de réseau privé, le coffre de mots de passe ne compte que son propre usage comme activité et se verrouille à la fermeture de Mots de passe, et la traduction française est complète","Messages : Pat peut régler des minuteurs et des alarmes, montrer ton calendrier et ce qui est dû, ajouter des événements et des rappels avec des dates en mots simples, convertir des unités, calculer des pourcentages, trouver des fichiers, choisir entre des options, et suggérer l’app que tu voulais. La flèche du haut rappelle ce que tu as écrit","Terminal : variables ($NOM), alias, !! pour répéter la dernière commande, nouveaux outils (cut, tr, sed, diff, nl, tee, stat, basename, dirname, which, sleep), et Tab complète ce que plusieurs correspondances ont en commun","Cartes mémoire : répétition espacée (les cartes que vous savez reviennent plus tard, celles que vous ratez reviennent aujourd’hui), un mode où vous écrivez la réponse, recto ou verso d’abord, coller une liste ou un export Quizlet pour faire un jeu, une série de jours d’étude, et plus de jeux préfaits","Sécurité : les programmes lancés dans Terminal et Python ne peuvent plus accéder au stockage de PatOS, la commande node du Terminal est présentée comme un exécuteur JavaScript, et À propos, Terminal et Réglages affichent la version exacte que vous utilisez"]}},{"version":"1.6.0","date":"2026-11-03","title":{"en":"Software Update","fr":"Mise à jour de logiciels"},"notes":{"en":["New Settings › Software Update: see your version, what changed, and install updates","PatOS finds new versions by itself while it is open, without refreshing","Installing an update restarts PatOS only, and your windows come back"],"fr":["Nouveau Réglages › Mise à jour de logiciels : votre version, ce qui a changé, et l’installation des mises à jour","PatOS trouve les nouvelles versions tout seul pendant qu’il est ouvert, sans rafraîchir","Installer une mise à jour redémarre seulement PatOS, et vos fenêtres reviennent"]}},{"version":"1.5.0","date":"2026-11-03","title":{"en":"iPhone swipe up, Reminders in plain words","fr":"Balayage sur iPhone, Rappels en mots simples"},"notes":{"en":["iPhone: swipe up from the bar at the bottom to leave an app, swipe up and pause for the app switcher","Reminders: type “Math test friday at 3pm !!” and the date, time and priority are filled in","Reminders can repeat, and there is search and Undo"],"fr":["iPhone : balayez vers le haut depuis la barre du bas pour quitter une app, et faites une pause pour le sélecteur d’apps","Rappels : écrivez « Examen de maths vendredi à 15h !! » et la date, l’heure et la priorité se remplissent","Les rappels peuvent se répéter, avec recherche et Annuler"]}},{"version":"1.4.0","date":"2026-11-03","title":{"en":"Clock and Calculator","fr":"Horloge et Calculatrice"},"notes":{"en":["Clock: add any city, a stopwatch that keeps running when closed, a timer with hours and a name, editable alarms","Calculator: history you can reuse, copy and paste, real percent, inverse trig"],"fr":["Horloge : ajoutez n’importe quelle ville, un chronomètre qui continue fermé, un minuteur avec heures et nom, des alarmes modifiables","Calculatrice : historique réutilisable, copier-coller, vrai pourcentage, trigonométrie inverse"]}},{"version":"1.3.0","date":"2026-11-03","title":{"en":"Finder and TextEdit","fr":"Finder et TextEdit"},"notes":{"en":["Finder: copy, cut and paste files, drag a box to select, drop files from your computer","TextEdit: find and replace, line and column, word wrap, Markdown preview, recent files, print"],"fr":["Finder : copier, couper et coller des fichiers, sélection en tirant un cadre, déposer des fichiers de l’ordinateur","TextEdit : rechercher et remplacer, ligne et colonne, retour à la ligne, aperçu Markdown, fichiers récents, impression"]}},{"version":"1.2.0","date":"2026-11-03","title":{"en":"Faster start, smoother 3D","fr":"Démarrage plus rapide, 3D plus fluide"},"notes":{"en":["PatOS starts in about a second instead of several","3D waits for the graphics chip, so slower Chromebooks don’t lag"],"fr":["PatOS démarre en environ une seconde au lieu de plusieurs","La 3D attend la puce graphique, donc les Chromebooks plus lents ne ralentissent plus"]}},{"version":"1.1.0","date":"2026-11-03","title":{"en":"Security","fr":"Sécurité"},"notes":{"en":["Passwords are always encrypted, and lock with your master password","Documents and pasted text can no longer run code","Pat in Messages is described honestly: a command helper, not an AI"],"fr":["Les mots de passe sont toujours chiffrés et se verrouillent avec votre mot de passe principal","Les documents et le texte collé ne peuvent plus exécuter de code","Pat dans Messages est décrit honnêtement : un assistant à commandes, pas une IA"]}}];
-PatOS.beta = {"version":"3.0.0","beta":4,"date":"2026-11-09","title":{"en":"PatOS 3: one design, smarter windows","fr":"PatOS 3 : un seul design, des fenêtres plus malignes"},"notes":{"en":["A new design language for every app: bigger, bolder titles, comfortable 15-point text, one 8-point spacing rhythm, and the same buttons, fields, sidebars, lists, toggles and toolbars everywhere","Snap layouts: drag a window toward the top of the screen and drop it on a layout (halves, thirds, two thirds, quarters or full screen)","Window groups: Window › Save Window Group… keeps the windows you have open (like Write, Calendar and Patoogle for homework), and the Window menu reopens them all in one click","Stage focus (Window menu or Alt+S): the window you use sits large in the middle, the others wait as live thumbnails on the left; click one to bring it on stage","Everything moves on one natural spring: windows growing out of the Dock, snapping, maximizing, menus, panels and dialogs. Settings › Appearance › Motion: Calm, Natural or Playful","Drag Control Center, notifications or Pat up to close them; in Photos, a photo flies from its thumbnail into the viewer","Apps that looked like a Mac now look like PatOS: Calculator has a glass display and rounded keys in your highlight color, Clock shows cities and alarms on cards with pill buttons, Voice Memos is a studio with memo cards, level bars and a glass record dock, Reminders lists its smart lists as rows, and Notes selects in your highlight color instead of yellow"],"fr":["Un nouveau langage visuel pour toutes les apps : des titres plus grands et plus affirmés, un texte confortable de 15 points, un seul rythme d’espacement de 8 points, et les mêmes boutons, champs, barres latérales, listes, interrupteurs et barres d’outils partout","Dispositions : faites glisser une fenêtre vers le haut de l’écran et déposez-la sur une disposition (moitiés, tiers, deux tiers, quarts ou plein écran)","Groupes de fenêtres : Fenêtre › Enregistrer un groupe de fenêtres… garde les fenêtres ouvertes (comme Écrire, Calendrier et Patoogle pour les devoirs), et le menu Fenêtre les rouvre toutes d’un clic","Focus sur la scène (menu Fenêtre ou Alt+S) : la fenêtre que vous utilisez est grande au milieu, les autres attendent en miniatures vivantes à gauche ; cliquez-en une pour la mettre en scène","Tout bouge sur un même ressort naturel : les fenêtres qui sortent du Dock, les dispositions, l’agrandissement, les menus, les panneaux et les dialogues. Réglages › Apparence › Mouvement : Calme, Naturel ou Enjoué","Faites glisser le Centre de contrôle, les notifications ou Pat vers le haut pour les fermer ; dans Photos, une photo s’envole de sa miniature jusqu’au visualiseur","Les apps qui ressemblaient à un Mac ressemblent maintenant à PatOS : la Calculatrice a un écran en verre et des touches arrondies dans votre couleur d’accent, l’Horloge présente villes et alarmes sur des cartes avec des boutons en pilule, Mémos vocaux devient un studio avec des cartes, des barres de niveau et un dock d’enregistrement en verre, Rappels affiche ses listes intelligentes en rangées, et Notes sélectionne dans votre couleur d’accent au lieu du jaune"]}};
-PatOS.build = {"channel":"beta","version":"3.0.0","beta":4};
+PatOS.beta = {"version":"3.0.0","beta":5,"date":"2026-11-09","title":{"en":"PatOS 3: Timeline, one design, smarter windows","fr":"PatOS 3 : Timeline, un seul design, des fenêtres plus malignes"},"notes":{"en":["New: Timeline. PatOS now remembers what you do (the apps and files you open, the files you save, the websites you visit, the notes you write and the text you copy) and shows it day by day. Search it in plain words (“lisbon yesterday”), and every few minutes it keeps a moment of the windows you had open: one click on Restore puts them all back where they were. After a restart, “Pick up where you left off” brings back your last session","Clipboard history: press Alt+V anywhere to see what you copied, then press Enter (or 1–9) to paste it into the field you were typing in. Pin what you want to keep. Spotlight finds what you copied too","Timeline is private by design: it stays on this device, it is never synced, it takes no screenshots, and nothing is recorded in Passwords or from password fields. Pause it, forget the last hour, a day or everything, choose how long it keeps things, or turn it off (Timeline app or Settings › Privacy)","A new design language for every app: bigger, bolder titles, comfortable 15-point text, one 8-point spacing rhythm, and the same buttons, fields, sidebars, lists, toggles and toolbars everywhere","Snap layouts: drag a window toward the top of the screen and drop it on a layout (halves, thirds, two thirds, quarters or full screen)","Window groups: Window › Save Window Group… keeps the windows you have open (like Write, Calendar and Patoogle for homework), and the Window menu reopens them all in one click","Stage focus (Window menu or Alt+S): the window you use sits large in the middle, the others wait as live thumbnails on the left; click one to bring it on stage","Everything moves on one natural spring: windows growing out of the Dock, snapping, maximizing, menus, panels and dialogs. Settings › Appearance › Motion: Calm, Natural or Playful","Drag Control Center, notifications or Pat up to close them; in Photos, a photo flies from its thumbnail into the viewer","Apps that looked like a Mac now look like PatOS: Calculator has a glass display and rounded keys in your highlight color, Clock shows cities and alarms on cards with pill buttons, Voice Memos is a studio with memo cards, level bars and a glass record dock, Reminders lists its smart lists as rows, and Notes selects in your highlight color instead of yellow"],"fr":["Nouveau : Timeline. PatOS retient maintenant ce que vous faites (les apps et fichiers que vous ouvrez, les fichiers que vous enregistrez, les sites que vous visitez, les notes que vous écrivez et le texte que vous copiez) et le montre jour par jour. Cherchez avec des mots simples (« lisbonne hier »), et toutes les quelques minutes, elle garde un moment des fenêtres que vous aviez ouvertes : un clic sur Restaurer les remet toutes à leur place. Après un redémarrage, « Reprendre là où vous en étiez » ramène votre dernière session","Historique du presse-papiers : appuyez sur Alt+V n’importe où pour voir ce que vous avez copié, puis sur Entrée (ou 1–9) pour le coller dans le champ où vous écriviez. Épinglez ce que vous voulez garder. Spotlight trouve aussi ce que vous avez copié","Timeline est privée dès le départ : elle reste sur cet appareil, n’est jamais synchronisée, ne prend aucune capture d’écran, et rien n’est enregistré dans Mots de passe ni depuis un champ de mot de passe. Mettez-la en pause, oubliez la dernière heure, une journée ou tout, choisissez combien de temps elle garde les choses, ou désactivez-la (app Timeline ou Réglages › Confidentialité)","Un nouveau langage visuel pour toutes les apps : des titres plus grands et plus affirmés, un texte confortable de 15 points, un seul rythme d’espacement de 8 points, et les mêmes boutons, champs, barres latérales, listes, interrupteurs et barres d’outils partout","Dispositions : faites glisser une fenêtre vers le haut de l’écran et déposez-la sur une disposition (moitiés, tiers, deux tiers, quarts ou plein écran)","Groupes de fenêtres : Fenêtre › Enregistrer un groupe de fenêtres… garde les fenêtres ouvertes (comme Écrire, Calendrier et Patoogle pour les devoirs), et le menu Fenêtre les rouvre toutes d’un clic","Focus sur la scène (menu Fenêtre ou Alt+S) : la fenêtre que vous utilisez est grande au milieu, les autres attendent en miniatures vivantes à gauche ; cliquez-en une pour la mettre en scène","Tout bouge sur un même ressort naturel : les fenêtres qui sortent du Dock, les dispositions, l’agrandissement, les menus, les panneaux et les dialogues. Réglages › Apparence › Mouvement : Calme, Naturel ou Enjoué","Faites glisser le Centre de contrôle, les notifications ou Pat vers le haut pour les fermer ; dans Photos, une photo s’envole de sa miniature jusqu’au visualiseur","Les apps qui ressemblaient à un Mac ressemblent maintenant à PatOS : la Calculatrice a un écran en verre et des touches arrondies dans votre couleur d’accent, l’Horloge présente villes et alarmes sur des cartes avec des boutons en pilule, Mémos vocaux devient un studio avec des cartes, des barres de niveau et un dock d’enregistrement en verre, Rappels affiche ses listes intelligentes en rangées, et Notes sélectionne dans votre couleur d’accent au lieu du jaune"]}};
+PatOS.build = {"channel":"beta","version":"3.0.0","beta":5};
 
 </script>
   <script type="patos/js">
@@ -9190,6 +9334,7 @@ PatOS.build = {"channel":"beta","version":"3.0.0","beta":4};
     'Swipe up from the bottom to go home': 'Balayez vers le haut depuis le bas pour revenir à l’accueil', 'Swipe up and pause to switch apps': 'Balayez vers le haut et attendez pour changer d’app',
     'Pull down from the top right for Control Center': 'Tirez vers le bas en haut à droite pour le centre de contrôle', 'Ctrl+Space searches everything': 'Ctrl+Espace cherche partout',
     'Alt+L shows all your apps': 'Alt+L affiche toutes vos apps', 'Drag a window to the edge to snap it': 'Glissez une fenêtre vers le bord pour la placer', 'Waves': 'Vagues', 'Dot Waves': 'Vagues de points', 'Crystals': 'Cristaux', 'Warp': 'Hyperespace',
+    'Timeline': 'Timeline', 'Keep for': 'Garder pendant', '1 year': '1 an', 'Remembers the apps, files, websites and notes you open, and the windows you had open, so you can find them again. Only on this device, never synced, no screenshots, nothing from Passwords.': 'Retient les apps, fichiers, sites web et notes que vous ouvrez, et les fenêtres que vous aviez ouvertes, pour les retrouver. Seulement sur cet appareil, jamais synchronisé, aucune capture d’écran, rien de Mots de passe.', 'Clipboard History': 'Historique du presse-papiers', 'Keeps what you copy. Alt+V opens it anywhere and pastes.': 'Garde ce que vous copiez. Alt+V l’ouvre partout et colle.', 'Open Timeline': 'Ouvrir Timeline', 'Pause it, forget the last hour, a day or everything from the Timeline app.': 'Mettez-la en pause, oubliez la dernière heure, une journée ou tout depuis l’app Timeline.', 'Community apps': 'Apps de la communauté', 'Search your Timeline': 'Chercher dans votre Timeline', 'Recording': 'Enregistre', 'Turn On Timeline': 'Activer Timeline', 'Pause for 1 Hour': 'Pause pendant 1 heure', 'Pause Until Tomorrow': 'Pause jusqu’à demain', 'Resume Recording': 'Reprendre l’enregistrement', 'Forget the Last Hour': 'Oublier la dernière heure', 'Forget the last hour?': 'Oublier la dernière heure?', 'Forget Today': 'Oublier aujourd’hui', 'Forget today?': 'Oublier aujourd’hui?', 'Forget Everything…': 'Tout oublier…', 'Forget everything in your Timeline?': 'Tout oublier dans votre Timeline?', 'Turn Off Timeline': 'Désactiver Timeline', 'Activity, moments and copied text from that time are deleted from this device. Pinned clips stay.': 'L’activité, les moments et le texte copié de cette période sont supprimés de cet appareil. Les éléments épinglés restent.', 'Forget': 'Oublier', 'This file is gone': 'Ce fichier n’existe plus', 'Forget this': 'Oublier ceci', 'Moment': 'Moment', 'Moments': 'Moments', 'Copy again': 'Copier de nouveau', 'Pin': 'Épingler', 'Pick up where you left off': 'Reprendre là où vous en étiez', 'Pick Up Where You Left Off': 'Reprendre là où vous en étiez', 'Restore These Windows': 'Restaurer ces fenêtres', 'Previous month': 'Mois précédent', 'Next month': 'Mois suivant', 'thing': 'élément', 'things': 'éléments', 'Only on this device. Never synced, no screenshots, nothing from Passwords.': 'Seulement sur cet appareil. Jamais synchronisé, aucune capture d’écran, rien de Mots de passe.', 'Activity by hour': 'Activité par heure', 'Timeline is off': 'Timeline est désactivée', 'Nothing new is recorded. What is already here stays until you forget it.': 'Rien de nouveau n’est enregistré. Ce qui est déjà ici reste jusqu’à ce que vous l’oubliiez.', 'Turn On': 'Activer', 'Paused until': 'En pause jusqu’à', 'Nothing is recorded while Timeline is paused.': 'Rien n’est enregistré pendant que Timeline est en pause.', 'Nothing found': 'Rien trouvé', 'Try other words, or a day: “yesterday”, “monday”, “this week”.': 'Essayez d’autres mots, ou un jour : « hier », « lundi », « cette semaine ».', 'Nothing recorded this day': 'Rien d’enregistré ce jour-là', 'Your Timeline starts now': 'Votre Timeline commence maintenant', 'Use PatOS as usual. The apps and files you open, the websites you visit, what you copy and the windows you had open show up here, so you can find them again and pick up where you left off.': 'Utilisez PatOS comme d’habitude. Les apps et fichiers que vous ouvrez, les sites que vous visitez, ce que vous copiez et les fenêtres que vous aviez ouvertes apparaissent ici, pour les retrouver et reprendre là où vous en étiez.', 'Nothing of this kind this day': 'Rien de ce genre ce jour-là', 'Web search': 'Recherche web', 'Moment restored': 'Moment restauré', 'Those windows are already open.': 'Ces fenêtres sont déjà ouvertes.', 'Search what you copied': 'Chercher dans ce que vous avez copié', 'Nothing matches.': 'Aucun résultat.', 'Clipboard history is off. Turn it on in the Timeline app.': 'L’historique du presse-papiers est désactivé. Activez-le dans l’app Timeline.', 'What you copy shows up here. Copy something, then press Alt+V.': 'Ce que vous copiez apparaît ici. Copiez quelque chose, puis appuyez sur Alt+V.', 'Enter pastes · 1–9 · Esc': 'Entrée colle · 1–9 · Échap', 'Everything': 'Tout', 'Visited': 'Visité', 'Searched for': 'Recherché', 'Wrote in': 'Écrit dans', 'Everything you did in PatOS, day by day: find any file, website, note or copied text again, and bring back the windows you had open. It stays on this device.': 'Tout ce que vous avez fait dans PatOS, jour par jour : retrouvez un fichier, un site, une note ou un texte copié, et ramenez les fenêtres que vous aviez ouvertes. Tout reste sur cet appareil.'
   };
   const PATTERNS = [
     [/^About (.+)$/, (m) => 'À propos de ' + t(m[1])], [/^Hide (.+)$/, (m) => 'Masquer ' + t(m[1])], [/^Quit (.+)$/, (m) => 'Quitter ' + t(m[1])], [/^Log Out (.+)…$/, (m) => 'Fermer la session de ' + m[1] + '…'],
@@ -9422,6 +9567,7 @@ PatOS.build = {"channel":"beta","version":"3.0.0","beta":4};
     messages: { bg: 'linear-gradient(160deg,#5df777,#0bbf3a)', svg: () => S(`<path d="M32 13c-12 0-21 7.5-21 17 0 5.5 3 10.3 7.8 13.4L17 51l9-4.3c1.9.4 3.9.7 6 .7 12 0 21-7.6 21-17S44 13 32 13z" fill="#fff"/>`) },
     piano: { bg: 'linear-gradient(160deg,#2c2c2e,#000)', svg: () => { let g = '<rect x="10" y="14" width="44" height="36" rx="3" fill="#fff"/>'; for (let i = 1; i < 7; i++) g += `<path d="M${10 + i * 6.3} 14v36" stroke="#bbb" stroke-width="1"/>`; [1, 2, 4, 5, 6].forEach((i) => { g += `<rect x="${10 + i * 6.3 - 2.2}" y="14" width="4.4" height="21" fill="#111"/>`; }); return S(g); } },
     flashcards: { bg: 'linear-gradient(160deg,#ffb340,#ff6a00)', svg: () => S(`<rect x="16" y="12" width="34" height="24" rx="4" fill="#fff" opacity=".55" transform="rotate(-8 33 24)"/><rect x="14" y="22" width="36" height="26" rx="4" fill="#fff"/><path d="M22 31h20M22 38h13" stroke="#ff8a00" stroke-width="3" stroke-linecap="round"/>`) },
+    timeline: { bg: 'linear-gradient(160deg,#5e5ce6,#1c1a4a)', svg: () => S(`<path d="M20 12v40" stroke="#c9c8ff" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="18" r="3.5" fill="#fff"/><circle cx="20" cy="32" r="3.5" fill="#64d2ff"/><circle cx="20" cy="46" r="3.5" fill="#ff375f"/><rect x="27" y="13" width="26" height="10" rx="5" fill="#fff" opacity=".9"/><rect x="27" y="27" width="20" height="10" rx="5" fill="#64d2ff"/><rect x="27" y="41" width="24" height="10" rx="5" fill="#ff375f"/>`) },
     voicememos: { bg: 'linear-gradient(160deg,#2c2c2e,#000)', svg: () => { let g = ''; [8, 16, 26, 14, 30, 20, 10, 24, 12, 6].forEach((h2, i) => { g += `<rect x="${11 + i * 4.4}" y="${32 - h2 / 2}" width="2.6" height="${h2}" rx="1.3" fill="#ff453a"/>`; }); return S(g); } },
     stickies: { bg: 'linear-gradient(160deg,#fff27a,#ffd60a)', svg: () => S(`<path d="M14 12h36v28L38 52H14z" fill="#fffbe0"/><path d="M50 40H38v12z" fill="#e6c200"/><path d="M20 22h24M20 29h24M20 36h14" stroke="#c9a800" stroke-width="2.5" stroke-linecap="round"/>`) },
     typing: { bg: 'linear-gradient(160deg,#64d2ff,#0a84ff)', svg: () => { let g = '<rect x="8" y="20" width="48" height="26" rx="5" fill="#fff"/>'; for (let r = 0; r < 2; r++) for (let c = 0; c < 6; c++) g += `<rect x="${12 + c * 7}" y="${24 + r * 7}" width="5" height="5" rx="1" fill="#0a84ff" opacity=".7"/>`; return S(g + '<rect x="18" y="38" width="28" height="4" rx="1" fill="#0a84ff"/>'); } },
@@ -9614,6 +9760,10 @@ PatOS.build = {"channel":"beta","version":"3.0.0","beta":4};
     flashcards: draw(() => { const p = painter('flashcards'); return p.done(
       p.g('rotate(-10 32 32)', p.glass(rr(12, 17, 34, 24, 4), '#bf5af2', { top: .55 })) + p.g('rotate(6 32 32)', p.glass(rr(18, 23, 34, 24, 4), '#ff9f0a')) +
       p.light('M35 29.5l1.6 3.6 3.9.4-2.9 2.6.9 3.8-3.5-2-3.5 2 .9-3.8-2.9-2.6 3.9-.4z', '#fff3d6', 1.1)); }),
+    timeline: draw(() => { const p = painter('timeline'); return p.done(
+      p.light('M19 11v42', '#8e8cff', 1.5, { halo: .45 }) +
+      p.glass(rr(26, 12, 28, 11, 5.5), '#7d7aff', { top: .55 }) + p.glass(rr(26, 26.5, 21, 11, 5.5), '#64d2ff', { top: .55 }) + p.glass(rr(26, 41, 25, 11, 5.5), '#ff375f', { top: .55 }) +
+      p.bead(19, 17.5, 3.4, '#b9b7ff') + p.bead(19, 32, 3.4, '#64d2ff') + p.bead(19, 46.5, 3.4, '#ff6b8a')); }),
     voicememos: draw(() => { const p = painter('voicememos'); let d = ''; [6, 12, 20, 28, 18, 24, 12, 8, 16, 6].forEach((hh, i) => { d += `M${14 + i * 4} ${32 - hh / 2}v${hh}`; });
       return p.done(p.light(d, '#ff375f', 2.4)); }),
     stickies: draw(() => { const p = painter('stickies'); return p.done(
@@ -11554,7 +11704,9 @@ PatOS.build = {"channel":"beta","version":"3.0.0","beta":4};
     { label: 'Empty Trash', kw: 'empty trash vider corbeille', icon: 'finder', run: async () => { if (await PatOS.confirmBox(PatOS.t('Empty Trash?'), PatOS.t('Items in the Trash will be deleted for good.'), { ok: PatOS.t('Empty'), danger: true, icon: 'finder' })) PatOS.fs.emptyTrash(); } },
     { label: 'Record the Screen', kw: 'record screen enregistrer ecran capture video screenshot', icon: 'screenshot', run: () => PatOS.launch('screenshot') },
     { label: () => (document.fullscreenElement ? 'Exit Full Screen' : 'Enter Full Screen'), kw: 'full screen plein ecran', icon: 'settings', run: () => { if (document.fullscreenElement) document.exitFullscreen().catch(() => {}); else document.documentElement.requestFullscreen().catch(() => {}); } },
-    { label: 'Restart PatOS', kw: 'restart reload redemarrer recharger', icon: 'about', run: () => { PatOS._leaving = true; location.reload(); } }
+    { label: 'Restart PatOS', kw: 'restart reload redemarrer recharger', icon: 'about', run: () => { PatOS._leaving = true; location.reload(); } },
+    { label: 'Clipboard History', kw: 'clipboard history paste copied copy presse papiers historique coller copie', icon: 'timeline', run: () => PatOS.timeline && setTimeout(() => PatOS.timeline.clipPanel(), 80) },
+    { label: 'Pick Up Where You Left Off', kw: 'restore resume reopen windows moment last session timeline reprendre restaurer rouvrir fenetres', icon: 'timeline', run: () => { const T = PatOS.timeline; const m = T && (T.lastSession() || T.moments().slice(-1)[0]); if (m) T.restoreMoment(m); else PatOS.launch('timeline'); } }
   ];
   const actLabel = (a) => PatOS.t(typeof a.label === 'function' ? a.label() : a.label);
 
@@ -11604,6 +11756,8 @@ PatOS.build = {"channel":"beta","version":"3.0.0","beta":4};
       const sc = Math.max(score(n.title, q), q.length >= 3 && fold(n.body).includes(q) ? 35 : 0);
       add('Notes', 'note:' + n.id, sc, { label: n.title || T('Untitled'), icon: 'notes', snippet: n.body, run: () => PatOS.launch('notes', { id: n.id }) });
     });
+    // what you copied (Timeline's clipboard history): Enter copies it again
+    if (PatOS.timeline) PatOS.timeline.searchClips(raw.trim(), 3).forEach((c) => add('Clipboard', 'clip:' + c.id, 36, { label: c.text.replace(/\s+/g, ' ').slice(0, 90), sub: T('Copied'), icon: 'timeline', snippet: c.text, run: () => PatOS.timeline.copy(c.text).then(() => PatOS.notify({ title: T('Copied'), body: c.text.slice(0, 80), icon: 'timeline', duration: 2000 })) }));
     (PatOS.store.get('reminders', []) || []).filter((r) => !r.done).forEach((r) => add('Reminders', 'rem:' + r.id, score(r.text, q), { label: r.text, sub: r.due ? r.due + (r.time ? ' ' + r.time : '') : '', icon: 'reminders', run: () => PatOS.launch('reminders') }));
     (PatOS.store.get('contacts', []) || []).forEach((ct) => {
       const name = ((ct.first || '') + ' ' + (ct.last || '')).trim() || ct.company || ct.email || '';
@@ -11620,7 +11774,7 @@ PatOS.build = {"channel":"beta","version":"3.0.0","beta":4};
     });
     // groups in order of their best match; instant answers first; a "top hit" when one result clearly wins
     const groups = {}; out.forEach((r) => (groups[r.group] = groups[r.group] || []).push(r));
-    const LIMIT = { Applications: 6, 'System Settings': 4, Actions: 3, Files: 8, Folders: 4, Notes: 4, Reminders: 3, Contacts: 3, Passwords: 3, Websites: 4 };
+    const LIMIT = { Clipboard: 3, Applications: 6, 'System Settings': 4, Actions: 3, Files: 8, Folders: 4, Notes: 4, Reminders: 3, Contacts: 3, Passwords: 3, Websites: 4 };
     const ordered = Object.entries(groups).map(([g, list]) => { list.sort((a, b) => b.score - a.score); return [g, list.slice(0, LIMIT[g] || 4)]; }).sort((a, b) => b[1][0].score - a[1][0].score);
     let res = [].concat(...ordered.map(([, l]) => l));
     // leave out weak guesses when there are good matches
@@ -11661,7 +11815,7 @@ PatOS.build = {"channel":"beta","version":"3.0.0","beta":4};
   }
   function go(r, reveal) {
     PatOS.spotlight.hide();
-    if (r.key && !/^(calc|cv|tm|web|def)$/.test(r.key)) used(r.key);
+    if (r.key && !/^(calc|cv|tm|web|def)$/.test(r.key) && !/^clip:/.test(r.key)) used(r.key);
     if (reveal && r.filePath) return PatOS.launch('finder', { path: PatOS.fs.dirname(r.filePath) });
     r.run();
   }
@@ -13109,10 +13263,7 @@ PatOS.build = {"channel":"beta","version":"3.0.0","beta":4};
   }
   function snapshot() {
     if (restoring || !ready) return;
-    const list = PatOS.wm.windows.slice().filter((w) => !SKIP.has(w.app.id) && !w.app.noRestore)
-      .sort((a, b) => (+a.el.style.zIndex || 0) - (+b.el.style.zIndex || 0))
-      .map((w) => { const r = w.maximized || w.fullscreen ? (w.prevRect || w.rect()) : w.rect(); return { app: w.app.id, args: OWN.has(w.app.id) ? {} : clean(w.args), x: r.x, y: r.y, w: r.w, h: r.h, max: !!w.maximized, min: !!w.minimized, active: PatOS.wm.active === w }; });
-    PatOS.store.set(KEY, { t: Date.now(), wins: list });
+    PatOS.store.set(KEY, { t: Date.now(), wins: current() });
   }
   const snapshotSoon = PatOS.debounce(snapshot, 800);
   ['wm:open', 'wm:close', 'wm:focus', 'wm:title'].forEach((ev) => PatOS.on(ev, snapshotSoon));
@@ -13121,16 +13272,20 @@ PatOS.build = {"channel":"beta","version":"3.0.0","beta":4};
   window.addEventListener('pagehide', snapshot);
   document.addEventListener('visibilitychange', () => { if (document.hidden) snapshot(); });
 
-  async function restore() {
-    const s = PatOS.store.get(KEY, null);
-    if (PatOS.settings.reopenWindows === false || !s || !Array.isArray(s.wins) || !s.wins.length) { ready = true; return; }
-    // windows the person already opened (a file from the Files app, a shelf shortcut) win over the snapshot
-    restoring = true; let n = 0; let focusMe = null;
+  // the windows open now, as a list that reopen() can bring back (also used by the Timeline's moments)
+  function current() {
+    return PatOS.wm.windows.slice().filter((w) => !SKIP.has(w.app.id) && !w.app.noRestore)
+      .sort((a, b) => (+a.el.style.zIndex || 0) - (+b.el.style.zIndex || 0))
+      .map((w) => { const r = w.maximized || w.fullscreen ? (w.prevRect || w.rect()) : w.rect(); return { app: w.app.id, args: OWN.has(w.app.id) ? {} : clean(w.args), title: String(w.title || '').slice(0, 80), x: r.x, y: r.y, w: r.w, h: r.h, max: !!w.maximized, min: !!w.minimized, active: PatOS.wm.active === w }; });
+  }
+  // open a list of windows where they were; returns how many opened
+  async function reopen(wins, opts = {}) {
+    let n = 0; let focusMe = null; const was = restoring; restoring = true;
     const area = { w: innerWidth, h: innerHeight };
-    for (const it of s.wins) {
+    for (const it of wins) {
       const app = PatOS.apps[it.app]; if (!app || app.action || SKIP.has(it.app)) continue;
       if (it.args && it.args.path && !PatOS.fs.get(it.args.path)) continue; // the file is gone
-      if (app.single !== false && PatOS.wm.isRunning(it.app)) continue;
+      if (app.single !== false && PatOS.wm.isRunning(it.app)) { if (opts.focusRunning) { const r = PatOS.wm.windowsOf(it.app)[0]; if (r) { if (r.minimized) PatOS.wm.restore(r); focusMe = r; } } continue; }
       let w = null; try { w = PatOS.launch(it.app, it.args || {}); } catch (e) { w = null; }
       if (!w) continue; n++;
       if (!PatOS.isMobile) {
@@ -13139,16 +13294,313 @@ PatOS.build = {"channel":"beta","version":"3.0.0","beta":4};
         Object.assign(w.el.style, { left: X + 'px', top: Y + 'px', width: W + 'px', height: H + 'px' });
         if (it.max && !w.maximized) { w.prevRect = { x: X, y: Y, w: W, h: H }; w.toggleMax(); }
       }
-      if (it.min) setTimeout(() => w.minimize(), 300);
+      if (it.min && !opts.unminimize) setTimeout(() => w.minimize(), 300);
       if (it.active) focusMe = w;
-      await new Promise((r) => setTimeout(r, 40));
+      await new Promise((r) => setTimeout(r, opts.gap != null ? opts.gap : 40));
     }
     if (focusMe && !focusMe.minimized) focusMe.focus();
+    restoring = was;
+    return n;
+  }
+  async function restore() {
+    const s = PatOS.store.get(KEY, null);
+    if (PatOS.settings.reopenWindows === false || !s || !Array.isArray(s.wins) || !s.wins.length) { ready = true; return; }
+    // windows the person already opened (a file from the Files app, a shelf shortcut) win over the snapshot
+    restoring = true;
+    const n = await reopen(s.wins);
     restoring = false; ready = true; snapshot();
     if (n) PatOS.notify({ title: T('Your windows are back'), body: n + ' ' + T(n === 1 ? 'window was reopened.' : 'windows were reopened.'), icon: 'about', duration: 4000 });
   }
   PatOS.on('wm:ready', () => setTimeout(() => { if (document.getElementById('setup')) { ready = true; return; } restore(); }, 150));
-  PatOS.session = { snapshot, restore };
+  PatOS.session = { snapshot, restore, current, reopen, clean };
+})();
+
+</script>
+  <script type="patos/js">
+/* Timeline: PatOS remembers what you do, so you can find it again and pick up where you left off.
+   - Activity: the apps and files you open, the files you save, the websites you visit, the notes you write.
+   - Moments: the windows you had open (which app, which file, where), kept as you work; one click puts them back.
+   - Clipboard: what you copy is kept (Alt+V opens it anywhere and pastes); pin what you want to keep for good.
+   Everything stays on this device: it is never synced, never sent anywhere, and there are no screenshots. Nothing is
+   recorded in Passwords or from password fields. Pause it, forget the last hour, a day or everything, or turn it off
+   (Settings › Privacy, or the Timeline app). The Timeline app (js/apps/timeline.js) shows it all; this file records. */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  const T = (s) => PatOS.t(s);
+  const DAY = 86400000, MIN = 60000;
+  const MAX_EVENTS = 5000, MAX_MOMENTS = 300, MAX_CLIPS = 150, MAX_CLIP_LEN = 20000;
+  // apps that are never recorded (secrets, the Timeline itself, system screens)
+  const NEVER = new Set(['passwords', 'timeline', 'setup', 'launchpad', 'screenshot', 'extweb']);
+  const on = () => PatOS.settings.timeline !== false && !paused();
+  const clipsOn = () => PatOS.settings.timelineClips !== false && !paused();
+  const keepDays = () => Math.max(1, +PatOS.settings.timelineDays || 30);
+
+  let events = PatOS.store.get('timeline', []) || [];
+  let moments = PatOS.store.get('timelineMoments', []) || [];
+  let clips = PatOS.store.get('clipHistory', []) || [];
+  if (!Array.isArray(events)) events = []; if (!Array.isArray(moments)) moments = []; if (!Array.isArray(clips)) clips = [];
+  const bootT = Date.now();
+
+  const save = PatOS.debounce(() => {
+    PatOS.store.set('timeline', events.slice());
+    PatOS.store.set('timelineMoments', moments.slice());
+    PatOS.store.set('clipHistory', clips.slice());
+  }, 1500);
+  const changed = PatOS.debounce(() => PatOS.emit('timeline'), 250);
+  const touch = () => { save(); changed(); };
+
+  function paused() { const u = +PatOS.store.get('timelinePause', 0) || 0; return u > Date.now(); }
+  function activeApp() { const w = PatOS.wm && PatOS.wm.active; return w ? w.app.id : ''; }
+
+  /* ---------- activity ---------- */
+  // one entry per thing: doing the same thing again soon moves it to now instead of adding a copy
+  function record(ev, mergeMins) {
+    if (!on() || !ev || !ev.key) return null;
+    const now = Date.now(); ev.t = now;
+    const win = (mergeMins == null ? 20 : mergeMins) * MIN;
+    for (let i = events.length - 1; i >= 0 && now - events[i].t < win; i--) {
+      if (events[i].key === ev.key) { const old = events.splice(i, 1)[0]; ev.n = (old.n || 1) + 1; break; }
+    }
+    events.push(ev);
+    if (events.length > MAX_EVENTS) events.splice(0, events.length - MAX_EVENTS);
+    touch(); return ev;
+  }
+
+  const hostOf = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } };
+  const strip = (html) => String(html || '').replace(/<(br|\/div|\/p|\/li)[^>]*>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
+  const hidden = (p) => !p || /(^|\/)\./.test(p);
+
+  function onOpen(win) {
+    if (!win || !win.app || NEVER.has(win.app.id) || win.app.hidden) return;
+    const a = win.args || {};
+    if (a.path && typeof a.path === 'string') {
+      if (hidden(a.path)) return;
+      return record({ k: 'file', key: 'file:' + a.path, l: PatOS.fs.basename(a.path), s: PatOS.fs.dirname(a.path), verb: 'Opened', ref: { path: a.path } });
+    }
+    if (a.url) return; // websites come from the browser's history
+    const args = PatOS.session ? PatOS.session.clean(a) : {};
+    record({ k: 'app', key: 'app:' + win.app.id + (args.id ? ':' + args.id : ''), l: T(win.app.name), s: '', ic: win.app.icon || win.app.id, ref: { app: win.app.id, args } }, 30);
+  }
+
+  const fsSeen = {};
+  function onFS(d) {
+    if (!d || !d.path || hidden(d.path) || !on()) return;
+    const p = d.path, now = Date.now();
+    if (fsSeen[p] && now - fsSeen[p] < 90000) return; // autosave every few seconds is still one edit
+    const n = PatOS.fs.get(p); if (!n || n.type !== 'file') return;
+    if (NEVER.has(activeApp())) return;
+    fsSeen[p] = now;
+    record({ k: 'file', key: 'file:' + p, l: PatOS.fs.basename(p), s: PatOS.fs.dirname(p), verb: 'Edited', ref: { path: p } });
+  }
+
+  let lastWebT = Date.now(), lastNoteT = Date.now();
+  function onStore(key) {
+    if (!on()) return;
+    if (key === 'browserHistory') {
+      const H = PatOS.store.get('browserHistory', []) || [];
+      H.filter((x) => x && x.t > lastWebT && /^https?:/.test(x.u || '') && !/igu=1/.test(x.u)).reverse().forEach((x) => {
+        lastWebT = Math.max(lastWebT, x.t);
+        let q = null; try { const U = new URL(x.u); if (/google\.|bing\.|duckduckgo\./.test(U.hostname) && U.searchParams.get('q')) q = U.searchParams.get('q'); } catch (e) {}
+        if (q) record({ k: 'web', key: 'search:' + q.toLowerCase(), l: q, s: T('Web search'), verb: 'Searched', ref: { url: x.u } }, 60);
+        else record({ k: 'web', key: 'web:' + x.u.replace(/#.*$/, ''), l: x.title && x.title !== hostOf(x.u) ? x.title : hostOf(x.u), s: hostOf(x.u), verb: 'Visited', ref: { url: x.u } }, 30);
+      });
+    } else if (key === 'notes') {
+      const N = PatOS.store.get('notes', []) || [];
+      N.filter((n) => n && !n.deletedAt && n.mtime > lastNoteT).forEach((n) => {
+        lastNoteT = Math.max(lastNoteT, n.mtime);
+        const title = (n.title || strip(n.body).trim().split('\n')[0] || T('Untitled')).slice(0, 90);
+        record({ k: 'note', key: 'note:' + n.id, l: title, s: T('Notes'), verb: 'Wrote', ic: 'notes', ref: { note: n.id }, x: strip(n.body).replace(/\s+/g, ' ').slice(0, 300) });
+      });
+    }
+  }
+
+  /* ---------- moments: the windows you had open ---------- */
+  const sigOf = (wins) => wins.map((w) => w.app + JSON.stringify(w.args || {})).sort().join('|');
+  function snapMoment() {
+    if (!on() || !PatOS.session || !PatOS.loggedIn) return;
+    const wins = PatOS.session.current().filter((w) => !NEVER.has(w.app));
+    if (!wins.length) return;
+    const now = Date.now(), sig = sigOf(wins), last = moments[moments.length - 1];
+    if (last && last.sig === sig) { last.t1 = now; last.wins = wins; touch(); return; }
+    // a moment that lasted under two minutes was just on the way to this one
+    if (last && now - last.t < 2 * MIN && last.t > bootT) moments.pop();
+    moments.push({ t: now, t1: now, sig, wins });
+    if (moments.length > MAX_MOMENTS) moments.splice(0, moments.length - MAX_MOMENTS);
+    touch();
+  }
+  const snapSoon = PatOS.debounce(snapMoment, 12000);
+  async function restoreMoment(m) {
+    if (!m || !PatOS.session) return 0;
+    const n = await PatOS.session.reopen(m.wins, { focusRunning: true, unminimize: true, gap: 60 });
+    PatOS.notify({ title: T('Moment restored'), body: n ? n + ' ' + T(n === 1 ? 'window was reopened.' : 'windows were reopened.') : T('Those windows are already open.'), icon: 'timeline', duration: 3500 });
+    return n;
+  }
+  // the last moment from before PatOS started this time: what "pick up where you left off" offers
+  function lastSession() { for (let i = moments.length - 1; i >= 0; i--) if (moments[i].t1 < bootT) return moments[i]; return null; }
+
+  /* ---------- clipboard ---------- */
+  function addClip(text, src) {
+    if (!clipsOn()) return;
+    text = String(text == null ? '' : text); if (!text.trim()) return;
+    if (NEVER.has(activeApp())) return;
+    if (text.length > MAX_CLIP_LEN) text = text.slice(0, MAX_CLIP_LEN);
+    const i = clips.findIndex((c) => c.text === text);
+    let c;
+    if (i >= 0) { c = clips.splice(i, 1)[0]; c.t = Date.now(); }
+    else c = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), t: Date.now(), text, app: activeApp(), src: src || '' };
+    clips.push(c);
+    const loose = clips.filter((x) => !x.pin);
+    if (loose.length > MAX_CLIPS) { const drop = new Set(loose.slice(0, loose.length - MAX_CLIPS).map((x) => x.id)); clips = clips.filter((x) => !drop.has(x.id)); }
+    touch();
+  }
+  window.addEventListener('copy', (e) => {
+    const el = document.activeElement;
+    if (el && el.matches && el.matches('input[type=password], [autocomplete*=password]')) return;
+    let text = '';
+    try { text = e.clipboardData && e.clipboardData.getData('text/plain'); } catch (err) {}
+    if (!text) {
+      if (el && /^(INPUT|TEXTAREA)$/.test(el.tagName) && el.selectionStart != null) text = el.value.slice(el.selectionStart, el.selectionEnd);
+      else text = String(window.getSelection ? window.getSelection() : '');
+    }
+    addClip(text, 'copy');
+  });
+  window.addEventListener('cut', () => {
+    const el = document.activeElement;
+    if (el && /^(INPUT|TEXTAREA)$/.test(el.tagName) && el.type !== 'password' && el.selectionStart != null) addClip(el.value.slice(el.selectionStart, el.selectionEnd), 'cut');
+    else addClip(String(window.getSelection ? window.getSelection() : ''), 'cut');
+  });
+  // apps that copy with a button (a result, a link, a color) go through the clipboard API
+  let rawWrite = null;
+  try {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      rawWrite = navigator.clipboard.writeText.bind(navigator.clipboard);
+      navigator.clipboard.writeText = (t) => { addClip(t, 'app'); return rawWrite(t); };
+    }
+  } catch (e) { rawWrite = null; }
+  const writeClip = (t) => (rawWrite ? rawWrite(t) : Promise.reject(new Error('no clipboard'))).catch(() => {
+    const ta = h('textarea', { style: { position: 'fixed', opacity: 0 } }); ta.value = t; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); } catch (e) {} ta.remove();
+  });
+
+  /* ---------- forgetting ---------- */
+  function prune() {
+    const cut = Date.now() - keepDays() * DAY;
+    const ne = events.filter((e) => e.t >= cut), nm = moments.filter((m) => m.t1 >= cut), nc = clips.filter((c) => c.pin || c.t >= cut);
+    if (ne.length !== events.length || nm.length !== moments.length || nc.length !== clips.length) { events = ne; moments = nm; clips = nc; touch(); }
+  }
+  function forget(from, to) {
+    to = to || Infinity;
+    events = events.filter((e) => e.t < from || e.t > to);
+    moments = moments.filter((m) => m.t1 < from || m.t > to);
+    clips = clips.filter((c) => c.pin || c.t < from || c.t > to);
+    touch();
+  }
+  function forgetItem(kind, id) {
+    if (kind === 'moment') moments = moments.filter((m) => m.t !== id);
+    else if (kind === 'clip') clips = clips.filter((c) => c.id !== id);
+    else events = events.filter((e) => e.t !== id);
+    touch();
+  }
+  function pause(ms) { PatOS.store.set('timelinePause', ms ? Date.now() + ms : 0); changed(); }
+
+  /* ---------- the clipboard panel (Alt+V) ---------- */
+  let panel = null, prevEl = null, sel = 0, shown = [];
+  const ago = (t) => {
+    const s = (Date.now() - t) / 1000;
+    if (s < 60) return T('just now');
+    if (s < 3600) return Math.floor(s / 60) + ' min';
+    if (s < DAY / 1000) return new Date(t).toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' });
+    return new Date(t).toLocaleDateString(PatOS.locale, { month: 'short', day: 'numeric' });
+  };
+  const editable = (el) => el && el.isConnected && (el.isContentEditable || (/^(INPUT|TEXTAREA)$/.test(el.tagName) && !el.readOnly && !/^(button|checkbox|radio|range|color|file|submit|password)$/i.test(el.type || '')));
+  function closePanel() {
+    if (!panel) return;
+    const p = panel; panel = null;
+    p.classList.add('out'); setTimeout(() => p.remove(), 220);
+  }
+  async function paste(c) {
+    const target = prevEl; closePanel();
+    await writeClip(c.text);
+    addClip(c.text, 'paste');
+    if (editable(target)) {
+      target.focus();
+      let ok = false; try { ok = document.execCommand('insertText', false, c.text); } catch (e) {}
+      if (!ok && /^(INPUT|TEXTAREA)$/.test(target.tagName)) {
+        const s0 = target.selectionStart || 0, e0 = target.selectionEnd || 0;
+        target.value = target.value.slice(0, s0) + c.text + target.value.slice(e0); target.selectionStart = target.selectionEnd = s0 + c.text.length;
+        target.dispatchEvent(new Event('input', { bubbles: true }));
+      }
+    } else PatOS.notify({ title: T('Copied'), body: c.text.slice(0, 80), icon: 'timeline', duration: 2200 });
+  }
+  function clipPanel() {
+    if (panel) return closePanel();
+    prevEl = document.activeElement;
+    const q = h('input', { class: 'cp-q', placeholder: T('Search what you copied'), spellcheck: 'false', 'aria-label': T('Search what you copied') });
+    const list = h('div', { class: 'cp-list', role: 'listbox' });
+    const fill = () => {
+      const s = q.value.trim().toLowerCase();
+      shown = clips.slice().reverse().sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0)).filter((c) => !s || c.text.toLowerCase().includes(s)).slice(0, 40);
+      sel = Math.min(sel, Math.max(0, shown.length - 1));
+      list.innerHTML = '';
+      if (!shown.length) list.appendChild(h('div', { class: 'cp-empty' }, h('span', { html: PatOS.sym('history') }), clips.length ? T('Nothing matches.') : (PatOS.settings.timelineClips === false ? T('Clipboard history is off. Turn it on in the Timeline app.') : T('What you copy shows up here. Copy something, then press Alt+V.'))));
+      shown.forEach((c, i) => {
+        const row = h('div', { class: 'cp-row' + (i === sel ? ' sel' : '') + (c.pin ? ' pin' : ''), role: 'option', style: { '--i': Math.min(i, 12) } },
+          h('span', { class: 'cp-k' }, i < 9 ? String(i + 1) : ''),
+          h('div', { class: 'cp-txt' }, h('div', {}, c.text.length > 240 ? c.text.slice(0, 240) + '…' : c.text), h('small', {}, ago(c.t) + (c.text.length > 240 ? ' · ' + c.text.length + ' ' + T('characters') : ''))),
+          h('button', { class: 'cp-b' + (c.pin ? ' on' : ''), title: c.pin ? T('Unpin') : T('Pin'), 'aria-label': c.pin ? T('Unpin') : T('Pin'), html: PatOS.sym('pin'), onclick: (e) => { e.stopPropagation(); c.pin = !c.pin; touch(); fill(); } }),
+          h('button', { class: 'cp-b', title: T('Remove'), 'aria-label': T('Remove'), html: PatOS.sym('close'), onclick: (e) => { e.stopPropagation(); forgetItem('clip', c.id); fill(); } }));
+        row.addEventListener('click', () => paste(c));
+        row.addEventListener('pointermove', () => { if (sel !== i) { sel = i; [...list.children].forEach((r, j) => r.classList.toggle('sel', j === sel)); } });
+        list.appendChild(row);
+      });
+    };
+    q.addEventListener('input', () => { sel = 0; fill(); });
+    q.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowDown' || e.key === 'ArrowUp') { e.preventDefault(); if (!shown.length) return; sel = (sel + (e.key === 'ArrowDown' ? 1 : -1) + shown.length) % shown.length; [...list.children].forEach((r, j) => r.classList.toggle('sel', j === sel)); list.children[sel].scrollIntoView({ block: 'nearest' }); }
+      else if (e.key === 'Enter') { e.preventDefault(); if (shown[sel]) paste(shown[sel]); }
+      else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); closePanel(); if (prevEl && prevEl.focus) prevEl.focus(); }
+      else if (/^[1-9]$/.test(e.key) && !q.value) { e.preventDefault(); const c = shown[+e.key - 1]; if (c) paste(c); }
+    });
+    panel = h('div', { id: 'clip-panel', class: 'lg-elevated', role: 'dialog', 'aria-label': T('Clipboard') },
+      h('div', { class: 'cp-head' }, h('span', { class: 'cp-ic', html: PatOS.sym('history') }), h('b', {}, T('Clipboard')), h('small', {}, T('Enter pastes · 1–9 · Esc')),
+        h('button', { class: 'cp-open', onclick: () => { closePanel(); PatOS.launch('timeline', { filter: 'clip' }); } }, T('Open Timeline'))),
+      q, list);
+    panel.addEventListener('pointerdown', (e) => e.stopPropagation());
+    document.body.appendChild(panel);
+    fill(); setTimeout(() => q.focus(), 20);
+  }
+  document.addEventListener('pointerdown', (e) => { if (panel && !panel.contains(e.target)) closePanel(); });
+  document.addEventListener('keydown', (e) => {
+    if (!PatOS.loggedIn) return;
+    if (e.altKey && !e.ctrlKey && !e.metaKey && e.code === 'KeyV') { e.preventDefault(); clipPanel(); }
+  }, true);
+
+  /* ---------- search, for Spotlight ---------- */
+  function searchClips(q, max) {
+    q = String(q || '').toLowerCase(); if (q.length < 2) return [];
+    return clips.slice().reverse().filter((c) => c.text.toLowerCase().includes(q)).slice(0, max || 3);
+  }
+
+  /* ---------- wiring ---------- */
+  PatOS.on('wm:open', (w) => { try { onOpen(w); } catch (e) { console.error(e); } snapSoon(); });
+  PatOS.on('wm:close', snapSoon);
+  PatOS.on('fs', onFS);
+  PatOS.on('store:set', onStore);
+  PatOS.on('setting:timelineDays', prune);
+  setInterval(() => { if (!document.hidden) snapMoment(); }, 10 * MIN);
+  setInterval(prune, 60 * MIN);
+  window.addEventListener('pagehide', () => { try { snapMoment(); PatOS.store.set('timeline', events.slice()); PatOS.store.set('timelineMoments', moments.slice()); PatOS.store.set('clipHistory', clips.slice()); } catch (e) {} });
+  setTimeout(prune, 3000);
+
+  PatOS.timeline = {
+    events: () => events.slice(), moments: () => moments.slice(), clips: () => clips.slice(),
+    record, forget, forgetItem, prune, pause, paused, restoreMoment, lastSession, clipPanel, searchClips, addClip, snapMoment,
+    copy: (t) => writeClip(t).then(() => addClip(t, 'app')),
+    pin: (id) => { const c = clips.find((x) => x.id === id); if (c) { c.pin = !c.pin; touch(); } },
+    pauseUntil: () => +PatOS.store.get('timelinePause', 0) || 0,
+    bootT
+  };
 })();
 
 </script>
@@ -13523,6 +13975,7 @@ PatOS.build = {"channel":"beta","version":"3.0.0","beta":4};
   let mode = 'code'; // 'code' (a sync code and the PatOS server) or 'account' (a PatOS account in the cloud)
   const DENY = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncKey', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'accountPrompt', 'accountSeen', 'msgRead', 'patAppGrants', 'privacyLog',
     'setupStep', 'installOffered', 'iosHint', 'notifAsked', 'appInstalled', 'alarmQueue',
+    'timeline', 'timelineMoments', 'clipHistory', 'timelinePause',
     'wpCache', 'wpLockCache', 'wpThumbs', 'wxCache', 'dictCache', 'googleCx', 'patosServer', 'ytKey', 'pwVault', 'musicState', 'settings']);
   const DENY_PREFIX = ['newsCache:', 'ytHome:'];
   const denied = (k) => DENY.has(k) || DENY_PREFIX.some((x) => k.indexOf(x) === 0);
@@ -20242,7 +20695,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
   // a small glass tile of the setting's color with its drawn symbol
   const stIc = (spec) => { const [n, c] = String(spec).split('|'); return h('span', { class: 'st-ic', style: { '--ic': c || '#8e8e93' }, html: PatOS.sym(n) }); };
   const catOf = (pane) => (CATS.find((c) => c[3].includes(pane)) || [])[0] || null;
-  const KW = { legal: 'privacy policy terms conditions legal law confidentialite politique conditions utilisation juridique', me: 'me user computer device info about name account profile utilisateur ordinateur appareil informations profil', voice: 'voice hey pat microphone speech listen talk say wake voix micro parler ecouter', account: 'account username password sign in sign up cloud save login compte nom utilisateur mot de passe connexion creer', privacy: 'privacy apps permissions camera microphone location log confidentialite applications permissions camera micro position journal', sync: 'sync cloud devices iphone chromebook account encrypted key code synchroniser appareils compte chiffre cle', backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
+  const KW = { legal: 'privacy policy terms conditions legal law confidentialite politique conditions utilisation juridique', me: 'me user computer device info about name account profile utilisateur ordinateur appareil informations profil', voice: 'voice hey pat microphone speech listen talk say wake voix micro parler ecouter', account: 'account username password sign in sign up cloud save login compte nom utilisateur mot de passe connexion creer', privacy: 'privacy apps permissions camera microphone location log timeline clipboard history activity confidentialite applications permissions camera micro position journal historique presse-papiers activite', sync: 'sync cloud devices iphone chromebook account encrypted key code synchroniser appareils compte chiffre cle', backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
   // Spotlight searches Settings with this list
   PatOS.settingsIndex = () => PANES.map(([k, l]) => ({ pane: k, label: l, keywords: KW[k] || '' }));
   PatOS.registerApp({
@@ -20430,6 +20883,16 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           const paint = () => {
             out.innerHTML = '';
             out.appendChild(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('settings') }), h('div', {}, h('h2', {}, T('Privacy')), h('p', { class: 'su-status' }, T('Apps from the App Store Community run in a locked box. Each one has to ask before it uses your camera, microphone, location, files, clipboard, notifications or the internet. Here you see what each app may do, and what it did.')))));
+            // Timeline: what PatOS remembers about what you do (js/timeline.js)
+            out.appendChild(h('h3', {}, T('Timeline')));
+            const days = h('select', { class: 'field', 'aria-label': T('Keep for'), onchange: (e) => PatOS.setSetting('timelineDays', +e.target.value) },
+              ...[7, 30, 90, 365].map((d) => h('option', { value: d, selected: (+S().timelineDays || 30) === d }, d === 365 ? T('1 year') : d + ' ' + T('days'))));
+            out.appendChild(group(
+              row(T('Timeline'), toggle('timeline'), T('Remembers the apps, files, websites and notes you open, and the windows you had open, so you can find them again. Only on this device, never synced, no screenshots, nothing from Passwords.')),
+              row(T('Clipboard History'), toggle('timelineClips'), T('Keeps what you copy. Alt+V opens it anywhere and pastes.')),
+              row(T('Keep for'), days),
+              row(T('Open Timeline'), h('button', { class: 'btn', onclick: () => PatOS.launch('timeline') }, T('Open')), T('Pause it, forget the last hour, a day or everything from the Timeline app.'))));
+            out.appendChild(h('h3', {}, T('Community apps')));
             const apps = A ? A.list() : [];
             if (!apps.length) out.appendChild(h('div', { class: 'bk-empty' }, T('No community apps are installed. PatOS’s own apps are not listed here.')));
             apps.forEach((r) => {
@@ -28830,6 +29293,282 @@ PatOS.sendWithPatDrop = async function (paths) {
     }
   });
   PatOS.iconDefs.shortcuts = { bg: 'linear-gradient(160deg,#ff6a5c,#c13bd1)', svg: () => '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><rect x="12" y="14" width="26" height="20" rx="7" fill="#fff" opacity=".95"/><rect x="26" y="30" width="26" height="20" rx="7" fill="#fff" opacity=".7"/></svg>' };
+})();
+
+</script>
+  <script type="patos/js">
+/* Timeline — everything you did in PatOS, day by day, searchable, with one-click "restore this moment".
+   The recording happens in js/timeline.js; this app shows it. Nothing here leaves the device. */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  const T = (s) => PatOS.t(s);
+  const DAY = 86400000, HOUR = 3600000;
+  const startOf = (t) => { const d = new Date(t); d.setHours(0, 0, 0, 0); return d.getTime(); };
+  const KINDS = [
+    ['all', 'Everything', 'sparkle'], ['moment', 'Moments', 'window'], ['app', 'Apps', 'apps'], ['file', 'Files', 'doc'],
+    ['web', 'Websites', 'link'], ['note', 'Notes', 'sticky'], ['clip', 'Clipboard', 'history']
+  ];
+  const CHEV = (d) => `<svg class="sym" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="${d < 0 ? 'M15 5l-7 7 7 7' : 'M9 5l7 7-7 7'}"/></svg>`;
+  const VERB = { Opened: 'Opened', Edited: 'Edited', Visited: 'Visited', Searched: 'Searched for', Wrote: 'Wrote in' };
+
+  PatOS.registerApp({
+    id: 'timeline', name: 'Timeline', icon: 'timeline', width: 1060, height: 690, category: 'Utilities', single: true,
+    onArgs: (w, a) => w.emit('args', a),
+    keywords: 'history activity clipboard recall moments restore past yesterday find again historique activité presse-papiers moments restaurer hier retrouver',
+    about: 'Everything you did in PatOS, day by day: find any file, website, note or copied text again, and bring back the windows you had open. It stays on this device.',
+    launch(win, args) {
+      const TL = PatOS.timeline;
+      win.el.classList.add('has-toolbar');
+      let day = args && args.day ? startOf(args.day) : startOf(Date.now());
+      let filter = (args && args.filter) || 'all';
+      let query = '';
+      let month = new Date(day); month.setDate(1);
+
+      /* ---------- toolbar: search and the recording pill ---------- */
+      const q = h('input', { class: 'field tl-q', type: 'search', placeholder: T('Search your Timeline'), spellcheck: 'false', 'aria-label': T('Search your Timeline') });
+      const pill = h('button', { class: 'tl-pill', 'aria-haspopup': 'menu' });
+      win.toolbar.append(h('div', { class: 'tl-tbspace' }), q, pill);
+      q.addEventListener('input', PatOS.debounce(() => { query = q.value.trim(); render(); }, 120));
+      q.addEventListener('keydown', (e) => { if (e.key === 'Escape' && q.value) { q.value = ''; query = ''; render(); } });
+
+      const rail = h('div', { class: 'tl-rail' });
+      const main = h('div', { class: 'tl-main' });
+      win.body.appendChild(h('div', { class: 'tl-app' }, rail, main));
+
+      function paintPill() {
+        const off = PatOS.settings.timeline === false, p = TL.paused();
+        pill.className = 'tl-pill' + (off ? ' off' : p ? ' paused' : ' rec');
+        pill.innerHTML = '';
+        pill.append(h('span', { class: 'tl-dot' }), off ? T('Off') : p ? T('Paused') : T('Recording'));
+      }
+      pill.addEventListener('click', () => {
+        const r = pill.getBoundingClientRect(); const off = PatOS.settings.timeline === false, p = TL.paused();
+        PatOS.menu([
+          off ? { label: T('Turn On Timeline'), action: () => PatOS.setSetting('timeline', true) } : null,
+          !off && !p ? { label: T('Pause for 1 Hour'), action: () => TL.pause(HOUR) } : null,
+          !off && !p ? { label: T('Pause Until Tomorrow'), action: () => TL.pause(startOf(Date.now()) + DAY - Date.now()) } : null,
+          !off && p ? { label: T('Resume Recording'), action: () => TL.pause(0) } : null,
+          { divider: true },
+          { label: T('Clipboard History'), checked: PatOS.settings.timelineClips !== false, action: () => PatOS.setSetting('timelineClips', PatOS.settings.timelineClips === false) },
+          { header: T('Keep for') },
+          ...[7, 30, 90, 365].map((d) => ({ label: d === 365 ? T('1 year') : d + ' ' + T('days'), checked: (+PatOS.settings.timelineDays || 30) === d, action: () => PatOS.setSetting('timelineDays', d) })),
+          { divider: true },
+          { label: T('Forget the Last Hour'), action: () => forgetAsk(Date.now() - HOUR, null, T('Forget the last hour?')) },
+          { label: T('Forget Today'), action: () => forgetAsk(startOf(Date.now()), null, T('Forget today?')) },
+          { label: T('Forget Everything…'), action: () => forgetAsk(0, null, T('Forget everything in your Timeline?')) },
+          { divider: true },
+          !off ? { label: T('Turn Off Timeline'), action: () => PatOS.setSetting('timeline', false) } : null
+        ], r.right - 220, r.bottom + 6);
+      });
+      async function forgetAsk(from, to, title) {
+        if (!(await PatOS.confirmBox(title, T('Activity, moments and copied text from that time are deleted from this device. Pinned clips stay.'), { ok: T('Forget') }))) return;
+        TL.forget(from, to); render();
+      }
+
+      /* ---------- the data ---------- */
+      function items() {
+        const out = [];
+        TL.events().forEach((e) => out.push(Object.assign({ kind: e.k }, e)));
+        TL.moments().forEach((m) => out.push({ kind: 'moment', t: m.t, t1: m.t1, m }));
+        TL.clips().forEach((c) => out.push({ kind: 'clip', t: c.t, c }));
+        return out.sort((a, b) => b.t - a.t);
+      }
+      const nameOf = (id) => { const a = PatOS.apps[id]; return a ? T(a.name) : id; };
+      function text(it) {
+        if (it.kind === 'moment') return it.m.wins.map((w) => nameOf(w.app) + ' ' + (w.title || '')).join(' ');
+        if (it.kind === 'clip') return it.c.text;
+        return [it.l, it.s, it.x].join(' ');
+      }
+      // "yesterday", "monday", "hier", "lundi"... in the search pick the day
+      const WD = { sunday: 0, monday: 1, tuesday: 2, wednesday: 3, thursday: 4, friday: 5, saturday: 6, dimanche: 0, lundi: 1, mardi: 2, mercredi: 3, jeudi: 4, vendredi: 5, samedi: 6 };
+      function parse(raw) {
+        let s = raw.toLowerCase(), from = 0, to = Infinity; const today = startOf(Date.now());
+        const take = (re, f) => { if (re.test(s)) { s = s.replace(re, ' '); f(); } };
+        take(/\b(today|aujourd['’]hui)\b/, () => { from = today; to = today + DAY; });
+        take(/\b(yesterday|hier)\b/, () => { from = today - DAY; to = today; });
+        take(/\b(this week|cette semaine)\b/, () => { from = today - 6 * DAY; });
+        take(/\b(last week|la semaine derni[eè]re)\b/, () => { from = today - 13 * DAY; to = today - 6 * DAY; });
+        Object.keys(WD).forEach((w) => take(new RegExp('\\b' + w + '\\b'), () => { const back = (new Date(today).getDay() - WD[w] + 7) % 7 || 7; from = today - back * DAY; to = from + DAY; }));
+        return { words: s.split(/\s+/).filter(Boolean), from, to };
+      }
+
+      /* ---------- small pieces ---------- */
+      const time = (t) => new Date(t).toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' });
+      function dayTitle(d) {
+        const today = startOf(Date.now());
+        if (d === today) return T('Today'); if (d === today - DAY) return T('Yesterday');
+        const s = new Date(d).toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric', year: new Date(d).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined });
+        return s.charAt(0).toUpperCase() + s.slice(1);
+      }
+      function miniDesk(m, cls) {
+        // the windows of a moment, drawn where they were on the screen
+        const box = h('div', { class: 'tl-desk ' + (cls || '') });
+        const W = Math.max(innerWidth, 800), H = Math.max(innerHeight, 500);
+        m.wins.slice(-8).forEach((w, i) => {
+          const a = PatOS.apps[w.app];
+          const r = w.max ? { x: 0, y: 28, w: W, h: H - 28 } : w;
+          box.appendChild(h('div', { class: 'tl-dw' + (w.active ? ' act' : ''), style: { left: (r.x / W * 100).toFixed(2) + '%', top: (r.y / H * 100).toFixed(2) + '%', width: (r.w / W * 100).toFixed(2) + '%', height: (r.h / H * 100).toFixed(2) + '%', '--d': i * 40 + 'ms' } },
+            h('span', { class: 'tl-dwi', html: PatOS.iconHTML(a ? a.icon || w.app : 'finder') })));
+        });
+        return box;
+      }
+      function momentTitle(m) {
+        const names = [...new Set(m.wins.map((w) => nameOf(w.app)))];
+        return names.length <= 3 ? names.join(', ') : names.slice(0, 3).join(', ') + ' ' + T('and') + ' ' + (names.length - 3) + ' ' + T('more');
+      }
+      function open(it) {
+        if (it.kind === 'moment') return TL.restoreMoment(it.m);
+        if (it.kind === 'clip') { TL.copy(it.c.text); return PatOS.notify({ title: T('Copied'), body: it.c.text.slice(0, 80), icon: 'timeline', duration: 2000 }); }
+        const r = it.ref || {};
+        if (r.path) { if (PatOS.fs.get(r.path)) return PatOS.openFile(r.path); return PatOS.notify({ title: T('This file is gone'), body: r.path, icon: 'finder' }); }
+        if (r.url) return PatOS.launch('browser', { url: r.url });
+        if (r.note) return PatOS.launch('notes', { id: r.note });
+        if (r.app) return PatOS.launch(r.app, r.args || {});
+      }
+      function iconOf(it) {
+        if (it.kind === 'file') { const n = PatOS.fs.get(it.ref.path); return n ? PatOS.fileIconHTML(it.ref.path, n) : PatOS.iconHTML('finder'); }
+        if (it.kind === 'web') return PatOS.iconHTML('browser');
+        if (it.kind === 'note') return PatOS.iconHTML('notes');
+        if (it.kind === 'app') return PatOS.iconHTML(it.ic || 'finder');
+        return '';
+      }
+      function mark(str, words) {
+        str = String(str || ''); if (!words.length) return str;
+        const low = str.toLowerCase(); let best = -1, w0 = '';
+        words.forEach((w) => { const i = low.indexOf(w); if (i >= 0 && (best < 0 || i < best)) { best = i; w0 = w; } });
+        if (best < 0) return str;
+        const a = Math.max(0, best - 60);
+        return h('span', {}, (a ? '…' : '') + str.slice(a, best), h('mark', {}, str.slice(best, best + w0.length)), str.slice(best + w0.length, best + w0.length + 160));
+      }
+      function card(it, i, words) {
+        words = words || [];
+        const forget = h('button', { class: 'tl-x', title: T('Forget this'), 'aria-label': T('Forget this'), html: PatOS.sym('close'), onclick: (e) => { e.stopPropagation(); TL.forgetItem(it.kind === 'moment' ? 'moment' : it.kind === 'clip' ? 'clip' : 'event', it.kind === 'moment' ? it.m.t : it.kind === 'clip' ? it.c.id : it.t); render(); } });
+        const style = { '--i': Math.min(i, 14) };
+        if (it.kind === 'moment') {
+          const dur = Math.max(1, Math.round((it.t1 - it.t) / 60000));
+          return h('div', { class: 'tl-card tl-moment', style, onclick: () => open(it) }, miniDesk(it.m),
+            h('div', { class: 'tl-cm' }, h('small', { class: 'tl-kind' }, T('Moment') + ' · ' + time(it.t) + (dur > 1 ? ' – ' + time(it.t1) : '')), h('b', {}, mark(momentTitle(it.m), words)),
+              h('small', {}, it.m.wins.length + ' ' + T(it.m.wins.length === 1 ? 'window' : 'windows') + (dur > 1 ? ' · ' + (dur >= 60 ? Math.floor(dur / 60) + ' h ' + (dur % 60 ? dur % 60 + ' min' : '') : dur + ' min') : '')),
+              h('button', { class: 'btn primary tl-restore', onclick: (e) => { e.stopPropagation(); open(it); } }, h('span', { html: PatOS.sym('rotate') }), T('Restore'))), forget);
+        }
+        if (it.kind === 'clip') {
+          const c = it.c;
+          return h('div', { class: 'tl-card tl-clip' + (c.pin ? ' pin' : ''), style, onclick: () => open(it), title: T('Copy again') },
+            h('span', { class: 'tl-ci', html: PatOS.sym('history') }),
+            h('div', { class: 'tl-ct' }, h('small', { class: 'tl-kind' }, T('Copied') + ' · ' + time(c.t) + (c.app && PatOS.apps[c.app] ? ' · ' + nameOf(c.app) : '')), h('div', { class: 'tl-ctext' }, mark(c.text.length > 400 ? c.text.slice(0, 400) + '…' : c.text, words))),
+            h('button', { class: 'tl-pin' + (c.pin ? ' on' : ''), title: c.pin ? T('Unpin') : T('Pin'), 'aria-label': c.pin ? T('Unpin') : T('Pin'), html: PatOS.sym('pin'), onclick: (e) => { e.stopPropagation(); TL.pin(c.id); render(); } }), forget);
+        }
+        const verb = T(VERB[it.verb] || (it.kind === 'app' ? 'Opened' : 'Opened'));
+        return h('div', { class: 'tl-card tl-ev k-' + it.kind, style, onclick: () => open(it), title: it.kind === 'web' && it.ref.url ? it.ref.url : '' },
+          h('span', { class: 'tl-ei', html: iconOf(it) }),
+          h('div', { class: 'tl-et' }, h('small', { class: 'tl-kind' }, verb + ' · ' + time(it.t) + (it.n > 1 ? ' · ' + it.n + '×' : '')), h('b', {}, mark(it.l, words)), it.x && words.length ? h('small', { class: 'tl-snip' }, mark(it.x, words)) : (it.s ? h('small', {}, it.kind === 'file' ? '~' + it.s : it.s) : null)),
+          forget);
+      }
+
+      /* ---------- the rail: pick up, the calendar, the filters ---------- */
+      function paintRail(all) {
+        rail.innerHTML = '';
+        const last = TL.lastSession();
+        if (last && !query && day === startOf(Date.now())) {
+          rail.appendChild(h('div', { class: 'tl-resume' }, h('small', {}, T('Pick up where you left off')), miniDesk(last, 'big'),
+            h('b', {}, momentTitle(last)), h('small', { class: 'tl-rs' }, (startOf(last.t1) === startOf(Date.now()) ? T('Today') : startOf(last.t1) === startOf(Date.now()) - DAY ? T('Yesterday') : new Date(last.t1).toLocaleDateString(PatOS.locale, { month: 'short', day: 'numeric' })) + ', ' + time(last.t1)),
+            h('button', { class: 'btn primary', onclick: () => TL.restoreMoment(last) }, T('Restore These Windows'))));
+        }
+        // a month: each day shaded by how much happened
+        const counts = {}; all.forEach((it) => { const d = startOf(it.t); counts[d] = (counts[d] || 0) + 1; });
+        const max = Math.max(1, ...Object.values(counts));
+        const cal = h('div', { class: 'tl-cal' });
+        const mName = month.toLocaleDateString(PatOS.locale, { month: 'long', year: 'numeric' });
+        cal.appendChild(h('div', { class: 'tl-calh' }, h('button', { class: 'tbtn', 'aria-label': T('Previous month'), onclick: () => { month.setMonth(month.getMonth() - 1); paintRail(all); }, html: CHEV(-1) }), h('b', {}, mName.charAt(0).toUpperCase() + mName.slice(1)), h('button', { class: 'tbtn', 'aria-label': T('Next month'), onclick: () => { month.setMonth(month.getMonth() + 1); paintRail(all); }, html: CHEV(1) })));
+        const grid = h('div', { class: 'tl-calg' });
+        const first = new Date(month); const lead = (first.getDay() + 6) % 7; // weeks start on Monday
+        const base = new Date(1970, 0, 5); // a Monday
+        for (let i = 0; i < 7; i++) grid.appendChild(h('span', { class: 'tl-wd' }, new Date(base.getTime() + i * DAY).toLocaleDateString(PatOS.locale, { weekday: 'narrow' })));
+        for (let i = 0; i < lead; i++) grid.appendChild(h('span'));
+        const dim = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate(), today = startOf(Date.now());
+        for (let d = 1; d <= dim; d++) {
+          const t = new Date(month.getFullYear(), month.getMonth(), d).getTime(), n = counts[t] || 0;
+          const lvl = n ? Math.min(4, 1 + Math.floor(n / max * 3.99)) : 0;
+          grid.appendChild(h('button', { class: 'tl-day l' + lvl + (t === day ? ' sel' : '') + (t === today ? ' today' : ''), disabled: t > today, title: n ? n + ' ' + T('things') : '', onclick: () => { day = t; query = ''; q.value = ''; render(); } }, String(d)));
+        }
+        cal.appendChild(grid); rail.appendChild(cal);
+        // filters, with how many of each there are on the day shown
+        const dayItems = all.filter((it) => it.t >= day && it.t < day + DAY);
+        const fl = h('div', { class: 'tl-filters' });
+        KINDS.forEach(([k, label, sym]) => {
+          const n = k === 'all' ? dayItems.length : dayItems.filter((it) => it.kind === k).length;
+          fl.appendChild(h('button', { class: 'fd-si tl-f' + (filter === k ? ' on' : ''), onclick: () => { filter = k; render(); } }, h('span', { html: PatOS.sym(sym) }), h('span', { class: 'tl-fl' }, T(label)), h('small', {}, n || '')));
+        });
+        rail.appendChild(fl);
+        rail.appendChild(h('div', { class: 'tl-private' }, h('span', { html: PatOS.sym('lock') }), T('Only on this device. Never synced, no screenshots, nothing from Passwords.')));
+      }
+
+      /* ---------- the day ---------- */
+      function ribbon(list) {
+        const per = new Array(24).fill(0); list.forEach((it) => per[new Date(it.t).getHours()]++);
+        const max = Math.max(1, ...per); const nowH = day === startOf(Date.now()) ? new Date().getHours() : -1;
+        const r = h('div', { class: 'tl-ribbon', role: 'img', 'aria-label': T('Activity by hour') });
+        per.forEach((n, hr) => r.appendChild(h('button', { class: 'tl-bar' + (n ? '' : ' none') + (hr === nowH ? ' now' : ''), style: { '--v': (n / max).toFixed(3), '--d': hr * 18 + 'ms' }, title: String(hr).padStart(2, '0') + ':00 · ' + n, onclick: () => { const g = main.querySelector('[data-hour="' + hr + '"]'); if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' }); } })));
+        const lab = h('div', { class: 'tl-rlab' }); [0, 6, 12, 18, 24].forEach((x) => lab.appendChild(h('span', {}, new Date(2000, 0, 1, x % 24).toLocaleTimeString(PatOS.locale, { hour: 'numeric' }))));
+        return h('div', { class: 'tl-rib' }, r, lab);
+      }
+      function empty(msg, sub) { return h('div', { class: 'tl-empty' }, h('div', { class: 'tl-eic', html: PatOS.iconHTML('timeline') }), h('b', {}, msg), sub ? h('p', {}, sub) : null); }
+
+      function render() {
+        paintPill();
+        const all = items();
+        paintRail(all);
+        main.innerHTML = '';
+        const off = PatOS.settings.timeline === false;
+        if (off) main.appendChild(h('div', { class: 'tl-banner' }, h('span', { html: PatOS.sym('pause') }), h('div', {}, h('b', {}, T('Timeline is off')), h('small', {}, T('Nothing new is recorded. What is already here stays until you forget it.'))), h('button', { class: 'btn', onclick: () => PatOS.setSetting('timeline', true) }, T('Turn On'))));
+        else if (TL.paused()) main.appendChild(h('div', { class: 'tl-banner' }, h('span', { html: PatOS.sym('pause') }), h('div', {}, h('b', {}, T('Paused until') + ' ' + time(TL.pauseUntil())), h('small', {}, T('Nothing is recorded while Timeline is paused.'))), h('button', { class: 'btn', onclick: () => TL.pause(0) }, T('Resume'))));
+
+        if (query) {
+          const p = parse(query);
+          const res = all.filter((it) => it.t >= p.from && it.t < p.to && (filter === 'all' || it.kind === filter) && p.words.every((w) => text(it).toLowerCase().includes(w))).slice(0, 300);
+          main.appendChild(h('div', { class: 'tl-head' }, h('h1', {}, T('Results')), h('p', {}, res.length + ' ' + T(res.length === 1 ? 'match' : 'matches') + ' · “' + query + '”')));
+          if (!res.length) return main.appendChild(empty(T('Nothing found'), T('Try other words, or a day: “yesterday”, “monday”, “this week”.')));
+          let lastD = -1, i = 0; const stream = h('div', { class: 'tl-stream' });
+          res.forEach((it) => { const d = startOf(it.t); if (d !== lastD) { stream.appendChild(h('div', { class: 'tl-hour tl-dayh' }, h('span', {}, dayTitle(d)))); lastD = d; } stream.appendChild(card(it, i++, p.words)); });
+          return main.appendChild(stream);
+        }
+
+        const list = all.filter((it) => it.t >= day && it.t < day + DAY);
+        const shown = list.filter((it) => filter === 'all' || it.kind === filter);
+        const firstT = list.length ? list[list.length - 1].t : 0, lastT = list.length ? list[0].t : 0;
+        const nav = h('div', { class: 'tl-nav' },
+          h('button', { class: 'tbtn', 'aria-label': T('Previous day'), html: CHEV(-1), onclick: () => { day -= DAY; day = startOf(day + HOUR * 2); month = new Date(day); month.setDate(1); render(); } }),
+          h('button', { class: 'tbtn', 'aria-label': T('Next day'), disabled: day >= startOf(Date.now()), html: CHEV(1), onclick: () => { day = startOf(day + DAY + HOUR * 2); month = new Date(day); month.setDate(1); render(); } }),
+          day !== startOf(Date.now()) ? h('button', { class: 'btn sm', onclick: () => { day = startOf(Date.now()); month = new Date(day); month.setDate(1); render(); } }, T('Today')) : null);
+        main.appendChild(h('div', { class: 'tl-head' }, h('div', {}, h('h1', {}, dayTitle(day)),
+          h('p', {}, list.length ? list.length + ' ' + T(list.length === 1 ? 'thing' : 'things') + ' · ' + time(firstT) + ' – ' + time(lastT) : T('Nothing recorded this day'))), nav));
+        main.appendChild(ribbon(list));
+        if (!shown.length) {
+          const fresh = !TL.events().length && !TL.moments().length && !TL.clips().length;
+          return main.appendChild(fresh ? empty(T('Your Timeline starts now'), T('Use PatOS as usual. The apps and files you open, the websites you visit, what you copy and the windows you had open show up here, so you can find them again and pick up where you left off.'))
+            : empty(filter === 'all' ? T('Nothing recorded this day') : T('Nothing of this kind this day')));
+        }
+        // hour by hour, newest first, along a line
+        const stream = h('div', { class: 'tl-stream' }); let lastHr = -1, i = 0;
+        shown.forEach((it) => {
+          const hr = new Date(it.t).getHours();
+          if (hr !== lastHr) { stream.appendChild(h('div', { class: 'tl-hour', 'data-hour': hr }, h('span', {}, new Date(2000, 0, 1, hr).toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' })))); lastHr = hr; }
+          stream.appendChild(card(it, i++));
+        });
+        main.appendChild(stream);
+      }
+
+      const offs = [PatOS.on('timeline', () => { if (!main.matches(':hover') || !document.hasFocus()) render(); else renderSoon(); }),
+        PatOS.on('setting:timeline', render), PatOS.on('setting:timelineClips', render), PatOS.on('setting:timelineDays', render)];
+      const renderSoon = PatOS.debounce(render, 2500);
+      win.on('closed', () => offs.forEach((f) => f()));
+      // reopened with other arguments (Alt+V › Open Timeline)
+      win.on('args', (a) => { if (a && a.filter) { filter = a.filter; render(); } });
+      render();
+      setTimeout(() => q.focus(), 60);
+    }
+  });
 })();
 
 </script>

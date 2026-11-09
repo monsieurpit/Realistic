@@ -143,6 +143,7 @@
     messages: { bg: 'linear-gradient(160deg,#5df777,#0bbf3a)', svg: () => S(`<path d="M32 13c-12 0-21 7.5-21 17 0 5.5 3 10.3 7.8 13.4L17 51l9-4.3c1.9.4 3.9.7 6 .7 12 0 21-7.6 21-17S44 13 32 13z" fill="#fff"/>`) },
     piano: { bg: 'linear-gradient(160deg,#2c2c2e,#000)', svg: () => { let g = '<rect x="10" y="14" width="44" height="36" rx="3" fill="#fff"/>'; for (let i = 1; i < 7; i++) g += `<path d="M${10 + i * 6.3} 14v36" stroke="#bbb" stroke-width="1"/>`; [1, 2, 4, 5, 6].forEach((i) => { g += `<rect x="${10 + i * 6.3 - 2.2}" y="14" width="4.4" height="21" fill="#111"/>`; }); return S(g); } },
     flashcards: { bg: 'linear-gradient(160deg,#ffb340,#ff6a00)', svg: () => S(`<rect x="16" y="12" width="34" height="24" rx="4" fill="#fff" opacity=".55" transform="rotate(-8 33 24)"/><rect x="14" y="22" width="36" height="26" rx="4" fill="#fff"/><path d="M22 31h20M22 38h13" stroke="#ff8a00" stroke-width="3" stroke-linecap="round"/>`) },
+    timeline: { bg: 'linear-gradient(160deg,#5e5ce6,#1c1a4a)', svg: () => S(`<path d="M20 12v40" stroke="#c9c8ff" stroke-width="2" stroke-linecap="round"/><circle cx="20" cy="18" r="3.5" fill="#fff"/><circle cx="20" cy="32" r="3.5" fill="#64d2ff"/><circle cx="20" cy="46" r="3.5" fill="#ff375f"/><rect x="27" y="13" width="26" height="10" rx="5" fill="#fff" opacity=".9"/><rect x="27" y="27" width="20" height="10" rx="5" fill="#64d2ff"/><rect x="27" y="41" width="24" height="10" rx="5" fill="#ff375f"/>`) },
     voicememos: { bg: 'linear-gradient(160deg,#2c2c2e,#000)', svg: () => { let g = ''; [8, 16, 26, 14, 30, 20, 10, 24, 12, 6].forEach((h2, i) => { g += `<rect x="${11 + i * 4.4}" y="${32 - h2 / 2}" width="2.6" height="${h2}" rx="1.3" fill="#ff453a"/>`; }); return S(g); } },
     stickies: { bg: 'linear-gradient(160deg,#fff27a,#ffd60a)', svg: () => S(`<path d="M14 12h36v28L38 52H14z" fill="#fffbe0"/><path d="M50 40H38v12z" fill="#e6c200"/><path d="M20 22h24M20 29h24M20 36h14" stroke="#c9a800" stroke-width="2.5" stroke-linecap="round"/>`) },
     typing: { bg: 'linear-gradient(160deg,#64d2ff,#0a84ff)', svg: () => { let g = '<rect x="8" y="20" width="48" height="26" rx="5" fill="#fff"/>'; for (let r = 0; r < 2; r++) for (let c = 0; c < 6; c++) g += `<rect x="${12 + c * 7}" y="${24 + r * 7}" width="5" height="5" rx="1" fill="#0a84ff" opacity=".7"/>`; return S(g + '<rect x="18" y="38" width="28" height="4" rx="1" fill="#0a84ff"/>'); } },
@@ -335,6 +336,10 @@
     flashcards: draw(() => { const p = painter('flashcards'); return p.done(
       p.g('rotate(-10 32 32)', p.glass(rr(12, 17, 34, 24, 4), '#bf5af2', { top: .55 })) + p.g('rotate(6 32 32)', p.glass(rr(18, 23, 34, 24, 4), '#ff9f0a')) +
       p.light('M35 29.5l1.6 3.6 3.9.4-2.9 2.6.9 3.8-3.5-2-3.5 2 .9-3.8-2.9-2.6 3.9-.4z', '#fff3d6', 1.1)); }),
+    timeline: draw(() => { const p = painter('timeline'); return p.done(
+      p.light('M19 11v42', '#8e8cff', 1.5, { halo: .45 }) +
+      p.glass(rr(26, 12, 28, 11, 5.5), '#7d7aff', { top: .55 }) + p.glass(rr(26, 26.5, 21, 11, 5.5), '#64d2ff', { top: .55 }) + p.glass(rr(26, 41, 25, 11, 5.5), '#ff375f', { top: .55 }) +
+      p.bead(19, 17.5, 3.4, '#b9b7ff') + p.bead(19, 32, 3.4, '#64d2ff') + p.bead(19, 46.5, 3.4, '#ff6b8a')); }),
     voicememos: draw(() => { const p = painter('voicememos'); let d = ''; [6, 12, 20, 28, 18, 24, 12, 8, 16, 6].forEach((hh, i) => { d += `M${14 + i * 4} ${32 - hh / 2}v${hh}`; });
       return p.done(p.light(d, '#ff375f', 2.4)); }),
     stickies: draw(() => { const p = painter('stickies'); return p.done(

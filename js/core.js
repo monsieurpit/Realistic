@@ -219,6 +219,7 @@
     perfMode: 'auto',        // auto | light | full (Speed mode: light turns off the see-through blur and the long animations)
     askFullscreen: true,
     reopenWindows: true,
+    timeline: true, timelineClips: true, timelineDays: 30,
     betaUpdates: false,      // Settings › Software Update › Beta updates
     clock24: false,
     showSeconds: false,
