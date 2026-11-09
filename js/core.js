@@ -202,7 +202,7 @@
     password: '',
     theme: 'dark',           // dark | light | auto
     accent: '#0a84ff',
-    wallpaper: 'nebula',     // see wallpaper.js
+    wallpaper: 'silk',       // see wallpaper.js (a new install starts on Silk; people keep the one they chose)
     customWallpaper: null,
     live3d: true,
     dockSize: 54,

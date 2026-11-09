@@ -1,7 +1,7 @@
 [
   {
     "version": "2.3.1",
-    "beta": 1,
+    "beta": 2,
     "date": "2026-11-09",
     "title": {
       "en": "Drawn glass icons",
@@ -10,11 +10,21 @@
     "notes": {
       "en": [
         "Every PatOS app has a new icon, drawn like real glass on a dark graphite tile: each picture is a see-through glass object in the app's color that glows brighter toward the bottom, with a bright rim on top and a soft halo of light around it (57 icons: Finder, Messages, Notes, Music, Photos, Calendar, Clock, Weather, Settings, the games and all the others)",
+        "Docs, Sheets, Slides, Forms and Drive have their own glass icons (they no longer look like Google's)",
+        "Files and folders are drawn in glass too: folders, documents with their file type, pictures, music and links",
+        "The small symbols everywhere (Finder's sidebar, toolbars, Settings, the menu bar) are little pieces of glass: a see-through body of their color and a soft glow",
+        "Five new wallpapers made of silk, lit from above: Silk (violet and blue on deep night), Obsidian (one silver fold on black), Flame (orange and rose), Glacier (pale blue) and Dune (warm sand). New installs start on Silk; Settings › Wallpaper has them all",
+        "Desktop labels stay readable on light wallpapers",
         "No more letters or emoji on icons: Solitaire's card suits, Elements, Sudoku, Translate and Dictionary are drawn",
         "Google apps and YouTube keep their own logos"
       ],
       "fr": [
         "Chaque app PatOS a une nouvelle icône, dessinée comme du vrai verre sur une tuile graphite sombre : chaque dessin est un objet en verre transparent de la couleur de l’app, qui brille de plus en plus vers le bas, avec un bord lumineux en haut et un doux halo de lumière autour (57 icônes : Finder, Messages, Notes, Musique, Photos, Calendrier, Horloge, Météo, Réglages, les jeux et toutes les autres)",
+        "Documents, Feuilles, Présentations, Formulaires et Drive ont leurs propres icônes en verre (elles ne ressemblent plus à celles de Google)",
+        "Les fichiers et les dossiers sont aussi dessinés en verre : dossiers, documents avec leur type, images, musique et liens",
+        "Les petits symboles partout (la barre latérale du Finder, les barres d’outils, les Réglages, la barre des menus) sont de petits morceaux de verre : un corps transparent de leur couleur et une douce lueur",
+        "Cinq nouveaux fonds d’écran en soie, éclairés d’en haut : Soie (violet et bleu sur nuit profonde), Obsidienne (un pli argenté sur noir), Flamme (orange et rose), Glacier (bleu pâle) et Dune (sable chaud). Les nouvelles installations commencent sur Soie ; Réglages › Fond d’écran les propose tous",
+        "Les noms sur le bureau restent lisibles sur les fonds d’écran clairs",
         "Plus de lettres ni d’emoji sur les icônes : les enseignes du Solitaire, Éléments, Sudoku, Traduction et Dictionnaire sont dessinés",
         "Les apps Google et YouTube gardent leurs propres logos"
       ]

@@ -228,6 +228,12 @@ html.lg-on :is(.btn, .tbtn, .ob):active { transform: scale(.95); }
 html.lg-on .menu { animation: lgIn .16s cubic-bezier(.2,.9,.3,1.15); transform-origin: top left; }
 @keyframes lgIn { from { opacity: 0; transform: scale(.96); } }
 
+/* ---------- system symbols (Finder's sidebar, the menu bar, toolbars, Settings): small glass ----------
+   Every closed shape of a symbol gets a translucent body of its own color (the line stays crisp), and the symbol a soft glow
+   of its color, so a 16px symbol reads as a little piece of glass. Not in Speed mode or with Reduce transparency. */
+html.lg-on svg.sym :is(rect, circle, ellipse, polygon, path[d$="z"], path[d$="Z"]) { fill: currentColor; fill-opacity: .2; }
+html.lg-on:not(.reduce-transparency):not(.perf-light) svg.sym { filter: drop-shadow(0 0 1.6px color-mix(in srgb, currentColor 55%, transparent)); }
+
 /* ---------- app icons: small 3D tiles ----------
    Every icon is a little slab: a bright top lip and a shaded bottom edge (inset light), a glossy curved reflection across its
    top (::after), and where icons live (Dock, Launchpad, the phone's home screen, the desktop, the app switcher) a two-layer
@@ -236,6 +242,7 @@ html.lg-on .menu { animation: lgIn .16s cubic-bezier(.2,.9,.3,1.15); transform-o
 html.lg-on .icon-tile:not(.flat) {
   box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -2px 3px rgba(0,0,0,.16), inset 0 0 0 .5px rgba(0,0,0,.14), 0 1px 2px rgba(0,0,0,.22);
 }
+html.lg-on .icon-tile.gi::after { opacity: .55; }
 html.lg-on .icon-tile::after {
   background:
     radial-gradient(130% 75% at 50% -22%, rgba(255,255,255,.4), rgba(255,255,255,.1) 56%, rgba(255,255,255,0) 58%),

@@ -89,6 +89,8 @@ svg { display: block; }
 .desk-icon .di-name { color: #fff; font-size: 12px; font-weight: 500; text-align: center; line-height: 1.25; padding: 1px 5px; border-radius: 4px; text-shadow: 0 1px 3px rgba(0,0,0,.7); word-break: break-word; max-height: 2.6em; overflow: hidden; }
 .desk-icon.sel .di-img { background: rgba(0,0,0,.25); box-shadow: inset 0 0 0 1px rgba(255,255,255,.25); }
 .desk-icon.sel .di-name { background: var(--accent); text-shadow: none; }
+/* over a light wallpaper (js/wallpaper.js reads it), desktop labels are dark with a light halo, like the menu bar */
+html[data-wp-top="light"] .desk-icon:not(.sel) .di-name { color: #1d1d1f; text-shadow: 0 0 3px rgba(255,255,255,.9), 0 0 8px rgba(255,255,255,.7); }
 .desk-icon.dragging { opacity: .75; z-index: 3; }
 
 /* icon tiles */

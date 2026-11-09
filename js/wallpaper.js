@@ -4,6 +4,22 @@
   const { $ } = PatOS;
 
   const PALETTES = {
+    // premium (painted by paintSilk below): ribbons of silk lit from above, with grain and a vignette
+    silk:      { name: 'Silk', silk: true, dark: true, base: ['#06060b', '#0e0b1c', '#04040a'],
+      glows: [[.72, .28, .55, '#3b2bff', .35], [.2, .8, .5, '#0a5cff', .25]],
+      ribbons: [{ y: .30, amp: .10, thick: .30, col: '#5a3cff', hi: '#e2d8ff', ph: .4 }, { y: .55, amp: .12, thick: .34, col: '#1f5bff', hi: '#cfe6ff', ph: 2.1 }, { y: .78, amp: .08, thick: .22, col: '#a32cff', hi: '#ffd8ff', ph: 4.0 }] },
+    obsidian:  { name: 'Obsidian', silk: true, dark: true, base: ['#020203', '#09090d', '#020203'],
+      glows: [[.5, .55, .6, '#2a2a3a', .4]],
+      ribbons: [{ y: .52, amp: .14, thick: .26, col: '#2c2c3a', hi: '#f0f0ff', ph: 1.2 }, { y: .70, amp: .06, thick: .10, col: '#1c1c26', hi: '#a9a9c8', ph: 3.3 }] },
+    embersilk: { name: 'Flame', silk: true, dark: true, base: ['#0a0403', '#160705', '#060202'],
+      glows: [[.25, .3, .5, '#ff4a12', .3], [.8, .75, .5, '#c2185b', .28]],
+      ribbons: [{ y: .34, amp: .11, thick: .30, col: '#ff5a1f', hi: '#ffe0bf', ph: .9 }, { y: .62, amp: .10, thick: .30, col: '#c81d5e', hi: '#ffc2d6', ph: 2.8 }] },
+    glacier:   { name: 'Glacier', silk: true, dark: false, base: ['#eaf2ff', '#d5e5fb', '#f2f5fb'],
+      glows: [[.3, .25, .6, '#ffffff', .6], [.8, .7, .5, '#b9cfff', .4]],
+      ribbons: [{ y: .36, amp: .10, thick: .30, col: '#8db6ff', hi: '#ffffff', ph: .3 }, { y: .64, amp: .11, thick: .30, col: '#b6a9ff', hi: '#ffffff', ph: 2.4 }] },
+    dune:      { name: 'Dune', silk: true, dark: false, base: ['#f7e8d8', '#efd3ba', '#e8c2a5'],
+      glows: [[.7, .2, .6, '#fff6ea', .7], [.2, .8, .5, '#f0b9a0', .35]],
+      ribbons: [{ y: .40, amp: .09, thick: .32, col: '#dcae88', hi: '#fff6ec', ph: 1.6 }, { y: .70, amp: .10, thick: .30, col: '#d89582', hi: '#fff0ea', ph: 3.6 }] },
     sonora:   { name: 'Sonora',   base: ['#1b0f3b', '#3a1c71', '#0b1a4a'], bands: ['#7b2ff7', '#f107a3', '#3a86ff', '#ff6ec7', '#5f0f9e'], dark: true },
     monterra: { name: 'Monterra', base: ['#2b0a2f', '#7a1d3a', '#ff6a3d'], bands: ['#ff9a3c', '#ff3d68', '#a4133c', '#ffd166', '#6a0d52'], dark: true },
     aurora:   { name: 'Aurora',   base: ['#020b1c', '#05263b', '#0b0423'], bands: ['#00f5a0', '#00d9f5', '#7f5af0', '#2cb67d', '#00a6fb'], dark: true },
@@ -23,8 +39,48 @@
   function rng(seed) { let s = seed >>> 0 || 1; return () => (s = (s * 1664525 + 1013904223) >>> 0) / 4294967296; }
   function hash(str) { let x = 2166136261; for (const c of str) x = Math.imul(x ^ c.charCodeAt(0), 16777619); return x >>> 0; }
 
+  /* Silk: ribbons of fabric lit from above. A ribbon is ~70 fine strands laid side by side; each strand's color comes from
+     where it sits across the ribbon (a specular highlight near its upper edge, shade in the fold below, soft edges), and the
+     ribbon's width swells and pinches along its length, so the strands cross and the fabric seems to twist. Then an ambient
+     glow, a vignette and fine grain. Painted once per size and kept (see drawStatic). */
+  const mixc = (a, b, t) => { const p = (c) => [1, 3, 5].map((i) => parseInt(c.substr(i, 2), 16)); const x = p(a), y = p(b); return '#' + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, '0')).join(''); };
+  function paintSilk(ctx, p, w, hgt, r) {
+    const g = ctx.createLinearGradient(0, 0, w * .4, hgt);
+    p.base.forEach((c, i) => g.addColorStop(i / (p.base.length - 1), c));
+    ctx.fillStyle = g; ctx.fillRect(0, 0, w, hgt);
+    p.glows.forEach(([x, y, rad, col, a]) => {
+      const rg = ctx.createRadialGradient(x * w, y * hgt, 0, x * w, y * hgt, rad * Math.max(w, hgt));
+      rg.addColorStop(0, col + Math.round(a * 255).toString(16).padStart(2, '0')); rg.addColorStop(1, col + '00');
+      ctx.fillStyle = rg; ctx.fillRect(0, 0, w, hgt);
+    });
+    const N = 72, step = Math.max(6, w / 220);
+    try { ctx.filter = `blur(${Math.max(.4, w / 2600).toFixed(2)}px)`; } catch (e) {}
+    ctx.globalCompositeOperation = p.dark ? 'screen' : 'source-over';
+    p.ribbons.forEach((rb, ri) => {
+      const f1 = 1.1 + r() * .8, f2 = 2.3 + r() * 1.4, tw = 1.6 + r() * 1.2;
+      const centre = (x) => hgt * rb.y + Math.sin(x / w * Math.PI * f1 + rb.ph) * hgt * rb.amp + Math.sin(x / w * Math.PI * f2 + rb.ph * 1.7) * hgt * rb.amp * .35;
+      const width = (x) => hgt * rb.thick * (.55 + .45 * Math.sin(x / w * Math.PI * tw + rb.ph * 2.3)); // swells and pinches: the twist
+      for (let i = 0; i <= N; i++) {
+        const t = i / N;
+        const hl = Math.exp(-Math.pow((t - .3) / .085, 2)), sh = Math.exp(-Math.pow((t - .74) / .16, 2)), edge = Math.pow(Math.sin(Math.PI * t), .7);
+        ctx.strokeStyle = mixc(mixc(rb.col, rb.hi, Math.min(1, hl * .95)), p.dark ? '#000000' : '#5a4636', sh * (p.dark ? .55 : .25));
+        ctx.globalAlpha = edge * (p.dark ? .5 : .55); ctx.lineWidth = Math.max(1, hgt * rb.thick / N * 1.8);
+        ctx.beginPath();
+        for (let x = -step * 2; x <= w + step * 2; x += step) { const y = centre(x) + (t - .5) * width(x); x === -step * 2 ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+        ctx.stroke();
+      }
+    });
+    ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over'; ctx.filter = 'none';
+    // vignette: the corners fall off, so the light sits in the middle of the screen
+    const v = ctx.createRadialGradient(w / 2, hgt * .45, Math.min(w, hgt) * .3, w / 2, hgt / 2, Math.max(w, hgt) * .78);
+    v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, p.dark ? 'rgba(0,0,0,.55)' : 'rgba(90,60,40,.16)');
+    ctx.fillStyle = v; ctx.fillRect(0, 0, w, hgt);
+    ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = .55; ctx.fillStyle = grainPattern(ctx, r); ctx.fillRect(0, 0, w, hgt); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  }
+
   function paint(canvas, id, w, hgt) {
     const p = PALETTES[id] || PALETTES.sonora;
+    if (p.silk) { canvas.width = w; canvas.height = hgt; paintSilk(canvas.getContext('2d'), p, w, hgt, rng(hash(id))); return; }
     canvas.width = w; canvas.height = hgt;
     const ctx = canvas.getContext('2d');
     const r = rng(hash(id));
@@ -293,7 +349,8 @@
       };
       img.src = PatOS.settings.customWallpaper; return;
     }
-    const src = LIVE[id] ? LIVE[id].fallback : id, w = Math.max(320, Math.round(innerWidth * scale)), hh = Math.max(200, Math.round(innerHeight * scale));
+    const src = LIVE[id] ? LIVE[id].fallback : id, full = PALETTES[src] && PALETTES[src].silk ? Math.min(1, 2560 / innerWidth) / scale : 1;
+    const w = Math.max(320, Math.round(innerWidth * scale * full)), hh = Math.max(200, Math.round(innerHeight * scale * full));
     // the painting is the same every time for a given size, so the last one is kept and shown again
     const key = src + '|' + w + 'x' + hh, saved = PatOS.store.get('wpCache', null);
     if (saved && saved.key === key && saved.url) {

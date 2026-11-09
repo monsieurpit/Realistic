@@ -32,6 +32,17 @@ painted on the bevel. PatOS now does the same:
 - Over a busy wallpaper, regular glass frosts only 4px.
 - Pills for bars (Dock, sliders, Launchpad search, segmented controls), 30–34px corners for panels.
 
+## More glass icons and silk wallpapers (2.3.1)
+
+- Docs, Sheets, Slides, Forms and Drive (PatOS's own apps) and the file icons (folder, file with its type, image, audio, link)
+  are drawn with the same glass toolkit; file icons have no tile.
+- The ~77 system symbols (`PatOS.sym`): closed shapes get a translucent body of their own color (`fill-opacity: .2`) and the
+  symbol a soft glow of its color (not in Speed mode or with Reduce transparency).
+- Wallpapers Silk, Obsidian, Flame, Glacier and Dune (`paintSilk` in js/wallpaper.js): ribbons of ~70 fine strands, each
+  shaded by where it sits across the ribbon (specular highlight near the upper edge, shade in the fold), with a width that
+  swells and pinches so the fabric twists; an ambient glow, a vignette and grain. Painted at full size (capped at 2560px wide)
+  once, then kept. New installs start on Silk.
+
 ## Drawn glass icons (2.3.1)
 
 PatOS's own 57 app icons are drawn as glass objects (js/icons.js, `GLASS`), read from an iOS 26 dark-mode icon (a light bulb):

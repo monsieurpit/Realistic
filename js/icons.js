@@ -242,6 +242,11 @@
     return { glass, solid, light, bead, g, done };
   }
   const draw = (fn) => ({ bg: GT, glass: true, svg: (arg) => fn(arg) });
+  const file = (fn) => ({ bg: 'transparent', glass: true, svg: (arg) => fn(arg) });
+  const PAGE = 'M16 6h23l12 12v37a4 4 0 0 1-4 4H16a4 4 0 0 1-4-4V10a4 4 0 0 1 4-4z';
+  // a page of glass in a color, with its corner folded over (a solid, lighter piece)
+  const pageGlass = (p, col, pale) => p.glass(PAGE, col, { top: pale ? .5 : .55, core: [50, 85], halo: pale ? .2 : .5 }) +
+    p.solid('M39 6v8a4 4 0 0 0 4 4h8z', mix(col, '#ffffff', .55), mix(col, '#ffffff', .2), { edge: .5 });
   const RAINBOW = ['#ff453a', '#ff9f0a', '#ffd60a', '#30d158', '#64d2ff', '#0a84ff', '#5e5ce6', '#bf5af2', '#ff375f'];
   const GLASS = {
     finder: draw(() => { const p = painter('finder'); return p.done(
@@ -401,13 +406,33 @@
     pitstudio: draw(() => { const p = painter('pitstudio'); return p.done(
       p.light('M25 15c-4 0-5.5 2-5.5 5.5v5c0 2.5-1.2 4.5-4.5 6.5 3.3 2 4.5 4 4.5 6.5v5c0 3.5 1.5 5.5 5.5 5.5M39 15c4 0 5.5 2 5.5 5.5v5c0 2.5 1.2 4.5 4.5 6.5-3.3 2-4.5 4-4.5 6.5v5c0 3.5-1.5 5.5-5.5 5.5', '#2ee6c8', 2.4) +
       p.glass(circ(32, 32, 4.5), '#ffd36b', { core: [40, 35], coreR: 75, glow: 1, halo: .9 })); }),
+    // PatOS's own office apps (they are not Google's: they get their own glass, not lookalike logos)
+    docs: draw(() => { const p = painter('docs'); return p.done(pageGlass(p, '#3b7cff') + p.light('M22 31h20M22 38h20M22 45h13', '#dce8ff', 1.5)); }),
+    sheets: draw(() => { const p = painter('sheets'); return p.done(pageGlass(p, '#1fb36b') + p.light('M21 30h22v16H21zM21 38h22M32 30v16', '#d6ffe9', 1.2)); }),
+    slides: draw(() => { const p = painter('slides'); return p.done(pageGlass(p, '#ffb020') + p.glass(rr(20, 29, 24, 15, 2.5), '#fff2cf', { halo: 0, top: .6, rim: .7 })); }),
+    forms: draw(() => { const p = painter('forms'); return p.done(pageGlass(p, '#8a5cf6') + p.bead(23, 31, 2.3, '#ffffff') + p.bead(23, 38.5, 2.3, '#ffffff') + p.bead(23, 46, 2.3, '#ffffff') + p.light('M29 31h14M29 38.5h14M29 46h10', '#eadfff', 1.4)); }),
+    drive: draw(() => { const p = painter('drive'); return p.done(
+      p.glass('M19 47a10.5 10.5 0 0 1-1-21 14.5 14.5 0 0 1 28-2.6A11.8 11.8 0 0 1 45.5 47z', '#5ac8fa', { core: [50, 75] }) + p.light('M32 41V29M26.5 34.5L32 29l5.5 5.5', '#e6f7ff', 2.2)); }),
+    // files and folders: glass sheets with no tile, like real files
+    folder: file(() => { const p = painter('folder'); return p.done(
+      p.solid('M8 18a5 5 0 0 1 5-5h12l5 5h21a5 5 0 0 1 5 5v4H8z', '#3d8de8', '#2563c4', { edge: .3 }) +
+      p.glass('M8 25a5 5 0 0 1 5-5h38a5 5 0 0 1 5 5v21a6 6 0 0 1-6 6H14a6 6 0 0 1-6-6z', '#4aa8ff', { top: .7, core: [50, 85] })); }),
+    file: file((ext) => { const p = painter('file'); const e = String(ext || 'txt').slice(0, 4).toUpperCase();
+      return p.done(pageGlass(p, '#c9d2e0', true) + p.glass(rr(15, 37, 34, 12, 4), '#5e6b80', { halo: 0, top: .85, glow: .3, rim: .6 }) +
+        `<text x="32" y="45.6" font-size="${e.length > 3 ? 7 : 8}" font-family="system-ui,sans-serif" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing=".4">${e.replace(/[<&"]/g, '')}</text>`); }),
+    imagefile: file(() => { const p = painter('imagefile'); return p.done(pageGlass(p, '#c9d2e0', true) +
+      p.glass('M17 49l10-13 7 8 5-5 9 10z', '#30d158', { halo: .35 }) + p.bead(41, 28, 3.6, '#ffd60a')); }),
+    audiofile: file(() => { const p = painter('audiofile'); return p.done(pageGlass(p, '#c9d2e0', true) +
+      p.glass('M27 25l14-3.4v19a4.4 3.7 0 1 1-2.6-3.3V26l-9 2.2v14.6a4.4 3.7 0 1 1-2.6-3.3z', '#ff375f', { core: [40, 85] })); }),
+    linkfile: file(() => { const p = painter('linkfile'); return p.done(pageGlass(p, '#c9d2e0', true) +
+      p.glass(circ(32, 37, 11.5), '#0a84ff', { core: [45, 40] }) + p.light('M20.5 37h23M32 25.5c-5.5 6-5.5 17 0 23M32 25.5c5.5 6 5.5 17 0 23', '#d6eaff', 1.1, { halo: .3 })); }),
   };
   PatOS.glassIcons = GLASS;
 
   PatOS.iconDefs = ICONS;
   PatOS.iconHTML = function (id, arg) {
     const gi = GLASS[id];
-    if (gi) return `<div class="icon-tile gi" style="background:${gi.bg}">${gi.svg(arg)}</div>`; // drawn in glass (above)
+    if (gi) return `<div class="icon-tile gi${gi.bg === 'transparent' ? ' flat' : ''}" style="background:${gi.bg}">${gi.svg(arg)}</div>`; // drawn in glass (above)
     const def = ICONS[id] || letterIcon((id || '?')[0].toUpperCase());
     const flat = def.bg === 'transparent';
     glossFilter();
