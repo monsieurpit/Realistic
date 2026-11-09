@@ -15,7 +15,8 @@
         "Over very busy wallpapers, glass with words on it frosts a little more so text stays easy to read",
         "Buttons, menu items, tiles and icons sink into the glass when you press them",
         "Control Center tiles and desktop widgets tilt slightly toward the pointer",
-        "Fixed: the Dock's own clear look was being overridden by the shared glass style"
+        "Fixed: the Dock's own clear look was being overridden by the shared glass style",
+        "Glass on dark wallpapers has a quiet edge instead of a bright frame"
       ],
       "fr": [
         "Liquid Glass est beaucoup plus transparent : le Dock floute à peine, le fond d’écran se voit au travers, et les menus, le Centre de contrôle et les notifications laissent passer bien plus tout en gardant un texte net",
@@ -25,10 +26,10 @@
         "Sur les fonds d’écran très chargés, le verre qui porte du texte devient un peu plus dépoli pour que le texte reste facile à lire",
         "Les boutons, éléments de menu, tuiles et icônes s’enfoncent dans le verre quand vous appuyez dessus",
         "Les tuiles du Centre de contrôle et les widgets du bureau s’inclinent légèrement vers le pointeur",
-        "Corrigé : l’aspect clair du Dock était remplacé par le style de verre commun"
+        "Corrigé : l’aspect clair du Dock était remplacé par le style de verre commun",
+        "Le verre sur les fonds d’écran sombres a un bord discret au lieu d’un cadre lumineux"
       ]
-    },
-    "beta": 3
+    }
   },
   {
     "version": "2.2.0",
