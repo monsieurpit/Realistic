@@ -156,7 +156,7 @@
   const motion = { calm: null, natural: null, playful: null };
   PatOS.motion = {
     get() { const m = PatOS.settings.motion in SPRINGS ? PatOS.settings.motion : 'natural'; return motion[m] || (motion[m] = springCurve(...SPRINGS[m])); },
-    apply() { const m = PatOS.motion.get(), r = document.documentElement.style; r.setProperty('--spring', m.easing); r.setProperty('--spring-dur', m.dur + 'ms'); r.setProperty('--spring-dur-short', Math.round(m.dur * .6) + 'ms'); }
+    apply() { const m = PatOS.motion.get(), r = document.documentElement.style; r.setProperty('--spring', m.easing); r.setProperty('--spring-dur', m.dur + 'ms'); r.setProperty('--spring-dur-short', Math.min(400, Math.round(m.dur * .6)) + 'ms'); }
   };
   PatOS.motion.apply(); PatOS.on('setting:motion', () => PatOS.motion.apply());
 
@@ -295,7 +295,7 @@
   function animateTo(win, r) {
     win.el.classList.add('animating');
     Object.assign(win.el.style, { left: r.x + 'px', top: r.y + 'px', width: r.w + 'px', height: r.h + 'px' });
-    clearTimeout(win._animT); win._animT = setTimeout(() => win.el.classList.remove('animating'), PatOS.motion.get().dur);
+    clearTimeout(win._animT); win._animT = setTimeout(() => win.el.classList.remove('animating'), Math.min(400, Math.round(PatOS.motion.get().dur * .6)) + 20);
   }
   function setMax(win, on) {
     win.maximized = on;
