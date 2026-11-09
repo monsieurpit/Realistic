@@ -1,0 +1,264 @@
+// Device Lab (PitCode): the look. The colors follow the system through --patos-bg, --patos-text and --patos-accent.
+
+pit soft = "color-mix(in srgb, var(--patos-text) 6%, transparent)"
+pit line = "color-mix(in srgb, var(--patos-text) 12%, transparent)"
+pit fill = "color-mix(in srgb, var(--patos-text) 14%, transparent)"
+
+style * {
+  box-sizing: border-box
+}
+
+style body {
+  padding: 14 16 40
+  max-width: 1100
+  margin: 0 auto
+}
+
+style h1 {
+  margin: 0
+  font-size: 24
+}
+
+style h2 {
+  margin: 0 0 2
+  font-size: 16
+}
+
+style .sub {
+  margin: 2 0 0
+  opacity: 0.7
+  font-size: 12.5
+}
+
+style .top {
+  display: flex
+  arrange: space-between
+  align: center
+  gap: 12
+  wrap: wrap
+  margin-bottom: 12
+}
+
+style .actions {
+  display: flex
+  gap: 8
+  wrap: wrap
+}
+
+style .perms {
+  display: flex
+  gap: 6
+  wrap: wrap
+  margin-bottom: 14
+}
+
+style .chip {
+  display: inline-flex
+  align: center
+  gap: 6
+  padding: 4 10
+  corners: 14
+  font-size: 12
+  background: {fill}
+
+  style i {
+    width: 8
+    height: 8
+    corners: 50%
+    background: #8e8e93
+    display: inline-block
+  }
+
+  style &.ok i {
+    background: #34c759
+  }
+
+  style &.no i {
+    background: #ff453a
+  }
+
+  style &.warn i {
+    background: #ff9f0a
+  }
+}
+
+style .grid {
+  display: grid
+  column-sizes: repeat(auto-fill, minmax(320px, 1fr))
+  gap: 12
+}
+
+style .card {
+  padding: 12 14 14
+  corners: 14
+  background: {soft}
+  border: 1 solid {line}
+  display: flex
+  flow: column
+  gap: 8
+  min-width: 0
+}
+
+style .card.wide {
+  grid-column: 1 / -1
+}
+
+style .hint {
+  margin: 0
+  opacity: 0.65
+  font-size: 12
+}
+
+style .row {
+  display: flex
+  gap: 6
+  wrap: wrap
+  align: center
+
+  style input, select {
+    flex: 1
+    min-width: 110
+  }
+}
+
+style input, textarea, select {
+  font: inherit
+  text-color: inherit
+  padding: 7 9
+  corners: 8
+  border: 1 solid {line}
+  background: transparent
+  width: 100%
+}
+
+style textarea {
+  resize: vertical
+}
+
+style .btn {
+  font: inherit
+  padding: 7 13
+  corners: 8
+  border: 0
+  cursor: hand
+  text-color: var(--patos-text)
+  background: {fill}
+
+  style &.primary {
+    background: var(--patos-accent)
+    text-color: #ffffff
+  }
+
+  style &.danger {
+    text-color: #ff453a
+  }
+
+  style &:disabled {
+    opacity: 0.4
+    cursor: default
+  }
+}
+
+style .out {
+  margin: 0
+  min-height: 18
+  max-height: 190
+  overflow: auto
+  white-space: pre-wrap
+  word-break: break-word
+  font: 12 / 1.45 ui-monospace, Menlo, Consolas, monospace
+  opacity: 0.9
+
+  style &.err {
+    text-color: #ff453a
+  }
+
+  style &.ok {
+    text-color: #30b350
+  }
+}
+
+style .photo {
+  max-width: 100%
+  corners: 10
+  display: block
+}
+
+style .gallery {
+  display: flex
+  gap: 6
+  wrap: wrap
+
+  style img {
+    width: 64
+    height: 64
+    fit: cover
+    corners: 8
+    cursor: hand
+  }
+}
+
+style .files {
+  display: flex
+  flow: column
+  gap: 3
+
+  style button {
+    text-align: left
+    font: inherit
+    padding: 5 8
+    border: 0
+    corners: 6
+    background: {soft}
+    text-color: inherit
+    cursor: hand
+    display: flex
+    arrange: space-between
+    gap: 8
+  }
+}
+
+style .meter {
+  height: 8
+  corners: 4
+  background: {line}
+  overflow: hidden
+
+  style div {
+    height: 100%
+    background: var(--patos-accent)
+    transition: width 0.2s linear
+  }
+}
+
+style .stat {
+  font-size: 13
+}
+
+style .swatches {
+  display: flex
+  gap: 8
+
+  style div {
+    flex: 1
+    height: 36
+    corners: 8
+    font-size: 11
+    display: grid
+    place-items: center
+    border: 1 solid {line}
+  }
+}
+
+style .report {
+  margin: 0
+  padding-left: 22
+  display: flex
+  flow: column
+  gap: 3
+  font-size: 13
+
+  style small {
+    opacity: 0.65
+  }
+}
