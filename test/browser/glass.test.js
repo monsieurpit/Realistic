@@ -26,8 +26,8 @@ test('the glass is see-through, the Dock bends at its edges, and only titlebars 
   await page.evaluate(() => PatOS.launch('textedit')); await page.waitForSelector('.window .titlebar'); await page.waitForTimeout(400);
   const g = await look(page);
   assert.match(g.cls, /\blg-on\b/); assert.match(g.cls, /\blg-refract\b/, 'Chromium gets the lens');
-  assert.match(g.dock, /blur\(0\.8px\)/, 'the Dock is the clear tier (barely blurred): ' + g.dock);
-  assert.match(g.dock, /saturate\(1\.4\) brightness\(1\.06\)/, 'the clear tier\'s own look wins over the shared rule: ' + g.dock);
+  assert.match(g.dock, /blur\(0\.6px\)/, 'the Dock is the clear tier (barely blurred): ' + g.dock);
+  assert.match(g.dock, /saturate\(1\.3\) brightness\(1\.05\)/, 'the clear tier\'s own look wins over the shared rule: ' + g.dock);
   assert.match(g.dock, /url\("?#lg-lens-\d+"?\)/, 'the Dock uses a lens made for its size: ' + g.dock);
   const filterOk = await page.evaluate((id) => { const f = document.getElementById(id); return !!(f && f.querySelector('feImage') && f.querySelector('feDisplacementMap')); }, g.lens.replace(/^url\(#|\)$/g, ''));
   assert.ok(filterOk, 'the lens filter exists: ' + g.lens);
@@ -78,31 +78,34 @@ test('a notification does not cover an open Control Center', { skip: skipNoBrows
 test('every glass surface is a thick pane: Control Center tiles and menus get a lens, and their rim takes the color behind them', { skip: skipNoBrowser }, async () => {
   const page = await b.newPage({ viewport: { width: 1280, height: 800 } }); const errors = await boot(page, srv.base, { fresh: true });
   await page.click('#mb-cc'); await page.waitForSelector('#control-center:not(.hidden) .cc-tile'); await page.waitForTimeout(400);
-  const tile = await page.evaluate(() => { const t = document.querySelector('#control-center .cc-tile'); const a = getComputedStyle(t, '::after');
-    return { lens: t.style.getPropertyValue('--lg-lens'), bf: getComputedStyle(t).backdropFilter, rim: a.backdropFilter, rimBg: a.backgroundColor }; });
+  const tile = await page.evaluate(() => { const t = document.querySelector('#control-center .cc-tile'); const id = t.style.getPropertyValue('--lg-lens').replace(/^url\(#|\)$/g, ''); const f = document.getElementById(id);
+    return { lens: t.style.getPropertyValue('--lg-lens'), bf: getComputedStyle(t).backdropFilter, sat: f && f.querySelector('feColorMatrix[type="saturate"]') && f.querySelector('feColorMatrix').getAttribute('values'),
+      masks: f ? f.querySelectorAll('feImage').length : 0, flood: f && f.querySelector('feFlood').getAttribute('flood-color'), after: getComputedStyle(t, '::after').content }; });
   assert.match(tile.lens, /^url\(#lg-lens-\d+\)$/, 'a tile has its own lens');
   assert.match(tile.bf, /url\(/, 'and uses it: ' + tile.bf);
-  assert.match(tile.rim, /saturate\(2\.1\)/, 'the rim deepens what is behind: ' + tile.rim);
-  assert.equal(tile.rimBg, 'rgba(0, 0, 0, 0)', 'the rim adds no color of its own');
+  assert.ok(Number(tile.sat) > 1, 'the rim is a more saturated copy of what is behind (no color of its own): ' + tile.sat);
+  assert.equal(tile.masks, 2, 'one picture bends, one says where the rim is');
+  assert.equal(tile.flood, 'rgb(128,128,128)', 'where the map is missing nothing moves (no flashing bar)');
+  assert.equal(tile.after, 'none', 'with the lens, no stand-in shade is drawn on top');
   await page.keyboard.press('Escape'); await page.click('.mb-logo'); await page.waitForSelector('.menu'); await page.waitForTimeout(300);
   assert.match(await page.evaluate(() => document.querySelector('.menu').style.getPropertyValue('--lg-lens')), /lg-lens/, 'a menu that just opened gets a lens too');
   assert.deepEqual(errors, []); await page.close();
 });
 
-test('one light for all the glass, readable words over busy pictures, and glass that sinks when pressed', { skip: skipNoBrowser }, async () => {
+test('one fixed light for all the glass, readable words over busy pictures, and glass that sinks when pressed', { skip: skipNoBrowser }, async () => {
   const page = await b.newPage({ viewport: { width: 1280, height: 800 } }); const errors = await boot(page, srv.base, { fresh: true });
   // the light leans toward the pointer
   const angle = () => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--g-angle').trim());
   await page.mouse.move(20, 400); await page.waitForTimeout(50); const left = await angle();
   await page.mouse.move(1260, 400); await page.waitForTimeout(50); const right = await angle();
-  assert.equal(left, '120deg'); assert.equal(right, '240deg');
+  assert.equal(left, '150deg'); assert.equal(right, '150deg', 'the light stays put (a moving light made the rims jump)');
   // a smooth wallpaper is not busy; a picture full of fine detail is, and glass with words thickens over it
   await page.evaluate(() => PatOS.setSetting('wallpaper', 'sunrise')); await page.waitForTimeout(400);
   assert.equal(await page.evaluate(() => document.documentElement.dataset.wpBusy || null), null);
   const busy = await page.evaluate(() => { const c = document.createElement('canvas'); c.width = 960; c.height = 640; const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, 960, 640); x.fillStyle = '#000'; for (let i = 0; i < 960; i += 20) for (let j = 0; j < 640; j += 20) if ((i + j) % 40 === 0) x.fillRect(i, j, 20, 20); return c.toDataURL('image/png'); });
   await page.evaluate((u) => { PatOS.setSetting('customWallpaper', u); PatOS.setSetting('wallpaper', 'custom'); }, busy); await page.waitForTimeout(800);
   assert.equal(await page.evaluate(() => document.documentElement.dataset.wpBusy || null), '1');
-  assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--g-blur').trim()), '22px');
+  assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--g-blur').trim()), '14px');
   // pressing a Control Center tile pushes it in: the shade moves inside the top edge
   await page.click('#mb-cc'); await page.waitForSelector('#control-center:not(.hidden) .cc-tile'); await page.waitForTimeout(300);
   const box = await page.locator('#control-center .cc-tile').nth(2).boundingBox();

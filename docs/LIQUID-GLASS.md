@@ -7,9 +7,9 @@ Apps never make their own glass: they use a tier.
 
 | Tier | Used for | Blur | Tint (dark / light) |
 | --- | --- | --- | --- |
-| **clear** | Dock, phone dock, app switcher, Launchpad search (`.lg-clear`): bars of icons, not text | 1.5px | 5% / 12% white, a thick bright bevel |
-| **regular** | desktop widgets, Control Center tiles, notifications, segmented controls, Dock labels (`.lg`) | 20px | 42% / 50% |
-| **elevated** | menus, Spotlight, dialogs, Pat, the notification list (`.lg-elevated`) | 32px | 66% / 74% |
+| **clear** | Dock, phone dock, app switcher, Launchpad search (`.lg-clear`): bars of icons, not text | 0.6px | 5% / 12% white, a thick bright bevel |
+| **regular** | desktop widgets, Control Center tiles, notifications, segmented controls, Dock labels (`.lg`) | 1.2px (14px over busy wallpapers) | 42% / 50% |
+| **elevated** | menus, Spotlight, dialogs, Pat, the notification list (`.lg-elevated`) | 10px (22px over busy wallpapers) | 66% / 74% |
 
 Each tier is an **alpha tint** (never `opacity` on the element, so words and icons stay fully opaque) over the real backdrop,
 blurred, saturated (×1.9) and slightly brightened, plus a specular rim (a masked gradient border that catches light at two
@@ -18,35 +18,32 @@ corners), a soft inner highlight that follows the pointer (`--mx`/`--my`), and a
 
 **Tinted** (Settings › Appearance › Glass style) raises every tint for more contrast, for busy wallpapers.
 
-## Thick glass (2.2.1)
+## Thick glass (2.2.2)
 
-Every glass surface is drawn as a thick, curved slab rather than a flat sheet:
+Modeled on a thick gel slab lit from above (the reference was an iOS lock screen: a pink clock slab and a flashlight/camera
+pill over a pink picture). Read part by part, and how each is made:
 
-- **Bevel**: a bright top lip and a glow just inside the edge, a shaded bottom lip (`--g-depth`).
-- **Thickness color**: `::after` is a band about 8–16px wide along every edge that re-reads the glass itself
-  (an element with `backdrop-filter` is the backdrop of its own `::after`) more saturated and a little darker. The rim
-  therefore takes the color of whatever is behind it, deeper, like light crossing more glass. It adds no color of its own.
-- **Bulging face**: brighter toward the top left and wherever the pointer is, a little darker toward the bottom right.
-- **Float**: a three-layer shadow (contact, near, far).
-- **Lens on every surface** (Chromium): menus, Control Center tiles, notifications, widgets, Spotlight, dialogs, not just
-  the Dock. The edge follows a quarter circle (flat face, steepest at the rim). Surfaces that appear later (menus,
-  notifications) are found by a MutationObserver and get their lens as soon as they are laid out.
-- **Tilt**: Control Center tiles and desktop widgets tilt up to 5° toward the pointer (not with Fewer animations).
-- **Same rim on every size**: the rim band and the lens both use `--g-rim-w` (11px, at most 30% of a small surface), so a
-  tiny tile and a wide panel look cut from the same glass.
-- **Caustic**: a bright curved line just inside the bottom edge (light focused by the rounded rim), strongest on the side away
-  from the light, and a fainter arc along the top lip.
-- **One light**: `--g-angle`, `--g-lx`, `--g-dx` place a single light above the screen that leans toward the pointer in 15°
-  steps (only 7 positions, so styles are rarely recalculated). Every rim, sheen and caustic is drawn from it.
-- **Busy wallpapers**: `readTone` also measures how much fine detail the wallpaper has (average brightness jump between
-  neighbouring pixels of a 48×32 copy). Over a busy picture (`html[data-wp-busy]`), glass that holds words blurs 22–32px
-  and gets a little more tint, and words get a stronger halo. The Dock stays clear.
-- **Highlights follow the light that is there** (`--g-glint`): every white rim, lip and glint is scaled by 1 over light
-  wallpapers, .75 in dark mode and .4 over a dark wallpaper, so glass on a night sky has a quiet edge, not a glowing frame.
-- **Pressed in**: buttons, menu items, tiles, toggles and app icons sink when pressed (shade moves inside the top edge, light to
-  the bottom, a slight darkening and shrink).
+| In the reference | In PatOS |
+| --- | --- |
+| A milky body, slightly lighter than what is behind, almost no blur | The tier's tint over the backdrop (clear 0.6px blur, regular 1.2px, elevated 10px because menus hold text), a milky top half |
+| The whole slab magnifies; the digits stretch toward the edges | The lens (Chromium) is a dome: the face magnifies 10% (at most 14px of shift), and a quarter-circle rim `--g-rim-w` wide bends hardest |
+| Sides and bottom are a deeper, more saturated version of the color behind | Inside the lens filter: a copy of the bent backdrop, saturated ×3.2 and darkened to 72%, laid on through a rim picture (bottom full, sides half, top none). The color is always the background's |
+| A soft white band hugging the top curve and the upper corners | `::before` inset shadows (they follow the rounded corners) |
+| A thin bright line just inside the bottom edge | A 1.5px inset highlight hugging the bottom curve |
+| No outline | No border or ring anywhere |
+| A soft shadow below | Three outer shadows offset downward |
 
-All of it is turned off by Reduce transparency, forced colors and Speed mode.
+White highlights are scaled by `--g-glint` (1 over light wallpapers, .75 in dark mode, .4 over dark wallpapers), so glass on a
+night sky has a quiet edge, not a glowing frame. Over a busy wallpaper (`html[data-wp-busy]`, measured once per wallpaper),
+regular glass frosts to 14px and menus to 22px so words stay readable. Tiles and widgets tilt up to 5° toward the pointer and
+everything you press sinks in.
+
+**What did not work, and why it changed:** 2.2.1 tried to make the deeper rim with a `::after` whose `backdrop-filter`
+re-read the glass. In Chromium the backdrop of a glass element's own `::after` is empty, so that rim never appeared (tested by
+darkening it to 20%: nothing changed). It now lives in the lens filter, which has the real backdrop. Without the lens (other
+browsers), a soft neutral shade along the bottom and sides stands in. 2.2.1 also moved the light with the pointer in steps,
+which made rims jump; the light is fixed at the upper left. And a missing map used to read as "shift everything", flashing a
+bar along an edge while the Dock magnified; a flat 128 grey under the map now means "do not move".
 
 ## Lens edges (refraction)
 

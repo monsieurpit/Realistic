@@ -1118,12 +1118,22 @@
     const maps = new Map(); // "w×h×r" -> filter id
     let svg = null, ro = null, n = 0;
     const on = () => document.documentElement.classList.contains('lg-refract');
-    function sdfMap(W, H, R, B) {
+    /* The lens is a dome, read from a thick gel slab: the whole face magnifies a little (the middle samples closer to the
+       centre), and along the rounded rim the glass bends hardest (a quarter circle: flat face, steepest at the very edge).
+       Returns the map (red = sideways, green = up/down, 128 = no move) and the filter scale that the map is encoded for. */
+    const MAG = 1.1, MAG_MAX = 14; // 10% bigger, but never more than 14px of shift (so wide bars like the Dock don't swim)
+    function domeMap(W, H, R, B) {
       const q = W * H > 60000 ? 2 : 1; // big panes: draw the (smooth) map at half size, the filter stretches it back
-      const w = Math.ceil(W / q), hh = Math.ceil(H / q); let r = R / q; const bezel = B / q;
+      const w = Math.ceil(W / q), hh = Math.ceil(H / q), bezel = B / q; const r = Math.min(R / q, w / 2, hh / 2);
+      const magX = Math.min(W / 2 * (1 - 1 / MAG), MAG_MAX), magY = Math.min(H / 2 * (1 - 1 / MAG), MAG_MAX); // in screen px
+      const rim = B * 1.3; // the rim's strongest bend, in screen px
+      const scale = 2 * (rim + Math.max(magX, magY)); // the largest shift fits in 0..255
       const c = document.createElement('canvas'); c.width = w; c.height = hh;
       const x = c.getContext('2d'); const d = x.createImageData(w, hh); const a = d.data;
-      r = Math.min(r, w / 2, hh / 2);
+      // second picture: where the glass is thick enough to deepen the color behind it (white, with alpha = how much):
+      // a band along the edge, strongest at the bottom, half on the sides, none at the top (the top is where light enters)
+      const c2 = document.createElement('canvas'); c2.width = w; c2.height = hh;
+      const x2 = c2.getContext('2d'); const d2 = x2.createImageData(w, hh); const a2 = d2.data;
       for (let j = 0; j < hh; j++) {
         for (let i = 0; i < w; i++) {
           const px = i + 0.5 - w / 2, py = j + 0.5 - hh / 2;
@@ -1131,25 +1141,46 @@
           const ox = Math.max(qx, 0), oy = Math.max(qy, 0);
           const dist = -(Math.hypot(ox, oy) + Math.min(Math.max(qx, qy), 0) - r); // how far inside the rounded edge
           const u = 1 - Math.min(1, Math.max(0, dist / bezel)); // 1 at the rim, 0 where the flat face starts
-          const k = 1 - Math.sqrt(1 - u * u); // a rounded (quarter-circle) edge: flat face, steepest right at the rim, like a thick slab // 1 at the rim, 0 in the clear middle
+          const k = 1 - Math.sqrt(1 - u * u); // quarter circle
           let nx = 0, ny = 0;
           if (qx > 0 && qy > 0) { const l = Math.hypot(ox, oy) || 1; nx = ox / l * Math.sign(px); ny = oy / l * Math.sign(py); }
           else if (qx > qy) nx = Math.sign(px); else ny = Math.sign(py);
+          // where this pixel looks, in screen px: toward the centre (magnify) plus inward at the rim (bend)
+          const dx = -(px / (w / 2)) * magX - nx * k * rim, dy = -(py / (hh / 2)) * magY - ny * k * rim;
           const o = (j * w + i) * 4;
-          a[o] = 128 - nx * k * 127; a[o + 1] = 128 - ny * k * 127; a[o + 2] = 128; a[o + 3] = 255;
+          a[o] = Math.max(0, Math.min(255, Math.round(128 + 255 * dx / scale)));
+          a[o + 1] = Math.max(0, Math.min(255, Math.round(128 + 255 * dy / scale)));
+          a[o + 2] = 128; a[o + 3] = 255;
+          const t = 1 - Math.min(1, Math.max(0, dist / (bezel * 1.7))), side = Math.min(1, Math.max(0, 0.5 + 0.55 * ny));
+          a2[o] = a2[o + 1] = a2[o + 2] = 255; a2[o + 3] = Math.round(255 * Math.pow(t, 1.25) * side);
         }
       }
-      x.putImageData(d, 0, 0); return c.toDataURL();
+      x.putImageData(d, 0, 0); x2.putImageData(d2, 0, 0);
+      return { url: c.toDataURL(), rim: c2.toDataURL(), scale: Math.round(scale) };
     }
-    const rimW = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--g-rim-w')) || 11;
+    const rimW = () => parseFloat(getComputedStyle(document.documentElement).getPropertyValue('--g-rim-w')) || 14;
     function filterFor(w, hh, r) {
       const key = w + 'x' + hh + 'x' + r; if (maps.has(key)) return maps.get(key);
       if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('width', '0'); svg.setAttribute('height', '0'); svg.setAttribute('aria-hidden', 'true'); svg.style.position = 'absolute'; document.body.appendChild(svg); }
       if (maps.size > 48) { maps.clear(); svg.innerHTML = ''; } // sizes change rarely; never let old maps pile up
-      const id = 'lg-lens-' + (++n), bezel = Math.round(Math.min(rimW(), Math.min(w, hh) * 0.3)), scale = Math.round(bezel * 2.8); // the same rim width as the CSS (--g-rim-w)
+      const id = 'lg-lens-' + (++n), bezel = Math.round(Math.min(rimW(), Math.min(w, hh) * 0.32)); // the same rim width as the CSS (--g-rim-w)
+      const m = domeMap(w, hh, r, bezel);
       svg.insertAdjacentHTML('beforeend', '<filter id="' + id + '" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">' +
-        '<feImage href="' + sdfMap(w, hh, r, bezel) + '" x="0" y="0" width="' + w + '" height="' + hh + '" preserveAspectRatio="none" result="map"/>' +
-        '<feDisplacementMap in="SourceGraphic" in2="map" scale="' + scale + '" xChannelSelector="R" yChannelSelector="G"/></filter>');
+        // under the map, a flat 128 grey (= "do not move"). Wherever the map is missing (the frames before its picture is
+        // decoded, or the part of a surface that has just grown, like the Dock while it magnifies) nothing moves. Without it,
+        // missing map reads as 0, which shifts that strip sideways and flashes a bar along the edge.
+        '<feFlood flood-color="rgb(128,128,128)" result="still"/>' +
+        '<feImage href="' + m.url + '" x="0" y="0" width="' + w + '" height="' + hh + '" preserveAspectRatio="none" result="img"/>' +
+        '<feComposite in="img" in2="still" operator="over" result="map"/>' +
+        '<feDisplacementMap in="SourceGraphic" in2="map" scale="' + m.scale + '" xChannelSelector="R" yChannelSelector="G" result="bent"/>' +
+        // thickness: light that crosses more glass comes out deeper and more colorful. A deeper, more saturated copy of what is
+        // behind is laid over the bent picture through the rim picture (bottom strongest, sides half, top none). The color is
+        // always the background's own. (This has to happen here: a ::after can't re-read the backdrop of glass in Chromium.)
+        '<feColorMatrix in="bent" type="saturate" values="3.2" result="sat"/>' +
+        '<feComponentTransfer in="sat" result="deep"><feFuncR type="linear" slope=".72"/><feFuncG type="linear" slope=".72"/><feFuncB type="linear" slope=".72"/></feComponentTransfer>' +
+        '<feImage href="' + m.rim + '" x="0" y="0" width="' + w + '" height="' + hh + '" preserveAspectRatio="none" result="rimMask"/>' +
+        '<feComposite in="deep" in2="rimMask" operator="in" result="rim"/>' +
+        '<feComposite in="rim" in2="bent" operator="over"/></filter>');
       maps.set(key, id); return id;
     }
     function fit(el) {
@@ -1193,19 +1224,8 @@
     }
   }, { passive: true });
   document.addEventListener('pointerleave', untilt);
-  /* 3. one light for all the glass. It sits above the screen and leans toward the pointer: every rim, sheen and caustic is
-     drawn from it, so highlights agree with each other. It only moves in 15° steps, and never with Fewer animations. */
-  let lightStep = null;
-  document.addEventListener('pointermove', (e) => {
-    const root = document.documentElement;
-    if (e.pointerType === 'touch' || !root.classList.contains('lg-on') || root.classList.contains('reduce-motion')) return;
-    const fx = e.clientX / innerWidth; // 0 (left) .. 1 (right)
-    const step = Math.round(fx * 6); if (step === lightStep) return; lightStep = step;
-    const f = step / 6; // light from the upper left (pointer left) to the upper right (pointer right)
-    root.style.setProperty('--g-angle', Math.round(120 + f * 120) + 'deg');
-    root.style.setProperty('--g-lx', Math.round(15 + f * 70) + '%');
-    root.style.setProperty('--g-dx', Math.round(85 - f * 70) + '%');
-  }, { passive: true });
+  /* (one light for all the glass: --g-angle in css/glass.css, fixed at the upper left. It used to lean toward the pointer in
+     15° steps, but every step made the rims jump, so it stays put.) */
 
   function setupKeys() {
     document.addEventListener('keydown', (e) => {

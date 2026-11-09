@@ -1,5 +1,30 @@
 [
   {
+    "version": "2.2.2",
+    "beta": 1,
+    "date": "2026-11-09",
+    "title": {
+      "en": "Liquid Glass without the light bar",
+      "fr": "Liquid Glass sans la barre de lumière"
+    },
+    "notes": {
+      "en": [
+        "Liquid Glass rebuilt after a careful look at thick glass: every glass panel magnifies what is behind it a little, its edges bend it harder, its bottom and sides take a deeper, richer version of the color behind it, a soft shine follows its top curve and a thin bright line its bottom, with no outline at all",
+        "Glass is crisper: what is behind tiles and widgets stays sharp (it frosts more only over very busy wallpapers, so words stay readable)",
+        "Fixed: a bright bar could flash along glass edges (for example while the Dock magnified)",
+        "Fixed: the light no longer jumps when the pointer moves",
+        "Fixed: the deeper colored rim of 2.2.1 never actually appeared in Chrome; it does now"
+      ],
+      "fr": [
+        "Liquid Glass refait après une étude attentive du verre épais : chaque panneau de verre grossit un peu ce qui est derrière, ses bords le courbent davantage, son bas et ses côtés prennent une version plus profonde et plus riche de la couleur derrière, un reflet doux suit sa courbe du haut et une fine ligne claire celle du bas, sans aucun contour",
+        "Le verre est plus net : ce qui est derrière les tuiles et les widgets reste net (il ne se dépolit plus que sur les fonds très chargés, pour que le texte reste lisible)",
+        "Corrigé : une barre claire pouvait clignoter le long des bords du verre (par exemple quand le Dock grossit)",
+        "Corrigé : la lumière ne saute plus quand le pointeur bouge",
+        "Corrigé : le bord coloré plus profond de la 2.2.1 n’apparaissait jamais dans Chrome ; il apparaît maintenant"
+      ]
+    }
+  },
+  {
     "version": "2.2.1",
     "date": "2026-11-09",
     "title": {
