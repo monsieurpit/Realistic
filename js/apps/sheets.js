@@ -43,7 +43,7 @@
     SUMIF: (range, crit, sumRange) => { const r = flat([range]), s = sumRange ? flat([sumRange]) : r; return r.reduce((t, v, i) => t + (matchCrit(v, crit) ? num(s[i]) : 0), 0); },
     AVERAGEIF: (range, crit, avgRange) => { const r = flat([range]), s = avgRange ? flat([avgRange]) : r; let t = 0, n = 0; r.forEach((v, i) => { if (matchCrit(v, crit)) { t += num(s[i]); n++; } }); return n ? t / n : '#DIV/0!'; },
     VLOOKUP: (key, range, col, rangeLookup) => {
-      // like Excel and Google Sheets: the 4th argument FALSE means exact match; text keys always match exactly
+      // like Excel and (as in other spreadsheets) the 4th argument FALSE means exact match; text keys always match exactly
       const rs = rows2d(range); const c = num(col) - 1;
       const approx = (rangeLookup === undefined ? true : !!rangeLookup) && key !== '' && !isNaN(+key);
       if (!approx) { for (const row of rs) if (String(row[0]).toLowerCase() === String(key).toLowerCase()) return row[c] ?? '#REF!'; return '#N/A'; }
@@ -118,14 +118,14 @@
   ];
 
   PatOS.registerApp({
-    id: 'sheets', name: 'Sheets', icon: 'sheets', single: false, width: 1100, height: 720, category: 'Office', keywords: 'spreadsheet excel table formulas google sheets numbers tableur',
+    id: 'sheets', name: 'Tables', icon: 'sheets', single: false, width: 1100, height: 720, category: 'Office', keywords: 'spreadsheet excel table formulas sheets numbers tableur',
     about: 'Spreadsheets with formulas, several sheets, charts and a fill handle.',
     launch(win, args) {
       win.el.classList.add('office-win', 'sx-win');
-      win.setTitle(T('Sheets'));
+      win.setTitle(T('Tables'));
       if (args.path) return openSheet(win, args.path);
       PatOS.office.startScreen(win, {
-        title: 'Sheets', icon: 'sheets', ext: ['psheet', 'csv'], templates: TEMPLATES,
+        title: 'Tables', icon: 'sheets', ext: ['psheet', 'csv'], templates: TEMPLATES,
         onCreate: (t) => { const p = PatOS.newDocPath('/Documents', t.name === 'Blank spreadsheet' ? 'Untitled spreadsheet' : t.name, 'psheet'); PatOS.fs.write(p, JSON.stringify({ sheets: [{ name: T('Sheet') + ' 1', cells: t.cells(), colW: {} }], active: 0 })); openSheet(win, p); },
         onOpen: (p) => openSheet(win, p),
         importLabel: 'Open an Excel file…', importAccept: '.xlsx,.csv', onImportFile: async (file) => { if (/\.csv$/i.test(file.name)) { const p = '/Documents/' + PatOS.fs.uniqueName('/Documents', file.name); PatOS.fs.write(p, await file.text()); return p; } return (await PatOS.importOffice(file, file.name)).path; }
@@ -429,7 +429,7 @@
       const layer = h('div', { class: 'dlg-layer' }, h('div', { class: 'dlg sh-chartbox' }, h('div', { class: 'sx-chead' }, h('b', {}, T('Chart')), typeBtns), cv, h('div', { class: 'dlg-btns' }, h('button', { class: 'btn', onclick: () => { const nm = PatOS.fs.uniqueName('/Pictures', T('Chart') + '.png'); PatOS.fs.write('/Pictures/' + nm, cv.toDataURL('image/png')); OF.toast(win, T('Saved to Pictures')); } }, T('Save to Pictures')), h('button', { class: 'btn primary', onclick: () => layer.remove() }, T('Done')))));
       layer.addEventListener('click', (e) => { if (e.target === layer) layer.remove(); });
       document.body.appendChild(layer);
-      const COLORS = ['#1a73e8', '#34a853', '#fbbc04', '#ea4335', '#9334e6', '#12b5cb', '#e8710a', '#c5221f'];
+      const COLORS = ['#3b7cff', '#30b46c', '#ffb020', '#ff4d4f', '#a35cff', '#25b9d6', '#ff8a1f', '#e0353b'];
       function draw() {
         const x = cv.getContext('2d'), W = 1200, H = 640; x.setTransform(1, 0, 0, 1, 0, 0); x.clearRect(0, 0, W, H); x.fillStyle = '#fff'; x.fillRect(0, 0, W, H);
         x.font = '22px system-ui'; x.textBaseline = 'middle';

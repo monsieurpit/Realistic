@@ -18,8 +18,8 @@
     { t: 'Classroom', u: 'https://classroom.google.com/' },
     { t: 'Wikipedia', u: 'https://en.wikipedia.org/wiki/Main_Page', i: 'W' },
     { t: 'YouTube', app: 'youtube', i: 'youtube' },
-    { t: 'Docs', app: 'docs', i: 'docs' },
-    { t: 'Drive', app: 'drive', i: 'drive' },
+    { t: 'Write', app: 'docs', i: 'docs' },
+    { t: 'Cloud', app: 'drive', i: 'drive' },
     { t: 'Translate', app: 'translate', i: 'translate' },
     { t: 'Maps', app: 'maps', i: 'maps' },
     { t: 'three.js', u: 'https://threejs.org/examples/', i: '3' }

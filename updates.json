@@ -1,7 +1,7 @@
 [
   {
     "version": "2.3.1",
-    "beta": 2,
+    "beta": 3,
     "date": "2026-11-09",
     "title": {
       "en": "Drawn glass icons",
@@ -9,6 +9,7 @@
     },
     "notes": {
       "en": [
+        "Our office apps have their own names and look: Docs is now Write, Sheets is Tables, Slides is Stage, Forms is Surveys and Drive is Cloud. Each has its own color and a new start screen; your documents open as before",
         "Every PatOS app has a new icon, drawn like real glass on a dark graphite tile: each picture is a see-through glass object in the app's color that glows brighter toward the bottom, with a bright rim on top and a soft halo of light around it (57 icons: Finder, Messages, Notes, Music, Photos, Calendar, Clock, Weather, Settings, the games and all the others)",
         "Docs, Sheets, Slides, Forms and Drive have their own glass icons (they no longer look like Google's)",
         "Files and folders are drawn in glass too: folders, documents with their file type, pictures, music and links",
@@ -19,6 +20,7 @@
         "Google apps and YouTube keep their own logos"
       ],
       "fr": [
+        "Nos apps de bureautique ont leurs propres noms et leur propre style : Docs devient Écrire, Sheets devient Tableaux, Slides devient Scène, Forms devient Sondages et Drive devient Nuage. Chacune a sa couleur et un nouvel écran d’accueil ; vos documents s’ouvrent comme avant",
         "Chaque app PatOS a une nouvelle icône, dessinée comme du vrai verre sur une tuile graphite sombre : chaque dessin est un objet en verre transparent de la couleur de l’app, qui brille de plus en plus vers le bas, avec un bord lumineux en haut et un doux halo de lumière autour (57 icônes : Finder, Messages, Notes, Musique, Photos, Calendrier, Horloge, Météo, Réglages, les jeux et toutes les autres)",
         "Documents, Feuilles, Présentations, Formulaires et Drive ont leurs propres icônes en verre (elles ne ressemblent plus à celles de Google)",
         "Les fichiers et les dossiers sont aussi dessinés en verre : dossiers, documents avec leur type, images, musique et liens",

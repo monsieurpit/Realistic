@@ -533,6 +533,7 @@
     warn: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
     check: '<path d="M4 12l5 5L20 6"/>',
     star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+    list: '<rect x="3.5" y="4.5" width="17" height="15" rx="2.5"/><circle cx="8" cy="9.5" r="1"/><circle cx="8" cy="14.5" r="1"/><path d="M11 9.5h6M11 14.5h6"/>',
     cloud: '<path d="M7 18a5 5 0 0 1-.7-9.9A6 6 0 0 1 18 8a4.5 4.5 0 0 1-.5 10z"/>',
     sunny: '<circle cx="12" cy="12" r="4.5" fill="#ffd60a" stroke="#ffb300"/><path stroke="#ffb300" d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/>',
     partly: '<circle cx="9" cy="9" r="3.5" fill="#ffd60a" stroke="#ffb300"/><path d="M9 20a4 4 0 0 1-.5-8 5 5 0 0 1 9.6.7A3.7 3.7 0 0 1 18 20z" fill="#fff" stroke="#d1d5db"/>',

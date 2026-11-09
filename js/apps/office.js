@@ -144,9 +144,10 @@
       });
     };
     q.oninput = draw;
-    const wrap = h('div', { class: 'of-start' },
+    const APP = { docs: '#3b7cff', sheets: '#1a9e5f', slides: '#ff9f0a', forms: '#8a5cf6' }[o.icon] || 'var(--accent)'; // each app's own color
+    const wrap = h('div', { class: 'of-start', style: { '--app': APP } },
       h('div', { class: 'of-shead' }, h('div', { class: 'of-slogo', html: PatOS.iconHTML(o.icon) }, h('b', {}, PatOS.t(o.title))), o.onImportFile ? h('button', { class: 'btn of-import', onclick: () => { const i = h('input', { type: 'file', accept: o.importAccept || '' }); i.onchange = async () => { const f = i.files[0]; if (!f) return; try { const p = await o.onImportFile(f); win.el.classList.remove('of-starting'); wrap.remove(); o.onOpen(p); } catch (e) { PatOS.alertBox(PatOS.t('Couldn’t open this file'), e.message || String(e), { icon: o.icon }); } }; i.click(); } }, PatOS.t(o.importLabel || 'Open a file…')) : null, q),
-      h('div', { class: 'of-sband' }, h('h3', {}, PatOS.t('Start something new')), tpl),
+      h('div', { class: 'of-sband' }, h('h1', { class: 'of-create' }, PatOS.t('Create')), tpl),
       h('div', { class: 'of-slist' }, h('h3', {}, PatOS.t('Recent')), list));
     win.body.appendChild(wrap);
     draw();

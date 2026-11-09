@@ -17,7 +17,7 @@
   };
   PatOS.openOffice = async function (path) {
     const name = PatOS.fs.basename(path); const ext = PatOS.fs.ext(path);
-    PatOS.notify({ title: T('Opening') + ' ' + name + '…', body: T('Making a copy you can edit in') + ' ' + { docx: 'Docs', xlsx: 'Sheets', pptx: 'Slides' }[ext], icon: { docx: 'docs', xlsx: 'sheets', pptx: 'slides' }[ext] });
+    PatOS.notify({ title: T('Opening') + ' ' + name + '…', body: T('Making a copy you can edit in') + ' ' + { docx: 'Write', xlsx: 'Tables', pptx: 'Stage' }[ext], icon: { docx: 'docs', xlsx: 'sheets', pptx: 'slides' }[ext] });
     try { const blob = await PatOS.fs.getBlob(path); const r = await PatOS.importOffice(blob, name, PatOS.fs.dirname(path)); PatOS.launch(r.app, { path: r.path }); }
     catch (e) { PatOS.alertBox(T('Couldn’t open this file'), e.message || String(e), { icon: 'finder' }); }
   };

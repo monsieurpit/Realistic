@@ -5,25 +5,25 @@
   const T = (s) => PatOS.t(s);
   const TYPES = [['short', 'Short answer'], ['long', 'Paragraph'], ['choice', 'Multiple choice'], ['check', 'Checkboxes'], ['dropdown', 'Dropdown'], ['scale', 'Linear scale'], ['rating', 'Rating'], ['number', 'Number'], ['email', 'Email'], ['date', 'Date'], ['time', 'Time'], ['section', 'Section']];
   const HAS_OPTS = ['choice', 'check', 'dropdown'];
-  const COLORS = ['#7248b9', '#1a73e8', '#188038', '#d93025', '#e37400', '#0097a7', '#c2185b', '#455a64'];
+  const COLORS = ['#8a5cf6', '#3b7cff', '#1a9e5f', '#e5484d', '#ff8a1f', '#14a3b8', '#c2185b', '#455a64'];
   const q = (type, text, extra) => Object.assign({ id: PatOS.uid(), type, text: T(text) }, HAS_OPTS.includes(type) ? { options: [T('Option 1'), T('Option 2')] } : {}, extra || {});
   const TEMPLATES = [
-    { name: 'Blank form', form: () => ({ title: T('Untitled form'), questions: [q('choice', 'Untitled question')] }), preview: '<b>Form</b><i></i><em></em><em></em>' },
-    { name: 'Quiz', sub: 'Graded automatically', form: () => ({ title: T('Quiz'), quiz: true, color: '#1a73e8', questions: [q('choice', 'What is 7 × 8?', { options: ['54', '56', '64'], answer: 1, points: 1 }), q('choice', 'Which planet is closest to the Sun?', { options: [T('Venus'), T('Mercury'), T('Mars')], answer: 1, points: 1 }), q('short', 'What is the capital of Canada?', { answer: 'Ottawa', points: 1 })] }), preview: '<b>Quiz</b><em></em><em></em><em></em>' },
-    { name: 'Event sign-up', form: () => ({ title: T('Event sign-up'), color: '#188038', questions: [q('short', 'Your name', { req: true }), q('email', 'Email', { req: true }), q('choice', 'Will you come?', { options: [T('Yes'), T('No'), T('Maybe')], req: true }), q('number', 'How many people with you?')] }), preview: '<b>Sign-up</b><i></i><i></i><em></em>' },
-    { name: 'Feedback', form: () => ({ title: T('Feedback'), color: '#e37400', questions: [q('rating', 'How would you rate it?', { max: 5, req: true }), q('scale', 'How likely are you to recommend it?', { min: 0, max: 10, lo: T('Not likely'), hi: T('Very likely') }), q('long', 'What could be better?')] }), preview: '<b>★★★★</b><i></i><s></s>' },
+    { name: 'Blank survey', form: () => ({ title: T('Untitled form'), questions: [q('choice', 'Untitled question')] }), preview: '<b>Survey</b><i></i><em></em><em></em>' },
+    { name: 'Quiz', sub: 'Graded automatically', form: () => ({ title: T('Quiz'), quiz: true, color: '#3b7cff', questions: [q('choice', 'What is 7 × 8?', { options: ['54', '56', '64'], answer: 1, points: 1 }), q('choice', 'Which planet is closest to the Sun?', { options: [T('Venus'), T('Mercury'), T('Mars')], answer: 1, points: 1 }), q('short', 'What is the capital of Canada?', { answer: 'Ottawa', points: 1 })] }), preview: '<b>Quiz</b><em></em><em></em><em></em>' },
+    { name: 'Event sign-up', form: () => ({ title: T('Event sign-up'), color: '#1a9e5f', questions: [q('short', 'Your name', { req: true }), q('email', 'Email', { req: true }), q('choice', 'Will you come?', { options: [T('Yes'), T('No'), T('Maybe')], req: true }), q('number', 'How many people with you?')] }), preview: '<b>Sign-up</b><i></i><i></i><em></em>' },
+    { name: 'Feedback', form: () => ({ title: T('Feedback'), color: '#ff8a1f', questions: [q('rating', 'How would you rate it?', { max: 5, req: true }), q('scale', 'How likely are you to recommend it?', { min: 0, max: 10, lo: T('Not likely'), hi: T('Very likely') }), q('long', 'What could be better?')] }), preview: '<b>★★★★</b><i></i><s></s>' },
     { name: 'Class poll', form: () => ({ title: T('Class poll'), color: '#c2185b', questions: [q('choice', 'What is your favourite subject?', { options: [T('Math'), T('Science'), T('Art'), T('Gym')] }), q('check', 'Which clubs would you join?', { options: [T('Robotics'), T('Drama'), T('Chess'), T('Sports')] })] }), preview: '<b>Poll</b><em></em><em></em>' }
   ];
 
   PatOS.registerApp({
-    id: 'forms', name: 'Forms', icon: 'forms', single: false, width: 900, height: 720, category: 'Office', keywords: 'survey quiz questionnaire poll google forms formulaire',
+    id: 'forms', name: 'Surveys', icon: 'forms', single: false, width: 900, height: 720, category: 'Office', keywords: 'survey quiz questionnaire poll forms formulaire sondage',
     about: 'Make surveys and quizzes, answer them and see the results.',
     launch(win, args) {
       win.el.classList.add('office-win', 'fx-win');
-      win.setTitle(T('Forms'));
+      win.setTitle(T('Surveys'));
       if (args.path) return openForm(win, args.path);
       PatOS.office.startScreen(win, {
-        title: 'Forms', icon: 'forms', ext: ['pform'], templates: TEMPLATES,
+        title: 'Surveys', icon: 'forms', ext: ['pform'], templates: TEMPLATES,
         onCreate: (t) => { const f = Object.assign({ desc: '', quiz: false, color: COLORS[0], responses: [], accepting: true, settings: {} }, t.form()); const p = PatOS.newDocPath('/Documents', f.title, 'pform'); PatOS.fs.write(p, JSON.stringify(f)); openForm(win, p); },
         onOpen: (p) => openForm(win, p)
       });

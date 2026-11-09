@@ -22,14 +22,14 @@
   const EMOJI = '😀 😂 🥲 😍 🤩 😎 🤔 😴 😭 😡 👍 👎 👏 🙏 💪 🎉 🔥 ✨ 💡 📌 📎 📚 ✏️ 📝 ✅ ❌ ⚠️ ❤️ ⭐ 🌍 🚀 🎵 🏆 ⏰ 📅'.split(' ');
 
   PatOS.registerApp({
-    id: 'docs', name: 'Docs', icon: 'docs', single: false, width: 1040, height: 720, category: 'Office', keywords: 'word document write essay processor google docs text',
+    id: 'docs', name: 'Write', icon: 'docs', single: false, width: 1040, height: 720, category: 'Office', keywords: 'word document write essay processor docs text',
     about: 'Write documents with headings, fonts, lists, tables, images, voice typing and version history.',
     launch(win, args) {
       win.el.classList.add('office-win', 'dx-win');
-      win.setTitle(T('Docs'));
+      win.setTitle(T('Write'));
       if (args.path) return openDoc(win, args.path);
       O().startScreen(win, {
-        title: 'Docs', icon: 'docs', ext: ['pdoc'], templates: TEMPLATES,
+        title: 'Write', icon: 'docs', ext: ['pdoc'], templates: TEMPLATES,
         onCreate: (t) => { const p = PatOS.newDocPath('/Documents', t.name === 'Blank document' ? 'Untitled document' : t.name, 'pdoc'); PatOS.fs.write(p, t.html()); openDoc(win, p); },
         onOpen: (p) => openDoc(win, p),
         importLabel: 'Open a Word file…', importAccept: '.docx', onImportFile: async (file) => { if (/\.csv$/i.test(file.name)) { const p = '/Documents/' + PatOS.fs.uniqueName('/Documents', file.name); PatOS.fs.write(p, await file.text()); return p; } return (await PatOS.importOffice(file, file.name)).path; }
@@ -330,7 +330,7 @@
     }
 
     /* ---------- export ---------- */
-    function docHTML() { return `<!doctype html><html><head><meta charset="utf-8"><title>${PatOS.esc(baseName())}</title><style>body{font-family:Inter,Arial,sans-serif;max-width:760px;margin:40px auto;line-height:1.55;padding:0 24px;color:#1d1d1f}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:6px 10px;text-align:left}th{background:#f3f4f6}img{max-width:100%}blockquote{border-left:3px solid #ccc;margin-left:0;padding-left:14px;color:#555}pre{background:#f4f4f5;padding:10px;border-radius:6px}.dx-pb{page-break-after:always;height:0}ul.dx-check{list-style:none;padding-left:4px}ul.dx-check li::before{content:'☐ '}ul.dx-check li.done::before{content:'☑ '}ul.dx-check li.done{text-decoration:line-through;color:#888}.dx-toc a{display:block;color:#1a73e8;text-decoration:none}.dx-toc .l2{padding-left:14px}.dx-toc .l3{padding-left:28px}@page{margin:2cm}</style></head><body>${page.innerHTML}</body></html>`; }
+    function docHTML() { return `<!doctype html><html><head><meta charset="utf-8"><title>${PatOS.esc(baseName())}</title><style>body{font-family:Inter,Arial,sans-serif;max-width:760px;margin:40px auto;line-height:1.55;padding:0 24px;color:#1d1d1f}table{border-collapse:collapse;width:100%}td,th{border:1px solid #bbb;padding:6px 10px;text-align:left}th{background:#f3f4f6}img{max-width:100%}blockquote{border-left:3px solid #ccc;margin-left:0;padding-left:14px;color:#555}pre{background:#f4f4f5;padding:10px;border-radius:6px}.dx-pb{page-break-after:always;height:0}ul.dx-check{list-style:none;padding-left:4px}ul.dx-check li::before{content:'☐ '}ul.dx-check li.done::before{content:'☑ '}ul.dx-check li.done{text-decoration:line-through;color:#888}.dx-toc a{display:block;color:#3b7cff;text-decoration:none}.dx-toc .l2{padding-left:14px}.dx-toc .l3{padding-left:28px}@page{margin:2cm}</style></head><body>${page.innerHTML}</body></html>`; }
     function toMarkdown() {
       const md = (n) => { if (n.nodeType === 3) return n.textContent; if (n.nodeType !== 1) return ''; const k = [...n.childNodes].map(md).join(''); switch (n.tagName) { case 'H1': return '# ' + k + '\n\n'; case 'H2': return '## ' + k + '\n\n'; case 'H3': return '### ' + k + '\n\n'; case 'H4': return '#### ' + k + '\n\n'; case 'P': case 'DIV': return k + '\n\n'; case 'B': case 'STRONG': return '**' + k + '**'; case 'I': case 'EM': return '*' + k + '*'; case 'A': return '[' + k + '](' + n.getAttribute('href') + ')'; case 'LI': return (n.parentNode.tagName === 'OL' ? '1. ' : n.parentNode.classList.contains('dx-check') ? (n.classList.contains('done') ? '- [x] ' : '- [ ] ') : '- ') + k + '\n'; case 'UL': case 'OL': return k + '\n'; case 'BLOCKQUOTE': return '> ' + k + '\n\n'; case 'PRE': return '```\n' + n.textContent + '\n```\n\n'; case 'BR': return '\n'; case 'HR': return '---\n\n'; case 'IMG': return '![](image)'; default: return k; } };
       return [...page.childNodes].map(md).join('').replace(/\n{3,}/g, '\n\n').trim() + '\n';

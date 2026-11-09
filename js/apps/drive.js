@@ -1,15 +1,15 @@
-/* Drive — every document, spreadsheet, presentation and form in one place */
+/* Cloud (id 'drive') — every document, spreadsheet, presentation and form in one place */
 (function () {
   'use strict';
   const { h } = PatOS;
   const TYPES = { pdoc: ['docs', 'Document'], psheet: ['sheets', 'Spreadsheet'], csv: ['sheets', 'Spreadsheet'], pslides: ['slides', 'Presentation'], pform: ['forms', 'Form'] };
   PatOS.registerApp({
-    id: 'drive', name: 'Drive', icon: 'drive', width: 920, height: 600, category: 'Office', keywords: 'files documents cloud storage google drive',
+    id: 'drive', name: 'Cloud', icon: 'drive', width: 920, height: 600, category: 'Office', keywords: 'files documents cloud storage drive nuage',
     about: 'All your documents, spreadsheets, presentations and forms.',
     launch(win) {
       win.el.classList.add('has-toolbar');
       let filter = 'all', q = '';
-      const search = h('input', { class: 'field', placeholder: 'Search in Drive', style: { width: '220px' } });
+      const search = h('input', { class: 'field', placeholder: 'Search in Cloud', style: { width: '220px' } });
       search.oninput = () => { q = search.value.toLowerCase(); render(); };
       const bNew = h('button', { class: 'btn primary' }, '＋ New');
       bNew.onclick = () => { const r = bNew.getBoundingClientRect(); PatOS.menu([
@@ -28,8 +28,8 @@
       }
       function render() {
         side.innerHTML = '';
-        [['all', '🗂', 'My Drive'], ['docs', '📄', 'Documents'], ['sheets', '📊', 'Spreadsheets'], ['slides', '📽', 'Presentations'], ['forms', '📋', 'Forms']].forEach(([k, ic, l]) => {
-          const b = h('button', { class: 'dv-si' + (filter === k ? ' on' : '') }, h('span', {}, ic), l); b.onclick = () => { filter = k; render(); }; side.appendChild(b);
+        [['all', 'cloud', 'My Cloud'], ['docs', 'doc', 'Documents'], ['sheets', 'sheet', 'Spreadsheets'], ['slides', 'slides', 'Presentations'], ['forms', 'list', 'Surveys']].forEach(([k, ic, l]) => {
+          const b = h('button', { class: 'dv-si' + (filter === k ? ' on' : '') }, h('span', { class: 'dv-ic', html: PatOS.sym(ic) }), l); b.onclick = () => { filter = k; render(); }; side.appendChild(b);
         });
         const used = PatOS.store.usage();
         const sbar = h('span', { style: { width: '2%' } }), stxt = h('small', {}, PatOS.fmtBytes(used));
@@ -37,10 +37,10 @@
         PatOS.storageInfo().then((i) => { sbar.style.width = Math.max(2, Math.min(100, i.used / i.quota * 100)) + '%'; stxt.textContent = PatOS.fmtBytes(i.used) + ' ' + PatOS.t('used of') + ' ' + PatOS.fmtBytes(i.quota); }).catch(() => {});
         main.innerHTML = '';
         const list = files().filter((f) => (filter === 'all' || f.t[0] === filter) && (!q || PatOS.fs.basename(f.p).toLowerCase().includes(q)));
-        const quick = h('div', { class: 'dv-quick' }, ...[['docs', 'Blank document'], ['sheets', 'Blank spreadsheet'], ['slides', 'Blank presentation'], ['forms', 'Blank form']].map(([id, l]) => {
+        const quick = h('div', { class: 'dv-quick' }, ...[['docs', 'Blank document'], ['sheets', 'Blank spreadsheet'], ['slides', 'Blank presentation'], ['forms', 'Blank survey']].map(([id, l]) => {
           const c = h('button', { class: 'dv-new' }, h('div', { class: 'dv-nic', html: PatOS.iconHTML(id) }), h('span', {}, l)); c.onclick = () => { PatOS.setLaunchRect(c.querySelector('.dv-nic')); PatOS.launch(id); }; return c;
         }));
-        main.append(h('h2', {}, 'Start something new'), quick, h('h2', {}, filter === 'all' ? 'Recent files' : side.querySelector('.on').textContent.slice(2)));
+        main.append(h('h2', {}, 'Create'), quick, h('h2', {}, filter === 'all' ? 'Recent files' : side.querySelector('.on').textContent.slice(2)));
         if (!list.length) { main.appendChild(h('div', { class: 'fd-empty' }, q ? 'No files match your search' : 'Nothing here yet. Create one above.')); return; }
         const grid = h('div', { class: 'dv-grid' });
         list.forEach((f) => {

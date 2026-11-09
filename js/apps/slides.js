@@ -53,15 +53,15 @@
   PatOS.slideNode = slideNode;
 
   PatOS.registerApp({
-    id: 'slides', name: 'Slides', icon: 'slides', single: false, width: 1140, height: 740, category: 'Office', keywords: 'presentation powerpoint keynote deck google slides présentations',
+    id: 'slides', name: 'Stage', icon: 'slides', single: false, width: 1140, height: 740, category: 'Office', keywords: 'presentation powerpoint keynote deck slides présentations',
     about: 'Make slide decks with themes, layouts, shapes, animations and speaker notes, then present them.',
     launch(win, args) {
       win.el.classList.add('office-win', 'sv-win');
-      win.setTitle(T('Slides'));
+      win.setTitle(T('Stage'));
       if (args.path) return openDeck(win, args.path);
       const templates = Object.keys(THEMES).map((k) => ({ name: k, theme: k, preview: '' }));
       const ss = PatOS.office.startScreen(win, {
-        title: 'Slides', icon: 'slides', ext: ['pslides'], templates,
+        title: 'Stage', icon: 'slides', ext: ['pslides'], templates,
         onCreate: (t) => { const deck = { theme: t.theme, transition: 'fade', slides: [{ els: LAYOUTS.title.els() }, { els: LAYOUTS.content.els() }] }; deck.slides[0].els[0].html = T('My Presentation'); deck.slides[0].els[1].html = PatOS.settings.userName || T('Subtitle'); const p = PatOS.newDocPath('/Documents', 'Untitled presentation', 'pslides'); PatOS.fs.write(p, JSON.stringify(deck)); openDeck(win, p); },
         onOpen: (p) => openDeck(win, p),
         importLabel: 'Open a PowerPoint file…', importAccept: '.pptx', onImportFile: async (file) => { if (/\.csv$/i.test(file.name)) { const p = '/Documents/' + PatOS.fs.uniqueName('/Documents', file.name); PatOS.fs.write(p, await file.text()); return p; } return (await PatOS.importOffice(file, file.name)).path; }
