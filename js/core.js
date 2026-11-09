@@ -209,7 +209,7 @@
     magnify: true,
     magnifyScale: 1.7,
     dockAutohide: false,
-    dockPinned: ['finder', 'launchpad', 'browser', 'messages', 'notes', 'music', 'photos', 'calendar', 'appstore', 'code', 'terminal', 'galaxy', 'orbrunner', 'settings'],
+    dockPinned: ['finder', 'launchpad', 'browser', 'messages', 'notes', 'music', 'photos', 'calendar', 'appstore', 'code', 'terminal', 'orbrunner', 'settings'],
     uiSounds: true,
     volume: 0.7,
     brightness: 1,

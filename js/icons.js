@@ -304,9 +304,6 @@
       p.glass(gear(32, 32, 9, 22, 17, 7.5), '#b6bdc9', { evenodd: 1, top: .4, core: [50, 85] }) + p.glass(circ(32, 32, 4), '#e3e8f0', { halo: 0, glow: .6 })); }),
     activity: draw(() => { const p = painter('activity'); return p.done(
       p.glass(rr(9, 13, 46, 38, 7), '#3f5a47', { top: .25, glow: .25, halo: .2 }) + p.light('M14 34h8l4-10 6 19 5-13 3 4h10', '#30d158', 2.2)); }),
-    galaxy: draw(() => { const p = painter('galaxy'); return p.done(
-      p.light('M32 32c7-1 11-7 8.5-13-2.4-5.4-10-8-16.5-4.5', '#bf5af2', 2.4) + p.light('M32 32c-7 1-11 7-8.5 13 2.4 5.4 10 8 16.5 4.5', '#5e9bff', 2.4) +
-      p.light('M32 32c5 4 12 4 15.5-1M32 32c-5-4-12-4-15.5 1', '#ff7ad9', 1.4, { halo: .45 }) + p.glass(circ(32, 32, 5), '#ffe7ff', { core: [50, 50], coreR: 70, glow: 1, halo: .9 })); }),
     orbrunner: draw(() => { const p = painter('orbrunner'); return p.done(
       p.light('M14 53l14-17M50 53L36 36M19 47h26M25 40.5h14', '#ff2d92', 1.6) + p.glass(circ(32, 23, 8.5), '#38e1ff', { core: [40, 35], coreR: 75, glow: 1, halo: .9 })); }),
     studio: draw(() => { const p = painter('studio'); return p.done(
@@ -342,9 +339,6 @@
       return p.done(p.light(d, '#ff375f', 2.4)); }),
     stickies: draw(() => { const p = painter('stickies'); return p.done(
       p.glass('M12 12h40v28L40 52H12z', '#ffd60a', { top: .55 }) + p.solid('M40 52V40h12z', '#fff3a0', '#e0b400') + p.light('M18 22h26M18 29h26M18 36h16', '#fff6c8', 1.2, { halo: .3 })); }),
-    typing: draw(() => { const p = painter('typing'); let s = p.glass(rr(8, 20, 48, 26, 6), '#7d8696', { top: .35, glow: .35 }); let d = '';
-      for (let r = 0; r < 3; r++) for (let c = 0; c < 7; c++) d += `M${14 + c * 6} ${27 + r * 6}h.01`;
-      return p.done(s + p.light(d, '#dfe6f2', 2.6, { halo: .2 }) + p.light('M22 44.5h20', '#64d2ff', 2)); }),
     dictionary: draw(() => { const p = painter('dictionary'); return p.done(
       p.solid(rr(17, 13, 32, 40, 4), '#f4f1ea', '#c9c3b4') + p.glass(rr(13, 10, 32, 40, 4), '#c4302b', { top: .6 }) +
       p.light('M21 22h16M21 28h12', '#ffd0cc', 1.4, { halo: .3 }) + p.solid('M36 10h5v16l-2.5-2-2.5 2z', '#ffd36b', '#e07b00')); }),

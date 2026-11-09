@@ -1,7 +1,7 @@
 [
   {
     "version": "2.3.1",
-    "beta": 6,
+    "beta": 7,
     "date": "2026-11-09",
     "title": {
       "en": "Drawn glass icons",
@@ -21,7 +21,8 @@
         "Five new wallpapers made of silk, lit from above: Silk (violet and blue on deep night), Obsidian (one silver fold on black), Flame (orange and rose), Glacier (pale blue) and Dune (warm sand). New installs start on Silk; Settings › Wallpaper has them all",
         "Desktop labels stay readable on light wallpapers",
         "No more letters or emoji on icons: Solitaire's card suits, Elements, Sudoku, Translate and Dictionary are drawn",
-        "Google apps and YouTube keep their own logos"
+        "Google apps and YouTube keep their own logos",
+        "Typing Trainer and Galaxy are removed"
       ],
       "fr": [
         "Nos apps de bureautique ont leurs propres noms et leur propre style : Docs devient Écrire, Sheets devient Tableaux, Slides devient Scène, Forms devient Sondages et Drive devient Nuage. Chacune a sa couleur et un nouvel écran d’accueil ; vos documents s’ouvrent comme avant",
@@ -36,7 +37,8 @@
         "Cinq nouveaux fonds d’écran en soie, éclairés d’en haut : Soie (violet et bleu sur nuit profonde), Obsidienne (un pli argenté sur noir), Flamme (orange et rose), Glacier (bleu pâle) et Dune (sable chaud). Les nouvelles installations commencent sur Soie ; Réglages › Fond d’écran les propose tous",
         "Les noms sur le bureau restent lisibles sur les fonds d’écran clairs",
         "Plus de lettres ni d’emoji sur les icônes : les enseignes du Solitaire, Éléments, Sudoku, Traduction et Dictionnaire sont dessinés",
-        "Les apps Google et YouTube gardent leurs propres logos"
+        "Les apps Google et YouTube gardent leurs propres logos",
+        "Entraînement à la frappe et Galaxie sont retirés"
       ]
     }
   },

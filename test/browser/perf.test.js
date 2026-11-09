@@ -18,7 +18,7 @@ test('three.js waits until something 3D is needed', { skip: skipNoBrowser }, asy
   await page.evaluate(() => PatOS.boot.login()); await page.waitForTimeout(1500);
   assert.equal(await page.evaluate(() => !!window.THREE), false, 'three.js should not load with a flat wallpaper');
   const r = await page.evaluate(async () => {
-    const w = PatOS.launch('galaxy'); const waiting = !!w.body.querySelector('.app-loading');
+    const w = PatOS.launch('studio'); const waiting = !!w.body.querySelector('.app-loading');
     for (let i = 0; i < 50 && !w.body.querySelector('canvas'); i++) await new Promise((res) => setTimeout(res, 100));
     return { webgl: PatOS.webgl, waiting, three: !!window.THREE, canvas: !!w.body.querySelector('canvas'), error: !!w.body.querySelector('.app-error') };
   });

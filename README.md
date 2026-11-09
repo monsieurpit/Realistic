@@ -53,14 +53,13 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 | Photos | albums, favorites, slideshow, and an editor with filters, brightness, contrast, color, warmth, vignette, crop and rotate |
 | Paint, Photo Booth | |
 | Terminal | pipes (`|`), `&&`, `>` redirects; `ls -l`, `grep`, `wc`, `head`, `tail`, `sort`, `find`, `curl`, `ping`, `weather`, `todo`, `neofetch`, `matrix` and more |
-| Galaxy | 3D galaxy generator (three.js) |
 | Orb Runner | original 3D neon runner game (three.js) |
 | 3D Studio | build a 3D scene with shapes and materials (three.js) |
 | Messages | type commands to Pat: open apps, do math, add reminders and notes, tell a joke. Pat is a command helper with a fixed list of commands, not an AI |
 | Passwords | encrypted password list (a device key, or your master password), strength check, generator, leak check, CSV import/export. Copy a login into a site; PatOS never saves or fills passwords on its own |
 | App Store | browse every app, open it, add it to the Dock, hide or show it |
 | Code Studio | HTML/CSS/JS editor with live preview and a console |
-| Piano, Flashcards, Typing Trainer, Voice Memos, Stickies, Dictionary | |
+| Piano, Flashcards, Voice Memos, Stickies, Dictionary | |
 | Contacts | address book with photos, favorites, birthdays and vCard import/export |
 | Freeform | endless whiteboard: drawing, sticky notes, text, shapes, pictures, several boards |
 | Preview | reads PDFs and pictures; highlight, draw, add text and export the annotated PDF |

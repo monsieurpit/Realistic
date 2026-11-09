@@ -40,7 +40,7 @@
     videos: 'Watch your own video files, with speed control and Picture in Picture.',
     solitaire: 'Classic Klondike solitaire. Drag or tap cards, draw 1 or 3, undo and auto-finish.'
   };
-  const FEATURED = ['docs', 'galaxy', 'orbrunner', 'code'];
+  const FEATURED = ['docs', 'studio', 'orbrunner', 'code'];
   const GRADS = ['linear-gradient(135deg,#3a1c71,#d76d77,#ffaf7b)', 'linear-gradient(135deg,#0b0130,#ff2fa3)', 'linear-gradient(135deg,#1e1e2e,#5b5bd6)', 'linear-gradient(135deg,#0bbf3a,#00a6fb)'];
   PatOS.registerApp({
     id: 'appstore', name: 'App Store', icon: 'appstore', width: 940, height: 640, category: 'Utilities', keywords: 'apps install store download',
