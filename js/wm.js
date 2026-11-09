@@ -161,8 +161,32 @@
   }
   PatOS.rectTransform = rectTransform;
 
+  /* Snap layouts: the picker that opens at the top while a window is dragged there. Each zone is a rectangle as a fraction of
+     the work area ({x, y, w, h}); dropping the window on a zone gives it exactly that place. */
+  const LAYOUTS = [
+    [[0, 0, .5, 1], [.5, 0, .5, 1]],
+    [[0, 0, 1 / 3, 1], [1 / 3, 0, 1 / 3, 1], [2 / 3, 0, 1 / 3, 1]],
+    [[0, 0, 2 / 3, 1], [2 / 3, 0, 1 / 3, 1]],
+    [[0, 0, .5, .5], [.5, 0, .5, .5], [0, .5, .5, .5], [.5, .5, .5, .5]],
+    [[0, 0, 1, 1]]
+  ];
+  let pickerEl = null;
+  function picker() {
+    if (pickerEl && pickerEl.isConnected) return pickerEl;
+    pickerEl = h('div', { id: 'snap-picker', 'aria-hidden': 'true' });
+    LAYOUTS.forEach((cells) => {
+      const box = h('div', { class: 'sl-box' });
+      cells.forEach(([x, y, w, hh]) => box.appendChild(h('div', { class: 'sl-cell', 'data-r': JSON.stringify({ x, y, w, h: hh }), style: { left: x * 100 + '%', top: y * 100 + '%', width: w * 100 + '%', height: hh * 100 + '%' } })));
+      pickerEl.appendChild(box);
+    });
+    document.getElementById('desktop').appendChild(pickerEl);
+    return pickerEl;
+  }
+  const zoneRect = (z) => { const a = workArea(); return { x: Math.round(a.w * z.x), y: Math.round(a.y + a.h * z.y), w: Math.round(a.w * z.w), h: Math.round(a.h * z.h) }; };
+  PatOS.snapLayouts = LAYOUTS;
+
   function setupDrag(win, handle, bodyMode) {
-    let sx, sy, ox, oy, dragging = false, snap = null, pid = null;
+    let sx, sy, ox, oy, dragging = false, snap = null, pid = null, zone = null;
     const preview = () => $('#snap-preview') || layer().appendChild(h('div', { id: 'snap-preview' }));
     handle.addEventListener('pointerdown', (e) => {
       if (e.button !== 0 || PatOS.isMobile) return;
@@ -187,7 +211,18 @@
         win.el.style.left = nx + 'px'; win.el.style.top = ny + 'px';
         const area = workArea(); const p = preview();
         snap = ev.clientX <= 3 ? 'left' : ev.clientX >= window.innerWidth - 3 ? 'right' : ev.clientY <= MENUBAR + 1 ? 'max' : null;
-        if (snap) {
+        // near the top, the layout picker opens; pointing at one of its zones previews exactly where the window will go
+        zone = null;
+        if (win.app.resizable !== false && ev.clientY < MENUBAR + 110) {
+          const pk = picker(); pk.classList.add('show');
+          const hit = document.elementsFromPoint(ev.clientX, ev.clientY).find((n) => n.classList && n.classList.contains('sl-cell'));
+          pk.querySelectorAll('.sl-cell.on').forEach((c) => c !== hit && c.classList.remove('on'));
+          if (hit) { hit.classList.add('on'); zone = JSON.parse(hit.dataset.r); snap = null; }
+        } else if (pickerEl) pickerEl.classList.remove('show');
+        if (zone) {
+          const r = zoneRect(zone);
+          Object.assign(p.style, { left: r.x + 6 + 'px', top: r.y + 6 + 'px', width: r.w - 12 + 'px', height: r.h - 12 + 'px' }); p.classList.add('show');
+        } else if (snap) {
           const r = snap === 'left' ? { x: 0, w: area.w / 2 } : snap === 'right' ? { x: area.w / 2, w: area.w / 2 } : { x: 0, w: area.w };
           Object.assign(p.style, { left: r.x + 6 + 'px', top: area.y + 6 + 'px', width: r.w - 12 + 'px', height: area.h - 12 + 'px' });
           p.classList.add('show');
@@ -197,7 +232,8 @@
         handle.removeEventListener('pointermove', move); handle.removeEventListener('pointerup', up); handle.removeEventListener('pointercancel', up);
         try { handle.releasePointerCapture(pid); } catch (er) {}
         layer().classList.remove('dragging'); win.el.classList.remove('moving');
-        preview().classList.remove('show');
+        preview().classList.remove('show'); if (pickerEl) pickerEl.classList.remove('show');
+        if (dragging && zone) { win.prevRect = { x: ox, y: oy, w: win.el.offsetWidth, h: win.el.offsetHeight }; animateTo(win, zoneRect(zone)); zone = null; dragging = false; snap = null; return; }
         if (dragging && snap && win.app.resizable !== false) {
           const area = workArea();
           if (snap === 'max') { win.prevRect = { x: ox, y: oy, w: win.el.offsetWidth, h: win.el.offsetHeight }; setMax(win, true); }
@@ -349,8 +385,79 @@
     quit(appId) { wins.filter((w) => w.app.id === appId).forEach((w) => w.close()); },
     closeAll() { wins.slice().forEach((w) => w.close()); },
     setFullscreen,
-    updateFS
+    updateFS,
+    groups: {
+      /* Window groups: the open windows (their apps and places) saved under a name, reopened together in one click */
+      list: () => PatOS.store.get('windowGroups', []),
+      save(name) {
+        const ws = wins.filter((w) => !w.minimized).map((w) => ({ app: w.app.id, r: w.maximized ? 'max' : w.rect() }));
+        if (!name || !ws.length) return false;
+        const all = PatOS.store.get('windowGroups', []).filter((g) => g.name !== name);
+        all.push({ name, ws, at: Date.now() }); PatOS.store.set('windowGroups', all); return true;
+      },
+      open(name) {
+        const g = PatOS.store.get('windowGroups', []).find((x) => x.name === name); if (!g) return 0;
+        let n = 0;
+        g.ws.forEach((it) => {
+          if (!PatOS.apps[it.app]) return;
+          const w = PatOS.launch(it.app); if (!w || !w.el) return; n++;
+          if (it.r === 'max') { w.prevRect = w.rect(); setMax(w, true); }
+          else { const a = workArea(); Object.assign(w.el.style, { left: Math.max(0, Math.min(it.r.x, a.w - 80)) + 'px', top: Math.max(a.y, it.r.y) + 'px', width: it.r.w + 'px', height: it.r.h + 'px' }); }
+        });
+        return n;
+      },
+      remove(name) { PatOS.store.set('windowGroups', PatOS.store.get('windowGroups', []).filter((g) => g.name !== name)); }
+    },
+    stage: (on) => stage(on),
+    get staged() { return staging; }
   };
+
+  /* Stage focus: the window you are using sits large in the middle; the others wait as live thumbnails down the left side.
+     Clicking a thumbnail puts it on stage. Windows go back to where they were when Stage focus is turned off. */
+  let staging = false;
+  const homes = new Map();
+  function stageLayout() {
+    if (!staging) return;
+    const a = workArea(), side = Math.min(200, Math.max(140, a.w * .14)), gap = 18;
+    const open = wins.filter((w) => !w.minimized && !w.fullscreen);
+    const main = (active && open.includes(active)) ? active : open[open.length - 1];
+    let slot = 0;
+    open.forEach((w) => {
+      if (!homes.has(w)) homes.set(w, { r: w.rect(), max: w.maximized });
+      if (w.maximized) { w.maximized = false; w.el.classList.remove('maximized'); }
+      w.el.classList.add('animating');
+      if (w === main) {
+        w.el.classList.remove('stage-thumb'); w.el.style.transform = '';
+        Object.assign(w.el.style, { left: side + gap * 2 + 'px', top: a.y + gap + 'px', width: a.w - side - gap * 3 + 'px', height: a.h - gap * 2 + 'px' });
+      } else {
+        const r = homes.get(w).r, sc = side / Math.max(1, r.w), th = r.h * sc;
+        w.el.classList.add('stage-thumb');
+        Object.assign(w.el.style, { left: gap + 'px', top: a.y + gap + slot + 'px', width: r.w + 'px', height: r.h + 'px', transformOrigin: '0 0', transform: `scale(${sc.toFixed(3)})` });
+        slot += th + 26;
+      }
+      setTimeout(() => w.el.classList.remove('animating'), 320);
+    });
+  }
+  function stage(on) {
+    on = on == null ? !staging : !!on; if (PatOS.isMobile) on = false;
+    if (on === staging) return staging;
+    staging = on; document.body.classList.toggle('stage-on', on);
+    if (on) stageLayout();
+    else {
+      homes.forEach((home, w) => {
+        if (!wins.includes(w)) return;
+        w.el.classList.add('animating'); w.el.classList.remove('stage-thumb'); w.el.style.transform = ''; w.el.style.transformOrigin = '';
+        Object.assign(w.el.style, { left: home.r.x + 'px', top: home.r.y + 'px', width: home.r.w + 'px', height: home.r.h + 'px' });
+        if (home.max) setMax(w, true);
+        setTimeout(() => w.el.classList.remove('animating'), 320);
+      });
+      homes.clear();
+    }
+    PatOS.emit('wm:stage', staging); return staging;
+  }
+  PatOS.on('wm:focus', () => staging && setTimeout(stageLayout, 0));
+  ['wm:minimize', 'wm:close', 'app:launch'].forEach((ev) => PatOS.on(ev, () => staging && setTimeout(stageLayout, 60)));
+  window.addEventListener('resize', PatOS.debounce(() => staging && stageLayout(), 150));
 
   PatOS.launch = function (appId, args) {
     let app = PatOS.apps[appId];

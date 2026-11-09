@@ -1,5 +1,28 @@
 [
   {
+    "version": "3.0.0",
+    "beta": 1,
+    "date": "2026-11-09",
+    "title": {
+      "en": "PatOS 3: one design, smarter windows",
+      "fr": "PatOS 3 : un seul design, des fenêtres plus malignes"
+    },
+    "notes": {
+      "en": [
+        "A new design language for every app: bigger, bolder titles, comfortable 15-point text, one 8-point spacing rhythm, and the same buttons, fields, sidebars, lists, toggles and toolbars everywhere",
+        "Snap layouts: drag a window toward the top of the screen and drop it on a layout (halves, thirds, two thirds, quarters or full screen)",
+        "Window groups: Window › Save Window Group… keeps the windows you have open (like Write, Calendar and Patoogle for homework), and the Window menu reopens them all in one click",
+        "Stage focus (Window menu or Alt+S): the window you use sits large in the middle, the others wait as live thumbnails on the left; click one to bring it on stage"
+      ],
+      "fr": [
+        "Un nouveau langage visuel pour toutes les apps : des titres plus grands et plus affirmés, un texte confortable de 15 points, un seul rythme d’espacement de 8 points, et les mêmes boutons, champs, barres latérales, listes, interrupteurs et barres d’outils partout",
+        "Dispositions : faites glisser une fenêtre vers le haut de l’écran et déposez-la sur une disposition (moitiés, tiers, deux tiers, quarts ou plein écran)",
+        "Groupes de fenêtres : Fenêtre › Enregistrer un groupe de fenêtres… garde les fenêtres ouvertes (comme Écrire, Calendrier et Patoogle pour les devoirs), et le menu Fenêtre les rouvre toutes d’un clic",
+        "Focus sur la scène (menu Fenêtre ou Alt+S) : la fenêtre que vous utilisez est grande au milieu, les autres attendent en miniatures vivantes à gauche ; cliquez-en une pour la mettre en scène"
+      ]
+    }
+  },
+  {
     "version": "2.3.1",
     "date": "2026-11-09",
     "title": {

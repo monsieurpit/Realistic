@@ -139,6 +139,11 @@
         { label: 'Tile Right', action: () => w && tile(w, 'right'), disabled: !w },
         { divider: true },
         { label: 'Bring All to Front', action: () => PatOS.wm.windows.forEach((x) => PatOS.wm.restore(x)) },
+        { label: 'Stage Focus', shortcut: 'Alt+S', checked: PatOS.wm.staged, action: () => PatOS.wm.stage() },
+        { divider: true },
+        { label: 'Save Window Group…', disabled: !PatOS.wm.windows.some((x) => !x.minimized), action: saveGroup },
+        ...PatOS.wm.groups.list().map((g) => ({ label: PatOS.t('Open') + ' “' + g.name + '”', action: () => PatOS.wm.groups.open(g.name) })),
+        PatOS.wm.groups.list().length ? { label: 'Delete a Window Group…', action: deleteGroup } : null,
         { divider: true },
         ...PatOS.wm.windows.map((x) => ({ label: x.title, checked: x === w, action: () => PatOS.wm.restore(x) }))
       ],
@@ -163,6 +168,15 @@
         { label: 'Log Out ' + PatOS.settings.userName + '…', action: () => { PatOS.wm.closeAll(); PatOS.power.lock(); } }
       ]
     };
+  }
+  /* window groups: name the windows that are open now, reopen them all later from the Window menu */
+  async function saveGroup() {
+    const n = PatOS.wm.windows.filter((x) => !x.minimized).length;
+    const name = await PatOS.ask(PatOS.t('Save Window Group'), PatOS.t('Homework'), { icon: 'finder', ok: PatOS.t('Save'), text: n + ' ' + PatOS.t(n === 1 ? 'window' : 'windows') + ' · ' + PatOS.t('Reopen them all from the Window menu.') });
+    if (name && name.trim()) { PatOS.wm.groups.save(name.trim().slice(0, 40)); PatOS.notify({ title: PatOS.t('Window group saved'), body: name.trim(), icon: 'finder' }); }
+  }
+  function deleteGroup() {
+    PatOS.menu([{ header: PatOS.t('Delete a Window Group…') }, ...PatOS.wm.groups.list().map((g) => ({ label: g.name, action: () => PatOS.wm.groups.remove(g.name) }))], innerWidth / 2 - 110, 120);
   }
   function tile(w, side) {
     const a = PatOS.wm.workArea(); w.prevRect = w.rect(); w.maximized = false; w.el.classList.remove('maximized');
@@ -1258,6 +1272,7 @@
       if (!e.altKey || e.ctrlKey) return;
       const map = {
         w: () => w && w.close(),
+        s: () => PatOS.wm.stage(),
         q: () => w && PatOS.wm.quit(w.app.id),
         m: () => w && w.minimize(),
         h: () => w && PatOS.wm.windowsOf(w.app.id).forEach((x) => x.minimize()),
