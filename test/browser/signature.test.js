@@ -98,8 +98,8 @@ test('Fold is the new wallpaper (Silk moves to it once); Liquid Glass on the des
     PatOS.setSetting('wallpaper', 'fold'); await wait(1500);
     const toneFold = document.documentElement.dataset.wpTone, widgetFold = getComputedStyle(document.querySelector('.widget')).color;
     PatOS.setSetting('theme', 'dark'); PatOS.setSetting('iconStyle', 'light'); await wait(300);
-    const tile = document.querySelector('#dock .icon-tile.gi:not(.flat)'); const light = getComputedStyle(tile).backgroundImage;
-    PatOS.setSetting('iconStyle', 'auto'); await wait(200); const auto = document.documentElement.classList.contains('icons-light');
+    const tile = document.querySelector('#dock .icon-tile.gi:not(.flat):not(.colored)'); const light = getComputedStyle(tile).backgroundImage;
+    PatOS.setSetting('iconStyle', 'auto'); await wait(200); const auto = !document.documentElement.classList.contains('icons-dark');
     const flat = document.querySelector('.desk-icon .icon-tile.flat'); const flatShadow = flat ? getComputedStyle(flat).boxShadow : 'none';
     return { widget, tone, menu, toneFold, widgetFold, light, auto, flatShadow };
   });
@@ -127,7 +127,7 @@ test('light app icons are painted for a white tile (solid colors), and switching
   const page = await b.newPage({ viewport: { width: 1366, height: 768 } }); const errors = await boot(page, srv.base, { fresh: true });
   const r = await page.evaluate(async () => {
     const wait = (ms) => new Promise((res) => setTimeout(res, ms));
-    const src = () => document.querySelector('#dock .dock-item[data-app="music"] .gi-img').src;
+    const src = () => document.querySelector('#dock .dock-item[data-app="photos"] .gi-img').src; // (an app without a color of its own: white in Light, dark glass in Dark)
     PatOS.setSetting('theme', 'dark'); PatOS.setSetting('iconStyle', 'dark'); await wait(300); const dark = src();
     PatOS.setSetting('iconStyle', 'light'); await wait(300); const light = src();
     PatOS.setSetting('iconStyle', 'dark'); await wait(300); const back = src();
@@ -137,23 +137,25 @@ test('light app icons are painted for a white tile (solid colors), and switching
   assert.deepEqual(errors, []); await page.close();
 });
 
-test('Color icons: one-color apps get a tile of their own color with a white drawing, many-color apps keep a white tile; Automatic uses Color in light mode', { skip: skipNoBrowser }, async () => {
+test('one-color apps get a tile of their own color with a white drawing in Light and Dark; the others are white in Light and dark glass in Dark; Automatic follows the theme', { skip: skipNoBrowser }, async () => {
   const page = await b.newPage({ viewport: { width: 1366, height: 768 } }); const errors = await boot(page, srv.base, { fresh: true });
   const r = await page.evaluate(async () => {
     const wait = (ms) => new Promise((res) => setTimeout(res, ms));
-    PatOS.setSetting('theme', 'dark'); PatOS.setSetting('iconStyle', 'color'); await wait(300);
+    PatOS.setSetting('theme', 'dark'); PatOS.setSetting('iconStyle', 'light'); await wait(300);
     const tile = (app) => document.querySelector('#dock .dock-item[data-app="' + app + '"] .icon-tile');
     const music = tile('music'), photos = tile('photos');
     const out = { musicColored: music.classList.contains('colored'), musicBg: music.style.background, photosColored: photos.classList.contains('colored'),
       musicWhite: /stop-color%3D%22%23ffffff/.test(music.querySelector('img').src) };
     PatOS.setSetting('iconStyle', 'auto'); PatOS.setSetting('theme', 'light'); await wait(400);
-    out.autoLight = document.documentElement.classList.contains('icons-color');
+    out.autoLight = document.documentElement.classList.contains('icons-color') && !document.documentElement.classList.contains('icons-dark');
     PatOS.setSetting('theme', 'dark'); await wait(400);
-    out.autoDark = document.documentElement.classList.contains('icons-color') || document.documentElement.classList.contains('icons-light');
+    out.autoDark = document.documentElement.classList.contains('icons-dark');
+    out.darkMusicColored = tile('music').classList.contains('colored'); out.darkPhotosBg = getComputedStyle(tile('photos')).backgroundImage;
     return out;
   });
   assert.equal(r.musicColored, true); assert.match(r.musicBg, /gradient/); assert.equal(r.musicWhite, true, 'Music’s note is white on its red tile');
   assert.equal(r.photosColored, false, 'Photos keeps a white tile');
-  assert.equal(r.autoLight, true); assert.equal(r.autoDark, false);
+  assert.equal(r.autoLight, true); assert.equal(r.autoDark, true);
+  assert.equal(r.darkMusicColored, true, 'Music keeps its red tile in Dark'); assert.doesNotMatch(r.darkPhotosBg, /255, 255, 255/, 'Photos is on the dark glass in Dark');
   assert.deepEqual(errors, []); await page.close();
 });
