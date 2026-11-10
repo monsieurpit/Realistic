@@ -38,6 +38,8 @@
     if (navigator.getBattery) navigator.getBattery().then((b) => { const up = () => { $('.ms-bat-fill').style.width = Math.round(b.level * 100) + '%'; $('.ms-bat').classList.toggle('charging', b.charging); }; up(); b.addEventListener('levelchange', up); b.addEventListener('chargingchange', up); }).catch(() => {});
     window.addEventListener('resize', PatOS.debounce(() => { if (PatOS.isMobile) renderHome(); }, 200));
     PatOS.on('setting', (s) => { if (['mobileDock', 'hiddenApps', 'dockPinned'].includes(s.key)) renderHome(); });
+    // light, dark or colored app icons: the icons are pictures painted for their tile, so the home screen is painted again
+    PatOS.on('icons:style', () => renderHome());
     PatOS.on('wm:open', (w) => { if (PatOS.isMobile) setFront(w); });
     PatOS.on('wm:focus', (w) => { if (PatOS.isMobile && w) setFront(w); });
     PatOS.on('wm:close', (w) => { if (M.front === w) { M.front = null; html.classList.remove('m-in-app'); popApp(); } });

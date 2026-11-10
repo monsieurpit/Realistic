@@ -1,7 +1,7 @@
 [
   {
     "version": "3.0.0",
-    "beta": 16,
+    "beta": 17,
     "date": "2026-11-09",
     "title": {
       "en": "PatOS 3: Timeline, one design, smarter windows",
@@ -33,7 +33,8 @@
         "Light app icons are a soft silver instead of bright white. On computers, the Dock's icons are a little bigger with a little more room between them",
         "Light app icons, redone the way a Mac does them: a clean white tile with a soft grey falloff, and each drawing painted for it in solid, deep colors (Music in deep crimson, Piles in deep blue…) with soft shadows; whites stay white. Switching between light and dark icons repaints them at once",
         "Light icons: grey drawings (the Settings gear, the Trash, Chess…) are a solid steel grey with real contrast; whites stay white",
-        "New icon style: Color, like a phone's home screen. One-color apps get a tile of their own color with a white drawing (Music red, Messages green, Weather a blue sky with its sun, Books orange…); many-color apps keep a white tile (Photos, Calendar, Maps). Automatic now uses Color in light mode and dark tiles in dark mode; Light and Dark are still in Settings › Appearance › App icons"
+        "New icon style: Color, like a phone's home screen. One-color apps get a tile of their own color with a white drawing (Music red, Messages green, Weather a blue sky with its sun, Books orange…); many-color apps keep a white tile (Photos, Calendar, Maps). Automatic now uses Color in light mode and dark tiles in dark mode; Light and Dark are still in Settings › Appearance › App icons",
+        "Fix: on phones, the home screen shows Color icons too (it kept icons painted for the old style, which then looked all white), and app names are dark over a light wallpaper"
       ],
       "fr": [
         "Un bureau plus calme et plus haut de gamme : le nouveau fond d’écran Pli, de grandes feuilles douces en longues courbes avec une lumière tendre (sombre en mode sombre, lin chaud en mode clair), et Crépuscule en violet. Pli remplace Soie une fois ; Soie reste dans Réglages › Fond d’écran",
@@ -60,7 +61,8 @@
         "Les icônes claires sont d’un argent doux au lieu d’un blanc éclatant. Sur ordinateur, les icônes du Dock sont un peu plus grandes, avec un peu plus d’espace entre elles",
         "Icônes claires refaites à la manière d’un Mac : une tuile blanche nette avec un léger dégradé gris, et chaque dessin peint pour elle en couleurs pleines et profondes (Musique en cramoisi, Piles en bleu profond…) avec des ombres douces ; les blancs restent blancs. Passer des icônes claires aux sombres les repeint aussitôt",
         "Icônes claires : les dessins gris (l’engrenage des Réglages, la Corbeille, les Échecs…) sont d’un gris acier plein bien contrasté ; les blancs restent blancs",
-        "Nouveau style d’icônes : Couleur, comme l’écran d’accueil d’un téléphone. Les apps d’une seule couleur ont une tuile de leur couleur avec un dessin blanc (Musique en rouge, Messages en vert, Météo un ciel bleu avec son soleil, Livres en orange…) ; les apps multicolores gardent une tuile blanche (Photos, Calendrier, Plans). Automatique utilise maintenant Couleur en mode clair et des tuiles sombres en mode sombre ; Clair et Sombre restent dans Réglages › Apparence › Icônes des apps"
+        "Nouveau style d’icônes : Couleur, comme l’écran d’accueil d’un téléphone. Les apps d’une seule couleur ont une tuile de leur couleur avec un dessin blanc (Musique en rouge, Messages en vert, Météo un ciel bleu avec son soleil, Livres en orange…) ; les apps multicolores gardent une tuile blanche (Photos, Calendrier, Plans). Automatique utilise maintenant Couleur en mode clair et des tuiles sombres en mode sombre ; Clair et Sombre restent dans Réglages › Apparence › Icônes des apps",
+        "Correction : sur téléphone, l’écran d’accueil affiche aussi les icônes Couleur (il gardait des icônes peintes pour l’ancien style, qui paraissaient alors toutes blanches), et les noms des apps sont foncés sur un fond clair"
       ]
     }
   },

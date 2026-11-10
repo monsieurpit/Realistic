@@ -120,3 +120,6 @@ html.lg-on:is(.icons-light, .icons-color) .icon-tile.gi:not(.flat) { box-shadow:
 /* ---------- the Dock on a computer: a little more room between the apps (the icons are 10% bigger too: PatOS.dockBase) ---------- */
 html:not(.mobile) #dock { gap: 8px; }
 html.lg-on:not(.mobile) #dock { padding: 9px 16px; }
+
+/* phone home screen: app names follow the wallpaper (dark words over a light picture) */
+html[data-wp-tone="light"] .mh-app > span { color: #1d1d1f; text-shadow: 0 0 6px rgba(255,255,255,.7); }
