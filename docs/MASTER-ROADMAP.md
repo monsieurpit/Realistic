@@ -27,6 +27,7 @@ The governing plan is [`docs/LONG-TERM-ROADMAP.md`](LONG-TERM-ROADMAP.md) (writt
 | 4–6. Recovery, storage, diagnostics | Not started (Task 4 recommended next) | Groundwork: write journal, session restore, Activity Monitor, the error log from Task 3 |
 | 8. Advanced window management | Partly there | Snap layouts picker, window groups, Stage Focus (3.0 beta 1) |
 | 11. Spotlight evolution | Largely there | Apps, file names and contents, notes, reminders, contacts, passwords (site/user only), websites, settings, math, units, timers, actions, clipboard. Missing: calendar events, messages, filters, an index |
+| 14. Liquid Glass refinement | **Done**, 3.1.0 beta 4 | Same clarity (tints, blurs, lens unchanged and guarded by a test); menus grow out of their control, the segmented selection stretches like a drop of glass, presses light the glass from the touch and tiles swell, concentric menu corners. See `docs/LIQUID-GLASS.md` |
 | 13. Design-system audit | Partly there | `css/design.css` tokens and component kit (3.0 beta 1); adoption is uneven across apps |
 | 16. Motion system | Partly there | One spring (`PatOS.motion`, 3.0 beta 2) and Flow (`js/flow.js`, beta 6) |
 | 41. Privacy controls | Partly there | Timeline: pause, retention, forget; Settings › Privacy for community apps |

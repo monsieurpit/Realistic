@@ -78,13 +78,38 @@
       const keep = { bg: to.style.background, sh: to.style.boxShadow };
       to.style.setProperty('background', 'transparent', 'important'); to.style.setProperty('box-shadow', 'none', 'important');
       const sp = spring();
+      // Liquid Glass: the selection is a drop of glass. It stretches toward the tab you picked (its front leaves first),
+      // lifts a little while it travels (a touch bigger and brighter, like glass picked up), then its back catches up
+      const ex = tr.left - sr.left, ey = tr.top - sr.top, x0 = Math.min(start.x, ex), span = Math.max(start.x + start.w, ex + tr.width) - x0;
       const a = g.animate([
-        { transform: `translate(${start.x}px, ${start.y}px)`, width: start.w + 'px', height: start.h + 'px' },
-        { transform: `translate(${tr.left - sr.left}px, ${tr.top - sr.top}px)`, width: tr.width + 'px', height: tr.height + 'px' }
-      ], { duration: Math.min(420, sp.dur * .75), easing: sp.easing, fill: 'forwards' });
+        { transform: `translate(${start.x}px, ${start.y}px)`, width: start.w + 'px', height: start.h + 'px', filter: 'brightness(1)', offset: 0 },
+        { transform: `translate(${x0}px, ${(start.y + ey) / 2}px) scaleY(1.08)`, width: span + 'px', height: start.h + 'px', filter: 'brightness(1.12)', offset: 0.45 },
+        { transform: `translate(${ex}px, ${ey}px)`, width: tr.width + 'px', height: tr.height + 'px', filter: 'brightness(1)', offset: 1 }
+      ], { duration: Math.min(480, Math.max(340, sp.dur * .8)), easing: 'cubic-bezier(.3,.7,.25,1)', fill: 'forwards' });
       const done = () => { g.remove(); to.style.background = keep.bg; to.style.boxShadow = keep.sh; };
       a.onfinish = done; a.oncancel = done;
     }), 0);
+  }, true);
+
+  /* ---------- interactive glass: a touch lights it up from where you press ----------
+     Like Apple's interactive Liquid Glass: light spreads through the glass from the finger or pointer, holds while you press,
+     and fades after you let go (css/glass.css, --g-touch). It only adds light: the glass stays exactly as clear. */
+  const LIT = '.cc-tile, #desk-widgets .widget, .mw, .toast:not(.static), .seg, .lg, .nc-list, .dlg, #dock, .mh-dock, .lp-search';
+  document.addEventListener('pointerdown', (e) => {
+    if (calm() || e.button > 0 || !document.documentElement.classList.contains('lg-on') || document.documentElement.classList.contains('reduce-transparency')) return;
+    const el = e.target.closest && e.target.closest(LIT); if (!el || !el.animate) return;
+    const r = el.getBoundingClientRect(); if (!r.width) return;
+    el.style.setProperty('--g-tx', ((e.clientX - r.left) / r.width * 100).toFixed(1) + '%');
+    el.style.setProperty('--g-ty', ((e.clientY - r.top) / r.height * 100).toFixed(1) + '%');
+    if (el._lit) el._lit.cancel();
+    const on = el._lit = el.animate([{ '--g-touch': 0 }, { '--g-touch': 1 }], { duration: 160, easing: 'ease-out', fill: 'forwards' });
+    const off = () => {
+      removeEventListener('pointerup', off, true); removeEventListener('pointercancel', off, true);
+      if (el._lit !== on) return;
+      const out = el._lit = el.animate([{ '--g-touch': 1 }, { '--g-touch': 0 }], { duration: 520, easing: 'cubic-bezier(.3,.6,.3,1)', fill: 'forwards' });
+      on.cancel(); out.onfinish = () => { if (el._lit === out) { out.cancel(); el._lit = null; } };
+    };
+    addEventListener('pointerup', off, true); addEventListener('pointercancel', off, true);
   }, true);
 
   /* ---------- Launchpad: a wave from the middle ---------- */

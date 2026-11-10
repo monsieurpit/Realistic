@@ -26,8 +26,34 @@
 
   /* =========================== CONTEXT / DROPDOWN MENUS =========================== */
   let openMenu = null;
+  /* Liquid Glass: a menu grows out of the control that opened it (its glass stretches into the menu) and goes back into it
+     when it closes; opened with a right-click, it grows from the pointer. Only transform and opacity move. */
+  const morphOK = () => !PatOS.settings.reduceMotion && !document.documentElement.classList.contains('reduce-motion') && !!document.body.animate;
+  let lastPress = null;
+  document.addEventListener('pointerdown', (e) => { const c = e.target.closest && e.target.closest('button, [role="button"], [data-menu], .tbtn, .btn, select'); lastPress = c && !c.closest('.menu') ? { el: c, t: Date.now() } : null; }, true);
+  function morphFrom(el, x, y) {
+    const m = el.getBoundingClientRect(); if (!m.width || !m.height) return null;
+    const src = lastPress && Date.now() - lastPress.t < 900 && lastPress.el.isConnected ? lastPress.el.getBoundingClientRect() : null;
+    // (the control must be next to where the menu opens, or it was not what opened it)
+    const near = src && src.width && Math.abs(src.left - x) < Math.max(80, src.width) && Math.abs(src.bottom - y) < 60;
+    const r = near ? src : { left: x - 8, top: y - 8, width: 16, height: 16 };
+    const sx = Math.min(1, Math.max(0.08, r.width / m.width)), sy = Math.min(1, Math.max(0.06, r.height / m.height));
+    const dx = r.left + r.width / 2 - (m.left + m.width / 2), dy = r.top + r.height / 2 - (m.top + m.height / 2);
+    return `translate(${dx}px, ${dy}px) scale(${sx}, ${sy})`;
+  }
   function closeMenus() {
-    if (openMenu) { openMenu.el.remove(); openMenu.onClose && openMenu.onClose(); openMenu = null; }
+    if (openMenu) {
+      const el = openMenu.el, from = openMenu.from;
+      if (from && morphOK() && el.isConnected) {
+        // it leaves into the control it came from, from a layer after the live one (so a new menu is the one found and clicked)
+        let gone = document.getElementById('menu-leave-layer');
+        if (!gone) { gone = document.createElement('div'); gone.id = 'menu-leave-layer'; $('#menu-layer').after(gone); }
+        el.classList.add('menu-leaving'); el.style.pointerEvents = 'none'; gone.appendChild(el);
+        const a = el.animate([{ transform: 'none', opacity: 1 }, { transform: from, opacity: 0 }], { duration: 170, easing: 'cubic-bezier(.4,0,.8,.4)', fill: 'forwards' });
+        a.onfinish = a.oncancel = () => el.remove();
+      } else el.remove();
+      openMenu.onClose && openMenu.onClose(); openMenu = null;
+    }
     $$('#menubar .open').forEach((b) => b.classList.remove('open'));
   }
   /* items: [{label, action, shortcut, disabled, checked, divider, submenu}] */
@@ -50,7 +76,15 @@
     const r = el.getBoundingClientRect();
     el.style.left = clamp(x, 4, innerWidth - r.width - 4) + 'px';
     el.style.top = (y + r.height > innerHeight - 4 ? Math.max(4, y - r.height) : y) + 'px';
-    openMenu = { el, onClose: opts.onClose };
+    let from = null;
+    if (morphOK()) {
+      from = morphFrom(el, x, y);
+      if (from) {
+        el.classList.add('menu-morph'); const sp = PatOS.motion.get();
+        el.animate([{ transform: from, opacity: 0.35 }, { transform: 'none', opacity: 1 }], { duration: Math.min(520, Math.max(340, sp.dur * 0.8)), easing: sp.easing });
+      }
+    }
+    openMenu = { el, from, onClose: opts.onClose };
     return el;
   };
   PatOS.closeMenus = closeMenus;

@@ -1,7 +1,7 @@
 [
   {
     "version": "3.1.0",
-    "beta": 3,
+    "beta": 4,
     "date": "2026-11-10",
     "title": {
       "en": "PatOS 3.1: Handoff",
@@ -17,7 +17,8 @@
         "iPhone: toolbars wider than the screen fade at the edge to show that they scroll; YouTube’s search box fits; Calendar no longer tells you to double-click",
         "More reliable: every app was opened and closed again and again, on a computer and on an iPhone, to check that nothing stays behind and keeps using memory or battery. Weather could keep animating after you closed it (when the forecast arrived late); it stops now",
         "When an app fails to start, it now tells you why with a Try Again button, instead of an empty window (also when it fails a moment later)",
-        "PatOS now writes down problems in one place (Terminal: errors), so they can be found and fixed. It stays on this device and is never synced; and “Storage is full” is only shown when storage really is full"
+        "PatOS now writes down problems in one place (Terminal: errors), so they can be found and fixed. It stays on this device and is never synced; and “Storage is full” is only shown when storage really is full",
+        "Liquid Glass, closer to Apple’s and exactly as clear as before: menus now grow out of the button you pressed and go back into it when they close; the selection in segmented controls (Day · Week · Month…) stretches like a drop of glass on its way to the tab you pick; and pressing glass (Control Center, widgets, notifications, the Dock) lights it up from where you press, while tiles swell a little instead of sinking in"
       ],
       "fr": [
         "Nouveau : Continuité. Commencez sur un appareil et continuez sur l’autre : quand vous venez d’utiliser une note, un document, un site, un dossier ou une app sur votre iPhone, votre Chromebook affiche « Continuer depuis iPhone » au-dessus du Dock (et inversement, au-dessus du dock du téléphone). Un clic l’ouvre sur place. Ça marche aussi depuis Spotlight (« Continuer depuis… »)",
@@ -28,7 +29,8 @@
         "iPhone : les barres d’outils plus larges que l’écran s’estompent au bord pour montrer qu’elles défilent ; la recherche de YouTube tient ; Calendrier ne vous dit plus de double-cliquer",
         "Plus fiable : chaque app a été ouverte et fermée encore et encore, sur ordinateur et sur iPhone, pour vérifier que rien ne reste derrière à utiliser la mémoire ou la batterie. Météo pouvait continuer de s’animer après sa fermeture (quand les prévisions arrivaient en retard) ; elle s’arrête maintenant",
         "Quand une app n’arrive pas à démarrer, elle explique pourquoi avec un bouton Réessayer, au lieu d’une fenêtre vide (même si l’échec arrive un instant plus tard)",
-        "PatOS note maintenant les problèmes au même endroit (Terminal : errors), pour qu’on puisse les trouver et les corriger. Ça reste sur cet appareil et n’est jamais synchronisé ; et « Le stockage est plein » ne s’affiche que s’il l’est vraiment"
+        "PatOS note maintenant les problèmes au même endroit (Terminal : errors), pour qu’on puisse les trouver et les corriger. Ça reste sur cet appareil et n’est jamais synchronisé ; et « Le stockage est plein » ne s’affiche que s’il l’est vraiment",
+        "Liquid Glass, plus proche de celui d’Apple et exactement aussi transparent qu’avant : les menus sortent maintenant du bouton touché et y retournent en se fermant ; la sélection des contrôles segmentés (Jour · Semaine · Mois…) s’étire comme une goutte de verre en allant vers l’onglet choisi ; et toucher le verre (Centre de contrôle, widgets, notifications, le Dock) l’illumine depuis l’endroit touché, et les tuiles grossissent un peu au lieu de s’enfoncer"
       ]
     }
   },

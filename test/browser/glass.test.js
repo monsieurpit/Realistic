@@ -94,7 +94,7 @@ test('every glass surface is a thick pane: Control Center tiles and menus get a 
   assert.deepEqual(errors, []); await page.close();
 });
 
-test('one fixed light for all the glass, readable words over busy pictures, and glass that sinks when pressed', { skip: skipNoBrowser }, async () => {
+test('one fixed light for all the glass, readable words over busy pictures, and glass that lifts when pressed', { skip: skipNoBrowser }, async () => {
   const page = await b.newPage({ viewport: { width: 1280, height: 800 } }); const errors = await boot(page, srv.base, { fresh: true });
   // the light leans toward the pointer
   const angle = () => page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--g-angle').trim());
@@ -108,7 +108,8 @@ test('one fixed light for all the glass, readable words over busy pictures, and 
   await page.evaluate((u) => { PatOS.setSetting('customWallpaper', u); PatOS.setSetting('wallpaper', 'custom'); }, busy); await page.waitForTimeout(800);
   assert.equal(await page.evaluate(() => document.documentElement.dataset.wpBusy || null), '1');
   assert.equal(await page.evaluate(() => getComputedStyle(document.documentElement).getPropertyValue('--g-blur').trim()), '4px');
-  // pressing a Control Center tile pushes it in: the shade moves inside the top edge
+  // pressing a Control Center tile lifts it, like Apple's interactive glass (Task 14; before, it sank in): no inner shade,
+  // a wider shadow under it
   await page.click('#mb-cc'); await page.waitForSelector('#control-center:not(.hidden) .cc-tile'); await page.waitForTimeout(300);
   // (the pressed state is forced through the DevTools protocol: a real held click is flaky, because Control Center can redraw
   // its tiles while the button is down, and a redrawn tile is no longer the one being pressed)
@@ -119,7 +120,8 @@ test('one fixed light for all the glass, readable words over busy pictures, and 
   await cdp.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: ['active'] }); await page.waitForTimeout(500);
   const pressed = await page.evaluate(() => getComputedStyle(document.querySelector('#control-center .cc-tile.cc-slider')).boxShadow);
   await cdp.send('CSS.forcePseudoState', { nodeId, forcedPseudoClasses: [] });
-  assert.match(pressed, /^rgba\(0, 0, 0, 0\.22\) 0px 3px 8px 0px inset/, 'pressed in: ' + pressed);
+  assert.doesNotMatch(pressed, /inset/, 'pressed glass does not sink: ' + pressed);
+  assert.match(pressed, /0px 14px 30px -6px/, 'it lifts: ' + pressed);
   assert.deepEqual(errors, []); await page.close();
 });
 

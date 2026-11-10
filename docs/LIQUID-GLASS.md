@@ -155,7 +155,7 @@ screenshots taken side by side on a Mac: no Mac was available when it was writte
 | Adaptability | Adapts continuously to the content under each element | Menu bar adapts to the wallpaper (read once per wallpaper); other surfaces use theme tokens and do not adapt to windows under them |
 | Consistency | System-wide | One file, three tiers; app sidebars are styled panes but are not see-through to the desktop |
 | Readability | Automatic contrast | Text-heavy surfaces are the thickest tier, window contents are opaque, Tinted style for more contrast |
-| Animations | Fluid morphing between shapes | Short scale-in for menus, springy presses; no shape morphing |
+| Animations | Fluid morphing between shapes | Menus grow out of their control and go back into it; the segmented selection stretches like a drop; presses light the glass from the touch and tiles swell (3.1 beta 4). No true merging of two separate shapes |
 | Performance | Native GPU compositing | Browser `backdrop-filter`; blur area cut by 86% for windows, fewer blurs on phones, none in Speed mode |
 | Accessibility | Reduce Transparency, Increase Contrast, Reduce Motion | The same three, from the settings or the system, plus forced colors |
 | Customization | Clear or Tinted (26.1) | On/off, Transparent or Tinted, lens on/off, Reduce transparency |
@@ -172,3 +172,25 @@ Chromium has.
   window of that theme is usually behind them; in light mode they have more body (`--g-tint` .5, `--g-tint-elev` .62).
 - Reduce Transparency makes surfaces solid, so their words follow the theme (`--g-text: var(--text)`).
 - App icon tiles: `html.icons-light` (Settings › Appearance › App icons: Automatic follows the theme, or Dark / Light).
+
+## 3.1.0 beta 4: closer to Apple's Liquid Glass, exactly as clear (roadmap Task 14)
+The tints, blurs, lens and tiers are unchanged: the glass is exactly as see-through as before (`test/browser/liquid.test.js`
+guards it). What changed is how the glass **moves and reacts**, which is where Apple's Liquid Glass and PatOS differed most:
+
+- **Menus grow out of the control that opened them** (`js/shell.js`, `PatOS.menu`): the menu starts the size and place of the
+  button (or of the pointer, for a right-click) and stretches into the menu on PatOS's spring; on close it goes back into the
+  button. Only transform and opacity move. A closing menu moves to `#menu-leave-layer`, so a menu opened at once is the one
+  found and clicked.
+- **Segmented controls: the selection is a drop of glass** (`js/flow.js`): on its way to the new tab it stretches across both
+  (its front leaves first), lifts a little (8% taller, brighter), then its back catches up.
+- **Interactive glass** (`js/flow.js` + `--g-touch` in `css/glass.css`, a registered `@property`): pressing a tile, widget,
+  notification, segmented control, dialog, the Dock or the phone dock lights the glass from where you press (a radial light at
+  `--g-tx`/`--g-ty`), holds while pressed and fades in about half a second after. It only adds light. Tiles and widgets now
+  **swell** a little (×1.025) when pressed, with a wider shadow and a brighter rim, as Apple's do, instead of sinking in.
+  Buttons inside windows keep their press.
+- **Concentric corners**: menu rows are 14px (the menu's 22px corner minus its 8px padding).
+- Considered and not done: **chromatic dispersion** at the lens edge (it would triple the lens filter's work on every frame
+  something moves behind the glass, too slow on Chromebooks) and **tilt-driven highlights** on iPhone (Safari asks for motion
+  permission with a system prompt).
+
+With Fewer animations (or the system's Reduce Motion) menus open without growing and nothing lights up.

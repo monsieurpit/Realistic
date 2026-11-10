@@ -86,6 +86,8 @@ html:not(.reduce-motion) .pane-in { animation: paneIn .42s var(--spring) both; }
 /* menus open from where you clicked */
 html:not(.reduce-motion) .menu { animation-name: menuIn !important; }
 @keyframes menuIn { from { opacity: 0; transform: scale(.96) translateY(-6px); } }
+/* (a menu that grows out of its control, js/shell.js, is moved by script; its rows still arrive one by one) */
+html .menu.menu-morph, html .menu.menu-leaving { animation: none !important; transform-origin: 50% 50% !important; }
 html:not(.reduce-motion) .menu .menu-item { animation: menuItem .3s ease both; animation-delay: 0ms; animation-delay: calc(min(sibling-index(), 14) * 12ms); }
 @keyframes menuItem { from { opacity: 0; transform: translateX(-4px); } }
 /* notifications slide in with a little blur */

@@ -6,6 +6,9 @@
      elevated  surfaces full of text (menus, Spotlight, dialogs, Pat, the notification list)
    The lens and the deeper colored rim live in an SVG filter made for each surface's size (js/shell.js, Chromium only); the
    highlights, the milky body and the shadow are here. Window titlebars are glass and window contents are opaque. */
+/* how much light a touch is putting into the glass right now (0 to 1, animated by js/flow.js): it spreads from where you press,
+   like Apple's interactive glass, and only ever adds light, so the glass stays exactly as clear */
+@property --g-touch { syntax: '<number>'; inherits: false; initial-value: 0; }
 /* ---------- tokens ---------- */
 :root {
   /* blur per tier (CSS blur takes a standard deviation, so even 3px softens fine detail) and the body tint */
@@ -75,7 +78,8 @@ html.lg-on :is(.widget, .mw, .dock-label) { --text: var(--g-text); --text2: colo
                a second highlight lower right, dim between), like light catching the edge of a clear pane. No wide bands
    4. shadow   a contact shadow right under the slab (it is lifted) and a soft one further out. No outline anywhere. */
 html.lg-on :where(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear, .widget, .cc-tile, .toast:not(.static), .seg, .mw, .dock-label, #m-switcher .msw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated) {
-  background: linear-gradient(180deg, rgba(255,255,255,calc(.08 * var(--g-glint))), rgba(255,255,255,0) 50%), var(--g-t) !important;
+  background: radial-gradient(circle at var(--g-tx, 50%) var(--g-ty, 50%), rgba(255,255,255,calc(.34 * var(--g-touch))), rgba(255,255,255,calc(.1 * var(--g-touch))) 40%, transparent 75%),
+    linear-gradient(180deg, rgba(255,255,255,calc(.08 * var(--g-glint))), rgba(255,255,255,0) 50%), var(--g-t) !important;
   -webkit-backdrop-filter: var(--lg-lens,) blur(var(--g-b)) saturate(var(--g-s)) brightness(var(--g-l)) !important;
   backdrop-filter: var(--lg-lens,) blur(var(--g-b)) saturate(var(--g-s)) brightness(var(--g-l)) !important;
   box-shadow: inset 0 0 10px rgba(255,255,255,calc(.06 * var(--g-glint))), 0 1px 2px rgba(0,0,0,.12), 0 10px 30px -10px rgba(0,0,0,.24) !important;
@@ -111,7 +115,7 @@ html.lg-on #control-center { background: transparent !important; box-shadow: non
 /* ---------- shapes ---------- */
 html.lg-on #dock { border-radius: 999px; padding: 8px 14px; }
 html.lg-on .menu { border-radius: 22px; padding: 8px; }
-html.lg-on .menu-item { border-radius: 12px; }
+html.lg-on .menu-item { border-radius: 14px; } /* (concentric: the menu's 22px corner minus its 8px padding) */
 html.lg-on .sp-box { border-radius: 32px; }
 html.lg-on .dlg { border-radius: 34px; }
 html.lg-on .toast { border-radius: 30px; }
@@ -313,7 +317,8 @@ html.lg-on:not(.reduce-motion) :is(.cc-tile, #desk-widgets .widget) {
   transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
   transition: transform .4s cubic-bezier(.2,.9,.3,1.2), box-shadow .3s;
 }
-html.lg-on:not(.reduce-motion) :is(.cc-tile, #desk-widgets .widget):active { transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(.975); }
+/* pressed, a tile swells a little toward you, like Apple's interactive glass (the light from the touch is js/flow.js) */
+html.lg-on:not(.reduce-motion) :is(.cc-tile, #desk-widgets .widget):active { transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(1.025); transition-duration: .22s; }
 html.lg-on:not(.reduce-motion) :is(.toast:not(.static), .cc-tile, #desk-widgets .widget):hover {
   box-shadow: 0 2px 2px rgba(0,0,0,.1), 0 12px 24px -4px rgba(0,0,0,.2), 0 30px 56px -12px rgba(0,0,0,.28) !important;
 }
@@ -325,10 +330,11 @@ html.lg-on :is(.btn, .tbtn, .seg .tab, .menu-item, .cc-toggle .cc-dot, .ytx-btn,
 }
 html.lg-on :is(.btn, .tbtn, .seg .tab, .cc-dot):active { transform: scale(.95); }
 /* (:not(#_) only adds weight, so pressing wins over the hover shadow, which also applies while pressing) */
+/* (glass surfaces don't sink when pressed: they lift, with a slightly wider shadow, and their rim catches more light) */
 html.lg-on:not(#_) :is(.cc-tile, .toast:not(.static), #desk-widgets .widget, .lg):active {
-  box-shadow: inset 0 3px 8px rgba(0,0,0,.22), 0 1px 2px rgba(0,0,0,.14), 0 4px 10px rgba(0,0,0,.14) !important;
+  box-shadow: 0 2px 3px rgba(0,0,0,.12), 0 14px 30px -6px rgba(0,0,0,.26) !important;
 }
-html.lg-on :is(.cc-tile, .toast:not(.static), #desk-widgets .widget, .lg):active::before { opacity: .45; }
+html.lg-on :is(.cc-tile, .toast:not(.static), #desk-widgets .widget, .lg):active::before { filter: brightness(1.25); }
 html.lg-on .menu-item:active { transition: none; }
 
 /* ---------- phone ---------- */

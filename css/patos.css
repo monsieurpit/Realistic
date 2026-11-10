@@ -127,7 +127,7 @@ html[data-wp-top="light"] .desk-icon:not(.sel) .di-name { color: #1d1d1f; text-s
 @media (max-width: 720px) { .mb-item { display: none !important; } .bat-pct { display: none; } }
 
 /* ---------- menus ---------- */
-#menu-layer { position: fixed; inset: 0; pointer-events: none; z-index: 20000; }
+#menu-layer, #menu-leave-layer { position: fixed; inset: 0; pointer-events: none; z-index: 20000; }
 .menu { position: absolute; pointer-events: auto; min-width: 220px; padding: 5px; border-radius: 9px; background: var(--menu); backdrop-filter: blur(40px) saturate(1.8); -webkit-backdrop-filter: blur(40px) saturate(1.8); box-shadow: 0 12px 40px rgba(0,0,0,.35), 0 0 0 .5px var(--border2); color: var(--text); animation: menuIn .12s ease; }
 @keyframes menuIn { from { opacity: 0; transform: translateY(-3px); } }
 .menu-item { display: flex; align-items: center; height: 24px; padding: 0 8px 0 4px; border-radius: 5px; font-size: 13px; }
