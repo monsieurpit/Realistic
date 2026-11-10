@@ -30,7 +30,6 @@
     calculator: 'A basic calculator and a scientific one with sin, cos, logs, powers and more.',
     clock: 'World clocks, alarms, a stopwatch and a timer.',
     grapher: 'A graphing calculator: graph equations and inequalities, use sliders, and find roots and crossing points.',
-    elements: 'The whole periodic table with details on every element, plus a molar mass calculator.',
     focus: 'Work in 25-minute sessions with breaks, rain sounds and stats on your study time.',
     journal: 'Write a page a day, track your mood and keep your streak going.',
     sudoku: 'Fresh Sudoku puzzles at three levels, with notes, hints and undo.',
@@ -157,7 +156,7 @@
             card.onclick = () => detail(id); hero.appendChild(card);
           });
           main.append(h('h1', { class: 'as-h1' }, 'Discover'), hero, h('h2', {}, 'Essentials'));
-          const g = h('div', { class: 'as-list' }); ['browser', 'youtube', 'news', 'books', 'radio', 'docs', 'focus', 'grapher', 'elements', 'solitaire', 'chess', 'sudoku'].filter((id) => PatOS.apps[id]).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
+          const g = h('div', { class: 'as-list' }); ['browser', 'youtube', 'news', 'books', 'radio', 'docs', 'focus', 'grapher', 'solitaire', 'chess', 'sudoku'].filter((id) => PatOS.apps[id]).forEach((id) => g.appendChild(row(id))); main.appendChild(g);
           if (X) { main.appendChild(h('h2', {}, PatOS.t('Popular on phones'))); const gx = h('div', { class: 'as-list' }); ['snapchat', 'instagram', 'tiktok', 'spotify', 'roblox', 'whatsapp'].map((k) => X.list().find((c) => c.id === k)).filter(Boolean).forEach((c) => gx.appendChild(xrow(c))); main.appendChild(gx); main.appendChild(h('button', { class: 'btn', onclick: () => { tab = 'phone'; render(); } }, PatOS.t('See all phone & web apps'))); }
           const hidden = PatOS.settings.hiddenApps || [];
           if (hidden.length) { main.appendChild(h('h2', {}, 'Hidden Apps')); const g2 = h('div', { class: 'as-list' }); hidden.filter((id) => PatOS.apps[id]).forEach((id) => g2.appendChild(row(id))); main.appendChild(g2); }

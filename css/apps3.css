@@ -362,40 +362,6 @@
 .gr-read i { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
 @media (max-width: 700px) { .gr-wrap { flex-direction: column-reverse; } .gr-side { width: auto; max-height: 38%; border-right: 0; border-top: 1px solid var(--border); } }
 
-/* ---------- Elements ---------- */
-.el-wrap { display: flex; height: 100%; }
-.el-main { flex: 1; min-width: 0; padding: 14px; overflow: auto; display: flex; flex-direction: column; gap: 12px; }
-.el-grid { display: grid; grid-template-columns: repeat(18, minmax(38px, 1fr)); grid-template-rows: repeat(7, minmax(44px, auto)) 12px repeat(2, minmax(44px, auto)); gap: 3px; min-width: 700px; }
-.el-cell { position: relative; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 3px 1px; border-radius: 6px; background: color-mix(in srgb, var(--c) 22%, var(--win-solid)); border: 1px solid color-mix(in srgb, var(--c) 45%, transparent); color: var(--text); transition: transform .15s var(--spring, ease), opacity .2s, box-shadow .2s; overflow: hidden; }
-.el-cell small { position: absolute; top: 2px; left: 4px; font-size: 8.5px; color: var(--text2); }
-.el-cell b { font-size: 15px; line-height: 1.1; margin-top: 6px; }
-.el-cell span { font-size: 7.5px; color: var(--text2); max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.el-cell:hover { transform: scale(1.12); z-index: 2; box-shadow: 0 6px 18px rgba(0,0,0,.25); }
-.el-cell.on { background: var(--c); color: #1c1c1e; box-shadow: 0 0 0 2px var(--text); z-index: 1; }
-.el-cell.on small, .el-cell.on span { color: rgba(0,0,0,.65); }
-.el-cell.dim { opacity: .18; }
-.el-mark { display: flex; align-items: center; justify-content: center; font-size: 9px; color: var(--text3); border: 1px dashed var(--border2); border-radius: 6px; }
-.el-legend { display: flex; flex-wrap: wrap; gap: 6px; }
-.el-leg { display: flex; align-items: center; gap: 6px; padding: 4px 10px; border-radius: 99px; background: var(--hover2); font-size: 12px; color: var(--text); }
-.el-leg i { width: 10px; height: 10px; border-radius: 3px; background: var(--c); }
-.el-leg.on { background: var(--c); color: #1c1c1e; }
-.el-card { width: 270px; flex: none; padding: 18px; border-left: 1px solid var(--border); background: var(--sidebar); overflow: auto; display: flex; flex-direction: column; gap: 10px; }
-.el-big { position: relative; width: 120px; height: 120px; border-radius: 18px; background: linear-gradient(145deg, var(--c), color-mix(in srgb, var(--c) 60%, #000)); color: #1c1c1e; display: flex; flex-direction: column; align-items: center; justify-content: center; box-shadow: 0 10px 30px color-mix(in srgb, var(--c) 40%, transparent); animation: elPop .35s var(--spring, ease); }
-.el-big small { position: absolute; top: 8px; left: 11px; font-weight: 600; }
-.el-big b { font-size: 48px; line-height: 1; }
-.el-big span { font-size: 12px; opacity: .75; margin-top: 4px; }
-@keyframes elPop { from { transform: scale(.85); opacity: .4; } }
-.el-card h2 { margin: 4px 0 0; font-size: 22px; }
-.el-cat { font-weight: 600; font-size: 13px; }
-.el-props { display: flex; flex-direction: column; border-radius: 10px; background: var(--card, var(--win-solid)); overflow: hidden; }
-.el-props div { display: flex; justify-content: space-between; gap: 10px; padding: 7px 10px; font-size: 12.5px; border-bottom: 1px solid var(--border); }
-.el-props div:last-child { border-bottom: 0; }
-.el-props span { color: var(--text2); }
-.el-card .btn { align-self: flex-start; }
-.el-mm { font: 600 13px var(--mono, monospace); color: var(--accent); margin-left: 8px; white-space: nowrap; }
-.el-mm.err { color: #ff453a; font-family: inherit; font-weight: 500; }
-@media (max-width: 700px) { .el-wrap { flex-direction: column; overflow: auto; } .el-main { flex: none; overflow: visible; overflow-x: auto; } .el-card { width: auto; flex: none; overflow: visible; border-left: 0; border-top: 1px solid var(--border); } }
-
 /* ---------- Focus ---------- */
 .fo-wrap { display: flex; height: 100%; --fo: #ff453a; transition: background .5s; }
 [data-fo="short"] .fo-wrap { --fo: #30d158; }

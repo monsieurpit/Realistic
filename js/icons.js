@@ -155,7 +155,6 @@
     slither: { bg: 'linear-gradient(160deg,#16213e,#0b1020)', svg: () => S(`<path d="M14 46c10 8 22 6 24-4s-14-8-8-18 18-8 20-6" stroke="#80ed99" stroke-width="9" fill="none" stroke-linecap="round"/><path d="M14 46c10 8 22 6 24-4s-14-8-8-18 18-8 20-6" stroke="#e2ffe8" stroke-width="3" fill="none" stroke-linecap="round" stroke-dasharray="1 9"/><circle cx="50" cy="23" r="4.6" fill="#fff"/><circle cx="51.4" cy="22.4" r="2.1" fill="#111"/><circle cx="14" cy="14" r="2.2" fill="#ffd166"/><circle cx="50" cy="52" r="2.6" fill="#ff4d6d"/><circle cx="22" cy="24" r="2" fill="#4cc9f0"/>`) },
     screenshot: { bg: 'linear-gradient(160deg,#636366,#2c2c2e)', svg: () => S(`<path d="M14 24v-8h8M42 16h8v8M50 40v8h-8M22 48h-8v-8" stroke="#fff" stroke-width="4" fill="none" stroke-linecap="round"/><circle cx="32" cy="32" r="8" fill="#ff453a"/>`) },
     grapher: { bg: 'linear-gradient(160deg,#0b3d91,#1e88e5)', svg: () => S(`<path d="M10 54h46M14 58V8" stroke="#bfe0ff" stroke-width="2"/><path d="M14 50c8-2 10-30 18-30s10 26 18 18 6-14 6-14" stroke="#ffd60a" stroke-width="3.5" fill="none" stroke-linecap="round"/><path d="M14 40c10 0 20-6 40-26" stroke="#ff6b9d" stroke-width="3" fill="none" stroke-linecap="round"/>`) },
-    elements: { bg: 'linear-gradient(160deg,#ff9a3c,#ff3d68)', svg: () => S(`<rect x="12" y="12" width="40" height="40" rx="6" fill="#fff"/><text x="16" y="22" font-size="7" font-family="system-ui" fill="#888">8</text><text x="32" y="42" font-size="22" font-weight="800" font-family="system-ui" fill="#ff3d68" text-anchor="middle">O</text><text x="32" y="49" font-size="5" font-family="system-ui" fill="#888" text-anchor="middle">15.999</text>`) },
     focus: { bg: 'linear-gradient(160deg,#5e5ce6,#bf5af2)', svg: () => S(`<circle cx="32" cy="34" r="19" fill="none" stroke="rgba(255,255,255,.3)" stroke-width="5"/><path d="M32 15a19 19 0 1 1-17 27" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round"/><path d="M32 24v10l6 4" stroke="#fff" stroke-width="3" stroke-linecap="round" fill="none"/>`) },
     journal: { bg: 'linear-gradient(160deg,#a06cd5,#6247aa)', svg: () => S(`<rect x="15" y="10" width="34" height="44" rx="4" fill="#fff"/><rect x="15" y="10" width="7" height="44" fill="#e0d4f7"/><path d="M27 22h16M27 29h16M27 36h10" stroke="#a06cd5" stroke-width="2.5" stroke-linecap="round"/><path d="M40 44l3-3 3 3-3 3z" fill="#ff6b9d"/>`) },
     sudoku: { bg: '#fff', svg: () => { let g = '<rect x="10" y="10" width="44" height="44" rx="4" fill="#f2f2f7" stroke="#3a3a3c" stroke-width="2"/>'; [24.7, 39.3].forEach((v) => { g += `<path d="M${v} 10v44M10 ${v}h44" stroke="#3a3a3c" stroke-width="2"/>`; }); [[17, 21, '5'], [32, 21, '3'], [47, 36, '7'], [17, 50, '9'], [32, 50, '1']].forEach(([x, y, n]) => { g += `<text x="${x}" y="${y}" font-size="10" font-weight="700" font-family="system-ui" fill="${n === '7' ? '#0a84ff' : '#1c1c1e'}" text-anchor="middle">${n}</text>`; }); return S(g); } },
@@ -415,9 +414,6 @@
       p.glass(circ(32, 32, 20) + circ(32, 32, 15), '#c7ccd4', { evenodd: 1, top: .4 }) + p.glass(circ(32, 32, 11), '#ff3b30', { core: [40, 35], coreR: 75, glow: .9, halo: .9 })); }),
     grapher: draw(() => { const p = painter('grapher'); return p.done(
       p.light('M12 32h40M32 12v40', '#8e8e93', 1.1, { halo: .15 }) + p.light('M12 40c6 0 8-22 14-22s7 28 13 28 8-18 13-18', '#30d158', 2.4) + p.light('M12 22c10 4 30 4 40 20', '#64d2ff', 1.6, { halo: .4 })); }),
-    elements: draw(() => { const p = painter('elements'); return p.done(
-      p.g('rotate(0 32 32)', p.light(ell(32, 32, 21, 8), '#64d2ff', 1.2, { halo: .4 })) + p.g('rotate(60 32 32)', p.light(ell(32, 32, 21, 8), '#64d2ff', 1.2, { halo: .4 })) +
-      p.g('rotate(120 32 32)', p.light(ell(32, 32, 21, 8), '#64d2ff', 1.2, { halo: .4 })) + p.glass(circ(32, 32, 5), '#ff9f0a', { core: [40, 35], coreR: 75, glow: 1, halo: .9 })); }),
     focus: draw(() => { const p = painter('focus'); return p.done(
       p.glass('M38 11a21 21 0 1 0 15 30A17 17 0 0 1 38 11z', '#7d7aff', { core: [40, 70] }) + p.bead(46, 18, 1.6, '#ffffff') + p.bead(50, 26, 1.1, '#ffffff')); }),
     journal: draw(() => { const p = painter('journal'); return p.done(
@@ -490,11 +486,14 @@
      follow their drawing: one main color (or a family of close hues) gives that tile with the drawing in white; many colors, or
      none, keep the white tile with deep colors (Photos, Calendar, Piano, Settings). */
   const COLOR_SET = { weather: { tile: '#3d8eff', white: ['#a9cfff'] } };
+  // these keep the plain tile (white with Light, dark glass with Dark), whatever their drawing
+  const NO_COLOR = new Set(['clock', 'calculator', 'notes', 'orbrunner', 'tictactoe', 'slither', 'pitstudio']);
   const planCache = new Map();
   function colorPlan(id, gi, arg) {
     if (planCache.has(id)) return planCache.get(id);
     let plan = null;
-    if (COLOR_SET[id]) plan = { tile: COLOR_SET[id].tile, white: new Set(COLOR_SET[id].white), hasWhite: true };
+    if (NO_COLOR.has(id)) plan = null;
+    else if (COLOR_SET[id]) plan = { tile: COLOR_SET[id].tile, white: new Set(COLOR_SET[id].white), hasWhite: true };
     else {
       PROBE = []; try { gi.svg(arg); } catch (e) {} const cols = PROBE; PROBE = null;
       const vivid = cols.filter((c) => isVivid(c) && avgOf(c) < 225); // (pale tints, like a sticky note's lines, don't count)
