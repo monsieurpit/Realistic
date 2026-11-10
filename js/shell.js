@@ -1162,11 +1162,13 @@
     const lessGlass = !!s.reduceTransparency || sysReduceTransparency.matches || PatOS.perf.light();
     root.classList.toggle('reduce-transparency', lessGlass);
     root.classList.toggle('perf-light', PatOS.perf.light());
-    const lightIcons = s.iconStyle === 'light' || (s.iconStyle !== 'dark' && t === 'light');
-    if (root.classList.contains('icons-light') !== lightIcons) {
-      root.classList.toggle('icons-light', lightIcons);
+    // app icons: dark tiles, white tiles, or each app's own color (Automatic: own colors in light mode, dark tiles in dark mode)
+    const iconMode = s.iconStyle === 'light' ? 'light' : s.iconStyle === 'color' ? 'color' : s.iconStyle === 'dark' ? 'dark' : (t === 'light' ? 'color' : 'dark');
+    const was = root.classList.contains('icons-light') ? 'light' : root.classList.contains('icons-color') ? 'color' : 'dark';
+    if (was !== iconMode) {
+      root.classList.toggle('icons-light', iconMode === 'light'); root.classList.toggle('icons-color', iconMode === 'color');
       // the icons are pictures painted for their tile: paint the ones on screen again (the rest are painted as they appear)
-      if (PatOS.loggedIn || PatOS.dock) setTimeout(() => PatOS.emit('icons:style', lightIcons), 0);
+      if (PatOS.loggedIn || PatOS.dock) setTimeout(() => PatOS.emit('icons:style', iconMode), 0);
     }
     root.classList.toggle('win', !!PatOS.hw.windows);
     ['highContrast', 'boldText', 'showFocus', 'bigTargets'].forEach((k) => root.classList.toggle(k.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase()), !!s[k]));

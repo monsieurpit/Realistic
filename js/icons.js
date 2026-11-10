@@ -221,9 +221,22 @@
      drawn: glass turns solid and saturated (no see-through body that washes out on white), halos become a soft shadow,
      and glowing strokes use their deep color instead of white-hot. */
   let LIGHT = false;
+  /* Color icons (the iOS look): one-color drawings sit on a tile of their own color and turn white (COLOR.white holds the
+     colors to whiten); drawings of many colors, or of no color, keep the white tile (LIGHT only). PROBE collects the colors a
+     drawing uses, to decide. */
+  let COLOR = null, PROBE = null;
+  const isVivid = (c) => { const x = hex(c); return Math.max(...x) - Math.min(...x) > 50; };
+  const hueOf = (c) => { const [r, g, b] = hex(c).map((v) => v / 255); const mx = Math.max(r, g, b), mn = Math.min(r, g, b), d = mx - mn; if (!d) return 0; let hh = mx === r ? ((g - b) / d) % 6 : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; return (hh * 60 + 360) % 360; };
+  // a color of the main family turns white (close hues count: Radio's waves and its dot are two reds)
+  const hueDist = (a, b) => { const d = Math.abs(hueOf(a) - hueOf(b)); return Math.min(d, 360 - d); };
+  const whiteOf = (c) => !!COLOR && typeof c === 'string' && /^#[0-9a-f]{6}$/i.test(c) && (COLOR.white.has(c.toLowerCase()) || (COLOR.main && isVivid(c) && avgOf(c) < 225 && hueDist(c, COLOR.main) < 28));
+  const avgOf = (c) => { const x = hex(c); return (x[0] + x[1] + x[2]) / 3; };
+  const nearWhite = (c) => avgOf(c) > 225 || (avgOf(c) > 200 && !isVivid(c));
   function painter(id) {
     const P = 'gi-' + id.replace(/[^a-z0-9]/gi, '') + '-'; let defs = '', halos = '', k = 0;
     function glass(d, col, o = {}) {
+      if (PROBE) PROBE.push(col);
+      if (COLOR && whiteOf(col)) return glassWhite(d, col, o);
       if (LIGHT) return glassLight(d, col, o);
       const i = P + (k++), lite = mix(col, '#ffffff', .62), core = o.core || [50, 80], fr = o.evenodd ? ' fill-rule="evenodd"' : '';
       defs += `<linearGradient id="${i}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity="${o.top != null ? o.top : .45}"/><stop offset=".6" stop-color="${col}" stop-opacity=".8"/><stop offset="1" stop-color="${lite}" stop-opacity=".97"/></linearGradient>` +
@@ -231,6 +244,12 @@
         `<linearGradient id="${i}r" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".95"/><stop offset=".45" stop-color="#fff" stop-opacity=".28"/><stop offset="1" stop-color="#fff" stop-opacity=".12"/></linearGradient>`;
       if (o.halo !== 0) halos += `<path d="${d}"${fr} fill="${col}" opacity="${o.halo || .5}"/>`;
       return `<path d="${d}"${fr} fill="url(#${i}b)"/><path d="${d}"${fr} fill="url(#${i}c)"/><path d="${d}"${fr} fill="none" stroke="url(#${i}r)" stroke-width="${o.rim || 1.1}" stroke-linejoin="round"/>`;
+    }
+    function glassWhite(d, col, o) {
+      const i = P + (k++), fr = o.evenodd ? ' fill-rule="evenodd"' : '';
+      defs += `<linearGradient id="${i}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="${mix(col, '#ffffff', .82)}"/></linearGradient>`;
+      if (o.halo !== 0) halos += `<path d="${d}"${fr} fill="${mix(COLOR.tile, '#000000', .55)}" opacity=".35" transform="translate(0 1.6)"/>`;
+      return `<path d="${d}"${fr} fill="url(#${i}b)"/>`;
     }
     function glassLight(d, col, o) {
       const i = P + (k++), fr = o.evenodd ? ' fill-rule="evenodd"' : '';
@@ -247,12 +266,19 @@
     }
     function solid(d, top, bottom, o = {}) {
       // on a white tile, colored parts deepen too (a sun, a red band); whites and greys stay as they are (a calendar's page)
-      if (LIGHT) { const vivid = (c) => { const x = hex(c); return Math.max(...x) - Math.min(...x) > 50; }; if (vivid(top)) top = mix(top, '#000000', .14); if (vivid(bottom)) bottom = mix(bottom, '#000000', .2); }
+      if (COLOR && whiteOf(top)) { top = '#ffffff'; bottom = mix(bottom, '#ffffff', .8); }
+      else if (LIGHT) { const vivid = (c) => { const x = hex(c); return Math.max(...x) - Math.min(...x) > 50; }; if (vivid(top)) top = mix(top, '#000000', .14); if (vivid(bottom)) bottom = mix(bottom, '#000000', .2); }
       const i = P + (k++);
       defs += `<linearGradient id="${i}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${top}"/><stop offset="1" stop-color="${bottom}"/></linearGradient>`;
       return `<path d="${d}" fill="url(#${i}s)"${o.evenodd ? ' fill-rule="evenodd"' : ''}/>` + (o.edge === 0 ? '' : `<path d="${d}" fill="none" stroke="#fff" stroke-opacity="${o.edge || .4}" stroke-width=".8"/>`);
     }
     function light(d, col, w, o = {}) {
+      if (PROBE) PROBE.push(col);
+      if (COLOR && (whiteOf(col) || nearWhite(col))) {
+        // on a white shape (a page, a bubble) light lines take the tile's color; drawn on the tile itself, they are white
+        const onWhite = nearWhite(col) && !whiteOf(col) && COLOR.hasWhite, c2 = onWhite ? mix(COLOR.tile, '#000000', .15) : '#ffffff';
+        return `<path d="${d}" fill="none" stroke="${c2}" stroke-width="${w * 1.1}" stroke-linecap="round" stroke-linejoin="round"/>`;
+      }
       if (LIGHT) {
         halos += `<path d="${d}" fill="none" stroke="#1c2033" stroke-width="${w * 1.6}" stroke-linecap="round" stroke-linejoin="round" opacity=".16" transform="translate(0 1.2)"/>`;
         return `<path d="${d}" fill="none" stroke="${mix(col, '#000000', .3)}" stroke-width="${w * 1.15}" stroke-linecap="round" stroke-linejoin="round"/>` +
@@ -460,6 +486,27 @@
     return u;
   }
   PatOS.iconDefs = ICONS;
+  /* which tile a Color icon gets: a few apps are set by hand (Weather is a blue sky with a white cloud and its sun), the rest
+     follow their drawing: one main color (or a family of close hues) gives that tile with the drawing in white; many colors, or
+     none, keep the white tile with deep colors (Photos, Calendar, Piano, Settings). */
+  const COLOR_SET = { weather: { tile: '#3d8eff', white: ['#a9cfff'] } };
+  const planCache = new Map();
+  function colorPlan(id, gi, arg) {
+    if (planCache.has(id)) return planCache.get(id);
+    let plan = null;
+    if (COLOR_SET[id]) plan = { tile: COLOR_SET[id].tile, white: new Set(COLOR_SET[id].white), hasWhite: true };
+    else {
+      PROBE = []; try { gi.svg(arg); } catch (e) {} const cols = PROBE; PROBE = null;
+      const vivid = cols.filter((c) => isVivid(c) && avgOf(c) < 225); // (pale tints, like a sticky note's lines, don't count)
+      const hues = [...new Set(vivid.map((c) => Math.round(hueOf(c) / 30)))];
+      if (vivid.length && hues.length <= 2) {
+        const main = vivid[0], h0 = hueOf(main);
+        const fam = vivid.filter((c) => { const dh = Math.abs(hueOf(c) - h0); return avgOf(c) < 225 && Math.min(dh, 360 - dh) < 28; });
+        plan = { tile: mix(main, '#000000', .06), main, white: new Set(fam.map((c) => c.toLowerCase())), hasWhite: true };
+      }
+    }
+    planCache.set(id, plan); return plan;
+  }
   PatOS.iconHTML = function (id, arg) {
     const gi = GLASS[id];
     // drawn in glass (above), shown as a picture: the browser draws each icon (its gradients and blurred halos) once and reuses it,
@@ -467,9 +514,12 @@
     // magnification did that every frame). It also keeps each icon's ids to itself.
     if (gi) {
       // app icons on a tile are painted for the tile in use (light icons: Settings › Appearance › App icons); file icons stay as they are
-      LIGHT = gi.bg !== 'transparent' && document.documentElement.classList.contains('icons-light');
-      let svg; try { svg = gi.svg(arg); } finally { LIGHT = false; }
-      return `<div class="icon-tile gi${gi.bg === 'transparent' ? ' flat' : ''}" style="background:${gi.bg}"><img class="gi-img" src="${giURL(svg)}" alt="" draggable="false"></div>`;
+      const root = document.documentElement, tiled = gi.bg !== 'transparent';
+      const color = tiled && root.classList.contains('icons-color') ? colorPlan(id, gi, arg) : null;
+      LIGHT = tiled && (root.classList.contains('icons-light') || root.classList.contains('icons-color')); COLOR = color;
+      let svg; try { svg = gi.svg(arg); } finally { LIGHT = false; COLOR = null; }
+      const bg = color ? `linear-gradient(180deg, ${mix(color.tile, '#ffffff', .14)} 0%, ${color.tile} 55%, ${mix(color.tile, '#000000', .16)} 100%)` : gi.bg;
+      return `<div class="icon-tile gi${tiled ? '' : ' flat'}${color ? ' colored' : ''}" style="background:${bg}"><img class="gi-img" src="${giURL(svg)}" alt="" draggable="false"></div>`;
     }
     const def = ICONS[id] || letterIcon((id || '?')[0].toUpperCase());
     const flat = def.bg === 'transparent';

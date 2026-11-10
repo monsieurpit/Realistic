@@ -136,3 +136,24 @@ test('light app icons are painted for a white tile (solid colors), and switching
   assert.deepEqual(r, { changed: true, back: true, solid: true });
   assert.deepEqual(errors, []); await page.close();
 });
+
+test('Color icons: one-color apps get a tile of their own color with a white drawing, many-color apps keep a white tile; Automatic uses Color in light mode', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1366, height: 768 } }); const errors = await boot(page, srv.base, { fresh: true });
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise((res) => setTimeout(res, ms));
+    PatOS.setSetting('theme', 'dark'); PatOS.setSetting('iconStyle', 'color'); await wait(300);
+    const tile = (app) => document.querySelector('#dock .dock-item[data-app="' + app + '"] .icon-tile');
+    const music = tile('music'), photos = tile('photos');
+    const out = { musicColored: music.classList.contains('colored'), musicBg: music.style.background, photosColored: photos.classList.contains('colored'),
+      musicWhite: /stop-color%3D%22%23ffffff/.test(music.querySelector('img').src) };
+    PatOS.setSetting('iconStyle', 'auto'); PatOS.setSetting('theme', 'light'); await wait(400);
+    out.autoLight = document.documentElement.classList.contains('icons-color');
+    PatOS.setSetting('theme', 'dark'); await wait(400);
+    out.autoDark = document.documentElement.classList.contains('icons-color') || document.documentElement.classList.contains('icons-light');
+    return out;
+  });
+  assert.equal(r.musicColored, true); assert.match(r.musicBg, /gradient/); assert.equal(r.musicWhite, true, 'Music’s note is white on its red tile');
+  assert.equal(r.photosColored, false, 'Photos keeps a white tile');
+  assert.equal(r.autoLight, true); assert.equal(r.autoDark, false);
+  assert.deepEqual(errors, []); await page.close();
+});
