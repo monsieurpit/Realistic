@@ -4,6 +4,9 @@
   const { $ } = PatOS;
 
   const PALETTES = {
+    // calm sculpted sheets (painted by paintFolds): Fold follows light and dark mode, Dusk stays violet
+    fold:      { name: 'Fold', fold: true, variant: 'auto', dark: true },
+    dusk:      { name: 'Dusk', fold: true, variant: 'dusk', dark: true },
     // premium (painted by paintSilk below): ribbons of silk lit from above, with grain and a vignette
     silk:      { name: 'Silk', silk: true, dark: true, base: ['#06060b', '#0e0b1c', '#04040a'],
       glows: [[.72, .28, .55, '#3b2bff', .35], [.2, .8, .5, '#0a5cff', .25]],
@@ -78,8 +81,50 @@
     ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = .55; ctx.fillStyle = grainPattern(ctx, r); ctx.fillRect(0, 0, w, hgt); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
   }
 
+  /* Fold: a few large sheets laid over each other in long, calm curves, lit from the upper right. Each sheet is one smooth
+     gradient (lighter where it turns toward the light, deeper where it falls away), a soft rim of light along its edge, and a
+     soft shadow on the sheet behind it. No strands or fine lines: the calm comes from big shapes and gentle light. */
+  const FOLDS = {
+    dark: { dark: true, bg: ['#0a0b12', '#151829', '#07080d'], glow: [.8, .08, 'rgba(160,140,255,.32)'], sheets: ['#14172a', '#1c2038', '#252a48', '#30365c', '#3e4573'], rim: [222, 214, 255], shade: 'rgba(0,0,0,.65)' },
+    light: { dark: false, bg: ['#f3ece3', '#e8ddd0', '#dacfbf'], glow: [.8, .08, 'rgba(255,255,255,.85)'], sheets: ['#e0d4c5', '#e8dfd3', '#efe8de', '#f6f1ea', '#fcfaf6'], rim: [255, 255, 255], shade: 'rgba(110,84,58,.26)' },
+    dusk: { dark: true, bg: ['#0c0a1d', '#191237', '#090716'], glow: [.76, .12, 'rgba(176,120,255,.3)'], sheets: ['#1f1942', '#292055', '#35296a', '#433382', '#5541a0'], rim: [232, 216, 255], shade: 'rgba(4,0,18,.6)' }
+  };
+  function foldVariant(p) { return p.variant === 'auto' ? (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark') : p.variant; }
+  function paintFolds(ctx, p, w, hgt, r) {
+    const f = FOLDS[foldVariant(p)];
+    const bg = ctx.createLinearGradient(0, 0, w * .4, hgt);
+    f.bg.forEach((c, i) => bg.addColorStop(i / (f.bg.length - 1), c));
+    ctx.fillStyle = bg; ctx.fillRect(0, 0, w, hgt);
+    const gl = ctx.createRadialGradient(w * f.glow[0], hgt * f.glow[1], 0, w * f.glow[0], hgt * f.glow[1], Math.max(w, hgt) * .75);
+    gl.addColorStop(0, f.glow[2]); gl.addColorStop(1, 'rgba(0,0,0,0)'); ctx.fillStyle = gl; ctx.fillRect(0, 0, w, hgt);
+    const N = f.sheets.length, step = Math.max(2, w / 220);
+    for (let i = 0; i < N; i++) {
+      // each sheet's edge: a long diagonal sweep with one or two slow waves along it
+      const y0 = hgt * (.06 + i * .19), slope = -.38 - r() * .12, a1 = hgt * (.09 + r() * .07), f1 = 1.1 + r() * .7, ph1 = r() * 6.28, a2 = hgt * (.025 + r() * .03), f2 = 2.6 + r() * 1.2, ph2 = r() * 6.28;
+      const edge = (x) => y0 + slope * (x - w / 2) * (hgt / w) + a1 * Math.sin(x / w * Math.PI * f1 + ph1) + a2 * Math.sin(x / w * Math.PI * f2 + ph2);
+      let lo = Infinity, hi = -Infinity; for (let x = 0; x <= w; x += step) { const y = edge(x); lo = Math.min(lo, y); hi = Math.max(hi, y); }
+      const shape = () => { ctx.beginPath(); ctx.moveTo(-step, edge(-step)); for (let x = 0; x <= w + step; x += step) ctx.lineTo(x, edge(x)); ctx.lineTo(w + step, hgt + 10); ctx.lineTo(-step, hgt + 10); ctx.closePath(); };
+      const col = f.sheets[i], g = ctx.createLinearGradient(w, lo, w * .2, hi + hgt * .55);
+      g.addColorStop(0, mixc(col, f.dark ? '#ffffff' : '#ffffff', f.dark ? .1 : .45)); g.addColorStop(.3, col); g.addColorStop(1, mixc(col, f.dark ? '#000000' : '#8a7058', f.dark ? .45 : .16));
+      // the soft shadow this sheet casts on the one behind it
+      ctx.save(); ctx.shadowColor = f.shade; ctx.shadowBlur = hgt * .07; ctx.shadowOffsetY = -hgt * .012; ctx.fillStyle = g; shape(); ctx.fill(); ctx.restore();
+      // a rim of light along the edge, fading into the sheet
+      // (one wide stroke, softened by a blur and clipped to the sheet: a smooth band of light, no stepped lines)
+      ctx.save(); shape(); ctx.clip();
+      ctx.filter = `blur(${Math.max(1, hgt * .014).toFixed(1)}px)`;
+      ctx.strokeStyle = `rgba(${f.rim[0]},${f.rim[1]},${f.rim[2]},${f.dark ? .16 : .5})`; ctx.lineWidth = hgt * .045; ctx.beginPath();
+      for (let x = -step; x <= w + step; x += step) { const y = edge(x) + hgt * .012; x === -step ? ctx.moveTo(x, y) : ctx.lineTo(x, y); }
+      ctx.stroke();
+      ctx.filter = 'none'; ctx.restore();
+    }
+    const v = ctx.createRadialGradient(w * .55, hgt * .4, Math.min(w, hgt) * .35, w / 2, hgt / 2, Math.max(w, hgt) * .8);
+    v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, f.dark ? 'rgba(0,0,0,.45)' : 'rgba(90,64,40,.1)');
+    ctx.fillStyle = v; ctx.fillRect(0, 0, w, hgt);
+    ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = f.dark ? .35 : .25; ctx.fillStyle = grainPattern(ctx, r); ctx.fillRect(0, 0, w, hgt); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  }
   function paint(canvas, id, w, hgt) {
     const p = PALETTES[id] || PALETTES.sonora;
+    if (p.fold) { canvas.width = w; canvas.height = hgt; paintFolds(canvas.getContext('2d'), p, w, hgt, rng(hash(id))); return; }
     if (p.silk) { canvas.width = w; canvas.height = hgt; paintSilk(canvas.getContext('2d'), p, w, hgt, rng(hash(id))); return; }
     canvas.width = w; canvas.height = hgt;
     const ctx = canvas.getContext('2d');
@@ -339,6 +384,8 @@
       const root = document.documentElement;
       root.dataset.wpTop = band(0, topRows) > 0.3 ? 'light' : 'dark';
       root.dataset.wpBottom = band(32 - Math.max(2, topRows * 3), 32) > 0.3 ? 'light' : 'dark';
+      // the picture as a whole (Liquid Glass takes its words and body from it, not from light or dark mode: css/glass.css)
+      root.dataset.wpTone = band(0, 32) > 0.3 ? 'light' : 'dark';
       // how busy the picture is: the average jump in brightness between neighbouring pixels (smooth gradients are near 0,
       // photos of leaves or text are high). Glass that holds words thickens a little over busy pictures (css/glass.css).
       const d = x.getImageData(0, 0, 48, 32).data, L = new Float32Array(48 * 32);
@@ -346,7 +393,7 @@
       let edge = 0, n = 0;
       for (let y = 0; y < 31; y++) for (let x2 = 0; x2 < 47; x2++) { const i = y * 48 + x2; edge += Math.abs(L[i] - L[i + 1]) + Math.abs(L[i] - L[i + 48]); n += 2; }
       if (edge / n > 0.06) root.dataset.wpBusy = '1'; else delete root.dataset.wpBusy;
-    } catch (e) { /* a picture the browser won't let PatOS read: the theme decides instead */ delete document.documentElement.dataset.wpTop; delete document.documentElement.dataset.wpBottom; delete document.documentElement.dataset.wpBusy; }
+    } catch (e) { /* a picture the browser won't let PatOS read: the theme decides instead */ delete document.documentElement.dataset.wpTop; delete document.documentElement.dataset.wpBottom; delete document.documentElement.dataset.wpTone; delete document.documentElement.dataset.wpBusy; }
   }
 
   function drawStatic(id) {
@@ -362,10 +409,10 @@
       };
       img.src = PatOS.settings.customWallpaper; return;
     }
-    const src = LIVE[id] ? LIVE[id].fallback : id, full = PALETTES[src] && PALETTES[src].silk ? Math.min(1, 2560 / innerWidth) / scale : 1;
+    const src = LIVE[id] ? LIVE[id].fallback : id, full = PALETTES[src] && (PALETTES[src].silk || PALETTES[src].fold) ? Math.min(1, 2560 / innerWidth) / scale : 1;
     const w = Math.max(320, Math.round(innerWidth * scale * full)), hh = Math.max(200, Math.round(innerHeight * scale * full));
     // the painting is the same every time for a given size, so the last one is kept and shown again
-    const key = src + '|' + w + 'x' + hh, saved = PatOS.store.get('wpCache', null);
+    const key = src + (PALETTES[src] && PALETTES[src].fold ? '|' + foldVariant(PALETTES[src]) : '') + '|' + w + 'x' + hh, saved = PatOS.store.get('wpCache', null);
     if (saved && saved.key === key && saved.url) {
       c.width = w; c.height = hh; const img = new Image(); const mine = ++drawN;
       img.onload = () => { if (mine === drawN) { c.getContext('2d').drawImage(img, 0, 0, w, hh); readTone(c); } };
@@ -395,17 +442,22 @@
     if (lockBg) lockBg.style.backgroundImage = `url(${id === 'custom' && PatOS.settings.customWallpaper ? PatOS.settings.customWallpaper : thumbLarge(id)})`;
   }
   let lockCache = {};
-  function thumbLarge(id) {
+  function thumbLarge(id0) {
+    // (Fold looks different in light and dark mode, so each look is kept on its own)
+    const id = id0 + (PALETTES[id0] && PALETTES[id0].fold ? '|' + foldVariant(PALETTES[id0]) : '');
     if (lockCache[id]) return lockCache[id];
     const saved = PatOS.store.get('wpLockCache', null);
     if (saved && saved.id === id && saved.url) return (lockCache[id] = saved.url);
     const all = PatOS.store.get('wpThumbs', {}); if (all[id]) return (lockCache[id] = all[id]);
-    const c = document.createElement('canvas'); paint(c, LIVE[id] ? LIVE[id].fallback : id, 640, 400);
+    const c = document.createElement('canvas'); paint(c, LIVE[id0] ? LIVE[id0].fallback : id0, 640, 400);
     lockCache[id] = c.toDataURL('image/jpeg', 0.8);
     PatOS.store.set('wpLockCache', { id, url: lockCache[id] });
-    if (id !== PatOS.settings.wallpaper) { all[id] = lockCache[id]; PatOS.store.set('wpThumbs', all); } // (made again by itself if lost)
+    if (id0 !== PatOS.settings.wallpaper) { all[id] = lockCache[id]; PatOS.store.set('wpThumbs', all); } // (made again by itself if lost)
     return lockCache[id];
   }
+  // Fold follows light and dark mode: paint it again when the theme changes
+  new MutationObserver(() => { const p = PALETTES[PatOS.settings.wallpaper]; if (p && p.fold && p.variant === 'auto' && document.getElementById('wallpaper')) apply(); })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
   PatOS.wallpaper = {
     palettes: PALETTES, live: LIVE, apply, thumb, thumbLarge,

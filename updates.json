@@ -1,7 +1,7 @@
 [
   {
     "version": "3.0.0",
-    "beta": 11,
+    "beta": 12,
     "date": "2026-11-09",
     "title": {
       "en": "PatOS 3: Timeline, one design, smarter windows",
@@ -9,6 +9,8 @@
     },
     "notes": {
       "en": [
+        "A calmer, more premium desktop: the new Fold wallpaper, large soft sheets in long curves with gentle light (dark in dark mode, warm linen in light mode), and Dusk in violet. Fold replaces Silk once; Silk is still in Settings › Wallpaper",
+        "Liquid Glass looks the same in light and dark mode: the Dock, widgets and menu bar take their look from the wallpaper behind them (white words over a dark picture, dark words over a light one), and menus, Spotlight, dialogs and notifications follow the theme, with more body in light mode so they stay readable. New in Settings › Appearance: App icons — Automatic, Dark or Light (light icons with dark mode, if you like)",
         "New: Timeline. PatOS now remembers what you do (the apps and files you open, the files you save, the websites you visit, the notes you write and the text you copy) and shows it day by day. Search it in plain words (“lisbon yesterday”), and every few minutes it keeps a moment of the windows you had open: one click on Restore puts them all back where they were. After a restart, “Pick up where you left off” brings back your last session",
         "Clipboard history: press Alt+V anywhere to see what you copied, then press Enter (or 1–9) to paste it into the field you were typing in. Pin what you want to keep. Spotlight finds what you copied too",
         "Timeline is private by design: it stays on this device, it is never synced, it takes no screenshots, and nothing is recorded in Passwords or from password fields. Pause it, forget the last hour, a day or everything, choose how long it keeps things, or turn it off (Timeline app or Settings › Privacy)",
@@ -26,9 +28,12 @@
         "Finder is now Piles (P for PatOS, and files in piles). Everything stays where it was, and searching “finder” still finds it. The Notes icon is now blue",
         "Fixes: menus are their own size again (with Liquid Glass on they stretched across the whole screen); menus, Spotlight, dialogs and Pat use the same clear glass as the rest instead of the old heavy frost; desktop icons only take clicks on their picture and name, not the empty square around them; smoother on Chromebooks (no blurred glow around the active window while dragging, and animations no longer blur, which is costly on Chromebook graphics)",
         "Smoother Dock and less lag on Chromebooks: the Dock's magnification does a third less work and no longer drops frames (icons grow on the graphics chip and stay sharp), and the 3D wallpaper holds still while you drag a window or move along the Dock, so the graphics chip can spend its time on what you are doing",
-        "Fix: app icons from phones and the web (ChatGPT and others) sit in their place in the Dock again; since beta 9 they dropped out of their slot"
+        "Fix: app icons from phones and the web (ChatGPT and others) sit in their place in the Dock again; since beta 9 they dropped out of their slot",
+        "Fix: no more thin line above files and folders on the desktop"
       ],
       "fr": [
+        "Un bureau plus calme et plus haut de gamme : le nouveau fond d’écran Pli, de grandes feuilles douces en longues courbes avec une lumière tendre (sombre en mode sombre, lin chaud en mode clair), et Crépuscule en violet. Pli remplace Soie une fois ; Soie reste dans Réglages › Fond d’écran",
+        "Le Liquid Glass est le même en mode clair et sombre : le Dock, les widgets et la barre des menus prennent leur allure du fond d’écran (texte blanc sur une image sombre, foncé sur une image claire), et les menus, Spotlight, les dialogues et les notifications suivent le thème, avec plus de corps en mode clair pour rester lisibles. Nouveau dans Réglages › Apparence : Icônes des apps — Automatique, Sombre ou Clair (des icônes claires avec le mode sombre, si vous voulez)",
         "Nouveau : Timeline. PatOS retient maintenant ce que vous faites (les apps et fichiers que vous ouvrez, les fichiers que vous enregistrez, les sites que vous visitez, les notes que vous écrivez et le texte que vous copiez) et le montre jour par jour. Cherchez avec des mots simples (« lisbonne hier »), et toutes les quelques minutes, elle garde un moment des fenêtres que vous aviez ouvertes : un clic sur Restaurer les remet toutes à leur place. Après un redémarrage, « Reprendre là où vous en étiez » ramène votre dernière session",
         "Historique du presse-papiers : appuyez sur Alt+V n’importe où pour voir ce que vous avez copié, puis sur Entrée (ou 1–9) pour le coller dans le champ où vous écriviez. Épinglez ce que vous voulez garder. Spotlight trouve aussi ce que vous avez copié",
         "Timeline est privée dès le départ : elle reste sur cet appareil, n’est jamais synchronisée, ne prend aucune capture d’écran, et rien n’est enregistré dans Mots de passe ni depuis un champ de mot de passe. Mettez-la en pause, oubliez la dernière heure, une journée ou tout, choisissez combien de temps elle garde les choses, ou désactivez-la (app Timeline ou Réglages › Confidentialité)",
@@ -46,7 +51,8 @@
         "Le Finder s’appelle maintenant Piles (P pour PatOS, et des fichiers en piles). Tout reste au même endroit, et chercher « finder » le trouve encore. L’icône de Notes est maintenant bleue",
         "Corrections : les menus reprennent leur taille (avec le Liquid Glass, ils s’étiraient sur tout l’écran) ; les menus, Spotlight, les dialogues et Pat utilisent le même verre clair que le reste au lieu de l’ancien givre épais ; les icônes du bureau ne réagissent qu’à leur image et à leur nom, pas au carré vide autour ; plus fluide sur Chromebook (plus de lueur floue autour de la fenêtre active pendant qu’on la déplace, et les animations ne floutent plus, ce qui coûte cher aux Chromebooks)",
         "Dock plus fluide et moins de ralentissements sur Chromebook : l’agrandissement du Dock demande un tiers de travail en moins et ne saute plus d’images (les icônes grandissent sur la puce graphique et restent nettes), et le fond d’écran 3D s’immobilise pendant que vous déplacez une fenêtre ou parcourez le Dock, pour que la puce graphique se consacre à ce que vous faites",
-        "Correction : les icônes des apps de téléphone et du web (ChatGPT et autres) reprennent leur place dans le Dock ; depuis la bêta 9, elles sortaient de leur emplacement"
+        "Correction : les icônes des apps de téléphone et du web (ChatGPT et autres) reprennent leur place dans le Dock ; depuis la bêta 9, elles sortaient de leur emplacement",
+        "Correction : plus de fine ligne au-dessus des fichiers et dossiers du bureau"
       ]
     }
   },

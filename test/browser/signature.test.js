@@ -85,3 +85,40 @@ test('a desktop icon takes clicks on its picture and name only, not on the empty
   assert.equal(await page.evaluate(() => PatOS.wm.windows.some((w) => w.app.id === 'finder')), true, 'double-clicking the picture still opens it');
   assert.deepEqual(errors, []); await page.close();
 });
+
+test('Fold is the new wallpaper (Silk moves to it once); Liquid Glass on the desktop follows the wallpaper, floating panels follow the theme; light icons are their own setting; flat icons have no line over them', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1366, height: 768 } }); const errors = await boot(page, srv.base, { fresh: true });
+  assert.equal(await page.evaluate(() => PatOS.settings.wallpaper), 'fold', 'a new install starts on Fold');
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise((res) => setTimeout(res, ms));
+    PatOS.setSetting('theme', 'light'); PatOS.setSetting('wallpaper', 'silk'); await wait(1500);
+    const widget = getComputedStyle(document.querySelector('.widget')).color, tone = document.documentElement.dataset.wpTone;
+    PatOS.launch('notes'); await wait(500); PatOS.menu([{ label: 'x' }], 100, 100); await wait(100);
+    const menu = getComputedStyle(document.querySelector('.menu')).color; PatOS.closeMenus && PatOS.closeMenus();
+    PatOS.setSetting('wallpaper', 'fold'); await wait(1500);
+    const toneFold = document.documentElement.dataset.wpTone, widgetFold = getComputedStyle(document.querySelector('.widget')).color;
+    PatOS.setSetting('theme', 'dark'); PatOS.setSetting('iconStyle', 'light'); await wait(300);
+    const tile = document.querySelector('#dock .icon-tile.gi:not(.flat)'); const light = getComputedStyle(tile).backgroundImage;
+    PatOS.setSetting('iconStyle', 'auto'); await wait(200); const auto = document.documentElement.classList.contains('icons-light');
+    const flat = document.querySelector('.desk-icon .icon-tile.flat'); const flatShadow = flat ? getComputedStyle(flat).boxShadow : 'none';
+    return { widget, tone, menu, toneFold, widgetFold, light, auto, flatShadow };
+  });
+  assert.equal(r.tone, 'dark'); assert.equal(r.widget, 'rgb(255, 255, 255)', 'light mode over a dark wallpaper: white words on the desktop glass');
+  assert.equal(r.menu, 'rgb(29, 29, 31)', 'a menu (over windows) follows light mode');
+  assert.equal(r.toneFold, 'light'); assert.equal(r.widgetFold, 'rgb(29, 29, 31)', 'light Fold: dark words');
+  assert.match(r.light, /255, 255, 255|#fff|rgb\(255/, 'light icon tiles with dark mode');
+  assert.equal(r.auto, false, 'automatic icons follow dark mode');
+  assert.equal(r.flatShadow, 'none', 'no line over flat icons');
+  assert.deepEqual(errors, []); await page.close();
+});
+
+test('an older PatOS on Silk moves to Fold once, and choosing Silk again sticks', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage(); await page.goto(srv.base + '/manifest.webmanifest');
+  await page.evaluate((P) => { localStorage.clear(); localStorage.setItem('patos-policy', JSON.stringify({ version: P, at: Date.now() })); localStorage.setItem('patos:setupDone', 'true'); localStorage.setItem('patos:settings', JSON.stringify({ wallpaper: 'silk', theme: 'dark' })); }, require('../helpers').POLICY);
+  await page.goto(srv.base + '/'); await page.waitForFunction(() => window.PatOS && PatOS.settings, null, { timeout: 20000 });
+  assert.equal(await page.evaluate(() => PatOS.settings.wallpaper), 'fold');
+  await page.evaluate(() => PatOS.setSetting('wallpaper', 'silk')); await page.waitForTimeout(600);
+  await page.reload(); await page.waitForFunction(() => window.PatOS && PatOS.settings, null, { timeout: 20000 });
+  assert.equal(await page.evaluate(() => PatOS.settings.wallpaper), 'silk');
+  await page.close();
+});

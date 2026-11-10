@@ -105,3 +105,11 @@ html.reduce-motion :is(.boot-logo, .lock-clock, .lock-user, .lock-actions) { ani
 .desk-icon[data-shape="folder"] .di-hit { clip-path: polygon(11% 19%, 40% 19%, 48% 27%, 89% 27%, 89% 83%, 11% 83%); }
 .desk-icon[data-shape="thumb"] .di-hit { border-radius: 6px; }
 .desk-icon .di-name { pointer-events: auto; width: fit-content; max-width: 100%; margin: 0 auto; }
+
+/* flat icons (files, folders) have no tile, so the tile's lip and shadow drew a straight line over them on the desktop */
+html.lg-on :is(.desk-icon, .lp-item, .dock-icon, .mh-app, .asw-ic, .fd-ic, .fd-ric) .icon-tile.flat { box-shadow: none !important; }
+
+/* ---------- light app icons (Settings › Appearance › App icons): the same glass objects on a light tile ---------- */
+html.icons-light .icon-tile.gi:not(.flat) { background: radial-gradient(125% 90% at 50% -6%, #ffffff 0%, #f1f2f6 46%, #dcdfe6 100%) !important; }
+/* (pale glass, like Piano's keys or Preview's pages, keeps an edge against the white) */
+html.icons-light .icon-tile.gi:not(.flat) .gi-img { filter: drop-shadow(0 .5px 1px rgba(30,34,52,.35)) drop-shadow(0 1px 3px rgba(30,34,52,.18)); }

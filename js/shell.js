@@ -1158,6 +1158,7 @@
     const lessGlass = !!s.reduceTransparency || sysReduceTransparency.matches || PatOS.perf.light();
     root.classList.toggle('reduce-transparency', lessGlass);
     root.classList.toggle('perf-light', PatOS.perf.light());
+    root.classList.toggle('icons-light', s.iconStyle === 'light' || (s.iconStyle !== 'dark' && t === 'light'));
     root.classList.toggle('win', !!PatOS.hw.windows);
     ['highContrast', 'boldText', 'showFocus', 'bigTargets'].forEach((k) => root.classList.toggle(k.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase()), !!s[k]));
     $('#dimmer').style.opacity = String(1 - s.brightness);
@@ -1361,7 +1362,7 @@
       applyTheme();
       setupMenubar(); setupLaunchpad(); setupSpotlight(); setupDesktop(); setupDockMagnify(); setupKeys();
       PatOS.on('setting', (s) => {
-        if (['theme', 'accent', 'brightness', 'reduceMotion', 'reduceTransparency', 'liquidGlass', 'glassRefraction', 'glassStyle', 'quality3d', 'perfMode'].includes(s.key)) applyTheme();
+        if (['theme', 'iconStyle', 'accent', 'brightness', 'reduceMotion', 'reduceTransparency', 'liquidGlass', 'glassRefraction', 'glassStyle', 'quality3d', 'perfMode'].includes(s.key)) applyTheme();
         if (['dockSize', 'dockAutohide', 'magnify', 'magnifyScale'].includes(s.key)) applyDockSize();
         if (s.key === 'dockPinned') renderDock();
       });

@@ -202,7 +202,7 @@
     password: '',
     theme: 'dark',           // dark | light | auto
     accent: '#0a84ff',
-    wallpaper: 'silk',       // see wallpaper.js (a new install starts on Silk; people keep the one they chose)
+    wallpaper: 'fold',       // see wallpaper.js (a new install starts on Fold; people keep the one they chose)
     customWallpaper: null,
     live3d: true,
     dockSize: 54,
@@ -218,6 +218,7 @@
     quality3d: 'auto',       // low | auto | high
     perfMode: 'auto',        // auto | light | full (Speed mode: light turns off the see-through blur and the long animations)
     askFullscreen: true,
+    iconStyle: 'auto',       // auto (follows light or dark mode) | dark | light: the tiles behind the app icons
     reopenWindows: true,
     timeline: true, timelineClips: true, timelineDays: 30,
     betaUpdates: false,      // Settings › Software Update › Beta updates
@@ -236,6 +237,9 @@
   };
   const saved = PatOS.store.get('settings', {});
   PatOS.settings = Object.assign({}, DEFAULTS, saved);
+  // 3.0: Silk was everyone's starting wallpaper; Fold replaces it once (Silk is still in Settings › Wallpaper, and choosing
+  // it again sticks, because this runs only once)
+  if (!PatOS.settings.wpFold) { if (PatOS.settings.wallpaper === 'silk') PatOS.settings.wallpaper = 'fold'; PatOS.settings.wpFold = true; if (saved && Object.keys(saved).length) PatOS.store.set('settings', PatOS.settings); }
   PatOS.setSetting = function (key, value) {
     PatOS.settings[key] = value;
     PatOS.store.set('settings', PatOS.settings);

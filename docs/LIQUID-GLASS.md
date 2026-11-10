@@ -163,3 +163,12 @@ screenshots taken side by side on a Mac: no Mac was available when it was writte
 Where macOS is clearly ahead: live adaptation to whatever is under each element, refraction everywhere and on every
 browser, and shape morphing. Those need either per-frame pixel reading (too costly in a browser) or support that only
 Chromium has.
+
+## 3.0.0 beta 12: glass follows the wallpaper, not the theme
+- Desktop surfaces (Dock, widgets, menu bar) take their tokens from `data-wp-tone` (the wallpaper's overall brightness,
+  measured once in `js/wallpaper.js#readTone`): white words over dark pictures, dark words over light ones, in either theme.
+  The theme only decides when the picture can't be read (no `data-wp-tone`).
+- Surfaces that float over windows (menus, Spotlight, dialogs, notifications, Control Center, Pat) follow the theme, because a
+  window of that theme is usually behind them; in light mode they have more body (`--g-tint` .5, `--g-tint-elev` .62).
+- Reduce Transparency makes surfaces solid, so their words follow the theme (`--g-text: var(--text)`).
+- App icon tiles: `html.icons-light` (Settings › Appearance › App icons: Automatic follows the theme, or Dark / Light).

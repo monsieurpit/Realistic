@@ -23,22 +23,24 @@
   /* how strong white highlights are: glass only bends light that is there, so over dark pictures they are faint */
   --g-glint: .75;
 }
-:root[data-theme="light"] {
-  --g-tint-clear: rgba(255,255,255,.06); --g-tint: rgba(255,255,255,.14); --g-tint-elev: rgba(250,250,252,.5);
+/* (the glass follows what is behind it, not the light or dark setting: over a light wallpaper it takes dark words and a
+   light body, over a dark one white words; only when the wallpaper can't be read does the theme decide) */
+html[data-wp-tone="light"], :root[data-theme="light"]:not([data-wp-tone]) {
+  --g-tint-clear: rgba(255,255,255,.05); --g-tint: rgba(255,255,255,.1); --g-tint-elev: rgba(250,250,252,.42);
   --g-text: #1d1d1f; --g-text-shadow: 0 0 4px rgba(255,255,255,.7);
   --g-pill: rgba(255,255,255,.5); --g-pill-on: rgba(255,255,255,.8); --g-rim-soft: rgba(255,255,255,.55);
   --g-glint: 1;
 }
 html[data-wp-top="dark"][data-wp-bottom="dark"] { --g-glint: .4; }
-:root[data-theme="light"][data-wp-top="dark"][data-wp-bottom="dark"] { --g-glint: .55; }
+html[data-wp-tone="light"][data-wp-top="dark"][data-wp-bottom="dark"] { --g-glint: .55; }
 /* Tinted: the same glass with more body, for more contrast */
 html.lg-tinted { --g-tint-clear: rgba(22,22,28,.32); --g-tint: rgba(22,22,28,.56); --g-tint-elev: rgba(26,26,32,.78); --g-titlebar: 86%; --g-blur-clear: 6px; --g-blur: 14px; --g-blur-elev: 20px; }
-:root[data-theme="light"].lg-tinted { --g-tint-clear: rgba(255,255,255,.44); --g-tint: rgba(255,255,255,.66); --g-tint-elev: rgba(250,250,252,.86); }
+html[data-wp-tone="light"].lg-tinted, :root[data-theme="light"]:not([data-wp-tone]).lg-tinted { --g-tint-clear: rgba(255,255,255,.44); --g-tint: rgba(255,255,255,.66); --g-tint-elev: rgba(250,250,252,.86); }
 /* a very busy wallpaper (js/wallpaper.js measures it once): glass that holds words frosts more; the Dock stays clear */
 html.lg-on[data-wp-busy] { --g-blur: 4px; --g-blur-elev: 8px; --g-tint: rgba(22,22,28,.16); --g-tint-elev: rgba(26,26,32,.4); --g-text-shadow: 0 0 1px rgba(0,0,0,.55), 0 1px 4px rgba(0,0,0,.55); }
-:root[data-theme="light"].lg-on[data-wp-busy] { --g-tint: rgba(255,255,255,.3); --g-tint-elev: rgba(250,250,252,.56); --g-text-shadow: 0 0 1px rgba(255,255,255,.8), 0 0 6px rgba(255,255,255,.85); }
+html[data-wp-tone="light"].lg-on[data-wp-busy], :root[data-theme="light"]:not([data-wp-tone]).lg-on[data-wp-busy] { --g-tint: rgba(255,255,255,.3); --g-tint-elev: rgba(250,250,252,.56); --g-text-shadow: 0 0 1px rgba(255,255,255,.8), 0 0 6px rgba(255,255,255,.85); }
 html.lg-on[data-wp-busy].lg-tinted { --g-tint: rgba(22,22,28,.62); --g-tint-elev: rgba(26,26,32,.8); }
-:root[data-theme="light"].lg-on[data-wp-busy].lg-tinted { --g-tint: rgba(255,255,255,.7); --g-tint-elev: rgba(250,250,252,.86); }
+html[data-wp-tone="light"].lg-on[data-wp-busy].lg-tinted, :root[data-theme="light"]:not([data-wp-tone]).lg-on[data-wp-busy].lg-tinted { --g-tint: rgba(255,255,255,.7); --g-tint-elev: rgba(250,250,252,.86); }
 
 /* ---------- the three tiers: blur, body and how wide the bevel is ----------
    Saturation stays close to 1 everywhere: glass shows the color of what is behind it, it does not invent a brighter one
@@ -46,6 +48,21 @@ html.lg-on[data-wp-busy].lg-tinted { --g-tint: rgba(22,22,28,.62); --g-tint-elev
 html.lg-on :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear) { --g-b: var(--g-blur-clear); --g-t: var(--g-tint-clear); --g-s: 1.06; --g-l: 1.05; --g-rim-w: 18px; }
 html.lg-on :is(.widget, .cc-tile, .toast:not(.static), .seg, .mw, .dock-label, #m-switcher .msw, .lg) { --g-b: var(--g-blur); --g-t: var(--g-tint); --g-s: 1.08; --g-l: 1.04; --g-rim-w: 16px; }
 html.lg-on :is(.menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated) { --g-b: var(--g-blur-elev); --g-t: var(--g-tint-elev); --g-s: 1.12; --g-l: 1.03; --g-rim-w: 10px; }
+/* What sits on the wallpaper (the Dock, widgets, the menu bar) takes its words from the wallpaper (tokens above). What floats
+   over windows (menus, Spotlight, dialogs, notifications, Control Center, Pat) usually has a window of the current theme
+   behind it, so it follows light or dark mode; in light mode it has more body, so dark words stay readable even where it
+   floats over a dark wallpaper. */
+:root[data-theme="light"].lg-on :is(.menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated, .toast:not(.static), .cc-tile, #control-center) {
+  --g-tint: rgba(255,255,255,.5); --g-tint-elev: rgba(250,250,252,.62); --g-text: #1d1d1f; --g-text-shadow: none;
+  --g-pill: rgba(255,255,255,.5); --g-pill-on: rgba(255,255,255,.85); --g-rim-soft: rgba(255,255,255,.55); --g-glint: 1;
+}
+:root:not([data-theme="light"]).lg-on :is(.menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated, .toast:not(.static), .cc-tile, #control-center) {
+  --g-tint: rgba(255,255,255,.035); --g-text: #fff; --g-text-shadow: 0 1px 3px rgba(0,0,0,.45);
+  --g-pill: rgba(255,255,255,.14); --g-pill-on: rgba(255,255,255,.26); --g-rim-soft: rgba(255,255,255,.18);
+}
+:root:not([data-theme="light"]).lg-on:not([data-wp-busy]) :is(.menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated, .toast:not(.static), .cc-tile, #control-center) { --g-tint-elev: rgba(26,26,32,.34); }
+/* inside a widget or the Dock's labels, the app's own grey words follow the glass's words too */
+html.lg-on :is(.widget, .mw, .dock-label) { --text: var(--g-text); --text2: color-mix(in srgb, var(--g-text) 66%, transparent); --text3: color-mix(in srgb, var(--g-text) 48%, transparent); }
 
 /* ---------- the material ----------
    Every glass surface is a raised slab of clear glass, lit from above (docs/LIQUID-GLASS.md):
@@ -81,7 +98,7 @@ html.lg-on :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear, .widget, .cc-ti
   -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
   mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
 }
-:root[data-theme="light"].lg-on :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear, .widget, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated)::before { opacity: .95; filter: drop-shadow(0 0 .5px rgba(0,0,0,.18)); }
+html[data-wp-tone="light"].lg-on :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear, .widget, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated)::before, :root[data-theme="light"]:not([data-wp-tone]).lg-on :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear, .widget, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated)::before { opacity: .95; filter: drop-shadow(0 0 .5px rgba(0,0,0,.18)); }
 /* without the lens (browsers other than Chromium, or the lens off): a faint shade low in the glass stands in for its depth */
 html.lg-on:not(.lg-refract) :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear, .widget, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated)::after {
   content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
@@ -327,9 +344,11 @@ html.lg-on.mobile { --g-blur-elev: 16px; }
 html.reduce-transparency.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .lp-search, .lg-clear, .cc-tile, .toast, .seg, .mw, .dock-label, #m-switcher .msw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated) {
   background: var(--win-solid) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
 }
+html.reduce-transparency.lg-on { --g-text: var(--text); --g-text-shadow: none; }
 html.reduce-transparency.lg-on #menubar { background: var(--win-solid); color: var(--text); text-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
 html.reduce-transparency.lg-on:not(.mobile) .window:not(.tb-hidden) > .titlebar { background: var(--win-solid); -webkit-backdrop-filter: none; backdrop-filter: none; }
 @media (prefers-reduced-transparency: reduce) {
+  html.lg-on { --g-text: var(--text); --g-text-shadow: none; }
   html.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .lp-search, .lg-clear, .cc-tile, .toast, .seg, .mw, .dock-label, #m-switcher .msw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated) {
     background: var(--win-solid) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
   }
