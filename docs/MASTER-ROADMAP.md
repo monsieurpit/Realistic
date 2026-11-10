@@ -32,6 +32,7 @@ The governing plan is [`docs/LONG-TERM-ROADMAP.md`](LONG-TERM-ROADMAP.md) (writt
 | 65. Distinct identity | Partly there | De-macOS app pass (beta 4), signature frame and lock screen (beta 6) |
 | 58. Constrained-device performance | **Done (first pass)**, beta 8–9 | Dock magnification −36% main-thread time and no dropped frames on a 4× slower CPU; no blur animations; active-window glow → ring; 3D wallpaper holds during drags. Real-GPU tuning (an adaptive quality step-down) needs real-device numbers (Task 67) |
 | 20. Piles (file manager) evolution | **Done**, beta 10 | Overview (recents, piles by kind, storage by kind, places), Piles view (by kind or date, opens in place), search inside files with kind/date/place filters, Smart Piles (saved searches), rename many (replace, add, name + number; tags follow; clashes refused), PatOS sidebar. Not in scope this round: multiple tags per file, column view |
+| 62. A unified experience (desktop ↔ mobile) | **Started** in 3.1.0 beta 1 | Handoff: continue on one device what you were doing on the other (app + what is open, via Sync, encrypted; 30-minute window; Passwords excluded; switch in Settings › Privacy) |
 | All other tasks | Not started | |
 
 ---

@@ -1,5 +1,24 @@
 [
   {
+    "version": "3.1.0",
+    "beta": 1,
+    "date": "2026-11-10",
+    "title": {
+      "en": "PatOS 3.1: Handoff",
+      "fr": "PatOS 3.1 : Continuité"
+    },
+    "notes": {
+      "en": [
+        "New: Handoff. Start something on one device and continue it on the other: when you were just using a note, a document, a website, a folder or an app on your iPhone, your Chromebook shows “Continue from iPhone” above the Dock (and the other way around, above the phone’s dock). One click opens it right there. It also works from Spotlight (“Continue from…”)",
+        "Handoff only sends which app and what is open in it (a note, a file, a page), never its content, encrypted like the rest of Sync; it ignores anything older than 30 minutes, never shares Passwords, and can be turned off in Settings › Privacy. It needs Sync (a PatOS account or a sync code)"
+      ],
+      "fr": [
+        "Nouveau : Continuité. Commencez sur un appareil et continuez sur l’autre : quand vous venez d’utiliser une note, un document, un site, un dossier ou une app sur votre iPhone, votre Chromebook affiche « Continuer depuis iPhone » au-dessus du Dock (et inversement, au-dessus du dock du téléphone). Un clic l’ouvre sur place. Ça marche aussi depuis Spotlight (« Continuer depuis… »)",
+        "La Continuité n’envoie que l’app et ce qui y est ouvert (une note, un fichier, une page), jamais le contenu, chiffré comme le reste de Sync ; elle ignore ce qui date de plus de 30 minutes, ne partage jamais Mots de passe, et se désactive dans Réglages › Confidentialité. Elle a besoin de Sync (un compte PatOS ou un code de synchronisation)"
+      ]
+    }
+  },
+  {
     "version": "3.0.0",
     "date": "2026-11-10",
     "title": {

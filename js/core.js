@@ -221,6 +221,7 @@
     iconStyle: 'auto',       // auto (follows light or dark mode) | dark | light: the tiles behind the app icons
     reopenWindows: true,
     timeline: true, timelineClips: true, timelineDays: 30,
+    handoff: true,           // Handoff: continue on your other devices what you were doing (js/handoff.js)
     betaUpdates: false,      // Settings › Software Update › Beta updates
     clock24: false,
     showSeconds: false,

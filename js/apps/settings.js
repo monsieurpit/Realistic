@@ -219,6 +219,7 @@
               row(T('Timeline'), tg('timeline', T('Timeline')), T('Remembers the apps, files, websites and notes you open, and the windows you had open, so you can find them again. Only on this device, never synced, no screenshots, nothing from Passwords.')),
               row(T('Clipboard History'), tg('timelineClips', T('Clipboard History')), T('Keeps what you copy. Alt+V opens it anywhere and pastes.')),
               row(T('Keep for'), days),
+              row(T('Handoff'), tg('handoff', T('Handoff')), T('Your other devices can continue what you are doing here (the app and what is open in it, never its content), and this one can continue theirs. Needs Sync.')),
               row(T('Open Timeline'), h('button', { class: 'btn', onclick: () => PatOS.launch('timeline') }, T('Open')), T('Pause it, forget the last hour, a day or everything from the Timeline app.')));
             tlg.classList.add('pv-tl'); out.appendChild(tlg);
             out.appendChild(h('h3', {}, T('Community apps')));

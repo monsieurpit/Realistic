@@ -123,3 +123,23 @@ html.lg-on:not(.mobile) #dock { padding: 9px 16px; }
 
 /* phone home screen: app names follow the wallpaper (dark words over a light picture) */
 html[data-wp-tone="light"] .mh-app > span { color: #1d1d1f; text-shadow: 0 0 6px rgba(255,255,255,.7); }
+
+/* ---------- Handoff (js/handoff.js): continue here what you were doing on your other device ---------- */
+#handoff-card { position: fixed; z-index: 8500; left: 16px; bottom: calc(var(--dock, 54px) + 44px); display: flex; align-items: center; gap: 2px; padding: 6px; border-radius: 20px; max-width: min(360px, calc(100vw - 32px));
+  color: var(--g-text, var(--text)); animation: hoIn .5s var(--spring) both; }
+#handoff-card.out { animation: hoOut .25s ease-in both; }
+@keyframes hoIn { from { opacity: 0; transform: translateY(14px) scale(.96); } }
+@keyframes hoOut { to { opacity: 0; transform: translateY(10px) scale(.97); } }
+.ho-main { display: flex; align-items: center; gap: 10px; min-width: 0; padding: 4px 8px 4px 4px; border-radius: 15px; color: inherit; text-align: left; transition: background .15s; }
+.ho-main:hover { background: color-mix(in srgb, currentColor 10%, transparent); }
+.ho-ic { width: 38px; height: 38px; flex: 0 0 auto; } .ho-ic > * { width: 38px !important; height: 38px !important; }
+.ho-txt { display: flex; flex-direction: column; min-width: 0; }
+.ho-txt small { font-size: 11.5px; font-weight: 600; opacity: .7; }
+.ho-txt b { font-size: 13.5px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.ho-x { width: 28px; height: 28px; flex: 0 0 auto; border-radius: 14px; display: grid; place-items: center; color: inherit; opacity: .6; } .ho-x:hover { opacity: 1; background: color-mix(in srgb, currentColor 12%, transparent); }
+.ho-x .sym { width: 14px; height: 14px; }
+.mobile #handoff-card { left: 12px; right: 12px; max-width: none; top: calc(var(--sat, 0px) + 10px); bottom: auto; --g-tint-elev: rgba(26,26,32,.74) !important; --g-blur-elev: 14px !important; }
+:root[data-theme="light"].mobile #handoff-card { --g-tint-elev: rgba(250,250,252,.86) !important; }
+html.reduce-motion #handoff-card { animation: none; }
+@keyframes hoInTop { from { opacity: 0; transform: translateY(-14px) scale(.96); } }
+.mobile #handoff-card { animation-name: hoInTop; }

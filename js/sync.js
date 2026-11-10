@@ -95,12 +95,14 @@
   let mode = 'code'; // 'code' (a sync code and the PatOS server) or 'account' (a PatOS account in the cloud)
   const DENY = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncKey', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'accountPrompt', 'accountSeen', 'msgRead', 'patAppGrants', 'privacyLog',
     'setupStep', 'installOffered', 'iosHint', 'notifAsked', 'appInstalled', 'alarmQueue',
-    'timeline', 'timelineMoments', 'clipHistory', 'timelinePause',
+    'timeline', 'timelineMoments', 'clipHistory', 'timelinePause', 'handoffDevice', 'handoffSeen',
     'wpCache', 'wpLockCache', 'wpThumbs', 'wxCache', 'dictCache', 'googleCx', 'patosServer', 'ytKey', 'pwVault', 'musicState', 'settings']);
   const DENY_PREFIX = ['newsCache:', 'ytHome:'];
   const denied = (k) => DENY.has(k) || DENY_PREFIX.some((x) => k.indexOf(x) === 0);
-  const isKV = (k) => (mode === 'account' ? !denied(k) : KV_KEYS.indexOf(k) >= 0);
-  const kvKeys = () => (mode === 'account' ? PatOS.store.keys().filter((k) => !denied(k)) : KV_KEYS);
+  // (handoff:<device> is what each device was just doing, for Handoff in js/handoff.js: it travels with a sync code too)
+  const isHandoff = (k) => typeof k === 'string' && k.indexOf('handoff:') === 0;
+  const isKV = (k) => (mode === 'account' ? !denied(k) : KV_KEYS.indexOf(k) >= 0 || isHandoff(k));
+  const kvKeys = () => (mode === 'account' ? PatOS.store.keys().filter((k) => !denied(k)) : KV_KEYS.concat(PatOS.store.keys().filter(isHandoff)));
   /* a PatOS account takes every setting (dock, desktop icon places, wallpaper, theme...) except the lock password and what depends on this device's screen and graphics */
   const DEVICE_SETTINGS = new Set(['password', 'deviceMode', 'betaUpdates', 'quality3d', 'live3d']);
   const settingKeys = () => (mode === 'account' ? Object.keys(PatOS.settings).filter((k) => !DEVICE_SETTINGS.has(k)) : SETTING_KEYS);
