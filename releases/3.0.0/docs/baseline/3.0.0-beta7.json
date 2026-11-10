@@ -1,0 +1,572 @@
+{
+ "version": "3.0.0-beta7",
+ "date": "2026-11-09T22:19:13.304Z",
+ "host": {
+  "node": "v22.23.4",
+  "platform": "linux",
+  "cpus": 4
+ },
+ "runs": 3,
+ "build": {
+  "eagerJs": {
+   "files": 45,
+   "kb": 1223,
+   "gzipKb": 398
+  },
+  "lazyJs": {
+   "files": 54,
+   "kb": 1026,
+   "gzipKb": 330
+  },
+  "onDemandVendor": {
+   "files": 3,
+   "kb": 1714,
+   "gzipKb": 493
+  },
+  "css": {
+   "files": 10,
+   "kb": 447,
+   "gzipKb": 94
+  },
+  "singleFileMB": 3.73,
+  "frozenReleases": 11
+ },
+ "tests": {
+  "unit": {
+   "files": 8,
+   "tests": 36
+  },
+  "browser": {
+   "files": 28,
+   "tests": 131
+  },
+  "cloud": {
+   "files": 2,
+   "tests": 9
+  }
+ },
+ "profiles": [
+  {
+   "profile": "desktop",
+   "cpuSlowdown": 1,
+   "viewport": "1440x900",
+   "firstStart": {
+    "toLockScreen": 2129,
+    "loginToDesktop": 137
+   },
+   "networkFirstStart": {
+    "requests": 115,
+    "transferKb": 765,
+    "decodedKb": 2785,
+    "js": {
+     "n": 99,
+     "transferKb": 640
+    },
+    "css": {
+     "n": 10,
+     "transferKb": 92
+    }
+   },
+   "start": {
+    "toLockScreen": 376,
+    "loginToDesktop": 236,
+    "bootScriptMs": 64,
+    "bootStyleLayoutMs": 27,
+    "bootLongTasks": {
+     "count": 0,
+     "totalMs": 0,
+     "worstMs": 0
+    }
+   },
+   "networkInstalledStart": {
+    "requests": 115,
+    "transferKb": 31
+   },
+   "appOpen": {
+    "finder": {
+     "first": 29,
+     "again": 33
+    },
+    "notes": {
+     "first": 32,
+     "again": 30
+    },
+    "calculator": {
+     "first": 36,
+     "again": 29
+    },
+    "settings": {
+     "first": 21,
+     "again": 32
+    },
+    "browser": {
+     "first": 39,
+     "again": 30
+    },
+    "photos": {
+     "first": 29,
+     "again": 33
+    },
+    "music": {
+     "first": 34,
+     "again": 30
+    },
+    "messages": {
+     "first": 23,
+     "again": 32
+    },
+    "calendar": {
+     "first": 29,
+     "again": 23
+    },
+    "terminal": {
+     "first": 29,
+     "again": 30
+    },
+    "textedit": {
+     "first": 25,
+     "again": 32
+    },
+    "docs": {
+     "first": 36,
+     "again": 29
+    },
+    "sheets": {
+     "first": 33,
+     "again": 32
+    },
+    "timeline": {
+     "first": 45,
+     "again": 29
+    },
+    "clock": {
+     "first": 32,
+     "again": 27
+    }
+   },
+   "appOpenMedian": {
+    "first": 32,
+    "again": 30
+   },
+   "appOpenSlowest": [
+    "timeline 45",
+    "browser 39",
+    "calculator 36"
+   ],
+   "startWithData": {
+    "toLockScreen": 371,
+    "loginToDesktop": 124,
+    "bootLongTasks": {
+     "count": 0,
+     "totalMs": 0,
+     "worstMs": 0
+    }
+   },
+   "responsiveness": {
+    "spotlightKeyMedian": 46,
+    "spotlightKeyWorst": 80,
+    "storeGet300NotesMs": 0.33,
+    "dragFrameP95": 17,
+    "dragFrameMedian": 17
+   },
+   "storage": {
+    "nodesInTree": 1027,
+    "editAndSaveMs": 2,
+    "write5MBMs": 25,
+    "write20MBMs": 52,
+    "read20MBMs": 0,
+    "storageUsedMB": 5
+   },
+   "memory": {
+    "afterWarmup": {
+     "heapMB": 32.3,
+     "domNodes": 2966,
+     "listeners": 733
+    },
+    "afterOpeningAndClosing15Apps3Times": {
+     "heapMB": 31.1,
+     "domNodes": 2220,
+     "listeners": 521
+    },
+    "growth": {
+     "heapMB": -1.2,
+     "domNodes": -746,
+     "listeners": -212
+    }
+   },
+   "accessibility": {
+    "desktop": {
+     "rules": 1,
+     "nodes": 1,
+     "byImpact": {
+      "moderate": 1
+     },
+     "top": [
+      "meta-viewport ×1"
+     ]
+    },
+    "settings": {
+     "rules": 4,
+     "nodes": 8,
+     "byImpact": {
+      "critical": 7,
+      "serious": 1
+     },
+     "top": [
+      "button-name ×4",
+      "select-name ×2",
+      "color-contrast ×1",
+      "label ×1"
+     ]
+    },
+    "finder": {
+     "rules": 2,
+     "nodes": 2,
+     "byImpact": {
+      "serious": 2
+     },
+     "top": [
+      "color-contrast ×1",
+      "scrollable-region-focusable ×1"
+     ]
+    },
+    "notes": {
+     "rules": 1,
+     "nodes": 3,
+     "byImpact": {
+      "serious": 3
+     },
+     "top": [
+      "color-contrast ×3"
+     ]
+    },
+    "timeline": {
+     "rules": 2,
+     "nodes": 3,
+     "byImpact": {
+      "serious": 3
+     },
+     "top": [
+      "color-contrast ×2",
+      "nested-interactive ×1"
+     ]
+    }
+   },
+   "offline": {
+    "works": true,
+    "toLockScreen": 1169,
+    "appOpens": true
+   }
+  },
+  {
+   "profile": "chromebook",
+   "cpuSlowdown": 4,
+   "viewport": "1366x768",
+   "firstStart": {
+    "toLockScreen": 5976,
+    "loginToDesktop": 527
+   },
+   "networkFirstStart": {
+    "requests": 115,
+    "transferKb": 776,
+    "decodedKb": 2785,
+    "js": {
+     "n": 99,
+     "transferKb": 651
+    },
+    "css": {
+     "n": 10,
+     "transferKb": 92
+    }
+   },
+   "start": {
+    "toLockScreen": 713,
+    "loginToDesktop": 437,
+    "bootScriptMs": 196,
+    "bootStyleLayoutMs": 108,
+    "bootLongTasks": {
+     "count": 3,
+     "totalMs": 352,
+     "worstMs": 190
+    }
+   },
+   "networkInstalledStart": {
+    "requests": 115,
+    "transferKb": 31
+   },
+   "appOpen": {
+    "finder": {
+     "first": 109,
+     "again": 62
+    },
+    "notes": {
+     "first": 118,
+     "again": 71
+    },
+    "calculator": {
+     "first": 88,
+     "again": 47
+    },
+    "settings": {
+     "first": 83,
+     "again": 57
+    },
+    "browser": {
+     "first": 130,
+     "again": 68
+    },
+    "photos": {
+     "first": 63,
+     "again": 68
+    },
+    "music": {
+     "first": 74,
+     "again": 69
+    },
+    "messages": {
+     "first": 44,
+     "again": 42
+    },
+    "calendar": {
+     "first": 86,
+     "again": 72
+    },
+    "terminal": {
+     "first": 63,
+     "again": 48
+    },
+    "textedit": {
+     "first": 76,
+     "again": 50
+    },
+    "docs": {
+     "first": 72,
+     "again": 65
+    },
+    "sheets": {
+     "first": 78,
+     "again": 58
+    },
+    "timeline": {
+     "first": 169,
+     "again": 108
+    },
+    "clock": {
+     "first": 88,
+     "again": 66
+    }
+   },
+   "appOpenMedian": {
+    "first": 83,
+    "again": 65
+   },
+   "appOpenSlowest": [
+    "timeline 169",
+    "browser 130",
+    "notes 118"
+   ],
+   "startWithData": {
+    "toLockScreen": 783,
+    "loginToDesktop": 461,
+    "bootLongTasks": {
+     "count": 4,
+     "totalMs": 432,
+     "worstMs": 208
+    }
+   },
+   "responsiveness": {
+    "spotlightKeyMedian": 34,
+    "spotlightKeyWorst": 214,
+    "storeGet300NotesMs": 1.91,
+    "dragFrameP95": 33,
+    "dragFrameMedian": 17
+   },
+   "storage": {
+    "nodesInTree": 1027,
+    "editAndSaveMs": 14,
+    "write5MBMs": 70,
+    "write20MBMs": 175,
+    "read20MBMs": 0,
+    "storageUsedMB": 4.9
+   },
+   "memory": {
+    "afterWarmup": {
+     "heapMB": 32.3,
+     "domNodes": 2957,
+     "listeners": 730
+    },
+    "afterOpeningAndClosing15Apps3Times": {
+     "heapMB": 31,
+     "domNodes": 2210,
+     "listeners": 524
+    },
+    "growth": {
+     "heapMB": -1.3,
+     "domNodes": -747,
+     "listeners": -206
+    }
+   },
+   "offline": {
+    "works": true,
+    "toLockScreen": 1094,
+    "appOpens": true
+   }
+  },
+  {
+   "profile": "phone",
+   "cpuSlowdown": 4,
+   "viewport": "iPhone 13",
+   "firstStart": {
+    "toLockScreen": 3110,
+    "loginToDesktop": 836
+   },
+   "networkFirstStart": {
+    "requests": 115,
+    "transferKb": 704,
+    "decodedKb": 2785,
+    "js": {
+     "n": 99,
+     "transferKb": 579
+    },
+    "css": {
+     "n": 10,
+     "transferKb": 92
+    }
+   },
+   "start": {
+    "toLockScreen": 1001,
+    "loginToDesktop": 748,
+    "bootScriptMs": 155,
+    "bootStyleLayoutMs": 66,
+    "bootLongTasks": {
+     "count": 1,
+     "totalMs": 548,
+     "worstMs": 548
+    }
+   },
+   "networkInstalledStart": {
+    "requests": 115,
+    "transferKb": 31
+   },
+   "appOpen": {
+    "finder": {
+     "first": 119,
+     "again": 73
+    },
+    "notes": {
+     "first": 195,
+     "again": 85
+    },
+    "calculator": {
+     "first": 84,
+     "again": 67
+    },
+    "settings": {
+     "first": 112,
+     "again": 71
+    },
+    "browser": {
+     "first": 119,
+     "again": 83
+    },
+    "photos": {
+     "first": 92,
+     "again": 78
+    },
+    "music": {
+     "first": 95,
+     "again": 72
+    },
+    "messages": {
+     "first": 62,
+     "again": 52
+    },
+    "calendar": {
+     "first": 86,
+     "again": 78
+    },
+    "terminal": {
+     "first": 81,
+     "again": 59
+    },
+    "textedit": {
+     "first": 108,
+     "again": 61
+    },
+    "docs": {
+     "first": 84,
+     "again": 105
+    },
+    "sheets": {
+     "first": 77,
+     "again": 64
+    },
+    "timeline": {
+     "first": 165,
+     "again": 125
+    },
+    "clock": {
+     "first": 99,
+     "again": 74
+    }
+   },
+   "appOpenMedian": {
+    "first": 95,
+    "again": 73
+   },
+   "appOpenSlowest": [
+    "notes 195",
+    "timeline 165",
+    "finder 119"
+   ],
+   "startWithData": {
+    "toLockScreen": 699,
+    "loginToDesktop": 708,
+    "bootLongTasks": {
+     "count": 2,
+     "totalMs": 588,
+     "worstMs": 511
+    }
+   },
+   "responsiveness": {
+    "spotlightKeyMedian": 33,
+    "spotlightKeyWorst": 149,
+    "storeGet300NotesMs": 1.55
+   },
+   "storage": {
+    "nodesInTree": 1027,
+    "editAndSaveMs": 18,
+    "write5MBMs": 48,
+    "write20MBMs": 151,
+    "read20MBMs": 1,
+    "storageUsedMB": 4.9
+   },
+   "memory": {
+    "afterWarmup": {
+     "heapMB": 32.8,
+     "domNodes": 5356,
+     "listeners": 1090
+    },
+    "afterOpeningAndClosing15Apps3Times": {
+     "heapMB": 31.2,
+     "domNodes": 4956,
+     "listeners": 943
+    },
+    "growth": {
+     "heapMB": -1.6,
+     "domNodes": -400,
+     "listeners": -147
+    }
+   },
+   "offline": {
+    "works": true,
+    "toLockScreen": 1203,
+    "appOpens": true
+   }
+  }
+ ],
+ "coverage": {
+  "scriptKb": 1216,
+  "executedPercentAfterBootAnd15Apps": 45
+ }
+}

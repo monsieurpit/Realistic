@@ -1,11 +1,10 @@
 [
   {
     "version": "3.0.0",
-    "beta": 21,
-    "date": "2026-11-09",
+    "date": "2026-11-10",
     "title": {
-      "en": "PatOS 3: Timeline, one design, smarter windows",
-      "fr": "PatOS 3 : Timeline, un seul design, des fenêtres plus malignes"
+      "en": "PatOS 3: Prism",
+      "fr": "PatOS 3 : Prisme"
     },
     "notes": {
       "en": [
