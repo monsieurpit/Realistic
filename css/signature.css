@@ -24,9 +24,10 @@ html:not(.mobile) .window:not(.active) .traffic .tl { opacity: .38; }
 .tb-hidden .traffic { background: rgba(255,255,255,.1) !important; color: #fff; } .tb-hidden .traffic .tl { color: #fff !important; }
 
 /* ---------- the focused window wears your accent ---------- */
+/* (a thin ring, not a blurred glow: a large colored shadow had to be repainted on every frame of a window drag, which cost
+   about 10% frame time and dropped frames on a Chromebook-class CPU) */
 html:not(.mobile) .window.active:not(.maximized):not(.fullscreen):not(.stage-thumb) {
-  box-shadow: 0 30px 90px rgba(0,0,0,.5), 0 0 0 .5px var(--border2), 0 0 0 1px color-mix(in srgb, var(--accent) 24%, transparent), 0 22px 70px -26px color-mix(in srgb, var(--accent) 60%, transparent); }
-.window { transition: box-shadow .45s ease, filter .45s ease; }
+  box-shadow: 0 30px 90px rgba(0,0,0,.5), 0 0 0 .5px var(--border2), 0 0 0 1px color-mix(in srgb, var(--accent) 32%, transparent); }
 
 /* ---------- the PatOS mark ---------- */
 .mb-logo { font-size: 0 !important; width: 36px; justify-content: center; }
@@ -56,10 +57,10 @@ html:not(.mobile) .lock-actions button { flex-direction: row; gap: 8px; height: 
   -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px); transition: background .2s, transform .25s var(--spring); }
 html:not(.mobile) .lock-actions button:hover { background: rgba(255,255,255,.2); } html:not(.mobile) .lock-actions button:active { transform: scale(.95); }
 html:not(.mobile) .lock-actions span { width: 28px; height: 28px; font-size: 14px; background: rgba(255,255,255,.14); }
-@keyframes lockClockIn { from { opacity: 0; transform: translateY(24px); filter: blur(8px); } }
-@keyframes lockCardIn { from { opacity: 0; transform: translateY(18px) scale(.97); filter: blur(6px); } }
-html:not(.mobile) #lock.unlocking .lock-clock { transform: translateX(-40px); opacity: 0; filter: blur(8px); transition: all .5s ease; }
-html:not(.mobile) #lock.unlocking .lock-user { transform: translateY(30px) scale(.96); opacity: 0; filter: blur(8px); transition: all .45s ease; }
+@keyframes lockClockIn { from { opacity: 0; transform: translateY(24px); } }
+@keyframes lockCardIn { from { opacity: 0; transform: translateY(18px) scale(.97); } }
+html:not(.mobile) #lock.unlocking .lock-clock { transform: translateX(-40px); opacity: 0; transition: transform .5s ease, opacity .5s ease; }
+html:not(.mobile) #lock.unlocking .lock-user { transform: translateY(30px) scale(.96); opacity: 0; transition: transform .45s ease, opacity .45s ease; }
 
 /* ---------- touch feedback everywhere ---------- */
 html:not(.reduce-motion) :is(.btn, .tbtn, .seg .tab):active { transform: scale(.96); }
@@ -78,16 +79,29 @@ html.vt-fade::view-transition-old(root) { animation: vtOut .45s ease both; } htm
 @keyframes vtOut { to { opacity: 0; } } @keyframes vtIn { from { opacity: 0; } }
 /* Launchpad: the apps arrive in a wave */
 html:not(.reduce-motion) #launchpad.lp-enter .lp-item { animation: lpWave .55s var(--spring) both; animation-delay: calc(var(--w, 0) * 1ms); }
-@keyframes lpWave { from { opacity: 0; transform: scale(.7) translateY(16px); filter: blur(6px); } }
+@keyframes lpWave { from { opacity: 0; transform: scale(.7) translateY(16px); } }
 /* Settings, and any app that asks: the new page settles in */
-@keyframes paneIn { from { opacity: 0; transform: translateY(10px); filter: blur(3px); } }
+@keyframes paneIn { from { opacity: 0; transform: translateY(10px); } }
 html:not(.reduce-motion) .pane-in { animation: paneIn .42s var(--spring) both; }
 /* menus open from where you clicked */
 html:not(.reduce-motion) .menu { animation-name: menuIn !important; }
-@keyframes menuIn { from { opacity: 0; transform: scale(.94) translateY(-6px); filter: blur(4px); } }
+@keyframes menuIn { from { opacity: 0; transform: scale(.96) translateY(-6px); } }
 html:not(.reduce-motion) .menu .menu-item { animation: menuItem .3s ease both; animation-delay: 0ms; animation-delay: calc(min(sibling-index(), 14) * 12ms); }
 @keyframes menuItem { from { opacity: 0; transform: translateX(-4px); } }
 /* notifications slide in with a little blur */
-html:not(.reduce-motion) .toast:not(.static) { transition: transform .55s var(--spring), opacity .35s, filter .4s !important; }
-html:not(.reduce-motion) .toast:not(.static):not(.in) { filter: blur(6px); }
+html:not(.reduce-motion) .toast:not(.static) { transition: transform .55s var(--spring), opacity .35s !important; }
 html.reduce-motion :is(.boot-logo, .lock-clock, .lock-user, .lock-actions) { animation: none !important; }
+
+/* ---------- desktop icons: only the drawn shape and the name take the pointer ----------
+   The 86px square around an icon used to catch clicks on empty wallpaper. Now the square lets them through; an invisible
+   .di-hit over the picture is clipped to the picture's outline (a page with a folded corner, a folder, a rounded tile, a
+   photo), and the name only counts where its text is. Being invisible, the clip never cuts the icon or its shadow. */
+.desk-icon { pointer-events: none !important; }
+.desk-icon .di-img { position: relative; pointer-events: none; }
+.desk-icon .di-img > :not(.di-hit) { pointer-events: none; }
+.desk-icon .di-hit { position: absolute; inset: 3px; pointer-events: auto; }
+.desk-icon[data-shape="tile"] .di-hit { border-radius: 22.5%; }
+.desk-icon[data-shape="page"] .di-hit { clip-path: polygon(17% 8%, 63% 8%, 82% 27%, 82% 94%, 17% 94%); }
+.desk-icon[data-shape="folder"] .di-hit { clip-path: polygon(11% 19%, 40% 19%, 48% 27%, 89% 27%, 89% 83%, 11% 83%); }
+.desk-icon[data-shape="thumb"] .di-hit { border-radius: 6px; }
+.desk-icon .di-name { pointer-events: auto; width: fit-content; max-width: 100%; margin: 0 auto; }

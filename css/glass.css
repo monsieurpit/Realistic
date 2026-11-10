@@ -9,8 +9,8 @@
 /* ---------- tokens ---------- */
 :root {
   /* blur per tier (CSS blur takes a standard deviation, so even 3px softens fine detail) and the body tint */
-  --g-blur-clear: .5px; --g-blur: .6px; --g-blur-elev: 10px; /* (a blur you can almost not see: it softens the picture just enough to feel like glass) */
-  --g-tint-clear: rgba(255,255,255,.025); --g-tint: rgba(255,255,255,.035); --g-tint-elev: rgba(26,26,32,.42);
+  --g-blur-clear: .5px; --g-blur: .6px; --g-blur-elev: 6px; /* (a blur you can almost not see: it softens the picture just enough to feel like glass) */
+  --g-tint-clear: rgba(255,255,255,.025); --g-tint: rgba(255,255,255,.035); --g-tint-elev: rgba(26,26,32,.34);
   --g-sat: 1.6; --g-bright: 1.04;
   --g-text: #fff; --g-text-shadow: 0 1px 3px rgba(0,0,0,.45);
   --g-pill: rgba(255,255,255,.14); --g-pill-on: rgba(255,255,255,.26); --g-rim-soft: rgba(255,255,255,.18);
@@ -35,8 +35,8 @@ html[data-wp-top="dark"][data-wp-bottom="dark"] { --g-glint: .4; }
 html.lg-tinted { --g-tint-clear: rgba(22,22,28,.32); --g-tint: rgba(22,22,28,.56); --g-tint-elev: rgba(26,26,32,.78); --g-titlebar: 86%; --g-blur-clear: 6px; --g-blur: 14px; --g-blur-elev: 20px; }
 :root[data-theme="light"].lg-tinted { --g-tint-clear: rgba(255,255,255,.44); --g-tint: rgba(255,255,255,.66); --g-tint-elev: rgba(250,250,252,.86); }
 /* a very busy wallpaper (js/wallpaper.js measures it once): glass that holds words frosts more; the Dock stays clear */
-html.lg-on[data-wp-busy] { --g-blur: 4px; --g-blur-elev: 18px; --g-tint: rgba(22,22,28,.16); --g-tint-elev: rgba(26,26,32,.52); --g-text-shadow: 0 0 1px rgba(0,0,0,.55), 0 1px 4px rgba(0,0,0,.55); }
-:root[data-theme="light"].lg-on[data-wp-busy] { --g-tint: rgba(255,255,255,.3); --g-tint-elev: rgba(250,250,252,.66); --g-text-shadow: 0 0 1px rgba(255,255,255,.8), 0 0 6px rgba(255,255,255,.85); }
+html.lg-on[data-wp-busy] { --g-blur: 4px; --g-blur-elev: 8px; --g-tint: rgba(22,22,28,.16); --g-tint-elev: rgba(26,26,32,.4); --g-text-shadow: 0 0 1px rgba(0,0,0,.55), 0 1px 4px rgba(0,0,0,.55); }
+:root[data-theme="light"].lg-on[data-wp-busy] { --g-tint: rgba(255,255,255,.3); --g-tint-elev: rgba(250,250,252,.56); --g-text-shadow: 0 0 1px rgba(255,255,255,.8), 0 0 6px rgba(255,255,255,.85); }
 html.lg-on[data-wp-busy].lg-tinted { --g-tint: rgba(22,22,28,.62); --g-tint-elev: rgba(26,26,32,.8); }
 :root[data-theme="light"].lg-on[data-wp-busy].lg-tinted { --g-tint: rgba(255,255,255,.7); --g-tint-elev: rgba(250,250,252,.86); }
 
@@ -64,7 +64,9 @@ html.lg-on :where(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear, .widget, .cc
   box-shadow: inset 0 0 10px rgba(255,255,255,calc(.06 * var(--g-glint))), 0 1px 2px rgba(0,0,0,.12), 0 10px 30px -10px rgba(0,0,0,.24) !important;
   isolation: isolate;
 }
-html.lg-on :is(#dock, .mh-dock, .asw-row, .dlg, .toast, .nc-list, .widget, .mw, .cc-tile, .menu, .sp-box, #pat-panel) { position: relative; }
+/* (only surfaces that aren't already placed: menus, Spotlight and Pat are absolute/fixed, and must stay so, or a menu
+   stretches across the whole screen) */
+html.lg-on :is(#dock, .mh-dock, .asw-row, .dlg, .toast, .nc-list, .widget, .mw, .cc-tile) { position: relative; }
 /* the bevel is clear glass: nothing is painted on it. The lens filter (js/shell.js) shows the real background through it,
    bent, a little lighter along the top and a little deeper along the bottom. All that is drawn here is light on the surface:
    a hairline that follows the top curve, a small hot spot on the upper-left corner, and a faint line along the bottom curve. */

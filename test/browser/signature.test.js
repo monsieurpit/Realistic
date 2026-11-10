@@ -59,3 +59,29 @@ test('the lock screen puts the time at the lower left and the login card at the 
   assert.equal(await page.evaluate(() => PatOS.loggedIn), true, 'Enter still logs in');
   assert.deepEqual(errors, []); await page.close();
 });
+
+test('menus stay the size of their items (not the width of the screen) with Liquid Glass on', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1366, height: 768 } }); const errors = await boot(page, srv.base, { fresh: true });
+  await page.evaluate(() => document.querySelectorAll('.toast').forEach((t) => t.remove()));
+  await page.click('.mb-logo'); await page.waitForTimeout(500);
+  const m = await page.evaluate(() => { const e = document.querySelector('.menu'); return { pos: getComputedStyle(e).position, w: e.offsetWidth, glass: document.documentElement.classList.contains('lg-on') }; });
+  assert.equal(m.pos, 'absolute'); assert.ok(m.w < 400, 'the menu is ' + m.w + ' px wide');
+  assert.deepEqual(errors, []); await page.close();
+});
+
+test('a desktop icon takes clicks on its picture and name only, not on the empty square around them', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1366, height: 768 } }); const errors = await boot(page, srv.base, { fresh: true });
+  await page.evaluate(() => { PatOS.notify = () => {}; PatOS.setSetting('showWidgets', false); PatOS.fs.mkdir('/Desktop/Stuff'); }); await page.waitForTimeout(1200);
+  await page.evaluate(() => document.querySelectorAll('.toast').forEach((t) => t.remove()));
+  const r = await page.evaluate(() => [...document.querySelectorAll('.desk-icon')].map((el) => {
+    const img = el.querySelector('.di-img').getBoundingClientRect(), box = el.getBoundingClientRect();
+    const mine = (x, y) => { const t = document.elementFromPoint(x, y); return !!(t && t.closest('.desk-icon') === el); };
+    return { shape: el.dataset.shape, center: mine(img.left + img.width / 2, img.top + img.height / 2), corner: mine(img.left + 3, img.top + 3), edge: mine(box.right - 2, img.top + img.height / 2) };
+  }));
+  assert.ok(r.length >= 2);
+  r.forEach((x) => assert.deepEqual({ center: x.center, corner: x.corner, edge: x.edge }, { center: true, corner: false, edge: false }, x.shape));
+  const img = await page.locator('.desk-icon[data-shape=folder] .di-img').boundingBox();
+  await page.mouse.dblclick(img.x + img.width / 2, img.y + img.height / 2); await page.waitForTimeout(800);
+  assert.equal(await page.evaluate(() => PatOS.wm.windows.some((w) => w.app.id === 'finder')), true, 'double-clicking the picture still opens it');
+  assert.deepEqual(errors, []); await page.close();
+});

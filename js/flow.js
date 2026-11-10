@@ -46,10 +46,10 @@
       if (!el.offsetParent && getComputedStyle(el).position !== 'fixed') return;
       try { el.animate(frames, { duration: dur || sp.dur, delay: delay + i * 45, easing: sp.easing, fill: 'backwards' }); } catch (e) {}
     });
-    anim('#wallpaper, #wallpaper3d', [{ scale: '1.08', filter: 'brightness(.6) blur(6px)' }, { scale: '1', filter: 'none' }], 0, 1100);
+    anim('#wallpaper, #wallpaper3d', [{ scale: '1.06', opacity: .4 }, { scale: '1', opacity: 1 }], 0, 1000);
     anim('#menubar', [{ translate: '0 -100%', opacity: 0 }, { translate: '0 0', opacity: 1 }], 160);
     anim('#dock-wrap', [{ translate: '0 130%', opacity: 0 }, { translate: '0 0', opacity: 1 }], 220);
-    anim('#desk-widgets .widget, #desk-widgets > *', [{ translate: '0 18px', scale: '.96', opacity: 0, filter: 'blur(6px)' }, { translate: '0 0', scale: '1', opacity: 1, filter: 'none' }], 320);
+    anim('#desk-widgets .widget, #desk-widgets > *', [{ translate: '0 18px', scale: '.96', opacity: 0 }, { translate: '0 0', scale: '1', opacity: 1 }], 320);
     anim('.desk-icon', [{ translate: '0 12px', opacity: 0 }, { translate: '0 0', opacity: 1 }], 380, 420);
   }
   const lock = document.getElementById('lock');

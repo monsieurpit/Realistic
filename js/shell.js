@@ -955,8 +955,11 @@
     const perCol = Math.max(1, Math.floor((innerHeight - top - PatOS.settings.dockSize - 40) / cellH));
     items.forEach((it, i) => {
       const p = pos[it.name] || { x: innerWidth - cellW - 14 - Math.floor(i / perCol) * cellW, y: top + (i % perCol) * cellH };
-      const el = h('div', { class: 'desk-icon' + (selected.has(it.path) ? ' sel' : ''), 'data-path': it.path, style: { left: clamp(p.x, 0, innerWidth - 90) + 'px', top: clamp(p.y, 30, innerHeight - 100) + 'px' } },
-        h('div', { class: 'di-img', html: PatOS.fileIconHTML(it.name, it) }), h('div', { class: 'di-name' }, it.name));
+      // only the icon's drawn shape and its name take the pointer, not the whole square around them (css: .di-hit)
+      const icon = PatOS.fileIconHTML(it.name, it);
+      const shape = !/icon-tile[^"]*\bflat\b/.test(icon) ? 'tile' : /\bthumb\b/.test(icon) ? 'thumb' : PatOS.fileKind(it.name, it) === 'folder' ? 'folder' : 'page';
+      const el = h('div', { class: 'desk-icon' + (selected.has(it.path) ? ' sel' : ''), 'data-path': it.path, 'data-shape': shape, style: { left: clamp(p.x, 0, innerWidth - 90) + 'px', top: clamp(p.y, 30, innerHeight - 100) + 'px' } },
+        h('div', { class: 'di-img', html: icon }, h('span', { class: 'di-hit', 'aria-hidden': 'true' })), h('div', { class: 'di-name' }, it.name));
       el.addEventListener('dblclick', () => PatOS.openFile(it.path));
       el.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); select(it.path); fileMenu(it.path, e.clientX, e.clientY, '/Desktop'); });
       dragIcon(el, it);
