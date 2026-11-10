@@ -516,7 +516,8 @@
       // app icons on a tile are painted for the tile in use (light icons: Settings › Appearance › App icons); file icons stay as they are
       const root = document.documentElement, tiled = gi.bg !== 'transparent';
       const color = tiled && root.classList.contains('icons-color') ? colorPlan(id, gi, arg) : null;
-      LIGHT = tiled && (root.classList.contains('icons-light') || root.classList.contains('icons-color')); COLOR = color;
+      // colored tiles paint their other parts in deep colors; without a color of their own, a tile is white (Light) or the dark glass (Dark)
+      LIGHT = tiled && root.classList.contains('icons-color') && (!!color || !root.classList.contains('icons-dark')); COLOR = color;
       let svg; try { svg = gi.svg(arg); } finally { LIGHT = false; COLOR = null; }
       const bg = color ? `linear-gradient(180deg, ${mix(color.tile, '#ffffff', .14)} 0%, ${color.tile} 55%, ${mix(color.tile, '#000000', .16)} 100%)` : gi.bg;
       return `<div class="icon-tile gi${tiled ? '' : ' flat'}${color ? ' colored' : ''}" style="background:${bg}"><img class="gi-img" src="${giURL(svg)}" alt="" draggable="false"></div>`;

@@ -2274,7 +2274,8 @@
     'file': 'fichier',
     'A file with that name is already there.': 'Un fichier porte déjà ce nom ici.',
     'App icons': 'Icônes des apps', 'Light icons can go with dark mode, and dark icons with light mode': 'Des icônes claires avec le mode sombre, ou sombres avec le mode clair', 'Fold': 'Pli', 'Dusk': 'Crépuscule',
-    'Color gives each app its own colored tile; Automatic uses it in light mode and dark tiles in dark mode': 'Couleur donne à chaque app sa propre tuile colorée ; Automatique l’utilise en mode clair et des tuiles sombres en mode sombre'
+    'Color gives each app its own colored tile; Automatic uses it in light mode and dark tiles in dark mode': 'Couleur donne à chaque app sa propre tuile colorée ; Automatique l’utilise en mode clair et des tuiles sombres en mode sombre',
+    'Apps with a color of their own get a tile of that color; the others are white with Light, dark with Dark. Automatic follows light or dark mode': 'Les apps qui ont leur propre couleur ont une tuile de cette couleur ; les autres sont blanches en Clair, sombres en Sombre. Automatique suit le mode clair ou sombre'
   };
   const PATTERNS = [
     [/^About (.+)$/, (m) => 'À propos de ' + t(m[1])], [/^Hide (.+)$/, (m) => 'Masquer ' + t(m[1])], [/^Quit (.+)$/, (m) => 'Quitter ' + t(m[1])], [/^Log Out (.+)…$/, (m) => 'Fermer la session de ' + m[1] + '…'],

@@ -1162,11 +1162,13 @@
     const lessGlass = !!s.reduceTransparency || sysReduceTransparency.matches || PatOS.perf.light();
     root.classList.toggle('reduce-transparency', lessGlass);
     root.classList.toggle('perf-light', PatOS.perf.light());
-    // app icons: dark tiles, white tiles, or each app's own color (Automatic: own colors in light mode, dark tiles in dark mode)
-    const iconMode = s.iconStyle === 'light' ? 'light' : s.iconStyle === 'color' ? 'color' : s.iconStyle === 'dark' ? 'dark' : (t === 'light' ? 'color' : 'dark');
-    const was = root.classList.contains('icons-light') ? 'light' : root.classList.contains('icons-color') ? 'color' : 'dark';
+    // app icons: one-color apps always have a tile of their own color; the others have a white tile (Light) or a dark one (Dark).
+    // Automatic follows light or dark mode. ('color' was the name of Light in a beta.)
+    const st = s.iconStyle === 'color' ? 'light' : s.iconStyle;
+    const iconMode = st === 'light' ? 'light' : st === 'dark' ? 'dark' : (t === 'light' ? 'light' : 'dark');
+    const was = !root.classList.contains('icons-color') ? '' : root.classList.contains('icons-dark') ? 'dark' : 'light';
     if (was !== iconMode) {
-      root.classList.toggle('icons-light', iconMode === 'light'); root.classList.toggle('icons-color', iconMode === 'color');
+      root.classList.add('icons-color'); root.classList.toggle('icons-dark', iconMode === 'dark'); root.classList.remove('icons-light');
       // the icons are pictures painted for their tile: paint the ones on screen again (the rest are painted as they appear)
       if (PatOS.loggedIn || PatOS.dock) setTimeout(() => PatOS.emit('icons:style', iconMode), 0);
     }
