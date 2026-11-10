@@ -89,7 +89,7 @@
           main.appendChild(h('div', { class: 'msg-bar' }, input, send)); if (!win._noFocus) setTimeout(() => input.focus(), 60);
         }
       }
-      const fullPaint = () => { who.textContent = signedIn() ? '@' + A.info().username : ''; if (!signedIn()) { cur = null; target = null; } drawSide(); drawMain(); };
+      const fullPaint = () => { root.classList.toggle('m2-out', !signedIn()); who.textContent = signedIn() ? '@' + A.info().username : ''; if (!signedIn()) { cur = null; target = null; } drawSide(); drawMain(); };
       const offs = [PatOS.on('chat', () => { if (!root.isConnected) return; drawSide(); const c = cur ? C.find(cur) : null; if (cur && !c) { /* gone */ } else if (c && main.dataset.status !== c.status) { drawMain(); } main.dataset.status = c ? c.status : ''; }),
         PatOS.on('chat:messages', () => { if (!root.isConnected) return; if (cur || target) { const keepFocus = document.activeElement && document.activeElement.classList.contains('msg-in'); const v = keepFocus ? document.activeElement.value : ''; drawMain(); if (keepFocus) { const i = main.querySelector('.msg-in'); if (i) { i.value = v; i.focus(); } } } }),
         PatOS.on('account', () => { if (root.isConnected) fullPaint(); })];

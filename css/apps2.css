@@ -440,7 +440,8 @@
   .m2-side { width: 100%; border-right: 0; } .m2-main { display: none; position: absolute; inset: 0; z-index: 3; }
   .m2-back { display: inline-flex; }
 }
-.m2-chat .m2-main { display: flex; }
+.m2-chat .m2-main, .m2.m2-out .m2-main { display: flex; }
+.m2.m2-out .m2-side { display: none; }
 @container (max-width: 640px) { .m2-chat .m2-side { visibility: hidden; } }
 /* Shortcuts and Pat's voice */
 .sc { height: 100%; display: flex; position: relative; overflow: hidden; container-type: inline-size; }

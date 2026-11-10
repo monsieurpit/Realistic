@@ -57,6 +57,8 @@
       const bStyle = tb('Aa', 'Text style', (e) => { const r = e.currentTarget.getBoundingClientRect(); PatOS.menu([
         { label: T('Title'), action: fmt('formatBlock', 'h1') }, { label: T('Heading'), action: fmt('formatBlock', 'h2') }, { label: T('Body'), action: fmt('formatBlock', 'div') }, { label: T('Monospaced'), action: fmt('formatBlock', 'pre') },
         { divider: true }, { label: T('Bulleted list'), action: fmt('insertUnorderedList') }, { label: T('Numbered list'), action: fmt('insertOrderedList') },
+        // (on a phone, Underline, Strikethrough and Table live here so the toolbar fits)
+        ...(PatOS.isMobile ? [{ divider: true }, { label: T('Underline'), action: fmt('underline') }, { label: T('Strikethrough'), action: fmt('strikeThrough') }, { label: T('Table'), action: () => bTable.click() }] : []),
         { divider: true }, { label: T('Move Checked Items to Bottom'), disabled: !cur || !ed.querySelector('.nt-chk.done'), action: sinkChecked }, { label: T('Uncheck All'), disabled: !cur || !ed.querySelector('.nt-chk.done'), action: () => { ed.querySelectorAll('.nt-chk.done').forEach((d) => d.classList.remove('done')); onInput(); } }
       ], r.left, r.bottom + 4); });
       const bB = tb(h('b', {}, 'B'), 'Bold', fmt('bold')), bI = tb(h('i', {}, 'I'), 'Italic', fmt('italic')), bU = tb(h('u', {}, 'U'), 'Underline', fmt('underline')), bS = tb(h('s', {}, 'S'), 'Strikethrough', fmt('strikeThrough'));
@@ -78,6 +80,7 @@
         ], r.left - 170, r.bottom + 4);
       });
       const bDel = tb(sym('trash'), 'Delete note', () => cur && del(cur));
+      [bStyle, bB, bI, bU, bS, bCheck, bTable, bImg, bDraw, bShare, bDel].forEach((b) => b.classList.add('nt-fmt')); [bU, bS, bTable].forEach((b) => b.classList.add('nt-more'));
       win.toolbar.append(bNew, h('div', { class: 'tb-gap' }), bStyle, bB, bI, bU, bS, bCheck, bTable, bImg, bDraw, h('div', { style: { flex: 1 } }), bShare, bDel);
       win.toolbar.style.paddingLeft = '200px';
 

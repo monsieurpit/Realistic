@@ -260,7 +260,7 @@
         }
         side.append(h('div', { class: 'cal-sd' }, selected.toLocaleDateString(LOC(), { weekday: 'long' })), h('div', { class: 'cal-sdn' }, selected.toLocaleDateString(LOC(), { month: 'long', day: 'numeric', year: 'numeric' })));
         const list = dayEvents(selected);
-        if (!list.length) side.appendChild(h('div', { class: 'cal-none' }, T('Nothing planned. Double-click a day, or type below.')));
+        if (!list.length) side.appendChild(h('div', { class: 'cal-none' }, T(PatOS.isMobile ? 'Nothing planned. Type below, or tap New Event.' : 'Nothing planned. Double-click a day, or type below.')));
         list.forEach(({ ev, base }) => {
           const el = h('div', { class: 'cal-item', style: { '--c': colorOf(ev) } }, h('b', {}, ev.title + (ev.repeat ? ' ↻' : '')), h('small', {}, (ev.time ? fmtT(ev.time) + (ev.end ? ' – ' + fmtT(ev.end) : '') : T('All day')) + (ev.where ? ' · ' + ev.where : '')), ev.notes ? h('div', { class: 'cal-notes' }, ev.notes) : null);
           el.onclick = () => editor(selected, ev, null, base); side.appendChild(el);

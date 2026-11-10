@@ -76,6 +76,9 @@ html.mobile, html.mobile body { overscroll-behavior: none; touch-action: manipul
 .mobile .win-toolbar { order: 1; padding-left: 0 !important; justify-content: flex-end !important; overflow-x: auto; scrollbar-width: none; flex: 1 1 100%; min-width: 0; }
 .mobile .win-toolbar:empty { display: none; }
 .mobile .win-toolbar::-webkit-scrollbar { display: none; }
+.mobile .win-toolbar.tb-more-r { -webkit-mask-image: linear-gradient(90deg, #000 calc(100% - 44px), transparent); mask-image: linear-gradient(90deg, #000 calc(100% - 44px), transparent); }
+.mobile .win-toolbar.tb-more-l { -webkit-mask-image: linear-gradient(90deg, transparent, #000 44px); mask-image: linear-gradient(90deg, transparent, #000 44px); }
+.mobile .win-toolbar.tb-more-l.tb-more-r { -webkit-mask-image: linear-gradient(90deg, transparent, #000 44px, #000 calc(100% - 44px), transparent); mask-image: linear-gradient(90deg, transparent, #000 44px, #000 calc(100% - 44px), transparent); }
 .mobile .win-toolbar .tbtn { min-width: 34px; height: 34px; font-size: 16px; }
 .mobile .win-body { padding-bottom: calc(var(--sab) + 18px); }
 .mobile .tb-hidden .titlebar { display: none; }
@@ -93,7 +96,15 @@ html.mobile, html.mobile body { overscroll-behavior: none; touch-action: manipul
 .mobile .panel { top: calc(var(--mtop) + 30px); left: max(8px, var(--sal)); right: max(8px, var(--sar)); width: auto !important; max-height: calc(100% - var(--mtop) - 60px); border-radius: 26px; animation: mPanel .38s cubic-bezier(.2,.9,.3,1.05); }
 @keyframes mPanel { from { opacity: 0; transform: translateY(-40px) scale(.96); } }
 .mobile #notif-center { left: 0; right: 0; top: 0; bottom: 0; max-height: none; border-radius: 0; padding: calc(var(--mtop) + 40px) 12px 30px !important; background: rgba(0,0,0,.35) !important; backdrop-filter: blur(30px) !important; -webkit-backdrop-filter: blur(30px) !important; overflow-y: auto; }
-.mobile #control-center { background: rgba(30,30,40,.55); }
+/* Control Center fills the screen like on an iPhone: everything behind it is dimmed and blurred, so the tiles read clearly
+   over a busy home screen (clear glass straight over app icons was unreadable) */
+html.mobile #control-center:not(#_) { left: 0; right: 0; top: 0; bottom: 0; width: auto !important; max-height: none; border-radius: 0; padding: calc(var(--mtop) + 40px) max(14px, var(--sar)) 30px max(14px, var(--sal)) !important; background: rgba(0,0,0,.38) !important; -webkit-backdrop-filter: blur(28px) saturate(1.1) !important; backdrop-filter: blur(28px) saturate(1.1) !important; overflow-y: auto; }
+:root[data-theme="light"].mobile #control-center:not(#_) { background: rgba(255,255,255,.3) !important; }
+/* banners float over app icons and widgets: more body than on a computer */
+html.lg-on.mobile .toast:not(.static):not(#_) { --g-b: 22px; --g-t: rgba(30,30,36,.74); }
+:root[data-theme="light"].lg-on.mobile .toast:not(.static):not(#_) { --g-t: rgba(250,250,252,.8); }
+html.lg-on.mobile #spotlight .sp-box:not(#_) { --g-b: 26px; --g-t: rgba(28,28,34,.62); }
+:root[data-theme="light"].lg-on.mobile #spotlight .sp-box:not(#_) { --g-t: rgba(250,250,252,.8); }
 .mobile .nc-widgets { grid-template-columns: 1fr 1fr; }
 .mobile #toasts { left: 8px; right: 8px; top: calc(var(--mtop) + 34px); align-items: center; }
 .mobile .toast { width: 100%; max-width: 460px; border-radius: 22px; transform: translateY(-140px); }
@@ -238,7 +249,18 @@ html.mobile.m-kb { --app-bottom: 0px; }
 @media (orientation: landscape) { .real-phone .titlebar { padding-left: max(10px, var(--sal)) !important; padding-right: max(10px, var(--sar)) !important; } }
 /* Notes on a phone: folders as chips over the list; the note on its own screen */
 .mobile .m-stack .notes-side.m-list { max-height: none !important; border-bottom: 0; }
-.mobile .m-stack .nf-side.m-list { flex: 0 0 auto !important; }
+.mobile .m-stack .nf-side.m-list { flex: 0 0 auto !important; align-items: center; gap: 6px; padding: 8px 10px; }
+.mobile .m-stack .nf-side.m-list > * { flex: none; width: auto; margin: 0; }
+.mobile .m-stack .nf-side .fd-si { height: 34px; padding: 0 14px; } .mobile .m-stack .nf-side .nf-name { flex: none; width: auto; max-width: 60vw; }
+.mobile .m-stack .nf-side .nf-new { height: 34px; border-radius: 17px; padding: 0 12px; }
+.mobile .m-stack .nf-side .nf-tags { display: flex; flex-direction: row; gap: 6px; padding: 0; }
+.mobile .m-stack .nf-side .nf-tag { height: 34px; border-radius: 17px; padding: 0 12px; }
+/* the note list has no text to format: only New Note (and Delete) up top, the formatting buttons come with the note */
+.mobile .m-stack:not(.m-show-detail) .win-toolbar .nt-fmt { display: none; }
+.mobile .win-toolbar .nt-more { display: none; }
+.mobile .m-stack.m-show-detail .win-toolbar:has(.nt-fmt) { gap: 2px; overflow-x: hidden; justify-content: space-between; }
+.mobile .m-stack.m-show-detail .win-toolbar:has(.nt-fmt) > div { display: none; }
+.mobile .m-stack.m-show-detail .win-toolbar:has(.nt-fmt) .tbtn { flex: 0 1 38px; min-width: 34px; }
 .mobile .m-stack.m-show-detail .notes-main { display: flex; }
 /* Settings on a phone: a real list, like iPhone Settings */
 .mobile .m-stack .st-side.m-list { display: block; overflow-y: auto; padding: 8px 14px 24px; background: transparent; }

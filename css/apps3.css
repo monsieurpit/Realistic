@@ -655,6 +655,7 @@ html[data-theme="dark"] .ytx { --yb: #0f0f0f; --yb2: #272727; --yb3: #3f3f3f; --
   .ytx-logo svg { width: 80px; }
   .ytx-sbtn { width: 44px; }
   .ytx-nav { display: none; }
+  .ytx-menu { display: none; } .ytx-sbox { min-width: 0; } .ytx-q { width: 0; padding: 0 12px; } .ytx-logo { padding: 0 4px; }
   .ytx-main { padding: 0 12px 30px; }
   .ytx-grid { grid-template-columns: 1fr; gap: 24px; }
   .ytx-card.row { flex-direction: column; gap: 8px; }

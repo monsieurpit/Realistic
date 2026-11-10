@@ -41,6 +41,13 @@
     // light, dark or colored app icons: the icons are pictures painted for their tile, so the home screen is painted again
     PatOS.on('icons:style', () => renderHome());
     PatOS.on('wm:open', (w) => { if (PatOS.isMobile) setFront(w); });
+    // a toolbar wider than the screen scrolls sideways: its edges fade where there is more to see
+    const tbEdges = (t) => { if (!t || !t.classList.contains('win-toolbar')) return; const more = t.scrollWidth > t.clientWidth + 2; t.classList.toggle('tb-more-r', more && t.scrollLeft + t.clientWidth < t.scrollWidth - 2); t.classList.toggle('tb-more-l', more && t.scrollLeft > 2); };
+    document.addEventListener('scroll', (e) => { if (PatOS.isMobile) tbEdges(e.target); }, true);
+    const tbAll = () => { if (PatOS.isMobile) document.querySelectorAll('.window .win-toolbar').forEach(tbEdges); };
+    PatOS.on('wm:open', () => { setTimeout(tbAll, 400); setTimeout(tbAll, 1500); });
+    window.addEventListener('resize', PatOS.debounce(tbAll, 250));
+    M.toolbarEdges = tbAll;
     PatOS.on('wm:focus', (w) => { if (PatOS.isMobile && w) setFront(w); });
     PatOS.on('wm:close', (w) => { if (M.front === w) { M.front = null; html.classList.remove('m-in-app'); popApp(); } });
     PatOS.on('wm:title', (w) => { if (w && w._mbar) syncBar(w); });

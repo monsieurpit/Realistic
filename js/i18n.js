@@ -1461,6 +1461,7 @@
     'result': 'résultat',
     'results': 'résultats',
     'Nothing planned. Double-click a day, or type below.': 'Rien de prévu. Double-cliquez sur un jour, ou écrivez ci-dessous.',
+    'Nothing planned. Type below, or tap New Event.': 'Rien de prévu. Écrivez ci-dessous, ou touchez Nouvel événement.',
     'Quick add: “Math class monday 9am weekly”': 'Ajout rapide : « Cours de maths lundi 9h chaque semaine »',
     'Added': 'Ajouté',
     'Ends on': 'Se termine le',

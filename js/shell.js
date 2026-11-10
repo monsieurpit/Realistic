@@ -288,6 +288,8 @@
     if (!e.target.closest('#control-center, #mb-cc')) $('#control-center') && $('#control-center').classList.add('hidden');
     if (!e.target.closest('#notif-center, #mb-clock')) $('#notif-center') && $('#notif-center').classList.add('hidden');
   });
+  // on a phone, Control Center and notifications fill the screen: a tap on their empty background closes them
+  ['#control-center', '#notif-center'].forEach((sel) => { const p = $(sel); if (p) p.addEventListener('click', (e) => { if (PatOS.isMobile && (e.target === p || e.target.classList.contains('nc-list'))) p.classList.add('hidden'); }); });
 
   /* panels follow the pointer: drag Control Center, notifications or Pat up and they leave with your movement (fast or far
      enough), or spring back if you let go early */

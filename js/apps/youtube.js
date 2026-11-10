@@ -105,7 +105,7 @@
       const q = h('input', { class: 'ytx-q', placeholder: 'Search', spellcheck: 'false', autocomplete: 'off' });
       const sugg = h('div', { class: 'ytx-sugg' });
       const bBack = h('button', { class: 'ytx-ib ytx-back', title: 'Back', html: ic('back') });
-      const bMenu = h('button', { class: 'ytx-ib', title: 'Menu', html: ic('menu') });
+      const bMenu = h('button', { class: 'ytx-ib ytx-menu', title: 'Menu', html: ic('menu') });
       const logo = h('button', { class: 'ytx-logo', title: 'YouTube Home', html: LOGO });
       const bSet = h('button', { class: 'ytx-ib', title: 'Settings', html: ic('gear') });
       const head = h('div', { class: 'ytx-head' }, h('div', { class: 'ytx-hl' }, bBack, bMenu, logo), h('div', { class: 'ytx-sbox' }, q, h('button', { class: 'ytx-sbtn', title: 'Search', html: ic('search', 20) }), sugg), h('div', { class: 'ytx-hr' }, bSet));
