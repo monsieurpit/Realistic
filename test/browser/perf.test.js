@@ -70,3 +70,17 @@ test('the Dock magnifies by scaling drawn icons (no re-layout per icon) and come
   assert.equal(await page.evaluate(() => PatOS.wallpaper.held()), false, 'and the wallpaper moves again');
   assert.deepEqual(errors, []); await page.close();
 });
+
+test('every icon in the Dock sits in its slot, web-app icons included', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1366, height: 768 } }); const errors = await boot(page, srv.base, { fresh: true });
+  await page.evaluate(() => { PatOS.notify = () => {}; const id = Object.keys(PatOS.apps).find((k) => /^x-chatgpt/.test(k)); PatOS.setSetting('dockPinned', PatOS.settings.dockPinned.concat([id])); PatOS.dock.render(); });
+  await page.waitForTimeout(800);
+  const r = await page.evaluate(() => [...document.querySelectorAll('#dock .dock-item')].map((it) => {
+    const slot = it.querySelector('.dock-icon').getBoundingClientRect(), tile = it.querySelector('.dock-icon > .icon-tile').getBoundingClientRect();
+    return { app: it.dataset.app, dx: Math.round(Math.abs((tile.left + tile.width / 2) - (slot.left + slot.width / 2))), dy: Math.round(Math.abs(tile.bottom - slot.bottom)), w: Math.round(tile.width - slot.width) };
+  }));
+  const off = r.filter((x) => x.dx > 1 || x.dy > 1 || Math.abs(x.w) > 1);
+  assert.ok(r.some((x) => /^x-chatgpt/.test(x.app)), 'the web app is in the Dock');
+  assert.deepEqual(off, [], 'icons out of their slot');
+  assert.deepEqual(errors, []); await page.close();
+});

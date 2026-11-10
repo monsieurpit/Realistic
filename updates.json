@@ -1,7 +1,7 @@
 [
   {
     "version": "3.0.0",
-    "beta": 10,
+    "beta": 11,
     "date": "2026-11-09",
     "title": {
       "en": "PatOS 3: Timeline, one design, smarter windows",
@@ -25,7 +25,8 @@
         "Apps that looked like a Mac now look like PatOS: Calculator has a glass display and rounded keys in your highlight color, Clock shows cities and alarms on cards with pill buttons, Voice Memos is a studio with memo cards, level bars and a glass record dock, Reminders lists its smart lists as rows, and Notes selects in your highlight color instead of yellow",
         "Finder is now Piles (P for PatOS, and files in piles). Everything stays where it was, and searching “finder” still finds it. The Notes icon is now blue",
         "Fixes: menus are their own size again (with Liquid Glass on they stretched across the whole screen); menus, Spotlight, dialogs and Pat use the same clear glass as the rest instead of the old heavy frost; desktop icons only take clicks on their picture and name, not the empty square around them; smoother on Chromebooks (no blurred glow around the active window while dragging, and animations no longer blur, which is costly on Chromebook graphics)",
-        "Smoother Dock and less lag on Chromebooks: the Dock's magnification does a third less work and no longer drops frames (icons grow on the graphics chip and stay sharp), and the 3D wallpaper holds still while you drag a window or move along the Dock, so the graphics chip can spend its time on what you are doing"
+        "Smoother Dock and less lag on Chromebooks: the Dock's magnification does a third less work and no longer drops frames (icons grow on the graphics chip and stay sharp), and the 3D wallpaper holds still while you drag a window or move along the Dock, so the graphics chip can spend its time on what you are doing",
+        "Fix: app icons from phones and the web (ChatGPT and others) sit in their place in the Dock again; since beta 9 they dropped out of their slot"
       ],
       "fr": [
         "Nouveau : Timeline. PatOS retient maintenant ce que vous faites (les apps et fichiers que vous ouvrez, les fichiers que vous enregistrez, les sites que vous visitez, les notes que vous écrivez et le texte que vous copiez) et le montre jour par jour. Cherchez avec des mots simples (« lisbonne hier »), et toutes les quelques minutes, elle garde un moment des fenêtres que vous aviez ouvertes : un clic sur Restaurer les remet toutes à leur place. Après un redémarrage, « Reprendre là où vous en étiez » ramène votre dernière session",
@@ -44,7 +45,8 @@
         "Les apps qui ressemblaient à un Mac ressemblent maintenant à PatOS : la Calculatrice a un écran en verre et des touches arrondies dans votre couleur d’accent, l’Horloge présente villes et alarmes sur des cartes avec des boutons en pilule, Mémos vocaux devient un studio avec des cartes, des barres de niveau et un dock d’enregistrement en verre, Rappels affiche ses listes intelligentes en rangées, et Notes sélectionne dans votre couleur d’accent au lieu du jaune",
         "Le Finder s’appelle maintenant Piles (P pour PatOS, et des fichiers en piles). Tout reste au même endroit, et chercher « finder » le trouve encore. L’icône de Notes est maintenant bleue",
         "Corrections : les menus reprennent leur taille (avec le Liquid Glass, ils s’étiraient sur tout l’écran) ; les menus, Spotlight, les dialogues et Pat utilisent le même verre clair que le reste au lieu de l’ancien givre épais ; les icônes du bureau ne réagissent qu’à leur image et à leur nom, pas au carré vide autour ; plus fluide sur Chromebook (plus de lueur floue autour de la fenêtre active pendant qu’on la déplace, et les animations ne floutent plus, ce qui coûte cher aux Chromebooks)",
-        "Dock plus fluide et moins de ralentissements sur Chromebook : l’agrandissement du Dock demande un tiers de travail en moins et ne saute plus d’images (les icônes grandissent sur la puce graphique et restent nettes), et le fond d’écran 3D s’immobilise pendant que vous déplacez une fenêtre ou parcourez le Dock, pour que la puce graphique se consacre à ce que vous faites"
+        "Dock plus fluide et moins de ralentissements sur Chromebook : l’agrandissement du Dock demande un tiers de travail en moins et ne saute plus d’images (les icônes grandissent sur la puce graphique et restent nettes), et le fond d’écran 3D s’immobilise pendant que vous déplacez une fenêtre ou parcourez le Dock, pour que la puce graphique se consacre à ce que vous faites",
+        "Correction : les icônes des apps de téléphone et du web (ChatGPT et autres) reprennent leur place dans le Dock ; depuis la bêta 9, elles sortaient de leur emplacement"
       ]
     }
   },
