@@ -26,6 +26,7 @@ npm i -D playwright && npx playwright install chromium
 | `browser/system.test.js` | starting offline, windows coming back, timers ringing, Spotlight, the phone's back button |
 | `browser/timeline.test.js` | Timeline records apps, files, websites, notes and copies; nothing from Passwords or password fields; pause and off; never synced; Alt+V pastes; moments restore after a restart; forget |
 | `browser/signature.test.js` | PatOS window controls (drawn glyphs, still close and zoom), the PatOS mark, gliding segmented controls (and none with Reduce Motion), light/dark transition saving at once, the lock screen layout |
+| `browser/piles.test.js` | Piles: the Overview (recents, piles by kind, storage, places), the Piles view by kind and date, search inside files with filters, Smart Piles surviving a restart, renaming many files (tags follow, clashes refused), French and phone |
 | `unit/budget.test.js` | size budgets from the quality baseline: start-up JavaScript (raw and gzipped), CSS, and big libraries kept out of start-up |
 | other files | `finder`, `windows`, `shortcuts`, `settings`, `security`, `backup`, `sync`, `patapps`, `patdrop`, `studio`, `slither`, `textedit`, `updates`, `perf`, `phone`, `devicelab`, `lazy`, `utilities` cover what their names say; `cloud/` needs the Firestore emulator and runs with `npm run test:cloud` (not part of `npm test`) |
 
