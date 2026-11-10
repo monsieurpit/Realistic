@@ -23,7 +23,8 @@ The governing plan is [`docs/LONG-TERM-ROADMAP.md`](LONG-TERM-ROADMAP.md) (writt
 | --- | --- | --- |
 | 1. Architecture and quality audit | **Done** (this document) | |
 | 2. Quality baseline | **Done** (3.0.0 beta 7) | `npm run baseline`, [`docs/QUALITY-BASELINE.md`](QUALITY-BASELINE.md), size budgets in `test/unit/budget.test.js` |
-| 3–6. Reliability, recovery, storage, diagnostics | Not started (Task 3 recommended next) | Some groundwork exists: write journal, session restore, Activity Monitor |
+| 3. Core reliability | **Done**, 3.1.0 beta 3 | Every app opened and closed 4× on a computer and on an iPhone: no listener, timer, bus subscription or DOM node left behind; one animation loop that outlived its window fixed (Weather). One error log (`PatOS.errors`, Terminal `errors`), apps that fail to start (also asynchronously) show why with Try Again, closing twice cleans up once, duplicate bus listeners run once, storage failures no longer all called “Storage is full”. Tests: `test/browser/reliability.test.js` |
+| 4–6. Recovery, storage, diagnostics | Not started (Task 4 recommended next) | Groundwork: write journal, session restore, Activity Monitor, the error log from Task 3 |
 | 8. Advanced window management | Partly there | Snap layouts picker, window groups, Stage Focus (3.0 beta 1) |
 | 11. Spotlight evolution | Largely there | Apps, file names and contents, notes, reminders, contacts, passwords (site/user only), websites, settings, math, units, timers, actions, clipboard. Missing: calendar events, messages, filters, an index |
 | 13. Design-system audit | Partly there | `css/design.css` tokens and component kit (3.0 beta 1); adoption is uneven across apps |
@@ -148,10 +149,14 @@ Focus, session restore, Timeline, clipboard history, legal gate, Sync, Backup, a
    keystroke (`js/shell.js`, `search`); Timeline reads the browser history on every history write. [H] Measurable typing lag
    with big notes collections. **Measured in Task 2:** ≈2 ms per read of 300 notes on a 4× slower CPU: low priority.
 5. **Silent failures** [C]. 154 empty `catch (e) {}` blocks across `js/`. Many are deliberate (feature detection), but there is
-   no central error log, so real failures disappear. → Task 3 / Task 6.
+   no central error log, so real failures disappear. → Task 3 / Task 6. **Task 3:** there is one now (`PatOS.errors`): uncaught
+   errors, unhandled promises, throwing listeners, failed app start-ups and failed saves are written down. The deliberate
+   empty catches (feature detection) stay.
 6. **Listener and timer lifecycle** [C/H]. 589 `addEventListener` vs 69 `removeEventListener`, 48 `setInterval`. Most listeners
    die with their elements, but app code that listens on `document`/`window` or the bus must clean up on close; not
-   systematically checked. [H] Leaks after opening and closing apps many times. → Task 3.
+   systematically checked. [H] Leaks after opening and closing apps many times. → Task 3. **Measured in Task 3:** every app
+   opened and closed 4× (computer and iPhone): no growth in window/document listeners, intervals, bus listeners or DOM nodes.
+   One leak found and fixed: Weather's animation restarted when a forecast arrived after its window closed.
 7. **Duplicated expression evaluators** [C]. Five separate `Function('"use strict";return (' + … + ')')` calculators guarded by
    regexes (`shell.js:651`, `browser.js:318`, `terminal.js:92`, `pat.js:129`, `calculator.js:81`), plus the Tables formula
    compiler (`sheets.js:64`, whitelist-based). Each guard is plausible, but five copies means five places to get wrong and

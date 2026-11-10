@@ -1182,7 +1182,7 @@
     'Put the page on a dark table, fill the frame, then press the button or Space.': 'Posez la page sur une table foncée, remplissez le cadre, puis appuyez sur le bouton ou sur Espace.',
     'The camera isn’t available': 'La caméra n’est pas disponible',
     'Allow the camera for PatOS (the lock icon next to the address). On a school Chromebook it may be turned off. You can also scan photos you already took.': 'Autorisez la caméra pour PatOS (le cadenas à côté de l’adresse). Sur un Chromebook d’école, elle peut être désactivée. Vous pouvez aussi numériser des photos déjà prises.',
-    'Try Again': 'Réessayer',
+    'Try Again': 'Réessayer', 'This app ran into a problem.': 'Cette app a rencontré un problème.',
     'Grayscale': 'Niveaux de gris',
     'Black & White': 'Noir et blanc',
     'Find Edges': 'Trouver les bords',

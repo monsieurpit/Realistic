@@ -1,7 +1,7 @@
 [
   {
     "version": "3.1.0",
-    "beta": 2,
+    "beta": 3,
     "date": "2026-11-10",
     "title": {
       "en": "PatOS 3.1: Handoff",
@@ -14,7 +14,10 @@
         "iPhone: Messages no longer opens on a blank screen when you are not signed in, it shows how to start",
         "iPhone: Notes keeps the formatting buttons for when a note is open, and they now fit on the screen (Underline, Strikethrough and Table are in the Aa menu); folder names are no longer cut",
         "iPhone: Control Center now covers the screen and blurs what is behind it, and notification banners and Spotlight have more body, so they are easy to read over your apps",
-        "iPhone: toolbars wider than the screen fade at the edge to show that they scroll; YouTube’s search box fits; Calendar no longer tells you to double-click"
+        "iPhone: toolbars wider than the screen fade at the edge to show that they scroll; YouTube’s search box fits; Calendar no longer tells you to double-click",
+        "More reliable: every app was opened and closed again and again, on a computer and on an iPhone, to check that nothing stays behind and keeps using memory or battery. Weather could keep animating after you closed it (when the forecast arrived late); it stops now",
+        "When an app fails to start, it now tells you why with a Try Again button, instead of an empty window (also when it fails a moment later)",
+        "PatOS now writes down problems in one place (Terminal: errors), so they can be found and fixed. It stays on this device and is never synced; and “Storage is full” is only shown when storage really is full"
       ],
       "fr": [
         "Nouveau : Continuité. Commencez sur un appareil et continuez sur l’autre : quand vous venez d’utiliser une note, un document, un site, un dossier ou une app sur votre iPhone, votre Chromebook affiche « Continuer depuis iPhone » au-dessus du Dock (et inversement, au-dessus du dock du téléphone). Un clic l’ouvre sur place. Ça marche aussi depuis Spotlight (« Continuer depuis… »)",
@@ -22,7 +25,10 @@
         "iPhone : Messages ne s’ouvre plus sur un écran vide quand vous n’êtes pas connecté, il montre comment commencer",
         "iPhone : Notes garde les boutons de mise en forme pour quand une note est ouverte, et ils tiennent maintenant à l’écran (Souligné, Barré et Tableau sont dans le menu Aa) ; les noms de dossiers ne sont plus coupés",
         "iPhone : le Centre de contrôle couvre maintenant l’écran et floute ce qui est derrière, et les bannières de notification et Spotlight sont plus opaques, faciles à lire par-dessus vos apps",
-        "iPhone : les barres d’outils plus larges que l’écran s’estompent au bord pour montrer qu’elles défilent ; la recherche de YouTube tient ; Calendrier ne vous dit plus de double-cliquer"
+        "iPhone : les barres d’outils plus larges que l’écran s’estompent au bord pour montrer qu’elles défilent ; la recherche de YouTube tient ; Calendrier ne vous dit plus de double-cliquer",
+        "Plus fiable : chaque app a été ouverte et fermée encore et encore, sur ordinateur et sur iPhone, pour vérifier que rien ne reste derrière à utiliser la mémoire ou la batterie. Météo pouvait continuer de s’animer après sa fermeture (quand les prévisions arrivaient en retard) ; elle s’arrête maintenant",
+        "Quand une app n’arrive pas à démarrer, elle explique pourquoi avec un bouton Réessayer, au lieu d’une fenêtre vide (même si l’échec arrive un instant plus tard)",
+        "PatOS note maintenant les problèmes au même endroit (Terminal : errors), pour qu’on puisse les trouver et les corriger. Ça reste sur cet appareil et n’est jamais synchronisé ; et « Le stockage est plein » ne s’affiche que s’il l’est vraiment"
       ]
     }
   },

@@ -41,7 +41,7 @@
           [['ls [dir]', 'list files'], ['cd <dir>', 'change folder'], ['pwd', 'print current folder'], ['cat <file>', 'show a file'], ['touch <file>', 'create an empty file'],
            ['mkdir <dir>', 'make a folder'], ['rm <path>', 'move to Trash'], ['mv <src> <dir>', 'move'], ['cp <src> <dir>', 'copy'], ['echo <text> [> file]', 'print or write text'],
            ['tree', 'show folder tree'], ['open <app|file>', 'open an app or file'], ['apps', 'list apps'], ['calc <expr>', 'calculator'], ['date', 'current date'], ['whoami', 'your name'],
-           ['neofetch', 'system info'], ['theme dark|light', 'change appearance'], ['wallpaper <name>', 'change wallpaper'], ['matrix', 'enter the matrix (press any key to stop)'],
+           ['neofetch', 'system info'], ['errors [clear]', 'problems PatOS wrote down'], ['theme dark|light', 'change appearance'], ['wallpaper <name>', 'change wallpaper'], ['matrix', 'enter the matrix (press any key to stop)'],
            ['grep / wc / head / tail', 'filter text (works with |)'], ['sort / uniq / rev / seq', 'more text tools'], ['cut / tr / sed / nl / tee', 'cut -d, -f1 · tr a-z A-Z · sed s/a/b/g'], ['diff <a> <b>', 'compare two files'], ['stat <file>', 'size, type and date'], ['basename / dirname', 'parts of a path'], ['NAME=value / $NAME', 'variables (export to keep them)'], ['alias ll="ls -l"', 'make your own shortcut'], ['!!', 'repeat the last command'], ['which / sleep', 'find a command · wait'], ['find [dir] -name <pattern>', 'find files'], ['ls -l', 'detailed list'], ['python <file.py>', 'run a Python program (also python -c "code")'], ['node <file.js>', 'run JavaScript (in the browser: not real Node.js, no require or npm)'], ['curl <url>', 'download a web page'], ['ping <host>', 'check a website'], ['weather', 'current weather'], ['todo [text]', 'list or add reminders'], ['cmd > file', 'save output to a file'], ['cmd1 && cmd2', 'run one after another'], ['cowsay <text>', 'a talking cow'], ['fortune', 'a random message'], ['history', 'command history'], ['clear', 'clear screen'], ['exit', 'close terminal']]
             .forEach(([c, d]) => print(`  <span class="ty">${esc(c.padEnd(22))}</span>${esc(d)}`));
         },
@@ -93,6 +93,12 @@
         date() { text(new Date().toString()); },
         whoami() { text(user); },
         uptime() { text('up ' + Math.round(performance.now() / 60000) + ' minutes'); },
+        errors(a) {
+          if (a[0] === 'clear') { PatOS.errors.clear(); return text('errors: cleared'); }
+          const l = PatOS.errors.list(); if (!l.length) return text('No problems written down.');
+          l.slice(-20).forEach((e) => print(`<span class="ty">${esc(new Date(e.t).toLocaleString())}</span> ${e.before ? '(before reload) ' : ''}${esc(e.where)}${e.n > 1 ? ' ×' + e.n : ''}<br>&nbsp;&nbsp;${esc(e.msg)}`));
+          if (l.length > 20) text('(' + (l.length - 20) + ' older not shown)');
+        },
         neofetch() {
           const info = [
             `<span class="tg">${esc(user)}@patos</span>`, '-----------------',

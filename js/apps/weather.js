@@ -32,7 +32,7 @@
       const content = h('div', { class: 'wx' });
       win.body.classList.add('wx-body');
       win.body.append(fx, content);
-      let raf = 0, mode = 'clear', req = 0, lastOK = 0, lastData = null;
+      let raf = 0, closed = false, mode = 'clear', req = 0, lastOK = 0, lastData = null;
       const imperial = () => unit === 'F';
       const deg = (c) => Math.round(imperial() ? c * 9 / 5 + 32 : c) + '°';
       const speed = (v) => Math.round(imperial() ? v * 0.621371 : v) + (imperial() ? ' mph' : ' km/h');
@@ -206,11 +206,13 @@
       function setMode(m) {
         mode = m; win.body.style.background = BG[m] || BG.clear;
         cancelAnimationFrame(raf);
+        if (closed) return; // (a forecast that arrives after the window closed must not start the sky again)
         const ctx = fx.getContext('2d');
         const calm = PatOS.settings.reduceMotion; const lite = PatOS.weakDevice ? 0.5 : 1;
         const parts = Array.from({ length: Math.round((m === 'rain' || m === 'storm' ? 160 : m === 'snow' ? 110 : m === 'clear' || m === 'night' ? 40 : 14) * lite) }, () => ({ x: Math.random(), y: Math.random(), s: 0.3 + Math.random(), r: Math.random() }));
         let flash = 0;
         const step = () => {
+          if (closed || !fx.isConnected) return;
           if (!calm) raf = requestAnimationFrame(step);
           if (document.hidden || win.minimized) return;
           const W = fx.width = fx.clientWidth, H = fx.height = fx.clientHeight;
@@ -276,7 +278,7 @@
       const tick = setInterval(() => { if (!document.hidden && !win.minimized && Date.now() - lastOK > 15 * 60000) load(true); }, 60000);
       const vis = () => { if (!document.hidden && lastOK && Date.now() - lastOK > 10 * 60000) load(true); };
       document.addEventListener('visibilitychange', vis);
-      win.on('closed', () => { cancelAnimationFrame(raf); clearInterval(tick); document.removeEventListener('visibilitychange', vis); clearTimeout(sugTimer); });
+      win.on('closed', () => { closed = true; cancelAnimationFrame(raf); clearInterval(tick); document.removeEventListener('visibilitychange', vis); clearTimeout(sugTimer); });
       win._wx = { refresh: () => load(), units: () => bUnit.click(), locate: () => bLoc.click(), places: () => bList.click() };
       setMode('clear'); load();
     },

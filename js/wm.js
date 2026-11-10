@@ -95,8 +95,8 @@
     const win = {
       id, app, el, body, titlebar, toolbar, titleEl, args: args || {},
       minimized: false, maximized: false, prevRect: null,
-      on(ev, fn) { (handlers[ev] = handlers[ev] || []).push(fn); },
-      emit(ev, d) { (handlers[ev] || []).forEach((f) => { try { f(d); } catch (e) { console.error(e); } }); },
+      on(ev, fn) { (handlers[ev] = handlers[ev] || []).push(fn); return () => { handlers[ev] = (handlers[ev] || []).filter((f) => f !== fn); }; },
+      emit(ev, d) { (handlers[ev] || []).slice().forEach((f) => { try { f(d); } catch (e) { console.error(e); PatOS.errors && PatOS.errors.report(e, app.id + ' ' + ev); } }); },
       setTitle(t) { titleEl.textContent = t; win.title = t; el.setAttribute('aria-label', t); PatOS.emit('wm:title', win); },
       close: () => closeWindow(win),
       minimize: () => minimizeWindow(win),
@@ -122,16 +122,26 @@
     focusWindow(win);
     openAnim(win);
 
+    // an app that fails to start (right away, or later if it starts asynchronously) shows why and offers to try again,
+    // instead of an empty window; the failure is written down (PatOS.errors)
+    const failed = (e) => {
+      console.error(e); if (PatOS.errors) PatOS.errors.report(e, app.id + ' start');
+      if (!wins.includes(win)) return;
+      const T = (x) => (PatOS.t ? PatOS.t(x) : x);
+      body.innerHTML = '';
+      const box = document.createElement('div'); box.className = 'app-error'; box.setAttribute('role', 'alert');
+      box.innerHTML = T('This app ran into a problem.') + '<br><small>' + PatOS.esc((e && e.message) || String(e)) + '</small>';
+      const again = document.createElement('button'); again.className = 'btn primary'; again.textContent = T('Try Again');
+      again.onclick = () => { const a = win.args; win.close(); setTimeout(() => PatOS.launch(app.id, a), 220); };
+      box.appendChild(document.createElement('br')); box.appendChild(again); body.appendChild(box);
+    };
     const run = () => {
-      try { app.launch(win, win.args); } catch (e) {
-        console.error(e);
-        body.innerHTML = '<div class="app-error">This app ran into a problem.<br><small>' + PatOS.esc(e.message) + '</small></div>';
-      }
+      try { const r = app.launch(win, win.args); if (r && typeof r.then === 'function') r.then(null, failed); } catch (e) { failed(e); }
     };
     // 3D apps wait for three.js, which PatOS only loads when it is needed
     if (app.needs3D && !window.THREE && PatOS.webgl) {
       const wait = document.createElement('div'); wait.className = 'app-loading'; wait.innerHTML = '<div class="spinner"></div>'; body.appendChild(wait);
-      PatOS.load3D().then(() => { wait.remove(); if (wins.includes(win)) run(); });
+      PatOS.load3D().then(() => { wait.remove(); if (wins.includes(win)) run(); }, (e) => { wait.remove(); failed(e || new Error('3D could not load')); });
     } else run();
     const ro = new ResizeObserver(() => win.emit('resize', win.rect()));
     ro.observe(body);
@@ -310,7 +320,7 @@
   }
 
   function focusWindow(win) {
-    if (!win || win.minimized) return;
+    if (!win || win.minimized || win.closed) return; // (a window that is closing never takes focus back)
     if (active === win) { if (+win.el.style.zIndex !== z) win.el.style.zIndex = ++z; return; }
     if (active) { active.el.classList.remove('active'); active.emit('blur'); }
     active = win;
@@ -326,12 +336,14 @@
   }
 
   function closeWindow(win) {
+    if (win.closed) return; // (closing twice, e.g. a double tap, must not run every cleanup twice)
     let veto = false;
     win.emit('beforeclose', { cancel: () => { veto = true; } });
     if (veto) return;
     if (motionOK()) win.el.animate([{ transform: 'none', opacity: 1 }, { transform: 'scale(.92)', opacity: 0, filter: 'blur(4px)' }], { duration: 200, easing: 'ease-in', fill: 'forwards' });
     else win.el.classList.add('closing');
     win.el.style.pointerEvents = 'none';
+    win.closed = true;
     win.emit('closed');
     const i = wins.indexOf(win); if (i >= 0) wins.splice(i, 1);
     if (win.fullscreen) { win.fullscreen = false; if (!wins.some((w) => w.fullscreen) && weAskedBrowserFS && document.fullscreenElement) { weAskedBrowserFS = false; document.exitFullscreen().catch(() => {}); } }

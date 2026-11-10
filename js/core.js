@@ -96,14 +96,20 @@
       const res = () => { inflight.delete(batch); res0(); };
       try {
         const tx = DBH.transaction(['kv', 'fc'], 'readwrite'); const st = tx.objectStore('kv'), fc = tx.objectStore('fc');
-        sets.forEach((k) => { try { st.put(KV[k], k); } catch (e) { console.error(e); } });
+        sets.forEach((k) => { try { st.put(KV[k], k); } catch (e) { console.error(e); if (PatOS.errors) PatOS.errors.report(e, 'save ' + k); } }); // (a value the database can't hold: written down, the rest still saves)
         dels.forEach((k) => st.delete(k));
         Object.keys(puts).forEach((k) => fc.put(puts[k], k));
         fdel.forEach((k) => fc.delete(k));
         tx.oncomplete = () => { afterMigrate(); res(); };
-        const bad = () => { requeue(); if (!quotaWarned && PatOS.notify) { quotaWarned = true; PatOS.notify({ title: 'Storage is full', body: 'PatOS could not save. Delete some big files to free space.', icon: 'settings' }); } res(); };
+        const bad = () => {
+          requeue(); const err = tx.error; if (PatOS.errors) PatOS.errors.report(err || new Error('save failed'), 'save');
+          // only a full disk is called a full disk; anything else is retried quietly (and written down)
+          const full = !err || err.name === 'QuotaExceededError' || /quota/i.test(err.message || '');
+          if (full && !quotaWarned && PatOS.notify) { quotaWarned = true; PatOS.notify({ title: 'Storage is full', body: 'PatOS could not save. Delete some big files to free space.', icon: 'settings' }); }
+          res();
+        };
         tx.onerror = tx.onabort = bad;
-      } catch (e) { requeue(); res(); }
+      } catch (e) { if (PatOS.errors) PatOS.errors.report(e, 'save'); requeue(); res(); }
     });
   }
   const inflight = new Set(); // writes sent to the database that haven't finished yet
@@ -173,8 +179,8 @@
     }
   };
   const persistedFC = {};
-  PatOS.flush = () => { try { saveFSNow(); } catch (e) {} return flushNow(); };
-  addEventListener('pagehide', () => { try { saveFSNow(); } catch (e) {} journal(); flushNow().then(clearJournal); });
+  PatOS.flush = () => { try { saveFSNow(); } catch (e) { if (PatOS.errors) PatOS.errors.report(e, 'save files'); } return flushNow(); };
+  addEventListener('pagehide', () => { try { saveFSNow(); } catch (e) { if (PatOS.errors) PatOS.errors.report(e, 'save files'); } journal(); flushNow().then(clearJournal); });
   document.addEventListener('visibilitychange', () => { if (document.hidden) PatOS.flush(); });
 
   /* how much room there is: real numbers from the browser */
@@ -191,10 +197,39 @@
   window.addEventListener('pointerdown', () => { PatOS.askPersist(); }, { once: true, capture: true });
 
   /* ---------- events ---------- */
+  /* ---------- errors: one place where every failure is written down ----------
+     Uncaught exceptions, rejected promises nobody handled, a listener that throws, an app that fails to start: each is kept
+     here (the last 100 in memory, the last 30 also across a reload, in this browser only: never synced or uploaded), so a
+     problem that was silently swallowed can still be found (PatOS.errors.list(), the Terminal's `errors`). Nothing here
+     shows anything to the person: apps show their own message. */
+  const ERR_KEY = 'patos.errors', errs = [];
+  try { (JSON.parse(localStorage.getItem(ERR_KEY) || '[]') || []).forEach((e) => { e.before = true; errs.push(e); }); } catch (e) {}
+  let errSave = 0;
+  PatOS.errors = {
+    report(err, where) {
+      const msg = String((err && (err.message || err.reason)) || err || 'Unknown error').slice(0, 300);
+      const last = errs[errs.length - 1];
+      if (last && !last.before && last.msg === msg && last.where === (where || '') && Date.now() - last.t < 2000) { last.n = (last.n || 1) + 1; return; } // (the same error in a loop counts once)
+      errs.push({ t: Date.now(), where: where || '', msg, stack: String((err && err.stack) || '').split('\n').slice(0, 4).join('\n').slice(0, 600), v: PatOS.version || '' });
+      if (errs.length > 100) errs.splice(0, errs.length - 100);
+      clearTimeout(errSave); errSave = setTimeout(() => { try { localStorage.setItem(ERR_KEY, JSON.stringify(errs.slice(-30).map((e) => { const c = Object.assign({}, e); delete c.before; return c; }))); } catch (e) {} }, 500);
+      try { if (typeof PatOS.emit === 'function') (listeners['error'] || []).slice().forEach((f) => { try { f(errs[errs.length - 1]); } catch (e) {} }); } catch (e) {}
+    },
+    list: () => errs.slice(),
+    clear() { errs.length = 0; try { localStorage.removeItem(ERR_KEY); } catch (e) {} }
+  };
+  window.addEventListener('error', (e) => { if (e && e.error !== undefined || (e && e.message)) PatOS.errors.report(e.error || e.message, 'page' + (e.filename ? ' ' + String(e.filename).replace(location.origin, '') + ':' + e.lineno : '')); });
+  window.addEventListener('unhandledrejection', (e) => PatOS.errors.report(e.reason, 'promise'));
+
+  /* ---------- events ---------- */
   const listeners = {};
-  PatOS.on = (ev, fn) => { (listeners[ev] = listeners[ev] || []).push(fn); return () => PatOS.off(ev, fn); };
+  // (the same function added twice for one event still runs once: a second setup must not double every reaction)
+  PatOS.on = (ev, fn) => { const l = (listeners[ev] = listeners[ev] || []); if (!l.includes(fn)) l.push(fn); return () => PatOS.off(ev, fn); };
+  PatOS.once = (ev, fn) => { const off = PatOS.on(ev, function one(d) { off(); fn(d); }); return off; };
   PatOS.off = (ev, fn) => { listeners[ev] = (listeners[ev] || []).filter((f) => f !== fn); };
-  PatOS.emit = (ev, data) => { (listeners[ev] || []).slice().forEach((f) => { try { f(data); } catch (e) { console.error(e); } }); };
+  PatOS.__busCount = () => Object.values(listeners).reduce((n, l) => n + l.length, 0);
+  // a listener that throws does not stop the others, and is written down
+  PatOS.emit = (ev, data) => { (listeners[ev] || []).slice().forEach((f) => { try { f(data); } catch (e) { console.error(e); PatOS.errors.report(e, 'event ' + ev); } }); };
 
   /* ---------- settings ---------- */
   const DEFAULTS = {
