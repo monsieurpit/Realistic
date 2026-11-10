@@ -549,29 +549,45 @@
   }
   function applyDockSize() {
     const s = PatOS.settings.dockSize;
+    // icons are drawn at their largest (magnified) size and scaled down at rest, so they stay sharp while magnified (css: --dock-max)
+    const k = Math.max(1, PatOS.settings.magnify ? +PatOS.settings.magnifyScale || 1 : 1);
     document.documentElement.style.setProperty('--dock', s + 'px');
-    $$('.dock-icon').forEach((i) => { i.style.width = i.style.height = s + 'px'; });
+    document.documentElement.style.setProperty('--dock-max', Math.round(s * k) + 'px');
+    document.documentElement.style.setProperty('--dock-rest-s', (1 / k).toFixed(4));
+    $$('.dock-icon').forEach((i) => { i.style.width = i.style.height = s + 'px'; i.style.removeProperty('--dock-s'); if (i.parentNode) i.parentNode._dockSize = null; });
     $('#dock-wrap').classList.toggle('autohide', PatOS.settings.dockAutohide);
   }
   function setupDockMagnify() {
     const d = dockEl();
     let raf = 0, mx = null;
+    /* One layout read per frame, then all the writes. Reading an icon's position right after resizing the one before it
+       made the browser lay the Dock out again for every icon, every frame (~17 layouts a frame: the Dock ran at ~27 fps on a
+       Chromebook-class CPU). Sizes that didn't change aren't written again. */
     const run = () => {
       raf = 0;
       const base = PatOS.settings.dockSize, maxS = base * PatOS.settings.magnifyScale, range = base * 2.6;
-      $$('.dock-item', d).forEach((it) => {
+      const on = mx != null && PatOS.settings.magnify && !PatOS.settings.reduceMotion;
+      const items = $$('.dock-item', d);
+      const centers = on ? items.map((it) => { const r = it.getBoundingClientRect(); return r.left + r.width / 2; }) : null;
+      let moving = false;
+      items.forEach((it, i) => {
+        let target = base;
+        if (on) { const dist = Math.abs(mx - centers[i]); if (dist < range) target = base + (maxS - base) * Math.cos((dist / range) * (Math.PI / 2)) ** 2; }
+        // ease toward the target here (no CSS transition: a transition re-styles every icon on its own frames on top of these)
+        const from = it._dockBase === base && it._dockSize != null ? it._dockSize : base;
+        let size = from + (target - from) * 0.45;
+        if (Math.abs(target - size) < 0.6) size = target; else moving = true;
+        size = Math.round(size * 2) / 2;
+        if (it._dockSize === size && it._dockBase === base) return;
+        it._dockSize = size; it._dockBase = base;
         const ic = it.querySelector('.dock-icon');
-        let size = base;
-        if (mx != null && PatOS.settings.magnify && !PatOS.settings.reduceMotion) {
-          const r = it.getBoundingClientRect(); const c = r.left + r.width / 2;
-          const dist = Math.abs(mx - c);
-          if (dist < range) size = base + (maxS - base) * Math.cos((dist / range) * (Math.PI / 2)) ** 2;
-        }
         // the slot widens (so neighbours make room) but keeps the Dock's height: the icon itself grows up out of the Dock
         // (css: .dock-icon > .icon-tile is pinned to the slot's bottom), and its label rises with it
         ic.style.width = size + 'px'; ic.style.height = base + 'px';
-        it.style.setProperty('--lift', Math.max(0, size - base).toFixed(1) + 'px');
+        ic.style.setProperty('--dock-s', (size / (base * Math.max(1, PatOS.settings.magnify ? +PatOS.settings.magnifyScale || 1 : 1))).toFixed(4));
+        it.style.setProperty('--lift', (size - base).toFixed(1) + 'px');
       });
+      if (moving && !raf) raf = requestAnimationFrame(run);
     };
     d.addEventListener('pointermove', (e) => { if (e.pointerType === 'touch') return; mx = e.clientX; if (!raf) raf = requestAnimationFrame(run); });
     d.addEventListener('pointerleave', () => { mx = null; if (!raf) raf = requestAnimationFrame(run); });
@@ -1346,7 +1362,7 @@
       setupMenubar(); setupLaunchpad(); setupSpotlight(); setupDesktop(); setupDockMagnify(); setupKeys();
       PatOS.on('setting', (s) => {
         if (['theme', 'accent', 'brightness', 'reduceMotion', 'reduceTransparency', 'liquidGlass', 'glassRefraction', 'glassStyle', 'quality3d', 'perfMode'].includes(s.key)) applyTheme();
-        if (['dockSize', 'dockAutohide'].includes(s.key)) applyDockSize();
+        if (['dockSize', 'dockAutohide', 'magnify', 'magnifyScale'].includes(s.key)) applyDockSize();
         if (s.key === 'dockPinned') renderDock();
       });
       matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);

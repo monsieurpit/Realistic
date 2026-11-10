@@ -50,3 +50,23 @@ test('switching the 3D wallpaper off and on again works', { skip: skipNoBrowser 
   if (r !== 'no-webgl') assert.deepEqual(r, { off: true, on: true });
   await page.close();
 });
+
+test('the Dock magnifies by scaling drawn icons (no re-layout per icon) and comes back to rest; the 3D wallpaper holds still during drags', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1366, height: 768 } }); const errors = await boot(page, srv.base, { fresh: true });
+  await page.evaluate(() => { PatOS.notify = () => {}; PatOS.setSetting('magnify', true); document.querySelectorAll('.toast').forEach((t) => t.remove()); }); await page.waitForTimeout(600);
+  const d = await page.locator('#dock').boundingBox();
+  const rest = await page.evaluate(() => { const t = document.querySelector('#dock .dock-item .dock-icon > .icon-tile'); return { scale: getComputedStyle(t).scale, w: t.offsetWidth }; });
+  for (let i = 0; i < 12; i++) { await page.mouse.move(d.x + d.width * .5 + i, d.y + d.height / 2); await page.waitForTimeout(30); }
+  const heldWhileMoving = await page.evaluate(() => PatOS.wallpaper.held());
+  await page.waitForTimeout(300);
+  const hover = await page.evaluate(() => { const its = [...document.querySelectorAll('#dock .dock-item')]; const big = Math.max(...its.map((it) => +getComputedStyle(it.querySelector('.dock-icon > .icon-tile')).scale || 1)); return { big, held: PatOS.wallpaper.held(), slotMax: Math.max(...its.map((it) => it.querySelector('.dock-icon').offsetWidth)) }; });
+  assert.ok(+rest.scale < 1, 'icons are drawn bigger and scaled down at rest (sharp when magnified): ' + rest.scale);
+  assert.ok(hover.big > +rest.scale * 1.4, 'an icon grows under the pointer: ' + JSON.stringify(hover));
+  assert.ok(hover.slotMax > await page.evaluate(() => PatOS.settings.dockSize) + 4, 'its slot widens so neighbours make room');
+  assert.equal(heldWhileMoving, true, 'the wallpaper holds while the Dock magnifies');
+  await page.mouse.move(d.x + 30, d.y - 300); await page.waitForTimeout(900);
+  const back = await page.evaluate(() => [...document.querySelectorAll('#dock .dock-item .dock-icon')].every((ic) => Math.abs(ic.offsetWidth - PatOS.settings.dockSize) < 1));
+  assert.equal(back, true, 'every icon is back to its size');
+  assert.equal(await page.evaluate(() => PatOS.wallpaper.held()), false, 'and the wallpaper moves again');
+  assert.deepEqual(errors, []); await page.close();
+});

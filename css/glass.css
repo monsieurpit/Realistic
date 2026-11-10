@@ -270,12 +270,14 @@ html.lg-on :is(.dock-icon .icon-tile, .lp-item .icon-tile, .mh-app .icon-tile, .
 html.lg-on:not(.reduce-transparency) :is(.dock-icon .icon-tile, .lp-item .icon-tile, .mh-app .icon-tile, .desk-icon .icon-tile, .asw-ic .icon-tile) .pi-g { filter: url(#pi-gloss); }
 /* the sheen: a band of light parked off to the left, swept across once when the icon is pointed at */
 html.lg-on :is(.dock-icon .icon-tile, .lp-item .icon-tile, .mh-app .icon-tile, .desk-icon .icon-tile, .asw-ic .icon-tile)::before {
-  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: 2;
-  background: linear-gradient(115deg, transparent 38%, rgba(255,255,255,.5) 50%, transparent 62%) no-repeat;
-  background-size: 260% 100%; background-position: 160% 0; opacity: 0;
+  content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 70%; pointer-events: none; z-index: 2;
+  background: linear-gradient(115deg, transparent 18%, rgba(255,255,255,.5) 50%, transparent 82%);
+  transform: translateX(-110%); opacity: 0;
 }
+/* (the band moves with transform, which the graphics chip does without repainting the icon; it used to slide a background,
+   which repainted the icon on every frame of the sweep, for every icon the pointer crossed in the Dock) */
 html.lg-on:not(.reduce-motion) :is(.dock-item:hover .icon-tile, .lp-item:hover .icon-tile, .mh-app:hover .icon-tile, .desk-icon:hover .icon-tile, .asw-item.on .icon-tile)::before { animation: lgSheen .9s cubic-bezier(.3,.6,.3,1) 1; }
-@keyframes lgSheen { 0% { opacity: 1; background-position: 160% 0; } 100% { opacity: 1; background-position: -60% 0; } }
+@keyframes lgSheen { 0% { opacity: 1; transform: translateX(-110%); } 100% { opacity: 1; transform: translateX(160%); } }
 html.lg-on:not(.reduce-motion) :is(.lp-item, .mh-app, .desk-icon):hover .icon-tile {
   transform: translateY(-3px) scale(1.04);
   box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 3px rgba(0,0,0,.18), inset 0 0 0 .5px rgba(0,0,0,.14), 0 2px 3px rgba(0,0,0,.2), 0 12px 22px -6px rgba(0,0,0,.42);

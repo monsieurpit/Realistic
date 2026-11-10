@@ -138,6 +138,11 @@
 
   /* ---------- live 3D wallpaper ---------- */
   let three = null;
+  // the 3D wallpaper pauses during drags (window moves and resizes, the selection box, files) and Dock magnification, and
+  // goes on from the same moment ~0.3 s after they stop (see the render loop below)
+  let holdUntil = 0;
+  const hold = () => { holdUntil = performance.now() + 300; };
+  document.addEventListener('pointermove', (e) => { if (e.buttons || (e.target && e.target.closest && e.target.closest('#dock'))) hold(); }, { passive: true, capture: true });
   function stop3D() {
     if (!three) return;
     cancelAnimationFrame(three.raf);
@@ -297,6 +302,9 @@
       three.raf = requestAnimationFrame(loop);
       const dt = Math.min(0.05, (now - last) / 1000); last = now;
       if (three.paused || document.hidden) return;
+      // while something is being dragged or the Dock is magnifying, the picture holds still: each wallpaper frame makes the
+      // graphics chip filter every glass surface again, and that work is better spent on the thing that is moving
+      if (now < holdUntil) return;
       // frames that are skipped still count as time, so the wallpaper moves at the same speed whatever the frame rate
       pend += dt; const fm = frameMs(); if (fm) { acc += dt * 1000; if (acc < fm - 2) return; acc = 0; }
       const step = Math.min(0.15, pend); pend = 0;
@@ -403,6 +411,7 @@
     palettes: PALETTES, live: LIVE, apply, thumb, thumbLarge,
     isDark(id) { id = id || PatOS.settings.wallpaper; return LIVE[id] ? true : PALETTES[id] ? PALETTES[id].dark : true; },
     pause(on) { if (three) three.paused = on; },
+    hold, held: () => performance.now() < holdUntil,
     stop: stop3D
   };
   window.addEventListener('resize', PatOS.debounce(() => { const id = PatOS.settings.wallpaper; drawStatic(LIVE[id] || PALETTES[id] || id === 'custom' ? id : 'sonora'); }, 200));

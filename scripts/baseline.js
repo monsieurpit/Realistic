@@ -159,6 +159,13 @@ async function responsiveness(page, desktop) {
     const frames = await page.evaluate(() => { cancelAnimationFrame(window.__fr); return window.__frames.slice(2); });
     out.dragFrameP95 = round(p95(frames)); out.dragFrameMedian = round(med(frames));
     await page.evaluate(() => PatOS.wm.closeAll());
+    // sweeping the pointer along the Dock (magnification) for about a second
+    const dk = await page.locator('#dock').boundingBox();
+    await page.evaluate(() => { window.__frames = []; let last = performance.now(); const loop = (t) => { window.__frames.push(t - last); last = t; window.__fr = requestAnimationFrame(loop); }; window.__fr = requestAnimationFrame(loop); });
+    for (let i = 0; i < 50; i++) { await page.mouse.move(dk.x + 10 + (i / 50) * (dk.width - 20), dk.y + dk.height / 2); await sleep(16); }
+    await page.mouse.move(dk.x + dk.width / 2, dk.y - 250);
+    const df = await page.evaluate(() => { cancelAnimationFrame(window.__fr); return window.__frames.slice(3); });
+    out.dockFrameAvg = +(df.reduce((a, b) => a + b, 0) / df.length).toFixed(1); out.dockFrameP95 = round(p95(df));
   }
   return out;
 }
@@ -290,7 +297,7 @@ function summary(r, prev) {
     lines.push('[' + p.profile + '] cpu ×' + p.cpuSlowdown + ' · ' + p.viewport);
     lines.push('  start: lock ' + p.start.toLockScreen + g((x) => ch(p.start.toLockScreen, x.start.toLockScreen)) + ' · desktop ' + p.start.loginToDesktop + g((x) => ch(p.start.loginToDesktop, x.start.loginToDesktop)) + ' · first ever ' + p.firstStart.toLockScreen + ' · with data ' + p.startWithData.toLockScreen);
     lines.push('  apps: first ' + p.appOpenMedian.first + ' · again ' + p.appOpenMedian.again + ' · slowest ' + p.appOpenSlowest.join(', '));
-    lines.push('  spotlight key ' + p.responsiveness.spotlightKeyMedian + ' (worst ' + p.responsiveness.spotlightKeyWorst + ')' + (p.responsiveness.dragFrameP95 != null ? ' · drag frame p95 ' + p.responsiveness.dragFrameP95 : ''));
+    lines.push('  spotlight key ' + p.responsiveness.spotlightKeyMedian + ' (worst ' + p.responsiveness.spotlightKeyWorst + ')' + (p.responsiveness.dragFrameP95 != null ? ' · drag frame p95 ' + p.responsiveness.dragFrameP95 + ' · dock frame avg ' + p.responsiveness.dockFrameAvg + ' p95 ' + p.responsiveness.dockFrameP95 : ''));
     lines.push('  storage: edit+save ' + p.storage.editAndSaveMs + ' (' + p.storage.nodesInTree + ' nodes) · 20 MB write ' + p.storage.write20MBMs + ' read ' + p.storage.read20MBMs);
     lines.push('  memory: heap ' + p.memory.afterWarmup.heapMB + ' MB → ' + p.memory.afterOpeningAndClosing15Apps3Times.heapMB + ' MB · listeners +' + p.memory.growth.listeners + ' · nodes +' + p.memory.growth.domNodes);
     lines.push('  network: first start ' + p.networkFirstStart.requests + ' requests, ' + p.networkFirstStart.transferKb + ' KB · installed ' + p.networkInstalledStart.transferKb + ' KB · offline ' + (p.offline.works ? 'works (' + p.offline.toLockScreen + ')' : 'FAILS: ' + p.offline.error));

@@ -156,3 +156,19 @@ npm run baseline -- --profiles chromebook --runs 1       # a quick check of one 
 
 A full run takes a few minutes. Save a new baseline when a task changes performance on purpose, and quote the before/after
 in that task's report. Older `scripts/perf.js` remains for quick single-profile timing.
+
+## Task 58 — constrained-device performance (3.0.0 beta 8–9)
+
+Measured on the chromebook profile (CPU 4×), A/B on the same host:
+
+| Interaction | Before | After | What changed |
+| --- | --- | --- | --- |
+| Pointer sweeping along the Dock: frame time avg / p95 / frames over 50 ms | 37.8 ms / 67 ms / 3 | **28.6 ms / 33 ms / 0** | One layout read per frame instead of one per icon; icons grow with the GPU `scale` property (drawn at their magnified size, scaled down at rest, so they stay sharp) instead of changing width; the hover sheen moves with a transform instead of repainting; no CSS transitions on top of the per-frame updates |
+| Paint + raster during one second of Dock sweeping (unthrottled trace) | 254 + 370 ms | 32 + 220 ms | same |
+| Main-thread time for the Dock sweep | 3,136 ms | 2,017 ms (−36%) | same |
+| Window drag with the active-window glow (beta 8) | +10% frame time, dropped frames | ring only, no dropped frames | blurred colored glow → 1px ring |
+| Animations (beta 8) | blur() in menus, Launchpad, notifications, panes, Timeline, lock, login | transform + opacity only | no repaint per frame |
+| 3D wallpaper during drags and Dock magnification | kept drawing (every glass surface re-filtered per frame) | holds still, resumes ~0.3 s after | `PatOS.wallpaper.hold()` in `js/wallpaper.js` |
+
+`npm run baseline` now also records the Dock sweep (`dockFrameAvg`, `dockFrameP95`). Not measurable here (headless Chromium
+has no GPU): the real-GPU gain of holding the 3D wallpaper; it needs a pass on a real Chromebook (Task 67).
