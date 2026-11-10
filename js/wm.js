@@ -11,7 +11,7 @@
   function layer() { return $('#windows'); }
   function dockReserve() {
     if (PatOS.settings.dockAutohide) return 8;
-    return PatOS.settings.dockSize + 22;
+    return (PatOS.dockBase ? PatOS.dockBase() : PatOS.settings.dockSize) + 26;
   }
   function workArea() {
     if (document.body.classList.contains('patos-fs')) return { x: 0, y: 0, w: window.innerWidth, h: window.innerHeight };
@@ -62,7 +62,7 @@
     } else if (!edge) { clearTimeout(revealT); revealing = null; }
     // hide again once the pointer leaves the bar (and no menu is open)
     if (b.classList.contains('reveal-top') && e.clientY > 40 && !e.target.closest('#menubar, .menu, .ctx-menu, #control-center, #notif-center') && !document.querySelector('#menubar .open, .menu.open')) b.classList.remove('reveal-top');
-    if (b.classList.contains('reveal-bottom') && !e.target.closest('#dock-wrap, .menu, .ctx-menu') && e.clientY < window.innerHeight - (PatOS.settings.dockSize + 40)) b.classList.remove('reveal-bottom');
+    if (b.classList.contains('reveal-bottom') && !e.target.closest('#dock-wrap, .menu, .ctx-menu') && e.clientY < window.innerHeight - ((PatOS.dockBase ? PatOS.dockBase() : PatOS.settings.dockSize) + 40)) b.classList.remove('reveal-bottom');
   });
   document.addEventListener('pointerleave', () => { clearTimeout(revealT); revealing = null; });
 

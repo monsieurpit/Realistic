@@ -106,7 +106,7 @@ test('Fold is the new wallpaper (Silk moves to it once); Liquid Glass on the des
   assert.equal(r.tone, 'dark'); assert.equal(r.widget, 'rgb(255, 255, 255)', 'light mode over a dark wallpaper: white words on the desktop glass');
   assert.equal(r.menu, 'rgb(29, 29, 31)', 'a menu (over windows) follows light mode');
   assert.equal(r.toneFold, 'light'); assert.equal(r.widgetFold, 'rgb(29, 29, 31)', 'light Fold: dark words');
-  assert.match(r.light, /255, 255, 255|#fff|rgb\(255/, 'light icon tiles with dark mode');
+  assert.match(r.light, /rgb\(2[0-5]\d, 2[0-5]\d, 2[0-5]\d\)/, 'light (silver) icon tiles with dark mode');
   assert.equal(r.auto, false, 'automatic icons follow dark mode');
   assert.equal(r.flatShadow, 'none', 'no line over flat icons');
   assert.deepEqual(errors, []); await page.close();

@@ -110,6 +110,12 @@ html.reduce-motion :is(.boot-logo, .lock-clock, .lock-user, .lock-actions) { ani
 html.lg-on :is(.desk-icon, .lp-item, .dock-icon, .mh-app, .asw-ic, .fd-ic, .fd-ric) .icon-tile.flat { box-shadow: none !important; }
 
 /* ---------- light app icons (Settings › Appearance › App icons): the same glass objects on a light tile ---------- */
-html.icons-light .icon-tile.gi:not(.flat) { background: radial-gradient(125% 90% at 50% -6%, #ffffff 0%, #f1f2f6 46%, #dcdfe6 100%) !important; }
+/* (a soft silver, not white: a white tile glared next to everything else, most of all in dark mode) */
+html.icons-light .icon-tile.gi:not(.flat) { background: radial-gradient(125% 90% at 50% -6%, #e6e8ee 0%, #c9cdd6 48%, #a9aebb 100%) !important; }
+:root[data-theme="light"].icons-light .icon-tile.gi:not(.flat) { background: radial-gradient(125% 90% at 50% -6%, #f2f3f6 0%, #dcdfe5 48%, #c2c6cf 100%) !important; }
 /* (pale glass, like Piano's keys or Preview's pages, keeps an edge against the white) */
 html.icons-light .icon-tile.gi:not(.flat) .gi-img { filter: drop-shadow(0 .5px 1px rgba(30,34,52,.35)) drop-shadow(0 1px 3px rgba(30,34,52,.18)); }
+
+/* ---------- the Dock on a computer: a little more room between the apps (the icons are 10% bigger too: PatOS.dockBase) ---------- */
+html:not(.mobile) #dock { gap: 8px; }
+html.lg-on:not(.mobile) #dock { padding: 9px 16px; }

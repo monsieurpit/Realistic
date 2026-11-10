@@ -62,10 +62,10 @@ test('the Dock magnifies by scaling drawn icons (no re-layout per icon) and come
   const hover = await page.evaluate(() => { const its = [...document.querySelectorAll('#dock .dock-item')]; const big = Math.max(...its.map((it) => +getComputedStyle(it.querySelector('.dock-icon > .icon-tile')).scale || 1)); return { big, held: PatOS.wallpaper.held(), slotMax: Math.max(...its.map((it) => it.querySelector('.dock-icon').offsetWidth)) }; });
   assert.ok(+rest.scale < 1, 'icons are drawn bigger and scaled down at rest (sharp when magnified): ' + rest.scale);
   assert.ok(hover.big > +rest.scale * 1.4, 'an icon grows under the pointer: ' + JSON.stringify(hover));
-  assert.ok(hover.slotMax > await page.evaluate(() => PatOS.settings.dockSize) + 4, 'its slot widens so neighbours make room');
+  assert.ok(hover.slotMax > await page.evaluate(() => PatOS.dockBase()) + 4, 'its slot widens so neighbours make room');
   assert.equal(heldWhileMoving, true, 'the wallpaper holds while the Dock magnifies');
   await page.mouse.move(d.x + 30, d.y - 300); await page.waitForTimeout(900);
-  const back = await page.evaluate(() => [...document.querySelectorAll('#dock .dock-item .dock-icon')].every((ic) => Math.abs(ic.offsetWidth - PatOS.settings.dockSize) < 1));
+  const back = await page.evaluate(() => [...document.querySelectorAll('#dock .dock-item .dock-icon')].every((ic) => Math.abs(ic.offsetWidth - PatOS.dockBase()) < 1));
   assert.equal(back, true, 'every icon is back to its size');
   assert.equal(await page.evaluate(() => PatOS.wallpaper.held()), false, 'and the wallpaper moves again');
   assert.deepEqual(errors, []); await page.close();

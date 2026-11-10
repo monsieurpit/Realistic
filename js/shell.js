@@ -547,8 +547,10 @@
       ws.length ? { label: 'Quit', action: () => PatOS.wm.quit(id) } : null
     ], r.left, r.top - 8 - (ws.length + 4) * 26);
   }
+  /* the Dock's icon size on a computer: the setting, a little bigger (10%), so the Dock reads well on big screens */
+  PatOS.dockBase = () => Math.round((+PatOS.settings.dockSize || 50) * 1.1);
   function applyDockSize() {
-    const s = PatOS.settings.dockSize;
+    const s = PatOS.dockBase();
     // icons are drawn at their largest (magnified) size and scaled down at rest, so they stay sharp while magnified (css: --dock-max)
     const k = Math.max(1, PatOS.settings.magnify ? +PatOS.settings.magnifyScale || 1 : 1);
     document.documentElement.style.setProperty('--dock', s + 'px');
@@ -565,7 +567,7 @@
        Chromebook-class CPU). Sizes that didn't change aren't written again. */
     const run = () => {
       raf = 0;
-      const base = PatOS.settings.dockSize, maxS = base * PatOS.settings.magnifyScale, range = base * 2.6;
+      const base = PatOS.dockBase(), maxS = base * PatOS.settings.magnifyScale, range = base * 2.6;
       const on = mx != null && PatOS.settings.magnify && !PatOS.settings.reduceMotion;
       const items = $$('.dock-item', d);
       const centers = on ? items.map((it) => { const r = it.getBoundingClientRect(); return r.left + r.width / 2; }) : null;
@@ -968,7 +970,7 @@
     const items = PatOS.fs.list('/Desktop');
     const pos = PatOS.settings.desktopPositions || {};
     const cellW = 96, cellH = 100, top = 40;
-    const perCol = Math.max(1, Math.floor((innerHeight - top - PatOS.settings.dockSize - 40) / cellH));
+    const perCol = Math.max(1, Math.floor((innerHeight - top - PatOS.dockBase() - 40) / cellH));
     items.forEach((it, i) => {
       const p = pos[it.name] || { x: innerWidth - cellW - 14 - Math.floor(i / perCol) * cellW, y: top + (i % perCol) * cellH };
       // only the icon's drawn shape and its name take the pointer, not the whole square around them (css: .di-hit)
