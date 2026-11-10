@@ -122,3 +122,17 @@ test('an older PatOS on Silk moves to Fold once, and choosing Silk again sticks'
   assert.equal(await page.evaluate(() => PatOS.settings.wallpaper), 'silk');
   await page.close();
 });
+
+test('light app icons are painted for a white tile (solid colors), and switching back paints the dark ones again', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1366, height: 768 } }); const errors = await boot(page, srv.base, { fresh: true });
+  const r = await page.evaluate(async () => {
+    const wait = (ms) => new Promise((res) => setTimeout(res, ms));
+    const src = () => document.querySelector('#dock .dock-item[data-app="music"] .gi-img').src;
+    PatOS.setSetting('theme', 'dark'); PatOS.setSetting('iconStyle', 'dark'); await wait(300); const dark = src();
+    PatOS.setSetting('iconStyle', 'light'); await wait(300); const light = src();
+    PatOS.setSetting('iconStyle', 'dark'); await wait(300); const back = src();
+    return { changed: dark !== light, back: back === dark, solid: /translate\(0%201\.[26]\)/.test(light) && !/translate\(0%201\.[26]\)/.test(dark) };
+  });
+  assert.deepEqual(r, { changed: true, back: true, solid: true });
+  assert.deepEqual(errors, []); await page.close();
+});

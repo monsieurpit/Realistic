@@ -1093,6 +1093,8 @@
     // catch-all to block the browser menu inside PatOS chrome
     document.addEventListener('contextmenu', (e) => { if (!e.target.closest('input, textarea, [contenteditable], iframe, .allow-ctx')) e.preventDefault(); });
     PatOS.on('fs', (ev) => { if (ev.dir.startsWith('/Desktop') || ev.path.startsWith('/Desktop') || ev.dir === '/') renderDesktop(); if (ev.dir === '/.Trash' || ev.path.startsWith('/.Trash')) renderDock(); });
+    // light or dark app icons: the Dock and the desktop are painted again (Launchpad and app windows paint theirs when they open or redraw)
+    PatOS.on('icons:style', () => { renderDock(); renderDesktop(); if (!$('#launchpad').classList.contains('hidden')) PatOS.launchpad.render($('.lp-search').value || ''); });
     window.addEventListener('resize', PatOS.debounce(renderDesktop, 150));
     PatOS.on('setting:desktopPositions', renderDesktop);
   }
@@ -1160,7 +1162,12 @@
     const lessGlass = !!s.reduceTransparency || sysReduceTransparency.matches || PatOS.perf.light();
     root.classList.toggle('reduce-transparency', lessGlass);
     root.classList.toggle('perf-light', PatOS.perf.light());
-    root.classList.toggle('icons-light', s.iconStyle === 'light' || (s.iconStyle !== 'dark' && t === 'light'));
+    const lightIcons = s.iconStyle === 'light' || (s.iconStyle !== 'dark' && t === 'light');
+    if (root.classList.contains('icons-light') !== lightIcons) {
+      root.classList.toggle('icons-light', lightIcons);
+      // the icons are pictures painted for their tile: paint the ones on screen again (the rest are painted as they appear)
+      if (PatOS.loggedIn || PatOS.dock) setTimeout(() => PatOS.emit('icons:style', lightIcons), 0);
+    }
     root.classList.toggle('win', !!PatOS.hw.windows);
     ['highContrast', 'boldText', 'showFocus', 'bigTargets'].forEach((k) => root.classList.toggle(k.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase()), !!s[k]));
     $('#dimmer').style.opacity = String(1 - s.brightness);

@@ -217,9 +217,14 @@
     return d + 'Z' + circ(cx, cy, hole);
   }
   const GT = 'radial-gradient(125% 90% at 50% -6%, #48484e 0%, #28282c 42%, #141416 100%)';
+  /* Light icons (Settings › Appearance › App icons): the same drawings, painted for a white tile the way light-mode icons are
+     drawn: glass turns solid and saturated (no see-through body that washes out on white), halos become a soft shadow,
+     and glowing strokes use their deep color instead of white-hot. */
+  let LIGHT = false;
   function painter(id) {
     const P = 'gi-' + id.replace(/[^a-z0-9]/gi, '') + '-'; let defs = '', halos = '', k = 0;
     function glass(d, col, o = {}) {
+      if (LIGHT) return glassLight(d, col, o);
       const i = P + (k++), lite = mix(col, '#ffffff', .62), core = o.core || [50, 80], fr = o.evenodd ? ' fill-rule="evenodd"' : '';
       defs += `<linearGradient id="${i}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${col}" stop-opacity="${o.top != null ? o.top : .45}"/><stop offset=".6" stop-color="${col}" stop-opacity=".8"/><stop offset="1" stop-color="${lite}" stop-opacity=".97"/></linearGradient>` +
         `<radialGradient id="${i}c" cx="${core[0]}%" cy="${core[1]}%" r="${o.coreR || 55}%"><stop offset="0" stop-color="#fff" stop-opacity="${o.glow != null ? o.glow : .8}"/><stop offset=".45" stop-color="${lite}" stop-opacity=".3"/><stop offset="1" stop-color="${lite}" stop-opacity="0"/></radialGradient>` +
@@ -227,19 +232,36 @@
       if (o.halo !== 0) halos += `<path d="${d}"${fr} fill="${col}" opacity="${o.halo || .5}"/>`;
       return `<path d="${d}"${fr} fill="url(#${i}b)"/><path d="${d}"${fr} fill="url(#${i}c)"/><path d="${d}"${fr} fill="none" stroke="url(#${i}r)" stroke-width="${o.rim || 1.1}" stroke-linejoin="round"/>`;
     }
+    function glassLight(d, col, o) {
+      const i = P + (k++), fr = o.evenodd ? ' fill-rule="evenodd"' : '';
+      // deep, rich color on white (the way light-mode icons darken their glyphs: Music's red goes to a deep crimson)
+      const x = hex(col), vivid = Math.max(...x) - Math.min(...x) > 50; // (whites and greys, like a calendar's page, only take a light shade)
+      const top = vivid ? mix(col, '#000000', .1) : mix(col, '#ffffff', .4), bot = mix(col, '#000000', vivid ? .38 : .12), core = o.core || [50, 30];
+      defs += `<linearGradient id="${i}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${top}"/><stop offset="1" stop-color="${bot}"/></linearGradient>` +
+        `<radialGradient id="${i}c" cx="${core[0]}%" cy="${core[1]}%" r="65%"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>`;
+      if (o.halo !== 0) halos += `<path d="${d}"${fr} fill="#1c2033" opacity=".22" transform="translate(0 1.6)"/>`;
+      return `<path d="${d}"${fr} fill="url(#${i}b)"/><path d="${d}"${fr} fill="url(#${i}c)"/><path d="${d}"${fr} fill="none" stroke="${mix(col, '#000000', .25)}" stroke-opacity=".35" stroke-width=".7" stroke-linejoin="round"/>`;
+    }
     function solid(d, top, bottom, o = {}) {
+      // on a white tile, colored parts deepen too (a sun, a red band); whites and greys stay as they are (a calendar's page)
+      if (LIGHT) { const vivid = (c) => { const x = hex(c); return Math.max(...x) - Math.min(...x) > 50; }; if (vivid(top)) top = mix(top, '#000000', .14); if (vivid(bottom)) bottom = mix(bottom, '#000000', .2); }
       const i = P + (k++);
       defs += `<linearGradient id="${i}s" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${top}"/><stop offset="1" stop-color="${bottom}"/></linearGradient>`;
       return `<path d="${d}" fill="url(#${i}s)"${o.evenodd ? ' fill-rule="evenodd"' : ''}/>` + (o.edge === 0 ? '' : `<path d="${d}" fill="none" stroke="#fff" stroke-opacity="${o.edge || .4}" stroke-width=".8"/>`);
     }
     function light(d, col, w, o = {}) {
+      if (LIGHT) {
+        halos += `<path d="${d}" fill="none" stroke="#1c2033" stroke-width="${w * 1.6}" stroke-linecap="round" stroke-linejoin="round" opacity=".16" transform="translate(0 1.2)"/>`;
+        return `<path d="${d}" fill="none" stroke="${mix(col, '#000000', .3)}" stroke-width="${w * 1.15}" stroke-linecap="round" stroke-linejoin="round"/>` +
+          `<path d="${d}" fill="none" stroke="${mix(col, '#ffffff', .2)}" stroke-width="${(w * .3).toFixed(2)}" stroke-linecap="round" stroke-linejoin="round" opacity=".55"/>`;
+      }
       halos += `<path d="${d}" fill="none" stroke="${col}" stroke-width="${w * 2.6}" stroke-linecap="round" stroke-linejoin="round" opacity="${o.halo || .6}"/>`;
       return `<path d="${d}" fill="none" stroke="${mix(col, '#ffffff', .5)}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/>` +
         `<path d="${d}" fill="none" stroke="#fff" stroke-width="${(w * .42).toFixed(2)}" stroke-linecap="round" stroke-linejoin="round" opacity=".9"/>`;
     }
     const bead = (cx, cy, r, col) => glass(circ(cx, cy, r), col, { core: [38, 32], coreR: 75, top: .75, glow: .9, rim: .8 });
     const g = (t, s) => `<g transform="${t}">${s}</g>`;
-    const done = (body) => `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs>${defs}<filter id="${P}h" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="2.6"/></filter></defs><g filter="url(#${P}h)">${halos}</g>${body}</svg>`;
+    const done = (body) => `<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><defs>${defs}<filter id="${P}h" x="-40%" y="-40%" width="180%" height="180%"><feGaussianBlur stdDeviation="${LIGHT ? 1.4 : 2.6}"/></filter></defs><g filter="url(#${P}h)">${halos}</g>${body}</svg>`;
     return { glass, solid, light, bead, g, done };
   }
   const draw = (fn) => ({ bg: GT, glass: true, svg: (arg) => fn(arg) });
@@ -440,7 +462,12 @@
     // drawn in glass (above), shown as a picture: the browser draws each icon (its gradients and blurred halos) once and reuses it,
     // where an SVG written into the page would be redrawn with all its filters every time it moves or changes size (the Dock's
     // magnification did that every frame). It also keeps each icon's ids to itself.
-    if (gi) return `<div class="icon-tile gi${gi.bg === 'transparent' ? ' flat' : ''}" style="background:${gi.bg}"><img class="gi-img" src="${giURL(gi.svg(arg))}" alt="" draggable="false"></div>`;
+    if (gi) {
+      // app icons on a tile are painted for the tile in use (light icons: Settings › Appearance › App icons); file icons stay as they are
+      LIGHT = gi.bg !== 'transparent' && document.documentElement.classList.contains('icons-light');
+      let svg; try { svg = gi.svg(arg); } finally { LIGHT = false; }
+      return `<div class="icon-tile gi${gi.bg === 'transparent' ? ' flat' : ''}" style="background:${gi.bg}"><img class="gi-img" src="${giURL(svg)}" alt="" draggable="false"></div>`;
+    }
     const def = ICONS[id] || letterIcon((id || '?')[0].toUpperCase());
     const flat = def.bg === 'transparent';
     glossFilter();
