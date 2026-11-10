@@ -487,7 +487,7 @@
      none, keep the white tile with deep colors (Photos, Calendar, Piano, Settings). */
   const COLOR_SET = { weather: { tile: '#3d8eff', white: ['#a9cfff'] } };
   // these keep the plain tile (white with Light, dark glass with Dark), whatever their drawing
-  const NO_COLOR = new Set(['clock', 'calculator', 'notes', 'orbrunner', 'tictactoe', 'slither', 'pitstudio']);
+  const NO_COLOR = new Set(['clock', 'calculator', 'notes', 'orbrunner', 'tictactoe', 'slither', 'pitstudio', 'terminal']);
   const planCache = new Map();
   function colorPlan(id, gi, arg) {
     if (planCache.has(id)) return planCache.get(id);

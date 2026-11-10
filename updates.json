@@ -1,7 +1,7 @@
 [
   {
     "version": "3.0.0",
-    "beta": 20,
+    "beta": 21,
     "date": "2026-11-09",
     "title": {
       "en": "PatOS 3: Timeline, one design, smarter windows",
@@ -37,7 +37,7 @@
         "Fix: on phones, the home screen shows Color icons too (it kept icons painted for the old style, which then looked all white), and app names are dark over a light wallpaper",
         "If your app icons were set to Light (all white tiles), they switch to Color once; Light is still in Settings › Appearance › App icons",
         "App icons, simpler: apps with a color of their own always get a tile of that color (Music red, Messages green, Weather blue…). With Light, the other apps have a white tile; with Dark, the dark glass one. Automatic follows light or dark mode. (Color is now part of Light and Dark.)",
-        "Clock, Calculator, Notes, Orb Runner, Tic-Tac-Toe, Slither and PitCode Studio keep the plain tile (white with Light, dark glass with Dark). The Elements app is removed"
+        "Clock, Calculator, Notes, Orb Runner, Tic-Tac-Toe, Slither, PitCode Studio and Terminal keep the plain tile (white with Light, dark glass with Dark). The Elements app is removed"
       ],
       "fr": [
         "Un bureau plus calme et plus haut de gamme : le nouveau fond d’écran Pli, de grandes feuilles douces en longues courbes avec une lumière tendre (sombre en mode sombre, lin chaud en mode clair), et Crépuscule en violet. Pli remplace Soie une fois ; Soie reste dans Réglages › Fond d’écran",
@@ -68,7 +68,7 @@
         "Correction : sur téléphone, l’écran d’accueil affiche aussi les icônes Couleur (il gardait des icônes peintes pour l’ancien style, qui paraissaient alors toutes blanches), et les noms des apps sont foncés sur un fond clair",
         "Si vos icônes étaient réglées sur Clair (tuiles toutes blanches), elles passent une fois à Couleur ; Clair reste dans Réglages › Apparence › Icônes des apps",
         "Icônes des apps, plus simple : les apps qui ont leur propre couleur ont toujours une tuile de cette couleur (Musique en rouge, Messages en vert, Météo en bleu…). En Clair, les autres apps ont une tuile blanche ; en Sombre, celle en verre sombre. Automatique suit le mode clair ou sombre. (Couleur fait maintenant partie de Clair et Sombre.)",
-        "Horloge, Calculatrice, Notes, Orb Runner, Morpion, Slither et PitCode Studio gardent la tuile simple (blanche en Clair, en verre sombre en Sombre). L’app Éléments est retirée"
+        "Horloge, Calculatrice, Notes, Orb Runner, Morpion, Slither, PitCode Studio et Terminal gardent la tuile simple (blanche en Clair, en verre sombre en Sombre). L’app Éléments est retirée"
       ]
     }
   },
