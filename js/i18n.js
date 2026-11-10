@@ -58,7 +58,7 @@
     'Next Wallpaper': 'Fond d’écran suivant', 'Open Terminal': 'Ouvrir le Terminal', 'Open with TextEdit': 'Ouvrir avec TextEdit', 'Rename…': 'Renommer…', 'Duplicate': 'Dupliquer', 'Download to Computer': 'Télécharger sur l’ordinateur',
     'Get Info': 'Lire les informations', 'Move to Trash': 'Placer dans la corbeille', 'Rename': 'Renommer', 'Folder': 'Dossier',
     // finder
-    'Favorites': 'Favoris', 'Desktop': 'Bureau', 'Documents': 'Documents', 'Downloads': 'Téléchargements', 'Pictures': 'Images', 'Home': 'Accueil', 'PatOS': 'PatOS', 'Storage': 'Stockage',
+    'Favorites': 'Favoris', 'Desktop': 'Bureau', 'Documents': 'Documents', 'Downloads': 'Téléchargements', 'Pictures': 'Images', 'Links': 'Liens', 'Home': 'Accueil', 'PatOS': 'PatOS', 'Storage': 'Stockage',
     'Back': 'Précédent', 'Forward': 'Suivant', 'Icons': 'Icônes', 'List': 'Liste', 'Import from computer': 'Importer de l’ordinateur', 'Name': 'Nom', 'Date Modified': 'Date de modification', 'Size': 'Taille', 'Kind': 'Type',
     'This folder is empty': 'Ce dossier est vide', 'Trash is empty': 'La corbeille est vide', 'No results': 'Aucun résultat', 'Items in the Trash': 'Éléments dans la corbeille', 'Empty': 'Vider', 'Put Back': 'Remettre',
     'Delete Immediately': 'Supprimer immédiatement', 'Import from Computer…': 'Importer de l’ordinateur…', 'View as List': 'Présenter en liste', 'View as Icons': 'Présenter par icônes', 'Application': 'Application',
