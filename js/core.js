@@ -240,6 +240,9 @@
   // 3.0: Silk was everyone's starting wallpaper; Fold replaces it once (Silk is still in Settings › Wallpaper, and choosing
   // it again sticks, because this runs only once)
   if (!PatOS.settings.wpFold) { if (PatOS.settings.wallpaper === 'silk') PatOS.settings.wallpaper = 'fold'; PatOS.settings.wpFold = true; if (saved && Object.keys(saved).length) PatOS.store.set('settings', PatOS.settings); }
+  // 3.0: the white "Light" icon tiles were too bright; Color (each app's own tile) replaces them once (Light is still in Settings,
+  // and choosing it again sticks)
+  if (!PatOS.settings.iconColor) { if (PatOS.settings.iconStyle === 'light') PatOS.settings.iconStyle = 'color'; PatOS.settings.iconColor = true; if (saved && Object.keys(saved).length) PatOS.store.set('settings', PatOS.settings); }
   PatOS.setSetting = function (key, value) {
     PatOS.settings[key] = value;
     PatOS.store.set('settings', PatOS.settings);
