@@ -236,7 +236,10 @@
       const i = P + (k++), fr = o.evenodd ? ' fill-rule="evenodd"' : '';
       // deep, rich color on white (the way light-mode icons darken their glyphs: Music's red goes to a deep crimson)
       const x = hex(col), vivid = Math.max(...x) - Math.min(...x) > 50; // (whites and greys, like a calendar's page, only take a light shade)
-      const top = vivid ? mix(col, '#000000', .1) : mix(col, '#ffffff', .4), bot = mix(col, '#000000', vivid ? .38 : .12), core = o.core || [50, 30];
+      // greys (a gear, a bin) turn into a solid steel grey with real contrast against the white tile; near-whites stay light
+      const white = !vivid && (x[0] + x[1] + x[2]) / 3 > 222;
+      const top = vivid ? mix(col, '#000000', .1) : white ? mix(col, '#ffffff', .4) : mix(col, '#000000', .3);
+      const bot = mix(col, '#000000', vivid ? .38 : white ? .12 : .55), core = o.core || [50, 30];
       defs += `<linearGradient id="${i}b" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="${top}"/><stop offset="1" stop-color="${bot}"/></linearGradient>` +
         `<radialGradient id="${i}c" cx="${core[0]}%" cy="${core[1]}%" r="65%"><stop offset="0" stop-color="#fff" stop-opacity=".22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>`;
       if (o.halo !== 0) halos += `<path d="${d}"${fr} fill="#1c2033" opacity=".22" transform="translate(0 1.6)"/>`;

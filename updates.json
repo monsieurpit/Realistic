@@ -1,7 +1,7 @@
 [
   {
     "version": "3.0.0",
-    "beta": 14,
+    "beta": 15,
     "date": "2026-11-09",
     "title": {
       "en": "PatOS 3: Timeline, one design, smarter windows",
@@ -31,7 +31,8 @@
         "Fix: app icons from phones and the web (ChatGPT and others) sit in their place in the Dock again; since beta 9 they dropped out of their slot",
         "Fix: no more thin line above files and folders on the desktop",
         "Light app icons are a soft silver instead of bright white. On computers, the Dock's icons are a little bigger with a little more room between them",
-        "Light app icons, redone the way a Mac does them: a clean white tile with a soft grey falloff, and each drawing painted for it in solid, deep colors (Music in deep crimson, Piles in deep blue…) with soft shadows; whites stay white. Switching between light and dark icons repaints them at once"
+        "Light app icons, redone the way a Mac does them: a clean white tile with a soft grey falloff, and each drawing painted for it in solid, deep colors (Music in deep crimson, Piles in deep blue…) with soft shadows; whites stay white. Switching between light and dark icons repaints them at once",
+        "Light icons: grey drawings (the Settings gear, the Trash, Chess…) are a solid steel grey with real contrast; whites stay white"
       ],
       "fr": [
         "Un bureau plus calme et plus haut de gamme : le nouveau fond d’écran Pli, de grandes feuilles douces en longues courbes avec une lumière tendre (sombre en mode sombre, lin chaud en mode clair), et Crépuscule en violet. Pli remplace Soie une fois ; Soie reste dans Réglages › Fond d’écran",
@@ -56,7 +57,8 @@
         "Correction : les icônes des apps de téléphone et du web (ChatGPT et autres) reprennent leur place dans le Dock ; depuis la bêta 9, elles sortaient de leur emplacement",
         "Correction : plus de fine ligne au-dessus des fichiers et dossiers du bureau",
         "Les icônes claires sont d’un argent doux au lieu d’un blanc éclatant. Sur ordinateur, les icônes du Dock sont un peu plus grandes, avec un peu plus d’espace entre elles",
-        "Icônes claires refaites à la manière d’un Mac : une tuile blanche nette avec un léger dégradé gris, et chaque dessin peint pour elle en couleurs pleines et profondes (Musique en cramoisi, Piles en bleu profond…) avec des ombres douces ; les blancs restent blancs. Passer des icônes claires aux sombres les repeint aussitôt"
+        "Icônes claires refaites à la manière d’un Mac : une tuile blanche nette avec un léger dégradé gris, et chaque dessin peint pour elle en couleurs pleines et profondes (Musique en cramoisi, Piles en bleu profond…) avec des ombres douces ; les blancs restent blancs. Passer des icônes claires aux sombres les repeint aussitôt",
+        "Icônes claires : les dessins gris (l’engrenage des Réglages, la Corbeille, les Échecs…) sont d’un gris acier plein bien contrasté ; les blancs restent blancs"
       ]
     }
   },
