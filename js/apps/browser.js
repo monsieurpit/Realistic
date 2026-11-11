@@ -25,6 +25,16 @@
     { t: 'three.js', u: 'https://threejs.org/examples/', i: '3' }
   ];
 
+  // sites that need your own account (signing in only works where you are signed in: your browser), or that were tested not to
+  // work through PatOS's server: these always open in their own window, never through the proxy (docs/PATOOGLE-PROXY.md)
+  const OWN_WINDOW = ['mail.google.com', 'docs.google.com', 'drive.google.com', 'classroom.google.com', 'meet.google.com', 'calendar.google.com', 'accounts.google.com', 'photos.google.com',
+    'keep.google.com', 'forms.google.com', 'sites.google.com', 'chat.google.com', 'contacts.google.com', 'myaccount.google.com', 'gemini.google.com', 'notebooklm.google.com',
+    'facebook.com', 'instagram.com', 'twitter.com', 'x.com', 'tiktok.com', 'chatgpt.com', 'openai.com', 'claude.ai', 'office.com', 'microsoft365.com', 'live.com', 'outlook.', 'login.microsoftonline.com', 'teams.microsoft.com',
+    'onedrive.', 'sharepoint.com', 'icloud.com', 'appleid.apple.com', 'web.whatsapp.com', 'messenger.com', 'snapchat.com', 'twitch.tv', 'spotify.com', 'roblox.com', 'canva.com', 'khanacademy.org', 'stackoverflow.com',
+    'duckduckgo.com', 'netflix.com', 'paypal.com', 'schoology.com', 'instructure.com', 'clever.com', 'zoom.us', 'slack.com', 'notion.so'];
+  const SIGN_IN = ['accounts.google.com', 'login.microsoftonline.com', 'login.live.com', 'appleid.apple.com', 'account.apple.com', 'idmsa.apple.com', 'login.yahoo.com', 'clever.com', 'sso.'];
+  const hostIn = (url, list) => { try { const h2 = new URL(url).hostname; return list.some((b) => h2 === b || h2.endsWith('.' + b) || (b.endsWith('.') && (h2.startsWith(b) || h2.includes('.' + b)))); } catch (e) { return false; } };
+  const ownWindow = (url) => hostIn(url, OWN_WINDOW);
   function isBlocked(url) { if (PatOS.sandboxed && !/^patos:/.test(url)) return true; try { const host = new URL(url).hostname; return BLOCKED.some((b) => host === b || host.endsWith('.' + b) || (b.endsWith('.') && host.includes(b))); } catch (e) { return false; } }
   function ytEmbed(url) {
     try {
@@ -124,20 +134,32 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       const bFwd = h('button', { class: 'tbtn br-fwd', 'aria-label': T('Forward'), title: T('Forward') + ' (Alt+→)', html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>' });
       const bReload = h('button', { class: 'tbtn', title: T('Reload'), html: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg>' });
       const bHome = h('button', { class: 'tbtn', title: T('Home'), html: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5V20h-5.5v-6h-5v6H4z"/></svg>' });
-      const omni = h('input', { class: 'br-omni', placeholder: T('Search Google or type a web address'), spellcheck: 'false', autocomplete: 'off' });
+      const omni = h('input', { class: 'br-omni', placeholder: T(PatOS.sandboxed || PatOS.store.get('proxyBrowse', true) === false ? 'Search Google or type a web address' : 'Search or type a web address'), spellcheck: 'false', autocomplete: 'off' });
       const lockIc = h('button', { class: 'br-lock pb-site', title: T('Site information'), html: PatOS.sym('lock') });
       const bKey = h('button', { class: 'pb-key', title: T('Saved passwords for this site'), html: ic('key') });
       const zoomTag = h('button', { class: 'pb-zoomtag', title: T('Reset zoom') });
       const bStar = h('button', { class: 'pb-star', title: T('Bookmark this page'), html: ic('star') });
       const sugg = h('div', { class: 'pb-sugg' });
-      const omniWrap = h('div', { class: 'br-omniwrap pb-omni' }, lockIc, omni, zoomTag, bKey, bStar, sugg);
-      const bPw = h('button', { class: 'tbtn', title: T('Passwords'), html: ic('key') });
+      // shown through PatOS: one click opens the page in its own window, for when a site doesn't work right inside Patoogle
+      const bOut = h('button', { class: 'pb-out', title: T('If this site doesn’t work right here, open it in its own window'), html: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 4h6v6M20 4l-8 8M18 14v4a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4"/></svg>' }, h('span', {}, T('Open outside')));
+      bOut.onclick = () => { if (!cur) return; const w = openAppWindow(cur.url); if (!w) PatOS.openExternal(cur.url); };
+      const bRead = h('button', { class: 'pb-read', title: T('Reader view'), 'aria-label': T('Reader view'), html: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h6a2 2 0 0 1 2 2V19a1.5 1.5 0 0 0-1.5-1.5H4zM20 5.5h-6a2 2 0 0 0-2 2V19a1.5 1.5 0 0 1 1.5-1.5H20z"/></svg>' });
+      bRead.onclick = () => { const r = cur && cur.pane.querySelector('.br-reader'); if (r) r.remove(); else readerView(); };
+      const omniWrap = h('div', { class: 'br-omniwrap pb-omni' }, lockIc, omni, zoomTag, bRead, bOut, bKey, bStar, sugg);
+      const bPw = h('button', { class: 'tbtn br-pwbtn', title: T('Passwords'), html: ic('key') });
       const bMenu = h('button', { class: 'tbtn', title: T('Menu'), html: ic('more') });
       const nav = h('div', { class: 'br-nav pb-nav' }, bBack, bFwd, bReload, bHome, omniWrap, bPw, bMenu);
       const bmBar = h('div', { class: 'br-bm' });
       const infobar = h('div', { class: 'pb-info' });
       const view = h('div', { class: 'br-view' });
-      win.body.append(nav, bmBar, infobar, view);
+      // find on page (Ctrl+F): pages shown through PatOS can be searched (the page's helper does it)
+      const fInput = h('input', { class: 'field pb-fin', placeholder: T('Find on page'), spellcheck: 'false', 'aria-label': T('Find on page') });
+      const fCount = h('span', { class: 'pb-fcount' });
+      const findBar = h('div', { class: 'pb-find', hidden: true }, fInput, fCount,
+        h('button', { class: 'tbtn', title: T('Previous'), 'aria-label': T('Previous'), onclick: () => findGo(true) }, '↑'),
+        h('button', { class: 'tbtn', title: T('Next'), 'aria-label': T('Next'), onclick: () => findGo(false) }, '↓'),
+        h('button', { class: 'tbtn', title: T('Close'), 'aria-label': T('Close'), onclick: () => closeFind() }, '×'));
+      win.body.append(nav, bmBar, infobar, findBar, view);
 
       function renderBM() {
         bmBar.innerHTML = '';
@@ -193,7 +215,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         const secure = cur.url.startsWith('https'), internal = cur.url.startsWith('patos');
         lockIc.innerHTML = internal ? '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>' : PatOS.sym(secure ? 'lock' : 'warn');
         lockIc.classList.toggle('warn', !secure && !internal);
-        lockIc.classList.toggle('via', !!cur.proxied); lockIc.title = cur.proxied ? T('Shown through PatOS: this site doesn’t allow being shown inside other apps, so PatOS brings it here. Logins may not work.') : '';
+        lockIc.classList.toggle('via', !!cur.proxied); bOut.style.display = cur.proxied ? '' : 'none'; bRead.style.display = cur.proxied ? '' : 'none'; lockIc.title = cur.proxied ? T('Shown through PatOS: this site doesn’t allow being shown inside other apps, so PatOS brings it here. Logins may not work.') : '';
         bBack.disabled = cur.idx <= 0; bFwd.disabled = cur.idx >= cur.hist.length - 1;
         const starred = bookmarks.some((b) => b.u === cur.url); bStar.classList.toggle('on', starred); bStar.style.display = internal ? 'none' : '';
         const site = siteOf(cur); const n = site && !PatOS.passwords.locked ? PatOS.passwords.forSite(site).length : 0;
@@ -246,7 +268,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           if (t.web) { webTabs--; t.web = false; }
           t.title = host(url); t.pane.appendChild(PatOS.offlineCard(() => { if (t.url === url) navigate(url, t, true); }, { body: 'This website needs the internet. The page will load by itself when you’re back online.' }));
         }
-        else if (isBlocked(url)) { t.title = host(url); if (useProxy()) viaProxy(url, t); else { t.pane.appendChild(blockedPage(url)); autoOpen(url, t); } }
+        else if (isBlocked(url)) { t.title = host(url); if (useProxy() && !ownWindow(url)) viaProxy(url, t); else { t.pane.appendChild(blockedPage(url)); autoOpen(url, t); } }
         else {
           const gq = isGoogleFrame(url) ? new URL(url).searchParams.get('q') : null;
           t.title = /bing\.com\/search/.test(url) ? new URL(url).searchParams.get('q') : gq ? gq + ' - Google' : isGoogleFrame(url) ? 'Google' : host(url);
@@ -270,7 +292,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
             t.loading = true; t.pane.appendChild(h('div', { class: 'pb-load' })); t.pane.appendChild(h('div', { class: 'pb-checking' }, h('span', {}, T('Opening') + ' ' + host(url) + '…')));
             canFrame(url).then((ok) => {
               if (t.url !== url || t.gen !== mine) return;
-              if (ok === false) { t.loading = false; t.pane.innerHTML = ''; if (useProxy()) viaProxy(url, t); else { t.pane.appendChild(blockedPage(url)); autoOpen(url, t); } if (t === cur) syncUI(); }
+              if (ok === false) { t.loading = false; t.pane.innerHTML = ''; if (useProxy() && !ownWindow(url)) viaProxy(url, t); else { t.pane.appendChild(blockedPage(url)); autoOpen(url, t); } if (t === cur) syncUI(); }
               else build();
             });
           }
@@ -376,11 +398,11 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         return SHORTCUTS.map((s) => ({ t: s.t, u: s.u, app: s.app, i: s.i }));
       }
       function newTabPage() {
-        const q = h('input', { class: 'nt-search', placeholder: T('Search Google or type a web address'), spellcheck: 'false', autocomplete: 'off' });
+        const q = h('input', { class: 'nt-search', placeholder: T(useProxy() ? 'Search or type a web address' : 'Search Google or type a web address'), spellcheck: 'false', autocomplete: 'off' });
         q.addEventListener('keydown', (e) => { if (e.key === 'Enter' && q.value.trim()) navigate(q.value); });
         q.addEventListener('input', () => { omni.value = q.value; showSugg(q); });
         const ENG = { google: 'Google', cse: 'Google', patoogle: 'Patoogle', bing: 'Bing' };
-        const engineRow = h('div', { class: 'nt-engine' }, h('span', {}, T('Searching with') + ' ' + ENG[engine()]), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup') }, T('Change')));
+        const engineRow = h('div', { class: 'nt-engine' }, h('span', {}, useProxy() ? T('Searches open right here, with results from Bing') : T('Searching with') + ' ' + ENG[engine()]), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup') }, T('Change')));
         const grid = h('div', { class: 'nt-grid' });
         const list = shortcuts();
         list.forEach((s, i) => {
@@ -427,7 +449,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
          and asks for a new tab when a link wants one. */
       const useProxy = () => !PatOS.sandboxed && PatOS.store.get('proxyBrowse', true) !== false;
       function viaProxy(url, t) {
-        const mine = ++t.gen; t.loading = true; t.proxied = true; t.asked = url;
+        const mine = ++t.gen; t.loading = true; t.proxied = true; t.asked = url; t.heard = false; t.shown = 0; t.proxyError = ''; if (!isBingSearch(url)) t.triedGoogle = false;
         const bar = h('div', { class: 'pb-load' }); t.pane.innerHTML = ''; t.pane.appendChild(bar);
         (PatOS.server ? PatOS.server() : Promise.resolve(null)).then((base) => {
           if (t.url !== url || t.gen !== mine) return;
@@ -435,7 +457,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           const frame = h('iframe', { src: base + '/api/proxy?u=' + encodeURIComponent(url), class: 'br-proxied', sandbox: 'allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-presentation',
             allow: 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write', referrerpolicy: 'no-referrer', allowfullscreen: true });
           frame._patosTab = t; t.frame = frame;
-          frame.addEventListener('load', () => { t.loading = false; bar.classList.add('done'); setTimeout(() => bar.remove(), 400); if (t === cur) syncUI(); });
+          frame.addEventListener('load', () => { t.loading = false; bar.classList.add('done'); setTimeout(() => bar.remove(), 400); if (t === cur) syncUI(); watchBlank(t, frame); });
           t.pane.append(frame); applyZoom(t);
           const q = isBingSearch(url) ? new URL(url).searchParams.get('q') : null;
           t.searchBar = h('div', { class: 'pg-banner g br-sbar' }, h('span', {}, T('Results from Bing, shown through PatOS.')), h('button', { class: 'pg-link', onclick: () => PatOS.openExternal('https://www.google.com/search?q=' + encodeURIComponent(new URL(t.url).searchParams.get('q') || q || '') + '&hl=' + glang()) }, T('Search on Google instead')));
@@ -443,14 +465,88 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           setTimeout(() => { if (t.loading && t.gen === mine) { t.loading = false; bar.remove(); if (t === cur) syncUI(); } }, 20000);
         });
       }
+      /* ---------- find on page, Reader ---------- */
+      let findAt = 0, findN = 0;
+      const findable = () => cur && cur.proxied && cur.frame && cur.frame.contentWindow;
+      function openFind() { findBar.hidden = false; fInput.focus(); fInput.select(); if (!findable()) { fCount.textContent = T('Find works on pages shown through PatOS'); } else if (fInput.value) findGo(false, true); }
+      function closeFind() { findBar.hidden = true; fCount.textContent = ''; findAt = 0; }
+      function findGo(back, from0) {
+        if (!findable()) { fCount.textContent = T('Find works on pages shown through PatOS'); return; }
+        if (from0) findAt = 0; else findAt = findN ? (findAt + (back ? -1 : 1) + findN) % findN : 0;
+        cur.frame.contentWindow.postMessage({ patosFind: fInput.value, back: !!back, from0: !!from0 }, '*');
+      }
+      fInput.addEventListener('input', () => findGo(false, true));
+      fInput.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); findGo(e.shiftKey); } else if (e.key === 'Escape') { e.preventDefault(); closeFind(); } });
+      function readerView() {
+        if (!findable()) { OF.toast(win, T('Reader works on pages shown through PatOS')); return; }
+        cur.wantReader = true; cur.frame.contentWindow.postMessage({ patosReader: 1 }, '*');
+      }
+      function showReader(t, a) {
+        const old = t.pane.querySelector('.br-reader'); if (old) old.remove();
+        if (!a || !a.blocks || !a.blocks.length) { OF.toast(win, T('This page has no article to read')); return; }
+        let size = PatOS.store.get('readerSize', 19);
+        const body = h('article', { class: 'rd-body' });
+        a.blocks.forEach((b) => {
+          if (b.t === 'img') { if (/^https?:/.test(b.s)) body.appendChild(h('img', { src: b.s, alt: b.a || '', loading: 'lazy', referrerpolicy: 'no-referrer' })); return; }
+          const tag = { h1: 'h2', h2: 'h2', h3: 'h3', li: 'li', blockquote: 'blockquote', pre: 'pre', figcaption: 'small' }[b.t] || 'p';
+          body.appendChild(h(tag, {}, b.x));
+        });
+        const apply = () => { body.style.fontSize = size + 'px'; PatOS.store.set('readerSize', size); };
+        const box = h('div', { class: 'br-reader' },
+          h('div', { class: 'rd-bar' }, h('span', { class: 'rd-site' }, a.site || host(t.url)), h('div', { style: { flex: 1 } }),
+            h('button', { class: 'tbtn', title: T('Smaller text'), onclick: () => { size = Math.max(14, size - 1); apply(); } }, 'A−'),
+            h('button', { class: 'tbtn', title: T('Bigger text'), onclick: () => { size = Math.min(28, size + 1); apply(); } }, 'A+'),
+            h('button', { class: 'btn', onclick: () => box.remove() }, T('Close Reader'))),
+          h('div', { class: 'rd-page' }, h('h1', {}, a.title || t.title), a.by ? h('div', { class: 'rd-by' }, a.by) : null, body));
+        apply(); t.pane.appendChild(box);
+      }
+
+      /* a page that stays white: a search tries Google's own page instead (loaded straight in this browser, not through the
+         server); anything else says so, with Open in its own window and Try again. Never a silent white page */
+      function watchBlank(t, frame) {
+        clearTimeout(t.blankT);
+        t.blankT = setTimeout(() => {
+          if (t.frame !== frame || !t.proxied) return;
+          if (t.heard && t.shown >= 30) return;
+          blankPage(t);
+        }, 5000);
+      }
+      function blankPage(t) {
+        if (isBingSearch(t.url) && !t.triedGoogle) {
+          const q = new URL(t.url).searchParams.get('q') || '';
+          t.triedGoogle = true; navigate(googleURL(q), t, true); return;
+        }
+        if (t.pane.querySelector('.br-blank')) return;
+        const url = t.url;
+        const card = h('div', { class: 'br-blank' },
+          h('div', { class: 'bb-ic', html: '<svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="13" rx="2.5"/><path d="M9 21h6M12 17.5V21M9.5 9.5l5 4M14.5 9.5l-5 4"/></svg>' }),
+          h('h2', {}, t.proxyError || T('This page didn’t show up here')),
+          h('p', {}, T('Some websites only work in a normal browser tab (for example sites that need a login, or big web apps). It opens there in one click.')),
+          h('div', { class: 'bb-btns' },
+            h('button', { class: 'btn primary', onclick: () => { const w = openAppWindow(url); if (!w) PatOS.openExternal(url); } }, T('Open in its own window')),
+            h('button', { class: 'btn', onclick: () => navigate(url, t, true) }, T('Try again'))));
+        t.pane.appendChild(card);
+      }
       // what a proxied page tells Patoogle (only frames Patoogle made are listened to)
       const onProxyMsg = (e) => {
         const d = e.data; if (!d || typeof d !== 'object' || !d.patosProxy) return;
         const t = tabs.find((x) => x.frame && x.proxied && x.frame.contentWindow === e.source); if (!t) return;
+        if (d.patosProxy === 'key' && typeof d.key === 'string' && d.key.length < 12) { win.body.dispatchEvent(new KeyboardEvent('keydown', { key: d.key, altKey: !!d.alt, ctrlKey: !!d.ctrl, shiftKey: !!d.shift, bubbles: true })); return; }
+        if (d.patosProxy === 'found') { findN = +d.n || 0; if (t === cur && !findBar.hidden) fCount.textContent = fInput.value ? (findN ? (Math.min(findAt, findN - 1) + 1) + ' / ' + findN : T('No matches')) : ''; fInput.classList.toggle('none', !!fInput.value && !findN); return; }
+        if (d.patosProxy === 'article') { if (t.wantReader) { t.wantReader = false; showReader(t, d.a); } return; }
+        if (d.patosProxy === 'error') { t.heard = true; t.shown = 0; t.proxyError = typeof d.title === 'string' ? d.title.slice(0, 120) : ''; if (isBingSearch(t.url)) blankPage(t); return; }
+        if (d.patosProxy === 'go') { t.heard = false; t.shown = 0; t.proxyError = ''; const c = t.pane.querySelector('.br-blank'); if (c) c.remove(); }
+        if (d.patosProxy === 'page') { t.heard = true; if (typeof d.shown === 'number') t.shown = Math.max(t.shown || 0, d.shown); if (t.shown >= 30) { const c = t.pane.querySelector('.br-blank'); if (c) c.remove(); } }
         const url = typeof d.url === 'string' && /^https?:\/\//i.test(d.url) && !/\/api\/proxy\?u=/.test(d.url) ? d.url.slice(0, 4000) : null;
         // (a page can ask for a new tab at most once a second and 20 times in all, so a hostile page can't flood Patoogle)
         if (d.patosProxy === 'open' && url) { const now = Date.now(); if (now - (t.lastOpen || 0) < 1000 || (t.opens = (t.opens || 0) + 1) > 20) return; t.lastOpen = now; newTab(url); return; }
         if ((d.patosProxy === 'page' || d.patosProxy === 'go') && url) {
+          // a site that sends you to sign in (Google, Microsoft, Apple…) needs your own account: what you asked for opens in its
+          // own window, where you are signed in, instead of a sign-in page that can't work here
+          if (hostIn(url, SIGN_IN) || ownWindow(url)) {
+            const asked = t.url; t.proxied = false; t.frame = null; clearTimeout(t.blankT); t.pane.innerHTML = ''; t.pane.appendChild(blockedPage(asked, true)); t.opened = null; autoOpen(asked, t);
+            if (t === cur) syncUI(); return;
+          }
           if (url !== t.url) {
             // the page moved on by itself: a new step in this tab's history (Back takes you to the page before). A page that
             // arrives somewhere else than asked (a redirect) takes the place of what was asked, as browsers do, so Back
@@ -497,12 +593,12 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         t.opened = url; const w = openAppWindow(url);
         if (w) { const note = t.pane.querySelector('.bb-note'); if (note) note.textContent = T('It opened in its own window. If you don’t see it, check that your browser allows pop-ups from this site.'); }
       }
-      function blockedPage(url) {
-        const hn = host(url);
+      function blockedPage(url, signIn) {
+        const hn = host(url); const account = signIn || ownWindow(url);
         return h('div', { class: 'br-blocked' },
           h('div', { class: 'bb-ic', html: '<svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="13" rx="2.5"/><path d="M8 20.5h8M12 17.5v3M9 9l6 4M15 9l-6 4"/></svg>' }),
-          h('h2', {}, hn + ' ' + T('doesn’t allow being shown inside PatOS')),
-          h('p', {}, PatOS.sandboxed ? T('PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead.') : T('This website tells browsers not to show it inside other pages. That is the website’s own rule, so PatOS opens it in its own window instead.')),
+          h('h2', {}, account && !PatOS.sandboxed ? hn + ' ' + T('opens in its own window') : hn + ' ' + T('doesn’t allow being shown inside PatOS')),
+          h('p', {}, account && !PatOS.sandboxed ? T('This site needs your account (or works only in a normal browser tab). It opens in its own window, where you are already signed in.') : PatOS.sandboxed ? T('PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead.') : T('This website tells browsers not to show it inside other pages. That is the website’s own rule, so PatOS opens it in its own window instead.')),
           h('p', { class: 'bb-note' }, PatOS.sandboxed ? '' : T('Opening in its own window…')),
           h('div', { class: 'br-alts' },
             h('button', { class: 'btn primary', onclick: () => { const w = openAppWindow(url); if (!w) PatOS.openExternal(url); } }, T('Open') + ' ' + hn + ' ' + T('in its own window')),
@@ -583,6 +679,13 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           { label: T('New tab'), shortcut: 'Alt+T', action: () => newTab() },
           { label: T('Reopen closed tab'), shortcut: 'Alt+Shift+T', disabled: !closed.length, action: reopen },
           { divider: true },
+          { label: T('Duplicate tab'), disabled: !cur || cur.url === 'patos://newtab', action: () => newTab(cur.url) },
+          { label: T('Copy link'), disabled: !cur || cur.url.startsWith('patos'), action: () => copy(cur.url, T('Link')) },
+          { divider: true },
+          { label: T('Find on page…'), shortcut: 'Ctrl+F', action: openFind },
+          { label: T('Reader view'), disabled: !findable(), action: readerView },
+          { label: T('Open in its own window'), disabled: !cur || !/^https?:/.test(cur.url), action: () => { const w = openAppWindow(cur.url); if (!w) PatOS.openExternal(cur.url); } },
+          { divider: true },
           { label: T('History'), shortcut: 'Alt+Y', action: () => newTab('patos://history') },
           { label: T('Passwords'), action: () => PatOS.launch('passwords') },
           { label: T('Bookmark this page'), disabled: !cur || cur.url.startsWith('patos'), action: () => bStar.click() },
@@ -639,6 +742,8 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         else if (mod && k === '-') { e.preventDefault(); zoom(-0.1); }
         else if (mod && k === '0') { e.preventDefault(); zoom(0); }
         else if (e.key === 'F5') { e.preventDefault(); bReload.click(); }
+        else if (mod && k === 'f') { e.preventDefault(); e.stopPropagation(); openFind(); }
+        else if (e.key === 'Escape' && !findBar.hidden) { closeFind(); }
       });
       renderBM();
       // load Google's page in the background once, so the first search opens faster (its files are then already saved)

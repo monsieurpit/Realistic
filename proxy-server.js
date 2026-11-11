@@ -97,11 +97,15 @@ function helper(proxy, base) {
   'function web(u){return /^https?:/i.test(u)&&u.indexOf(P)!==0}' +
   'function px(u){var o="";try{o=new URL(cur).origin}catch(e){}return P+"?u="+encodeURIComponent(u)+(o?"&o="+encodeURIComponent(o):"")}' +
   'function tell(k,x){try{parent.postMessage(Object.assign({patosProxy:k},x||{}),"*")}catch(e){}}' +
-  'function page(){tell("page",{url:cur,title:document.title||""})}' +
+  // how much the page really shows (words, pictures, video, canvas): Patoogle uses it to notice a page that stays white
+  'function shown(){var b=document.body;if(!b)return 0;var n=(b.innerText||"").trim().length;try{n+=40*b.querySelectorAll("img,video,canvas,svg,iframe").length}catch(e){}return n}' +
+  'function page(){tell("page",{url:cur,title:document.title||"",shown:shown()})}' +
   // storage and cookies: a sandboxed page has none, and many sites stop working when reading them throws; give them memory ones
   'function mem(){var d={};return{getItem:function(k){return Object.prototype.hasOwnProperty.call(d,k)?d[k]:null},setItem:function(k,v){d[k]=String(v)},removeItem:function(k){delete d[k]},clear:function(){d={}},key:function(i){return Object.keys(d)[i]||null},get length(){return Object.keys(d).length}}}' +
   '["localStorage","sessionStorage"].forEach(function(k){try{window[k].length}catch(e){try{Object.defineProperty(window,k,{value:mem(),configurable:true})}catch(e2){}}});' +
   'try{document.cookie}catch(e){var jar={};try{Object.defineProperty(document,"cookie",{configurable:true,get:function(){return Object.keys(jar).map(function(k){return k+"="+jar[k]}).join("; ")},set:function(v){var p=String(v).split(";")[0],i=p.indexOf("=");if(i>0)jar[p.slice(0,i).trim()]=p.slice(i+1).trim()}})}catch(e2){}}' +
+  // a sandbox has no service worker either, and reading it throws: many sites (and their error reporting) stop there
+  'try{navigator.serviceWorker}catch(e){try{Object.defineProperty(Navigator.prototype,"serviceWorker",{configurable:true,get:function(){return undefined}})}catch(e2){}}' +
   // the page's own requests go through the proxy too (the site would refuse them from a sandbox)
   'var F=window.fetch;if(F)window.fetch=function(i,o){try{if(typeof i==="string"||i instanceof URL){var a=abs(String(i));if(a&&web(a))i=px(a)}else if(i&&i.url){var b=abs(i.url);if(b&&web(b))i=new Request(px(b),i)}}catch(e){}return F.call(this,i,o)};' +
   'var O=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(m,u){try{var a=abs(String(u));if(a&&web(a))arguments[1]=px(a)}catch(e){}return O.apply(this,arguments)};' +
@@ -120,7 +124,17 @@ function helper(proxy, base) {
   'document.addEventListener("submit",function(e){if(e.defaultPrevented)return;if(form(e.target))e.preventDefault()},false);' +
   'var FS=HTMLFormElement.prototype.submit;HTMLFormElement.prototype.submit=function(){if(!form(this))FS.call(this)};' +
   'var W=window.open;window.open=function(u){var a=u?abs(String(u)):null;if(a&&web(a)){tell("open",{url:a});return null}return W.apply(window,arguments)};' +
-  'document.addEventListener("DOMContentLoaded",page);addEventListener("load",function(){page();setTimeout(page,1500)});' +
+  // what Patoogle asks the page: find words in it (and how many there are), or its main text for Reader
+  'function count(q){var t=(document.body&&document.body.innerText||"").toLowerCase(),n=0,i=0;q=q.toLowerCase();if(!q)return 0;while((i=t.indexOf(q,i))>=0){n++;i+=q.length}return n}' +
+  'function article(){var best=null,bs=0;document.querySelectorAll("article,main,[role=main],section,div").forEach(function(el){var ps=el.querySelectorAll(":scope > p, :scope > h2, :scope > h3, :scope > ul, :scope > blockquote, :scope > figure");var sc=0;ps.forEach(function(p){sc+=(p.innerText||"").length});if(el.tagName==="ARTICLE")sc*=1.3;if(sc>bs){bs=sc;best=el}});if(!best||bs<400)return null;' +
+  'var out=[];best.querySelectorAll("h1,h2,h3,p,li,blockquote,img,figcaption,pre").forEach(function(el){var tg=el.tagName.toLowerCase();if(tg==="img"){if(el.naturalWidth>120&&el.currentSrc)out.push({t:"img",s:el.currentSrc,a:el.alt||""});return}if(el.closest("nav,aside,footer,form,[aria-hidden=true]"))return;var tx=(el.innerText||"").trim();if(tx.length>1)out.push({t:tg,x:tx.slice(0,6000)})});' +
+  'var by=document.querySelector("[rel=author],.author,.byline,[itemprop=author]");return{title:(document.querySelector("h1")||{}).innerText||document.title,by:by?by.innerText.trim().slice(0,120):"",site:location.hostname===""?"":new URL(cur).hostname,blocks:out.slice(0,600)}}' +
+  'addEventListener("message",function(e){if(e.source!==parent)return;var d=e.data||{};' +
+  'if(d.patosFind!==undefined){var q=String(d.patosFind);var sel=getSelection();if(d.from0&&sel)sel.removeAllRanges();var ok=q&&window.find?window.find(q,false,!!d.back,true,false,false,false):false;tell("found",{n:count(q),ok:!!ok})}' +
+  'if(d.patosReader){tell("article",{a:article()})}});' +
+  // Patoogle's own shortcuts (Back, Forward, new tab, address bar, zoom, reload) keep working while you are in the page
+  'document.addEventListener("keydown",function(e){var k=e.key,m=e.ctrlKey||e.metaKey;if((e.altKey&&/^(ArrowLeft|ArrowRight|t|T|d|D|y|Y)$/.test(k))||(m&&/^[=+\\-0fF]$/.test(k))||k==="F5"){e.preventDefault();tell("key",{key:k,alt:e.altKey,ctrl:m,shift:e.shiftKey})}},true);' +
+  'document.addEventListener("DOMContentLoaded",page);addEventListener("load",function(){page();setTimeout(page,1500);setTimeout(page,4000)});' +
   // (a title that changes later, as single-page sites do, is told too)
   'var lastT;function watchTitle(){var t=document.querySelector("title");if(!t||!window.MutationObserver)return;new MutationObserver(function(){if(document.title!==lastT){lastT=document.title;page()}}).observe(t,{childList:true,characterData:true,subtree:true})}' +
   'document.addEventListener("DOMContentLoaded",watchTitle);' +

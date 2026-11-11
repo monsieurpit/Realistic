@@ -46,6 +46,10 @@ function route(req) {
     case '/search': return html('Results for ' + (u.searchParams.get('q') || ''), '<p id="res">Results: ' + (u.searchParams.get('q') || '') + '</p>');
     case '/api/data': return { type: 'application/json', body: '{"ok":"fetched"}' };
     case '/api/data2': return { type: 'text/plain', body: 'xhr-ok' };
+    case '/article': return html('Lisbon guide', '<nav><a href="/">Menu link</a></nav><article><h1>A weekend in Lisbon</h1><p class="byline">By Sam Writer</p>' + Array.from({ length: 6 }, (_, i) => '<p>Paragraph ' + (i + 1) + ': Lisbon is a city of hills, trams and tiles. The light on the river in the evening is golden, and the pastries are famous. Lisbon has seven hills.</p>').join('') + '</article><footer>Footer stuff</footer>');
+    case '/blank': return html('Blank', '');
+    case '/late': return html('Late page', '<div id="later"></div><script>setTimeout(function () { document.getElementById("later").textContent = "This text arrives two seconds after the page, as single-page sites do."; }, 2000);</script>');
+    case '/sw': return html('Service worker', '<p id="sw"></p><script>var r; try { r = typeof navigator.serviceWorker; } catch (e) { r = "threw"; } document.getElementById("sw").textContent = r;</script>');
     case '/framable': return html('Framable page', '<p>shown directly</p>', false);
     case '/ssrf-meta': return { status: 302, location: 'http://169.254.169.254/latest/meta-data/' };
     case '/ssrf-local': return { status: 302, location: 'http://127.0.0.1:' + closedPort + '/' };
@@ -245,5 +249,90 @@ test('a search typed in Patoogle stays in Patoogle (Bing’s results through Pat
   assert.equal(r.bar, true);
   await page.click('.br-sbar .pg-link');
   assert.match((await page.evaluate(() => window.__ext))[0] || '', /^https:\/\/www\.google\.com\/search\?q=lisbon%20trip%20ideas/);
+  await page.evaluate(() => PatOS.wm.closeAll());
+});
+
+test('a page that stays white says so, with Open in its own window; a page that draws itself late is left alone', { skip: skipNoBrowser }, async () => {
+  await page.evaluate(() => { window.__opened = []; window.open = (u) => { window.__opened.push(u); return { focus() {}, closed: false }; }; });
+  const go = (u) => page.evaluate((x) => { const w = PatOS.wm.windows.find((y) => y.app.id === 'browser'); const o = w.el.querySelector('.br-omni'); o.value = x; o.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); }, u);
+  await page.evaluate((u) => PatOS.launch('browser', { url: u }), S() + '/blank');
+  const card = await until(() => page.evaluate(() => { const c = document.querySelector('.br-blank'); return c ? c.textContent : null; }), 9000);
+  assert.match(card || '', /didn’t show up here/); assert.match(card, /Open in its own window/);
+  await page.click('.br-blank .btn.primary');
+  assert.deepEqual(await page.evaluate(() => window.__opened), [S() + '/blank']);
+  await go(S() + '/late');
+  await until(async () => (await state()).title === 'Late page');
+  await wait(6500);
+  assert.equal(await page.evaluate(() => !!document.querySelector('.br-blank')), false, 'no card on a page that drew itself after two seconds');
+  await go(S() + '/sw');
+  await until(async () => (await state()).title === 'Service worker');
+  assert.equal(await until(async () => { const t = await frame().textContent('#sw'); return t || null; }), 'undefined', 'reading navigator.serviceWorker no longer throws');
+  await page.evaluate(() => PatOS.wm.closeAll());
+});
+
+test('a search whose results stay white switches to Google’s own page', { skip: skipNoBrowser }, async () => {
+  // Bing answering with an empty page (as it might from some servers)
+  await ctx.route(/\/api\/proxy\?u=https%3A%2F%2Fwww\.bing\.com/, (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<!doctype html><title></title><body></body>' }));
+  await ctx.route(/^https:\/\/www\.google\.com\//, (r) => r.fulfill({ status: 200, contentType: 'text/html', body: '<title>Google</title><p>results</p>' }));
+  await page.evaluate(() => { PatOS.openExternal = () => {}; PatOS.launch('browser'); }); await wait(600);
+  await page.evaluate(() => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); const o = w.el.querySelector('.br-omni'); o.value = 'hello'; o.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); });
+  const g = await until(() => page.evaluate(() => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); const f = w && w.el.querySelector('.br-pane iframe:not(.br-proxied)'); return f && /google\.com\/search\?igu=1/.test(f.src) ? f.src : null; }), 12000);
+  assert.match(g || '', /q=hello/, 'Google’s page for the same search');
+  assert.equal(await page.evaluate(() => !!document.querySelector('.br-blank')), false, 'no white page and no error card');
+  await ctx.unroute(/\/api\/proxy\?u=https%3A%2F%2Fwww\.bing\.com/); await ctx.unroute(/^https:\/\/www\.google\.com\//);
+  await page.evaluate(() => PatOS.wm.closeAll());
+});
+
+test('find on page, Reader, shortcuts from inside the page, Open outside, and Duplicate tab', { skip: skipNoBrowser }, async () => {
+  await page.evaluate(() => { window.__opened = []; window.open = (u) => { window.__opened.push(u); return { focus() {}, closed: false }; }; });
+  await page.evaluate((u) => PatOS.launch('browser', { url: u }), S() + '/article');
+  await until(async () => (await state()).title === 'Lisbon guide');
+  // Open outside is shown on a page through PatOS
+  assert.equal(await page.evaluate(() => getComputedStyle(PatOS.wm.windows.find((x) => x.app.id === 'browser').el.querySelector('.pb-out')).display !== 'none'), true);
+  await page.evaluate(() => PatOS.wm.windows.find((x) => x.app.id === 'browser').el.querySelector('.pb-out').click()); assert.deepEqual(await page.evaluate(() => window.__opened), [S() + '/article']);
+  // find: Ctrl+F pressed INSIDE the page reaches Patoogle
+  await frame().click('h1'); await frame().press('h1', 'Control+f');
+  assert.ok(await until(() => page.evaluate(() => !document.querySelector('.pb-find').hidden)), 'Ctrl+F from inside the page opens Find');
+  await page.fill('.pb-fin', 'lisbon');
+  assert.equal(await until(() => page.evaluate(() => { const t = document.querySelector('.pb-fcount').textContent; return /\//.test(t) ? t : null; })), '1 / 13');
+  await page.press('.pb-fin', 'Enter');
+  assert.equal(await until(() => page.evaluate(() => { const t = document.querySelector('.pb-fcount').textContent; return t === '2 / 13' ? t : null; })), '2 / 13');
+  assert.match(await frame().evaluate(() => String(getSelection())), /lisbon/i, 'the match is selected in the page');
+  await page.fill('.pb-fin', 'zeppelin');
+  assert.equal(await until(() => page.evaluate(() => { const t = document.querySelector('.pb-fcount').textContent; return t === 'No matches' ? t : null; })), 'No matches');
+  await page.press('.pb-fin', 'Escape'); assert.equal(await page.evaluate(() => document.querySelector('.pb-find').hidden), true);
+  // Reader: the article alone
+  await page.click('.pb-read');
+  const rd = await until(() => page.evaluate(() => { const r = document.querySelector('.br-reader'); return r ? { title: r.querySelector('h1').textContent, by: (r.querySelector('.rd-by') || {}).textContent, paras: r.querySelectorAll('.rd-body p').length, text: r.textContent } : null; }));
+  assert.equal(rd.title, 'A weekend in Lisbon'); assert.equal(rd.by, 'By Sam Writer'); assert.ok(rd.paras >= 6, 'paragraphs: ' + rd.paras);
+  assert.doesNotMatch(rd.text, /Menu link|Footer stuff/, 'no menus or footers');
+  await page.click('.pb-read'); assert.equal(await page.evaluate(() => !!document.querySelector('.br-reader')), false, 'the same button closes it');
+  // Alt+← from inside the page goes back in Patoogle
+  await clickIn('nav a');
+  await until(async () => (await state()).title.startsWith('Fixture Home'));
+  await frame().press('body', 'Alt+ArrowLeft');
+  assert.ok(await until(async () => (await state()).title === 'Lisbon guide'), 'Alt+← from inside the page: ' + JSON.stringify(await state()));
+  // Duplicate tab
+  const n0 = (await state()).tabs;
+  await page.evaluate(() => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); w.el.querySelector('.tbtn[title="Menu"]').click(); });
+  await page.click('.menu-item:has-text("Duplicate tab")');
+  assert.equal(await until(async () => { const s2 = await state(); return s2.tabs === n0 + 1 ? s2.tabs : null; }), n0 + 1);
+  await page.evaluate(() => PatOS.wm.closeAll());
+});
+
+test('sites that need your account (Classroom…) open in their own window, never through PatOS; a sign-in redirect does too', { skip: skipNoBrowser }, async () => {
+  await page.evaluate(() => { window.__opened = []; window.open = (u) => { window.__opened.push(u); return { focus() {}, closed: false }; }; });
+  await page.evaluate(() => PatOS.launch('browser', { url: 'https://classroom.google.com/' }));
+  const r = await until(() => page.evaluate(() => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); const b = w && w.el.querySelector('.br-blocked'); return b ? { text: b.textContent, proxied: !!w.el.querySelector('iframe.br-proxied'), opened: window.__opened.slice() } : null; }));
+  assert.ok(r, 'the Classroom page is shown');
+  assert.match(r.text, /classroom\.google\.com opens in its own window/); assert.match(r.text, /already signed in/);
+  assert.equal(r.proxied, false, 'never through the proxy'); assert.deepEqual(r.opened, ['https://classroom.google.com/']);
+  // a proxied site that sends you to a Google sign-in page
+  await page.evaluate((u) => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); const o = w.el.querySelector('.br-omni'); o.value = u; o.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); }, S() + '/two');
+  await until(async () => (await state()).title === 'Page Two');
+  await frame().evaluate(() => parent.postMessage({ patosProxy: 'page', url: 'https://accounts.google.com/v3/signin/identifier?continue=x', title: 'Sign in' }, '*'));
+  const s2 = await until(() => page.evaluate(() => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); const b = w.el.querySelector('.br-blocked'); return b ? { text: b.textContent, omni: w.el.querySelector('.br-omni').value } : null; }));
+  assert.ok(s2, 'the sign-in page is not shown inside');
+  assert.equal(s2.omni, S() + '/two', 'the address stays what you asked for'); assert.match(s2.text, /opens in its own window/);
   await page.evaluate(() => PatOS.wm.closeAll());
 });

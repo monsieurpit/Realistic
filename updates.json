@@ -1,7 +1,7 @@
 [
   {
     "version": "3.1.0",
-    "beta": 6,
+    "beta": 7,
     "date": "2026-11-10",
     "title": {
       "en": "PatOS 3.1: Handoff",
@@ -23,7 +23,9 @@
         "Pat works with your apps: search your notes (“search notes for pasta”), find documents by what is inside them (“find documents about Lisbon”), start a document (“create a document called Trip plan”), tidy a folder (“tidy my downloads”: it says what it will move and asks first, nothing is deleted, and “undo” puts everything back), pick the key sentences of a text you paste (“summarize: …”), give you your day (“my day”) and run a shortcut",
         "Pat is more honest and helpful: it tells you when an app didn’t open instead of saying it did, shows an example close to what you typed when it doesn’t understand, suggests what fits right now, and answers out loud when you asked with the microphone. It is still a command helper that runs on your device, not an AI",
         "Patoogle shows websites that refuse to be shown inside other apps, right in the tab (GitHub, Amazon, Apple, Discord, LinkedIn, Netflix’s home page…): PatOS’s server brings the page, and links, forms, Back and Forward keep working. Searches stay in Patoogle too (results from Bing), with “Search on Google instead” one click away",
-        "How it is kept safe: those pages run walled off from PatOS (they can’t see your files, passwords or settings), only public websites can be reached, and the server has a daily limit. Logins and big web apps (Twitch, X, Spotify) still open in their own window. Details: docs/PATOOGLE-PROXY.md"
+        "How it is kept safe: those pages run walled off from PatOS (they can’t see your files, passwords or settings), only public websites can be reached, and the server has a daily limit. Logins and big web apps (Twitch, X, Spotify) still open in their own window. Details: docs/PATOOGLE-PROXY.md",
+        "Patoogle: Classroom, Gmail, Google Docs and other sites you sign in to open in their own window again, signed in as you (beta 6 sent them through PatOS’s server, where Google refused the sign-in). Classroom is back in the shortcuts",
+        "Patoogle: a page that stays white now says so and opens in its own window in one click; a search that comes back white switches to Google; an “Open outside” button and Reader view in the address bar, Find on page (Ctrl+F), Duplicate tab and Copy link; shortcuts work while you are inside a page; the address bar fits on iPhone"
       ],
       "fr": [
         "Nouveau : Continuité. Commencez sur un appareil et continuez sur l’autre : quand vous venez d’utiliser une note, un document, un site, un dossier ou une app sur votre iPhone, votre Chromebook affiche « Continuer depuis iPhone » au-dessus du Dock (et inversement, au-dessus du dock du téléphone). Un clic l’ouvre sur place. Ça marche aussi depuis Spotlight (« Continuer depuis… »)",
@@ -40,7 +42,9 @@
         "Pat travaille avec vos apps : chercher dans vos notes (« cherche dans mes notes recette »), trouver des documents par leur contenu (« trouve des documents sur Lisbonne »), commencer un document (« crée un document appelé Voyage »), ranger un dossier (« range mes téléchargements » : il dit ce qu’il va déplacer et demande d’abord, rien n’est supprimé, et « annule » remet tout), choisir les phrases clés d’un texte collé (« résume : … »), vous donner votre journée (« ma journée ») et lancer un raccourci",
         "Pat est plus honnête et plus utile : il vous dit quand une app ne s’est pas ouverte au lieu de prétendre le contraire, montre un exemple proche de ce que vous avez écrit quand il ne comprend pas, suggère ce qui convient sur le moment, et répond à voix haute quand vous avez demandé au micro. C’est toujours un assistant à commandes qui tourne sur votre appareil, pas une IA",
         "Patoogle affiche les sites qui refusent d’être affichés dans d’autres apps, directement dans l’onglet (GitHub, Amazon, Apple, Discord, LinkedIn, l’accueil de Netflix…) : le serveur de PatOS apporte la page, et les liens, les formulaires, Précédent et Suivant fonctionnent. Les recherches restent aussi dans Patoogle (résultats de Bing), avec « Chercher plutôt sur Google » à un clic",
-        "Comment c’est sécurisé : ces pages sont isolées de PatOS (elles ne voient ni vos fichiers, ni vos mots de passe, ni vos réglages), seuls les sites publics sont accessibles, et le serveur a une limite par jour. Les connexions et les grosses apps Web (Twitch, X, Spotify) s’ouvrent toujours dans leur propre fenêtre"
+        "Comment c’est sécurisé : ces pages sont isolées de PatOS (elles ne voient ni vos fichiers, ni vos mots de passe, ni vos réglages), seuls les sites publics sont accessibles, et le serveur a une limite par jour. Les connexions et les grosses apps Web (Twitch, X, Spotify) s’ouvrent toujours dans leur propre fenêtre",
+        "Patoogle : Classroom, Gmail, Google Docs et les autres sites où tu te connectes s’ouvrent de nouveau dans leur propre fenêtre, connectés à ton compte (la bêta 6 les faisait passer par le serveur de PatOS, où Google refusait la connexion). Classroom est de retour dans les raccourcis",
+        "Patoogle : une page qui reste blanche le dit et s’ouvre dans sa propre fenêtre en un clic ; une recherche qui revient blanche passe à Google ; un bouton « Ouvrir à part » et le mode lecture dans la barre d’adresse, Rechercher dans la page (Ctrl+F), Dupliquer l’onglet et Copier le lien ; les raccourcis fonctionnent depuis l’intérieur d’une page ; la barre d’adresse tient sur iPhone"
       ]
     }
   },
