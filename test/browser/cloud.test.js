@@ -260,3 +260,31 @@ test('memory: past the hard limit Chrome restarts before the server runs out, an
     const st = await (await fetch(small.base + '/api/cloud/status')).json(); assert.ok(st.memMB > 0, 'it reports memory: ' + st.memMB);
   } finally { small.stop(); }
 });
+
+test('on a phone, tapping a text box of the page opens the keyboard, and typing fills it', { skip: skipNoBrowser }, async () => {
+  const ctx = await b.newContext(Object.assign({}, playwright().devices['iPhone 14'])); const ph = await ctx.newPage();
+  await boot(ph, srv.base, { fresh: true });
+  await ph.evaluate((k) => { PatOS.notify = () => {}; PatOS.store.set('cloudKey', k); }, KEY);
+  await ph.evaluate((u) => PatOS.launch('browser', { url: u }), S() + '/');
+  assert.ok(await until(() => ph.evaluate(() => { const cv = [...document.querySelectorAll('.br-cloudcv')].find((c) => c.offsetWidth); return cv && +cv.dataset.frames > 0; }), 15000));
+  await wait(800);
+  const at = (x, y) => ph.evaluate(([x, y]) => { const cv = [...document.querySelectorAll('.br-cloudcv')].find((c) => c.offsetWidth); const r = cv.getBoundingClientRect(); return { x: r.left + x * r.width / cv.width, y: r.top + y * r.height / cv.height }; }, [x, y]);
+  const p = await at(100, 340); await ph.touchscreen.tap(p.x, p.y);
+  assert.ok(await until(() => ph.evaluate(() => document.activeElement && document.activeElement.classList.contains('br-cloudkb'))), 'the keyboard opened on the tap');
+  await ph.keyboard.type('pat@example.com');
+  const read = () => ph.evaluate(async (k) => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); const id = w._cloudId(); return (await (await fetch('/api/cloud/cmd', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-cloud-key': k }, body: JSON.stringify({ id, cmd: 'text' }) })).json()).text || ''; }, KEY);
+  const v = await until(async () => /typed:pat@example\.com/.test(await read()));
+  assert.ok(v, 'the page got it: ' + (await read()).slice(0, 200));
+  await ctx.close();
+});
+
+test('typing keeps every character: dots, dashes and symbols (they were taken for Delete, Insert and the arrows)', { skip: skipNoBrowser }, async () => {
+  await page.evaluate(() => PatOS.wm.closeAll()); await wait(300);
+  await page.evaluate((u) => PatOS.launch('browser', { url: u }), S() + '/'); assert.ok(await until(async () => { const s2 = await state(); return s2 && s2.painted && s2.title.startsWith('Cloud home'); }, 15000));
+  await clickPage(100, 340); await wait(300);
+  const text = 'a.b-c_d@e.com!"#$%&\'()*+,/:;<=>?[]{}~';
+  await page.keyboard.type(text, { delay: 20 });
+  const got = await until(() => page.evaluate(async ([k, want]) => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); const id = w._cloudId(); const j = await (await fetch('/api/cloud/cmd', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-cloud-key': k }, body: JSON.stringify({ id, cmd: 'text' }) })).json(); return (j.text || '').includes('typed:' + want) ? want : null; }, [KEY, text]));
+  assert.equal(got, text);
+  await page.evaluate(() => PatOS.wm.closeAll());
+});

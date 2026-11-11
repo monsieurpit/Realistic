@@ -231,7 +231,7 @@ function upgrade(req, sock) {
     let m; try { m = JSON.parse(msg); } catch (e) { return; }
     if (m && Array.isArray(m.events)) { lastTouch = Date.now(); runInput(tab, m.events).catch(() => {}); }
   }, () => { clearInterval(beat); tab.clients.delete(client); cast(tab).catch(() => {}); });
-  cast(tab).then(() => nav(tab)).catch(() => {});
+  cast(tab).then(() => { nav(tab); fieldsSoon(tab); }).catch(() => {});
 }
 async function attach(c, targetId, info) {
   const { sessionId } = await send('Target.attachToTarget', { targetId, flatten: true });
@@ -304,7 +304,7 @@ function onEvent(c, m) {
   if (m.method === 'Target.targetDestroyed') { const t = c.tabs.get(p.targetId); if (t) { t.casting = false; clearTimeout(t.loop); emit(t, t.parked ? 'parked' : 'closed', {}); c.tabs.delete(p.targetId); c.bySession.delete(t.sessionId); } return; }
   const tab = m.sessionId && c.bySession.get(m.sessionId); if (!tab) return;
   if (m.method === 'Page.frameStartedLoading') { if (!tab.loading) { tab.loading = true; emit(tab, 'loading', { on: true }); } }
-  else if (m.method === 'Page.frameStoppedLoading' || m.method === 'Page.loadEventFired') { if (tab.loading) { tab.loading = false; emit(tab, 'loading', { on: false }); } nav(tab); busy(tab); }
+  else if (m.method === 'Page.frameStoppedLoading' || m.method === 'Page.loadEventFired') { if (tab.loading) { tab.loading = false; emit(tab, 'loading', { on: false }); } nav(tab); busy(tab); fieldsSoon(tab); }
   else if (m.method === 'Page.frameNavigated' && !p.frame.parentId) { nav(tab); busy(tab); }
   else if (m.method === 'Page.navigatedWithinDocument') nav(tab);
   else if (m.method === 'Page.javascriptDialogOpening') emit(tab, 'dialog', { type: p.type, message: String(p.message || '').slice(0, 2000), value: p.defaultPrompt || '' });
@@ -312,6 +312,15 @@ function onEvent(c, m) {
 }
 
 /* ---------- input: clicks, scrolling, touch, keys ---------- */
+/* where the text boxes are (a phone opens its keyboard only during a tap, so Patoogle must know at once whether a tap lands on
+   one): the visible boxes' rectangles, after a page loads and after input, debounced */
+const FIELDS = '(function(){var out=[],sel="input:not([type]),input[type=text],input[type=email],input[type=password],input[type=search],input[type=tel],input[type=url],input[type=number],textarea,[contenteditable=\'\'],[contenteditable=true],[role=textbox]";' +
+  'document.querySelectorAll(sel).forEach(function(el){if(out.length>=80||el.disabled||el.readOnly)return;var r=el.getBoundingClientRect();if(r.width<4||r.height<4||r.bottom<0||r.right<0||r.top>innerHeight||r.left>innerWidth)return;var cs=getComputedStyle(el);if(cs.visibility==="hidden"||cs.display==="none")return;out.push([Math.round(r.left),Math.round(r.top),Math.round(r.width),Math.round(r.height)])});' +
+  'var a=document.activeElement,ed=!!a&&(a.isContentEditable||/^(INPUT|TEXTAREA)$/.test(a.tagName)&&!/^(button|submit|checkbox|radio|range|color|file|image|reset)$/i.test(a.type||""));return{f:out,ed:ed}})()';
+function fieldsSoon(tab) {
+  clearTimeout(tab.fieldsT);
+  tab.fieldsT = setTimeout(async () => { if (!chrome || !tab.clients.size) return; try { const r = await send('Runtime.evaluate', { expression: FIELDS, returnByValue: true }, tab.sessionId); const v = r.result && r.result.value; if (v) emit(tab, 'fields', v); } catch (e) {} }, 250);
+}
 async function runInput(tab, list) {
   if (!chrome || !Array.isArray(list)) return;
   tab.forceNext = true; busy(tab); const S = tab.sessionId;
@@ -332,14 +341,14 @@ async function runInput(tab, list) {
     else if (e.t === 'touch') all.push(send('Input.dispatchTouchEvent', { type: e.type, touchPoints: e.type === 'touchEnd' || e.type === 'touchCancel' ? [] : [{ x: +e.x || 0, y: +e.y || 0, id: 1, radiusX: 4, radiusY: 4, force: 1 }], modifiers: mods }, S));
     else if (e.t === 'text' && e.text) all.push(send('Input.insertText', { text: String(e.text).slice(0, 5000) }, S));
     else if (e.t === 'key' && e.key) {
-      const k = String(e.key); const code = KEYS[k] || (k.length === 1 ? k.toUpperCase().charCodeAt(0) : +e.keyCode || 0);
+      const k = String(e.key); const code = KEYS[k] || (+e.keyCode) || (/^[a-z0-9]$/i.test(k) ? k.toUpperCase().charCodeAt(0) : 0); // (the key's own number from the keyboard: a character's code is not one: "." is 46, which is Delete)
       const text = k.length === 1 && !e.ctrl && !e.meta ? k : k === 'Enter' ? '\r' : undefined;
       all.push(send('Input.dispatchKeyEvent', { type: text ? 'keyDown' : 'rawKeyDown', key: k, code: e.code || '', windowsVirtualKeyCode: code, nativeVirtualKeyCode: code, text, unmodifiedText: text, modifiers: mods }, S));
       all.push(send('Input.dispatchKeyEvent', { type: 'keyUp', key: k, code: e.code || '', windowsVirtualKeyCode: code, nativeVirtualKeyCode: code, modifiers: mods }, S));
     }
   }
   await Promise.all(all.map((p) => p.catch(() => {})));
-  tab.forceNext = true; busy(tab);
+  tab.forceNext = true; busy(tab); fieldsSoon(tab);
 }
 
 /* ---------- what Patoogle asks ---------- */
@@ -369,7 +378,7 @@ async function handle(req, res, url) {
       res.write('retry: 2000\n\n'); const client = { res }; tab.clients.add(client); lastSeen = Date.now();
       const beat = setInterval(() => { try { res.write(': hi\n\n'); } catch (e) {} }, 20000);
       req.on('close', () => { clearInterval(beat); tab.clients.delete(client); cast(tab).catch(() => {}); });
-      await cast(tab); await nav(tab);
+      await cast(tab); await nav(tab); fieldsSoon(tab);
       return;
     }
     if (p === '/api/cloud/audio') {

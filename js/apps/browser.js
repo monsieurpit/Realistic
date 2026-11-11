@@ -630,6 +630,8 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           cloudCmd(t, 'dialog', { accept, text }).catch(() => {});
         });
         es.addEventListener('notice', (e) => OF.toast(win, T(JSON.parse(e.data).text)));
+        // where the page's text boxes are, and whether one has the focus (a phone keyboard opens on a tap on one, closes after)
+        es.addEventListener('fields', (e) => { const d = JSON.parse(e.data); t.fields = d.f || []; t.editing = !!d.ed; if (!t.editing && t.kb && document.activeElement === t.kb && PatOS.isMobile) t.kb.blur(); });
         es.addEventListener('filechooser', (e) => fileSheet(t, JSON.parse(e.data).multiple));
         es.addEventListener('download', (e) => cloudDownload(t, JSON.parse(e.data)));
         es.addEventListener('parked', () => { t.cloud.parked = true; cloudLost(t); });
@@ -661,6 +663,10 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         const shift = (dx, dy) => { const r = cv.getBoundingClientRect(); const k = r.width / (cv.width || r.width); const s2 = t.shift = t.shift || { x: 0, y: 0 }; s2.x = Math.max(-r.width * .25, Math.min(r.width * .25, s2.x + dx * k)); s2.y = Math.max(-r.height * .25, Math.min(r.height * .25, s2.y + dy * k)); cv.style.transition = 'none'; cv.style.transform = 'translate(' + (-s2.x) + 'px,' + (-s2.y) + 'px)'; clearTimeout(backT); backT = setTimeout(() => { if (t.shift) { t.shift = null; cv.style.transition = 'transform .25s ease-out'; cv.style.transform = ''; } }, 500); };
         let down = null, lastDown = { t: 0, x: 0, y: 0, n: 0 }, lastMove = 0, touchScroll = null;
         cv.addEventListener('contextmenu', (e) => e.preventDefault());
+        // a tap on a text box of the page opens this device's keyboard (it can only open during the tap itself)
+        const onField = (p) => (t.fields || []).some((r) => p.x >= r[0] - 4 && p.x <= r[0] + r[2] + 4 && p.y >= r[1] - 4 && p.y <= r[1] + r[3] + 4);
+        const openKb = (e, p) => { t.kbAt = Date.now(); const box = t.cloudEl.getBoundingClientRect(); kb.style.left = Math.max(0, e.clientX - box.left) + 'px'; kb.style.top = Math.max(0, e.clientY - box.top) + 'px'; kb.style.bottom = 'auto'; kb.value = ''; kb.focus({ preventScroll: true }); void p; };
+        cv.addEventListener('click', (e) => { if (PatOS.isMobile && onField(pt(e)) && document.activeElement !== kb) openKb(e); });
         cv.addEventListener('dragover', (e) => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } });
         cv.addEventListener('drop', async (e) => {
           const files = e.dataTransfer ? [...e.dataTransfer.files] : []; if (!files.length || !t.cloud || !t.cloud.live) return; e.preventDefault();
@@ -668,7 +674,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         });
         cv.addEventListener('pointerdown', (e) => {
           if (!t.cloud || !t.cloud.live) { if (t.wake && !t.wake.hidden) return; }
-          cv.focus({ preventScroll: true }); soundOn(); const p = pt(e);
+          if (!(e.pointerType === 'touch' && document.activeElement === kb)) cv.focus({ preventScroll: true }); soundOn(); const p = pt(e);
           if (e.pointerType === 'touch') {
             touchScroll = { x: e.clientX, y: e.clientY, p, moved: false, real: !!PatOS.isMobile, vy: 0, vx: 0, t: Date.now() }; cv.setPointerCapture(e.pointerId);
             // a phone page gets real touch (taps, presses, its own scrolling); the picture follows the finger right away
@@ -697,7 +703,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         const up = (e) => {
           if (touchScroll) {
             const ts = touchScroll; touchScroll = null;
-            if (ts.real && !ts.moved) { send({ t: 'touch', type: e.type === 'pointercancel' ? 'touchCancel' : 'touchEnd', x: ts.p.x, y: ts.p.y }); return; }
+            if (ts.real && !ts.moved) { send({ t: 'touch', type: e.type === 'pointercancel' ? 'touchCancel' : 'touchEnd', x: ts.p.x, y: ts.p.y }); if (e.type !== 'pointercancel' && onField(ts.p)) openKb(e, ts.p); return; }
             if (!ts.moved) { send({ t: 'mouse', type: 'mousePressed', x: ts.p.x, y: ts.p.y, button: 'left', buttons: 1, count: 1 }); send({ t: 'mouse', type: 'mouseReleased', x: ts.p.x, y: ts.p.y, button: 'left', count: 1 }); return; }
             // a flick keeps going a little, like a touchscreen (computer pages scroll with the wheel here)
             let vy = ts.vy, vx = ts.vx; const r = cv.getBoundingClientRect(), k = (cv.width || r.width) / r.width;
@@ -724,10 +730,14 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         cv.addEventListener('keydown', onKey); kb.addEventListener('keydown', onKey);
         const onPaste = (e) => { const s = e.clipboardData && e.clipboardData.getData('text'); if (s) { e.preventDefault(); send({ t: 'text', text: s }); } };
         cv.addEventListener('paste', onPaste); kb.addEventListener('paste', onPaste);
+        // (right after a tap opens the keyboard, Chrome needs ~300 ms to put the cursor in the page's box: what is typed in that
+        // moment waits for it, in order, so the first letter isn't lost)
+        let kbQ = Promise.resolve();
+        const later = (ev) => { const ms = Math.max(0, (t.kbAt || 0) + 380 - Date.now()); kbQ = kbQ.then(() => (ms ? new Promise((r) => setTimeout(r, ms)) : null)).then(() => send(ev)); };
         kb.addEventListener('input', (e) => {
-          if (e.inputType === 'deleteContentBackward') send({ t: 'key', key: 'Backspace', keyCode: 8 });
-          else if (e.inputType === 'insertLineBreak') send({ t: 'key', key: 'Enter', keyCode: 13 });
-          else if (e.data) send({ t: 'text', text: e.data });
+          if (e.inputType === 'deleteContentBackward') later({ t: 'key', key: 'Backspace', keyCode: 8 });
+          else if (e.inputType === 'insertLineBreak') later({ t: 'key', key: 'Enter', keyCode: 13 });
+          else if (e.data) later({ t: 'text', text: e.data });
           kb.value = '';
         });
       }
