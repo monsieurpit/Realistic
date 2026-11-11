@@ -429,7 +429,7 @@
     let id = PatOS.settings.wallpaper;
     if (!PALETTES[id] && !LIVE[id] && id !== 'custom') id = 'sonora';
     drawStatic(id);
-    if (LIVE[id] && PatOS.settings.live3d) {
+    if (LIVE[id] && PatOS.settings.live3d && !PatOS.safeBoot) { // (Safe Boot: no 3D, js/firmware.js)
       if (window.THREE) { if (!start3D(id)) stop3D(); }
       else if (PatOS.webgl) {
         // the flat picture shows right away; three.js loads once PatOS has finished starting

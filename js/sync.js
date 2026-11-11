@@ -135,6 +135,7 @@
     (function walk(node, path) {
       Object.keys(node.children || {}).forEach((name) => {
         const p = path === '/' ? '/' + name : path + '/' + name, n = node.children[name];
+        if (p === '/System') return;  // each device has its own system folder (js/firmware.js); it never syncs
         if (n.type === 'dir') { ids.push('d:' + p); walk(n, p); } else ids.push('f:' + p);
       });
     })(PatOS.fs.get('/'), '/');
@@ -157,6 +158,7 @@
     return true;
   }
   function applyItem(p, t) {
+    if (typeof p.path === 'string' && PatOS.fs.isSystem && PatOS.fs.isSystem(p.path)) return null;
     if (p.k === 'kv' && isKV(p.key)) { PatOS.store.set(p.key, p.value); return 'k:' + p.key; }
     if (p.k === 'set' && p.value && typeof p.value === 'object') {
       Object.keys(p.value).forEach((k) => { if (settingOk(k) && JSON.stringify(PatOS.settings[k]) !== JSON.stringify(p.value[k])) PatOS.setSetting(k, p.value[k]); });
@@ -177,7 +179,7 @@
   function dropItem(id) {
     const kind = id[0], rest = id.slice(2);
     if (kind === 'k') PatOS.store.remove(rest);
-    else if (kind === 'f') { const n = PatOS.fs.get(rest); if (n && n.type === 'file') PatOS.fs.remove(rest, true); }
+    else if (kind === 'f') { if (PatOS.fs.isSystem && PatOS.fs.isSystem(rest)) return null; const n = PatOS.fs.get(rest); if (n && n.type === 'file') PatOS.fs.remove(rest, true); }
     else if (kind === 'd') return 'dir';
     return null;
   }

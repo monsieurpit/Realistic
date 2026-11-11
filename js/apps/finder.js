@@ -181,6 +181,8 @@
         if (path === '/.Trash') PatOS.sound.trash();
       }
       function go(path, noHist) {
+        // PatOS's own system folder can't be opened (js/firmware.js)
+        if (PatOS.fs.isSystem && PatOS.fs.isSystem(path)) { try { PatOS.fs.list(path); } catch (e) { PatOS.alertBox(PatOS.t('You don’t have permission to see “System”'), PatOS.t('This folder is PatOS itself. It is protected so PatOS keeps working.'), { icon: 'finder' }); return; } }
         if (!noHist && path !== cwd) { back.push(cwd); fwd.length = 0; }
         cwd = path; selected.clear(); anchor = null; search.value = '';
         filters = { kind: 'all', when: 'any', scope: 'here' };

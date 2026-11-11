@@ -176,7 +176,8 @@
       }
     });
     if (PatOS.sortApps) PatOS.sortApps();
-    boot();
+    // the firmware (js/firmware.js) decides how PatOS starts: normally, Recovery, Safe Boot, the boot log, or not at all (no /System)
+    if (PatOS.firmware) PatOS.firmware.start(boot); else boot();
     // offline support / installable app when served over http(s)
     if ('serviceWorker' in navigator && /^https?:$/.test(location.protocol) && !PatOS.singleFile && PatOS.updateManager) PatOS.updateManager.setup({ soft });
   });

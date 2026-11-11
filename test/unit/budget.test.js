@@ -14,7 +14,7 @@ const sizeOf = (files) => files.reduce((o, f) => { const b = fs.readFileSync(pat
 const scripts = [...html.matchAll(/<script(?: type="patos\/(\w+)")? src="([^"]+)"/g)].map((m) => ({ kind: m[1] || 'plain', src: m[2] }));
 
 const BUDGET = {
-  eagerJs: { kb: 1400, gz: 450 },   // 3.0.0 beta 7: 1,223 KB, 398 KB gzipped; raised in 3.1.0 beta 7 (1,330 KB): Handoff, Pat skills, error log, Liquid Glass motion, Patoogle proxy features, 3.1 notes
+  eagerJs: { kb: 1480, gz: 470 },   // 3.0.0 beta 7: 1,223 KB, 398 KB gzipped; raised in 3.1.0 beta 7 (1,330 KB): Handoff, Pat skills, error log, Liquid Glass motion, Patoogle proxy features, 3.1 notes; raised in 3.1.0 beta 14 (1,403 KB, 455 KB gz): the firmware (boot screens, Recovery, reinstall) must run before login
   css: { kb: 485 }                  // 3.0.0 beta 7: 447 KB
 };
 

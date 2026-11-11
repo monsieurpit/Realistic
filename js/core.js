@@ -465,7 +465,17 @@
   const blobUrls = {};
   function changed(path) { saveFS(); PatOS.emit('fs', { path: norm(path), dir: parentOf(path).dir }); }
 
+  /* /System (js/firmware.js): PatOS's system folder can't be opened, changed or deleted, except "as root" (sudo in the Terminal,
+     or PatOS itself setting it up), or with System Integrity Protection turned off in Recovery */
+  let rootDepth = 0;
+  const isSys = (p) => { const n = norm(p); return n === '/System' || n.startsWith('/System/'); };
+  const sysOK = () => rootDepth > 0 || !!(PatOS.firmware && PatOS.firmware.sipOff());
+  const guard = (p, what) => { if (isSys(p) && !sysOK()) throw new Error((what || 'Operation not permitted') + ': ' + norm(p) + ' (System Integrity Protection)'); };
   PatOS.fs = {
+    isSystem: isSys,
+    isRoot: () => rootDepth > 0,
+    // run something as root (sudo): sync or async
+    asRoot(fn) { rootDepth++; let r; try { r = fn(); } catch (e) { rootDepth--; throw e; } if (r && typeof r.then === 'function') return r.finally(() => { rootDepth--; }); rootDepth--; return r; },
     norm,
     join: (...p) => norm(p.join('/')),
     basename: (p) => parentOf(p).name,
@@ -475,6 +485,7 @@
     exists: (p) => !!node(p),
     isDir: (p) => { const n = node(p); return !!n && n.type === 'dir'; },
     list(path) {
+      if (isSys(path) && !sysOK()) throw new Error('Permission denied: ' + norm(path));
       const n = node(path);
       if (!n || n.type !== 'dir') return [];
       return Object.keys(n.children).filter((k) => !k.startsWith('.')).sort((a, b) => {
@@ -482,8 +493,9 @@
         return da !== db ? (da ? -1 : 1) : a.localeCompare(b, undefined, { numeric: true });
       }).map((name) => ({ name, path: norm(path + '/' + name), ...n.children[name] }));
     },
-    read(path) { const n = node(path); return n && n.type === 'file' ? n.content : null; },
+    read(path) { if (isSys(path) && !sysOK()) throw new Error('Permission denied: ' + norm(path)); const n = node(path); return n && n.type === 'file' ? n.content : null; },
     write(path, content, extra) {
+      guard(path);
       const { dir, name } = parentOf(path);
       const parent = node(dir);
       if (!parent || parent.type !== 'dir' || !name) throw new Error('No such folder: ' + dir);
@@ -496,6 +508,7 @@
       return norm(path);
     },
     mkdir(path) {
+      guard(path);
       const { dir, name } = parentOf(path);
       const parent = node(dir);
       if (!parent || parent.type !== 'dir') throw new Error('No such folder: ' + dir);
@@ -505,7 +518,9 @@
       return norm(path);
     },
     remove(path, permanent) {
-      path = norm(path);
+      path = norm(path); guard(path);
+      // (deleting PatOS's own system folder: PatOS stops working, see js/firmware.js)
+      if (path === '/System' && PatOS.firmware) setTimeout(() => PatOS.firmware.systemDeleted(), 300);
       const { dir, name } = parentOf(path);
       const parent = node(dir);
       if (!parent || !parent.children[name]) throw new Error('Not found: ' + path);
@@ -522,6 +537,7 @@
       PatOS.emit('fs', { path: '/.Trash', dir: '/.Trash' });
     },
     rename(path, newName) {
+      guard(path);
       const { dir, name } = parentOf(path);
       const parent = node(dir);
       if (!parent || !parent.children[name]) throw new Error('Not found');
@@ -533,6 +549,7 @@
       return norm(dir + '/' + newName);
     },
     move(path, toDir) {
+      guard(path); guard(toDir);
       const item = node(path); const target = node(toDir);
       if (!item || !target || target.type !== 'dir') throw new Error('Cannot move');
       const name = parentOf(path).name;
@@ -545,6 +562,7 @@
       return norm(toDir + '/' + nm);
     },
     copy(path, toDir) {
+      guard(path, 'Permission denied'); guard(toDir);
       const item = node(path); const target = node(toDir);
       if (!item || !target || target.type !== 'dir') throw new Error('Cannot copy');
       const name = PatOS.fs.uniqueName(toDir, parentOf(path).name);
@@ -580,12 +598,13 @@
       const n = node(path); if (!n || n.type !== 'dir') return;
       for (const k of Object.keys(n.children)) {
         if (k.startsWith('.')) continue;
-        const p = norm(path + '/' + k); fn(p, n.children[k]);
+        const p = norm(path + '/' + k); if (isSys(p) && !sysOK()) continue; fn(p, n.children[k]);
         if (n.children[k].type === 'dir') PatOS.fs.walk(p, fn);
       }
     },
     /* big files (videos, recordings, huge PDFs) are kept as real Blobs in the database, not as text */
     async writeBlob(path, blob, extra) {
+      guard(path);
       const { dir, name } = parentOf(path); const parent = node(dir);
       if (!parent || parent.type !== 'dir' || !name) throw new Error('No such folder: ' + dir);
       if (!DBH) {

@@ -66,7 +66,7 @@
 
   /* ---------- starting by themselves ---------- */
   const hm = (d) => String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
-  function tick() {
+  function tick() { if (PatOS.safeBoot) return; // (Safe Boot: no timed automations)
     if (!PatOS.loggedIn) return; const d = new Date(), key = PatOS.dateKey ? PatOS.dateKey(d) : d.toDateString(); const fired = get('shortcutFired', {});
     list().forEach((s) => {
       const t = s.trigger; if (s.on === false || !t || t.type !== 'time' || !t.at || (t.days && t.days.length && !t.days.includes(d.getDay()))) return;
@@ -74,7 +74,7 @@
       fired[s.id] = key + t.at; set('shortcutFired', fired); run(s, { from: 'time' });
     });
   }
-  function onLogin() { list().forEach((s) => { if (s.on !== false && s.trigger && s.trigger.type === 'login') run(s, { from: 'login' }); }); }
+  function onLogin() { if (PatOS.safeBoot) return; /* (Safe Boot: no automations) */ list().forEach((s) => { if (s.on !== false && s.trigger && s.trigger.type === 'login') run(s, { from: 'login' }); }); }
   setInterval(tick, 20000);
   let loggedSeen = false; const loginIv = setInterval(() => { if (PatOS.loggedIn && !loggedSeen) { loggedSeen = true; clearInterval(loginIv); try { if (sessionStorage.getItem('patos-sc-login')) return; sessionStorage.setItem('patos-sc-login', '1'); } catch (e) {} setTimeout(onLogin, 1500); } }, 1000);
 

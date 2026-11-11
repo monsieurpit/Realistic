@@ -1,14 +1,20 @@
 [
   {
     "version": "3.1.0",
-    "beta": 13,
-    "date": "2026-11-10",
+    "beta": 14,
+    "date": "2026-11-11",
     "title": {
       "en": "PatOS 3.1: Handoff",
       "fr": "PatOS 3.1 : Continuité"
     },
     "notes": {
       "en": [
+        "PatOS now starts like a real computer. It has a System folder (in Finder, at the top of your disk): it is PatOS itself, so you can’t open it, change it or delete it… except with sudo in the Terminal",
+        "Try sudo rm -rf /System in the Terminal (it asks for your password): PatOS freezes, restarts, the loading bar stops and PatOS says it might have been deleted from this device. Reinstall PatOS erases it and installs it again; you go through setup and sign in again, and the System folder is back. Before erasing, PatOS keeps a copy of your files and settings on this device and offers to bring them back after setup, so you never lose your work",
+        "Recovery: hold R while PatOS starts (or type reboot --recovery in the Terminal) to restore a snapshot, reinstall PatOS, check the disk with First Aid, or use the Recovery Terminal (resetpassword removes a forgotten login password; csrutil turns System Integrity Protection on or off)",
+        "Startup keys, held while PatOS starts: Shift for Safe Boot (no widgets, no 3D wallpaper, no automations, “Safe Boot” in the menu bar), V for the boot log instead of the logo, Alt to choose the startup disk (PatOS or Recovery). Also reboot --safe and reboot --verbose; sudo nvram boot-args=-v keeps the boot log on",
+        "Restart and Shut Down now look like a computer’s: the windows close, a spinner, the screen goes black. New Terminal commands: sudo, reboot, shutdown -h now, uname -a, dmesg, df -h, ps, kill, csrutil. sudo kill 1 makes PatOS panic (a pretend crash screen, then it restarts and offers the report)",
+        "The System folder is different on each device and is never synced",
         "New: Handoff. Start something on one device and continue it on the other: when you were just using a note, a document, a website, a folder or an app on your iPhone, your Chromebook shows “Continue from iPhone” above the Dock (and the other way around, above the phone’s dock). One click opens it right there. It also works from Spotlight (“Continue from…”)",
         "Handoff only sends which app and what is open in it (a note, a file, a page), never its content, encrypted like the rest of Sync; it ignores anything older than 30 minutes, never shares Passwords, and can be turned off in Settings › Privacy. It needs Sync (a PatOS account or a sync code)",
         "iPhone: Messages no longer opens on a blank screen when you are not signed in, it shows how to start",
@@ -36,6 +42,12 @@
         "Cloud Chrome: typing now keeps every character. Dots, dashes and symbols such as ! # $ % & ' ( were taken for Delete, Insert, Home, End and the arrow keys, so emails and passwords came out wrong (someone.test@gmail.com became someonetest@gmailcom). On a phone, tapping a text box of the page opens the keyboard by itself, and the first letter is no longer lost"
       ],
       "fr": [
+        "PatOS démarre maintenant comme un vrai ordinateur. Il a un dossier System (dans le Finder, en haut de votre disque) : c’est PatOS lui-même, donc vous ne pouvez ni l’ouvrir, ni le modifier, ni le supprimer… sauf avec sudo dans le Terminal",
+        "Essayez sudo rm -rf /System dans le Terminal (il demande votre mot de passe) : PatOS gèle, redémarre, la barre de chargement s’arrête et PatOS dit qu’il a peut-être été supprimé de cet appareil. Réinstaller PatOS l’efface et l’installe de nouveau ; vous refaites la configuration et vous vous reconnectez, et le dossier System est de retour. Avant d’effacer, PatOS garde une copie de vos fichiers et réglages sur cet appareil et propose de les récupérer après la configuration, pour ne jamais perdre votre travail",
+        "Secours : maintenez R pendant le démarrage de PatOS (ou tapez reboot --recovery dans le Terminal) pour restaurer un instantané, réinstaller PatOS, vérifier le disque avec S.O.S. ou utiliser le Terminal de secours (resetpassword supprime un mot de passe oublié ; csrutil active ou désactive la protection de l’intégrité du système)",
+        "Touches au démarrage, maintenues pendant que PatOS démarre : Maj pour le démarrage sans échec (sans widgets, sans fond d’écran 3D, sans automatisations, « Safe Boot » dans la barre des menus), V pour le journal de démarrage au lieu du logo, Alt pour choisir le disque de démarrage (PatOS ou Secours). Aussi reboot --safe et reboot --verbose ; sudo nvram boot-args=-v garde le journal de démarrage",
+        "Redémarrer et Éteindre ressemblent maintenant à un ordinateur : les fenêtres se ferment, un indicateur tourne, l’écran devient noir. Nouvelles commandes du Terminal : sudo, reboot, shutdown -h now, uname -a, dmesg, df -h, ps, kill, csrutil. sudo kill 1 fait planter PatOS (un faux écran de plantage, puis il redémarre et propose le rapport)",
+        "Le dossier System est propre à chaque appareil et n’est jamais synchronisé",
         "Nouveau : Continuité. Commencez sur un appareil et continuez sur l’autre : quand vous venez d’utiliser une note, un document, un site, un dossier ou une app sur votre iPhone, votre Chromebook affiche « Continuer depuis iPhone » au-dessus du Dock (et inversement, au-dessus du dock du téléphone). Un clic l’ouvre sur place. Ça marche aussi depuis Spotlight (« Continuer depuis… »)",
         "La Continuité n’envoie que l’app et ce qui y est ouvert (une note, un fichier, une page), jamais le contenu, chiffré comme le reste de Sync ; elle ignore ce qui date de plus de 30 minutes, ne partage jamais Mots de passe, et se désactive dans Réglages › Confidentialité. Elle a besoin de Sync (un compte PatOS ou un code de synchronisation)",
         "iPhone : Messages ne s’ouvre plus sur un écran vide quand vous n’êtes pas connecté, il montre comment commencer",

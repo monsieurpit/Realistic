@@ -41,7 +41,7 @@
           [['ls [dir]', 'list files'], ['cd <dir>', 'change folder'], ['pwd', 'print current folder'], ['cat <file>', 'show a file'], ['touch <file>', 'create an empty file'],
            ['mkdir <dir>', 'make a folder'], ['rm <path>', 'move to Trash'], ['mv <src> <dir>', 'move'], ['cp <src> <dir>', 'copy'], ['echo <text> [> file]', 'print or write text'],
            ['tree', 'show folder tree'], ['open <app|file>', 'open an app or file'], ['apps', 'list apps'], ['calc <expr>', 'calculator'], ['date', 'current date'], ['whoami', 'your name'],
-           ['neofetch', 'system info'], ['errors [clear]', 'problems PatOS wrote down'], ['theme dark|light', 'change appearance'], ['wallpaper <name>', 'change wallpaper'], ['matrix', 'enter the matrix (press any key to stop)'],
+           ['neofetch', 'system info'], ['errors [clear]', 'problems PatOS wrote down'], ['sudo <command>', 'run a command as root (asks for your password)'], ['reboot [--recovery|--safe|--verbose]', 'restart PatOS'], ['shutdown -h now', 'shut down'], ['uname -a / dmesg / df -h / ps', 'about the system'], ['theme dark|light', 'change appearance'], ['wallpaper <name>', 'change wallpaper'], ['matrix', 'enter the matrix (press any key to stop)'],
            ['grep / wc / head / tail', 'filter text (works with |)'], ['sort / uniq / rev / seq', 'more text tools'], ['cut / tr / sed / nl / tee', 'cut -d, -f1 · tr a-z A-Z · sed s/a/b/g'], ['diff <a> <b>', 'compare two files'], ['stat <file>', 'size, type and date'], ['basename / dirname', 'parts of a path'], ['NAME=value / $NAME', 'variables (export to keep them)'], ['alias ll="ls -l"', 'make your own shortcut'], ['!!', 'repeat the last command'], ['which / sleep', 'find a command · wait'], ['find [dir] -name <pattern>', 'find files'], ['ls -l', 'detailed list'], ['python <file.py>', 'run a Python program (also python -c "code")'], ['node <file.js>', 'run JavaScript (in the browser: not real Node.js, no require or npm)'], ['curl <url>', 'download a web page'], ['ping <host>', 'check a website'], ['weather', 'current weather'], ['todo [text]', 'list or add reminders'], ['cmd > file', 'save output to a file'], ['cmd1 && cmd2', 'run one after another'], ['cowsay <text>', 'a talking cow'], ['fortune', 'a random message'], ['history', 'command history'], ['clear', 'clear screen'], ['exit', 'close terminal']]
             .forEach(([c, d]) => print(`  <span class="ty">${esc(c.padEnd(22))}</span>${esc(d)}`));
         },
@@ -93,6 +93,23 @@
         date() { text(new Date().toString()); },
         whoami() { text(user); },
         uptime() { text('up ' + Math.round(performance.now() / 60000) + ' minutes'); },
+        /* the system (js/firmware.js): sudo asks for your login password, then runs the command as root */
+        async sudo(a, seg) {
+          if (!a.length) return text('usage: sudo <command>', 'err');
+          const pass = await PatOS.ask(PatOS.t('Password'), '', { password: true, icon: 'terminal', ok: 'OK' });
+          if (pass == null) return text('sudo: a password is required', 'err');
+          if (PatOS.settings.password && pass !== PatOS.settings.password) return text('Sorry, try again.', 'err');
+          return PatOS.fs.asRoot(() => exec1(String(seg).replace(/^\s*sudo\s+/i, ''), stdin, capture));
+        },
+        reboot(a) { const m = a.join(' '); if (/recovery/.test(m)) PatOS.firmware.next('recovery'); else if (/safe/.test(m)) PatOS.firmware.next('safe'); else if (/verbose|-v/.test(m)) PatOS.firmware.next('verbose'); text('Restarting…'); setTimeout(() => PatOS.firmware.power('restart', true), 400); },
+        shutdown(a) { const m = a.join(' '); if (!/now|-h|-r/.test(m)) return text('usage: shutdown -h now | shutdown -r now', 'err'); setTimeout(() => PatOS.firmware.power(/-r/.test(m) ? 'restart' : 'shutdown', true), 300); },
+        uname(a) { text(a.includes('-a') ? 'PatOS patos ' + PatOS.version + ' patos-kernel ' + PatOS.version + ' #1 SMP ' + new Date().toDateString() + ' x86_64 PatOS' : 'PatOS'); },
+        dmesg() { PatOS.firmware.log().forEach((l, i) => text('[' + (0.1 + i * 0.07).toFixed(6).padStart(12) + '] ' + l)); },
+        async df() { let used = 0, quota = 0; try { const e = await navigator.storage.estimate(); used = e.usage || 0; quota = e.quota || 0; } catch (e) {} const g = (n) => (n / 1073741824).toFixed(1) + 'G'; text('Filesystem    Size   Used  Avail Use%  Mounted on'); text('patos-disk   ' + g(quota).padStart(6) + ' ' + g(used).padStart(6) + ' ' + g(Math.max(0, quota - used)).padStart(6) + ' ' + (quota ? Math.round(used / quota * 100) : 0) + '%    /'); },
+        ps() { text('  PID  COMMAND'); [[1, 'launchd'], [42, 'kernel_task'], [88, 'windowserver'], [97, 'spotlightd'], [103, 'syncd']].concat((PatOS.wm.windows || []).map((w, i) => [300 + i, w.app.name])).forEach(([pid, n]) => text(String(pid).padStart(5) + '  ' + n)); },
+        kill(a) { const pid = a.filter((x) => !x.startsWith('-'))[0]; if (!pid) return text('usage: kill <pid>', 'err'); if (pid === '1' || pid === '42') { if (!PatOS.fs.isRoot()) return text('kill: ' + pid + ': Operation not permitted', 'err'); PatOS.firmware.panic(pid === '1' ? 'Attempted to kill init!' : 'Attempted to kill the kernel'); return; } const w = (PatOS.wm.windows || [])[+pid - 300]; if (w) { w.close(); return; } text('kill: ' + pid + ': No such process', 'err'); },
+        nvram(a) { const m = a.join(' '); if (/boot-args=.*-v/.test(m)) { if (!PatOS.fs.isRoot()) return text('nvram: Operation not permitted (use sudo)', 'err'); PatOS.firmware.verboseAlways(true); text('boot-args set: PatOS will start with the boot log.'); } else if (/-d\s+boot-args/.test(m)) { if (!PatOS.fs.isRoot()) return text('nvram: Operation not permitted (use sudo)', 'err'); PatOS.firmware.verboseAlways(false); text('boot-args removed.'); } else text('boot-args\t' + (PatOS.firmware.state().verboseAlways ? '-v' : '')); },
+        csrutil(a) { if (a[0] === 'disable' || a[0] === 'enable') return text('csrutil: this can only be changed in Recovery (restart holding R, or: reboot --recovery)', 'err'); text('System Integrity Protection status: ' + (PatOS.firmware.sipOff() ? 'disabled' : 'enabled') + '.'); },
         errors(a) {
           if (a[0] === 'clear') { PatOS.errors.clear(); return text('errors: cleared'); }
           const l = PatOS.errors.list(); if (!l.length) return text('No problems written down.');
@@ -128,7 +145,6 @@
         history() { text(hist.map((c, i) => String(i + 1).padStart(4) + '  ' + c).join('\n')); },
         clear() { out.innerHTML = ''; },
         exit() { win.close(); },
-        sudo() { text('Nice try. ' + user + ' is not in the sudoers file. This incident will be reported.', 'err'); },
         cowsay(a) {
           const msg = a.join(' ') || 'Moo! Welcome to PatOS.';
           text(' ' + '_'.repeat(msg.length + 2) + '\n< ' + msg + ' >\n ' + '-'.repeat(msg.length + 2) + '\n        \\   ^__^\n         \\  (oo)\\_______\n            (__)\\       )\\/\\\n                ||----w |\n                ||     ||');
