@@ -23,7 +23,7 @@
       const isSys = (uid) => A && A.isSystem(uid);
       const av = (name, uid) => isSys(uid) ? h('div', { class: 'msg-av sys' }, 'P') : h('div', { class: 'msg-av' }, (name || '?').charAt(0).toUpperCase());
       // a person's name: "PatOS" with the system badge for the system account, @name for everyone else
-      const nameEl = (uid, username, tag) => h(tag || 'b', { class: 'm2-name' }, A.display(uid, username), isSys(uid) ? PatOS.systemBadge(14) : null);
+      const nameEl = (uid, username, tag) => h(tag || 'b', { class: 'm2-name' }, A.display(uid, username), isSys(uid) ? PatOS.systemBadge(14) : A.isVerified(uid) ? PatOS.systemBadge(14, 'verified') : null);
       let everyone = null, everyoneAt = 0; // the system account: every account
       const loadEveryone = async (force) => { if (!C.isSystem() || (!force && everyone && Date.now() - everyoneAt < 30000)) return; everyoneAt = Date.now(); try { everyone = await C.everyone(); } catch (e) { everyone = everyone || []; } drawList(); };
       const signedIn = () => A && A.signedIn();
@@ -56,6 +56,10 @@
         // the system account has every account here, and sees who is banned
         if (C.isSystem()) {
           loadEveryone(false);
+          listEl.appendChild(h('div', { class: 'm2-h' }, T('PatOS Powers')));
+          listEl.appendChild(h('div', { class: 'm2-powers' },
+            h('button', { class: 'btn', onclick: async () => { const t = await PatOS.ask(T('Announcement'), '', { icon: 'about', ok: T('Send to Everyone'), text: T('Everyone sees it once, the next time they open PatOS. Leave it empty to remove the announcement.') }); if (t == null) return; try { await C.announce(t); PatOS.notify({ title: T(t.trim() ? 'Announcement sent' : 'Announcement removed'), body: t.slice(0, 120), icon: 'about' }); } catch (e) { fail(e); } } }, T('Announce…')),
+            h('button', { class: 'btn', onclick: async () => { const t = await PatOS.ask(T('Message Everyone'), '', { icon: 'messages', ok: T('Send'), text: T('The same message to every account (not the banned ones), in each chat. No request needed.') }); if (!t || !t.trim()) return; try { const n = await C.messageEveryone(t); PatOS.notify({ title: T('Sent'), body: n + ' ' + T('accounts'), icon: 'messages' }); } catch (e) { fail(e); } } }, T('Message Everyone…'))));
           listEl.appendChild(h('div', { class: 'm2-h' }, T('All Accounts') + (everyone ? ' (' + everyone.length + ')' : '')));
           if (!everyone) listEl.appendChild(h('div', { class: 'm2-empty' }, T('Loading…')));
           else everyone.forEach((u) => listEl.appendChild(row(u, u.ban ? T('Banned') + (u.ban.reason ? ': ' + u.ban.reason : '') : u.conv ? T('Open the chat') : T('Message (no request needed)'), u.ban ? h('span', { class: 'm2-ban' }, T('Banned')) : null, cur === u.cid, () => { if (u.conv) openConv(u.conv.id); else { target = u; cur = null; C.close(); drawSide(); drawMain(); win.el.classList.add('m2-chat'); } })));
@@ -85,9 +89,11 @@
         const name = c ? c.other.username : target.username, ouid = c ? c.other.uid : target.uid;
         const other = { uid: ouid, username: name }; const god = C.isSystem() && !isSys(ouid);
         const known = everyone && everyone.find((u) => u.uid === ouid); const isBanned = !!(known && known.ban);
+        const ver = A.isVerified(ouid);
+        const verBtn = god ? h('button', { class: 'btn m2-banbtn', onclick: () => C.verify(other, !ver).then(() => { drawSide(); drawMain(); }).catch(fail) }, ver ? T('Remove Badge') : T('Verify')) : null;
         const banBtn = god ? h('button', { class: 'btn m2-banbtn' + (isBanned ? '' : ' danger'), onclick: () => (isBanned ? unbanIt(other) : banIt(other)) }, isBanned ? T('Unban') : T('Ban')) : null;
         const back = h('button', { class: 'tbtn m2-back', 'aria-label': T('Back'), onclick: () => { win.el.classList.remove('m2-chat'); } }, '‹');
-        main.appendChild(h('div', { class: 'm2-head' }, back, av(name, ouid), h('div', { style: { flex: 1, minWidth: 0 } }, nameEl(ouid, name), h('small', {}, isBanned ? T('Banned') : isSys(ouid) ? T('PatOS system account') : c ? (c.status === 'accepted' ? T('Chat') : c.status === 'pending' ? (c.mine ? T('Waiting for them to accept') : T('Message request')) : T('Declined')) : T('New message'))), banBtn));
+        main.appendChild(h('div', { class: 'm2-head' }, back, av(name, ouid), h('div', { style: { flex: 1, minWidth: 0 } }, nameEl(ouid, name), h('small', {}, isBanned ? T('Banned') : isSys(ouid) ? T('PatOS system account') : c ? (c.status === 'accepted' ? T('Chat') : c.status === 'pending' ? (c.mine ? T('Waiting for them to accept') : T('Message request')) : T('Declined')) : T('New message'))), verBtn, banBtn));
         const list = h('div', { class: 'm2-msgs', role: 'log', 'aria-live': 'polite' });
         if (c) {
           const ms = C.messages(); let day = '';

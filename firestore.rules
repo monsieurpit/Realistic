@@ -136,6 +136,22 @@ service cloud.firestore {
       }
     }
 
+    // announcements/current: a message from PatOS that everyone signed in sees. Only the system account writes it.
+    match /announcements/{id} {
+      allow get, list: if signedIn();
+      allow create, update: if isSys() && request.resource.data.keys().hasOnly(['text', 'at', 'by'])
+        && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 500
+        && request.resource.data.by == request.auth.uid && request.resource.data.at == request.time;
+      allow delete: if isSys();
+    }
+    // verified/{uid}: accounts PatOS gave a verified badge. Everyone signed in can see them; only the system account gives or removes one.
+    match /verified/{uid} {
+      allow get, list: if signedIn();
+      allow create, update: if isSys() && request.resource.data.keys().hasOnly(['at', 'by'])
+        && request.resource.data.by == request.auth.uid && request.resource.data.at == request.time;
+      allow delete: if isSys();
+    }
+
     // everything else stays closed
     match /{document=**} { allow read, write: if false; }
   }

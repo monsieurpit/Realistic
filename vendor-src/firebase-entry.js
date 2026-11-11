@@ -185,6 +185,12 @@ const api = {
   bans: wrap(async () => { init(); const s = await getDocs(collection(db, 'bans')); return s.docs.map((d) => Object.assign({ uid: d.id }, d.data({ serverTimestamps: 'estimate' }))); }),
   ban: wrap(async (me, uid, username, reason) => { init(); await setDoc(doc(db, 'bans', uid), { reason: String(reason || '').slice(0, 500), username: String(username || '').slice(0, 40), at: serverTimestamp(), by: me.uid }); }),
   unban: wrap(async (uid) => { init(); await deleteDoc(doc(db, 'bans', uid)); }),
+  /* announcements from PatOS, and verified badges */
+  listenAnnouncement(cb) { init(); return onSnapshot(doc(db, 'announcements', 'current'), (s) => cb(s.exists() ? Object.assign({}, s.data({ serverTimestamps: 'estimate' })) : null), () => {}); },
+  announce: wrap(async (me, text) => { init(); await setDoc(doc(db, 'announcements', 'current'), { text: String(text).slice(0, 500), at: serverTimestamp(), by: me.uid }); }),
+  clearAnnouncement: wrap(async () => { init(); await deleteDoc(doc(db, 'announcements', 'current')); }),
+  verifiedList: wrap(async () => { init(); const s = await getDocs(collection(db, 'verified')); return s.docs.map((d) => d.id); }),
+  verify: wrap(async (me, uid, on) => { init(); if (on) await setDoc(doc(db, 'verified', uid), { at: serverTimestamp(), by: me.uid }); else await deleteDoc(doc(db, 'verified', uid)); }),
   /* a sign-in token for PatOS's own server (releasing a version); fresh: after asking the password again */
   idToken: wrap(async (username, password) => {
     init(); const u = auth.currentUser; if (!u) throw fail('wrong', 'Sign in first.');

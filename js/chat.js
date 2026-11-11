@@ -123,6 +123,15 @@
     },
     async banOf(uid) { if (!F) await start(); return (await F.bans()).find((b) => b.uid === uid) || null; },
     async ban(other, reason) { if (!F) await start(); if (!PatOS.account.isSystem()) throw new Error(T('Only the PatOS account can do this.')); await F.ban(me, other.uid, other.username, reason); emit(); },
+    /* an announcement everyone sees once (empty text removes it) */
+    async announce(text) { if (!F) await start(); if (!PatOS.account.isSystem()) throw new Error(T('Only the PatOS account can do this.')); text = String(text || '').trim(); if (text) await F.announce(me, text); else await F.clearAnnouncement(); },
+    /* the same message to every account (not the banned ones); returns how many */
+    async messageEveryone(text) {
+      if (!PatOS.account.isSystem()) throw new Error(T('Only the PatOS account can do this.')); text = String(text || '').trim(); if (!text) return 0;
+      const all = (await api.everyone()).filter((u) => !u.ban); for (const u of all) await api.request(u, text); return all.length;
+    },
+    /* a verified badge for an account (or removed) */
+    async verify(other, on) { if (!F) await start(); if (!PatOS.account.isSystem()) throw new Error(T('Only the PatOS account can do this.')); await F.verify(me, other.uid, on); const l = PatOS.store.get('verifiedUids', []).filter((x) => x !== other.uid); if (on) l.push(other.uid); PatOS.store.set('verifiedUids', l); emit(); },
     async unban(other) { if (!F) await start(); if (!PatOS.account.isSystem()) throw new Error(T('Only the PatOS account can do this.')); await F.unban(other.uid); emit(); },
     retry: flush
   };

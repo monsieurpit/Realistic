@@ -99,7 +99,7 @@
     /* leave the account on this device; everything stays here, and nothing more is sent */
     async signOut() {
       try { if (F || window.PatFirebase) await (F || window.PatFirebase).signOut(); } catch (e) {}
-      if (offBan) { offBan(); offBan = null; } hideBan();
+      if (offBan) { offBan(); offBan = null; } if (offAnn) { offAnn(); offAnn = null; } hideBan();
       user = null; transport = null; PatOS.store.remove('accountInfo'); PatOS.store.remove('accountKey'); PatOS.store.remove('syncState');
       try { await PatOS.sync.clearAccount(); } catch (e) {}
       state = 'off'; emit(); PatOS.emit('chat:account');
@@ -115,6 +115,7 @@
     ready: () => state === 'ok',
     /* the system account (PatOS): its uid comes from config/system, which only the Firebase console can write */
     systemUid: () => PatOS.store.get('systemUid', ''),
+    isVerified: (uid) => !!uid && PatOS.store.get('verifiedUids', []).includes(uid),
     isSystem: (uid) => { const s = api.systemUid(); return !!s && (uid == null ? !!info() && info().uid === s : uid === s); },
     /* how a person's name is shown: the system account is "PatOS", everyone else @name */
     display: (uid, username) => (api.isSystem(uid) ? 'PatOS' : '@' + (username || '?')),
@@ -124,15 +125,26 @@
   PatOS.account = api;
 
   /* ---------- the system account and bans ---------- */
-  let offBan = null, banEl = null;
+  let offBan = null, banEl = null, offAnn = null;
+  /* verified badges (given by PatOS) */
+  async function loadVerified() { try { const l = await F.verifiedList(); PatOS.store.set('verifiedUids', l); PatOS.emit('chat'); } catch (e) {} }
+  /* an announcement from PatOS: shown once to each person */
+  function showAnnouncement(a) {
+    if (!a || !a.text) return; const id = String(a.at && a.at.toMillis ? a.at.toMillis() : a.at || a.text);
+    if (PatOS.store.get('annSeen', '') === id) return; PatOS.store.set('annSeen', id);
+    setTimeout(() => PatOS.alertBox(T('Announcement from PatOS'), a.text, { icon: 'about' }), 800);
+  }
   async function watchSystem() {
     const i = info(); if (!i || !F) return;
     try { const s = await F.systemUid(); if (s !== PatOS.store.get('systemUid', '')) { PatOS.store.set('systemUid', s); emit(); PatOS.emit('chat'); } } catch (e) {}
     if (offBan) offBan();
     offBan = F.listenBan(i.uid, (b) => { if (b) showBan(b); else hideBan(); });
+    if (offAnn) offAnn();
+    offAnn = F.listenAnnouncement(showAnnouncement);
+    loadVerified();
   }
   // config/system may be set while PatOS is open: look again now and then (one small read), no restart needed
-  setInterval(async () => { const i = info(); if (!i || !F || state !== 'ok' || document.hidden) return; try { F._sys = null; const s = await F.systemUid(); if (s && s !== PatOS.store.get('systemUid', '')) { PatOS.store.set('systemUid', s); emit(); PatOS.emit('chat'); } } catch (e) {} }, 60000);
+  setInterval(async () => { const i = info(); if (!i || !F || state !== 'ok' || document.hidden) return; loadVerified(); try { F._sys = null; const s = await F.systemUid(); if (s && s !== PatOS.store.get('systemUid', '')) { PatOS.store.set('systemUid', s); emit(); PatOS.emit('chat'); } } catch (e) {} }, 60000);
   function hideBan() { if (banEl) { banEl.remove(); banEl = null; } }
   /* a banned account: only Log Out is left (what is on this device stays; another account can be made) */
   function showBan(b) {
@@ -149,12 +161,12 @@
   }
 
   /* the system badge: a seal with twelve soft points and a check mark, drawn here (no image) */
-  PatOS.systemBadge = function (size) {
+  PatOS.systemBadge = function (size, kind) {
     size = size || 16; const N = 12, R = 10, a = 1.15, c = 12, pts = [];
     for (let i = 0; i <= 96; i++) { const t = i / 96 * Math.PI * 2, r = R + a * Math.cos(N * t); pts.push((c + r * Math.cos(t)).toFixed(2) + ' ' + (c + r * Math.sin(t)).toFixed(2)); }
     const id = 'sb' + Math.random().toString(36).slice(2, 7);
-    const el = document.createElement('span'); el.className = 'sys-badge'; el.setAttribute('role', 'img'); el.setAttribute('aria-label', T('PatOS system account')); el.title = T('PatOS system account');
-    el.innerHTML = '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '"><defs><linearGradient id="' + id + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#7d5cff"/><stop offset="1" stop-color="#ff4fa0"/></linearGradient></defs>' +
+    const el = document.createElement('span'); el.className = 'sys-badge'; el.setAttribute('role', 'img'); const lbl = T(kind === 'verified' ? 'Verified by PatOS' : 'PatOS system account'); el.setAttribute('aria-label', lbl); el.title = lbl;
+    el.innerHTML = '<svg viewBox="0 0 24 24" width="' + size + '" height="' + size + '"><defs><linearGradient id="' + id + '" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="' + (kind === 'verified' ? '#2aa8ff' : '#7d5cff') + '"/><stop offset="1" stop-color="' + (kind === 'verified' ? '#0a6cff' : '#ff4fa0') + '"/></linearGradient></defs>' +
       '<path d="M' + pts.join(' L') + 'Z" fill="url(#' + id + ')"/><path d="M7.4 12.3l3 3 6.2-6.4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"/></svg>';
     return el;
   };
