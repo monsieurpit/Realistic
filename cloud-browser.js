@@ -106,9 +106,13 @@ async function start() {
     // a Chrome that crashed (or a server that was killed) leaves its profile locked: the lock goes, the profile stays
     ['SingletonLock', 'SingletonSocket', 'SingletonCookie'].forEach((f) => { try { fs.rmSync(path.join(DATA(), f), { force: true }); } catch (e) {} });
     const args = ['--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--no-first-run', '--no-default-browser-check', '--disable-background-networking',
-      '--disable-sync', '--disable-component-update', '--disable-default-apps', '--renderer-process-limit=6', '--remote-debugging-port=0',
+      '--disable-sync', '--disable-component-update', '--disable-default-apps', (process.env.CLOUD_LEAN === '0' ? '--renderer-process-limit=6' : '--renderer-process-limit=1'),
+      // lean (CLOUD_LEAN=0 turns it off): Chrome's helpers run inside Chrome instead of beside it, no process launchers, one
+      // page process for every tab (no per-site split, no spare), Chrome's low-memory mode, no background features
+      ...(process.env.CLOUD_LEAN === '0' ? [] : ['--in-process-gpu', '--no-zygote', '--disable-site-isolation-trials', '--disable-features=IsolateOrigins,site-per-process,SpareRendererForSitePerProcess,Translate,OptimizationHints,MediaRouter,DialMediaRouteProvider,BackForwardCache,AutofillServerCommunication,CertificateTransparencyComponentUpdater,InterestFeedContentSuggestions,PrivacySandboxSettings4,LensOverlay,HttpsUpgrades',
+        '--enable-features=NetworkServiceInProcess2', '--enable-low-end-device-mode', '--disable-extensions', '--disable-component-extensions-with-background-pages', '--disable-breakpad', '--no-pings', '--disable-domain-reliability', '--disable-client-side-phishing-detection', '--disable-hang-monitor', '--disable-ipc-flooding-protection', '--js-flags=--max-old-space-size=384', '--disk-cache-size=33554432']), '--remote-debugging-port=0',
       '--user-data-dir=' + DATA(), '--proxy-server=http://127.0.0.1:' + gate.address().port, '--proxy-bypass-list=<-loopback>', '--window-size=1280,800', '--lang=' + (process.env.CLOUD_LANG || 'en-US'), 'about:blank'];
-    const pa = await startPulse(); if (!pa) args.splice(args.indexOf('--renderer-process-limit=6'), 0, '--mute-audio'); // (no sound tools: Chrome stays silent)
+    const pa = await startPulse(); if (!pa) args.push('--mute-audio'); // (no sound tools: Chrome stays silent)
     const proc = spawn(exe, args, { stdio: ['ignore', 'ignore', 'pipe'], env: pa ? pa.env : process.env });
     const wsURL = await new Promise((ok, bad) => {
       let buf = ''; const t = setTimeout(() => bad(new Error('Chrome did not start')), 20000);
@@ -140,8 +144,34 @@ function stop() {
 setInterval(() => {
   if (!chrome) return; const now = Date.now(); const watching = [...chrome.tabs.values()].some((t) => t.clients.size);
   if (watching) lastSeen = now;
-  if (now - lastSeen > IDLE_MS() || now - lastTouch > 30 * 60000) stop('idle');
+  if (now - lastSeen > IDLE_MS() || now - lastTouch > 30 * 60000) { stop('idle'); return; }
+  // a tab nobody is looking at (another Patoogle tab is in front) is parked after CLOUD_PARK_SEC: its page closes here, and
+  // Patoogle opens it again at the same address when you come back to it
+  chrome.tabs.forEach((t) => { if (!t.clients.size && t.unwatched && now - t.unwatched > (+process.env.CLOUD_PARK_SEC || 60) * 1000) park(t); });
 }, 15000).unref();
+
+/* ---------- memory: past CLOUD_SOFT_MB (700) Chrome is asked to free memory and every tab in the background is parked; past
+   CLOUD_HARD_MB (800) Chrome restarts (Patoogle opens the page again), well before a 1 GB server runs out ---------- */
+// PatOS's own programs (this server, Chrome, the sound tools), each by its real share of memory. (Not the container's counter:
+// it also holds the system's file cache, which Linux frees by itself, and on some machines other programs.)
+function memMB() {
+  try {
+    const kids = new Map(); fs.readdirSync('/proc').filter((d) => /^\d+$/.test(d)).forEach((pid) => { try { const st = fs.readFileSync('/proc/' + pid + '/stat', 'utf8'); const ppid = +st.slice(st.lastIndexOf(')') + 2).split(' ')[1]; (kids.get(ppid) || kids.set(ppid, []).get(ppid)).push(+pid); } catch (e) {} });
+    // (PSS: each process's fair share of memory it shares with others; adding up RSS would count Chrome's shared memory many times)
+    let kb = 0; const walk = (pid) => { try { const r = fs.readFileSync('/proc/' + pid + '/smaps_rollup', 'utf8'); const m = /^Pss:\s+(\d+)/m.exec(r); if (m) kb += +m[1]; } catch (e) { try { const m = /VmRSS:\s+(\d+)/.exec(fs.readFileSync('/proc/' + pid + '/status', 'utf8')); if (m) kb += +m[1]; } catch (x) {} } (kids.get(pid) || []).forEach(walk); }; walk(process.pid);
+    return kb / 1024;
+  } catch (e) { return 0; }
+}
+let lastMem = 0;
+setInterval(() => {
+  const mb = lastMem = memMB(); if (!chrome || !mb) return;
+  if (mb > (+process.env.CLOUD_HARD_MB || 800)) { console.error('Cloud Chrome: ' + Math.round(mb) + ' MB, restarting it to stay under the limit'); stop('memory'); return; }
+  if (mb > (+process.env.CLOUD_SOFT_MB || 700)) {
+    chrome.tabs.forEach((t) => { if (!t.clients.size) park(t); else send('Memory.simulatePressureNotification', { level: 'critical' }, t.sessionId).catch(() => {}); });
+    send('Memory.simulatePressureNotification', { level: 'critical' }).catch(() => {});
+  }
+}, 5000).unref();
+function park(t) { if (t.parked) return; t.parked = true; send('Target.closeTarget', { targetId: t.id }).catch(() => {}); }
 
 function emit(tab, event, data) {
   let text = null, bin = null;
@@ -229,7 +259,7 @@ async function shoot(tab) {
     const moving = tab.video || Date.now() < (tab.busyUntil || 0);
     const r = await send('Page.captureScreenshot', { format: 'jpeg', quality: moving ? Math.min(50, +process.env.CLOUD_JPEG || 62) : +process.env.CLOUD_JPEG || 62, optimizeForSpeed: true }, tab.sessionId);
     const sum = crypto.createHash('md5').update(r.data).digest('hex');
-    if (sum !== tab.lastSum) { tab.lastSum = sum; count(r.data.length); emit(tab, 'frame', { d: r.data, w: tab.w, h: tab.h }); }
+    if (sum !== tab.lastSum || tab.forceNext) { tab.forceNext = false; tab.lastSum = sum; count(r.data.length); emit(tab, 'frame', { d: r.data, w: tab.w, h: tab.h }); }
   } catch (e) {}
   if (!tab.casting) return;
   // (every second or so: is a video playing? then the picture keeps up with it)
@@ -243,6 +273,7 @@ async function cast(tab) {
   if (want && !tab.casting) { tab.casting = true; tab.lastSum = ''; busy(tab); shoot(tab); }
   else if (want) { tab.lastSum = ''; busy(tab); } // (a new watcher gets the picture now, even if nothing changed)
   else if (!want && tab.casting) { tab.casting = false; clearTimeout(tab.loop); tab.loop = null; }
+  tab.unwatched = want ? 0 : (tab.unwatched || Date.now());
 }
 async function nav(tab) {
   try {
@@ -270,7 +301,7 @@ function onEvent(c, m) {
     return;
   }
   if (m.method === 'Target.targetInfoChanged') { const t = c.tabs.get(p.targetInfo.targetId); if (t && (t.url !== p.targetInfo.url || t.title !== p.targetInfo.title)) { t.url = p.targetInfo.url; t.title = p.targetInfo.title; nav(t); } return; }
-  if (m.method === 'Target.targetDestroyed') { const t = c.tabs.get(p.targetId); if (t) { t.casting = false; clearTimeout(t.loop); emit(t, 'closed', {}); c.tabs.delete(p.targetId); c.bySession.delete(t.sessionId); } return; }
+  if (m.method === 'Target.targetDestroyed') { const t = c.tabs.get(p.targetId); if (t) { t.casting = false; clearTimeout(t.loop); emit(t, t.parked ? 'parked' : 'closed', {}); c.tabs.delete(p.targetId); c.bySession.delete(t.sessionId); } return; }
   const tab = m.sessionId && c.bySession.get(m.sessionId); if (!tab) return;
   if (m.method === 'Page.frameStartedLoading') { if (!tab.loading) { tab.loading = true; emit(tab, 'loading', { on: true }); } }
   else if (m.method === 'Page.frameStoppedLoading' || m.method === 'Page.loadEventFired') { if (tab.loading) { tab.loading = false; emit(tab, 'loading', { on: false }); } nav(tab); busy(tab); }
@@ -283,7 +314,7 @@ function onEvent(c, m) {
 /* ---------- input: clicks, scrolling, touch, keys ---------- */
 async function runInput(tab, list) {
   if (!chrome || !Array.isArray(list)) return;
-  busy(tab); const S = tab.sessionId;
+  tab.forceNext = true; busy(tab); const S = tab.sessionId;
   // a burst of moves becomes the last one, and scroll steps in a row add up: fewer calls, same result
   const evs = [];
   for (const e of list.slice(0, 120)) {
@@ -308,7 +339,7 @@ async function runInput(tab, list) {
     }
   }
   await Promise.all(all.map((p) => p.catch(() => {})));
-  busy(tab);
+  tab.forceNext = true; busy(tab);
 }
 
 /* ---------- what Patoogle asks ---------- */
@@ -326,7 +357,7 @@ const KEYS = { Enter: 13, Backspace: 8, Tab: 9, Escape: 27, ArrowLeft: 37, Arrow
 
 async function handle(req, res, url) {
   const p = url.pathname;
-  if (p === '/api/cloud/status') return json(res, 200, { available: available(), sound: !!soundTools(), chrome: !!findChrome(), keySet: KEY().length >= 8, running: !!chrome, tabs: chrome ? chrome.tabs.size : 0, usedMB: Math.round(used / 1048576), capMB: Math.round(DAILY() / 1048576) });
+  if (p === '/api/cloud/status') return json(res, 200, { available: available(), memMB: Math.round(lastMem || memMB()), sound: !!soundTools(), chrome: !!findChrome(), keySet: KEY().length >= 8, running: !!chrome, tabs: chrome ? chrome.tabs.size : 0, usedMB: Math.round(used / 1048576), capMB: Math.round(DAILY() / 1048576) });
   const ip = ipOf(req), now = Date.now(); const h = (hits.get(ip) || []).filter((t) => now - t < 60000);
   if (!keyOK(req, url)) { h.push(now); hits.set(ip, h); if (h.length > 20) return json(res, 429, { error: 'Too many tries. Wait a minute.' }); return json(res, 401, { error: 'The Cloud Chrome key is wrong' }); }
   if (!available()) return json(res, 503, { error: 'Cloud Chrome isn’t set up on this server' });
@@ -410,6 +441,7 @@ async function handle(req, res, url) {
         return json(res, 200, (r.result && r.result.value) || { n: 0 });
       }
       else if (cmd === 'selection') { const r = await send('Runtime.evaluate', { expression: 'String(getSelection()||"").slice(0,100000)', returnByValue: true }, S); return json(res, 200, { text: (r.result && r.result.value) || '' }); }
+      else if (cmd === 'scroll') { const r = await send('Runtime.evaluate', { expression: 'scrollY', returnByValue: true }, S); return json(res, 200, { y: r.result && r.result.value }); }
       else if (cmd === 'value') { const r = await send('Runtime.evaluate', { expression: '(document.activeElement && "value" in document.activeElement) ? String(document.activeElement.value).slice(0, 2000) : null', returnByValue: true }, S); return json(res, 200, { value: r.result && r.result.value }); }
       else if (cmd === 'text') { const r = await send('Runtime.evaluate', { expression: 'document.body ? document.body.innerText.slice(0, 2000) : ""', returnByValue: true }, S); return json(res, 200, { text: r.result && r.result.value }); }
       else if (cmd === 'reload') await send('Page.reload', {}, S);

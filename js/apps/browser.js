@@ -214,6 +214,10 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       function reopen() { const c = closed.pop(); if (c) newTab(c.url, null, null, false, c.at); }
       function select(t) {
         cur = t; tabs.forEach((x) => { x.tabEl.classList.toggle('on', x === t); x.pane.style.display = x === t ? '' : 'none'; });
+        // Cloud Chrome: only the tab in front stays connected (the server stops drawing the others, and parks them after a minute
+        // to save memory); coming back reconnects it, or opens its page again if it was parked
+        tabs.forEach((x) => { if (x !== t && x.cloud && x.cloud.live && x.cloud.es && !x.cloud.detached) { x.cloud.es.close(); x.cloud.detached = true; } });
+        if (t.cloud && t.cloud.detached) { const id = t.cloud.id; cloudAttach(t, id); t.cloud.reattach = true; }
         syncUI(); checkLogin();
       }
       function syncUI() {
@@ -591,7 +595,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         const es = cloudChannel(id, (blob) => { blobNext = blob; if (!blobBusy) drawBlob(); });
         t.cloud.es = es;
         // a new picture: the page as it is now (the instant scroll shift, if any, is no longer needed)
-        const framed = () => { t.cv.dataset.frames = (+t.cv.dataset.frames || 0) + 1; if (t.shift) { t.shift = null; t.cv.style.transform = ''; } t.loadingFirst = false; const l = t.cloudEl && t.cloudEl.querySelector('.pb-load'); if (l && !t.loading) l.remove(); };
+        const framed = () => { if (t.cloud) t.cloud.reattach = false; t.cv.dataset.frames = (+t.cv.dataset.frames || 0) + 1; if (t.shift) { t.shift = null; t.cv.style.transition = 'none'; t.cv.style.transform = ''; } t.loadingFirst = false; const l = t.cloudEl && t.cloudEl.querySelector('.pb-load'); if (l && !t.loading) l.remove(); };
         const draw = () => { if (!pending) { drawing = false; return; } const f = pending; pending = null; const img = new Image(); img.onload = () => { if (t.cv.width !== f.w || t.cv.height !== f.h) { t.cv.width = f.w; t.cv.height = f.h; } ctx.drawImage(img, 0, 0, f.w, f.h); framed(); draw(); }; img.onerror = draw; img.src = 'data:image/jpeg;base64,' + f.d; };
         es.addEventListener('frame', (e) => { pending = JSON.parse(e.data); if (!drawing) { drawing = true; draw(); } t.loadingFirst = false; const l = t.cloudEl.querySelector('.pb-load'); if (l && !t.loading) l.remove(); });
         es.addEventListener('nav', (e) => {
@@ -613,12 +617,14 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         es.addEventListener('notice', (e) => OF.toast(win, T(JSON.parse(e.data).text)));
         es.addEventListener('filechooser', (e) => fileSheet(t, JSON.parse(e.data).multiple));
         es.addEventListener('download', (e) => cloudDownload(t, JSON.parse(e.data)));
+        es.addEventListener('parked', () => { t.cloud.parked = true; cloudLost(t); });
         es.addEventListener('closed', () => { t.cloud.live = false; es.close(); if (tabs.includes(t)) closeTab(t); });
         es.addEventListener('gone', () => { soundOff(); cloudLost(t); });
         es.onerror = () => { if (es.readyState === 2) cloudLost(t); };
       }
       // Chrome stopped (nobody used it for a while, or the server restarted): one click (or the next navigation) wakes it
-      function cloudLost(t) { if (!t.cloud) return; t.cloud.live = false; try { t.cloud.es.close(); } catch (e) {} t.loading = false; if (t.wake) t.wake.hidden = false; if (t === cur) syncUI(); }
+      function cloudLost(t) { if (!t.cloud) return;
+        if ((t.cloud.reattach || t.cloud.parked) && t === cur && tabs.includes(t)) { try { t.cloud.es && t.cloud.es.close(); } catch (e) {} t.cloud = null; viaCloud(t.url, t); return; } t.cloud.live = false; try { t.cloud.es.close(); } catch (e) {} t.loading = false; if (t.wake) t.wake.hidden = false; if (t === cur) syncUI(); }
       function cloudFailed(t, url, e) {
         t.loading = false; t.cloud = null;
         if (e && e.status === 401) { cloud.ready = false; PatOS.notify({ title: T('Cloud Chrome'), body: T('The Cloud Chrome key on this device is wrong. Set it again in Patoogle’s menu.'), icon: 'browser' }); }
@@ -634,7 +640,10 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         t.inputDone = () => chain;
         const pt = (e) => { const r = cv.getBoundingClientRect(); return { x: Math.round((e.clientX - r.left) * ((t.cloud && t.cloud.w) || cv.width) / r.width), y: Math.round((e.clientY - r.top) * ((t.cloud && t.cloud.h) || cv.height) / r.height) }; };
         const mods = (e) => ({ alt: e.altKey, ctrl: e.ctrlKey, meta: e.metaKey, shift: e.shiftKey });
-        const shift = (dx, dy) => { const r = cv.getBoundingClientRect(); const k = r.width / (cv.width || r.width); const s2 = t.shift = t.shift || { x: 0, y: 0 }; s2.x = Math.max(-r.width * .6, Math.min(r.width * .6, s2.x + dx * k)); s2.y = Math.max(-r.height * .6, Math.min(r.height * .6, s2.y + dy * k)); cv.style.transform = 'translate(' + (-s2.x) + 'px,' + (-s2.y) + 'px)'; };
+        // (the picture moves at once; the next picture puts it right. If none comes in half a second, it glides back by itself, so
+        // a page that didn't scroll never leaves an empty band)
+        let backT = 0;
+        const shift = (dx, dy) => { const r = cv.getBoundingClientRect(); const k = r.width / (cv.width || r.width); const s2 = t.shift = t.shift || { x: 0, y: 0 }; s2.x = Math.max(-r.width * .25, Math.min(r.width * .25, s2.x + dx * k)); s2.y = Math.max(-r.height * .25, Math.min(r.height * .25, s2.y + dy * k)); cv.style.transition = 'none'; cv.style.transform = 'translate(' + (-s2.x) + 'px,' + (-s2.y) + 'px)'; clearTimeout(backT); backT = setTimeout(() => { if (t.shift) { t.shift = null; cv.style.transition = 'transform .25s ease-out'; cv.style.transform = ''; } }, 500); };
         let down = null, lastDown = { t: 0, x: 0, y: 0, n: 0 }, lastMove = 0, touchScroll = null;
         cv.addEventListener('contextmenu', (e) => e.preventDefault());
         cv.addEventListener('dragover', (e) => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } });
@@ -663,7 +672,8 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
             ts.moved = true; ts.x = e.clientX; ts.y = e.clientY; const now = Date.now(), dt = Math.max(1, now - ts.t); ts.vx = dx / dt; ts.vy = dy / dt; ts.t = now;
             const p = pt(e); const r = cv.getBoundingClientRect(), k = (cv.width || r.width) / r.width;
             shift(-dx * k, -dy * k);
-            if (ts.real) send({ t: 'touch', type: 'touchMove', x: p.x, y: p.y }); else send({ t: 'wheel', x: p.x, y: p.y, dx: -dx * k, dy: -dy * k });
+            if (ts.real && !ts.cancelled) { ts.cancelled = true; send({ t: 'touch', type: 'touchCancel', x: p.x, y: p.y }); }
+            send({ t: 'wheel', x: p.x, y: p.y, dx: -dx * k, dy: -dy * k });
             return;
           }
           const now = Date.now(); if (!down && now - lastMove < 60) return; lastMove = now;
@@ -672,7 +682,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         const up = (e) => {
           if (touchScroll) {
             const ts = touchScroll; touchScroll = null;
-            if (ts.real) { send({ t: 'touch', type: e.type === 'pointercancel' ? 'touchCancel' : 'touchEnd', x: ts.p.x, y: ts.p.y }); return; }
+            if (ts.real && !ts.moved) { send({ t: 'touch', type: e.type === 'pointercancel' ? 'touchCancel' : 'touchEnd', x: ts.p.x, y: ts.p.y }); return; }
             if (!ts.moved) { send({ t: 'mouse', type: 'mousePressed', x: ts.p.x, y: ts.p.y, button: 'left', buttons: 1, count: 1 }); send({ t: 'mouse', type: 'mouseReleased', x: ts.p.x, y: ts.p.y, button: 'left', count: 1 }); return; }
             // a flick keeps going a little, like a touchscreen (computer pages scroll with the wheel here)
             let vy = ts.vy, vx = ts.vx; const r = cv.getBoundingClientRect(), k = (cv.width || r.width) / r.width;

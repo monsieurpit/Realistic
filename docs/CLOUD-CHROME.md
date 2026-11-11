@@ -52,7 +52,12 @@ PatOS; the Open outside button opens the page in your own browser, where you are
   addresses on ports 80 and 443 (the same checks as Patoogle's proxy: private, loopback, link-local and cloud-metadata ranges are
   refused, the connection is pinned to the checked address). Chrome can't reach PatOS's own server either.
 - **Your data**: Chrome's profile stays on your server; nothing is sent anywhere else. PatOS doesn't log what you visit.
-- **Cost**: Chrome uses about 300–600 MB of memory while it runs. Limits: `CLOUD_MAX_TABS` (8), `CLOUD_DAILY_MB` (4000 MB of
+- **Memory** (3.1.0 beta 10): Chrome runs lean (`CLOUD_LEAN=0` turns it off): its graphics and network helpers inside Chrome,
+  no process launchers, one page process for every tab, Chrome's low-memory mode; 13 processes became 5, and PatOS with Chrome and
+  one page measured 463 MB. A tab in the background is parked after `CLOUD_PARK_SEC` (60) and opens again by itself when you go
+  back to it. A guard measures PatOS's own programs (their real share of memory): past `CLOUD_SOFT_MB` (700) Chrome frees memory
+  and background tabs are parked at once; past `CLOUD_HARD_MB` (800) Chrome restarts. `/api/cloud/status` shows `memMB`.
+- **Cost**: Chrome uses about 300–450 MB of memory while it runs. Limits: `CLOUD_MAX_TABS` (8), `CLOUD_DAILY_MB` (4000 MB of
   pictures and web traffic a day), `CLOUD_IDLE_MIN` (5). Check Railway's usage page for what it costs on your plan.
 - Settings: `CLOUD_JPEG` (picture quality, 62), `CLOUD_LANG` (Chrome's language, en-US).
 

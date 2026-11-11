@@ -41,13 +41,13 @@ test.before(async () => {
   });
   await new Promise((ok) => site.listen(0, '127.0.0.1', ok)); sp = site.address().port;
   dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'patos-cloud-'));
-  Object.assign(process.env, { CLOUD_BROWSER_KEY: KEY, CHROME_PATH: playwright().chromium.executablePath(), PROXY_TEST_HOSTS: '127.0.0.1:' + sp, PATOS_DATA: dataDir, CLOUD_IDLE_MIN: '0.05' });
+  Object.assign(process.env, { CLOUD_BROWSER_KEY: KEY, CHROME_PATH: playwright().chromium.executablePath(), PROXY_TEST_HOSTS: '127.0.0.1:' + sp, PATOS_DATA: dataDir, CLOUD_IDLE_MIN: '0.05', CLOUD_PARK_SEC: '1' });
   srv = await startServer(); b = await browser();
   page = await b.newPage({ viewport: { width: 1280, height: 860 } });
   await boot(page, srv.base, { fresh: true });
   await page.evaluate((k) => { PatOS.notify = () => {}; PatOS.store.set('cloudKey', k); window.__alerts = []; PatOS.alertBox = (t, m) => { window.__alerts.push(m); return Promise.resolve(); }; }, KEY);
 });
-test.after(async () => { ['CLOUD_BROWSER_KEY', 'CHROME_PATH', 'PROXY_TEST_HOSTS', 'PATOS_DATA', 'CLOUD_IDLE_MIN'].forEach((k) => delete process.env[k]); if (b) await b.close(); if (srv) srv.stop(); if (site) site.close(); if (dataDir) { await wait(1500); try { fs.rmSync(dataDir, { recursive: true, force: true }); } catch (e) {} } });
+test.after(async () => { ['CLOUD_BROWSER_KEY', 'CHROME_PATH', 'PROXY_TEST_HOSTS', 'PATOS_DATA', 'CLOUD_IDLE_MIN', 'CLOUD_PARK_SEC'].forEach((k) => delete process.env[k]); if (b) await b.close(); if (srv) srv.stop(); if (site) site.close(); if (dataDir) { await wait(1500); try { fs.rmSync(dataDir, { recursive: true, force: true }); } catch (e) {} } });
 const S = () => 'http://127.0.0.1:' + sp;
 const wait = (ms) => new Promise((r) => setTimeout(r, ms));
 async function until(fn, ms = 10000) { const t0 = Date.now(); let v; while (Date.now() - t0 < ms) { v = await fn(); if (v) return v; await wait(150); } return v; }
@@ -233,4 +233,30 @@ test('on an iPhone: the phone layout, a tap opens a link, a drag scrolls, and th
   await ph.touchscreen.tap(bx.x + 100 * bx.sx, bx.y + 40 * bx.sy);
   assert.ok(await until(() => ph.evaluate(() => /Cloud two/.test(PatOS.wm.windows.find((x) => x.app.id === 'browser').title))), 'the tap followed the link');
   await ctx.close();
+});
+
+test('memory: a tab in the background is parked on the server, and comes back by itself when you return to it', { skip: skipNoBrowser }, async () => {
+  await page.evaluate(() => PatOS.wm.closeAll()); await wait(400);
+  await page.evaluate((u) => PatOS.launch('browser', { url: u }), S() + '/two'); assert.ok(await opened('Cloud two'));
+  await page.evaluate((u) => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); w._open({ url: u }); }, S() + '/three');
+  await until(async () => (await state()).tabs === 2); assert.ok(await opened('Cloud three'));
+  // the first tab is in the background (and anything left from earlier tests): parked, only the tab in front stays
+  assert.ok(await until(async () => (await status()).tabs === 1, 25000), 'the background tab was parked');
+  await page.evaluate(() => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); w.el.querySelectorAll('.br-tab')[0].click(); });
+  const back = await until(async () => { const st = await state(); return st && st.title.startsWith('Cloud two') && st.painted && st.omni === S() + '/two' ? st : null; }, 15000);
+  assert.ok(back, 'it came back at the same page: ' + JSON.stringify(await state()));
+  assert.equal(await page.evaluate(() => !!document.querySelector('.br-cloudwake:not([hidden])')), false, 'without the wake-up card');
+  await page.evaluate(() => PatOS.wm.closeAll());
+});
+
+test('memory: past the hard limit Chrome restarts before the server runs out, and starts again for the next page', { skip: skipNoBrowser }, async () => {
+  process.env.CLOUD_HARD_MB = '1'; process.env.PORT_TEST = '1';
+  const small = await startServer(); delete process.env.CLOUD_HARD_MB;
+  try {
+    const H = { 'Content-Type': 'application/json', 'x-cloud-key': KEY };
+    // (with a 1 MB limit, the guard may stop Chrome while this page is still opening: that is the point)
+    await fetch(small.base + '/api/cloud/open', { method: 'POST', headers: H, body: JSON.stringify({ url: S() + '/two', w: 800, h: 600 }) }).catch(() => {});
+    assert.ok(await until(async () => !(await (await fetch(small.base + '/api/cloud/status')).json()).running, 15000), 'Chrome was stopped to stay under the limit');
+    const st = await (await fetch(small.base + '/api/cloud/status')).json(); assert.ok(st.memMB > 0, 'it reports memory: ' + st.memMB);
+  } finally { small.stop(); }
 });
