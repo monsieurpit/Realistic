@@ -13,7 +13,7 @@ without a login, and sites you sign in to in their own window).
    someone with this key can use Cloud Chrome, so strangers who find your PatOS address can't use your server.
 3. **Stay signed in (optional).** Chrome's profile (your cookies and sign-ins) is kept in `PATOS_DATA/cloud-chrome`. A
    redeploy erases it unless that folder is on a Railway volume: add a volume, and set `PATOS_DATA` to its mount path.
-4. Redeploy. Then in Patoogle: **••• › Cloud Chrome…**, type the same key, and press Turn on. Each device asks once (the key
+4. Redeploy. Then on Patoogle's main page tap **Cloud Chrome**, enter the same password, and press Turn on (also in ••• › Cloud Chrome…). Each device asks once (the key
    is kept with your other PatOS settings and synced, encrypted, to your other devices).
 
 `/api/cloud/status` says whether the server found Chrome and has a key.

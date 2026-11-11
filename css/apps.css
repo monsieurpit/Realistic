@@ -108,6 +108,9 @@ kbd { font-family: var(--mono); font-size: 11.5px; padding: 3px 8px; border-radi
 .br-cloudwake b { display: block; font-size: 18px; margin-bottom: 6px; } .br-cloudwake p { margin: 0 0 14px; color: var(--text2); max-width: 380px; }
 .br-cloudfile { position: absolute; left: 50%; top: 18px; transform: translateX(-50%); z-index: 4; width: min(420px, calc(100% - 24px)); padding: 16px 18px; border-radius: 18px; background: var(--win-solid); color: var(--text); box-shadow: 0 12px 40px rgba(0,0,0,.28), 0 0 0 .5px var(--border2); text-align: center; animation: paneIn .35s var(--spring, ease) both; }
 .br-cloudfile b { display: block; font-size: 16px; margin-bottom: 4px; } .br-cloudfile p { margin: 0; color: var(--text2); font-size: 13.5px; } .br-cloudfile .bb-btns { margin-top: 12px; }
+.nt-cloud { display: inline-flex; align-items: center; gap: 8px; margin: 14px auto 0; padding: 8px 16px; border-radius: 999px; font-size: 14px; font-weight: 600; color: var(--text); background: var(--hover); box-shadow: inset 0 0 0 .5px var(--border2); }
+.nt-cloud small { font-weight: 600; font-size: 11.5px; padding: 2px 8px; border-radius: 999px; background: color-mix(in srgb, var(--text) 12%, transparent); color: var(--text2); }
+.nt-cloud.on small { background: #30d158; color: #fff; } .nt-cloud:hover { filter: brightness(1.08); }
 .pb-kbbtn { display: grid; place-items: center; flex: none; width: 30px; height: 26px; border-radius: 8px; color: var(--text2); } .pb-kbbtn:hover { background: var(--hover); color: var(--text); }
 .br-pane:has(> .br-blank) { position: relative; }
 .br-blank { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 30px; background: var(--win-solid); color: var(--text); }

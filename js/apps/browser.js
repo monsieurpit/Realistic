@@ -420,7 +420,14 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         q.addEventListener('keydown', (e) => { if (e.key === 'Enter' && q.value.trim()) navigate(q.value); });
         q.addEventListener('input', () => { omni.value = q.value; showSugg(q); });
         const ENG = { google: 'Google', cse: 'Google', patoogle: 'Patoogle', bing: 'Bing' };
-        const engineRow = h('div', { class: 'nt-engine' }, h('span', {}, useProxy() ? T('Searches open right here, with results from Bing') : T('Searching with') + ' ' + ENG[engine()]), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup') }, T('Change')));
+        const engineRow = h('div', { class: 'nt-engine' }, h('span', {}, cloudReady() ? T('Searching with') + ' ' + ENG[engine()] + ' · Cloud Chrome' : useProxy() ? T('Searches open right here, with results from Bing') : T('Searching with') + ' ' + ENG[engine()]), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup') }, T('Change')));
+        // Cloud Chrome, from the main page: off, one click asks for the password; on, it says so (turn off, change the password)
+        const cloudOn = () => !!cloudKey() && PatOS.store.get('cloudOn', true) !== false;
+        const cloudBtn = PatOS.sandboxed ? null : h('button', { class: 'nt-cloud' + (cloudOn() ? ' on' : ''), onclick: (e) => {
+          if (!cloudOn()) return void cloudSetup();
+          const r = e.currentTarget.getBoundingClientRect();
+          PatOS.menu([{ label: T('Turn off Cloud Chrome'), action: () => { PatOS.store.set('cloudOn', false); OF.toast(win, T('Cloud Chrome is off')); navigate('patos://newtab'); } }, { label: T('Change the password'), action: cloudSetup }], r.left, r.bottom + 6);
+        } }, h('span', { html: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 18h10a4 4 0 0 0 .6-7.95A6 6 0 0 0 6.2 9.1 4.5 4.5 0 0 0 7 18z"/></svg>' }), h('span', {}, 'Cloud Chrome'), h('small', {}, T(cloudOn() ? 'On' : 'Off')));
         const grid = h('div', { class: 'nt-grid' });
         const list = shortcuts();
         list.forEach((s, i) => {
@@ -437,7 +444,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         return h('div', { class: 'nt-page pb-nt' },
           h('div', { class: 'nt-logo' }, 'Patoogle'),
           h('div', { class: 'nt-greet' }, greet + ', ' + PatOS.settings.userName),
-          h('div', { class: 'pb-ntsearch' }, q), engineRow, grid,
+          h('div', { class: 'pb-ntsearch' }, q), engineRow, cloudBtn, grid,
           recent.length ? h('div', { class: 'pb-recent' }, h('b', {}, T('Continue where you left off')), ...recent.map((r) => h('button', { onclick: () => navigate(r.u) }, favicon(r.u) ? h('img', { src: favicon(r.u), alt: '' }) : null, h('span', {}, host(r.u))))) : null,
           h('div', { class: 'nt-tip' }, ''));
       }
@@ -722,11 +729,11 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         await cloudCheck();
         if (!cloud.base) return PatOS.alertBox(T('Cloud Chrome'), T('Cloud Chrome needs the PatOS server (open PatOS from its web address).'), { icon: 'browser' });
         if (!cloud.avail) return PatOS.alertBox(T('Cloud Chrome isn’t set up on the server'), T('On Railway, add the variable CLOUD_BROWSER_KEY (a password of at least 8 characters) and install Chrome (see docs/CLOUD-CHROME.md). Then come back here.'), { icon: 'browser' });
-        const k = await PatOS.ask(T('Cloud Chrome key'), cloudKey(), { icon: 'browser', text: T('The same password as CLOUD_BROWSER_KEY on your server. With it, every website opens in a real Chrome running on your server.'), ok: T('Turn on') });
+        const k = await PatOS.ask(T('Enter the password'), '', { icon: 'browser', password: true, ok: T('Turn on') });
         if (k == null) return;
         const old = cloudKey(); PatOS.store.set('cloudKey', String(k).trim());
-        try { await cloudPost('/api/cloud/check', {}); PatOS.store.set('cloudOn', true); cloud.ready = true; OF.toast(win, T('Cloud Chrome is on')); if (cur && /^https?:/.test(cur.url)) navigate(cur.url, cur, true); }
-        catch (e) { PatOS.store.set('cloudKey', old); PatOS.alertBox(T('That key didn’t work'), e.message, { icon: 'browser' }); }
+        try { await cloudPost('/api/cloud/check', {}); PatOS.store.set('cloudOn', true); cloud.ready = true; OF.toast(win, T('Cloud Chrome is on')); if (cur && /^https?:/.test(cur.url)) navigate(cur.url, cur, true); else if (cur && cur.url === 'patos://newtab') navigate('patos://newtab', cur, true); }
+        catch (e) { PatOS.store.set('cloudKey', old); PatOS.alertBox(T('Wrong password'), '', { icon: 'browser' }); }
       }
       /* ---------- through PatOS: sites that refuse to be shown inside other pages, shown anyway (proxy-server.js) ----------
          The PatOS server fetches the page and sends it back with a small script; it runs here in a sandbox with an opaque
