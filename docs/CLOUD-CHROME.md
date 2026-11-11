@@ -40,6 +40,12 @@ without a login, and sites you sign in to in their own window).
   (50), downloads up to `CLOUD_DOWNLOAD_MB` (200).
 - **YouTube** still opens the YouTube app (with sound).
 
+## Google's robot checks
+Google often answers a server's searches with its "unusual traffic" robot check, again and again: Cloud Chrome runs in a
+datacenter, and it is a remote-controlled Chrome, which Google can tell. PatOS doesn't hide that (getting around Google's bot
+detection isn't something PatOS does). Instead, a search that gets the robot check goes to Bing in Cloud Chrome, and any other
+Google page that asks for one is offered in your own browser (where Google knows you) with one tap.
+
 ## Signing in
 You sign in inside Cloud Chrome as on any computer. Google sees the sign-in coming from your server (a datacenter in
 Railway's region), so it may ask for extra checks, and some accounts (often school or work accounts) refuse it ("This browser

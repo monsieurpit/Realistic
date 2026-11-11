@@ -608,6 +608,14 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         es.addEventListener('nav', (e) => {
           const d = JSON.parse(e.data); if (!d.url || d.url === 'about:blank') return;
           t.cloud.back = !!d.back; t.cloud.fwd = !!d.fwd;
+          // Google's robot check ("unusual traffic"): Google sends it to server addresses like Cloud Chrome's again and again. A
+          // search goes to Bing instead (it doesn't do that); anything else is offered in your own browser, where Google knows you
+          if (/^https:\/\/(www\.)?google\.[a-z.]+\/sorry\//i.test(d.url) && Date.now() - (t.sorryAt || 0) > 4000) {
+            t.sorryAt = Date.now(); let asked = ''; try { asked = new URL(d.url).searchParams.get('continue') || ''; } catch (x) {}
+            let q = null; try { q = asked ? new URL(asked).searchParams.get('q') : null; } catch (x) {}
+            if (q) { OF.toast(win, T('Google keeps asking servers for robot checks, so this search uses Bing')); cloudCmd(t, 'navigate', { url: bingURL(q) }).catch(() => {}); return; }
+            PatOS.notify({ title: T('Google is asking for a robot check'), body: T('Google does this to servers like Cloud Chrome’s. Tap here to open it in your own browser, where Google knows you.'), icon: 'browser', onClick: () => { const w = openAppWindow(asked || 'https://www.google.com/'); if (!w) PatOS.openExternal(asked || 'https://www.google.com/'); } });
+          }
           if (d.url !== t.url) { t.url = d.url; const H = PatOS.store.get('browserHistory', []); if (!H[0] || H[0].u !== d.url) { H.unshift({ u: d.url, t: Date.now(), title: d.title || host(d.url) }); PatOS.store.set('browserHistory', H.slice(0, 300)); } saveSession(); }
           t.title = (d.title || host(d.url)).slice(0, 200); const H = PatOS.store.get('browserHistory', []); if (H[0] && H[0].u === d.url && d.title && H[0].title !== d.title) { H[0].title = d.title; PatOS.store.set('browserHistory', H); }
           if (t === cur) syncUI(); else t.tabEl.querySelector('.br-tt').textContent = t.title;

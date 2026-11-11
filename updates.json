@@ -1,7 +1,7 @@
 [
   {
     "version": "3.1.0",
-    "beta": 11,
+    "beta": 12,
     "date": "2026-11-10",
     "title": {
       "en": "PatOS 3.1: Handoff",
@@ -31,7 +31,8 @@
         "Cloud Chrome now has sound (with a mute button), uploads (a page asking for a file opens your own file picker), downloads into PatOS’s Downloads folder, dropping files on a page, and smoother video",
         "Cloud Chrome: scrolling on a phone no longer leaves a white screen (the page is always redrawn after you move it, and a drag scrolls like on a computer while taps stay real touch)",
         "Cloud Chrome uses much less of your server’s memory: Chrome runs lean (5 processes instead of 13), tabs you aren’t looking at are put to sleep after a minute and come back by themselves, and a guard frees memory at 700 MB and restarts Chrome at 800 MB, so PatOS stays well under a 1 GB server",
-        "Patoogle’s main page has a Cloud Chrome button: tap it and enter the password (the one you set on your server, so only you can use it); it shows On when it’s on, and tapping it again turns it off"
+        "Patoogle’s main page has a Cloud Chrome button: tap it and enter the password (the one you set on your server, so only you can use it); it shows On when it’s on, and tapping it again turns it off",
+        "Cloud Chrome: when Google answers a search with its robot check (it does that to servers), the search goes to Bing instead, and other Google pages that ask for one are offered in your own browser, where Google knows you"
       ],
       "fr": [
         "Nouveau : Continuité. Commencez sur un appareil et continuez sur l’autre : quand vous venez d’utiliser une note, un document, un site, un dossier ou une app sur votre iPhone, votre Chromebook affiche « Continuer depuis iPhone » au-dessus du Dock (et inversement, au-dessus du dock du téléphone). Un clic l’ouvre sur place. Ça marche aussi depuis Spotlight (« Continuer depuis… »)",
@@ -56,7 +57,8 @@
         "Cloud Chrome a maintenant le son (avec un bouton pour le couper), l’envoi de fichiers (une page qui demande un fichier ouvre ton propre sélecteur), les téléchargements dans le dossier Téléchargements de PatOS, le glisser-déposer de fichiers sur une page, et une vidéo plus fluide",
         "Cloud Chrome : faire défiler sur un téléphone ne laisse plus d’écran blanc (la page est toujours redessinée après un mouvement, et un glissement fait défiler comme sur ordinateur tandis que les touchers restent de vrais touchers)",
         "Cloud Chrome utilise beaucoup moins de mémoire sur ton serveur : Chrome tourne en mode léger (5 processus au lieu de 13), les onglets que tu ne regardes pas s’endorment après une minute et reviennent tout seuls, et un garde libère de la mémoire à 700 Mo et redémarre Chrome à 800 Mo, pour que PatOS reste bien sous 1 Go",
-        "La page principale de Patoogle a un bouton Cloud Chrome : touche-le et entre le mot de passe (celui choisi sur ton serveur, pour que toi seul puisses l’utiliser) ; il affiche Activé quand il est actif, et le toucher de nouveau permet de le désactiver"
+        "La page principale de Patoogle a un bouton Cloud Chrome : touche-le et entre le mot de passe (celui choisi sur ton serveur, pour que toi seul puisses l’utiliser) ; il affiche Activé quand il est actif, et le toucher de nouveau permet de le désactiver",
+        "Cloud Chrome : quand Google répond à une recherche par sa vérification anti-robot (il le fait avec les serveurs), la recherche passe à Bing, et les autres pages de Google qui en demandent une sont proposées dans ton propre navigateur, où Google te connaît"
       ]
     }
   },
