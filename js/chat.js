@@ -69,7 +69,7 @@
           let there = false; if (it.kind !== 'request') { try { there = await F.messageExists(it.cid, it.id); } catch (x) {} } // it may have gone through already
           if (!there) { lastError = String(e.message || e); emit('chat:error'); }
         }
-        setOutbox(outbox().filter((x) => x.id !== it.id)); emit('chat:messages');
+        setOutbox(outbox().filter((x) => (x.key || x.id) !== (it.key || it.id))); emit('chat:messages'); // (every first message has the id "request": the key tells them apart)
       }
     } finally { flushing = false; }
   }
@@ -105,7 +105,7 @@
       if (c && PatOS.account.isSystem()) { await F.open(cid); c.status = 'accepted'; return api.send(cid, text); }
       if (c && c.status === 'declined' && c.mine) throw new Error(T('This person did not accept your message request.'));
       if (c) throw new Error(T('Your message request is waiting for an answer.'));
-      setOutbox(outbox().concat([{ kind: 'request', id: 'request', cid, other: { uid: other.uid, username: other.username }, text: text.slice(0, 2000), t: Date.now() }])); emit('chat:messages'); flush(); return cid;
+      setOutbox(outbox().concat([{ kind: 'request', id: 'request', key: newId(), cid, other: { uid: other.uid, username: other.username }, text: text.slice(0, 2000), t: Date.now() }])); emit('chat:messages'); flush(); return cid;
     },
     send(cid, text) {
       text = String(text || '').trim(); if (!text) return; const c = convs.find((x) => x.id === cid);
@@ -128,7 +128,7 @@
     /* the same message to every account (not the banned ones); returns how many */
     async messageEveryone(text) {
       if (!PatOS.account.isSystem()) throw new Error(T('Only the PatOS account can do this.')); text = String(text || '').trim(); if (!text) return 0;
-      const all = (await api.everyone()).filter((u) => !u.ban); for (const u of all) await api.request(u, text); return all.length;
+      const all = (await api.everyone()).filter((u) => !u.ban); let n = 0; for (const u of all) { try { await api.request(u, text); n++; } catch (e) { /* one account that fails doesn't stop the others */ } } return n;
     },
     /* a verified badge for an account (or removed) */
     async verify(other, on) { if (!F) await start(); if (!PatOS.account.isSystem()) throw new Error(T('Only the PatOS account can do this.')); await F.verify(me, other.uid, on); const l = PatOS.store.get('verifiedUids', []).filter((x) => x !== other.uid); if (on) l.push(other.uid); PatOS.store.set('verifiedUids', l); emit(); },

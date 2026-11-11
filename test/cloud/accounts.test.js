@@ -244,3 +244,22 @@ test('the PatOS account set up with the id as the field name works too, and on a
   await waitFor(G.page, () => PatOS.account.isSystem(), null, 70000);
   await G.ctx.close(); await G2.ctx.close(); await B.ctx.close();
 });
+
+test('PatOS powers: an announcement everyone sees once, Message Everyone, and a verified badge', { skip: emu.skip }, async () => {
+  const gn = uniq('patos'), bn = uniq('vi'), pw = 'a long system password';
+  const G = await device(), B = await device();
+  await G.ev(async ([u, p]) => { await PatOS.account.signUp(u, p); }, [gn, pw]);
+  await B.ev(async ([u, p]) => { await PatOS.account.signUp(u, p); }, [bn, pw]);
+  await setSystem(await G.ev(() => PatOS.account.info().uid));
+  for (const [d, u] of [[G, gn], [B, bn]]) await d.ev(async ([u, p]) => { await PatOS.account.signOut(); await PatOS.account.signIn(u, p); }, [u, pw]);
+  await waitFor(G.page, () => PatOS.account.isSystem() && PatOS.chat.ready(), null, 20000);
+  await G.ev(() => PatOS.chat.announce('School is closed tomorrow'));
+  await waitFor(B.page, () => /Announcement from PatOS: School is closed tomorrow/.test(window.__alert || ''), null, 15000);
+  const n = await G.ev(() => PatOS.chat.messageEveryone('Hi everyone!')); assert.ok(n >= 1);
+  await waitFor(B.page, () => PatOS.chat.conversations().some((c) => c.last === 'Hi everyone!' && c.status === 'accepted'), null, 40000);
+  const vi = (await G.ev(() => PatOS.chat.everyone())).find((u) => u.username === bn);
+  await G.ev((o) => PatOS.chat.verify(o, true), vi);
+  await B.ev(async () => { await PatOS.account.signOut(); }); await B.ev(async ([u, p]) => { await PatOS.account.signIn(u, p); }, [bn, pw]);
+  await waitFor(B.page, (id) => PatOS.account.isVerified(id), vi.uid, 15000);
+  await G.ctx.close(); await B.ctx.close();
+});

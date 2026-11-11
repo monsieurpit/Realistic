@@ -156,3 +156,17 @@ test('config/system with the id as the field name: the same powers, and still no
   await no(F.setDoc(c.doc('config', 'system'), { [c.uid]: '' }), 'writing config/system');
   await ok(F.deleteDoc(god.doc('bans', b.uid)));
 });
+test('announcements and verified badges: only PatOS writes them, everyone signed in reads them', { skip: emu.skip }, async () => {
+  const tag = Date.now().toString(36).slice(-5);
+  const god = await person('patos' + tag), b = await person('bix' + tag);
+  await setSystem(god.uid);
+  await no(F.setDoc(b.doc('announcements', 'current'), { text: 'fake', at: now(), by: b.uid }), 'a normal account announcing');
+  await ok(F.setDoc(god.doc('announcements', 'current'), { text: 'Hello everyone', at: now(), by: god.uid }));
+  assert.equal((await F.getDoc(b.doc('announcements', 'current'))).data().text, 'Hello everyone');
+  await no(F.deleteDoc(b.doc('announcements', 'current')), 'removing it');
+  await no(F.setDoc(b.doc('verified', b.uid), { at: now(), by: b.uid }), 'verifying yourself');
+  await ok(F.setDoc(god.doc('verified', b.uid), { at: now(), by: god.uid }));
+  assert.ok((await F.getDocs(b.col('verified'))).docs.some((d) => d.id === b.uid));
+  await no(F.deleteDoc(b.doc('verified', b.uid)), 'removing a badge');
+  await ok(F.deleteDoc(god.doc('verified', b.uid))); await ok(F.deleteDoc(god.doc('announcements', 'current')));
+});

@@ -136,7 +136,7 @@
   }
   async function watchSystem() {
     const i = info(); if (!i || !F) return;
-    try { const s = await F.systemUid(); if (s !== PatOS.store.get('systemUid', '')) { PatOS.store.set('systemUid', s); emit(); PatOS.emit('chat'); } } catch (e) {}
+    try { F._sys = null; const s = await F.systemUid(); if (s !== PatOS.store.get('systemUid', '')) { PatOS.store.set('systemUid', s); emit(); PatOS.emit('chat'); } } catch (e) {}
     if (offBan) offBan();
     offBan = F.listenBan(i.uid, (b) => { if (b) showBan(b); else hideBan(); });
     if (offAnn) offAnn();
