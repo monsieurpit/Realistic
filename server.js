@@ -7,6 +7,7 @@ const services = require('./services.js');
 const syncServer = require('./sync-server.js');
 const appsServer = require('./apps-server.js');
 const linkServer = require('./link-server.js');
+const proxyServer = require('./proxy-server.js');
 const { sendFile, sendJSON, sendPyodide } = require('./http-util.js');
 const updateManager = require('./update-manager.js');
 
@@ -28,6 +29,7 @@ const server = http.createServer((req, res) => {
   if (p.startsWith('/api/sync/')) return syncServer.handle(req, res, new URL(req.url, 'http://x'));
   if (p.startsWith('/api/link/')) return linkServer.handle(req, res, new URL(req.url, 'http://x'));
   if (p.startsWith('/api/apps/')) return appsServer.handle(req, res, new URL(req.url, 'http://x'));
+  if (p === '/api/proxy') return proxyServer.handle(req, res, new URL(req.url, 'http://x')).catch(() => { if (!res.headersSent) { res.writeHead(502); res.end('Proxy error'); } else res.destroy(); }); // Patoogle (proxy-server.js)
   if (p === '/apprequests' || p === '/apprequests/') return appsServer.page(req, res);
   if (p.startsWith('/pyodide/')) return sendPyodide(req, res, p).then((ok) => { if (!ok) { res.writeHead(404); res.end('Not found'); } });
   if (p === '/api/config') return sendJSON(req, res, 200, { googleCx: (process.env.GOOGLE_CX || '').trim() });

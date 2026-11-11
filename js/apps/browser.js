@@ -59,6 +59,7 @@
     if (e === 'bing') return bingURL(q);
     return googleURL(q);
   }
+  const isBingSearch = (url) => /^https:\/\/(www\.)?bing\.com\/search\?/i.test(url);
   const isGoogleFrame = (url) => /^https:\/\/www\.google\.[a-z.]+\/(search|webhp)\?(.*&)?igu=1/.test(url);
   if (/^https?:/.test(location.protocol) && !PatOS.sandboxed) fetch('/api/config', { cache: 'no-store' }).then((r) => r.json()).then((j) => { if (j && j.googleCx) serverCx = String(j.googleCx); }).catch(() => {});
   function bingURL(q) { return 'https://www.bing.com/search?q=' + encodeURIComponent(q) + '&setlang=' + (PatOS.lang || 'en'); }
@@ -119,8 +120,8 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       win.titlebar.style.height = '40px';
 
       const ic = (n) => OF.icon(n, 17);
-      const bBack = h('button', { class: 'tbtn', title: T('Back') + ' (Alt+←)', html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>' });
-      const bFwd = h('button', { class: 'tbtn', title: T('Forward') + ' (Alt+→)', html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>' });
+      const bBack = h('button', { class: 'tbtn br-back', 'aria-label': T('Back'), title: T('Back') + ' (Alt+←)', html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M15 5l-7 7 7 7"/></svg>' });
+      const bFwd = h('button', { class: 'tbtn br-fwd', 'aria-label': T('Forward'), title: T('Forward') + ' (Alt+→)', html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 5l7 7-7 7"/></svg>' });
       const bReload = h('button', { class: 'tbtn', title: T('Reload'), html: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M20 12a8 8 0 1 1-2.3-5.6M20 4v5h-5"/></svg>' });
       const bHome = h('button', { class: 'tbtn', title: T('Home'), html: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linejoin="round"><path d="M4 10.5 12 4l8 6.5V20h-5.5v-6h-5v6H4z"/></svg>' });
       const omni = h('input', { class: 'br-omni', placeholder: T('Search Google or type a web address'), spellcheck: 'false', autocomplete: 'off' });
@@ -192,6 +193,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         const secure = cur.url.startsWith('https'), internal = cur.url.startsWith('patos');
         lockIc.innerHTML = internal ? '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>' : PatOS.sym(secure ? 'lock' : 'warn');
         lockIc.classList.toggle('warn', !secure && !internal);
+        lockIc.classList.toggle('via', !!cur.proxied); lockIc.title = cur.proxied ? T('Shown through PatOS: this site doesn’t allow being shown inside other apps, so PatOS brings it here. Logins may not work.') : '';
         bBack.disabled = cur.idx <= 0; bFwd.disabled = cur.idx >= cur.hist.length - 1;
         const starred = bookmarks.some((b) => b.u === cur.url); bStar.classList.toggle('on', starred); bStar.style.display = internal ? 'none' : '';
         const site = siteOf(cur); const n = site && !PatOS.passwords.locked ? PatOS.passwords.forSite(site).length : 0;
@@ -206,7 +208,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
 
       function navigate(input, t, noHist) {
         t = t || cur;
-        // searches go to the Chromebook's own browser (Chrome, Safari, Edge...), where every site works
+        // searches: with the proxy (a PatOS server), Bing's results inside Patoogle; without it, the device's own browser
         const raw = String(input || '').trim();
         let gq = null;
         if (raw && !/^(patos|https?):\/\//i.test(raw) && !(/^[\w-]+(\.[\w-]+)+(:\d+)?(\/.*)?$/.test(raw) && !raw.includes(' '))) gq = raw;
@@ -218,6 +220,10 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           t.pane.appendChild(PatOS.offlineCard(() => navigate(raw, t), { auto: false, body: 'Searching needs the internet. Connect to Wi-Fi, then press Try again.' }));
           syncUI(); return;
         }
+        // with the proxy, a search stays in Patoogle: Bing's results through PatOS (Google's results page doesn't work through a
+        // server), every result opening right here. "Search on Google instead" still opens Google in the browser
+        const proxySearch = !!(gq && !noHist && useProxy());
+        if (proxySearch) { input = bingURL(gq); gq = null; }
         if (gq && !noHist) {
           const H = PatOS.store.get('browserHistory', []); H.unshift({ u: 'https://www.google.com/search?q=' + encodeURIComponent(gq), t: Date.now(), title: gq }); PatOS.store.set('browserHistory', H.slice(0, 300));
           PatOS.openExternal(engine() === 'bing' ? bingURL(gq) : 'https://www.google.com/search?q=' + encodeURIComponent(gq) + '&hl=' + glang());
@@ -230,7 +236,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         if (/^https?:/.test(url)) { const H = PatOS.store.get('browserHistory', []); if (!H[0] || H[0].u !== url) { H.unshift({ u: url, t: Date.now(), title: host(url) }); PatOS.store.set('browserHistory', H.slice(0, 300)); } }
         if (t.web) { webTabs--; t.web = false; }
         if (/^https?:/.test(url) && !isBlocked(url)) { webTabs++; t.web = true; }
-        t.url = url; t.pane.innerHTML = ''; t.loading = false; t.frame = null;
+        t.url = url; t.pane.innerHTML = ''; t.loading = false; t.frame = null; t.proxied = false;
         if (url === 'patos://newtab') { t.title = T('New Tab'); t.pane.appendChild(newTabPage()); }
         else if (url.startsWith('patos://history')) { t.title = T('History'); t.pane.appendChild(historyPage()); }
         else if (url.startsWith('patos://google-setup')) { t.title = 'Google'; t.pane.appendChild(googleSetup(new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || '')); }
@@ -240,7 +246,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           if (t.web) { webTabs--; t.web = false; }
           t.title = host(url); t.pane.appendChild(PatOS.offlineCard(() => { if (t.url === url) navigate(url, t, true); }, { body: 'This website needs the internet. The page will load by itself when you’re back online.' }));
         }
-        else if (isBlocked(url)) { t.title = host(url); t.pane.appendChild(blockedPage(url)); autoOpen(url, t); }
+        else if (isBlocked(url)) { t.title = host(url); if (useProxy()) viaProxy(url, t); else { t.pane.appendChild(blockedPage(url)); autoOpen(url, t); } }
         else {
           const gq = isGoogleFrame(url) ? new URL(url).searchParams.get('q') : null;
           t.title = /bing\.com\/search/.test(url) ? new URL(url).searchParams.get('q') : gq ? gq + ' - Google' : isGoogleFrame(url) ? 'Google' : host(url);
@@ -258,12 +264,13 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
             setTimeout(() => { if (t.loading && t.gen === mine) { t.loading = false; bar.remove(); if (t === cur) syncUI(); } }, 12000);
           };
           if (isGoogleFrame(url)) build();
+          else if (useProxy() && isBingSearch(url)) viaProxy(url, t);
           else {
             // ask the server first whether this site allows being shown inside another page; if not, don't show a broken frame
             t.loading = true; t.pane.appendChild(h('div', { class: 'pb-load' })); t.pane.appendChild(h('div', { class: 'pb-checking' }, h('span', {}, T('Opening') + ' ' + host(url) + '…')));
             canFrame(url).then((ok) => {
               if (t.url !== url || t.gen !== mine) return;
-              if (ok === false) { t.loading = false; t.pane.innerHTML = ''; t.pane.appendChild(blockedPage(url)); autoOpen(url, t); if (t === cur) syncUI(); }
+              if (ok === false) { t.loading = false; t.pane.innerHTML = ''; if (useProxy()) viaProxy(url, t); else { t.pane.appendChild(blockedPage(url)); autoOpen(url, t); } if (t === cur) syncUI(); }
               else build();
             });
           }
@@ -414,6 +421,55 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         q.oninput = draw; draw();
         return h('div', { class: 'pb-history' }, h('div', { class: 'pb-hhead' }, h('h1', {}, T('History')), q, h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox(T('Clear browsing history?'), '', { danger: true, ok: T('Clear'), icon: 'browser' })) { PatOS.store.set('browserHistory', []); draw(); } } }, T('Clear browsing data'))), box);
       }
+      /* ---------- through PatOS: sites that refuse to be shown inside other pages, shown anyway (proxy-server.js) ----------
+         The PatOS server fetches the page and sends it back with a small script; it runs here in a sandbox with an opaque
+         origin, so it can't touch PatOS's data. That script tells Patoogle the real address and title as you click around,
+         and asks for a new tab when a link wants one. */
+      const useProxy = () => !PatOS.sandboxed && PatOS.store.get('proxyBrowse', true) !== false;
+      function viaProxy(url, t) {
+        const mine = ++t.gen; t.loading = true; t.proxied = true; t.asked = url;
+        const bar = h('div', { class: 'pb-load' }); t.pane.innerHTML = ''; t.pane.appendChild(bar);
+        (PatOS.server ? PatOS.server() : Promise.resolve(null)).then((base) => {
+          if (t.url !== url || t.gen !== mine) return;
+          if (!base) { t.loading = false; t.proxied = false; t.pane.innerHTML = ''; t.pane.appendChild(blockedPage(url)); autoOpen(url, t); if (t === cur) syncUI(); return; }
+          const frame = h('iframe', { src: base + '/api/proxy?u=' + encodeURIComponent(url), class: 'br-proxied', sandbox: 'allow-scripts allow-forms allow-popups allow-popups-to-escape-sandbox allow-modals allow-downloads allow-presentation',
+            allow: 'fullscreen; autoplay; encrypted-media; picture-in-picture; clipboard-write', referrerpolicy: 'no-referrer', allowfullscreen: true });
+          frame._patosTab = t; t.frame = frame;
+          frame.addEventListener('load', () => { t.loading = false; bar.classList.add('done'); setTimeout(() => bar.remove(), 400); if (t === cur) syncUI(); });
+          t.pane.append(frame); applyZoom(t);
+          const q = isBingSearch(url) ? new URL(url).searchParams.get('q') : null;
+          t.searchBar = h('div', { class: 'pg-banner g br-sbar' }, h('span', {}, T('Results from Bing, shown through PatOS.')), h('button', { class: 'pg-link', onclick: () => PatOS.openExternal('https://www.google.com/search?q=' + encodeURIComponent(new URL(t.url).searchParams.get('q') || q || '') + '&hl=' + glang()) }, T('Search on Google instead')));
+          t.searchBar.hidden = !q; t.pane.insertBefore(t.searchBar, frame);
+          setTimeout(() => { if (t.loading && t.gen === mine) { t.loading = false; bar.remove(); if (t === cur) syncUI(); } }, 20000);
+        });
+      }
+      // what a proxied page tells Patoogle (only frames Patoogle made are listened to)
+      const onProxyMsg = (e) => {
+        const d = e.data; if (!d || typeof d !== 'object' || !d.patosProxy) return;
+        const t = tabs.find((x) => x.frame && x.proxied && x.frame.contentWindow === e.source); if (!t) return;
+        const url = typeof d.url === 'string' && /^https?:\/\//i.test(d.url) && !/\/api\/proxy\?u=/.test(d.url) ? d.url.slice(0, 4000) : null;
+        // (a page can ask for a new tab at most once a second and 20 times in all, so a hostile page can't flood Patoogle)
+        if (d.patosProxy === 'open' && url) { const now = Date.now(); if (now - (t.lastOpen || 0) < 1000 || (t.opens = (t.opens || 0) + 1) > 20) return; t.lastOpen = now; newTab(url); return; }
+        if ((d.patosProxy === 'page' || d.patosProxy === 'go') && url) {
+          if (url !== t.url) {
+            // the page moved on by itself: a new step in this tab's history (Back takes you to the page before). A page that
+            // arrives somewhere else than asked (a redirect) takes the place of what was asked, as browsers do, so Back
+            // doesn't land on the redirect again
+            if (d.patosProxy === 'page' && t.asked && t.asked === t.url) t.hist[t.idx] = url;
+            else { t.hist = t.hist.slice(0, t.idx + 1); t.hist.push(url); t.idx = t.hist.length - 1; }
+            t.url = url;
+            const H = PatOS.store.get('browserHistory', []); if (!H[0] || H[0].u !== url) { H.unshift({ u: url, t: Date.now(), title: host(url) }); PatOS.store.set('browserHistory', H.slice(0, 300)); }
+            saveSession();
+          }
+          t.asked = d.patosProxy === 'go' ? url : null; if (d.patosProxy === 'go') t.loading = true;
+          if (typeof d.title === 'string' && d.title.trim()) { t.title = d.title.trim().slice(0, 200); const H = PatOS.store.get('browserHistory', []); if (H[0] && H[0].u === url && H[0].title !== t.title) { H[0].title = t.title; PatOS.store.set('browserHistory', H); } }
+          if (t.searchBar) t.searchBar.hidden = !isBingSearch(t.url);
+          if (t === cur) syncUI(); else t.tabEl.querySelector('.br-tt').textContent = t.title;
+        }
+      };
+      window.addEventListener('message', onProxyMsg);
+      win.on('closed', () => window.removeEventListener('message', onProxyMsg));
+
       /* ---------- sites that don't allow being shown inside other pages ---------- */
       const frameMem = PatOS.store.get('frameMem', {});
       const frameKey = (url) => { try { const u = new URL(url); return u.hostname + '/' + (u.pathname.split('/')[1] || ''); } catch (e) { return url; } };

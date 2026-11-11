@@ -113,8 +113,12 @@ function privateIP(ip) {
 }
 // check an address and return the IP it resolves to; the request then connects to exactly that IP,
 // so a second DNS answer (DNS rebinding) can't point it somewhere private
+// tests only: exact loopback host:port pairs the tests serve their own pages from (PROXY_TEST_HOSTS="127.0.0.1:45678,..."). Never set it
+// on a real server: anything not listed stays refused.
+const testHosts = () => (process.env.PROXY_TEST_HOSTS || '').split(',').map((x) => x.trim()).filter((x) => /^127\.0\.0\.1:\d+$/.test(x));
 async function safeURL(u) {
   const url = new URL(u); if (!/^https?:$/.test(url.protocol)) throw new Error('Only web addresses');
+  if (url.protocol === 'http:' && testHosts().includes(url.host)) return { url, ip: '127.0.0.1', family: 4 };
   if (url.port && !['80', '443'].includes(url.port)) throw new Error('Port not allowed');
   if (url.username || url.password) throw new Error('Not allowed');
   const host = url.hostname.replace(/^\[|\]$/g, '');
