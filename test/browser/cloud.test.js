@@ -21,9 +21,23 @@ const HOME = '<!doctype html><title>Cloud home</title><style>body{margin:0;font:
   '<div id="echo" style="position:absolute;top:400px">typed:</div><p style="position:absolute;top:460px">lisbon lisbon lisbon</p>';
 test.before(async () => {
   if (skipNoBrowser) return;
+  // a short video for the video test (ffmpeg makes it once)
+  const vid = path.join(os.tmpdir(), 'patos-cloud-test.webm');
+  try { if (!fs.existsSync(vid)) require('child_process').execFileSync('ffmpeg', ['-loglevel', 'error', '-y', '-f', 'lavfi', '-i', 'testsrc=size=320x240:rate=25:duration=8', '-c:v', 'libvpx', '-b:v', '400k', vid]); } catch (e) {}
+  const BOX = 'position:absolute;left:0;top:0;width:400px;height:120px;display:block;font:20px sans-serif';
+  const MORE = {
+    '/up': '<title>Upload</title><input id="f" type="file" style="' + BOX + '" onchange="var f=this.files[0];f.text().then(function(t){document.getElementById(\'out\').textContent=\'file:\'+f.name+\':\'+t})"><div id="out" style="position:absolute;top:200px">none</div>',
+    '/dl': '<title>Download</title><a href="/file.txt" download="notes from cloud.txt" style="' + BOX + ';background:#cde">Download</a>',
+    '/drop': '<title>Drop</title><div id="z" style="' + BOX + ';background:#eee">drop here</div><div id="out" style="position:absolute;top:200px">none</div><script>var z=document.getElementById("z");z.ondragover=function(e){e.preventDefault()};z.ondrop=function(e){e.preventDefault();var f=e.dataTransfer.files[0];f.text().then(function(t){document.getElementById("out").textContent="dropped:"+f.name+":"+t})}</script>',
+    '/tone': '<title>Tone</title><button style="' + BOX + '" onclick="var c=new AudioContext();var o=c.createOscillator();o.frequency.value=440;o.connect(c.destination);o.start();this.textContent=\'playing\'">Play a tone</button>',
+    '/video': '<title>Video</title><video src="/v.webm" autoplay muted loop style="position:absolute;left:0;top:0;width:640px;height:480px"></video>',
+    '/rc': '<title>Right click</title><div style="' + BOX + ';background:#eee" oncontextmenu="event.preventDefault();this.textContent=\'right-clicked\'">right-click me</div><p id="w" style="position:absolute;top:200px;margin:0;font:30px sans-serif">copyable</p><textarea id="ta" style="position:absolute;top:300px;left:0;width:400px;height:80px"></textarea>'
+  };
   site = http.createServer((req, res) => {
+    if (req.url === '/file.txt') { res.writeHead(200, { 'Content-Type': 'text/plain', 'Content-Disposition': 'attachment; filename="notes from cloud.txt"' }); return res.end('Downloaded from Cloud Chrome'); }
+    if (req.url === '/v.webm') { try { const d = fs.readFileSync(vid); res.writeHead(200, { 'Content-Type': 'video/webm', 'Content-Length': d.length }); return res.end(d); } catch (e) { res.writeHead(404); return res.end(); } }
     res.writeHead(200, { 'Content-Type': 'text/html' });
-    res.end(req.url === '/two' ? '<title>Cloud two</title><h1>Second page</h1>' : req.url === '/three' ? '<title>Cloud three</title><h1>Third</h1>' : HOME);
+    res.end(MORE[req.url] || (req.url === '/two' ? '<title>Cloud two</title><h1>Second page</h1>' : req.url === '/three' ? '<title>Cloud three</title><h1>Third</h1>' : HOME));
   });
   await new Promise((ok) => site.listen(0, '127.0.0.1', ok)); sp = site.address().port;
   dataDir = fs.mkdtempSync(path.join(os.tmpdir(), 'patos-cloud-'));
@@ -119,4 +133,104 @@ test('a wrong key on the device: the page still opens (without Cloud Chrome) and
   assert.ok(st, 'opened another way: ' + JSON.stringify(await state()));
   assert.ok((await page.evaluate(() => window.__notes)).some((n) => /key on this device is wrong/.test(n)));
   await page.evaluate((k) => { PatOS.store.set('cloudKey', k); PatOS.wm.closeAll(); }, KEY);
+});
+
+const go = (u) => page.evaluate((x) => { const w = PatOS.wm.windows.find((y) => y.app.id === 'browser'); if (!w) return PatOS.launch('browser', { url: x }); const o = w.el.querySelector('.br-omni'); o.value = x; o.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); }, u);
+const pageText = () => page.evaluate(async (k) => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); const id = w && w._cloudId && w._cloudId(); if (!id) return ''; const j = await (await fetch('/api/cloud/cmd', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-cloud-key': k }, body: JSON.stringify({ id, cmd: 'text' }) })).json(); return j.text || ''; }, KEY);
+const opened = async (title) => until(async () => { const s = await state(); return s && s.painted && s.title.startsWith(title) ? s : null; }, 15000);
+
+test('a page asks for a file: Patoogle picks one on this device and the page gets it', { skip: skipNoBrowser }, async () => {
+  await go(S() + '/up'); assert.ok(await opened('Upload'));
+  await clickPage(100, 60);
+  assert.ok(await until(() => page.evaluate(() => !!document.querySelector('.br-cloudfile'))), 'the “This page wants a file” sheet');
+  await page.setInputFiles('.br-cloudfile input[type=file]', { name: 'hello.txt', mimeType: 'text/plain', buffer: Buffer.from('HELLO FROM PATOS') });
+  assert.ok(await until(async () => /file:hello\.txt:HELLO FROM PATOS/.test(await pageText())), 'the page read the file: ' + await pageText());
+  assert.equal(await page.evaluate(() => !!document.querySelector('.br-cloudfile')), false, 'the sheet goes away');
+});
+
+test('a download lands in PatOS’s Downloads folder', { skip: skipNoBrowser }, async () => {
+  await go(S() + '/dl'); assert.ok(await opened('Download'));
+  await clickPage(100, 60);
+  const f = await until(() => page.evaluate(async () => { const l = PatOS.fs.list('/Downloads').find((x) => /notes from cloud/.test(x.name)); return l ? l.path : null; }), 15000);
+  assert.ok(f, 'the file is in Downloads');
+  const text = await page.evaluate(async (p) => { const n = PatOS.fs.get(p); if (typeof n.content === 'string' && n.content) return n.content; const b = await PatOS.fs.getBlob(p); return b ? await b.text() : ''; }, f);
+  assert.equal(text, 'Downloaded from Cloud Chrome');
+});
+
+test('files dropped on a page reach it', { skip: skipNoBrowser }, async () => {
+  await go(S() + '/drop'); assert.ok(await opened('Drop'));
+  await page.evaluate(() => { const cv = [...document.querySelectorAll('.br-cloudcv')].find((c) => c.offsetWidth); const r = cv.getBoundingClientRect(); const dt = new DataTransfer(); dt.items.add(new File(['DROPPED TEXT'], 'drop.txt', { type: 'text/plain' })); const o = { bubbles: true, cancelable: true, clientX: r.left + 100 * r.width / cv.width, clientY: r.top + 60 * r.height / cv.height, dataTransfer: dt }; cv.dispatchEvent(new DragEvent('dragover', o)); cv.dispatchEvent(new DragEvent('drop', o)); });
+  assert.ok(await until(async () => /dropped:drop\.txt:DROPPED TEXT/.test(await pageText())), 'the page got the file: ' + await pageText());
+});
+
+test('right-click, paste, and copy into this device’s clipboard', { skip: skipNoBrowser }, async () => {
+  await go(S() + '/rc'); assert.ok(await opened('Right click'));
+  const r = await page.evaluate(() => { const cv = [...document.querySelectorAll('.br-cloudcv')].find((c) => c.offsetWidth); const b = cv.getBoundingClientRect(); return { x: b.left, y: b.top, sx: b.width / cv.width, sy: b.height / cv.height }; });
+  await page.mouse.click(r.x + 100 * r.sx, r.y + 60 * r.sy, { button: 'right' });
+  assert.ok(await until(async () => /right-clicked/.test(await pageText())), 'right-click reached the page');
+  // paste into the text box
+  await clickPage(100, 330); await wait(300);
+  await page.evaluate(() => { const cv = [...document.querySelectorAll('.br-cloudcv')].find((c) => c.offsetWidth); const dt = new DataTransfer(); dt.setData('text/plain', 'pasted words'); cv.dispatchEvent(new ClipboardEvent('paste', { clipboardData: dt, bubbles: true, cancelable: true })); });
+  assert.ok(await until(() => page.evaluate(async (k) => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); const id = w._cloudId(); const r2 = await (await fetch('/api/cloud/cmd', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-cloud-key': k }, body: JSON.stringify({ id, cmd: 'value' }) })).json(); return r2.value === 'pasted words'; }, KEY)), 'the pasted words are in the text box');
+  // copy: double-click a word, Ctrl+C, and it is in this device's clipboard
+  await page.evaluate(() => { window.__copied = []; Object.defineProperty(navigator, 'clipboard', { configurable: true, value: { writeText: (t) => { window.__copied.push(t); return Promise.resolve(); }, readText: () => Promise.resolve('') } }); });
+  const cr = await page.evaluate(() => { const cv = [...document.querySelectorAll('.br-cloudcv')].find((c) => c.offsetWidth); const b = cv.getBoundingClientRect(); return { x: b.left + 60 * b.width / cv.width, y: b.top + 222 * b.height / cv.height }; });
+  await page.mouse.dblclick(cr.x, cr.y); await wait(400);
+  await page.keyboard.press('Control+c');
+  assert.deepEqual(await until(() => page.evaluate(() => (window.__copied.length ? window.__copied.slice() : null))), ['copyable']);
+});
+
+test('a video playing makes the picture faster (about 15 a second)', { skip: skipNoBrowser || !fs.existsSync(path.join(os.tmpdir(), 'patos-cloud-test.webm')) }, async () => {
+  await go(S() + '/video'); assert.ok(await opened('Video'));
+  await wait(2500);
+  const f0 = await page.evaluate(() => +[...document.querySelectorAll('.br-cloudcv')].find((c) => c.offsetWidth).dataset.frames);
+  await wait(3000);
+  const f1 = await page.evaluate(() => +[...document.querySelectorAll('.br-cloudcv')].find((c) => c.offsetWidth).dataset.frames);
+  const fps = (f1 - f0) / 3;
+  assert.ok(fps >= 6, 'pictures a second while a video plays: ' + fps.toFixed(1));
+});
+
+test('sound: Cloud Chrome’s sound comes as a live stream (when the server has the sound tools)', { skip: skipNoBrowser }, async (t) => {
+  const s = await status(); if (!s.sound) { t.skip('no PulseAudio/ffmpeg on this machine'); return; }
+  await go(S() + '/tone'); assert.ok(await opened('Tone'));
+  await clickPage(100, 60);
+  assert.ok(await until(async () => /playing/.test(await pageText())), 'the page started its tone');
+  // 2 seconds of the stream, decoded: not silence
+  const ac = new AbortController(); const parts = [];
+  const r = await fetch(srv.base + '/api/cloud/audio?key=' + KEY, { signal: ac.signal });
+  assert.equal(r.headers.get('content-type'), 'audio/mpeg');
+  const rd = r.body.getReader(); const t0 = Date.now();
+  while (Date.now() - t0 < 2500) { const { value, done } = await rd.read(); if (done) break; parts.push(Buffer.from(value)); }
+  ac.abort();
+  const mp3 = Buffer.concat(parts); assert.ok(mp3.length > 8000, 'MP3 bytes: ' + mp3.length);
+  const pcm = require('child_process').execFileSync('ffmpeg', ['-loglevel', 'error', '-f', 'mp3', '-i', 'pipe:0', '-f', 's16le', '-ac', '1', 'pipe:1'], { input: mp3 });
+  let sum = 0; const n = Math.floor(pcm.length / 2); for (let i = 0; i < n; i++) { const v = pcm.readInt16LE(i * 2); sum += v * v; }
+  const rms = Math.sqrt(sum / Math.max(1, n)); assert.ok(rms > 1000, 'the tone is in the stream (rms ' + Math.round(rms) + ')');
+  // and Patoogle plays it after a click in the page, with a speaker button to mute
+  assert.ok(await until(() => page.evaluate(() => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); const b2 = w.el.querySelector('.pb-snd'); return b2 && getComputedStyle(b2).display !== 'none'; })), 'the speaker button shows');
+});
+
+test('on an iPhone: the phone layout, a tap opens a link, a drag scrolls, and the keyboard button types', { skip: skipNoBrowser }, async () => {
+  const ctx = await b.newContext(Object.assign({}, playwright().devices['iPhone 14'])); const ph = await ctx.newPage();
+  await boot(ph, srv.base, { fresh: true });
+  await ph.evaluate((k) => { PatOS.notify = () => {}; PatOS.store.set('cloudKey', k); }, KEY);
+  await ph.evaluate((u) => PatOS.launch('browser', { url: u }), S() + '/');
+  const ok = await until(() => ph.evaluate(() => { const cv = [...document.querySelectorAll('.br-cloudcv')].find((c) => c.offsetWidth); return cv && +cv.dataset.frames > 0 && /Cloud home/.test(PatOS.wm.windows.find((x) => x.app.id === 'browser').title); }), 15000);
+  assert.ok(ok, 'the page shows on the phone');
+  const ua = await ph.evaluate(async (k) => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); const id = w._cloudId(); const r = await fetch('/api/cloud/cmd', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-cloud-key': k }, body: JSON.stringify({ id, cmd: 'text' }) }); void r; return navigator.userAgent; }, KEY);
+  void ua;
+  const box = () => ph.evaluate(() => { const cv = [...document.querySelectorAll('.br-cloudcv')].find((c) => c.offsetWidth); const r = cv.getBoundingClientRect(); return { x: r.left, y: r.top, sx: r.width / cv.width, sy: r.height / cv.height, w: cv.width }; });
+  const bx = await box();
+  assert.ok(bx.w <= 400, 'the page has the phone’s width: ' + bx.w);
+  // typing with the keyboard button: tap the text box, then type through the phone keyboard's box
+  await ph.touchscreen.tap(bx.x + 100 * bx.sx, bx.y + 340 * bx.sy); await wait(400);
+  assert.equal(await ph.evaluate(() => getComputedStyle(document.querySelector('.pb-kbbtn:not(.pb-snd)')).display !== 'none'), true, 'the keyboard button shows');
+  await ph.evaluate(() => document.querySelector('.pb-kbbtn:not(.pb-snd)').click());
+  await ph.keyboard.type('phone');
+  const typed = await until(() => ph.evaluate(async (k) => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); const id = w._cloudId(); const j = await (await fetch('/api/cloud/cmd', { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-cloud-key': k }, body: JSON.stringify({ id, cmd: 'text' }) })).json(); return /typed:phone/.test(j.text || '') ? j.text : null; }, KEY));
+  assert.ok(typed, 'typed from the phone keyboard');
+  // a tap on the link
+  await ph.touchscreen.tap(bx.x + 100 * bx.sx, bx.y + 40 * bx.sy);
+  assert.ok(await until(() => ph.evaluate(() => /Cloud two/.test(PatOS.wm.windows.find((x) => x.app.id === 'browser').title))), 'the tap followed the link');
+  await ctx.close();
 });

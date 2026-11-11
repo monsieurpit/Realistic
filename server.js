@@ -56,5 +56,7 @@ const server = http.createServer((req, res) => {
   if (!file) { res.writeHead(404); return res.end('Not found'); }
   sendFile(req, res, file, TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream').then((ok) => { if (!ok) { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('Not found'); } }).catch(() => { res.writeHead(500); res.end('Server error'); });
 });
+// Cloud Chrome's live connection (WebSocket): pictures out, clicks and keys in
+server.on('upgrade', (req, sock) => { if (String(req.url).startsWith('/api/cloud/ws')) cloudBrowser.upgrade(req, sock); else sock.destroy(); });
 server.keepAliveTimeout = 65000; server.headersTimeout = 70000;
 server.listen(PORT, () => { console.log('PatOS running on port ' + PORT); try { yt.warm(); } catch (e) {} });

@@ -16,6 +16,7 @@ const path = require('path');
 const http = require('http');
 const net = require('net');
 const crypto = require('crypto');
+const os = require('os');
 const { spawn } = require('child_process');
 const { safeURL } = require('./services.js');
 
@@ -30,6 +31,24 @@ function findChrome() {
   const names = ['chromium', 'chromium-browser', 'google-chrome', 'google-chrome-stable', 'chrome'];
   for (const dir of (process.env.PATH || '').split(path.delimiter).concat(['/usr/bin', '/usr/local/bin', '/snap/bin'])) for (const n of names) { const p = path.join(dir, n); try { if (fs.statSync(p).isFile()) return p; } catch (e) {} }
   return null;
+}
+// sound: Chrome plays into a virtual speaker (PulseAudio null sink); parec records it and ffmpeg makes an MP3 stream for Patoogle
+const which = (n) => { for (const dir of (process.env.PATH || '').split(path.delimiter).concat(['/usr/bin', '/usr/local/bin'])) { const p = path.join(dir, n); try { if (fs.statSync(p).isFile()) return p; } catch (e) {} } return null; };
+const soundTools = () => (process.env.CLOUD_SOUND === '0' ? null : (which('pulseaudio') && which('parec') && which('ffmpeg') ? { pa: which('pulseaudio'), parec: which('parec'), ffmpeg: which('ffmpeg') } : null));
+const RUN = () => path.join(os.tmpdir(), 'patos-cloud-' + process.pid);
+let pulse = null;
+async function startPulse() {
+  const t = soundTools(); if (!t) return null;
+  if (pulse) return pulse;
+  const dir = path.join(RUN(), 'pulse'); fs.mkdirSync(dir, { recursive: true });
+  const sock = path.join(dir, 'native'); try { fs.rmSync(sock, { force: true }); } catch (e) {}
+  const env = Object.assign({}, process.env, { HOME: dir, XDG_RUNTIME_DIR: dir, PULSE_RUNTIME_PATH: dir });
+  const proc = spawn(t.pa, ['--daemonize=no', '--exit-idle-time=-1', '-n', '--load=module-null-sink sink_name=patos', '--load=module-native-protocol-unix socket=' + sock + ' auth-anonymous=1'], { env, stdio: 'ignore' });
+  for (let i = 0; i < 40 && !fs.existsSync(sock); i++) await new Promise((r) => setTimeout(r, 100));
+  if (!fs.existsSync(sock)) { try { proc.kill(); } catch (e) {} return null; }
+  pulse = { proc, sock, env: Object.assign({}, env, { PULSE_SERVER: 'unix:' + sock }) };
+  proc.on('exit', () => { if (pulse && pulse.proc === proc) pulse = null; });
+  return pulse;
 }
 const available = () => !!(KEY().length >= 8 && typeof WebSocket === 'function' && findChrome());
 
@@ -87,9 +106,10 @@ async function start() {
     // a Chrome that crashed (or a server that was killed) leaves its profile locked: the lock goes, the profile stays
     ['SingletonLock', 'SingletonSocket', 'SingletonCookie'].forEach((f) => { try { fs.rmSync(path.join(DATA(), f), { force: true }); } catch (e) {} });
     const args = ['--headless=new', '--no-sandbox', '--disable-gpu', '--disable-dev-shm-usage', '--no-first-run', '--no-default-browser-check', '--disable-background-networking',
-      '--disable-sync', '--disable-component-update', '--disable-default-apps', '--mute-audio', '--renderer-process-limit=6', '--remote-debugging-port=0',
+      '--disable-sync', '--disable-component-update', '--disable-default-apps', '--renderer-process-limit=6', '--remote-debugging-port=0',
       '--user-data-dir=' + DATA(), '--proxy-server=http://127.0.0.1:' + gate.address().port, '--proxy-bypass-list=<-loopback>', '--window-size=1280,800', '--lang=' + (process.env.CLOUD_LANG || 'en-US'), 'about:blank'];
-    const proc = spawn(exe, args, { stdio: ['ignore', 'ignore', 'pipe'] });
+    const pa = await startPulse(); if (!pa) args.splice(args.indexOf('--renderer-process-limit=6'), 0, '--mute-audio'); // (no sound tools: Chrome stays silent)
+    const proc = spawn(exe, args, { stdio: ['ignore', 'ignore', 'pipe'], env: pa ? pa.env : process.env });
     const wsURL = await new Promise((ok, bad) => {
       let buf = ''; const t = setTimeout(() => bad(new Error('Chrome did not start')), 20000);
       proc.stderr.on('data', (d) => { buf += d; const m = /DevTools listening on (ws:\/\/\S+)/.exec(buf); if (m) { clearTimeout(t); ok(m[1]); } });
@@ -103,14 +123,16 @@ async function start() {
     proc.on('exit', () => stop('exit'));
     chrome = c; lastSeen = lastTouch = Date.now();
     await send('Target.setDiscoverTargets', { discover: true });
-    try { await send('Browser.setDownloadBehavior', { behavior: 'deny' }); } catch (e) {}
+    fs.mkdirSync(path.join(RUN(), 'downloads'), { recursive: true }); c.downloads = new Map();
+    try { await send('Browser.setDownloadBehavior', { behavior: 'allowAndName', downloadPath: path.join(RUN(), 'downloads'), eventsEnabled: true }); } catch (e) {}
     return c;
   })();
   try { return await starting; } catch (e) { stop('failed'); throw e; } finally { starting = null; }
 }
 function stop() {
+  if (pulse) { try { pulse.proc.kill(); } catch (e) {} pulse = null; }
   const c = chrome; if (!c) return; chrome = null;
-  c.tabs.forEach((t) => t.clients.forEach((res) => { try { res.write('event: gone\ndata: {}\n\n'); res.end(); } catch (e) {} }));
+  c.tabs.forEach((t) => { emit(t, 'gone', {}); t.clients.forEach((cl) => { try { if (cl.ws) cl.sock.end(); else cl.res.end(); } catch (e) {} }); });
   c.waits.forEach((w) => w.bad(new Error('Cloud Chrome stopped'))); c.waits.clear();
   try { c.ws.close(); } catch (e) {} try { c.proc.kill('SIGKILL'); } catch (e) {} try { c.gate.close(); } catch (e) {}
 }
@@ -121,7 +143,66 @@ setInterval(() => {
   if (now - lastSeen > IDLE_MS() || now - lastTouch > 30 * 60000) stop('idle');
 }, 15000).unref();
 
-function emit(tab, event, data) { const s = 'event: ' + event + '\ndata: ' + JSON.stringify(data) + '\n\n'; tab.clients.forEach((res) => { try { res.write(s); } catch (e) {} }); }
+function emit(tab, event, data) {
+  let text = null, bin = null;
+  tab.clients.forEach((c) => {
+    try {
+      if (c.ws) {
+        if (event === 'frame') { if (c.sock.writableLength > 160 * 1024) { c.skipped = (c.skipped || 0) + 1; return; } bin = bin || Buffer.from(data.d, 'base64'); wsSend(c.sock, bin, 2); }
+        else wsSend(c.sock, Buffer.from(JSON.stringify({ e: event, d: data })), 1);
+      } else {
+        if (event === 'frame' && c.res.writableLength > 320 * 1024) return;
+        text = text || 'event: ' + event + '\ndata: ' + JSON.stringify(data) + '\n\n'; c.res.write(text);
+      }
+    } catch (e) {}
+  });
+}
+/* ---------- the live connection (WebSocket, RFC 6455, no package): pictures as binary, events and input as JSON ---------- */
+function wsSend(sock, payload, op) {
+  const n = payload.length; let head;
+  if (n < 126) head = Buffer.from([0x80 | op, n]);
+  else if (n < 65536) { head = Buffer.alloc(4); head[0] = 0x80 | op; head[1] = 126; head.writeUInt16BE(n, 2); }
+  else { head = Buffer.alloc(10); head[0] = 0x80 | op; head[1] = 127; head.writeBigUInt64BE(BigInt(n), 2); }
+  sock.write(Buffer.concat([head, payload]));
+}
+function wsReader(sock, onMessage, onClose) {
+  let buf = Buffer.alloc(0), parts = [];
+  sock.on('data', (chunk) => {
+    buf = Buffer.concat([buf, chunk]);
+    if (buf.length > 4 * 1048576) { sock.destroy(); return; }
+    for (;;) {
+      if (buf.length < 2) return;
+      const fin = buf[0] & 0x80, op = buf[0] & 0x0f, masked = buf[1] & 0x80; let len = buf[1] & 0x7f, off = 2;
+      if (len === 126) { if (buf.length < 4) return; len = buf.readUInt16BE(2); off = 4; } else if (len === 127) { if (buf.length < 10) return; len = Number(buf.readBigUInt64BE(2)); off = 10; }
+      if (!masked) { sock.destroy(); return; } // (browsers always mask)
+      if (buf.length < off + 4 + len) return;
+      const mask = buf.slice(off, off + 4), data = Buffer.from(buf.slice(off + 4, off + 4 + len)); for (let i = 0; i < data.length; i++) data[i] ^= mask[i & 3];
+      buf = buf.slice(off + 4 + len);
+      if (op === 8) { try { wsSend(sock, Buffer.alloc(0), 8); } catch (e) {} sock.end(); return; }
+      if (op === 9) { try { wsSend(sock, data, 10); } catch (e) {} continue; }
+      if (op === 10) continue;
+      parts.push(data); if (fin) { const msg = Buffer.concat(parts).toString('utf8'); parts = []; onMessage(msg); }
+    }
+  });
+  sock.on('close', onClose); sock.on('error', () => sock.destroy());
+}
+function upgrade(req, sock) {
+  const url = new URL(req.url, 'http://x');
+  const no = (code) => { try { sock.end('HTTP/1.1 ' + code + ' No\r\n\r\n'); } catch (e) {} };
+  if (url.pathname !== '/api/cloud/ws' || !keyOK(req, url) || !available()) return no(401);
+  const c = chrome; const tab = c && c.tabs.get(url.searchParams.get('id') || ''); if (!tab) return no(404);
+  const k = req.headers['sec-websocket-key']; if (!k) return no(400);
+  const accept = crypto.createHash('sha1').update(k + '258EAFA5-E914-47DA-95CA-C5AB0DC85B11').digest('base64');
+  sock.write('HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ' + accept + '\r\n\r\n');
+  sock.setNoDelay(true);
+  const client = { ws: true, sock }; tab.clients.add(client); lastSeen = Date.now();
+  const beat = setInterval(() => { try { wsSend(sock, Buffer.alloc(0), 9); } catch (e) {} }, 20000);
+  wsReader(sock, (msg) => {
+    let m; try { m = JSON.parse(msg); } catch (e) { return; }
+    if (m && Array.isArray(m.events)) { lastTouch = Date.now(); runInput(tab, m.events).catch(() => {}); }
+  }, () => { clearInterval(beat); tab.clients.delete(client); cast(tab).catch(() => {}); });
+  cast(tab).then(() => nav(tab)).catch(() => {});
+}
 async function attach(c, targetId, info) {
   const { sessionId } = await send('Target.attachToTarget', { targetId, flatten: true });
   const tab = { id: targetId, sessionId, clients: new Set(), url: info.url || '', title: info.title || '', w: 1280, h: 800, mobile: false, casting: false, loading: false, opener: info.openerId || null };
@@ -145,13 +226,17 @@ async function shoot(tab) {
   tab.loop = null; if (!tab.casting || !chrome) return;
   const t0 = Date.now();
   try {
-    const r = await send('Page.captureScreenshot', { format: 'jpeg', quality: +process.env.CLOUD_JPEG || 62, optimizeForSpeed: true }, tab.sessionId);
+    const moving = tab.video || Date.now() < (tab.busyUntil || 0);
+    const r = await send('Page.captureScreenshot', { format: 'jpeg', quality: moving ? Math.min(50, +process.env.CLOUD_JPEG || 62) : +process.env.CLOUD_JPEG || 62, optimizeForSpeed: true }, tab.sessionId);
     const sum = crypto.createHash('md5').update(r.data).digest('hex');
     if (sum !== tab.lastSum) { tab.lastSum = sum; count(r.data.length); emit(tab, 'frame', { d: r.data, w: tab.w, h: tab.h }); }
   } catch (e) {}
   if (!tab.casting) return;
+  // (every second or so: is a video playing? then the picture keeps up with it)
+  if (!tab.vCheck || Date.now() - tab.vCheck > 1000) { tab.vCheck = Date.now(); send('Runtime.evaluate', { expression: '[...document.querySelectorAll("video")].some(function(v){return !v.paused&&!v.ended&&v.readyState>2})', returnByValue: true }, tab.sessionId).then((r) => { tab.video = !!(r.result && r.result.value); }).catch(() => {}); }
   const fast = Date.now() < (tab.busyUntil || 0) || tab.loading;
-  tab.loop = setTimeout(() => shoot(tab), Math.max(20, (fast ? 120 : 1000) - (Date.now() - t0)));
+  const every = tab.video ? Math.round(1000 / (+process.env.CLOUD_VIDEO_FPS || 15)) : fast ? 60 : 1000;
+  tab.loop = setTimeout(() => shoot(tab), Math.max(15, every - (Date.now() - t0)));
 }
 async function cast(tab) {
   const want = tab.clients.size > 0;
@@ -169,6 +254,14 @@ async function nav(tab) {
 }
 function onEvent(c, m) {
   const p = m.params || {};
+  if (m.method === 'Browser.downloadWillBegin') { const tab = c.tabs.get(p.frameId) || [...c.tabs.values()].find((x) => x.clients.size); c.downloads.set(p.guid, { name: String(p.suggestedFilename || 'download').replace(/[\/\\:*?"<>|]/g, '-').slice(0, 120), tab: tab && tab.id, t: Date.now() }); return; }
+  if (m.method === 'Browser.downloadProgress') {
+    const d = c.downloads.get(p.guid); if (!d) return;
+    if (p.state === 'completed') { d.done = true; d.size = p.totalBytes || p.receivedBytes || 0; const tab = c.tabs.get(d.tab) || [...c.tabs.values()].find((x) => x.clients.size); if (tab) emit(tab, 'download', { guid: p.guid, name: d.name, size: d.size }); setTimeout(() => { try { fs.rmSync(path.join(RUN(), 'downloads', p.guid), { force: true }); } catch (e) {} c.downloads.delete(p.guid); }, 30 * 60000).unref(); }
+    else if (p.state === 'canceled') c.downloads.delete(p.guid);
+    else if ((p.receivedBytes || 0) > (+process.env.CLOUD_DOWNLOAD_MB || 200) * 1048576) send('Browser.cancelDownload', { guid: p.guid }).catch(() => {});
+    return;
+  }
   if (m.method === 'Target.targetCreated' && p.targetInfo.type === 'page' && p.targetInfo.openerId && c.tabs.has(p.targetInfo.openerId) && !c.tabs.has(p.targetInfo.targetId)) {
     // a page opened by one of ours (a link in a new tab, window.open): Patoogle gets a new tab for it
     const opener = c.tabs.get(p.targetInfo.openerId);
@@ -184,7 +277,38 @@ function onEvent(c, m) {
   else if (m.method === 'Page.frameNavigated' && !p.frame.parentId) { nav(tab); busy(tab); }
   else if (m.method === 'Page.navigatedWithinDocument') nav(tab);
   else if (m.method === 'Page.javascriptDialogOpening') emit(tab, 'dialog', { type: p.type, message: String(p.message || '').slice(0, 2000), value: p.defaultPrompt || '' });
-  else if (m.method === 'Page.fileChooserOpened') emit(tab, 'notice', { text: 'Uploading files isn’t possible in Cloud Chrome yet.' });
+  else if (m.method === 'Page.fileChooserOpened') { tab.chooser = { node: p.backendNodeId, multiple: p.mode === 'selectMultiple' }; emit(tab, 'filechooser', { multiple: tab.chooser.multiple }); }
+}
+
+/* ---------- input: clicks, scrolling, touch, keys ---------- */
+async function runInput(tab, list) {
+  if (!chrome || !Array.isArray(list)) return;
+  busy(tab); const S = tab.sessionId;
+  // a burst of moves becomes the last one, and scroll steps in a row add up: fewer calls, same result
+  const evs = [];
+  for (const e of list.slice(0, 120)) {
+    const prev = evs[evs.length - 1];
+    if (prev && e.t === 'wheel' && prev.t === 'wheel') { prev.dx = (+prev.dx || 0) + (+e.dx || 0); prev.dy = (+prev.dy || 0) + (+e.dy || 0); prev.x = e.x; prev.y = e.y; continue; }
+    if (prev && e.t === 'mouse' && e.type === 'mouseMoved' && prev.t === 'mouse' && prev.type === 'mouseMoved') { evs[evs.length - 1] = e; continue; }
+    if (prev && e.t === 'touch' && e.type === 'touchMove' && prev.t === 'touch' && prev.type === 'touchMove') { evs[evs.length - 1] = e; continue; }
+    evs.push(Object.assign({}, e));
+  }
+  const all = [];
+  for (const e of evs) {
+    const mods = (e.alt ? 1 : 0) | (e.ctrl ? 2 : 0) | (e.meta ? 4 : 0) | (e.shift ? 8 : 0);
+    if (e.t === 'mouse') all.push(send('Input.dispatchMouseEvent', { type: e.type, x: +e.x || 0, y: +e.y || 0, button: e.button || 'none', buttons: +e.buttons || 0, clickCount: +e.count || 0, modifiers: mods }, S));
+    else if (e.t === 'wheel') all.push(send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: +e.x || 0, y: +e.y || 0, deltaX: +e.dx || 0, deltaY: +e.dy || 0, modifiers: mods }, S));
+    else if (e.t === 'touch') all.push(send('Input.dispatchTouchEvent', { type: e.type, touchPoints: e.type === 'touchEnd' || e.type === 'touchCancel' ? [] : [{ x: +e.x || 0, y: +e.y || 0, id: 1, radiusX: 4, radiusY: 4, force: 1 }], modifiers: mods }, S));
+    else if (e.t === 'text' && e.text) all.push(send('Input.insertText', { text: String(e.text).slice(0, 5000) }, S));
+    else if (e.t === 'key' && e.key) {
+      const k = String(e.key); const code = KEYS[k] || (k.length === 1 ? k.toUpperCase().charCodeAt(0) : +e.keyCode || 0);
+      const text = k.length === 1 && !e.ctrl && !e.meta ? k : k === 'Enter' ? '\r' : undefined;
+      all.push(send('Input.dispatchKeyEvent', { type: text ? 'keyDown' : 'rawKeyDown', key: k, code: e.code || '', windowsVirtualKeyCode: code, nativeVirtualKeyCode: code, text, unmodifiedText: text, modifiers: mods }, S));
+      all.push(send('Input.dispatchKeyEvent', { type: 'keyUp', key: k, code: e.code || '', windowsVirtualKeyCode: code, nativeVirtualKeyCode: code, modifiers: mods }, S));
+    }
+  }
+  await Promise.all(all.map((p) => p.catch(() => {})));
+  busy(tab);
 }
 
 /* ---------- what Patoogle asks ---------- */
@@ -202,7 +326,7 @@ const KEYS = { Enter: 13, Backspace: 8, Tab: 9, Escape: 27, ArrowLeft: 37, Arrow
 
 async function handle(req, res, url) {
   const p = url.pathname;
-  if (p === '/api/cloud/status') return json(res, 200, { available: available(), chrome: !!findChrome(), keySet: KEY().length >= 8, running: !!chrome, tabs: chrome ? chrome.tabs.size : 0, usedMB: Math.round(used / 1048576), capMB: Math.round(DAILY() / 1048576) });
+  if (p === '/api/cloud/status') return json(res, 200, { available: available(), sound: !!soundTools(), chrome: !!findChrome(), keySet: KEY().length >= 8, running: !!chrome, tabs: chrome ? chrome.tabs.size : 0, usedMB: Math.round(used / 1048576), capMB: Math.round(DAILY() / 1048576) });
   const ip = ipOf(req), now = Date.now(); const h = (hits.get(ip) || []).filter((t) => now - t < 60000);
   if (!keyOK(req, url)) { h.push(now); hits.set(ip, h); if (h.length > 20) return json(res, 429, { error: 'Too many tries. Wait a minute.' }); return json(res, 401, { error: 'The Cloud Chrome key is wrong' }); }
   if (!available()) return json(res, 503, { error: 'Cloud Chrome isn’t set up on this server' });
@@ -211,13 +335,43 @@ async function handle(req, res, url) {
     if (p === '/api/cloud/stream') {
       const c = chrome; const tab = c && c.tabs.get(url.searchParams.get('id') || ''); if (!tab) return json(res, 404, { error: 'That tab is gone' });
       res.writeHead(200, { 'Content-Type': 'text/event-stream', 'Cache-Control': 'no-store', Connection: 'keep-alive', 'X-Accel-Buffering': 'no' });
-      res.write('retry: 2000\n\n'); tab.clients.add(res); lastSeen = Date.now();
+      res.write('retry: 2000\n\n'); const client = { res }; tab.clients.add(client); lastSeen = Date.now();
       const beat = setInterval(() => { try { res.write(': hi\n\n'); } catch (e) {} }, 20000);
-      req.on('close', () => { clearInterval(beat); tab.clients.delete(res); cast(tab).catch(() => {}); });
+      req.on('close', () => { clearInterval(beat); tab.clients.delete(client); cast(tab).catch(() => {}); });
       await cast(tab); await nav(tab);
       return;
     }
+    if (p === '/api/cloud/audio') {
+      // the sound of Cloud Chrome as an MP3 stream (all its tabs mixed), while someone listens
+      const t = soundTools(); if (!t || !chrome || !pulse) return json(res, 404, { error: 'No sound here' });
+      res.writeHead(200, { 'Content-Type': 'audio/mpeg', 'Cache-Control': 'no-store', 'X-Accel-Buffering': 'no' });
+      const rec = spawn(t.parec, ['-d', 'patos.monitor', '--format=s16le', '--rate=44100', '--channels=2', '--latency-msec=40'], { env: pulse.env, stdio: ['ignore', 'pipe', 'ignore'] });
+      const enc = spawn(t.ffmpeg, ['-loglevel', 'error', '-fflags', '+nobuffer', '-f', 's16le', '-ar', '44100', '-ac', '2', '-i', 'pipe:0', '-c:a', 'libmp3lame', '-b:a', (process.env.CLOUD_AUDIO_KBPS || '128') + 'k', '-flush_packets', '1', '-f', 'mp3', 'pipe:1'], { stdio: ['pipe', 'pipe', 'ignore'] });
+      rec.stdout.pipe(enc.stdin); enc.stdin.on('error', () => {});
+      enc.stdout.on('data', (c) => { count(c.length); try { res.write(c); } catch (e) {} });
+      const end = () => { try { rec.kill('SIGKILL'); } catch (e) {} try { enc.kill('SIGKILL'); } catch (e) {} try { res.end(); } catch (e) {} };
+      req.on('close', end); rec.on('exit', end); enc.on('exit', end);
+      return;
+    }
+    if (p === '/api/cloud/download') {
+      const d = chrome && chrome.downloads.get(url.searchParams.get('guid') || ''); const f = d && d.done && path.join(RUN(), 'downloads', url.searchParams.get('guid'));
+      if (!f || !fs.existsSync(f)) return json(res, 404, { error: 'That download is gone' });
+      res.writeHead(200, { 'Content-Type': 'application/octet-stream', 'Content-Length': fs.statSync(f).size, 'Content-Disposition': 'attachment; filename*=UTF-8\'\'' + encodeURIComponent(d.name), 'Cache-Control': 'no-store' });
+      return fs.createReadStream(f).pipe(res);
+    }
     if (req.method !== 'POST') return json(res, 405, { error: 'POST' });
+    if (p === '/api/cloud/upload') {
+      // one file for a page's file box, or to drop on the page; kept 10 minutes
+      const c = chrome; const tab = c && c.tabs.get(url.searchParams.get('id') || ''); if (!tab) return json(res, 404, { error: 'That tab is gone' });
+      const max = (+process.env.CLOUD_UPLOAD_MB || 50) * 1048576; const name = String(url.searchParams.get('name') || 'file').replace(/[\/\\:*?"<>|\x00-\x1f]/g, '-').slice(0, 120) || 'file';
+      const dir = path.join(RUN(), 'uploads', crypto.randomBytes(8).toString('hex')); fs.mkdirSync(dir, { recursive: true }); const f = path.join(dir, name);
+      const out = fs.createWriteStream(f); let n = 0, tooBig = false;
+      await new Promise((ok) => { req.on('data', (ch) => { n += ch.length; if (n > max) { tooBig = true; req.destroy(); } else out.write(ch); }); req.on('end', ok); req.on('close', ok); req.on('error', ok); });
+      out.end(); lastTouch = Date.now(); count(n);
+      if (tooBig) { fs.rmSync(dir, { recursive: true, force: true }); return json(res, 413, { error: 'That file is too big for Cloud Chrome (' + Math.round(max / 1048576) + ' MB at most)' }); }
+      (tab.uploads = tab.uploads || []).push(f); setTimeout(() => fs.rmSync(dir, { recursive: true, force: true }), 10 * 60000).unref();
+      return json(res, 200, { ok: true, n: tab.uploads.length });
+    }
     const b = await body(req); lastTouch = Date.now();
     if (p === '/api/cloud/open') {
       if (over()) return json(res, 429, { error: 'Cloud Chrome has used today’s data. It works again tomorrow.' });
@@ -233,27 +387,22 @@ async function handle(req, res, url) {
     }
     const c = chrome; const tab = c && c.tabs.get(String(b.id || '')); if (!tab) return json(res, 404, { error: 'That tab is gone' });
     const S = tab.sessionId;
-    if (p === '/api/cloud/input') {
-      busy(tab);
-      for (const e of (Array.isArray(b.events) ? b.events : []).slice(0, 60)) {
-        const mods = (e.alt ? 1 : 0) | (e.ctrl ? 2 : 0) | (e.meta ? 4 : 0) | (e.shift ? 8 : 0);
-        if (e.t === 'mouse') await send('Input.dispatchMouseEvent', { type: e.type, x: +e.x || 0, y: +e.y || 0, button: e.button || 'none', buttons: +e.buttons || 0, clickCount: +e.count || 0, modifiers: mods }, S);
-        else if (e.t === 'wheel') await send('Input.dispatchMouseEvent', { type: 'mouseWheel', x: +e.x || 0, y: +e.y || 0, deltaX: +e.dx || 0, deltaY: +e.dy || 0, modifiers: mods }, S);
-        else if (e.t === 'text' && e.text) await send('Input.insertText', { text: String(e.text).slice(0, 5000) }, S);
-        else if (e.t === 'key' && e.key) {
-          const k = String(e.key); const code = KEYS[k] || (k.length === 1 ? k.toUpperCase().charCodeAt(0) : +e.keyCode || 0);
-          const text = k.length === 1 && !e.ctrl && !e.meta ? k : k === 'Enter' ? '\r' : undefined;
-          await send('Input.dispatchKeyEvent', { type: text ? 'keyDown' : 'rawKeyDown', key: k, code: e.code || '', windowsVirtualKeyCode: code, nativeVirtualKeyCode: code, text, unmodifiedText: text, modifiers: mods }, S);
-          await send('Input.dispatchKeyEvent', { type: 'keyUp', key: k, code: e.code || '', windowsVirtualKeyCode: code, nativeVirtualKeyCode: code, modifiers: mods }, S);
-        }
-      }
-      return json(res, 200, { ok: true });
-    }
+    if (p === '/api/cloud/input') { await runInput(tab, b.events); return json(res, 200, { ok: true }); }
     if (p === '/api/cloud/cmd') {
       busy(tab);
       const cmd = String(b.cmd || '');
       if (cmd === 'navigate') { const u = new URL(String(b.url || '')); if (!/^https?:$/.test(u.protocol)) return json(res, 400, { error: 'Only web addresses' }); await send('Page.navigate', { url: u.href }, S); }
       else if (cmd === 'back' || cmd === 'forward') { const hh = await send('Page.getNavigationHistory', {}, S); const i = hh.currentIndex + (cmd === 'back' ? -1 : 1); const e = hh.entries[i]; if (e && !(i === 0 && e.url === 'about:blank')) await send('Page.navigateToHistoryEntry', { entryId: e.id }, S); }
+      else if (cmd === 'files') {
+        const files = (tab.uploads || []).splice(0); const ch = tab.chooser; tab.chooser = null;
+        if (!ch) return json(res, 409, { error: 'The page isn’t asking for a file any more' });
+        await send('DOM.setFileInputFiles', { files: ch.multiple ? files : files.slice(0, 1), backendNodeId: ch.node }, S);
+      }
+      else if (cmd === 'nofiles') { tab.uploads = []; tab.chooser = null; }
+      else if (cmd === 'drop') {
+        const files = (tab.uploads || []).splice(0); const x = +b.x || 0, y = +b.y || 0; const data = { items: [], files, dragOperationsMask: 1 };
+        for (const type of ['dragEnter', 'dragOver', 'drop']) await send('Input.dispatchDragEvent', { type, x, y, data }, S);
+      }
       else if (cmd === 'find') {
         // find on page: select the next match (Chrome's own window.find), and count them
         const q = JSON.stringify(String(b.q || '').slice(0, 200));
@@ -261,6 +410,7 @@ async function handle(req, res, url) {
         return json(res, 200, (r.result && r.result.value) || { n: 0 });
       }
       else if (cmd === 'selection') { const r = await send('Runtime.evaluate', { expression: 'String(getSelection()||"").slice(0,100000)', returnByValue: true }, S); return json(res, 200, { text: (r.result && r.result.value) || '' }); }
+      else if (cmd === 'value') { const r = await send('Runtime.evaluate', { expression: '(document.activeElement && "value" in document.activeElement) ? String(document.activeElement.value).slice(0, 2000) : null', returnByValue: true }, S); return json(res, 200, { value: r.result && r.result.value }); }
       else if (cmd === 'text') { const r = await send('Runtime.evaluate', { expression: 'document.body ? document.body.innerText.slice(0, 2000) : ""', returnByValue: true }, S); return json(res, 200, { text: r.result && r.result.value }); }
       else if (cmd === 'reload') await send('Page.reload', {}, S);
       else if (cmd === 'resize') await size(tab, +b.w, +b.h, !!b.mobile);
@@ -278,4 +428,4 @@ async function handle(req, res, url) {
 process.on('exit', () => stop());
 ['SIGTERM', 'SIGINT'].forEach((sig) => process.once(sig, () => { stop(); process.exit(0); }));
 
-module.exports = { handle, available, findChrome, stop };
+module.exports = { handle, upgrade, available, findChrome, stop };

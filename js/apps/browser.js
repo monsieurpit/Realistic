@@ -147,7 +147,10 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       bRead.onclick = () => { const r = cur && cur.pane.querySelector('.br-reader'); if (r) r.remove(); else readerView(); };
       const bKb = h('button', { class: 'pb-kbbtn', title: T('Keyboard'), 'aria-label': T('Keyboard'), html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6 10h.01M9.5 10h.01M13 10h.01M16.5 10h.01M7 14h10"/></svg>' });
       bKb.onclick = () => cloudKeyboard();
-      const omniWrap = h('div', { class: 'br-omniwrap pb-omni' }, lockIc, omni, zoomTag, bKb, bRead, bOut, bKey, bStar, sugg);
+      const SND = (on) => '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/>' + (on ? '<path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>' : '<path d="m16 9.5 5 5m0-5-5 5"/>') + '</svg>';
+      const bSnd = h('button', { class: 'pb-kbbtn pb-snd' });
+      bSnd.onclick = () => { PatOS.store.set('cloudSound', PatOS.store.get('cloudSound', true) === false); if (PatOS.store.get('cloudSound', true) === false) soundOff(); else soundOn(); syncUI(); };
+      const omniWrap = h('div', { class: 'br-omniwrap pb-omni' }, lockIc, omni, zoomTag, bSnd, bKb, bRead, bOut, bKey, bStar, sugg);
       const bPw = h('button', { class: 'tbtn br-pwbtn', title: T('Passwords'), html: ic('key') });
       const bMenu = h('button', { class: 'tbtn', title: T('Menu'), html: ic('more') });
       const nav = h('div', { class: 'br-nav pb-nav' }, bBack, bFwd, bReload, bHome, omniWrap, bPw, bMenu);
@@ -223,6 +226,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         bBack.disabled = cur.idx <= 0; bFwd.disabled = cur.idx >= cur.hist.length - 1;
         if (cur.cloud) { bBack.disabled = !cur.cloud.back; bFwd.disabled = !cur.cloud.fwd; bOut.style.display = ''; bRead.style.display = 'none'; lockIc.classList.add('via'); lockIc.title = T('Running in Cloud Chrome, a real Chrome on your PatOS server'); }
         bKb.style.display = cur.cloud && PatOS.isMobile ? '' : 'none';
+        { const on = PatOS.store.get('cloudSound', true) !== false; bSnd.style.display = cur.cloud && cloud.sound ? '' : 'none'; bSnd.innerHTML = SND(on); bSnd.title = T(on ? 'Mute Cloud Chrome' : 'Turn on Cloud Chrome’s sound'); bSnd.setAttribute('aria-label', bSnd.title); }
         const starred = bookmarks.some((b) => b.u === cur.url); bStar.classList.toggle('on', starred); bStar.style.display = internal ? 'none' : '';
         const site = siteOf(cur); const n = site && !PatOS.passwords.locked ? PatOS.passwords.forSite(site).length : 0;
         bKey.style.display = n ? '' : 'none'; bKey.dataset.n = n;
@@ -463,7 +467,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         if (PatOS.sandboxed || !PatOS.server) return false;
         const base = await PatOS.server(); if (!base) { cloud.ready = false; return false; }
         cloud.base = base;
-        try { const j = await (await fetch(base + '/api/cloud/status', { cache: 'no-store' })).json(); cloud.avail = !!j.available; } catch (e) { cloud.avail = false; }
+        try { const j = await (await fetch(base + '/api/cloud/status', { cache: 'no-store' })).json(); cloud.avail = !!j.available; cloud.sound = !!j.sound; } catch (e) { cloud.avail = false; }
         cloud.ready = cloud.avail;
         return cloudReady();
       }
@@ -473,11 +477,61 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       }
       const cloudCmd = (t, cmd, extra) => (t.cloud ? cloudPost('/api/cloud/cmd', Object.assign({ id: t.cloud.id, cmd }, extra || {})) : Promise.reject(new Error('no tab')));
       // (layout size, not the size on screen: a window still zooming open would give Chrome a smaller page, shown stretched)
+      /* sound: one MP3 stream of Cloud Chrome (all its tabs), started by your first click or key in a page (browsers only play
+         sound after you touch the page), kept close to live, muted with the speaker button */
+      const cAudio = new Audio(); cAudio.preload = 'none';
+      const soundWanted = () => cloud.sound && PatOS.store.get('cloudSound', true) !== false && tabs.some((x) => x.cloud && x.cloud.live);
+      function soundOn() {
+        if (!soundWanted()) { if (cAudio.src) { cAudio.pause(); cAudio.removeAttribute('src'); cAudio.load(); } return; }
+        if (cAudio.src && !cAudio.paused && !cAudio.error) return;
+        cAudio.src = cloud.base + '/api/cloud/audio?key=' + encodeURIComponent(cloudKey()) + '&r=' + Date.now();
+        cAudio.play().catch(() => {});
+      }
+      const soundOff = () => { cAudio.pause(); cAudio.removeAttribute('src'); try { cAudio.load(); } catch (e) {} };
+      // a live stream that falls behind (the browser buffers it) jumps back to now
+      const lagT = setInterval(() => { try { if (cAudio.src && !cAudio.paused && cAudio.buffered.length) { const end = cAudio.buffered.end(cAudio.buffered.length - 1); if (end - cAudio.currentTime > 0.8) cAudio.currentTime = end - 0.25; } } catch (e) {} }, 1000);
+      win.on('closed', () => { clearInterval(lagT); soundOff(); });
+      cAudio.addEventListener('error', () => { setTimeout(() => { if (soundWanted() && cAudio.error) cAudio.removeAttribute('src'); }, 500); });
+      // files: what a page asks for (a file box) or what you drop on it go up to Cloud Chrome first
+      async function cloudUpload(t, files, note) {
+        let i = 0;
+        for (const f of files) {
+          i++; if (note) note.textContent = T('Sending') + ' ' + f.name + (files.length > 1 ? ' (' + i + '/' + files.length + ')' : '') + '…';
+          const r = await fetch(cloud.base + '/api/cloud/upload?id=' + encodeURIComponent(t.cloud.id) + '&name=' + encodeURIComponent(f.name), { method: 'POST', headers: { 'x-cloud-key': cloudKey() }, body: f });
+          if (!r.ok) { const j = await r.json().catch(() => ({})); throw new Error(j.error || 'HTTP ' + r.status); }
+        }
+      }
+      function fileSheet(t, multiple) {
+        const old = t.cloudEl.querySelector('.br-cloudfile'); if (old) old.remove();
+        const input = h('input', { type: 'file', multiple: !!multiple, style: { display: 'none' } });
+        const note = h('p', {}, T('Choose a file on this device: it is sent to the page in Cloud Chrome.'));
+        const close = () => sheet.remove();
+        const sheet = h('div', { class: 'br-cloudfile' }, h('div', {}, h('b', {}, T('This page wants a file')), note,
+          h('div', { class: 'bb-btns' }, h('button', { class: 'btn primary', onclick: () => input.click() }, T('Choose…')), h('button', { class: 'btn', onclick: () => { cloudCmd(t, 'nofiles').catch(() => {}); close(); } }, T('Cancel')))), input);
+        input.onchange = async () => {
+          const files = [...input.files]; if (!files.length) return;
+          try { await cloudUpload(t, files, note); await cloudCmd(t, 'files'); close(); }
+          catch (e) { note.textContent = T('That didn’t work') + ': ' + e.message; }
+        };
+        t.cloudEl.appendChild(sheet);
+        try { input.click(); } catch (e) {} // (right after your click, the picker can open at once; otherwise the button opens it)
+      }
+      async function cloudDownload(t, d) {
+        try {
+          const r = await fetch(cloud.base + '/api/cloud/download?guid=' + encodeURIComponent(d.guid) + '&key=' + encodeURIComponent(cloudKey())); if (!r.ok) throw new Error('HTTP ' + r.status);
+          const blob = await r.blob();
+          if (!PatOS.fs.exists('/Downloads')) PatOS.fs.mkdir('/Downloads');
+          const path = '/Downloads/' + PatOS.fs.uniqueName('/Downloads', d.name || 'download');
+          await PatOS.fs.writeBlob(path, blob);
+          PatOS.notify({ title: T('Downloaded'), body: PatOS.fs.basename(path), icon: 'browser', onClick: () => PatOS.openFile(path) });
+        } catch (e) { PatOS.notify({ title: T('The download didn’t work'), body: d.name + (e.message ? ': ' + e.message : ''), icon: 'browser' }); }
+      }
       function paneSize(t) { const e = t.pane.offsetWidth ? t.pane : view; return { w: Math.max(320, Math.round(e.offsetWidth || 1100)), h: Math.max(320, Math.round(e.offsetHeight || 700)) }; }
       // open (or reuse) this tab's Chrome page at an address
       function viaCloud(url, t) {
         t.proxied = false; t.loading = true;
-        if (t.cloud && t.cloud.live) { cloudCmd(t, 'navigate', { url }).catch((e) => cloudLost(t, e)); if (t === cur) syncUI(); return; }
+        // (navigate() emptied the tab: the same view goes back in, and Chrome goes to the new address)
+        if (t.cloud && t.cloud.live) { cloudView(t); cloudCmd(t, 'navigate', { url }).catch((e) => cloudLost(t, e)); if (t === cur) syncUI(); return; }
         const mine = ++t.gen; const sz = paneSize(t);
         cloudView(t);
         cloudPost('/api/cloud/open', { url, w: sz.w, h: sz.h, mobile: !!PatOS.isMobile }).then((j) => { if (t.gen !== mine) { cloudPost('/api/cloud/cmd', { id: j.id, cmd: 'close' }).catch(() => {}); return; } cloudAttach(t, j.id); })
@@ -495,13 +549,50 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         cloudInput(t);
         if (!t.ro) { t.ro = new ResizeObserver(PatOS.debounce(() => { if (!t.cloud || !t.cloud.live || !t.pane.offsetWidth) return; const sz = paneSize(t); if (Math.abs(sz.w - t.cloud.w) > 4 || Math.abs(sz.h - t.cloud.h) > 4) { t.cloud.w = sz.w; t.cloud.h = sz.h; cloudCmd(t, 'resize', { w: sz.w, h: sz.h, mobile: !!PatOS.isMobile }).catch(() => {}); } }, 300)); t.ro.observe(t.pane); }
       }
+      /* the live connection to a Cloud Chrome tab: a WebSocket (one connection both ways: pictures in, clicks and keys out at
+         once, never waiting behind other requests), or, if a network blocks WebSockets, a one-way stream plus a request per
+         batch of input. Both give the same events to the same listeners. */
+      function cloudChannel(id, onFrameBlob) {
+        const L = {}; let ws = null, es = null, opened = false, gaveUp = false;
+        const chan = { readyState: 0, onerror: null,
+          addEventListener(n, fn) { (L[n] = L[n] || []).push(fn); if (es) es.addEventListener(n, fn); },
+          close() { gaveUp = true; try { ws && ws.close(); } catch (e) {} try { es && es.close(); } catch (e) {} chan.readyState = 2; },
+          ws: () => (ws && ws.readyState === 1 ? ws : null) };
+        const fire = (n, data) => (L[n] || []).forEach((fn) => { try { fn({ data: JSON.stringify(data) }); } catch (e) {} });
+        const toStream = () => {
+          if (gaveUp || es) return; ws = null;
+          es = new EventSource(cloud.base + '/api/cloud/stream?id=' + encodeURIComponent(id) + '&key=' + encodeURIComponent(cloudKey()));
+          Object.keys(L).forEach((n) => L[n].forEach((fn) => es.addEventListener(n, fn)));
+          es.onerror = () => { chan.readyState = es.readyState; if (es.readyState === 2 && chan.onerror) chan.onerror(); };
+        };
+        try {
+          ws = new WebSocket(cloud.base.replace(/^http/, 'ws') + '/api/cloud/ws?id=' + encodeURIComponent(id) + '&key=' + encodeURIComponent(cloudKey()));
+          ws.binaryType = 'blob';
+          ws.onopen = () => { opened = true; chan.readyState = 1; };
+          ws.onmessage = (e) => { if (typeof e.data !== 'string') { onFrameBlob(e.data); return; } let m; try { m = JSON.parse(e.data); } catch (x) { return; } fire(m.e, m.d); };
+          ws.onerror = () => {};
+          ws.onclose = () => { if (gaveUp) return; if (!opened) toStream(); else { chan.readyState = 2; if (chan.onerror) chan.onerror(); } };
+          setTimeout(() => { if (!opened && ws && ws.readyState !== 1) { try { ws.close(); } catch (e) {} toStream(); } }, 4000);
+        } catch (e) { toStream(); }
+        return chan;
+      }
       function cloudAttach(t, id) {
         if (t.cloud && t.cloud.es) t.cloud.es.close();
         const sz = paneSize(t); t.cloud = { id, live: true, w: sz.w, h: sz.h, back: false, fwd: false };
         cloudView(t);
-        const es = new EventSource(cloud.base + '/api/cloud/stream?id=' + encodeURIComponent(id) + '&key=' + encodeURIComponent(cloudKey()));
-        t.cloud.es = es; const ctx = t.cv.getContext('2d'); let pending = null, drawing = false;
-        const draw = () => { if (!pending) { drawing = false; return; } const f = pending; pending = null; const img = new Image(); img.onload = () => { if (t.cv.width !== f.w || t.cv.height !== f.h) { t.cv.width = f.w; t.cv.height = f.h; } ctx.drawImage(img, 0, 0, f.w, f.h); t.cv.dataset.frames = (+t.cv.dataset.frames || 0) + 1; draw(); }; img.onerror = draw; img.src = 'data:image/jpeg;base64,' + f.d; };
+        const ctx = t.cv.getContext('2d'); let pending = null, drawing = false;
+        // a picture as an image (WebSocket): decoded off the main thread, drawn as it comes; a newer one replaces one not drawn yet
+        let blobNext = null, blobBusy = false;
+        const drawBlob = async () => {
+          if (!blobNext) { blobBusy = false; return; } blobBusy = true; const b = blobNext; blobNext = null;
+          try { const bmp = await createImageBitmap(b); if (t.cv.width !== bmp.width || t.cv.height !== bmp.height) { t.cv.width = bmp.width; t.cv.height = bmp.height; } ctx.drawImage(bmp, 0, 0); bmp.close && bmp.close(); framed(); } catch (e) {}
+          drawBlob();
+        };
+        const es = cloudChannel(id, (blob) => { blobNext = blob; if (!blobBusy) drawBlob(); });
+        t.cloud.es = es;
+        // a new picture: the page as it is now (the instant scroll shift, if any, is no longer needed)
+        const framed = () => { t.cv.dataset.frames = (+t.cv.dataset.frames || 0) + 1; if (t.shift) { t.shift = null; t.cv.style.transform = ''; } t.loadingFirst = false; const l = t.cloudEl && t.cloudEl.querySelector('.pb-load'); if (l && !t.loading) l.remove(); };
+        const draw = () => { if (!pending) { drawing = false; return; } const f = pending; pending = null; const img = new Image(); img.onload = () => { if (t.cv.width !== f.w || t.cv.height !== f.h) { t.cv.width = f.w; t.cv.height = f.h; } ctx.drawImage(img, 0, 0, f.w, f.h); framed(); draw(); }; img.onerror = draw; img.src = 'data:image/jpeg;base64,' + f.d; };
         es.addEventListener('frame', (e) => { pending = JSON.parse(e.data); if (!drawing) { drawing = true; draw(); } t.loadingFirst = false; const l = t.cloudEl.querySelector('.pb-load'); if (l && !t.loading) l.remove(); });
         es.addEventListener('nav', (e) => {
           const d = JSON.parse(e.data); if (!d.url || d.url === 'about:blank') return;
@@ -520,8 +611,10 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           cloudCmd(t, 'dialog', { accept, text }).catch(() => {});
         });
         es.addEventListener('notice', (e) => OF.toast(win, T(JSON.parse(e.data).text)));
+        es.addEventListener('filechooser', (e) => fileSheet(t, JSON.parse(e.data).multiple));
+        es.addEventListener('download', (e) => cloudDownload(t, JSON.parse(e.data)));
         es.addEventListener('closed', () => { t.cloud.live = false; es.close(); if (tabs.includes(t)) closeTab(t); });
-        es.addEventListener('gone', () => cloudLost(t));
+        es.addEventListener('gone', () => { soundOff(); cloudLost(t); });
         es.onerror = () => { if (es.readyState === 2) cloudLost(t); };
       }
       // Chrome stopped (nobody used it for a while, or the server restarted): one click (or the next navigation) wakes it
@@ -535,15 +628,29 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       }
       function cloudInput(t) {
         const cv = t.cv, kb = t.kb; const q = []; let flushing = false;
-        const send = (ev) => { q.push(ev); if (!flushing) { flushing = true; requestAnimationFrame(() => { const events = q.splice(0); flushing = false; if (t.cloud && t.cloud.live && events.length) cloudPost('/api/cloud/input', { id: t.cloud.id, events }).catch((e) => { if (e.status === 404) cloudLost(t); }); }); } };
+        // (input goes in order, one batch at a time; t.inputDone() resolves once everything sent so far has reached Chrome)
+        let chain = Promise.resolve();
+        const send = (ev) => { q.push(ev); if (!flushing) { flushing = true; chain = new Promise((res) => requestAnimationFrame(() => { const events = q.splice(0); flushing = false; const w = t.cloud && t.cloud.es && t.cloud.es.ws && t.cloud.es.ws(); if (w && events.length) { try { w.send(JSON.stringify({ events })); } catch (x) {} res(null); return; } res(t.cloud && t.cloud.live && events.length ? cloudPost('/api/cloud/input', { id: t.cloud.id, events }).catch((e) => { if (e.status === 404) cloudLost(t); }) : null); })).then(() => {}); } };
+        t.inputDone = () => chain;
         const pt = (e) => { const r = cv.getBoundingClientRect(); return { x: Math.round((e.clientX - r.left) * ((t.cloud && t.cloud.w) || cv.width) / r.width), y: Math.round((e.clientY - r.top) * ((t.cloud && t.cloud.h) || cv.height) / r.height) }; };
         const mods = (e) => ({ alt: e.altKey, ctrl: e.ctrlKey, meta: e.metaKey, shift: e.shiftKey });
+        const shift = (dx, dy) => { const r = cv.getBoundingClientRect(); const k = r.width / (cv.width || r.width); const s2 = t.shift = t.shift || { x: 0, y: 0 }; s2.x = Math.max(-r.width * .6, Math.min(r.width * .6, s2.x + dx * k)); s2.y = Math.max(-r.height * .6, Math.min(r.height * .6, s2.y + dy * k)); cv.style.transform = 'translate(' + (-s2.x) + 'px,' + (-s2.y) + 'px)'; };
         let down = null, lastDown = { t: 0, x: 0, y: 0, n: 0 }, lastMove = 0, touchScroll = null;
         cv.addEventListener('contextmenu', (e) => e.preventDefault());
+        cv.addEventListener('dragover', (e) => { if (e.dataTransfer && [...e.dataTransfer.types].includes('Files')) { e.preventDefault(); e.dataTransfer.dropEffect = 'copy'; } });
+        cv.addEventListener('drop', async (e) => {
+          const files = e.dataTransfer ? [...e.dataTransfer.files] : []; if (!files.length || !t.cloud || !t.cloud.live) return; e.preventDefault();
+          const p = pt(e); try { await cloudUpload(t, files); await cloudCmd(t, 'drop', p); } catch (x) { OF.toast(win, T('That didn’t work') + ': ' + x.message); }
+        });
         cv.addEventListener('pointerdown', (e) => {
           if (!t.cloud || !t.cloud.live) { if (t.wake && !t.wake.hidden) return; }
-          cv.focus({ preventScroll: true }); const p = pt(e);
-          if (e.pointerType === 'touch') { touchScroll = { x: e.clientX, y: e.clientY, p, moved: false }; cv.setPointerCapture(e.pointerId); return; }
+          cv.focus({ preventScroll: true }); soundOn(); const p = pt(e);
+          if (e.pointerType === 'touch') {
+            touchScroll = { x: e.clientX, y: e.clientY, p, moved: false, real: !!PatOS.isMobile, vy: 0, vx: 0, t: Date.now() }; cv.setPointerCapture(e.pointerId);
+            // a phone page gets real touch (taps, presses, its own scrolling); the picture follows the finger right away
+            if (touchScroll.real) send({ t: 'touch', type: 'touchStart', x: p.x, y: p.y });
+            return;
+          }
           const now = Date.now(); const n = now - lastDown.t < 400 && Math.abs(p.x - lastDown.x) < 6 && Math.abs(p.y - lastDown.y) < 6 ? lastDown.n + 1 : 1; lastDown = { t: now, x: p.x, y: p.y, n };
           const button = e.button === 2 ? 'right' : e.button === 1 ? 'middle' : 'left'; down = { button, n };
           cv.setPointerCapture(e.pointerId);
@@ -551,27 +658,40 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         });
         cv.addEventListener('pointermove', (e) => {
           if (touchScroll) {
-            const dx = e.clientX - touchScroll.x, dy = e.clientY - touchScroll.y;
-            if (!touchScroll.moved && Math.hypot(dx, dy) < 8) return; touchScroll.moved = true; touchScroll.x = e.clientX; touchScroll.y = e.clientY;
-            const p = pt(e); send({ t: 'wheel', x: p.x, y: p.y, dx: -dx * 1.4, dy: -dy * 1.4 }); return;
+            const ts = touchScroll; const dx = e.clientX - ts.x, dy = e.clientY - ts.y;
+            if (!ts.moved && Math.hypot(e.clientX - (ts.x0 = ts.x0 == null ? ts.x : ts.x0), e.clientY - (ts.y0 = ts.y0 == null ? ts.y : ts.y0)) < 10) return;
+            ts.moved = true; ts.x = e.clientX; ts.y = e.clientY; const now = Date.now(), dt = Math.max(1, now - ts.t); ts.vx = dx / dt; ts.vy = dy / dt; ts.t = now;
+            const p = pt(e); const r = cv.getBoundingClientRect(), k = (cv.width || r.width) / r.width;
+            shift(-dx * k, -dy * k);
+            if (ts.real) send({ t: 'touch', type: 'touchMove', x: p.x, y: p.y }); else send({ t: 'wheel', x: p.x, y: p.y, dx: -dx * k, dy: -dy * k });
+            return;
           }
           const now = Date.now(); if (!down && now - lastMove < 60) return; lastMove = now;
           const p = pt(e); send(Object.assign({ t: 'mouse', type: 'mouseMoved', x: p.x, y: p.y, button: down ? down.button : 'none', buttons: down ? 1 : 0 }, mods(e)));
         });
         const up = (e) => {
-          if (touchScroll) { const ts = touchScroll; touchScroll = null; if (!ts.moved) { send({ t: 'mouse', type: 'mousePressed', x: ts.p.x, y: ts.p.y, button: 'left', buttons: 1, count: 1 }); send({ t: 'mouse', type: 'mouseReleased', x: ts.p.x, y: ts.p.y, button: 'left', count: 1 }); } return; }
+          if (touchScroll) {
+            const ts = touchScroll; touchScroll = null;
+            if (ts.real) { send({ t: 'touch', type: e.type === 'pointercancel' ? 'touchCancel' : 'touchEnd', x: ts.p.x, y: ts.p.y }); return; }
+            if (!ts.moved) { send({ t: 'mouse', type: 'mousePressed', x: ts.p.x, y: ts.p.y, button: 'left', buttons: 1, count: 1 }); send({ t: 'mouse', type: 'mouseReleased', x: ts.p.x, y: ts.p.y, button: 'left', count: 1 }); return; }
+            // a flick keeps going a little, like a touchscreen (computer pages scroll with the wheel here)
+            let vy = ts.vy, vx = ts.vx; const r = cv.getBoundingClientRect(), k = (cv.width || r.width) / r.width;
+            const glide = () => { vy *= 0.92; vx *= 0.92; if (Math.abs(vy) + Math.abs(vx) < 0.05 || touchScroll) return; const d = 16; shift(-vx * d * k, -vy * d * k); send({ t: 'wheel', x: ts.p.x, y: ts.p.y, dx: -vx * d * k, dy: -vy * d * k }); requestAnimationFrame(glide); };
+            if (Math.abs(vy) + Math.abs(vx) > 0.3 && Date.now() - ts.t < 80) requestAnimationFrame(glide);
+            return;
+          }
           if (!down) return; const p = pt(e); send(Object.assign({ t: 'mouse', type: 'mouseReleased', x: p.x, y: p.y, button: down.button, count: down.n }, mods(e))); down = null;
         };
         cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
-        cv.addEventListener('wheel', (e) => { e.preventDefault(); const k = e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? 600 : 1; const p = pt(e); send(Object.assign({ t: 'wheel', x: p.x, y: p.y, dx: e.deltaX * k, dy: e.deltaY * k }, mods(e))); }, { passive: false });
+        cv.addEventListener('wheel', (e) => { e.preventDefault(); const k = e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? 600 : 1; const p = pt(e); if (!e.ctrlKey) shift(e.deltaX * k, e.deltaY * k); send(Object.assign({ t: 'wheel', x: p.x, y: p.y, dx: e.deltaX * k, dy: e.deltaY * k }, mods(e))); }, { passive: false });
         // keys: Patoogle's own shortcuts stay Patoogle's; copy reads the page's selection into your clipboard; paste types it
         const ours = (e) => { const k = e.key.toLowerCase(), m = e.ctrlKey || e.metaKey; return (e.altKey && ['arrowleft', 'arrowright', 't', 'd', 'y'].includes(k)) || (m && ['l', 't', 'w', 'f', '=', '+', '-', '0'].includes(k)) || e.key === 'F5'; };
         const onKey = (e) => {
-          if (e.isComposing) return;
+          if (e.isComposing) return; soundOn();
           if (ours(e)) { if (e.key.toLowerCase() === 'f' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); openFind(); } return; }
           const m = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
           if (m && k === 'v') return; // (the paste event brings the text)
-          if (m && (k === 'c' || k === 'x')) { cloudCmd(t, 'selection').then((j) => { if (j.text && navigator.clipboard) navigator.clipboard.writeText(j.text).catch(() => {}); }).catch(() => {}); if (k === 'c') { e.preventDefault(); return; } }
+          if (m && (k === 'c' || k === 'x')) { t.inputDone().then(() => cloudCmd(t, 'selection')).then((j) => { if (j.text && navigator.clipboard) navigator.clipboard.writeText(j.text).catch(() => {}); }).catch(() => {}); if (k === 'c') { e.preventDefault(); return; } }
           if (e.target === kb && e.key.length === 1 && !m && !e.altKey) return; // (typed into the phone box: its input event sends it)
           e.preventDefault();
           send(Object.assign({ t: 'key', key: e.key, code: e.code, keyCode: e.keyCode }, mods(e)));
@@ -888,6 +1008,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       bReload.onclick = () => { if (cur.cloud && cur.cloud.live) return void cloudCmd(cur, 'reload').catch(() => {}); if (cur.url.startsWith('patos://file') && cur.frame) { cur.frame.srcdoc = cur.frame.srcdoc; return; } navigate(cur.url, cur, true); };
       bHome.onclick = () => navigate('patos://newtab');
       addTab.onclick = () => newTab();
+      win._cloudVia = () => (cur && cur.cloud && cur.cloud.es ? (cur.cloud.es.ws && cur.cloud.es.ws() ? 'websocket' : 'stream') : null);
       win._cloudId = () => (cur && cur.cloud && cur.cloud.live ? cur.cloud.id : null); // (tests, and the window's own tools)
       win._open = (a) => { if (a.html) newTab(null, a.html, a.title); else if (a.url) { if (cur && cur.url === 'patos://newtab') navigate(a.url); else newTab(a.url); } };
       win.body.addEventListener('keydown', (e) => {

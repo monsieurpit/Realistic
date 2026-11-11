@@ -7,7 +7,7 @@ without a login, and sites you sign in to in their own window).
 
 ## Turn it on (Railway)
 1. **Chrome on the server.** Nothing to do if Railway builds PatOS with Railpack (its current builder): `railpack.json` in the
-   repository installs `chromium` and fonts. With the older Nixpacks builder, `nixpacks.toml` does the same. If Chrome still
+   repository installs `chromium`, fonts, and PulseAudio and ffmpeg for sound. With the older Nixpacks builder, `nixpacks.toml` does the same. If Chrome still
    isn't found, add the service variable `RAILPACK_DEPLOY_APT_PACKAGES=chromium` (or set `CHROME_PATH` to Chrome's path).
 2. **A key.** In Railway › your service › Variables, add `CLOUD_BROWSER_KEY` with a password of at least 8 characters. Only
    someone with this key can use Cloud Chrome, so strangers who find your PatOS address can't use your server.
@@ -22,16 +22,22 @@ without a login, and sites you sign in to in their own window).
 - **Starts when needed, stops when not**: Chrome starts with the first Cloud Chrome tab and stops after `CLOUD_IDLE_MIN`
   minutes (default 5) with no Patoogle watching, or 30 minutes with nobody touching it. Patoogle then shows "Cloud Chrome went
   to sleep" with a button to wake it (the page comes back at the same address).
-- **The picture**: Chrome photographs the page about 8 times a second for 3 seconds after any click, key or page load, and
-  once a second otherwise; a picture identical to the last isn't sent. Chrome's page is the exact size of the tab (it follows
-  the window when it is resized). On a phone, sites get their phone layout and touch: tap to click, drag to scroll, and the
+- **The connection**: one live WebSocket per tab: pictures come as images, your clicks, taps and keys go out at once and in
+  order (several moves become one, scroll steps add up). A picture is skipped when the connection is still busy with the last
+  ones, so you always see the newest page, never a backlog. If a network blocks WebSockets, it falls back to a stream plus a
+  request per batch of input.
+- **The picture**: Chrome photographs the page about 15 times a second while you interact and while a video plays, once a
+  second otherwise; identical pictures aren't sent. Scrolling moves the picture on your screen at once, before the new one
+  arrives. Chrome's page is the exact size of the tab.
+- **On a phone**: sites get their phone layout, and your finger is real touch (taps, presses, the page's own scrolling); the
   keyboard button in the address bar brings up the keyboard.
-- **What works**: links, forms, typing (including Backspace, Enter, Tab, arrows), paste (Ctrl+V), copy (Ctrl+C copies the
-  page's selection into your clipboard), right-click, double-click, the mouse wheel, Back/Forward/Reload, new-tab links and
-  pop-ups (a new Patoogle tab), page dialogs (alert, confirm, prompt in PatOS's own dialogs), find on page (Ctrl+F), zoom,
-  History with real addresses and titles. Searches typed in Patoogle go to Google itself (or Bing, if that is your engine).
-- **Not yet**: sound (Chrome on the server is muted), uploading files, downloads (refused), drag and drop between your
-  computer and the page. Video plays but is not smooth.
+- **What works**: links, buttons, forms, typing, paste (Ctrl+V), copy (Ctrl+C copies the page's selection into your clipboard),
+  right-click, double-click, the mouse wheel with a little glide on touchscreens, Back/Forward/Reload, new-tab links and pop-ups,
+  page dialogs, find on page (Ctrl+F), zoom, History, **sound** (when the server has PulseAudio and ffmpeg: an MP3 stream that
+  starts with your first click, with a speaker button to mute), **uploading files** (a page's file box opens your own file
+  picker), **dropping files** on a page, and **downloads** (saved into PatOS's Downloads folder).
+- **Limits**: sound arrives about a second late; video is about 15 pictures a second, not 30; uploads up to `CLOUD_UPLOAD_MB`
+  (50), downloads up to `CLOUD_DOWNLOAD_MB` (200).
 - **YouTube** still opens the YouTube app (with sound).
 
 ## Signing in

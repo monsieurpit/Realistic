@@ -1,7 +1,7 @@
 [
   {
     "version": "3.1.0",
-    "beta": 8,
+    "beta": 9,
     "date": "2026-11-10",
     "title": {
       "en": "PatOS 3.1: Handoff",
@@ -26,7 +26,9 @@
         "How it is kept safe: those pages run walled off from PatOS (they can’t see your files, passwords or settings), only public websites can be reached, and the server has a daily limit. Logins and big web apps (Twitch, X, Spotify) still open in their own window. Details: docs/PATOOGLE-PROXY.md",
         "Patoogle: Classroom, Gmail, Google Docs and other sites you sign in to open in their own window again, signed in as you (beta 6 sent them through PatOS’s server, where Google refused the sign-in). Classroom is back in the shortcuts",
         "Patoogle: a page that stays white now says so and opens in its own window in one click; a search that comes back white switches to Google; an “Open outside” button and Reader view in the address bar, Find on page (Ctrl+F), Duplicate tab and Copy link; shortcuts work while you are inside a page; the address bar fits on iPhone",
-        "New: Cloud Chrome. Patoogle can show every website in a real Chrome running on your own PatOS server: you click, scroll and type in Patoogle, and Chrome does it, so every site works (Twitch, X, Spotify…), with Back/Forward, new tabs, find on page, copy and paste, page dialogs and the phone layout on iPhone. It starts when you browse and goes to sleep when you don’t, to save your server. Set it up once: docs/CLOUD-CHROME.md, then Patoogle’s menu › Cloud Chrome…"
+        "New: Cloud Chrome. Patoogle can show every website in a real Chrome running on your own PatOS server: you click, scroll and type in Patoogle, and Chrome does it, so every site works (Twitch, X, Spotify…), with Back/Forward, new tabs, find on page, copy and paste, page dialogs and the phone layout on iPhone. It starts when you browse and goes to sleep when you don’t, to save your server. Set it up once: docs/CLOUD-CHROME.md, then Patoogle’s menu › Cloud Chrome…",
+        "Cloud Chrome is much more responsive: clicks, taps and typing go through one live connection at once (before, they could wait in line behind other connections, so buttons seemed to do nothing), you always see the newest picture, scrolling moves right away, and on a phone your finger is real touch",
+        "Cloud Chrome now has sound (with a mute button), uploads (a page asking for a file opens your own file picker), downloads into PatOS’s Downloads folder, dropping files on a page, and smoother video"
       ],
       "fr": [
         "Nouveau : Continuité. Commencez sur un appareil et continuez sur l’autre : quand vous venez d’utiliser une note, un document, un site, un dossier ou une app sur votre iPhone, votre Chromebook affiche « Continuer depuis iPhone » au-dessus du Dock (et inversement, au-dessus du dock du téléphone). Un clic l’ouvre sur place. Ça marche aussi depuis Spotlight (« Continuer depuis… »)",
@@ -46,7 +48,9 @@
         "Comment c’est sécurisé : ces pages sont isolées de PatOS (elles ne voient ni vos fichiers, ni vos mots de passe, ni vos réglages), seuls les sites publics sont accessibles, et le serveur a une limite par jour. Les connexions et les grosses apps Web (Twitch, X, Spotify) s’ouvrent toujours dans leur propre fenêtre",
         "Patoogle : Classroom, Gmail, Google Docs et les autres sites où tu te connectes s’ouvrent de nouveau dans leur propre fenêtre, connectés à ton compte (la bêta 6 les faisait passer par le serveur de PatOS, où Google refusait la connexion). Classroom est de retour dans les raccourcis",
         "Patoogle : une page qui reste blanche le dit et s’ouvre dans sa propre fenêtre en un clic ; une recherche qui revient blanche passe à Google ; un bouton « Ouvrir à part » et le mode lecture dans la barre d’adresse, Rechercher dans la page (Ctrl+F), Dupliquer l’onglet et Copier le lien ; les raccourcis fonctionnent depuis l’intérieur d’une page ; la barre d’adresse tient sur iPhone",
-        "Nouveau : Cloud Chrome. Patoogle peut afficher chaque site dans un vrai Chrome qui tourne sur ton propre serveur PatOS : tu cliques, fais défiler et écris dans Patoogle, et Chrome le fait, donc chaque site fonctionne (Twitch, X, Spotify…), avec Précédent/Suivant, les nouveaux onglets, la recherche dans la page, copier-coller, les dialogues des pages et la mise en page mobile sur iPhone. Il démarre quand tu navigues et s’endort sinon, pour épargner ton serveur. À configurer une fois : docs/CLOUD-CHROME.md, puis menu de Patoogle › Cloud Chrome…"
+        "Nouveau : Cloud Chrome. Patoogle peut afficher chaque site dans un vrai Chrome qui tourne sur ton propre serveur PatOS : tu cliques, fais défiler et écris dans Patoogle, et Chrome le fait, donc chaque site fonctionne (Twitch, X, Spotify…), avec Précédent/Suivant, les nouveaux onglets, la recherche dans la page, copier-coller, les dialogues des pages et la mise en page mobile sur iPhone. Il démarre quand tu navigues et s’endort sinon, pour épargner ton serveur. À configurer une fois : docs/CLOUD-CHROME.md, puis menu de Patoogle › Cloud Chrome…",
+        "Cloud Chrome est beaucoup plus réactif : les clics, les touchers et la saisie passent tout de suite par une seule connexion en direct (avant, ils pouvaient attendre derrière d’autres connexions, et les boutons semblaient ne rien faire), tu vois toujours l’image la plus récente, le défilement bouge tout de suite, et sur téléphone ton doigt est un vrai toucher",
+        "Cloud Chrome a maintenant le son (avec un bouton pour le couper), l’envoi de fichiers (une page qui demande un fichier ouvre ton propre sélecteur), les téléchargements dans le dossier Téléchargements de PatOS, le glisser-déposer de fichiers sur une page, et une vidéo plus fluide"
       ]
     }
   },
