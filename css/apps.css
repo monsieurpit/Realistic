@@ -99,6 +99,14 @@ kbd { font-family: var(--mono); font-size: 11.5px; padding: 3px 8px; border-radi
 .rd-body pre { white-space: pre-wrap; font-size: .82em; background: var(--hover); padding: 12px; border-radius: 10px; }
 .rd-body small { display: block; text-align: center; color: var(--text2); margin-top: -.6em; margin-bottom: 1.2em; }
 .br-pane:has(> .br-reader) { position: relative; }
+.br-cloud { position: relative; flex: 1; min-height: 0; display: flex; background: #fff; overflow: hidden; }
+.br-cloudcv { width: 100%; height: 100%; display: block; outline: none; touch-action: none; cursor: default; image-rendering: auto; }
+.br-cloudkb { position: absolute; left: 0; bottom: 0; width: 1px; height: 1px; opacity: 0; font-size: 16px; border: 0; padding: 0; resize: none; pointer-events: none; }
+.br-cloud .pb-load { position: absolute; top: 0; left: 0; right: 0; }
+.br-cloudwake { position: absolute; inset: 0; display: grid; place-items: center; background: color-mix(in srgb, var(--win-solid) 82%, transparent); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); text-align: center; padding: 24px; z-index: 3; }
+.br-cloudwake[hidden] { display: none; }
+.br-cloudwake b { display: block; font-size: 18px; margin-bottom: 6px; } .br-cloudwake p { margin: 0 0 14px; color: var(--text2); max-width: 380px; }
+.pb-kbbtn { display: grid; place-items: center; flex: none; width: 30px; height: 26px; border-radius: 8px; color: var(--text2); } .pb-kbbtn:hover { background: var(--hover); color: var(--text); }
 .br-pane:has(> .br-blank) { position: relative; }
 .br-blank { position: absolute; inset: 0; z-index: 3; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; text-align: center; padding: 30px; background: var(--win-solid); color: var(--text); }
 .br-blank .bb-ic { color: var(--text3); margin-bottom: 6px; } .br-blank h2 { margin: 0; font-size: 20px; } .br-blank p { margin: 0; max-width: 440px; color: var(--text2); line-height: 1.45; }

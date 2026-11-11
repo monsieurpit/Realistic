@@ -145,7 +145,9 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       bOut.onclick = () => { if (!cur) return; const w = openAppWindow(cur.url); if (!w) PatOS.openExternal(cur.url); };
       const bRead = h('button', { class: 'pb-read', title: T('Reader view'), 'aria-label': T('Reader view'), html: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5.5h6a2 2 0 0 1 2 2V19a1.5 1.5 0 0 0-1.5-1.5H4zM20 5.5h-6a2 2 0 0 0-2 2V19a1.5 1.5 0 0 1 1.5-1.5H20z"/></svg>' });
       bRead.onclick = () => { const r = cur && cur.pane.querySelector('.br-reader'); if (r) r.remove(); else readerView(); };
-      const omniWrap = h('div', { class: 'br-omniwrap pb-omni' }, lockIc, omni, zoomTag, bRead, bOut, bKey, bStar, sugg);
+      const bKb = h('button', { class: 'pb-kbbtn', title: T('Keyboard'), 'aria-label': T('Keyboard'), html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><rect x="2.5" y="6" width="19" height="12" rx="2.5"/><path d="M6 10h.01M9.5 10h.01M13 10h.01M16.5 10h.01M7 14h10"/></svg>' });
+      bKb.onclick = () => cloudKeyboard();
+      const omniWrap = h('div', { class: 'br-omniwrap pb-omni' }, lockIc, omni, zoomTag, bKb, bRead, bOut, bKey, bStar, sugg);
       const bPw = h('button', { class: 'tbtn br-pwbtn', title: T('Passwords'), html: ic('key') });
       const bMenu = h('button', { class: 'tbtn', title: T('Menu'), html: ic('more') });
       const nav = h('div', { class: 'br-nav pb-nav' }, bBack, bFwd, bReload, bHome, omniWrap, bPw, bMenu);
@@ -194,8 +196,10 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         if (html) loadHTML(t, html, title); else navigate(url || 'patos://newtab', t);
         return t;
       }
+      function cloudClose(t) { const c = t.cloud; t.cloud = null; if (t.ro) { t.ro.disconnect(); t.ro = null; } t.cloudEl = null; if (c) { try { c.es && c.es.close(); } catch (e) {} if (c.live) cloudPost('/api/cloud/cmd', { id: c.id, cmd: 'close' }).catch(() => {}); } }
       function closeTab(t) {
         const i = tabs.indexOf(t); if (i < 0) return;
+        cloudClose(t);
         if (t.url !== 'patos://newtab' && !t.url.startsWith('patos://file')) { closed.push({ url: t.url, at: i }); if (closed.length > 20) closed.shift(); }
         if (t.web) { webTabs--; t.web = false; }
         tabs.splice(i, 1); t.pane.remove();
@@ -217,6 +221,8 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         lockIc.classList.toggle('warn', !secure && !internal);
         lockIc.classList.toggle('via', !!cur.proxied); bOut.style.display = cur.proxied ? '' : 'none'; bRead.style.display = cur.proxied ? '' : 'none'; lockIc.title = cur.proxied ? T('Shown through PatOS: this site doesn’t allow being shown inside other apps, so PatOS brings it here. Logins may not work.') : '';
         bBack.disabled = cur.idx <= 0; bFwd.disabled = cur.idx >= cur.hist.length - 1;
+        if (cur.cloud) { bBack.disabled = !cur.cloud.back; bFwd.disabled = !cur.cloud.fwd; bOut.style.display = ''; bRead.style.display = 'none'; lockIc.classList.add('via'); lockIc.title = T('Running in Cloud Chrome, a real Chrome on your PatOS server'); }
+        bKb.style.display = cur.cloud && PatOS.isMobile ? '' : 'none';
         const starred = bookmarks.some((b) => b.u === cur.url); bStar.classList.toggle('on', starred); bStar.style.display = internal ? 'none' : '';
         const site = siteOf(cur); const n = site && !PatOS.passwords.locked ? PatOS.passwords.forSite(site).length : 0;
         bKey.style.display = n ? '' : 'none'; bKey.dataset.n = n;
@@ -245,7 +251,8 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         // with the proxy, a search stays in Patoogle: Bing's results through PatOS (Google's results page doesn't work through a
         // server), every result opening right here. "Search on Google instead" still opens Google in the browser
         const proxySearch = !!(gq && !noHist && useProxy());
-        if (proxySearch) { input = bingURL(gq); gq = null; }
+        if (proxySearch && cloudReady()) { input = (engine() === 'bing' ? bingURL(gq) : 'https://www.google.com/search?q=' + encodeURIComponent(gq) + '&hl=' + glang()); gq = null; }
+        else if (proxySearch) { input = bingURL(gq); gq = null; }
         if (gq && !noHist) {
           const H = PatOS.store.get('browserHistory', []); H.unshift({ u: 'https://www.google.com/search?q=' + encodeURIComponent(gq), t: Date.now(), title: gq }); PatOS.store.set('browserHistory', H.slice(0, 300));
           PatOS.openExternal(engine() === 'bing' ? bingURL(gq) : 'https://www.google.com/search?q=' + encodeURIComponent(gq) + '&hl=' + glang());
@@ -258,6 +265,8 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         if (/^https?:/.test(url)) { const H = PatOS.store.get('browserHistory', []); if (!H[0] || H[0].u !== url) { H.unshift({ u: url, t: Date.now(), title: host(url) }); PatOS.store.set('browserHistory', H.slice(0, 300)); } }
         if (t.web) { webTabs--; t.web = false; }
         if (/^https?:/.test(url) && !isBlocked(url)) { webTabs++; t.web = true; }
+        const toCloud = /^https?:/.test(url) && cloudReady() && !t.noCloud;
+        if (t.cloud && !toCloud) cloudClose(t);
         t.url = url; t.pane.innerHTML = ''; t.loading = false; t.frame = null; t.proxied = false;
         if (url === 'patos://newtab') { t.title = T('New Tab'); t.pane.appendChild(newTabPage()); }
         else if (url.startsWith('patos://history')) { t.title = T('History'); t.pane.appendChild(historyPage()); }
@@ -268,6 +277,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           if (t.web) { webTabs--; t.web = false; }
           t.title = host(url); t.pane.appendChild(PatOS.offlineCard(() => { if (t.url === url) navigate(url, t, true); }, { body: 'This website needs the internet. The page will load by itself when you’re back online.' }));
         }
+        else if (toCloud) { t.title = host(url); viaCloud(url.replace(/([?&])igu=1(&|$)/, (m, a, b) => (b ? a : '')), t); }
         else if (isBlocked(url)) { t.title = host(url); if (useProxy() && !ownWindow(url)) viaProxy(url, t); else { t.pane.appendChild(blockedPage(url)); autoOpen(url, t); } }
         else {
           const gq = isGoogleFrame(url) ? new URL(url).searchParams.get('q') : null;
@@ -443,6 +453,151 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         q.oninput = draw; draw();
         return h('div', { class: 'pb-history' }, h('div', { class: 'pb-hhead' }, h('h1', {}, T('History')), q, h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox(T('Clear browsing history?'), '', { danger: true, ok: T('Clear'), icon: 'browser' })) { PatOS.store.set('browserHistory', []); draw(); } } }, T('Clear browsing data'))), box);
       }
+      /* ---------- Cloud Chrome: a real Chrome on the PatOS server, shown live in the tab (cloud-browser.js) ----------
+         When the server has it and this device has its key, every web page opens there: Patoogle shows its picture and sends
+         your clicks, scrolling and typing. Everything works as in Chrome, because it is Chrome. */
+      const cloud = { base: null, avail: false, ready: false };
+      const cloudKey = () => String(PatOS.store.get('cloudKey', '') || '');
+      const cloudReady = () => cloud.ready && PatOS.store.get('cloudOn', true) !== false && !!cloudKey() && !PatOS.sandboxed;
+      async function cloudCheck() {
+        if (PatOS.sandboxed || !PatOS.server) return false;
+        const base = await PatOS.server(); if (!base) { cloud.ready = false; return false; }
+        cloud.base = base;
+        try { const j = await (await fetch(base + '/api/cloud/status', { cache: 'no-store' })).json(); cloud.avail = !!j.available; } catch (e) { cloud.avail = false; }
+        cloud.ready = cloud.avail;
+        return cloudReady();
+      }
+      async function cloudPost(path, body) {
+        const r = await fetch(cloud.base + path, { method: 'POST', headers: { 'Content-Type': 'application/json', 'x-cloud-key': cloudKey() }, body: JSON.stringify(body || {}) });
+        const j = await r.json().catch(() => ({})); if (!r.ok) { const e = new Error(j.error || 'HTTP ' + r.status); e.status = r.status; throw e; } return j;
+      }
+      const cloudCmd = (t, cmd, extra) => (t.cloud ? cloudPost('/api/cloud/cmd', Object.assign({ id: t.cloud.id, cmd }, extra || {})) : Promise.reject(new Error('no tab')));
+      // (layout size, not the size on screen: a window still zooming open would give Chrome a smaller page, shown stretched)
+      function paneSize(t) { const e = t.pane.offsetWidth ? t.pane : view; return { w: Math.max(320, Math.round(e.offsetWidth || 1100)), h: Math.max(320, Math.round(e.offsetHeight || 700)) }; }
+      // open (or reuse) this tab's Chrome page at an address
+      function viaCloud(url, t) {
+        t.proxied = false; t.loading = true;
+        if (t.cloud && t.cloud.live) { cloudCmd(t, 'navigate', { url }).catch((e) => cloudLost(t, e)); if (t === cur) syncUI(); return; }
+        const mine = ++t.gen; const sz = paneSize(t);
+        cloudView(t);
+        cloudPost('/api/cloud/open', { url, w: sz.w, h: sz.h, mobile: !!PatOS.isMobile }).then((j) => { if (t.gen !== mine) { cloudPost('/api/cloud/cmd', { id: j.id, cmd: 'close' }).catch(() => {}); return; } cloudAttach(t, j.id); })
+          .catch((e) => cloudFailed(t, url, e));
+      }
+      // the view: the picture, and a hidden box that takes typing (the phone's keyboard comes up for it)
+      function cloudView(t) {
+        if (t.cloudEl) { if (!t.cloudEl.isConnected) { t.pane.innerHTML = ''; t.frame = null; t.pane.appendChild(t.cloudEl); } return; }
+        t.pane.innerHTML = ''; t.frame = null;
+        const cv = h('canvas', { class: 'br-cloudcv', tabindex: '0', 'aria-label': T('Web page') });
+        const kb = h('textarea', { class: 'br-cloudkb', autocapitalize: 'off', autocomplete: 'off', spellcheck: 'false', 'aria-hidden': 'true' });
+        const wake = h('div', { class: 'br-cloudwake', hidden: true }, h('div', {}, h('b', {}, T('Cloud Chrome went to sleep')), h('p', {}, T('It stops when nobody uses it, to save your server. Click to wake it up.')), h('button', { class: 'btn primary', onclick: () => { wake.hidden = true; t.cloud = null; viaCloud(t.url, t); } }, T('Wake it up'))));
+        const box = h('div', { class: 'br-cloud' }, cv, kb, wake, h('div', { class: 'pb-load' }));
+        t.cloudEl = box; t.cv = cv; t.kb = kb; t.wake = wake; t.pane.appendChild(box);
+        cloudInput(t);
+        if (!t.ro) { t.ro = new ResizeObserver(PatOS.debounce(() => { if (!t.cloud || !t.cloud.live || !t.pane.offsetWidth) return; const sz = paneSize(t); if (Math.abs(sz.w - t.cloud.w) > 4 || Math.abs(sz.h - t.cloud.h) > 4) { t.cloud.w = sz.w; t.cloud.h = sz.h; cloudCmd(t, 'resize', { w: sz.w, h: sz.h, mobile: !!PatOS.isMobile }).catch(() => {}); } }, 300)); t.ro.observe(t.pane); }
+      }
+      function cloudAttach(t, id) {
+        if (t.cloud && t.cloud.es) t.cloud.es.close();
+        const sz = paneSize(t); t.cloud = { id, live: true, w: sz.w, h: sz.h, back: false, fwd: false };
+        cloudView(t);
+        const es = new EventSource(cloud.base + '/api/cloud/stream?id=' + encodeURIComponent(id) + '&key=' + encodeURIComponent(cloudKey()));
+        t.cloud.es = es; const ctx = t.cv.getContext('2d'); let pending = null, drawing = false;
+        const draw = () => { if (!pending) { drawing = false; return; } const f = pending; pending = null; const img = new Image(); img.onload = () => { if (t.cv.width !== f.w || t.cv.height !== f.h) { t.cv.width = f.w; t.cv.height = f.h; } ctx.drawImage(img, 0, 0, f.w, f.h); t.cv.dataset.frames = (+t.cv.dataset.frames || 0) + 1; draw(); }; img.onerror = draw; img.src = 'data:image/jpeg;base64,' + f.d; };
+        es.addEventListener('frame', (e) => { pending = JSON.parse(e.data); if (!drawing) { drawing = true; draw(); } t.loadingFirst = false; const l = t.cloudEl.querySelector('.pb-load'); if (l && !t.loading) l.remove(); });
+        es.addEventListener('nav', (e) => {
+          const d = JSON.parse(e.data); if (!d.url || d.url === 'about:blank') return;
+          t.cloud.back = !!d.back; t.cloud.fwd = !!d.fwd;
+          if (d.url !== t.url) { t.url = d.url; const H = PatOS.store.get('browserHistory', []); if (!H[0] || H[0].u !== d.url) { H.unshift({ u: d.url, t: Date.now(), title: d.title || host(d.url) }); PatOS.store.set('browserHistory', H.slice(0, 300)); } saveSession(); }
+          t.title = (d.title || host(d.url)).slice(0, 200); const H = PatOS.store.get('browserHistory', []); if (H[0] && H[0].u === d.url && d.title && H[0].title !== d.title) { H[0].title = d.title; PatOS.store.set('browserHistory', H); }
+          if (t === cur) syncUI(); else t.tabEl.querySelector('.br-tt').textContent = t.title;
+        });
+        es.addEventListener('loading', (e) => { t.loading = !!JSON.parse(e.data).on; const box = t.cloudEl; if (box) { let l = box.querySelector('.pb-load'); if (t.loading && !l) box.appendChild(h('div', { class: 'pb-load' })); else if (!t.loading && l) { l.classList.add('done'); setTimeout(() => l.remove(), 400); } } if (t === cur) syncUI(); });
+        es.addEventListener('popup', (e) => { const d = JSON.parse(e.data); const nt = newTab('patos://newtab'); cloudAttach(nt, d.id); nt.url = d.url || nt.url; if (nt === cur) syncUI(); });
+        es.addEventListener('dialog', async (e) => {
+          const d = JSON.parse(e.data); let accept = true, text;
+          if (d.type === 'confirm' || d.type === 'beforeunload') accept = await PatOS.confirmBox(host(t.url), d.message || T('Leave this page?'), { icon: 'browser' });
+          else if (d.type === 'prompt') { text = await PatOS.ask(d.message || host(t.url), d.value || '', { icon: 'browser' }); accept = text != null; }
+          else await PatOS.alertBox(host(t.url), d.message, { icon: 'browser' });
+          cloudCmd(t, 'dialog', { accept, text }).catch(() => {});
+        });
+        es.addEventListener('notice', (e) => OF.toast(win, T(JSON.parse(e.data).text)));
+        es.addEventListener('closed', () => { t.cloud.live = false; es.close(); if (tabs.includes(t)) closeTab(t); });
+        es.addEventListener('gone', () => cloudLost(t));
+        es.onerror = () => { if (es.readyState === 2) cloudLost(t); };
+      }
+      // Chrome stopped (nobody used it for a while, or the server restarted): one click (or the next navigation) wakes it
+      function cloudLost(t) { if (!t.cloud) return; t.cloud.live = false; try { t.cloud.es.close(); } catch (e) {} t.loading = false; if (t.wake) t.wake.hidden = false; if (t === cur) syncUI(); }
+      function cloudFailed(t, url, e) {
+        t.loading = false; t.cloud = null;
+        if (e && e.status === 401) { cloud.ready = false; PatOS.notify({ title: T('Cloud Chrome'), body: T('The Cloud Chrome key on this device is wrong. Set it again in Patoogle’s menu.'), icon: 'browser' }); }
+        else OF.toast(win, T('Cloud Chrome didn’t open') + (e && e.message ? ': ' + e.message : ''));
+        // the page still opens: the way Patoogle opens it without Cloud Chrome
+        t.cloudEl = null; t.noCloud = true; navigate(url, t, true); t.noCloud = false;
+      }
+      function cloudInput(t) {
+        const cv = t.cv, kb = t.kb; const q = []; let flushing = false;
+        const send = (ev) => { q.push(ev); if (!flushing) { flushing = true; requestAnimationFrame(() => { const events = q.splice(0); flushing = false; if (t.cloud && t.cloud.live && events.length) cloudPost('/api/cloud/input', { id: t.cloud.id, events }).catch((e) => { if (e.status === 404) cloudLost(t); }); }); } };
+        const pt = (e) => { const r = cv.getBoundingClientRect(); return { x: Math.round((e.clientX - r.left) * ((t.cloud && t.cloud.w) || cv.width) / r.width), y: Math.round((e.clientY - r.top) * ((t.cloud && t.cloud.h) || cv.height) / r.height) }; };
+        const mods = (e) => ({ alt: e.altKey, ctrl: e.ctrlKey, meta: e.metaKey, shift: e.shiftKey });
+        let down = null, lastDown = { t: 0, x: 0, y: 0, n: 0 }, lastMove = 0, touchScroll = null;
+        cv.addEventListener('contextmenu', (e) => e.preventDefault());
+        cv.addEventListener('pointerdown', (e) => {
+          if (!t.cloud || !t.cloud.live) { if (t.wake && !t.wake.hidden) return; }
+          cv.focus({ preventScroll: true }); const p = pt(e);
+          if (e.pointerType === 'touch') { touchScroll = { x: e.clientX, y: e.clientY, p, moved: false }; cv.setPointerCapture(e.pointerId); return; }
+          const now = Date.now(); const n = now - lastDown.t < 400 && Math.abs(p.x - lastDown.x) < 6 && Math.abs(p.y - lastDown.y) < 6 ? lastDown.n + 1 : 1; lastDown = { t: now, x: p.x, y: p.y, n };
+          const button = e.button === 2 ? 'right' : e.button === 1 ? 'middle' : 'left'; down = { button, n };
+          cv.setPointerCapture(e.pointerId);
+          send(Object.assign({ t: 'mouse', type: 'mousePressed', x: p.x, y: p.y, button, buttons: 1, count: n }, mods(e)));
+        });
+        cv.addEventListener('pointermove', (e) => {
+          if (touchScroll) {
+            const dx = e.clientX - touchScroll.x, dy = e.clientY - touchScroll.y;
+            if (!touchScroll.moved && Math.hypot(dx, dy) < 8) return; touchScroll.moved = true; touchScroll.x = e.clientX; touchScroll.y = e.clientY;
+            const p = pt(e); send({ t: 'wheel', x: p.x, y: p.y, dx: -dx * 1.4, dy: -dy * 1.4 }); return;
+          }
+          const now = Date.now(); if (!down && now - lastMove < 60) return; lastMove = now;
+          const p = pt(e); send(Object.assign({ t: 'mouse', type: 'mouseMoved', x: p.x, y: p.y, button: down ? down.button : 'none', buttons: down ? 1 : 0 }, mods(e)));
+        });
+        const up = (e) => {
+          if (touchScroll) { const ts = touchScroll; touchScroll = null; if (!ts.moved) { send({ t: 'mouse', type: 'mousePressed', x: ts.p.x, y: ts.p.y, button: 'left', buttons: 1, count: 1 }); send({ t: 'mouse', type: 'mouseReleased', x: ts.p.x, y: ts.p.y, button: 'left', count: 1 }); } return; }
+          if (!down) return; const p = pt(e); send(Object.assign({ t: 'mouse', type: 'mouseReleased', x: p.x, y: p.y, button: down.button, count: down.n }, mods(e))); down = null;
+        };
+        cv.addEventListener('pointerup', up); cv.addEventListener('pointercancel', up);
+        cv.addEventListener('wheel', (e) => { e.preventDefault(); const k = e.deltaMode === 1 ? 40 : e.deltaMode === 2 ? 600 : 1; const p = pt(e); send(Object.assign({ t: 'wheel', x: p.x, y: p.y, dx: e.deltaX * k, dy: e.deltaY * k }, mods(e))); }, { passive: false });
+        // keys: Patoogle's own shortcuts stay Patoogle's; copy reads the page's selection into your clipboard; paste types it
+        const ours = (e) => { const k = e.key.toLowerCase(), m = e.ctrlKey || e.metaKey; return (e.altKey && ['arrowleft', 'arrowright', 't', 'd', 'y'].includes(k)) || (m && ['l', 't', 'w', 'f', '=', '+', '-', '0'].includes(k)) || e.key === 'F5'; };
+        const onKey = (e) => {
+          if (e.isComposing) return;
+          if (ours(e)) { if (e.key.toLowerCase() === 'f' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); openFind(); } return; }
+          const m = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
+          if (m && k === 'v') return; // (the paste event brings the text)
+          if (m && (k === 'c' || k === 'x')) { cloudCmd(t, 'selection').then((j) => { if (j.text && navigator.clipboard) navigator.clipboard.writeText(j.text).catch(() => {}); }).catch(() => {}); if (k === 'c') { e.preventDefault(); return; } }
+          if (e.target === kb && e.key.length === 1 && !m && !e.altKey) return; // (typed into the phone box: its input event sends it)
+          e.preventDefault();
+          send(Object.assign({ t: 'key', key: e.key, code: e.code, keyCode: e.keyCode }, mods(e)));
+        };
+        cv.addEventListener('keydown', onKey); kb.addEventListener('keydown', onKey);
+        const onPaste = (e) => { const s = e.clipboardData && e.clipboardData.getData('text'); if (s) { e.preventDefault(); send({ t: 'text', text: s }); } };
+        cv.addEventListener('paste', onPaste); kb.addEventListener('paste', onPaste);
+        kb.addEventListener('input', (e) => {
+          if (e.inputType === 'deleteContentBackward') send({ t: 'key', key: 'Backspace', keyCode: 8 });
+          else if (e.inputType === 'insertLineBreak') send({ t: 'key', key: 'Enter', keyCode: 13 });
+          else if (e.data) send({ t: 'text', text: e.data });
+          kb.value = '';
+        });
+      }
+      // the phone has no keyboard until there is a box to type in: this brings it up
+      function cloudKeyboard() { if (cur && cur.kb) { cur.kb.value = ''; cur.kb.focus(); } }
+      async function cloudSetup() {
+        await cloudCheck();
+        if (!cloud.base) return PatOS.alertBox(T('Cloud Chrome'), T('Cloud Chrome needs the PatOS server (open PatOS from its web address).'), { icon: 'browser' });
+        if (!cloud.avail) return PatOS.alertBox(T('Cloud Chrome isn’t set up on the server'), T('On Railway, add the variable CLOUD_BROWSER_KEY (a password of at least 8 characters) and install Chrome (see docs/CLOUD-CHROME.md). Then come back here.'), { icon: 'browser' });
+        const k = await PatOS.ask(T('Cloud Chrome key'), cloudKey(), { icon: 'browser', text: T('The same password as CLOUD_BROWSER_KEY on your server. With it, every website opens in a real Chrome running on your server.'), ok: T('Turn on') });
+        if (k == null) return;
+        const old = cloudKey(); PatOS.store.set('cloudKey', String(k).trim());
+        try { await cloudPost('/api/cloud/check', {}); PatOS.store.set('cloudOn', true); cloud.ready = true; OF.toast(win, T('Cloud Chrome is on')); if (cur && /^https?:/.test(cur.url)) navigate(cur.url, cur, true); }
+        catch (e) { PatOS.store.set('cloudKey', old); PatOS.alertBox(T('That key didn’t work'), e.message, { icon: 'browser' }); }
+      }
       /* ---------- through PatOS: sites that refuse to be shown inside other pages, shown anyway (proxy-server.js) ----------
          The PatOS server fetches the page and sends it back with a small script; it runs here in a sandbox with an opaque
          origin, so it can't touch PatOS's data. That script tells Patoogle the real address and title as you click around,
@@ -467,12 +622,13 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       }
       /* ---------- find on page, Reader ---------- */
       let findAt = 0, findN = 0;
-      const findable = () => cur && cur.proxied && cur.frame && cur.frame.contentWindow;
+      const findable = () => cur && ((cur.cloud && cur.cloud.live) || (cur.proxied && cur.frame && cur.frame.contentWindow));
       function openFind() { findBar.hidden = false; fInput.focus(); fInput.select(); if (!findable()) { fCount.textContent = T('Find works on pages shown through PatOS'); } else if (fInput.value) findGo(false, true); }
       function closeFind() { findBar.hidden = true; fCount.textContent = ''; findAt = 0; }
       function findGo(back, from0) {
         if (!findable()) { fCount.textContent = T('Find works on pages shown through PatOS'); return; }
         if (from0) findAt = 0; else findAt = findN ? (findAt + (back ? -1 : 1) + findN) % findN : 0;
+        if (cur.cloud && cur.cloud.live) { const t = cur; cloudCmd(t, 'find', { q: fInput.value, back: !!back, from0: !!from0 }).then((j) => { findN = +j.n || 0; if (t === cur && !findBar.hidden) fCount.textContent = fInput.value ? (findN ? (Math.min(findAt, findN - 1) + 1) + ' / ' + findN : T('No matches')) : ''; fInput.classList.toggle('none', !!fInput.value && !findN); }).catch(() => {}); return; }
         cur.frame.contentWindow.postMessage({ patosFind: fInput.value, back: !!back, from0: !!from0 }, '*');
       }
       fInput.addEventListener('input', () => findGo(false, true));
@@ -654,7 +810,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
 
       /* ---------- zoom ---------- */
       function applyZoom(t) { if (t.frame) { t.frame.style.zoom = t.zoom; } const p = t.pane.firstElementChild; if (!t.frame && p) p.style.zoom = t.zoom; }
-      function zoom(d) { if (!cur) return; cur.zoom = d === 0 ? 1 : Math.max(0.3, Math.min(3, Math.round((cur.zoom + d) * 10) / 10)); applyZoom(cur); syncUI(); }
+      function zoom(d) { if (!cur) return; cur.zoom = d === 0 ? 1 : Math.max(0.3, Math.min(3, Math.round((cur.zoom + d) * 10) / 10)); if (cur.cloud && cur.cloud.live) cloudCmd(cur, 'zoom', { z: cur.zoom }).catch(() => {}); else applyZoom(cur); syncUI(); }
       zoomTag.onclick = () => zoom(0);
 
       /* ---------- site info, bookmarks, menu ---------- */
@@ -692,6 +848,8 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           { divider: true },
           { label: T('Zoom in'), shortcut: 'Ctrl +', action: () => zoom(0.1) }, { label: T('Zoom out'), shortcut: 'Ctrl -', action: () => zoom(-0.1) }, { label: T('Actual size'), shortcut: 'Ctrl 0', action: () => zoom(0) },
           { divider: true },
+          { label: T('Cloud Chrome…'), action: cloudSetup },
+          ...(cloudKey() ? [{ label: (PatOS.store.get('cloudOn', true) !== false ? '✓ ' : '') + T('Use Cloud Chrome'), action: () => { PatOS.store.set('cloudOn', PatOS.store.get('cloudOn', true) === false); OF.toast(win, T(PatOS.store.get('cloudOn', true) !== false ? 'Cloud Chrome is on' : 'Cloud Chrome is off')); } }] : []),
           { label: T('Search engine…'), action: () => navigate('patos://google-setup') },
           { label: (PatOS.store.get('browserRestore', false) ? '✓ ' : '') + T('Reopen my tabs next time'), action: () => PatOS.store.set('browserRestore', !PatOS.store.get('browserRestore', false)) },
           { label: T('Open in a real browser tab'), disabled: !cur || cur.url.startsWith('patos'), action: () => PatOS.openExternal(cur.url.replace('youtube-nocookie.com/embed/', 'youtube.com/watch?v=').replace('?autoplay=1', '').replace('igu=1&', '').replace('?igu=1', '?')) }
@@ -723,13 +881,14 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       }
       function checkLogin() { bar(null); } // nothing is saved or filled on its own: you choose Fill or Copy in the key menu
       const onPw = () => syncUI(); PatOS.on('passwords', onPw);
-      win.on('closed', () => { PatOS.off('passwords', onPw); tabs.forEach((t) => { if (t.web) { webTabs--; t.web = false; } }); });
+      win.on('closed', () => { tabs.forEach(cloudClose); PatOS.off('passwords', onPw); tabs.forEach((t) => { if (t.web) { webTabs--; t.web = false; } }); });
 
-      bBack.onclick = () => { if (cur.idx > 0) { cur.idx--; navigate(cur.hist[cur.idx], cur, true); } };
-      bFwd.onclick = () => { if (cur.idx < cur.hist.length - 1) { cur.idx++; navigate(cur.hist[cur.idx], cur, true); } };
-      bReload.onclick = () => { if (cur.url.startsWith('patos://file') && cur.frame) { cur.frame.srcdoc = cur.frame.srcdoc; return; } navigate(cur.url, cur, true); };
+      bBack.onclick = () => { if (cur.cloud && cur.cloud.live) return void cloudCmd(cur, 'back').catch(() => {}); if (cur.idx > 0) { cur.idx--; navigate(cur.hist[cur.idx], cur, true); } };
+      bFwd.onclick = () => { if (cur.cloud && cur.cloud.live) return void cloudCmd(cur, 'forward').catch(() => {}); if (cur.idx < cur.hist.length - 1) { cur.idx++; navigate(cur.hist[cur.idx], cur, true); } };
+      bReload.onclick = () => { if (cur.cloud && cur.cloud.live) return void cloudCmd(cur, 'reload').catch(() => {}); if (cur.url.startsWith('patos://file') && cur.frame) { cur.frame.srcdoc = cur.frame.srcdoc; return; } navigate(cur.url, cur, true); };
       bHome.onclick = () => navigate('patos://newtab');
       addTab.onclick = () => newTab();
+      win._cloudId = () => (cur && cur.cloud && cur.cloud.live ? cur.cloud.id : null); // (tests, and the window's own tools)
       win._open = (a) => { if (a.html) newTab(null, a.html, a.title); else if (a.url) { if (cur && cur.url === 'patos://newtab') navigate(a.url); else newTab(a.url); } };
       win.body.addEventListener('keydown', (e) => {
         const k = e.key.toLowerCase(), mod = e.ctrlKey || e.metaKey;
@@ -749,10 +908,15 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       // load Google's page in the background once, so the first search opens faster (its files are then already saved)
       if (!PatOS.sandboxed && engine() === 'google' && !sessionStorage.getItem('pbWarm')) { try { sessionStorage.setItem('pbWarm', '1'); } catch (e) {} setTimeout(() => { const wf = h('iframe', { src: 'https://www.google.com/webhp?igu=1&hl=' + glang(), style: { position: 'fixed', width: '1px', height: '1px', left: '-10px', top: '-10px', border: '0', opacity: '0', pointerEvents: 'none' }, sandbox: 'allow-scripts allow-same-origin', 'aria-hidden': 'true', tabindex: '-1' }); document.body.appendChild(wf); setTimeout(() => wf.remove(), 9000); }, 1200); }
       const session = PatOS.store.get('browserSession', null);
+      const startTabs = () => {
       if (args.html) newTab(null, args.html, args.title);
       else if (args.url) newTab(args.url);
       else if (session && session.tabs && session.tabs.length && PatOS.store.get('browserRestore', false)) { restoring = true; session.tabs.forEach((u, i) => newTab(u, null, null, i !== session.active)); if (tabs[session.active]) select(tabs[session.active]); setTimeout(() => { restoring = false; }, 4000); }
       else newTab();
+      };
+      // with a Cloud Chrome key, ask the server first (a moment), so the first page already opens in Cloud Chrome
+      if (cloudKey() && !PatOS.sandboxed && !args.html) { let started = false; const go = () => { if (!started) { started = true; startTabs(); } }; cloudCheck().then(go, go); setTimeout(go, 2500); }
+      else { startTabs(); if (!PatOS.sandboxed) cloudCheck().catch(() => {}); }
     },
     onArgs(win, args) { win._open && win._open(args); },
     menus(win) {
