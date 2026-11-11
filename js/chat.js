@@ -42,7 +42,7 @@
     offMsg = F.listenMessages(cid, (l) => { msgs = l; emit('chat:messages'); api.markRead(cid); }, (e) => { if (offMsg) { offMsg(); offMsg = null; } lastError = String(e.message || e); emit(); });
   }
   function notify(c, body) {
-    try { PatOS.notify({ title: c.other.username, body: String(body).slice(0, 120), icon: 'messages', onClick: () => PatOS.launch('messages', { chat: c.id }) }); if (PatOS.sound && PatOS.sound.pop) PatOS.sound.pop(); } catch (e) {}
+    try { PatOS.notify({ title: PatOS.account.isSystem(c.other.uid) ? 'PatOS' : c.other.username, body: String(body).slice(0, 120), icon: 'messages', onClick: () => PatOS.launch('messages', { chat: c.id }) }); if (PatOS.sound && PatOS.sound.pop) PatOS.sound.pop(); } catch (e) {}
   }
 
   async function start() {
@@ -62,7 +62,7 @@
     try {
       for (const it of outbox()) {
         try {
-          if (it.kind === 'request') { await withTimeout(F.requestChat(me, it.other, it.text, it.id)); }
+          if (it.kind === 'request') { await withTimeout(F.requestChat(me, it.other, it.text, it.id, PatOS.account.isSystem())); }
           else await withTimeout(F.sendMessage(it.cid, me, it.text, it.id));
         } catch (e) {
           if (e && e.code === 'offline') break; // try again later
@@ -101,6 +101,8 @@
       if (!F) await start(); text = String(text || '').trim(); if (!text) return; if (!me) throw new Error(T('Sign in first.'));
       const cid = F.convId(me.uid, other.uid); const c = convs.find((x) => x.id === cid);
       if (c && c.status === 'accepted') return api.send(cid, text);
+      // the system account doesn't wait: a waiting or declined conversation opens at once
+      if (c && PatOS.account.isSystem()) { await F.open(cid); c.status = 'accepted'; return api.send(cid, text); }
       if (c && c.status === 'declined' && c.mine) throw new Error(T('This person did not accept your message request.'));
       if (c) throw new Error(T('Your message request is waiting for an answer.'));
       setOutbox(outbox().concat([{ kind: 'request', id: 'request', cid, other: { uid: other.uid, username: other.username }, text: text.slice(0, 2000), t: Date.now() }])); emit('chat:messages'); flush(); return cid;
@@ -111,6 +113,17 @@
       setOutbox(outbox().concat([{ kind: 'msg', id: newId(), cid, text: text.slice(0, 2000), t: Date.now() }])); emit('chat:messages'); flush();
     },
     async respond(cid, accept) { if (!F) await start(); await F.respond(cid, !!accept); },
+    /* ---------- the system account (PatOS) ---------- */
+    isSystem: () => PatOS.account.isSystem(),
+    /* every account, with its conversation and whether it is banned (the system account only) */
+    async everyone() {
+      if (!F) await start(); if (!F || !PatOS.account.isSystem()) return [];
+      const [all, bans] = await Promise.all([F.allUsers(), F.bans()]); const banned = new Map(bans.map((b) => [b.uid, b]));
+      return all.filter((u) => u.uid !== me.uid).map((u) => Object.assign({ cid: F.convId(me.uid, u.uid), conv: convs.find((c) => c.other.uid === u.uid) || null, ban: banned.get(u.uid) || null }, u)).sort((a, b) => a.username.localeCompare(b.username));
+    },
+    async banOf(uid) { if (!F) await start(); return (await F.bans()).find((b) => b.uid === uid) || null; },
+    async ban(other, reason) { if (!F) await start(); if (!PatOS.account.isSystem()) throw new Error(T('Only the PatOS account can do this.')); await F.ban(me, other.uid, other.username, reason); emit(); },
+    async unban(other) { if (!F) await start(); if (!PatOS.account.isSystem()) throw new Error(T('Only the PatOS account can do this.')); await F.unban(other.uid); emit(); },
     retry: flush
   };
   PatOS.chat = api;

@@ -181,3 +181,46 @@ test('deleting an account removes the saved copy and the name', { skip: emu.skip
   const B = await device(); assert.match(await B.ev(async ([u, p]) => { try { await PatOS.account.signIn(u, p); return 'ok'; } catch (e) { return e.message; } }, [user, pass]), /Wrong username or password/);
   await A.ctx.close(); await B.ctx.close();
 });
+
+/* the system account (PatOS), end to end: it is made the system account in the console (config/system), then it messages
+   someone with no request, shows its badge, and bans and unbans. */
+const setSystem = async (uid) => { const r = await fetch('http://127.0.0.1:8180/v1/projects/demo-patos/databases/(default)/documents/config/system', { method: 'PATCH', headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: { uid: { stringValue: uid } } }) }); assert.ok(r.ok); };
+test('the PatOS account: no request needed, its badge, every account, ban (the banned person can only log out) and unban', { skip: emu.skip }, async () => {
+  const gn = uniq('patos'), bn = uniq('bea'), pw = 'a long system password';
+  const G = await device(), B = await device();
+  await G.ev(async ([u, p]) => { await PatOS.account.signUp(u, p); }, [gn, pw]);
+  await B.ev(async ([u, p]) => { await PatOS.account.signUp(u, p); }, [bn, pw]);
+  const guid = await G.ev(() => PatOS.account.info().uid);
+  assert.equal(await G.ev(() => PatOS.account.isSystem()), false, 'not the system account until the console says so');
+  await setSystem(guid);
+  for (const [d, u] of [[G, gn], [B, bn]]) await d.ev(async ([u, p]) => { await PatOS.account.signOut(); await PatOS.account.signIn(u, p); }, [u, pw]);
+  await waitFor(G.page, () => PatOS.account.isSystem() && PatOS.chat.ready(), null, 20000);
+  await waitFor(B.page, () => PatOS.account.isSystem(PatOS.store.get('systemUid')) && PatOS.chat.ready(), null, 20000);
+  // every account, and a message with no request
+  const everyone = await G.ev(() => PatOS.chat.everyone());
+  const bea = everyone.find((u) => u.username === bn); assert.ok(bea, 'every account is listed');
+  await G.ev(async (o) => { await PatOS.chat.request(o, 'Hello from PatOS'); }, { uid: bea.uid, username: bea.username });
+  await waitFor(B.page, () => PatOS.chat.conversations().length === 1 && PatOS.chat.conversations()[0].status === 'accepted', null, 15000);
+  assert.equal(await B.ev(() => PatOS.chat.requests().length), 0, 'no request to accept');
+  assert.equal(await B.ev(() => PatOS.account.display(PatOS.chat.conversations()[0].other.uid, PatOS.chat.conversations()[0].other.username)), 'PatOS');
+  assert.match(await B.ev(async () => { try { await PatOS.chat.respond(PatOS.chat.conversations()[0].id, false); return 'declined'; } catch (e) { return e.message; } }), /rules|permission/i, 'it can\'t be declined');
+  // the badge in Messages
+  await B.ev(() => PatOS.launch('messages')); await B.page.waitForSelector('.m2-row .sys-badge svg', { timeout: 10000 });
+  assert.match(await B.page.textContent('.m2-row'), /PatOS/);
+  // ban: Bea sees why, and can only log out
+  await G.ev(async (o) => { await PatOS.chat.ban(o, 'Testing the ban'); }, { uid: bea.uid, username: bea.username });
+  await B.page.waitForSelector('.ban-layer', { timeout: 15000 });
+  assert.match(await B.page.textContent('.ban-layer'), /Your account has been banned[\s\S]*Testing the ban/);
+  await B.ev((id) => { try { PatOS.chat.send(id, 'still here'); } catch (e) {} }, await B.ev(() => PatOS.chat.conversations()[0].id));
+  await G.page.waitForTimeout(3000);
+  assert.equal(await G.ev(() => PatOS.chat.conversations()[0].last), 'Hello from PatOS', 'a banned account can\'t send');
+  assert.equal((await G.ev(() => PatOS.chat.everyone())).find((u) => u.uid === bea.uid).ban.reason, 'Testing the ban');
+  await B.page.click('.ban-layer .btn.primary');
+  await waitFor(B.page, () => !PatOS.account.signedIn() && !document.querySelector('.ban-layer'), null, 10000);
+  // unban: Bea signs in again, no ban
+  await G.ev(async (o) => { await PatOS.chat.unban(o); }, { uid: bea.uid, username: bea.username });
+  await B.ev(async ([u, p]) => { await PatOS.account.signIn(u, p); }, [bn, pw]);
+  await B.page.waitForTimeout(2500);
+  assert.equal(await B.ev(() => !!document.querySelector('.ban-layer')), false);
+  await G.ctx.close(); await B.ctx.close();
+});

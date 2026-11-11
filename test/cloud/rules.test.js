@@ -105,3 +105,43 @@ test('messages: a request, its one message, accept, the chat, and nobody else ca
   await ok(F.updateDoc(conv(b), { status: 'declined', decidedAt: now() }));
   const b4 = F.writeBatch(a.db); b4.set(msg(a, 'm8'), { from: a.uid, text: 'still there?', t: Date.now(), at: now() }); b4.update(conv(a), { lastMessage: 'x', lastMessageAt: now(), lastFrom: a.uid }); await no(b4.commit(), 'writing after being declined');
 });
+
+/* the system account (PatOS): its uid is in config/system, which only the Firebase console can write (here: the emulator's
+   owner access, like the console). It can message anyone without a request, can't be declined, bans and unbans. */
+async function setSystem(uid) {
+  const r = await fetch('http://127.0.0.1:' + emu.ports.firestore + '/v1/projects/demo-patos/databases/(default)/documents/config/system', { method: 'PATCH', headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: { uid: { stringValue: uid } } }) });
+  assert.ok(r.ok, 'the console can write config/system: ' + r.status);
+}
+test('the system account: nobody can make themselves it; no request needed; can\'t be declined; bans and unbans', { skip: emu.skip }, async () => {
+  const tag = Date.now().toString(36).slice(-5);
+  const god = await person('patos' + tag), b = await person('bea' + tag), c = await person('cal' + tag);
+  for (const p of [god, b, c]) await F.setDoc(p.doc('usernames', p.name), { uid: p.uid, createdAt: now() });
+  // nobody can write config/system, not even the account itself
+  await no(F.setDoc(god.doc('config', 'system'), { uid: god.uid }), 'making yourself the system account');
+  await no(F.setDoc(c.doc('config', 'system'), { uid: c.uid }), 'a stranger making themselves the system account');
+  await setSystem(god.uid);
+  await no(F.updateDoc(c.doc('config', 'system'), { uid: c.uid }), 'taking it over'); await no(F.deleteDoc(c.doc('config', 'system')), 'deleting it');
+  assert.equal((await F.getDoc(c.doc('config', 'system'))).data().uid, god.uid, 'everyone signed in can see who it is (for the badge)');
+  // its first message opens the chat at once; others still can't start accepted
+  const cid = (x, y) => (x.uid < y.uid ? x.uid + '_' + y.uid : y.uid + '_' + x.uid);
+  const conv = (p, x, y) => p.doc('conversations', cid(x, y));
+  await no(F.setDoc(conv(c, c, b), convData(c, b, { status: 'accepted' })), 'a normal account starting accepted');
+  const bt = F.writeBatch(god.db); bt.set(conv(god, god, b), convData(god, b, { status: 'accepted' })); bt.set(god.doc('conversations', cid(god, b), 'messages', 'request'), { from: god.uid, text: 'Hi from PatOS', t: Date.now(), at: now() }); await ok(bt.commit());
+  const b2 = F.writeBatch(god.db); b2.set(god.doc('conversations', cid(god, b), 'messages', 'm2'), { from: god.uid, text: 'second', t: Date.now(), at: now() }); b2.update(conv(god, god, b), { lastMessage: 'second', lastMessageAt: now(), lastFrom: god.uid }); await ok(b2.commit());
+  await no(F.updateDoc(conv(b, god, b), { status: 'declined', decidedAt: now() }), 'declining the system account');
+  // someone asks it: it can accept; and it can reopen a conversation it is in
+  await ok(F.setDoc(conv(c, c, god), convData(c, god)));
+  await ok(F.updateDoc(conv(god, c, god), { status: 'accepted', decidedAt: now() }));
+  // bans: only the system account, never itself, with a reason; the banned person reads their own ban and can't write
+  const ban = (p, who, over) => F.setDoc(p.doc('bans', who.uid), Object.assign({ reason: 'spam', username: who.name, at: now(), by: p.uid }, over || {}));
+  await no(ban(c, b), 'a normal account banning'); await no(ban(god, god), 'banning itself'); await no(ban(god, b, { by: c.uid }), 'a ban in someone else\'s name'); await no(ban(god, b, { extra: 1 }), 'extra fields');
+  await ok(ban(god, c));
+  assert.equal((await F.getDoc(c.doc('bans', c.uid))).data().reason, 'spam', 'the banned person sees why');
+  await no(F.getDoc(b.doc('bans', c.uid)), 'someone else reading a ban'); await no(F.getDocs(b.col('bans')), 'listing bans');
+  assert.equal((await F.getDocs(god.col('bans'))).size >= 1, true);
+  const cb = F.writeBatch(c.db); cb.set(c.doc('conversations', cid(c, god), 'messages', 'x1'), { from: c.uid, text: 'banned talking', t: Date.now(), at: now() }); cb.update(conv(c, c, god), { lastMessage: 'x', lastMessageAt: now(), lastFrom: c.uid }); await no(cb.commit(), 'a banned account sending');
+  await no(F.setDoc(c.doc('accounts', c.uid, 'records', 'r1'), { t: 1, del: false, n: 0, iv: '', at: now() }), 'a banned account saving');
+  await no(F.deleteDoc(c.doc('bans', c.uid)), 'unbanning yourself');
+  await ok(F.deleteDoc(god.doc('bans', c.uid)));
+  const cb2 = F.writeBatch(c.db); cb2.set(c.doc('conversations', cid(c, god), 'messages', 'x2'), { from: c.uid, text: 'back', t: Date.now(), at: now() }); cb2.update(conv(c, c, god), { lastMessage: 'back', lastMessageAt: now(), lastFrom: c.uid }); await ok(cb2.commit());
+});

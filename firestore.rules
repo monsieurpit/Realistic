@@ -11,10 +11,37 @@ service cloud.firestore {
     function myName() { return request.auth.token.email.split('@')[0]; }
     function goodName(n) { return n is string && n.matches('^[a-z0-9_]{3,20}$'); }
 
+    // The system account (PatOS): its uid is written ONLY in the Firebase console, in config/system { uid }. No app or
+    // person can write it (see config below), so nobody can make themselves the system account, even with the name "patos".
+    function cfg() { return /databases/$(database)/documents/config/system; }
+    function sysUid() { return exists(cfg()) ? get(cfg()).data.uid : '-none-'; }
+    function isSys() { return signedIn() && request.auth.uid == sysUid(); }
+    // a banned account (bans/{uid}, written only by the system account) can't write anything anymore
+    function banned() { return signedIn() && exists(/databases/$(database)/documents/bans/$(request.auth.uid)); }
+
+    // config/system: who the system account is. Everyone signed in can read it (to show its badge); nobody can write it.
+    match /config/{id} {
+      allow get: if signedIn();
+      allow list, write: if false;
+    }
+
+    // bans/{uid}: { reason, username, at, by }. Only the system account bans and unbans, and never itself.
+    // The banned person can read their own ban (that is how PatOS tells them why).
+    match /bans/{uid} {
+      allow get: if mine(uid) || isSys();
+      allow list: if isSys();
+      allow create, update: if isSys() && uid != request.auth.uid
+        && request.resource.data.keys().hasOnly(['reason', 'username', 'at', 'by'])
+        && request.resource.data.reason is string && request.resource.data.reason.size() <= 500
+        && request.resource.data.username is string && request.resource.data.username.size() <= 40
+        && request.resource.data.by == request.auth.uid && request.resource.data.at == request.time;
+      allow delete: if isSys();
+    }
+
     // usernames/{name}: who is who. Signed-in people can look names up (that is how search works).
     match /usernames/{name} {
       allow get, list: if signedIn();
-      allow create: if signedIn() && goodName(name) && name == myName()
+      allow create: if signedIn() && !banned() && goodName(name) && name == myName()
         && request.resource.data.keys().hasOnly(['uid', 'createdAt'])
         && request.resource.data.uid == request.auth.uid
         && request.resource.data.createdAt == request.time;
@@ -34,7 +61,7 @@ service cloud.firestore {
 
       match /records/{rid} {
         allow read, delete: if mine(uid);
-        allow create, update: if mine(uid)
+        allow create, update: if mine(uid) && !banned()
           && request.resource.data.keys().hasOnly(['t', 'del', 'n', 'iv', 'at'])
           && request.resource.data.t is number && request.resource.data.del is bool
           && request.resource.data.n is number && request.resource.data.n >= 0 && request.resource.data.n <= 40
@@ -43,7 +70,7 @@ service cloud.firestore {
       }
       match /chunks/{cid} {
         allow read, delete: if mine(uid);
-        allow create, update: if mine(uid)
+        allow create, update: if mine(uid) && !banned()
           && request.resource.data.keys().hasOnly(['d'])
           && request.resource.data.d is string && request.resource.data.d.size() <= 800000;
       }
@@ -57,26 +84,33 @@ service cloud.firestore {
       allow get: if signedIn() && cid.matches('.*' + request.auth.uid + '.*') && (resource == null || request.auth.uid in resource.data.members);
       allow list: if signedIn() && request.auth.uid in resource.data.members;
 
-      // A first message makes a request: the other person has to accept it.
-      allow create: if signedIn()
+      // A first message makes a request: the other person has to accept it. The system account's first message is
+      // accepted at once (status 'accepted').
+      allow create: if signedIn() && !banned()
         && request.resource.data.keys().hasOnly(['members', 'usernames', 'status', 'requester', 'createdAt', 'lastMessage', 'lastMessageAt', 'lastFrom'])
         && request.resource.data.members.size() == 2
         && request.resource.data.members[0] < request.resource.data.members[1]
         && cid == request.resource.data.members[0] + '_' + request.resource.data.members[1]
         && request.auth.uid in request.resource.data.members
         && request.resource.data.requester == request.auth.uid
-        && request.resource.data.status == 'pending'
+        && (request.resource.data.status == 'pending' || (request.resource.data.status == 'accepted' && isSys()))
         && request.resource.data.lastFrom == request.auth.uid
         && request.resource.data.usernames[request.auth.uid] == myName()
         && get(/databases/$(database)/documents/usernames/$(request.resource.data.usernames[otherOf(request.resource.data)])).data.uid == otherOf(request.resource.data)
         && request.resource.data.createdAt == request.time && request.resource.data.lastMessageAt == request.time
         && request.resource.data.lastMessage is string && request.resource.data.lastMessage.size() <= 140;
 
-      allow update: if signedIn() && request.auth.uid in resource.data.members && (
-        // answering a request: only the person who was asked, and only the status
+      allow update: if signedIn() && !banned() && request.auth.uid in resource.data.members && (
+        // answering a request: only the person who was asked, and only the status. Nobody can decline the system account.
         (request.auth.uid != resource.data.requester
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt'])
-          && request.resource.data.status in ['accepted', 'declined'])
+          && request.resource.data.status in ['accepted', 'declined']
+          && !(request.resource.data.status == 'declined' && otherOf(resource.data) == sysUid()))
+        ||
+        // the system account can always open a conversation it is in (a request it sent, or one it had declined)
+        (isSys()
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt'])
+          && request.resource.data.status == 'accepted')
         ||
         // a new message updates the preview, but only once the request is accepted
         (resource.data.status == 'accepted'
@@ -90,7 +124,7 @@ service cloud.firestore {
       match /messages/{mid} {
         function conv() { return getAfter(convPath(cid)).data; }
         allow read: if signedIn() && request.auth.uid in get(convPath(cid)).data.members;
-        allow create: if signedIn() && request.auth.uid in conv().members
+        allow create: if signedIn() && !banned() && request.auth.uid in conv().members
           && request.resource.data.keys().hasOnly(['from', 'text', 't', 'at'])
           && request.resource.data.from == request.auth.uid
           && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000

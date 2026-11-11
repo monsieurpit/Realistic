@@ -476,3 +476,15 @@
 #mb-pat.on { background: var(--hover2, rgba(127,127,127,.3)); }
 .mobile #pat-panel { inset: calc(var(--mtop, 44px) + 4px) 0 0 0; width: auto; height: auto; border-radius: 18px 18px 0 0; top: calc(var(--mtop, 44px) + 4px); }
 .mobile #mb-pat { display: none; }
+/* the system account (PatOS): its badge, drawn in js/account.js (PatOS.systemBadge), and the ban screen */
+.sys-badge { display: inline-flex; vertical-align: -2px; margin-left: 4px; flex: none; filter: drop-shadow(0 1px 2px rgba(125,92,255,.35)); }
+.m2-name { display: flex; align-items: center; min-width: 0; } .m2-rt .m2-name { display: flex; }
+.msg-av.sys { background: linear-gradient(140deg, #7d5cff, #ff4fa0); box-shadow: 0 0 0 2px rgba(255,255,255,.7) inset; font-weight: 900; }
+.m2-ban { flex: none; font-size: 11px; font-weight: 700; color: #fff; background: #ff453a; border-radius: 999px; padding: 2px 8px; }
+.m2-banbtn { flex: none; }
+.m2-who .m2-name { justify-content: flex-end; }
+.ban-layer { position: fixed; inset: 0; z-index: 2147482000; display: grid; place-items: center; padding: 20px; background: rgba(8,8,12,.72); backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px); }
+.ban-card { width: min(420px, 100%); padding: 26px 24px 22px; border-radius: 24px; background: var(--panel, #1c1c22); color: var(--text, #fff); text-align: center; box-shadow: 0 30px 80px rgba(0,0,0,.45); display: flex; flex-direction: column; gap: 10px; align-items: center; }
+.ban-ic { color: #ff453a; } .ban-card h2 { margin: 0; font-size: 20px; } .ban-card p { margin: 0; opacity: .8; }
+.ban-why { width: 100%; text-align: left; padding: 10px 14px; border-radius: 14px; background: rgba(255,69,58,.12); } .ban-why small { display: block; opacity: .6; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; } .ban-why div { white-space: pre-wrap; word-break: break-word; }
+.ban-fine { font-size: 12.5px; } .ban-card .btn { margin-top: 6px; min-width: 140px; }

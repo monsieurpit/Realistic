@@ -20,11 +20,16 @@
       const T = (x) => PatOS.t(x);
       const msg = (title, body) => PatOS.alertBox(title, body, { icon: 'messages' });
       const fail = (e) => msg(T('That didn’t work'), String((e && e.message) || e));
-      const av = (name) => h('div', { class: 'msg-av' }, (name || '?').charAt(0).toUpperCase());
+      const isSys = (uid) => A && A.isSystem(uid);
+      const av = (name, uid) => isSys(uid) ? h('div', { class: 'msg-av sys' }, 'P') : h('div', { class: 'msg-av' }, (name || '?').charAt(0).toUpperCase());
+      // a person's name: "PatOS" with the system badge for the system account, @name for everyone else
+      const nameEl = (uid, username, tag) => h(tag || 'b', { class: 'm2-name' }, A.display(uid, username), isSys(uid) ? PatOS.systemBadge(14) : null);
+      let everyone = null, everyoneAt = 0; // the system account: every account
+      const loadEveryone = async (force) => { if (!C.isSystem() || (!force && everyone && Date.now() - everyoneAt < 30000)) return; everyoneAt = Date.now(); try { everyone = await C.everyone(); } catch (e) { everyone = everyone || []; } drawList(); };
       const signedIn = () => A && A.signedIn();
 
       /* the left side: search, requests, conversations */
-      function row(name, sub, extra, on, onClick) { const b = h('div', { class: 'm2-row' + (on ? ' on' : ''), role: 'button', tabindex: '0', onclick: onClick }, av(name), h('div', { class: 'm2-rt' }, h('b', {}, name), h('small', {}, sub || '')), extra || null); b.addEventListener('keydown', (e) => { if (e.key === 'Enter') onClick(); }); return b; }
+      function row(u, sub, extra, on, onClick) { const b = h('div', { class: 'm2-row' + (on ? ' on' : ''), role: 'button', tabindex: '0', onclick: onClick }, av(u.username, u.uid), h('div', { class: 'm2-rt' }, nameEl(u.uid, u.username), h('small', {}, sub || '')), extra || null); b.addEventListener('keydown', (e) => { if (e.key === 'Enter') onClick(); }); return b; }
       function drawSide() {
         const keep = side.querySelector('.m2-search'); const had = document.activeElement === keep; const val = keep ? keep.value : query;
         side.innerHTML = '';
@@ -39,15 +44,31 @@
         if (query) {
           if (!results) { listEl.appendChild(h('div', { class: 'm2-empty' }, T('Searching…'))); return; }
           if (!results.length) listEl.appendChild(h('div', { class: 'm2-empty' }, T('Nobody with that username. Check the spelling.')));
-          results.forEach((u) => listEl.appendChild(row('@' + u.username, u.conv ? (u.conv.status === 'accepted' ? T('Open the chat') : u.conv.status === 'pending' ? (u.conv.mine ? T('Request sent') : T('Wants to message you')) : T('Declined')) : T('Send a message request'), null, false, () => { query = ''; results = null; if (u.conv) { cur = u.conv.id; target = null; C.open(cur); } else { target = u; cur = null; C.close(); } drawSide(); drawMain(); win.el.classList.add('m2-chat'); })));
+          results.forEach((u) => listEl.appendChild(row(u, u.conv ? (u.conv.status === 'accepted' ? T('Open the chat') : u.conv.status === 'pending' ? (u.conv.mine ? T('Request sent') : T('Wants to message you')) : T('Declined')) : T('Send a message request'), null, false, () => { query = ''; results = null; if (u.conv) { cur = u.conv.id; target = null; C.open(cur); } else { target = u; cur = null; C.close(); } drawSide(); drawMain(); win.el.classList.add('m2-chat'); })));
           return;
         }
         const reqs = C.requests(), convs = C.conversations(), declined = C.declined();
-        if (reqs.length) { listEl.appendChild(h('div', { class: 'm2-h' }, T('Requests') + ' (' + reqs.length + ')')); reqs.forEach((c) => listEl.appendChild(row('@' + c.other.username, c.last, h('span', { class: 'm2-dot' }), cur === c.id, () => openConv(c.id)))); }
+        if (reqs.length) { listEl.appendChild(h('div', { class: 'm2-h' }, T('Requests') + ' (' + reqs.length + ')')); reqs.forEach((c) => listEl.appendChild(row(c.other, c.last, h('span', { class: 'm2-dot' }), cur === c.id, () => openConv(c.id)))); }
         listEl.appendChild(h('div', { class: 'm2-h' }, T('Messages')));
         if (!convs.length) listEl.appendChild(h('div', { class: 'm2-empty' }, T('No conversations yet. Search for a username above to start one.')));
-        convs.forEach((c) => listEl.appendChild(row('@' + c.other.username, c.status === 'pending' ? T('Waiting for them to accept') : (c.lastFromMe ? T('You') + ': ' : '') + c.last, c.unread ? h('span', { class: 'm2-dot' }) : h('small', { class: 'm2-time' }, c.lastAt ? clock(c.lastAt) : ''), cur === c.id, () => openConv(c.id))));
-        if (declined.length) { listEl.appendChild(h('div', { class: 'm2-h' }, T('Declined'))); declined.forEach((c) => listEl.appendChild(row('@' + c.other.username, T('You declined this request'), null, cur === c.id, () => openConv(c.id)))); }
+        convs.forEach((c) => listEl.appendChild(row(c.other, c.status === 'pending' ? T('Waiting for them to accept') : (c.lastFromMe ? T('You') + ': ' : '') + c.last, c.unread ? h('span', { class: 'm2-dot' }) : h('small', { class: 'm2-time' }, c.lastAt ? clock(c.lastAt) : ''), cur === c.id, () => openConv(c.id))));
+        if (declined.length) { listEl.appendChild(h('div', { class: 'm2-h' }, T('Declined'))); declined.forEach((c) => listEl.appendChild(row(c.other, T('You declined this request'), null, cur === c.id, () => openConv(c.id)))); }
+        // the system account has every account here, and sees who is banned
+        if (C.isSystem()) {
+          loadEveryone(false);
+          listEl.appendChild(h('div', { class: 'm2-h' }, T('All Accounts') + (everyone ? ' (' + everyone.length + ')' : '')));
+          if (!everyone) listEl.appendChild(h('div', { class: 'm2-empty' }, T('Loading…')));
+          else everyone.forEach((u) => listEl.appendChild(row(u, u.ban ? T('Banned') + (u.ban.reason ? ': ' + u.ban.reason : '') : u.conv ? T('Open the chat') : T('Message (no request needed)'), u.ban ? h('span', { class: 'm2-ban' }, T('Banned')) : null, cur === u.cid, () => { if (u.conv) openConv(u.conv.id); else { target = u; cur = null; C.close(); drawSide(); drawMain(); win.el.classList.add('m2-chat'); } })));
+        }
+      }
+      async function banIt(u) {
+        const reason = await PatOS.ask(T('Ban') + ' @' + u.username + '?', '', { icon: 'messages', ok: T('Ban'), danger: true, text: T('They see this reason, and can only log out. They can make a new account.') });
+        if (reason == null) return;
+        try { await C.ban(u, reason.trim()); await loadEveryone(true); drawMain(); PatOS.notify({ title: T('Banned'), body: '@' + u.username, icon: 'messages' }); } catch (e) { fail(e); }
+      }
+      async function unbanIt(u) {
+        if (!(await PatOS.confirmBox(T('Unban') + ' @' + u.username + '?', T('They can use their account again.'), { ok: T('Unban'), icon: 'messages' }))) return;
+        try { await C.unban(u); await loadEveryone(true); drawMain(); } catch (e) { fail(e); }
       }
       function openConv(id) { cur = id; target = null; C.open(id); drawSide(); drawMain(); win.el.classList.add('m2-chat'); }
 
@@ -61,35 +82,41 @@
         }
         const c = cur ? C.find(cur) : null;
         if (!c && !target) { main.appendChild(h('div', { class: 'm2-card' }, h('h2', {}, T('Messages')), h('p', {}, T('Pick a conversation, or find someone by username in the search box.')), C.outbox() ? h('p', { class: 'm2-fine' }, C.outbox() + ' ' + T('waiting to be sent (you are offline or the connection is slow)')) : null)); return; }
-        const name = c ? c.other.username : target.username;
+        const name = c ? c.other.username : target.username, ouid = c ? c.other.uid : target.uid;
+        const other = { uid: ouid, username: name }; const god = C.isSystem() && !isSys(ouid);
+        const known = everyone && everyone.find((u) => u.uid === ouid); const isBanned = !!(known && known.ban);
+        const banBtn = god ? h('button', { class: 'btn m2-banbtn' + (isBanned ? '' : ' danger'), onclick: () => (isBanned ? unbanIt(other) : banIt(other)) }, isBanned ? T('Unban') : T('Ban')) : null;
         const back = h('button', { class: 'tbtn m2-back', 'aria-label': T('Back'), onclick: () => { win.el.classList.remove('m2-chat'); } }, '‹');
-        main.appendChild(h('div', { class: 'm2-head' }, back, av(name), h('div', {}, h('b', {}, '@' + name), h('small', {}, c ? (c.status === 'accepted' ? T('Chat') : c.status === 'pending' ? (c.mine ? T('Waiting for them to accept') : T('Message request')) : T('Declined')) : T('New message')))));
+        main.appendChild(h('div', { class: 'm2-head' }, back, av(name, ouid), h('div', { style: { flex: 1, minWidth: 0 } }, nameEl(ouid, name), h('small', {}, isBanned ? T('Banned') : isSys(ouid) ? T('PatOS system account') : c ? (c.status === 'accepted' ? T('Chat') : c.status === 'pending' ? (c.mine ? T('Waiting for them to accept') : T('Message request')) : T('Declined')) : T('New message'))), banBtn));
         const list = h('div', { class: 'm2-msgs', role: 'log', 'aria-live': 'polite' });
         if (c) {
           const ms = C.messages(); let day = '';
           ms.forEach((m) => { const dk = new Date(m.t).toDateString(); if (dk !== day) { day = dk; list.appendChild(h('div', { class: 'm2-day' }, new Date(m.t).toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' }))); } list.appendChild(h('div', { class: 'msg-b ' + (m.mine ? 'me' : 'them') + (m.sending ? ' sending' : ''), title: new Date(m.t).toLocaleString(PatOS.locale) }, m.text)); });
-          if (c.status === 'pending' && c.mine) list.appendChild(h('div', { class: 'm2-sys' }, '@' + name + ' ' + T('has to accept your request before you can keep chatting. They get no notifications from you until then.')));
+          if (c.status === 'pending' && c.mine && !C.isSystem()) list.appendChild(h('div', { class: 'm2-sys' }, '@' + name + ' ' + T('has to accept your request before you can keep chatting. They get no notifications from you until then.')));
         } else {
-          list.appendChild(h('div', { class: 'm2-sys' }, T('Your first message is sent as a request. @') + name + ' ' + T('decides whether to accept it, and gets no notifications from you until they do.')));
+          list.appendChild(h('div', { class: 'm2-sys' }, C.isSystem() ? T('You are the PatOS account: your message opens the chat at once, no request needed.') : T('Your first message is sent as a request. @') + name + ' ' + T('decides whether to accept it, and gets no notifications from you until they do.')));
           C.outbox() && list.appendChild(h('div', { class: 'm2-sys' }, T('Sending…')));
         }
         main.appendChild(list); setTimeout(() => { list.scrollTop = list.scrollHeight; }, 0);
         // the bottom: write, or answer a request
         if (c && c.status === 'pending' && !c.mine) {
           main.appendChild(h('div', { class: 'm2-ask' }, h('span', {}, '@' + name + ' ' + T('wants to message you.')), h('div', {}, h('button', { class: 'btn primary', onclick: () => C.respond(c.id, true).catch(fail) }, T('Accept')), h('button', { class: 'btn', onclick: () => C.respond(c.id, false).then(() => { cur = null; C.close(); drawSide(); drawMain(); }).catch(fail) }, T('Decline')))));
+        } else if (c && c.status !== 'accepted' && C.isSystem()) {
+          drawInput(c); // the system account never waits for an answer
         } else if (c && c.status === 'declined') {
           main.appendChild(c.mine ? h('div', { class: 'm2-ask' }, h('span', {}, T('This person did not accept your request.'))) : h('div', { class: 'm2-ask' }, h('span', {}, T('You declined this request.')), h('div', {}, h('button', { class: 'btn', onclick: () => C.respond(c.id, true).catch(fail) }, T('Accept Anyway')))));
         } else if (c && c.status === 'pending' && c.mine) {
           main.appendChild(h('div', { class: 'm2-ask' }, h('span', {}, T('Waiting for them to accept…'))));
-        } else {
+        } else drawInput(c);
+        function drawInput(c) {
           const input = h('input', { class: 'msg-in', placeholder: T('Message'), maxlength: '2000', autocomplete: 'off', enterkeyhint: 'send', 'aria-label': T('Message') });
           const send = h('button', { class: 'msg-send', 'aria-label': T('Send') }, '↑');
-          const go = async () => { const v = input.value.trim(); if (!v) return; input.value = ''; try { if (c) C.send(c.id, v); else { const id = await C.request(target, v); if (id) { cur = id; target = null; C.open(id); drawSide(); } } } catch (e) { input.value = v; fail(e); } };
+          const go = async () => { const v = input.value.trim(); if (!v) return; input.value = ''; try { if (c && c.status === 'accepted') C.send(c.id, v); else if (c) await C.request(c.other, v); else { const id = await C.request(target, v); if (id) { cur = id; target = null; C.open(id); drawSide(); } } } catch (e) { input.value = v; fail(e); } };
           input.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); }); send.onclick = go;
           main.appendChild(h('div', { class: 'msg-bar' }, input, send)); if (!win._noFocus) setTimeout(() => input.focus(), 60);
         }
       }
-      const fullPaint = () => { root.classList.toggle('m2-out', !signedIn()); who.textContent = signedIn() ? '@' + A.info().username : ''; if (!signedIn()) { cur = null; target = null; } drawSide(); drawMain(); };
+      const fullPaint = () => { root.classList.toggle('m2-out', !signedIn()); who.innerHTML = ''; if (signedIn()) who.append(nameEl(A.info().uid, A.info().username, 'span')); if (!signedIn()) { cur = null; target = null; } drawSide(); drawMain(); };
       const offs = [PatOS.on('chat', () => { if (!root.isConnected) return; drawSide(); const c = cur ? C.find(cur) : null; if (cur && !c) { /* gone */ } else if (c && main.dataset.status !== c.status) { drawMain(); } main.dataset.status = c ? c.status : ''; }),
         PatOS.on('chat:messages', () => { if (!root.isConnected) return; if (cur || target) { const keepFocus = document.activeElement && document.activeElement.classList.contains('msg-in'); const v = keepFocus ? document.activeElement.value : ''; drawMain(); if (keepFocus) { const i = main.querySelector('.msg-in'); if (i) { i.value = v; i.focus(); } } } }),
         PatOS.on('account', () => { if (root.isConnected) fullPaint(); })];

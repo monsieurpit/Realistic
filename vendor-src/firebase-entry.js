@@ -8,6 +8,8 @@
      accounts/{uid}/chunks/{c<rid>.<t>.<i>} { d }                        the scrambled content of an item, in pieces under 1 MB
      conversations/{uid1_uid2}              { members, usernames, status, requester, lastMessage, lastMessageAt, lastFrom }
      conversations/{id}/messages/{id}       { from, text, t, at }        the history, never changed afterwards
+     config/system                          { uid }                      the system account (PatOS); written only in the Firebase console
+     bans/{uid}                             { reason, username, at, by } banned accounts; written only by the system account
 
    Accounts are username and password only. Firebase Authentication needs an email-shaped name, so the username is turned
    into one that can never receive mail (name@patos.invalid). Nobody types it, and no mail is ever sent. The password is
@@ -77,7 +79,7 @@ const api = {
     await api.claim(cred.user.uid, username).catch(() => {}); // makes the name lookup again if it was never written
     return { uid: cred.user.uid, username };
   }),
-  signOut: wrap(async () => { init(); await fbSignOut(auth); }),
+  signOut: wrap(async () => { init(); api._sys = null; await fbSignOut(auth); }),
   /* the person who was signed in last time (the browser remembers, even offline); null if nobody */
   restore() {
     init();
@@ -164,6 +166,27 @@ const api = {
     }
   }),
 
+  /* ---------- the system account (PatOS) and bans ---------- */
+  /* the uid of the system account, or '' when config/system was not set yet (asked once per sign-in) */
+  systemUid: wrap(async () => { init(); if (api._sys != null) return api._sys; try { const s = await getDoc(doc(db, 'config', 'system')); api._sys = s.exists() ? String(s.data().uid || '') : ''; } catch (e) { return ''; } return api._sys; }),
+  _sys: null,
+  /* every account (the system account sees them all) */
+  allUsers: wrap(async () => { init(); const s = await getDocs(collection(db, 'usernames')); return s.docs.map((d) => ({ username: d.id, uid: d.data().uid })); }),
+  /* your own ban, live: cb(null) or cb({ reason, at, by }) */
+  listenBan(uid, cb) {
+    init();
+    return onSnapshot(doc(db, 'bans', uid), (s) => cb(s.exists() ? Object.assign({}, s.data({ serverTimestamps: 'estimate' })) : null), () => {});
+  },
+  bans: wrap(async () => { init(); const s = await getDocs(collection(db, 'bans')); return s.docs.map((d) => Object.assign({ uid: d.id }, d.data({ serverTimestamps: 'estimate' }))); }),
+  ban: wrap(async (me, uid, username, reason) => { init(); await setDoc(doc(db, 'bans', uid), { reason: String(reason || '').slice(0, 500), username: String(username || '').slice(0, 40), at: serverTimestamp(), by: me.uid }); }),
+  unban: wrap(async (uid) => { init(); await deleteDoc(doc(db, 'bans', uid)); }),
+  /* a sign-in token for PatOS's own server (releasing a version); fresh: after asking the password again */
+  idToken: wrap(async (username, password) => {
+    init(); const u = auth.currentUser; if (!u) throw fail('wrong', 'Sign in first.');
+    if (password != null) await reauthenticateWithCredential(u, EmailAuthProvider.credential(emailOf(username), password));
+    return u.getIdToken(true);
+  }),
+
   /* ---------- messages ---------- */
   convId: (a, b) => (a < b ? a + '_' + b : b + '_' + a),
   /* all of someone's conversations, live; call the returned function to stop */
@@ -177,11 +200,11 @@ const api = {
     return onSnapshot(query(collection(db, 'conversations', cid, 'messages'), orderBy('at', 'desc'), limit(n || 100)), (s) => cb(s.docs.map((d) => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' }))).reverse()), (e) => { if (onError) onError(friendly(e)); });
   },
   /* the first message to someone: a request they can accept or decline */
-  requestChat: wrap(async (me, other, text, id) => {
+  requestChat: wrap(async (me, other, text, id, accepted) => {
     init(); const cid = api.convId(me.uid, other.uid); const members = [me.uid, other.uid].sort(); const ref = doc(db, 'conversations', cid);
     const cur = await getDoc(ref).catch(() => null); if (cur && cur.exists()) return { cid, existed: true, status: cur.data().status };
     const b = writeBatch(db); const now = serverTimestamp();
-    b.set(ref, { members, usernames: { [me.uid]: me.username, [other.uid]: other.username }, status: 'pending', requester: me.uid, createdAt: now, lastMessage: String(text).slice(0, 140), lastMessageAt: now, lastFrom: me.uid });
+    b.set(ref, { members, usernames: { [me.uid]: me.username, [other.uid]: other.username }, status: accepted ? 'accepted' : 'pending', requester: me.uid, createdAt: now, lastMessage: String(text).slice(0, 140), lastMessageAt: now, lastFrom: me.uid });
     b.set(doc(db, 'conversations', cid, 'messages', 'request'), { from: me.uid, text: String(text).slice(0, 2000), t: Date.now(), at: now });
     await b.commit(); return { cid, existed: false, status: 'pending' };
   }),
@@ -192,6 +215,8 @@ const api = {
     await b.commit();
   }),
   messageExists: wrap(async (cid, id) => { init(); return (await getDoc(doc(db, 'conversations', cid, 'messages', id))).exists(); }),
+  /* the system account opens a conversation that was waiting or declined */
+  open: wrap(async (cid) => { init(); await updateDoc(doc(db, 'conversations', cid), { status: 'accepted', decidedAt: serverTimestamp() }); }),
   respond: wrap(async (cid, accept) => { init(); await updateDoc(doc(db, 'conversations', cid), { status: accept ? 'accepted' : 'declined', decidedAt: serverTimestamp() }); })
 };
 export default api;

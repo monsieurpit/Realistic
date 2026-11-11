@@ -83,6 +83,8 @@
               const nb = U.newestBeta;
               out.appendChild(group(row(T('Beta updates'), sw, U.betaOn() && nb ? T('Now testing:') + ' ' + label(nb) : '')));
             }
+            // the PatOS account (the system account) can release the beta being built as a finished version
+            if (PatOS.account && PatOS.account.isSystem()) out.appendChild(releaseCard());
             // what's in the version you have, and the ones before
             if (cur && cur.notes) out.append(h('h3', {}, T('What’s new in') + ' ' + label(cur)), h('div', { class: 'su-card' }, h('div', { class: 'su-chead' }, h('b', {}, rt(cur, 'title'), ' ', badge(cur)), cur.date ? h('small', {}, fmtDate(cur.date)) : null), notesOf(cur)));
             const list = ((U && U.releases && U.releases.length ? U.releases : PatOS.releases) || []).filter((x) => idOf(x) !== idOf(cur) && !(newer && tgt && idOf(x) === idOf(tgt)));
@@ -93,6 +95,30 @@
             out.appendChild(group(row(T('Something wrong after an update?'), h('button', { class: 'btn', onclick: () => { pane = 'system'; renderMain(); drawSide(); } }, T('Go Back to the Previous Version…')))));
           };
           const idOf = (r) => (r ? r.version + (r.beta ? 'b' + r.beta : '') : '');
+          function releaseCard() {
+            const box = h('div', { class: 'su-card su-release' }, h('div', { class: 'su-chead' }, h('b', {}, T('Release a Version')), PatOS.systemBadge(16)), h('p', { class: 'su-small' }, T('Checking…')));
+            (async () => {
+              let beta = null, ready = false;
+              try { beta = await (await fetch('/api/updates/beta', { cache: 'no-store' })).json(); ready = (await (await fetch('/api/admin/status', { cache: 'no-store' })).json()).release; } catch (e) {}
+              const p = box.querySelector('.su-small');
+              if (!beta) { p.textContent = T('There is no beta being built right now.'); return; }
+              p.textContent = T('Make') + ' ' + beta.version + ' ' + T('beta') + ' ' + beta.beta + ' ' + T('the finished version: everyone gets “Update available”, not only people with Beta updates on.') + (ready ? '' : ' ' + T('(The server isn’t set up for this yet: GITHUB_TOKEN, see docs/SYSTEM-ACCOUNT.md.)'));
+              const go = h('button', { class: 'btn primary', disabled: !ready }, T('Release') + ' PatOS ' + beta.version);
+              go.onclick = async () => {
+                const pw = await PatOS.ask(T('Release') + ' PatOS ' + beta.version + '?', '', { password: true, icon: 'about', ok: T('Release'), text: T('Enter the PatOS account’s password to confirm.') });
+                if (pw == null) return; go.disabled = true; go.textContent = T('Releasing…');
+                try {
+                  const tok = await PatOS.account.freshToken(pw);
+                  const r = await fetch('/api/admin/release', { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + tok }, body: JSON.stringify({ version: beta.version, beta: beta.beta }) });
+                  const j = await r.json().catch(() => ({}));
+                  if (!r.ok) throw new Error(j.error || r.status);
+                  p.textContent = T('Released. The server is installing it now (usually a few minutes), then everyone is told about') + ' PatOS ' + beta.version + '.'; go.remove();
+                } catch (e) { go.disabled = false; go.textContent = T('Release') + ' PatOS ' + beta.version; PatOS.alertBox(T('That didn’t work'), String(e.message || e), { icon: 'about' }); }
+              };
+              box.appendChild(h('div', { class: 'su-btns' }, go));
+            })();
+            return box;
+          }
           if (U) { const on = () => { if (pane === 'update' && out.isConnected) paint(); }; const off = PatOS.on('update', on); win.on('closed', off); U.fetchReleases().then(on); if (U.state === 'idle' || U.state === 'uptodate') U.check(false); }
           paint(); return [out];
         },
@@ -177,7 +203,16 @@
             const st = PatOS.sync.status(); const i = A.info();
             const label = A.status().state === 'reauth' ? T('Your sign-in expired. Sign in again to keep saving.') : st.state === 'syncing' ? T('Saving…') : st.state === 'offline' || st.offline ? T('Offline. Your changes are safe here and are saved when you are back online.') : st.error ? T('Saving had a problem. PatOS will try again.') : st.last ? T('Everything is saved') + ' · ' + (PatOS.backup ? PatOS.backup.when(st.last) : '') : T('Not saved yet');
             const now = h('button', { class: 'btn' }, T('Save Now')); now.onclick = async () => { now.disabled = true; try { await PatOS.sync.now(); } finally { now.disabled = false; } };
-            out.appendChild(group(row(T('Signed in as'), h('span', { class: 'st-val' }, '@' + i.username)), row(T('Status'), now, label), row(T('Saved in your account'), h('span', { class: 'st-val' }, st.items + ' ' + T('items')), st.stay ? st.stay + ' ' + T('big files (videos and recordings) stay on this device only.') : '')));
+            out.appendChild(group(row(T('Signed in as'), h('span', { class: 'st-val' }, A.display(i.uid, i.username), A.isSystem() ? PatOS.systemBadge(14) : null)), row(T('Status'), now, label), row(T('Saved in your account'), h('span', { class: 'st-val' }, st.items + ' ' + T('items')), st.stay ? st.stay + ' ' + T('big files (videos and recordings) stay on this device only.') : '')));
+            // the PatOS account: the system account once its id is in config/system (Firebase console). Until then, how.
+            if (A.isSystem()) out.appendChild(h('div', { class: 'su-card su-release' }, h('div', { class: 'su-chead' }, h('b', {}, T('PatOS system account')), PatOS.systemBadge(16)), h('p', { class: 'su-small' }, T('This account is PatOS. It has every account in Messages, its messages need no request and can’t be declined, it can ban and unban accounts (Messages), and it can release a beta as a finished version (Software Update).'))));
+            else if (i.username === 'patos') {
+              const copy = h('button', { class: 'btn', onclick: () => { try { navigator.clipboard.writeText(i.uid); copy.textContent = T('Copied'); } catch (e) {} } }, T('Copy'));
+              out.appendChild(h('div', { class: 'su-card su-release' }, h('div', { class: 'su-chead' }, h('b', {}, T('Make this the PatOS system account')), PatOS.systemBadge(16)),
+                h('p', { class: 'su-small' }, T('One step, in the Firebase console (so nobody else can ever do it): Firestore Database › Start collection “config” › Document ID “system” › field “uid” (string) with this value:')),
+                h('div', { class: 'su-btns' }, h('code', { class: 'st-val', style: { userSelect: 'all', wordBreak: 'break-all' } }, i.uid), copy),
+                h('p', { class: 'su-small' }, T('Then restart PatOS. docs/SYSTEM-ACCOUNT.md explains it.'))));
+            }
             if (A.status().state === 'reauth') out.appendChild(group(row(T('Sign in again'), h('button', { class: 'btn primary', onclick: () => PatOS.accountUI.open('signin') }, T('Sign In…')))));
             out.appendChild(h('h3', {}, T('Sign out')));
             const so = h('button', { class: 'btn', onclick: async () => { if (await PatOS.confirmBox(T('Sign out?'), T('Everything stays on this device. PatOS stops saving to your account until you sign in again.'), { ok: T('Sign Out'), icon: 'settings' })) { await A.signOut(); paint(); } } }, T('Sign Out…'));
@@ -393,7 +428,7 @@
           const acct = PatOS.account && PatOS.account.signedIn() ? PatOS.account.info() : null;
           const info = (k, v) => v ? row(k, h('span', { class: 'st-val st-wrapval' }, String(v))) : null;
           const made = acct && acct.at ? new Date(acct.at).toLocaleDateString() : '';
-          const who = h('div', { class: 'st-me' }, h('div', { class: 'lock-avatar st-me-av' }, S().userName.charAt(0).toUpperCase()), h('h2', {}, S().userName), h('p', {}, acct ? '@' + acct.username : T('Not signed in to a PatOS account')));
+          const who = h('div', { class: 'st-me' }, h('div', { class: 'lock-avatar st-me-av' }, S().userName.charAt(0).toUpperCase()), h('h2', {}, S().userName), h('p', {}, acct ? (PatOS.account.isSystem(acct.uid) ? h('span', { class: 'm2-name' }, 'PatOS', PatOS.systemBadge(13)) : '@' + acct.username) : T('Not signed in to a PatOS account')));
           const go = (p) => { pane = p; cat = catOf(p) || cat; render(); PatOS.paneIn && PatOS.paneIn(main); if (MB && MB.detail) MB.detail(win, true, paneName(p)); };
           return [who,
             h('h3', {}, T('You')), group(
@@ -543,7 +578,7 @@
       function render(keepSearch) {
         side.innerHTML = '';
         const acct = PatOS.account && PatOS.account.signedIn() ? PatOS.account.info() : null;
-        side.appendChild(h('button', { class: 'st-card', onclick: () => goPane('me') }, h('div', { class: 'lock-avatar st-card-av' }, S().userName.charAt(0).toUpperCase()), h('div', { class: 'st-card-t' }, h('b', {}, S().userName), h('small', {}, acct ? '@' + acct.username : PatOS.t('Sign in or create an account'))), h('span', { class: 'st-card-go' }, '›')));
+        side.appendChild(h('button', { class: 'st-card', onclick: () => goPane('me') }, h('div', { class: 'lock-avatar st-card-av' }, S().userName.charAt(0).toUpperCase()), h('div', { class: 'st-card-t' }, h('b', {}, S().userName), h('small', {}, acct ? (PatOS.account.isSystem(acct.uid) ? h('span', { class: 'm2-name' }, 'PatOS', PatOS.systemBadge(13)) : '@' + acct.username) : PatOS.t('Sign in or create an account'))), h('span', { class: 'st-card-go' }, '›')));
         side.appendChild(sq); if (!keepSearch) { sq.value = filter; }
         drawSide();
         renderMain();
