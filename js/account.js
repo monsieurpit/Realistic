@@ -131,6 +131,8 @@
     if (offBan) offBan();
     offBan = F.listenBan(i.uid, (b) => { if (b) showBan(b); else hideBan(); });
   }
+  // config/system may be set while PatOS is open: look again now and then (one small read), no restart needed
+  setInterval(async () => { const i = info(); if (!i || !F || state !== 'ok' || document.hidden) return; try { F._sys = null; const s = await F.systemUid(); if (s && s !== PatOS.store.get('systemUid', '')) { PatOS.store.set('systemUid', s); emit(); PatOS.emit('chat'); } } catch (e) {} }, 60000);
   function hideBan() { if (banEl) { banEl.remove(); banEl = null; } }
   /* a banned account: only Log Out is left (what is on this device stays; another account can be made) */
   function showBan(b) {

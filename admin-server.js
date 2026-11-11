@@ -54,7 +54,8 @@ async function systemUid(token, fetchImpl) {
   const r = await (fetchImpl || fetch)(url, { headers: { Authorization: 'Bearer ' + token } });
   if (r.status === 404) return '';
   if (!r.ok) throw fail(502, 'The database could not be read.');
-  const d = await r.json(); return (d.fields && d.fields.uid && d.fields.uid.stringValue) || '';
+  const f = (await r.json()).fields || {}; // { uid: <id> }, or the id as the name of the only field (like firestore.rules)
+  if (f.uid) return f.uid.stringValue || ''; const k = Object.keys(f); return k.length === 1 ? k[0] : '';
 }
 
 /* ---------- GitHub: one commit per branch ---------- */

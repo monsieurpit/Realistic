@@ -108,6 +108,7 @@ test('messages: a request, its one message, accept, the chat, and nobody else ca
 
 /* the system account (PatOS): its uid is in config/system, which only the Firebase console can write (here: the emulator's
    owner access, like the console). It can message anyone without a request, can't be declined, bans and unbans. */
+async function setSystemKey(uid) { const r = await fetch('http://127.0.0.1:' + emu.ports.firestore + '/v1/projects/demo-patos/databases/(default)/documents/config/system', { method: 'PATCH', headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: { [uid]: { stringValue: '' } } }) }); assert.ok(r.ok); }
 async function setSystem(uid) {
   const r = await fetch('http://127.0.0.1:' + emu.ports.firestore + '/v1/projects/demo-patos/databases/(default)/documents/config/system', { method: 'PATCH', headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: { uid: { stringValue: uid } } }) });
   assert.ok(r.ok, 'the console can write config/system: ' + r.status);
@@ -144,4 +145,14 @@ test('the system account: nobody can make themselves it; no request needed; can\
   await no(F.deleteDoc(c.doc('bans', c.uid)), 'unbanning yourself');
   await ok(F.deleteDoc(god.doc('bans', c.uid)));
   const cb2 = F.writeBatch(c.db); cb2.set(c.doc('conversations', cid(c, god), 'messages', 'x2'), { from: c.uid, text: 'back', t: Date.now(), at: now() }); cb2.update(conv(c, c, god), { lastMessage: 'back', lastMessageAt: now(), lastFrom: c.uid }); await ok(cb2.commit());
+});
+test('config/system with the id as the field name: the same powers, and still nobody else', { skip: emu.skip }, async () => {
+  const tag = Date.now().toString(36).slice(-5);
+  const god = await person('patos' + tag), b = await person('bob' + tag), c = await person('cy' + tag);
+  for (const p of [god, b, c]) await F.setDoc(p.doc('usernames', p.name), { uid: p.uid, createdAt: now() });
+  await setSystemKey(god.uid);
+  await ok(F.setDoc(god.doc('bans', b.uid), { reason: 'x', username: b.name, at: now(), by: god.uid }));
+  await no(F.setDoc(c.doc('bans', god.uid), { reason: 'x', username: god.name, at: now(), by: c.uid }), 'someone else banning');
+  await no(F.setDoc(c.doc('config', 'system'), { [c.uid]: '' }), 'writing config/system');
+  await ok(F.deleteDoc(god.doc('bans', b.uid)));
 });

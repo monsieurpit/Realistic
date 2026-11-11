@@ -224,3 +224,23 @@ test('the PatOS account: no request needed, its badge, every account, ban (the b
   assert.equal(await B.ev(() => !!document.querySelector('.ban-layer')), false);
   await G.ctx.close(); await B.ctx.close();
 });
+
+test('the PatOS account set up with the id as the field name works too, and on a second device without restarting', { skip: emu.skip }, async () => {
+  const gn = uniq('patos'), bn = uniq('bo'), pw = 'a long system password';
+  const G = await device(), B = await device();
+  await G.ev(async ([u, p]) => { await PatOS.account.signUp(u, p); }, [gn, pw]);
+  await B.ev(async ([u, p]) => { await PatOS.account.signUp(u, p); }, [bn, pw]);
+  const guid = await G.ev(() => PatOS.account.info().uid);
+  // what the console makes when the id is typed in the field name box: { "<id>": "" }
+  const r = await fetch('http://127.0.0.1:8180/v1/projects/demo-patos/databases/(default)/documents/config/system', { method: 'PATCH', headers: { Authorization: 'Bearer owner', 'Content-Type': 'application/json' }, body: JSON.stringify({ fields: { [guid]: { stringValue: '' } } }) }); assert.ok(r.ok);
+  // a second device signs in to the PatOS account: it is PatOS there at once
+  const G2 = await device();
+  await G2.ev(async ([u, p]) => { await PatOS.account.signIn(u, p); }, [gn, pw]);
+  await waitFor(G2.page, () => PatOS.account.isSystem() && PatOS.chat.ready(), null, 20000);
+  const bo = (await G2.ev(() => PatOS.chat.everyone())).find((u) => u.username === bn);
+  await G2.ev(async (o) => { await PatOS.chat.request(o, 'From my other device'); }, bo);
+  await waitFor(B.page, () => PatOS.chat.conversations().length === 1 && PatOS.chat.conversations()[0].status === 'accepted', null, 15000);
+  // the first device, already open, finds out by itself (it looks again every minute)
+  await waitFor(G.page, () => PatOS.account.isSystem(), null, 70000);
+  await G.ctx.close(); await G2.ctx.close(); await B.ctx.close();
+});

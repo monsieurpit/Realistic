@@ -168,7 +168,12 @@ const api = {
 
   /* ---------- the system account (PatOS) and bans ---------- */
   /* the uid of the system account, or '' when config/system was not set yet (asked once per sign-in) */
-  systemUid: wrap(async () => { init(); if (api._sys != null) return api._sys; try { const s = await getDoc(doc(db, 'config', 'system')); api._sys = s.exists() ? String(s.data().uid || '') : ''; } catch (e) { return ''; } return api._sys; }),
+  systemUid: wrap(async () => {
+    init(); if (api._sys) return api._sys;
+    try { const s = await getDoc(doc(db, 'config', 'system')); return (api._sys = s.exists() ? api.sysOf(s.data()) : ''); } catch (e) { return ''; }
+  }),
+  /* config/system: { uid: <id> }, or the id as the name of its only field (the same reading as firestore.rules) */
+  sysOf: (d) => { if (!d) return ''; if ('uid' in d) return String(d.uid || ''); const k = Object.keys(d); return k.length === 1 ? k[0] : ''; },
   _sys: null,
   /* every account (the system account sees them all) */
   allUsers: wrap(async () => { init(); const s = await getDocs(collection(db, 'usernames')); return s.docs.map((d) => ({ username: d.id, uid: d.data().uid })); }),

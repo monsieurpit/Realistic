@@ -14,7 +14,9 @@ service cloud.firestore {
     // The system account (PatOS): its uid is written ONLY in the Firebase console, in config/system { uid }. No app or
     // person can write it (see config below), so nobody can make themselves the system account, even with the name "patos".
     function cfg() { return /databases/$(database)/documents/config/system; }
-    function sysUid() { return exists(cfg()) ? get(cfg()).data.uid : '-none-'; }
+    // config/system holds the uid as the field "uid" (uid: <id>), or as the name of its only field (<id>: anything)
+    function sysOf(d) { return 'uid' in d ? d.uid : (d.keys().size() == 1 ? d.keys()[0] : '-none-'); }
+    function sysUid() { return exists(cfg()) ? sysOf(get(cfg()).data) : '-none-'; }
     function isSys() { return signedIn() && request.auth.uid == sysUid(); }
     // a banned account (bans/{uid}, written only by the system account) can't write anything anymore
     function banned() { return signedIn() && exists(/databases/$(database)/documents/bans/$(request.auth.uid)); }
