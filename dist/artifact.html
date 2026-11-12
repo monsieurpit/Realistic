@@ -4812,6 +4812,22 @@ html:not(.reduce-motion) .dlg { animation: dlgIn var(--spring-dur-short) var(--s
 .cp-img { max-height: 70px; max-width: 160px; border-radius: 8px; display: block; }
 .cc-cmd { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; } .cc-cmdb { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; color: inherit; font-size: 13px; font-weight: 600; background: rgba(127,127,127,.14); }
 .cc-cmdb svg { width: 17px; height: 17px; } .cc-cmdb small { margin-left: auto; padding: 0 7px; border-radius: 999px; background: var(--accent); color: #fff; font-size: 11px; }
+/* Piles Pro: tabs, sheets, duplicates, compare */
+.fd-tabs { display: flex; align-items: center; gap: 4px; padding: 6px 8px 0; } .fd-tabs.hidden { display: none; }
+.fd-tab { flex: 1; min-width: 0; max-width: 220px; display: flex; align-items: center; gap: 6px; padding: 5px 8px 5px 12px; border-radius: 10px 10px 0 0; font-size: 12.5px; background: rgba(127,127,127,.1); cursor: default; }
+.fd-tab span { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .fd-tab.on { background: rgba(127,127,127,.24); font-weight: 600; }
+.fd-tabx { width: 18px; height: 18px; border-radius: 50%; font-size: 13px; line-height: 1; color: inherit; opacity: .5; } .fd-tabx:hover { opacity: 1; background: rgba(127,127,127,.25); }
+.fd-tabnew { width: 26px; height: 26px; border-radius: 8px; font-size: 17px; color: inherit; opacity: .7; } .fd-tabnew:hover { opacity: 1; background: rgba(127,127,127,.18); }
+.fp-sheet { position: absolute; inset: 0; z-index: 20; display: grid; place-items: start center; padding-top: 30px; background: rgba(0,0,0,.25); }
+.fp-card { width: min(640px, calc(100% - 30px)); max-height: calc(100% - 50px); display: flex; flex-direction: column; border-radius: 18px; color: var(--text); background: var(--win-solid, #1c1c1e); box-shadow: 0 20px 50px rgba(0,0,0,.4), inset 0 0 0 .5px var(--border2); }
+.fp-head { display: flex; align-items: center; padding: 12px 14px; border-bottom: 1px solid var(--border); } .fp-head b { flex: 1; } .fp-x { width: 26px; height: 26px; border-radius: 50%; font-size: 18px; color: inherit; } .fp-x:hover { background: rgba(127,127,127,.2); }
+.fp-body { overflow-y: auto; padding: 12px 14px; } .fp-acts { display: flex; justify-content: flex-end; gap: 8px; padding: 10px 14px; border-top: 1px solid var(--border); }
+.fp-muted { margin: 0 0 10px; color: var(--text2); font-size: 13px; }
+.fp-group { padding: 8px 10px; margin-bottom: 8px; border-radius: 12px; background: rgba(127,127,127,.1); } .fp-group > small { color: var(--text3); font-size: 11.5px; }
+.fp-row { display: flex; align-items: center; gap: 8px; padding: 5px 0; font-size: 13px; } .fp-path { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+.fp-row small { color: var(--text3); } .fp-row .btn { height: 26px; padding: 0 10px; font-size: 12px; }
+.fp-diff, .fp-preview { margin: 0; padding: 10px; border-radius: 10px; background: rgba(0,0,0,.2); font: 12px/1.5 ui-monospace, Menlo, monospace; white-space: pre-wrap; max-height: 420px; overflow: auto; }
+.fp-preview:empty { display: none; } .fp-diff .fd-add { background: rgba(48,209,88,.18); } .fp-diff .fd-del { background: rgba(255,69,58,.18); text-decoration: line-through; opacity: .85; } .fp-diff .fd-same { opacity: .6; }
 
 </style>
   <style>
@@ -10250,7 +10266,8 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
     'Swipe up and hold to switch apps': 'Glisse vers le haut et attends pour changer d’app', 'Ctrl+Space to search': 'Ctrl+Espace pour chercher', 'Alt+L to see all apps': 'Alt+L pour voir toutes les apps', 'Drag a window to an edge to snap it': 'Glisse une fenêtre sur un bord pour l’aligner', 'Welcome back, ': 'Bon retour, ', 'The passwords don’t match.': 'Les mots de passe ne sont pas pareils.', 'You’re offline. Connect to the internet to continue.': 'Tu es hors ligne. Connecte-toi à Internet pour continuer.', 'That didn’t work. Try again.': 'Ça n’a pas marché. Réessaie.', 'Create your account': 'Crée ton compte', 'A username and a password. No email needed.': 'Un nom d’utilisateur et un mot de passe. Pas besoin de courriel.', 'Your settings and files come back to this device.': 'Tes réglages et tes fichiers reviennent sur cet appareil.', 'Remember your password: it can’t be reset.': 'Retiens ton mot de passe : il ne peut pas être réinitialisé.', 'Getting your things…': 'On récupère tes affaires…',
     'Your account': 'Ton compte',
     'That isn’t available.': 'Ce n’est pas disponible.', 'That didn’t work.': 'Ça n’a pas marché.', 'Call': 'Appeler', 'Meet': 'Voir', 'That picture can’t be read.': 'Cette image ne peut pas être lue.', 'New wallpaper.': 'Nouveau fond d’écran.', 'Saved to Capture': 'Gardé dans Capture', 'Quiet hours': 'Heures calmes', 'No banners or sounds, except urgent ones.': 'Pas de bannières ni de sons, sauf les urgents.', 'To': 'À', 'Keep history': 'Garder l’historique', '1 day': '1 jour', '7 days': '7 jours', '30 days': '30 jours', 'Each app': 'Chaque app', 'Banners': 'Bannières', 'Sounds': 'Sons', 'never': 'jamais', 'didn’t finish': 'pas terminé', 'Retry': 'Réessayer', 'no progress for 10 minutes': 'aucun progrès depuis 10 minutes', 'Sync stopped': 'La synchro s’est arrêtée', 'The sync key is wrong.': 'La clé de synchro est mauvaise.', 'The server is full.': 'Le serveur est plein.', 'The server is busy.': 'Le serveur est occupé.', 'The server had a problem.': 'Le serveur a eu un problème.', 'items couldn’t be synced': 'éléments n’ont pas pu être synchronisés', 'No backup in over a week': 'Aucune sauvegarde depuis plus d’une semaine', 'No backup yet': 'Pas encore de sauvegarde', 'Back up now': 'Sauvegarder maintenant', 'Storage almost full': 'Stockage presque plein', 'Backup': 'Sauvegarde', 'Saving a snapshot…': 'Enregistrement d’un instantané…', 'Manual': 'Manuel', 'Setting': 'Réglage', 'Command': 'Commande', 'Search commands, settings and apps': 'Chercher des commandes, réglages et apps', 'Command Center': 'Centre de commande', 'Everything is fine.': 'Tout va bien.', 'No progress': 'Aucun progrès', 'Nothing running.': 'Rien en cours.', 'Waiting for internet': 'En attente d’Internet', 'Finished': 'Terminé', 'Didn’t finish': 'Pas terminé', 'Cancelled': 'Annulé', 'Activities': 'Activités', 'That action doesn’t exist.': 'Cette action n’existe pas.', 'This action can’t take that.': 'Cette action ne peut pas prendre ça.', 'Nothing can take this': 'Rien ne peut prendre ça', 'Search notifications': 'Chercher dans les notifications', 'Dismiss': 'Fermer', 'Clear all': 'Tout effacer',
-    'Capture this page': 'Capturer cette page', 'Captured': 'Capturé', 'Share…': 'Partager…', 'New': 'Nouveau', 'Capture': 'Capture', 'Nothing to sort. Press Alt+C anywhere to capture something.': 'Rien à trier. Appuie sur Alt+C n’importe où pour capturer quelque chose.', 'Nothing here.': 'Rien ici.', 'Pick an item to see it and send it on.': 'Choisis un élément pour le voir et l’envoyer.', 'recognized as': 'reconnu comme', 'sent': 'envoyé', '#tags': '#étiquettes', 'Send to': 'Envoyer à', 'Back to Inbox': 'Remettre dans la boîte', 'Mark as Done': 'Marquer comme fait', 'a link': 'un lien', 'an email address': 'une adresse courriel', 'a phone number': 'un numéro de téléphone', 'a date': 'une date', 'Picture': 'Image', 'That picture is too big to capture': 'Cette image est trop grosse pour être capturée', 'Save it as a file, then capture the file.': 'Enregistre-la comme fichier, puis capture le fichier.', 'That item is gone.': 'Cet élément n’existe plus.', 'Type, paste or drop anything': 'Tape, colle ou dépose n’importe quoi', 'Enter saves · Shift+Enter new line · Esc': 'Entrée enregistre · Maj+Entrée nouvelle ligne · Échap', 'in your inbox': 'dans ta boîte', 'Inbox': 'Boîte de réception', 'Picture copied': 'Image copiée', 'This browser can’t copy pictures': 'Ce navigateur ne peut pas copier d’images', 'Use Capture to keep it instead.': 'Utilise Capture pour la garder.', 'Nothing to copy': 'Rien à copier', 'Copy as': 'Copier en', 'Collection': 'Collection', 'Add to a collection…': 'Ajouter à une collection…', 'UPPERCASE': 'MAJUSCULES', 'lowercase': 'minuscules', 'Clean spaces': 'Nettoyer les espaces', 'Remove duplicate lines': 'Enlever les lignes en double', 'Only the links': 'Seulement les liens', 'Only the domains': 'Seulement les domaines', 'Encode for a URL': 'Encoder pour une URL', 'Decode from a URL': 'Décoder d’une URL', 'Contact': 'Contact', 'Save anything now (Alt+C), sort it later.': 'Garde n’importe quoi maintenant (Alt+C), trie plus tard.'
+    'Capture this page': 'Capturer cette page', 'Captured': 'Capturé', 'Share…': 'Partager…', 'New': 'Nouveau', 'Capture': 'Capture', 'Nothing to sort. Press Alt+C anywhere to capture something.': 'Rien à trier. Appuie sur Alt+C n’importe où pour capturer quelque chose.', 'Nothing here.': 'Rien ici.', 'Pick an item to see it and send it on.': 'Choisis un élément pour le voir et l’envoyer.', 'recognized as': 'reconnu comme', 'sent': 'envoyé', '#tags': '#étiquettes', 'Send to': 'Envoyer à', 'Back to Inbox': 'Remettre dans la boîte', 'Mark as Done': 'Marquer comme fait', 'a link': 'un lien', 'an email address': 'une adresse courriel', 'a phone number': 'un numéro de téléphone', 'a date': 'une date', 'Picture': 'Image', 'That picture is too big to capture': 'Cette image est trop grosse pour être capturée', 'Save it as a file, then capture the file.': 'Enregistre-la comme fichier, puis capture le fichier.', 'That item is gone.': 'Cet élément n’existe plus.', 'Type, paste or drop anything': 'Tape, colle ou dépose n’importe quoi', 'Enter saves · Shift+Enter new line · Esc': 'Entrée enregistre · Maj+Entrée nouvelle ligne · Échap', 'in your inbox': 'dans ta boîte', 'Inbox': 'Boîte de réception', 'Picture copied': 'Image copiée', 'This browser can’t copy pictures': 'Ce navigateur ne peut pas copier d’images', 'Use Capture to keep it instead.': 'Utilise Capture pour la garder.', 'Nothing to copy': 'Rien à copier', 'Copy as': 'Copier en', 'Collection': 'Collection', 'Add to a collection…': 'Ajouter à une collection…', 'UPPERCASE': 'MAJUSCULES', 'lowercase': 'minuscules', 'Clean spaces': 'Nettoyer les espaces', 'Remove duplicate lines': 'Enlever les lignes en double', 'Only the links': 'Seulement les liens', 'Only the domains': 'Seulement les domaines', 'Encode for a URL': 'Encoder pour une URL', 'Decode from a URL': 'Décoder d’une URL', 'Contact': 'Contact', 'Save anything now (Alt+C), sort it later.': 'Garde n’importe quoi maintenant (Alt+C), trie plus tard.',
+    'Tabs': 'Onglets', 'Close Tab': 'Fermer l’onglet', 'Versions': 'Versions', 'Look Inside…': 'Regarder dedans…', 'Compare': 'Comparer', 'Versions…': 'Versions…', 'captured': 'capturés', 'Split View': 'Vue partagée', 'Find Duplicates…': 'Trouver les doublons…', 'It isn’t there anymore.': 'Ce n’est plus là.', 'The folder it goes to is gone.': 'Le dossier de destination n’existe plus.', 'didn’t work': 'n’ont pas marché', 'Looking…': 'Recherche…', 'Duplicate files': 'Fichiers en double', 'Looking for duplicates': 'Recherche des doublons', 'No duplicates. Every file is one of a kind.': 'Aucun doublon. Chaque fichier est unique.', 'groups': 'groupes', 'could be freed': 'pourraient être libérés', 'Nothing is deleted unless you choose it.': 'Rien n’est supprimé sans ton choix.', 'Only text files can be compared.': 'Seuls les fichiers texte peuvent être comparés.', 'These files are too big to compare here.': 'Ces fichiers sont trop gros pour être comparés ici.', 'They are the same.': 'Ils sont pareils.', 'This archive can’t be read.': 'Cette archive ne peut pas être lue.', 'nothing is extracted until you choose': 'rien n’est extrait avant ton choix', 'Extract': 'Extraire', 'No earlier versions yet. A version is kept when you save over this file (at most one every 2 minutes, the last 10).': 'Pas encore de versions. Une version est gardée quand tu enregistres par-dessus ce fichier (au plus une toutes les 2 minutes, les 10 dernières).', 'Look': 'Voir', 'Versions of': 'Versions de', 'Copying': 'Copie de', 'Moving': 'Déplacement de', 'Moving to Trash': 'Mise à la corbeille de'
   };
   const PATTERNS = [
     [/^About (.+)$/, (m) => 'À propos de ' + t(m[1])], [/^Hide (.+)$/, (m) => 'Masquer ' + t(m[1])], [/^Quit (.+)$/, (m) => 'Quitter ' + t(m[1])], [/^Log Out (.+)…$/, (m) => 'Fermer la session de ' + m[1] + '…'],
@@ -11445,6 +11462,8 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
 
   /* public API */
   PatOS.wm = {
+    /* (3.3) put a window on the left or right half of the screen, the same as dragging it to that edge */
+    snap(win, side) { if (!win || PatOS.isMobile) return; const a = workArea(); win.prevRect = { x: win.el.offsetLeft, y: win.el.offsetTop, w: win.el.offsetWidth, h: win.el.offsetHeight }; if (win.maximized) { win.maximized = false; win.el.classList.remove('maximized'); } animateTo(win, { x: side === 'right' ? a.w / 2 : 0, y: a.y, w: a.w / 2, h: a.h }); },
     windows: wins,
     get active() { return active; },
     workArea,
@@ -14115,6 +14134,235 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
   document.addEventListener('pointerdown', (e) => { if (box && !box.contains(e.target)) close(); });
   document.addEventListener('keydown', (e) => { if (PatOS.loggedIn && e.altKey && !e.ctrlKey && !e.metaKey && e.code === 'KeyC') { e.preventDefault(); quick(); } }, true);
   PatOS.capture = capture;
+})();
+
+</script>
+  <script type="patos/js">
+/* Piles' file operations (3.3): a queue for copies, moves and Trash, and version history for text files.
+   Queue
+   - A job (copy / move / trash several things) runs one item at a time and gives the screen back between items, so a big
+     copy never freezes PatOS. It shows as a Live Activity with real Pause, Resume and Cancel, and Retry for what failed.
+   - Jobs are saved. A job that was running when PatOS closed comes back paused (it didn't finish; nothing is done behind
+     your back), listed in Command Center with Resume.
+   - Each item's result is kept: what failed and why. One failure never stops the others, and nothing is half-written: an
+     item is copied or moved whole by the file system, or not at all.
+   Versions
+   - Saving over a text file (up to 200 KB) keeps the previous text: at most 10 versions a file, 4 MB in all; the oldest go
+     first. Not for PatOS's own folders. Restore puts an old version back (and keeps the current text as a version too). */
+(function () {
+  'use strict';
+  const T = (s) => PatOS.t(s);
+  const fs = () => PatOS.fs;
+  let jobs = (PatOS.store.get('fileOps', []) || []).filter((j) => j && j.id && Array.isArray(j.items));
+  const live = new Map(); // job id -> Live Activity handle
+  const save = () => PatOS.store.set('fileOps', jobs.filter((j) => j.status !== 'done').slice(-20));
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
+  const VERB = { copy: 'Copying', move: 'Moving', trash: 'Moving to Trash' };
+  const titleOf = (j) => T(VERB[j.kind]) + ' ' + j.items.length + ' ' + T(j.items.length === 1 ? 'item' : 'items');
+
+  function step(j, it) {
+    const p = it.src;
+    if (!fs().exists(p)) throw new Error(T('It isn’t there anymore.'));
+    if (j.kind === 'trash') { fs().remove(p); return; }
+    if (j.dest === p || j.dest.startsWith(p + '/')) throw new Error(T('A folder can’t go inside itself.'));
+    if (!fs().isDir(j.dest)) throw new Error(T('The folder it goes to is gone.'));
+    if (j.kind === 'move') { if (fs().dirname(p) !== j.dest) it.out = fs().move(p, j.dest); else it.out = p; }
+    else it.out = fs().copy(p, j.dest);
+  }
+  function show(j) {
+    let a = live.get(j.id);
+    const done = j.items.filter((x) => x.done).length;
+    if (!a) {
+      a = PatOS.live.start({ id: 'fo-' + j.id, app: 'finder', title: titleOf(j), progress: done / j.items.length, open: j.dest ? { app: 'finder', args: { path: j.dest } } : null,
+        pause: () => pause(j.id), resume: () => run(j.id), cancel: () => cancel(j.id), retry: () => retry(j.id) });
+      live.set(j.id, a);
+    }
+    const cur = j.items.find((x) => !x.done);
+    a.update({ progress: done / j.items.length, detail: done + ' ' + T('of') + ' ' + j.items.length + (cur ? ' · ' + fs().basename(cur.src) : ''), status: j.status === 'paused' ? 'paused' : 'running' });
+    return a;
+  }
+  async function run(id) {
+    const j = jobs.find((x) => x.id === id); if (!j || j.status === 'running') return;
+    j.status = 'running'; save(); show(j);
+    for (const it of j.items) {
+      if (it.done) continue;
+      if (j.status !== 'running') { save(); show(j); return; } // (paused or cancelled between items)
+      try { step(j, it); it.error = ''; } catch (e) { it.error = (e && e.message) || T('That didn’t work.'); }
+      it.done = true; save(); show(j);
+      await new Promise((r) => setTimeout(r, j.items.length > 40 ? 0 : 16)); // (the screen gets its turn)
+    }
+    finish(j);
+  }
+  function finish(j) {
+    const failed = j.items.filter((x) => x.error); const a = live.get(j.id); live.delete(j.id);
+    j.status = failed.length ? 'failed' : 'done'; save();
+    const msg = failed.length ? failed.length + ' ' + T('of') + ' ' + j.items.length + ' ' + T('didn’t work') + ': ' + failed[0].error : j.items.length + ' ' + T(j.items.length === 1 ? 'item' : 'items');
+    if (a) a.end(failed.length ? 'failed' : 'done', msg);
+    PatOS.emit('fileops', j);
+  }
+  function pause(id) { const j = jobs.find((x) => x.id === id); if (j && j.status === 'running') { j.status = 'paused'; save(); } }
+  function cancel(id) { const j = jobs.find((x) => x.id === id); if (!j) return; j.status = 'cancelled'; const a = live.get(id); live.delete(id); jobs = jobs.filter((x) => x !== j); save(); if (a) a.end('cancelled', j.items.filter((x) => x.done).length + ' ' + T('of') + ' ' + j.items.length + ' ' + T('done')); }
+  function retry(id) { const j = jobs.find((x) => x.id === id); if (!j) return; j.items.forEach((x) => { if (x.error) { x.done = false; x.error = ''; } }); j.status = 'paused'; save(); run(id); }
+  const ops = {
+    /* queues a job and starts it; returns its id */
+    enqueue(kind, paths, dest) {
+      paths = [...new Set(paths)].filter((p) => p && fs().exists(p) && !(fs().isSystem && fs().isSystem(p)));
+      if (!paths.length || !VERB[kind] || (kind !== 'trash' && !dest)) return null;
+      const j = { id: uid(), kind, dest: dest || '', items: paths.map((src) => ({ src, done: false, error: '' })), status: 'queued', t: Date.now() };
+      jobs.push(j); save(); run(j.id); return j.id;
+    },
+    list: () => jobs.map((j) => ({ id: j.id, kind: j.kind, dest: j.dest, status: j.status, total: j.items.length, done: j.items.filter((x) => x.done).length, failed: j.items.filter((x) => x.error).map((x) => ({ path: x.src, error: x.error })) })),
+    pause, resume: run, cancel, retry
+  };
+  // a job left running when PatOS closed: back, paused, with Resume (it is never restarted on its own)
+  setTimeout(() => { jobs.forEach((j) => { if (j.status === 'running' || j.status === 'queued') { j.status = 'paused'; show(j); } }); save(); }, 1500);
+  PatOS.fileOps = ops;
+
+  /* ---------- versions ---------- */
+  const VKEY = 'fileVersions', PER = 10, MAXB = 4 * 1024 * 1024, MAXF = 200 * 1024;
+  let V = PatOS.store.get(VKEY, {}) || {};
+  const vsave = PatOS.debounce(() => PatOS.store.set(VKEY, V), 500);
+  const textOk = (p, c) => typeof c === 'string' && c.length <= MAXF && !c.startsWith('data:') && !/(^|\/)\./.test(p) && !(p === '/System' || p.startsWith('/System/'));
+  function keep(p, old) {
+    const l = V[p] = V[p] || []; if (l.length && l[l.length - 1].c === old) return;
+    l.push({ t: Date.now(), c: old }); if (l.length > PER) l.splice(0, l.length - PER);
+    let total = Object.values(V).reduce((s, x) => s + x.reduce((a, v) => a + v.c.length, 0), 0);
+    while (total > MAXB) { let oldest = null; Object.keys(V).forEach((k) => { const v = V[k][0]; if (v && (!oldest || v.t < oldest.t)) oldest = { k, t: v.t }; }); if (!oldest) break; total -= V[oldest.k].shift().c.length; if (!V[oldest.k].length) delete V[oldest.k]; }
+    vsave();
+  }
+  const rawWrite = PatOS.fs.write.bind(PatOS.fs);
+  let last = {}; // path -> time a version was last kept (one version per 2 minutes of editing, not one per keystroke)
+  PatOS.fs.write = function (path, content, extra) {
+    try {
+      const n = PatOS.fs.get(path);
+      if (n && n.type === 'file' && textOk(path, n.content) && typeof content === 'string' && content !== n.content && PatOS.settings.fileVersions !== false) {
+        const now = Date.now(); if (!last[path] || now - last[path] > 120000) { keep(PatOS.fs.norm ? PatOS.fs.norm(path) : path, n.content); last[path] = now; }
+      }
+    } catch (e) { /* history is a bonus: saving always goes on */ }
+    return rawWrite(path, content, extra);
+  };
+  PatOS.versions = {
+    list: (p) => (V[p] || []).map((v, i) => ({ i, t: v.t, size: v.c.length })).reverse(),
+    read: (p, i) => (V[p] && V[p][i] ? V[p][i].c : null),
+    restore(p, i) { const c = PatOS.versions.read(p, i); if (c == null) return false; const n = PatOS.fs.get(p); if (n && typeof n.content === 'string') keep(p, n.content); last[p] = Date.now(); rawWrite(p, c); return true; },
+    clear(p) { if (p) delete V[p]; else V = {}; vsave(); },
+    size: () => Object.values(V).reduce((s, x) => s + x.reduce((a, v) => a + v.c.length, 0), 0)
+  };
+})();
+
+</script>
+  <script type="patos/js">
+/* Piles Pro (3.3): the bigger tools of Piles, kept apart from its window code.
+   - duplicates(): files with the same content (same size first, then the same SHA-256 of what is inside). It only finds
+     them: nothing is ever deleted by itself; you pick what goes to the Trash (and the Trash keeps it).
+   - compare(a, b): the lines two text files have in common, and what was taken out or added.
+   - lookInside(zip): the files in a .zip, without extracting it; take out just one if you want.
+   - versionsSheet(file): the earlier versions of a text file (js/fileops.js), to look at or put back.
+   All of them show in a sheet over the window they were asked from. */
+(function () {
+  'use strict';
+  const { h } = PatOS; const T = (s) => PatOS.t(s);
+  const fs = () => PatOS.fs;
+  const skip = (p) => /(^|\/)\./.test(p) || p === '/System' || p.startsWith('/System/');
+
+  /* ---------- duplicates ---------- */
+  async function sha(buf) { const d = await crypto.subtle.digest('SHA-256', buf); return [...new Uint8Array(d)].slice(0, 16).map((b) => b.toString(16).padStart(2, '0')).join(''); }
+  async function duplicates(root, onProgress) {
+    const files = []; fs().walk(root || '/', (p, n) => { if (n.type === 'file' && !skip(p)) files.push({ path: p, n }); });
+    const sizeOf = (f) => (f.n.blob ? +f.n.size || 0 : typeof f.n.content === 'string' ? f.n.content.length : 0);
+    const bySize = new Map(); files.forEach((f) => { const s = sizeOf(f); if (!s) return; if (!bySize.has(s)) bySize.set(s, []); bySize.get(s).push(f); });
+    const cands = [...bySize.values()].filter((l) => l.length > 1).flat();
+    const byHash = new Map(); let i = 0;
+    for (const f of cands) {
+      let buf; try { buf = f.n.blob ? await (await fs().getBlob(f.path)).arrayBuffer() : new TextEncoder().encode(f.n.content); } catch (e) { continue; }
+      const k = sizeOf(f) + ':' + (await sha(buf)); if (!byHash.has(k)) byHash.set(k, []); byHash.get(k).push(f.path);
+      if (onProgress && ++i % 10 === 0) onProgress(i / cands.length);
+    }
+    return [...byHash.entries()].filter(([, l]) => l.length > 1).map(([k, paths]) => ({ size: +k.split(':')[0], paths: paths.sort() })).sort((a, b) => b.size * b.paths.length - a.size * a.paths.length);
+  }
+
+  /* ---------- compare two text files (line by line) ---------- */
+  function compare(aText, bText) {
+    const A = String(aText).split('\n'), B = String(bText).split('\n');
+    if (A.length * B.length > 4e6) return null; // (too big to compare here)
+    const m = A.length, n = B.length, L = Array.from({ length: m + 1 }, () => new Uint16Array(n + 1));
+    for (let i = m - 1; i >= 0; i--) for (let j = n - 1; j >= 0; j--) L[i][j] = A[i] === B[j] ? L[i + 1][j + 1] + 1 : Math.max(L[i + 1][j], L[i][j + 1]);
+    const out = []; let i = 0, j = 0;
+    while (i < m && j < n) { if (A[i] === B[j]) { out.push(['=', A[i]]); i++; j++; } else if (L[i + 1][j] >= L[i][j + 1]) out.push(['-', A[i++]]); else out.push(['+', B[j++]]); }
+    while (i < m) out.push(['-', A[i++]]); while (j < n) out.push(['+', B[j++]]);
+    return out;
+  }
+
+  /* ---------- a sheet over a window ---------- */
+  function sheet(win, title, body, actions) {
+    const host = (win && win.body) || document.body; const old = host.querySelector('.fp-sheet'); if (old) old.remove();
+    const close = () => el.remove();
+    const el = h('div', { class: 'fp-sheet', role: 'dialog', 'aria-label': title },
+      h('div', { class: 'fp-card' }, h('div', { class: 'fp-head' }, h('b', {}, title), h('button', { class: 'fp-x', 'aria-label': T('Close'), onclick: close }, '×')), h('div', { class: 'fp-body' }, body), actions ? h('div', { class: 'fp-acts' }, ...actions(close)) : null));
+    el.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } });
+    host.appendChild(el); setTimeout(() => { const f = el.querySelector('button, input'); f && f.focus(); }, 30);
+    return { el, close };
+  }
+
+  async function duplicatesSheet(win, root) {
+    const body = h('div', { class: 'fp-dups' }, h('p', { class: 'fp-muted' }, T('Looking…')));
+    const s = sheet(win, T('Duplicate files'), body);
+    const a = PatOS.live.start({ app: 'finder', title: T('Looking for duplicates'), progress: 0 });
+    let groups; try { groups = await duplicates(root, (p) => a.update({ progress: p })); a.end('done', ''); } catch (e) { a.end('failed', e.message); body.innerHTML = ''; body.appendChild(h('p', { class: 'fp-muted' }, T('That didn’t work.'))); return; }
+    const draw = () => {
+      body.innerHTML = '';
+      const live = groups.map((g) => Object.assign({}, g, { paths: g.paths.filter((p) => fs().exists(p)) })).filter((g) => g.paths.length > 1);
+      if (!live.length) { body.appendChild(h('p', { class: 'fp-muted' }, T('No duplicates. Every file is one of a kind.'))); return; }
+      const waste = live.reduce((s2, g) => s2 + g.size * (g.paths.length - 1), 0);
+      body.appendChild(h('p', { class: 'fp-muted' }, live.length + ' ' + T('groups') + ' · ' + PatOS.fmtBytes(waste) + ' ' + T('could be freed') + '. ' + T('Nothing is deleted unless you choose it.')));
+      live.forEach((g) => body.appendChild(h('div', { class: 'fp-group' }, h('small', {}, g.paths.length + ' × ' + PatOS.fmtBytes(g.size)),
+        ...g.paths.map((p) => h('div', { class: 'fp-row' }, h('span', { class: 'fp-path' }, p),
+          h('button', { class: 'btn', onclick: () => { s.close(); PatOS.launch('finder', { path: fs().dirname(p) }); } }, T('Show')),
+          h('button', { class: 'btn', disabled: g.paths.filter((x) => fs().exists(x)).length < 2, onclick: () => { fs().remove(p); draw(); } }, T('Move to Trash')))))));
+    };
+    draw();
+  }
+
+  function compareSheet(win, a, b) {
+    const ta = fs().read(a), tb = fs().read(b);
+    if (typeof ta !== 'string' || typeof tb !== 'string' || /^data:/.test(ta) || /^data:/.test(tb)) return sheet(win, T('Compare'), h('p', { class: 'fp-muted' }, T('Only text files can be compared.')));
+    const d = compare(ta, tb);
+    if (!d) return sheet(win, T('Compare'), h('p', { class: 'fp-muted' }, T('These files are too big to compare here.')));
+    const added = d.filter((x) => x[0] === '+').length, removed = d.filter((x) => x[0] === '-').length;
+    return sheet(win, T('Compare'), h('div', {}, h('p', { class: 'fp-muted' }, fs().basename(a) + ' → ' + fs().basename(b) + ' · ' + (added || removed ? '+' + added + ' −' + removed : T('They are the same.'))),
+      h('pre', { class: 'fp-diff' }, ...d.map(([k, l]) => h('div', { class: 'fd-' + (k === '+' ? 'add' : k === '-' ? 'del' : 'same') }, (k === '=' ? '  ' : k + ' ') + l)))));
+  }
+
+  async function lookInside(win, path) {
+    const body = h('div', {}, h('p', { class: 'fp-muted' }, T('Opening…')));
+    const s = sheet(win, fs().basename(path), body);
+    let z; try { z = await PatOS.zip.read(await fs().getBlob(path)); } catch (e) { body.innerHTML = ''; body.appendChild(h('p', { class: 'fp-muted' }, T('This archive can’t be read.'))); return; }
+    const names = z.names.filter((n) => !n.endsWith('/'));
+    body.innerHTML = '';
+    body.appendChild(h('p', { class: 'fp-muted' }, names.length + ' ' + T('files') + ' · ' + T('nothing is extracted until you choose')));
+    names.slice(0, 400).forEach((n) => body.appendChild(h('div', { class: 'fp-row' }, h('span', { class: 'fp-path' }, n), h('small', {}, PatOS.fmtBytes(z.size(n))),
+      h('button', { class: 'btn', onclick: async () => { const dir = fs().dirname(path); const name = fs().uniqueName(dir, n.split('/').pop()); const data = await z.get(n);
+        if (/\.(txt|md|json|csv|js|css|html|py|xml)$/i.test(name) && data.length < 2e6) fs().write(dir + '/' + name, new TextDecoder().decode(data)); else await fs().writeBlob(dir + '/' + name, new Blob([data]));
+        PatOS.notify({ title: T('Extracted'), body: name, icon: 'finder', priority: 'low' }); } }, T('Extract')))));
+    if (names.length > 400) body.appendChild(h('p', { class: 'fp-muted' }, '+ ' + (names.length - 400)));
+    s.el.querySelector('.fp-acts');
+  }
+
+  function versionsSheet(win, path) {
+    const body = h('div', {});
+    const draw = () => {
+      body.innerHTML = ''; const l = PatOS.versions ? PatOS.versions.list(path) : [];
+      if (!l.length) { body.appendChild(h('p', { class: 'fp-muted' }, T('No earlier versions yet. A version is kept when you save over this file (at most one every 2 minutes, the last 10).'))); return; }
+      const pv = h('pre', { class: 'fp-preview' });
+      l.forEach((v) => body.appendChild(h('div', { class: 'fp-row' }, h('span', { class: 'fp-path' }, new Date(v.t).toLocaleString(PatOS.locale)), h('small', {}, PatOS.fmtBytes(v.size)),
+        h('button', { class: 'btn', onclick: () => { pv.textContent = PatOS.versions.read(path, v.i).slice(0, 4000); } }, T('Look')),
+        h('button', { class: 'btn', onclick: () => { PatOS.versions.restore(path, v.i); PatOS.notify({ title: T('Version restored'), body: fs().basename(path), icon: 'finder', priority: 'low' }); draw(); } }, T('Restore')))));
+      body.appendChild(pv);
+    };
+    draw(); return sheet(win, T('Versions of') + ' ' + fs().basename(path), body);
+  }
+
+  PatOS.finderPro = { duplicates, compare, sheet, duplicatesSheet, compareSheet, lookInside, versionsSheet };
 })();
 
 </script>
@@ -17681,7 +17929,7 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
      is about this one device, a copy that is made again by itself, or a secret stays. With a sync code, only the list above. */
   let mode = 'code'; // 'code' (a sync code and the PatOS server) or 'account' (a PatOS account in the cloud)
   const DENY = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncKey', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'systemUid', 'verifiedUids', 'annSeen', 'fsDamaged', 'intelHistory', 'accountPrompt', 'accountSeen', 'msgRead', 'patAppGrants', 'privacyLog',
-    'setupStep', 'setupDone', 'setupBack', 'notifHistory', 'notifQueue', 'installOffered', 'iosHint', 'notifAsked', 'appInstalled', 'alarmQueue',
+    'setupStep', 'setupDone', 'setupBack', 'notifHistory', 'notifQueue', 'fileOps', 'fileVersions', 'installOffered', 'iosHint', 'notifAsked', 'appInstalled', 'alarmQueue',
     'timeline', 'timelineMoments', 'clipHistory', 'timelinePause', 'handoffDevice', 'handoffSeen',
     'wpCache', 'wpLockCache', 'wpThumbs', 'wxCache', 'dictCache', 'googleCx', 'patosServer', 'ytKey', 'pwVault', 'musicState', 'settings']);
   const DENY_PREFIX = ['newsCache:', 'ytHome:'];
@@ -19084,6 +19332,9 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
       let showInfo = PatOS.store.get('finderInfo', false);
       let tagFilter = null;
       const back = [], fwd = [];
+      // (3.3) tabs: each remembers its own folder; the bar shows once there are two
+      let tabs = [{ path: cwd }], tabAt = 0;
+      const tabBar = h('div', { class: 'fd-tabs hidden', role: 'tablist', 'aria-label': T('Tabs') });
       let selected = new Set(), anchor = null, list = [];
       const S = (n) => PatOS.sym(n);
 
@@ -19108,7 +19359,15 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
       const status = h('div', { class: 'fd-status' });
       const info = h('div', { class: 'fd-info' });
       const filterBar = h('div', { class: 'fd-filters hidden', role: 'toolbar', 'aria-label': T('Search filters') });
-      win.body.append(h('div', { class: 'fd-wrap' }, side, h('div', { class: 'fd-right' }, filterBar, main, pathbar, status), info));
+      win.body.append(h('div', { class: 'fd-wrap' }, side, h('div', { class: 'fd-right' }, tabBar, filterBar, main, pathbar, status), info));
+      const tabName = (p) => (p === 'overview' ? T('Overview') : p === 'recents' ? T('Recents') : p === '/' ? T('Home') : p && p[0] === '/' ? PatOS.fs.basename(p) : T(String(p || '')));
+      function drawTabs() {
+        tabBar.classList.toggle('hidden', tabs.length < 2); tabBar.innerHTML = '';
+        tabs.forEach((t, i) => tabBar.appendChild(h('div', { class: 'fd-tab' + (i === tabAt ? ' on' : ''), role: 'tab', 'aria-selected': String(i === tabAt), onclick: () => { if (i !== tabAt) { tabAt = i; go(tabs[i].path, true); } } }, h('span', {}, tabName(t.path)), h('button', { class: 'fd-tabx', 'aria-label': T('Close Tab'), onclick: (ev) => { ev.stopPropagation(); closeTab(i); } }, '×'))));
+        tabBar.appendChild(h('button', { class: 'fd-tabnew', title: T('New Tab') + ' (Ctrl+T)', 'aria-label': T('New Tab'), onclick: () => newTab(cwd) }, '+'));
+      }
+      function newTab(path) { tabs.splice(tabAt + 1, 0, { path: path || cwd }); tabAt++; go(tabs[tabAt].path, true); }
+      function closeTab(i) { if (tabs.length < 2) return; tabs.splice(i, 1); if (tabAt >= tabs.length) tabAt = tabs.length - 1; else if (i < tabAt) tabAt--; go(tabs[tabAt].path, true); }
       // places that are views, not folders: nothing can be created or dropped there
       const special = () => ['apps', '/.Trash', 'tag', 'overview', 'recents'].includes(cwd) || /^(smart|kind):/.test(cwd);
       win.el._finderPath = () => (special() ? '/Desktop' : cwd);
@@ -19161,7 +19420,7 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
         // PatOS's own system folder can't be opened (js/firmware.js)
         if (PatOS.fs.isSystem && PatOS.fs.isSystem(path)) { try { PatOS.fs.list(path); } catch (e) { PatOS.alertBox(PatOS.t('You don’t have permission to see “System”'), PatOS.t('This folder is PatOS itself. It is protected so PatOS keeps working.'), { icon: 'finder' }); return; } }
         if (!noHist && path !== cwd) { back.push(cwd); fwd.length = 0; }
-        cwd = path; selected.clear(); anchor = null; search.value = '';
+        cwd = path; selected.clear(); anchor = null; search.value = ''; tabs[tabAt].path = path; drawTabs();
         filters = { kind: 'all', when: 'any', scope: 'here' };
         // a smart pile is a saved search: open it with its words and filters
         const sp = /^smart:/.test(path) && smartPiles().find((s) => 'smart:' + s.id === path);
@@ -19180,7 +19439,11 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
       /* copy, cut and paste files */
       const here = () => (cwd === '/' ? '/' : cwd);
       function copySel(cut) { const sel = [...selected].filter((p) => !p.startsWith('app:')); if (!sel.length || cwd === '/.Trash') return; const n = PatOS.fileClip.set(sel, cut); OFtoast((n === 1 ? '“' + PatOS.fs.basename(sel[0]) + '”' : n + ' ' + PatOS.t('items')) + ' ' + PatOS.t(cut ? 'cut' : 'copied')); render(); }
-      function pasteHere() { if (!canWrite() || !PatOS.fileClip.has()) return; const out = PatOS.fileClip.paste(here()); if (out.length) setTimeout(() => select(out), 80); }
+      function pasteHere() { if (!canWrite() || !PatOS.fileClip.has()) return;
+        // (5 things or more go through the queue: shown as a Live Activity, with pause and cancel, and never freezing the window)
+        const c = PatOS.fileClip; if (c.paths.length >= 5 && PatOS.fileOps) { PatOS.fileOps.enqueue(c.cut ? 'move' : 'copy', c.paths.slice(), here()); if (c.cut) { c.paths = []; c.cut = false; PatOS.emit('fileclip'); } return; }
+        const out = PatOS.fileClip.paste(here()); if (out.length) setTimeout(() => select(out), 80); }
+      function trashSel(paths) { if (paths.length >= 5 && PatOS.fileOps) PatOS.fileOps.enqueue('trash', paths); else paths.forEach((p) => PatOS.fs.remove(p)); PatOS.sound.trash(); }
       function OFtoast(t) { if (PatOS.office && PatOS.office.toast) PatOS.office.toast(win, t); }
       bImport.onclick = () => { if (!canWrite()) return; const r = bImport.getBoundingClientRect(); PatOS.menu([{ label: PatOS.t('Open Files from This Chromebook…'), action: () => PatOS.device.openFiles(cwd) }, { label: PatOS.t('Link a Folder from This Chromebook…'), action: () => PatOS.device.linkFolder(cwd) }, { divider: true }, { label: PatOS.t('Import Copies…'), action: () => PatOS.importFiles(cwd) }], r.left, r.bottom + 4); };
       bInfo.onclick = () => { showInfo = !showInfo; PatOS.store.set('finderInfo', showInfo); render(); };
@@ -19384,6 +19647,7 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
           const tg = tagsOf()[it.path];
           info.appendChild(h('div', { class: 'fd-info-tags' }, ...Object.keys(TAGS).map((k) => h('button', { class: 'fd-tagdot big' + (tg === k ? ' on' : ''), title: PatOS.t(TAG_NAMES[k]), style: { background: TAGS[k] }, onclick: () => setTag([it.path], tg === k ? null : k) }))));
           info.appendChild(h('div', { class: 'fd-info-btns' }, h('button', { class: 'btn', onclick: () => PatOS.quickLook(it.path, list.filter((x) => !x.app).map((x) => x.path)) }, 'Quick Look'), h('button', { class: 'btn', onclick: () => PatOS.openFile(it.path) }, 'Open')));
+          if (PatOS.versions && PatOS.versions.list(it.path).length) info.appendChild(h('div', { class: 'fd-info-btns' }, h('button', { class: 'btn', onclick: () => PatOS.finderPro.versionsSheet(win, it.path) }, PatOS.t('Versions') + ' (' + PatOS.versions.list(it.path).length + ')')));
         }
       }
       function setTag(paths, k) { const t = tagsOf(); paths.forEach((p) => { if (k) t[p] = k; else delete t[p]; }); PatOS.store.set('fileTags', t); render(); }
@@ -19433,6 +19697,12 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
             { label: PatOS.t('Duplicate'), action: () => sel.forEach((p) => PatOS.fs.copy(p, PatOS.fs.dirname(p))) },
             { label: PatOS.t('Compress'), action: () => PatOS.compress(sel) },
             it.type === 'file' && /\.zip$/i.test(it.name) ? { label: PatOS.t('Extract Here'), action: () => PatOS.openZip(it.path) } : null,
+            it.type === 'file' && /\.zip$/i.test(it.name) && PatOS.finderPro ? { label: PatOS.t('Look Inside…'), action: () => PatOS.finderPro.lookInside(win, it.path) } : null,
+            sel.length === 2 && PatOS.finderPro && sel.every((p) => { const n = PatOS.fs.get(p); return n && n.type === 'file' && !n.blob; }) ? { label: PatOS.t('Compare'), action: () => PatOS.finderPro.compareSheet(win, sel[0], sel[1]) } : null,
+            sel.length === 1 && it.type === 'file' && PatOS.versions && PatOS.versions.list(it.path).length ? { label: PatOS.t('Versions…'), action: () => PatOS.finderPro.versionsSheet(win, it.path) } : null,
+            { divider: true },
+            PatOS.actions ? { label: PatOS.t('Share…'), action: () => PatOS.actions.sheet(it.path, e.clientX, e.clientY) } : null,
+            PatOS.capture ? { label: PatOS.t('Capture'), action: () => { sel.forEach((p) => PatOS.capture.add(p, { from: 'finder' })); OFtoast(sel.length + ' ' + PatOS.t(sel.length === 1 ? 'item' : 'items') + ' ' + PatOS.t('captured')); } } : null,
             sel.some((p) => { const n = PatOS.fs.get(p); return n && n.type === 'file'; }) && PatOS.link ? { label: PatOS.t('Send with PatDrop'), action: () => PatOS.sendWithPatDrop(sel) } : null,
             it.type === 'file' && sel.length === 1 ? { label: PatOS.t('Save to This Chromebook…'), action: () => PatOS.device.saveCopy(it.path) } : null,
             it.type === 'dir' && sel.length === 1 && PatOS.device.supported ? { label: PatOS.t('Save Folder to This Chromebook…'), action: () => PatOS.device.exportFolder(it.path) } : null,
@@ -19441,7 +19711,7 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
             { header: PatOS.t('Tags') },
             ...Object.keys(TAGS).map((k) => ({ label: PatOS.t(TAG_NAMES[k]), checked: sel.every((p) => tagsOf()[p] === k), action: () => setTag(sel, sel.every((p) => tagsOf()[p] === k) ? null : k) })),
             { divider: true },
-            { label: PatOS.t('Move to Trash'), shortcut: 'Delete', action: () => { sel.forEach((p) => PatOS.fs.remove(p)); PatOS.sound.trash(); } }
+            { label: PatOS.t('Move to Trash'), shortcut: 'Delete', action: () => trashSel(sel) }
           ], e.clientX, e.clientY);
         });
         return el;
@@ -19567,7 +19837,9 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
         else if (e.key === ' ' && cur && !cur.startsWith('app:')) { e.preventDefault(); PatOS.quickLook(cur, list.filter((x) => !x.app).map((x) => x.path)); }
         else if (e.key === 'Enter' && cur) { e.preventDefault(); if (e.ctrlKey || cur.startsWith('app:')) openItem(list[i]); else PatOS.renameInline(cur); }
         else if ((e.key === 'o' && e.ctrlKey) || (e.key === 'ArrowDown' && e.ctrlKey)) { if (list[i]) openItem(list[i]); }
-        else if ((e.key === 'Delete' || (e.key === 'Backspace' && e.ctrlKey)) && selected.size && canWrite()) { [...selected].forEach((p) => PatOS.fs.remove(p)); PatOS.sound.trash(); }
+        else if ((e.key === 'Delete' || (e.key === 'Backspace' && e.ctrlKey)) && selected.size && canWrite()) trashSel([...selected]);
+        else if ((e.key === 't' || e.key === 'T') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); newTab(cwd); }
+        else if ((e.key === 'w' || e.key === 'W') && (e.ctrlKey || e.metaKey) && tabs.length > 1) { e.preventDefault(); closeTab(tabAt); }
         else if (e.key === 'a' && e.ctrlKey) { e.preventDefault(); select(list.map((x) => x.path)); }
         else if ((e.key === 'c' || e.key === 'C') && (e.ctrlKey || e.metaKey) && selected.size) { e.preventDefault(); copySel(false); }
         else if ((e.key === 'x' || e.key === 'X') && (e.ctrlKey || e.metaKey) && selected.size && canWrite()) { e.preventDefault(); copySel(true); }
@@ -19580,7 +19852,9 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
       const off = PatOS.on('fs', PatOS.debounce(() => { const keep = [...selected].filter((p) => PatOS.fs.exists(p)); selected = new Set(keep); render(); }, 60));
       win.on('closed', off);
       win._go = go;
-      win._finder = { newFolder: newFolderHere, copy: copySel, paste: pasteHere, selectAll: () => select(list.map((x) => x.path)), view: () => view, setView: (v) => { view = v; PatOS.store.set('finderView', v); render(); }, info: () => showInfo, toggleInfo: () => bInfo.click(), renameMany, go, place: () => cwd, search: (q, f) => { search.value = q || ''; if (f) filters = Object.assign(filters, f); render(); }, saveSmart };
+      // split view: a second Piles window on the same folder, the two side by side
+      const split = () => { const w2 = PatOS.launch('finder', { path: special() ? '/' : cwd }); setTimeout(() => { PatOS.wm.snap(win, 'left'); const other = PatOS.wm.windows.filter((x) => x.app.id === 'finder' && x !== win).pop(); if (other) PatOS.wm.snap(other, 'right'); }, 120); return w2; };
+      win._finder = { newTab: () => newTab(cwd), closeTab: () => closeTab(tabAt), tabs: () => tabs.map((t) => t.path), split, dups: () => PatOS.finderPro && PatOS.finderPro.duplicatesSheet(win, '/'), newFolder: newFolderHere, copy: copySel, paste: pasteHere, selectAll: () => select(list.map((x) => x.path)), view: () => view, setView: (v) => { view = v; PatOS.store.set('finderView', v); render(); }, info: () => showInfo, toggleInfo: () => bInfo.click(), renameMany, go, place: () => cwd, search: (q, f) => { search.value = q || ''; if (f) filters = Object.assign(filters, f); render(); }, saveSmart };
       render(); setTimeout(() => main.focus({ preventScroll: true }), 80);
     },
     onArgs(win, args) { if (args.path && win._go) win._go(args.path); },
@@ -19589,6 +19863,8 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
       return {
         file: [
           { label: PatOS.t('New Piles Window'), shortcut: 'Alt+N', action: () => PatOS.launch('finder', { path: win.el._finderPath() }) },
+          { label: PatOS.t('New Tab'), shortcut: 'Ctrl+T', action: () => F.newTab && F.newTab() },
+          { label: PatOS.t('Split View'), action: () => F.split && F.split() },
           { label: PatOS.t('New Folder'), action: () => F.newFolder && F.newFolder() },
           { divider: true },
           { label: PatOS.t('Import Copies…'), action: () => PatOS.importFiles(win.el._finderPath()) },
@@ -19607,7 +19883,9 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
           { label: PatOS.t('as List'), checked: F.view && F.view() === 'list', action: () => F.setView && F.setView('list') },
           { label: PatOS.t('as Piles'), checked: F.view && F.view() === 'piles', action: () => F.setView && F.setView('piles') },
           { divider: true },
-          { label: PatOS.t('Show Info'), checked: !!(F.info && F.info()), action: () => F.toggleInfo && F.toggleInfo() }
+          { label: PatOS.t('Show Info'), checked: !!(F.info && F.info()), action: () => F.toggleInfo && F.toggleInfo() },
+          { divider: true },
+          { label: PatOS.t('Find Duplicates…'), action: () => F.dups && F.dups() }
         ]
       };
     }

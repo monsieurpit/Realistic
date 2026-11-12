@@ -107,6 +107,9 @@
       let showInfo = PatOS.store.get('finderInfo', false);
       let tagFilter = null;
       const back = [], fwd = [];
+      // (3.3) tabs: each remembers its own folder; the bar shows once there are two
+      let tabs = [{ path: cwd }], tabAt = 0;
+      const tabBar = h('div', { class: 'fd-tabs hidden', role: 'tablist', 'aria-label': T('Tabs') });
       let selected = new Set(), anchor = null, list = [];
       const S = (n) => PatOS.sym(n);
 
@@ -131,7 +134,15 @@
       const status = h('div', { class: 'fd-status' });
       const info = h('div', { class: 'fd-info' });
       const filterBar = h('div', { class: 'fd-filters hidden', role: 'toolbar', 'aria-label': T('Search filters') });
-      win.body.append(h('div', { class: 'fd-wrap' }, side, h('div', { class: 'fd-right' }, filterBar, main, pathbar, status), info));
+      win.body.append(h('div', { class: 'fd-wrap' }, side, h('div', { class: 'fd-right' }, tabBar, filterBar, main, pathbar, status), info));
+      const tabName = (p) => (p === 'overview' ? T('Overview') : p === 'recents' ? T('Recents') : p === '/' ? T('Home') : p && p[0] === '/' ? PatOS.fs.basename(p) : T(String(p || '')));
+      function drawTabs() {
+        tabBar.classList.toggle('hidden', tabs.length < 2); tabBar.innerHTML = '';
+        tabs.forEach((t, i) => tabBar.appendChild(h('div', { class: 'fd-tab' + (i === tabAt ? ' on' : ''), role: 'tab', 'aria-selected': String(i === tabAt), onclick: () => { if (i !== tabAt) { tabAt = i; go(tabs[i].path, true); } } }, h('span', {}, tabName(t.path)), h('button', { class: 'fd-tabx', 'aria-label': T('Close Tab'), onclick: (ev) => { ev.stopPropagation(); closeTab(i); } }, '×'))));
+        tabBar.appendChild(h('button', { class: 'fd-tabnew', title: T('New Tab') + ' (Ctrl+T)', 'aria-label': T('New Tab'), onclick: () => newTab(cwd) }, '+'));
+      }
+      function newTab(path) { tabs.splice(tabAt + 1, 0, { path: path || cwd }); tabAt++; go(tabs[tabAt].path, true); }
+      function closeTab(i) { if (tabs.length < 2) return; tabs.splice(i, 1); if (tabAt >= tabs.length) tabAt = tabs.length - 1; else if (i < tabAt) tabAt--; go(tabs[tabAt].path, true); }
       // places that are views, not folders: nothing can be created or dropped there
       const special = () => ['apps', '/.Trash', 'tag', 'overview', 'recents'].includes(cwd) || /^(smart|kind):/.test(cwd);
       win.el._finderPath = () => (special() ? '/Desktop' : cwd);
@@ -184,7 +195,7 @@
         // PatOS's own system folder can't be opened (js/firmware.js)
         if (PatOS.fs.isSystem && PatOS.fs.isSystem(path)) { try { PatOS.fs.list(path); } catch (e) { PatOS.alertBox(PatOS.t('You don’t have permission to see “System”'), PatOS.t('This folder is PatOS itself. It is protected so PatOS keeps working.'), { icon: 'finder' }); return; } }
         if (!noHist && path !== cwd) { back.push(cwd); fwd.length = 0; }
-        cwd = path; selected.clear(); anchor = null; search.value = '';
+        cwd = path; selected.clear(); anchor = null; search.value = ''; tabs[tabAt].path = path; drawTabs();
         filters = { kind: 'all', when: 'any', scope: 'here' };
         // a smart pile is a saved search: open it with its words and filters
         const sp = /^smart:/.test(path) && smartPiles().find((s) => 'smart:' + s.id === path);
@@ -203,7 +214,11 @@
       /* copy, cut and paste files */
       const here = () => (cwd === '/' ? '/' : cwd);
       function copySel(cut) { const sel = [...selected].filter((p) => !p.startsWith('app:')); if (!sel.length || cwd === '/.Trash') return; const n = PatOS.fileClip.set(sel, cut); OFtoast((n === 1 ? '“' + PatOS.fs.basename(sel[0]) + '”' : n + ' ' + PatOS.t('items')) + ' ' + PatOS.t(cut ? 'cut' : 'copied')); render(); }
-      function pasteHere() { if (!canWrite() || !PatOS.fileClip.has()) return; const out = PatOS.fileClip.paste(here()); if (out.length) setTimeout(() => select(out), 80); }
+      function pasteHere() { if (!canWrite() || !PatOS.fileClip.has()) return;
+        // (5 things or more go through the queue: shown as a Live Activity, with pause and cancel, and never freezing the window)
+        const c = PatOS.fileClip; if (c.paths.length >= 5 && PatOS.fileOps) { PatOS.fileOps.enqueue(c.cut ? 'move' : 'copy', c.paths.slice(), here()); if (c.cut) { c.paths = []; c.cut = false; PatOS.emit('fileclip'); } return; }
+        const out = PatOS.fileClip.paste(here()); if (out.length) setTimeout(() => select(out), 80); }
+      function trashSel(paths) { if (paths.length >= 5 && PatOS.fileOps) PatOS.fileOps.enqueue('trash', paths); else paths.forEach((p) => PatOS.fs.remove(p)); PatOS.sound.trash(); }
       function OFtoast(t) { if (PatOS.office && PatOS.office.toast) PatOS.office.toast(win, t); }
       bImport.onclick = () => { if (!canWrite()) return; const r = bImport.getBoundingClientRect(); PatOS.menu([{ label: PatOS.t('Open Files from This Chromebook…'), action: () => PatOS.device.openFiles(cwd) }, { label: PatOS.t('Link a Folder from This Chromebook…'), action: () => PatOS.device.linkFolder(cwd) }, { divider: true }, { label: PatOS.t('Import Copies…'), action: () => PatOS.importFiles(cwd) }], r.left, r.bottom + 4); };
       bInfo.onclick = () => { showInfo = !showInfo; PatOS.store.set('finderInfo', showInfo); render(); };
@@ -407,6 +422,7 @@
           const tg = tagsOf()[it.path];
           info.appendChild(h('div', { class: 'fd-info-tags' }, ...Object.keys(TAGS).map((k) => h('button', { class: 'fd-tagdot big' + (tg === k ? ' on' : ''), title: PatOS.t(TAG_NAMES[k]), style: { background: TAGS[k] }, onclick: () => setTag([it.path], tg === k ? null : k) }))));
           info.appendChild(h('div', { class: 'fd-info-btns' }, h('button', { class: 'btn', onclick: () => PatOS.quickLook(it.path, list.filter((x) => !x.app).map((x) => x.path)) }, 'Quick Look'), h('button', { class: 'btn', onclick: () => PatOS.openFile(it.path) }, 'Open')));
+          if (PatOS.versions && PatOS.versions.list(it.path).length) info.appendChild(h('div', { class: 'fd-info-btns' }, h('button', { class: 'btn', onclick: () => PatOS.finderPro.versionsSheet(win, it.path) }, PatOS.t('Versions') + ' (' + PatOS.versions.list(it.path).length + ')')));
         }
       }
       function setTag(paths, k) { const t = tagsOf(); paths.forEach((p) => { if (k) t[p] = k; else delete t[p]; }); PatOS.store.set('fileTags', t); render(); }
@@ -456,6 +472,12 @@
             { label: PatOS.t('Duplicate'), action: () => sel.forEach((p) => PatOS.fs.copy(p, PatOS.fs.dirname(p))) },
             { label: PatOS.t('Compress'), action: () => PatOS.compress(sel) },
             it.type === 'file' && /\.zip$/i.test(it.name) ? { label: PatOS.t('Extract Here'), action: () => PatOS.openZip(it.path) } : null,
+            it.type === 'file' && /\.zip$/i.test(it.name) && PatOS.finderPro ? { label: PatOS.t('Look Inside…'), action: () => PatOS.finderPro.lookInside(win, it.path) } : null,
+            sel.length === 2 && PatOS.finderPro && sel.every((p) => { const n = PatOS.fs.get(p); return n && n.type === 'file' && !n.blob; }) ? { label: PatOS.t('Compare'), action: () => PatOS.finderPro.compareSheet(win, sel[0], sel[1]) } : null,
+            sel.length === 1 && it.type === 'file' && PatOS.versions && PatOS.versions.list(it.path).length ? { label: PatOS.t('Versions…'), action: () => PatOS.finderPro.versionsSheet(win, it.path) } : null,
+            { divider: true },
+            PatOS.actions ? { label: PatOS.t('Share…'), action: () => PatOS.actions.sheet(it.path, e.clientX, e.clientY) } : null,
+            PatOS.capture ? { label: PatOS.t('Capture'), action: () => { sel.forEach((p) => PatOS.capture.add(p, { from: 'finder' })); OFtoast(sel.length + ' ' + PatOS.t(sel.length === 1 ? 'item' : 'items') + ' ' + PatOS.t('captured')); } } : null,
             sel.some((p) => { const n = PatOS.fs.get(p); return n && n.type === 'file'; }) && PatOS.link ? { label: PatOS.t('Send with PatDrop'), action: () => PatOS.sendWithPatDrop(sel) } : null,
             it.type === 'file' && sel.length === 1 ? { label: PatOS.t('Save to This Chromebook…'), action: () => PatOS.device.saveCopy(it.path) } : null,
             it.type === 'dir' && sel.length === 1 && PatOS.device.supported ? { label: PatOS.t('Save Folder to This Chromebook…'), action: () => PatOS.device.exportFolder(it.path) } : null,
@@ -464,7 +486,7 @@
             { header: PatOS.t('Tags') },
             ...Object.keys(TAGS).map((k) => ({ label: PatOS.t(TAG_NAMES[k]), checked: sel.every((p) => tagsOf()[p] === k), action: () => setTag(sel, sel.every((p) => tagsOf()[p] === k) ? null : k) })),
             { divider: true },
-            { label: PatOS.t('Move to Trash'), shortcut: 'Delete', action: () => { sel.forEach((p) => PatOS.fs.remove(p)); PatOS.sound.trash(); } }
+            { label: PatOS.t('Move to Trash'), shortcut: 'Delete', action: () => trashSel(sel) }
           ], e.clientX, e.clientY);
         });
         return el;
@@ -590,7 +612,9 @@
         else if (e.key === ' ' && cur && !cur.startsWith('app:')) { e.preventDefault(); PatOS.quickLook(cur, list.filter((x) => !x.app).map((x) => x.path)); }
         else if (e.key === 'Enter' && cur) { e.preventDefault(); if (e.ctrlKey || cur.startsWith('app:')) openItem(list[i]); else PatOS.renameInline(cur); }
         else if ((e.key === 'o' && e.ctrlKey) || (e.key === 'ArrowDown' && e.ctrlKey)) { if (list[i]) openItem(list[i]); }
-        else if ((e.key === 'Delete' || (e.key === 'Backspace' && e.ctrlKey)) && selected.size && canWrite()) { [...selected].forEach((p) => PatOS.fs.remove(p)); PatOS.sound.trash(); }
+        else if ((e.key === 'Delete' || (e.key === 'Backspace' && e.ctrlKey)) && selected.size && canWrite()) trashSel([...selected]);
+        else if ((e.key === 't' || e.key === 'T') && (e.ctrlKey || e.metaKey)) { e.preventDefault(); newTab(cwd); }
+        else if ((e.key === 'w' || e.key === 'W') && (e.ctrlKey || e.metaKey) && tabs.length > 1) { e.preventDefault(); closeTab(tabAt); }
         else if (e.key === 'a' && e.ctrlKey) { e.preventDefault(); select(list.map((x) => x.path)); }
         else if ((e.key === 'c' || e.key === 'C') && (e.ctrlKey || e.metaKey) && selected.size) { e.preventDefault(); copySel(false); }
         else if ((e.key === 'x' || e.key === 'X') && (e.ctrlKey || e.metaKey) && selected.size && canWrite()) { e.preventDefault(); copySel(true); }
@@ -603,7 +627,9 @@
       const off = PatOS.on('fs', PatOS.debounce(() => { const keep = [...selected].filter((p) => PatOS.fs.exists(p)); selected = new Set(keep); render(); }, 60));
       win.on('closed', off);
       win._go = go;
-      win._finder = { newFolder: newFolderHere, copy: copySel, paste: pasteHere, selectAll: () => select(list.map((x) => x.path)), view: () => view, setView: (v) => { view = v; PatOS.store.set('finderView', v); render(); }, info: () => showInfo, toggleInfo: () => bInfo.click(), renameMany, go, place: () => cwd, search: (q, f) => { search.value = q || ''; if (f) filters = Object.assign(filters, f); render(); }, saveSmart };
+      // split view: a second Piles window on the same folder, the two side by side
+      const split = () => { const w2 = PatOS.launch('finder', { path: special() ? '/' : cwd }); setTimeout(() => { PatOS.wm.snap(win, 'left'); const other = PatOS.wm.windows.filter((x) => x.app.id === 'finder' && x !== win).pop(); if (other) PatOS.wm.snap(other, 'right'); }, 120); return w2; };
+      win._finder = { newTab: () => newTab(cwd), closeTab: () => closeTab(tabAt), tabs: () => tabs.map((t) => t.path), split, dups: () => PatOS.finderPro && PatOS.finderPro.duplicatesSheet(win, '/'), newFolder: newFolderHere, copy: copySel, paste: pasteHere, selectAll: () => select(list.map((x) => x.path)), view: () => view, setView: (v) => { view = v; PatOS.store.set('finderView', v); render(); }, info: () => showInfo, toggleInfo: () => bInfo.click(), renameMany, go, place: () => cwd, search: (q, f) => { search.value = q || ''; if (f) filters = Object.assign(filters, f); render(); }, saveSmart };
       render(); setTimeout(() => main.focus({ preventScroll: true }), 80);
     },
     onArgs(win, args) { if (args.path && win._go) win._go(args.path); },
@@ -612,6 +638,8 @@
       return {
         file: [
           { label: PatOS.t('New Piles Window'), shortcut: 'Alt+N', action: () => PatOS.launch('finder', { path: win.el._finderPath() }) },
+          { label: PatOS.t('New Tab'), shortcut: 'Ctrl+T', action: () => F.newTab && F.newTab() },
+          { label: PatOS.t('Split View'), action: () => F.split && F.split() },
           { label: PatOS.t('New Folder'), action: () => F.newFolder && F.newFolder() },
           { divider: true },
           { label: PatOS.t('Import Copies…'), action: () => PatOS.importFiles(win.el._finderPath()) },
@@ -630,7 +658,9 @@
           { label: PatOS.t('as List'), checked: F.view && F.view() === 'list', action: () => F.setView && F.setView('list') },
           { label: PatOS.t('as Piles'), checked: F.view && F.view() === 'piles', action: () => F.setView && F.setView('piles') },
           { divider: true },
-          { label: PatOS.t('Show Info'), checked: !!(F.info && F.info()), action: () => F.toggleInfo && F.toggleInfo() }
+          { label: PatOS.t('Show Info'), checked: !!(F.info && F.info()), action: () => F.toggleInfo && F.toggleInfo() },
+          { divider: true },
+          { label: PatOS.t('Find Duplicates…'), action: () => F.dups && F.dups() }
         ]
       };
     }

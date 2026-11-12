@@ -418,6 +418,8 @@
 
   /* public API */
   PatOS.wm = {
+    /* (3.3) put a window on the left or right half of the screen, the same as dragging it to that edge */
+    snap(win, side) { if (!win || PatOS.isMobile) return; const a = workArea(); win.prevRect = { x: win.el.offsetLeft, y: win.el.offsetTop, w: win.el.offsetWidth, h: win.el.offsetHeight }; if (win.maximized) { win.maximized = false; win.el.classList.remove('maximized'); } animateTo(win, { x: side === 'right' ? a.w / 2 : 0, y: a.y, w: a.w / 2, h: a.h }); },
     windows: wins,
     get active() { return active; },
     workArea,
