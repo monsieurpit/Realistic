@@ -1,5 +1,22 @@
 [
   {
+    "version": "3.3.0",
+    "beta": 1,
+    "date": "2026-11-12",
+    "title": {
+      "en": "PatOS 3.3: Crystal",
+      "fr": "PatOS 3.3 : Cristal"
+    },
+    "notes": {
+      "en": [
+        "A crystal Dock: thicker, brighter glass with a light rim, a soft rainbow at its ends, a reflection inside, a glow under it, and a glass bubble for app names"
+      ],
+      "fr": [
+        "Un Dock en cristal : un verre plus épais et plus brillant avec un bord lumineux, un léger arc-en-ciel aux bouts, un reflet à l’intérieur, une lueur en dessous, et une bulle de verre pour le nom des apps"
+      ]
+    }
+  },
+  {
     "version": "3.2.0",
     "date": "2026-11-12",
     "title": {
