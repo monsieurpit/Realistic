@@ -80,7 +80,7 @@ test('backup file: locked with a password, restored on a brand new device, big f
 test('auto-backup folder: writes one file a day and keeps the newest 14', { skip: skipNoBrowser }, async () => {
   const page = await b.newPage(); await boot(page, srv.base, { fresh: true });
   const r = await page.evaluate(async () => {
-    const files = new Map(); const dir = { async getFileHandle(n) { return { async createWritable() { let buf = ''; return { async write(t) { buf += t; }, async close() { files.set(n, buf); } }; } }; }, async removeEntry(n) { files.delete(n); }, async *entries() { for (const k of [...files.keys()]) yield [k, {}]; } };
+    const files = new Map(); const dir = { async getFileHandle(n) { return { async createWritable() { let buf = ''; return { async write(t) { buf += t; }, async close() { files.set(n, buf); } }; }, async getFile() { return { text: async () => files.get(n) }; } }; }, async removeEntry(n) { files.delete(n); }, async *entries() { for (const k of [...files.keys()]) yield [k, {}]; } };
     files.set('holiday photos.zip', 'not mine'); // other files in the folder are never touched
     const state = await PatOS.backup.collect({ blobs: false });
     for (let i = 20; i >= 0; i--) await PatOS.backup.folder.write(dir, Object.assign({}, state, { created: Date.now() - i * 86400000 }), 14);

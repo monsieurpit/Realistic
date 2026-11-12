@@ -44,6 +44,20 @@
   const b64 = (u8) => new Promise((res) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1] || ''); r.readAsDataURL(new Blob([u8])); });
   const unb64 = async (s) => new Uint8Array(await (await fetch('data:application/octet-stream;base64,' + s)).arrayBuffer());
 
+  /* ---------- fingerprints: a backup knows what it should contain, so a damaged one is noticed ---------- */
+  async function digest(state) {
+    const text = JSON.stringify({ kv: state.kv, fs: state.fs }); // (big files can be left out of a backup on purpose, so they aren't part of it)
+    const h = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text));
+    return Array.from(new Uint8Array(h)).map((b) => b.toString(16).padStart(2, '0')).join('');
+  }
+  async function seal(state) { if (window.crypto && crypto.subtle) state.check = { alg: 'sha256', hash: await digest(state) }; return state; }
+  /* 'ok' (fingerprint matches), 'unverified' (an older backup without one), or 'damaged' */
+  async function verify(state) {
+    if (!state || !state.fs || !state.kv) return 'damaged';
+    if (!state.check || !state.check.hash) return 'unverified';
+    try { return (await digest(state)) === state.check.hash ? 'ok' : 'damaged'; } catch (e) { return 'unverified'; }
+  }
+
   /* ---------- making a backup of everything ---------- */
   async function collect(opts) {
     opts = opts || {};
@@ -61,7 +75,7 @@
       }
       state.stats.bigIncluded = Object.keys(state.blobs).length; state.stats.bigSkipped = skipped;
     }
-    return state;
+    return seal(state);
   }
   async function encrypt(obj, pass) {
     const salt = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
@@ -81,7 +95,10 @@
     let j; try { j = JSON.parse(text); } catch (e) { throw new Error('This is not a PatOS backup'); }
     if (j && j.format === ENC) { if (!pass) { const err = new Error('password needed'); err.needPassword = true; throw err; } j = await decrypt(j, pass); }
     if (!j || j.format !== FORMAT || !j.fs || !j.kv) throw new Error('This is not a PatOS backup');
-    return j;
+    const v = await verify(j);
+    if (v === 'damaged') { const err = new Error('This backup is damaged: its contents don’t match its fingerprint, so PatOS won’t restore it.'); err.damaged = true; throw err; }
+    if (PatOS.fs.integrity && PatOS.fs.integrity.inspect(j.fs).fatal) throw new Error('This backup is damaged: its file list can’t be read.');
+    j.verified = v; return j;
   }
 
   /* ---------- snapshots ---------- */
@@ -90,7 +107,9 @@
   async function snapshot(label, kind, t) {
     kind = kind || 'manual'; t = t || Date.now();
     const s = await collect({ blobs: false }); const key = 'snap:' + t + ':' + kind;
-    await putSnap(key, { t, label, kind, kv: s.kv, fs: s.fs, stats: s.stats, patos: s.patos, device: s.device });
+    await putSnap(key, { t, label, kind, kv: s.kv, fs: s.fs, stats: s.stats, patos: s.patos, device: s.device, check: s.check });
+    // read it back: a snapshot only counts once it is really there, whole
+    const back = await getSnap(key); if (!back || (await verify(back)) === 'damaged') { try { await delSnap(key); } catch (e) {} throw new Error('The snapshot could not be saved whole'); }
     const l = index().filter((x) => x.key !== key); l.push({ key, t, label, kind, files: s.stats.files, bytes: s.stats.bytes }); setIndex(l);
     await prune();
     return key;
@@ -107,6 +126,7 @@
   /* ---------- putting a backup back ---------- */
   async function apply(state, opts) {
     if (!state || state.format !== FORMAT || !state.fs || !state.kv) throw new Error('This is not a PatOS backup');
+    if ((await verify(state)) === 'damaged') throw new Error('This backup is damaged: its contents don’t match its fingerprint, so PatOS won’t restore it.');
     await snapshot(T('Before restoring'), 'before'); // always keep a way back
     if (opts && opts.blobDir) await loadBigFiles(opts.blobDir, state.fs);
     if (state.blobs) for (const id of Object.keys(state.blobs)) { const b = state.blobs[id]; const blob = new Blob([await unb64(b.data)], { type: b.type || '' }); await idb('blobs', 'readwrite', (s) => s.put(blob, id)); }
@@ -143,6 +163,9 @@
   async function writeToFolder(dir, state, keep) {
     const name = 'PatOS-backup-' + stamp(state.created) + '.patos-backup';
     const fh = await dir.getFileHandle(name, { create: true }); const w = await fh.createWritable(); await w.write(JSON.stringify(state)); await w.close();
+    // read the file back before removing any older backup: a backup that can't be read back doesn't count
+    let back = null; try { back = JSON.parse(await (await fh.getFile()).text()); } catch (e) {}
+    if (!back || (await verify(back)) === 'damaged') throw new Error('The backup file could not be read back whole, so older backups were kept');
     const names = []; for await (const [n] of dir.entries()) if (FOLDER_FILE.test(n)) names.push(n);
     names.sort().reverse().slice(keep || 14).forEach((n) => { dir.removeEntry(n).catch(() => {}); });
     return name;
@@ -248,6 +271,8 @@
   const autoOn = () => info().auto !== false;
   async function autoTick(force) {
     if (!PatOS.store.idb || !PatOS.loggedIn) return;
+    // after a damaged start, no automatic snapshot: it would push out the good ones (offerRecovery asks first)
+    const L = PatOS.fs.integrity && PatOS.fs.integrity.load(); if (L && (L.state === 'damaged' || L.state === 'missing') && !force) return;
     if (autoOn()) {
       const last = list().find((x) => x.kind === 'auto'); const t = Date.now();
       if (force || !last || t - last.t > 20 * 3600e3) { try { await snapshot(T('Daily snapshot'), 'auto'); PatOS.emit('backup'); } catch (e) { console.warn('PatOS backup:', e); } }
@@ -262,9 +287,22 @@
       }
     }
   }
-  PatOS.on('wm:ready', () => { persist.request(); setTimeout(() => autoTick(false), 25000); });
+  /* the file tree could not be read at start: it was kept (PatOS.fs.integrity), and the newest snapshot is offered.
+     Nothing is put back without a yes, and the damaged copy stays either way. */
+  async function offerRecovery() {
+    const L = PatOS.fs.integrity && PatOS.fs.integrity.load(); if (!L || (L.state !== 'damaged' && L.state !== 'missing')) return;
+    const snap = list()[0];
+    const body = (L.state === 'damaged' ? T('PatOS couldn’t read your files when it started, so it kept them aside and started with empty folders.') : T('Some files lost their content when PatOS started.')) + (snap ? ' ' + T('The newest snapshot is from') + ' ' + when(snap.t) + '.' : ' ' + T('There is no snapshot on this device. You can restore a backup file from Settings › Backup.'));
+    if (!snap) return msg(T('PatOS found a problem with your files'), body);
+    if (await PatOS.confirmBox(T('PatOS found a problem with your files'), body, { ok: T('Restore the Snapshot'), icon: 'settings' })) {
+      try { await restoreSnapshot(snap.key); PatOS.restartPatOS ? PatOS.restartPatOS({ update: false }) : location.reload(); } catch (e) { msg(T('That didn’t work'), String(e.message || e)); }
+    }
+  }
+  PatOS.on('wm:ready', () => { persist.request(); setTimeout(() => autoTick(false), 25000); setTimeout(offerRecovery, 2500); });
   setInterval(() => autoTick(false), 3600e3);
 
-  PatOS.backup = { ui, collect, parse, apply, snapshot, list, removeSnapshot, restoreSnapshot, exportFile, saveFile, count, when, stamp, autoTick, setAuto: (on) => setInfo({ auto: !!on }), autoOn, persist, info,
+  /* every snapshot, read and checked (for Settings › Backup and Diagnostics) */
+  async function verifyAll() { const out = []; for (const x of list()) { let st = 'missing'; try { const v = await getSnap(x.key); if (v) st = await verify(v); } catch (e) { st = 'damaged'; } out.push({ key: x.key, t: x.t, label: x.label, state: st }); } return out; }
+  PatOS.backup = { ui, collect, parse, apply, verify, verifyAll, snapshot, list, removeSnapshot, restoreSnapshot, exportFile, saveFile, count, when, stamp, autoTick, setAuto: (on) => setInfo({ auto: !!on }), autoOn, persist, info,
     folder: { handle: getFolder, supported: folderSupported, link: linkFolder, unlink: unlinkFolder, status: folderStatus, writeNow: writeFolderNow, write: writeToFolder, copyBig: copyBigFiles, loadBig: loadBigFiles } };
 })();

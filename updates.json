@@ -1,7 +1,7 @@
 [
   {
     "version": "3.2.0",
-    "beta": 1,
+    "beta": 2,
     "date": "2026-11-12",
     "title": {
       "en": "PatOS 3.2: Messages",
@@ -9,11 +9,15 @@
     },
     "notes": {
       "en": [
+        "Your files are safer: if PatOS ever finds its saved file list damaged when it starts, it keeps the damaged copy aside (instead of replacing it), starts anyway, and offers to put back your newest snapshot. Small damage is mended, with the original kept, and a file whose content went missing is reported instead of silently showing as empty",
+        "Backups now carry a fingerprint: a backup file or snapshot that was damaged or changed is refused instead of restored; snapshots are read back after saving, and the backup folder only removes old backups once the new one has been read back whole",
         "Messages: send photos (📷 next to the message box; they are made smaller so they arrive fast), and add emoji from the 😊 button",
         "Messages: react to any message with ❤️ 👍 😂 😮 😢 🔥 (click a message; double-click for a quick ❤️). Click your reaction again to remove it",
         "Messages: “Seen” under your last message once the other person has read it, and “typing…” dots while they write"
       ],
       "fr": [
+        "Vos fichiers sont mieux protégés : si PatOS trouve sa liste de fichiers endommagée au démarrage, il garde la copie endommagée de côté (au lieu de la remplacer), démarre quand même et propose de remettre votre plus récent instantané. Les petits dégâts sont réparés en gardant l’original, et un fichier dont le contenu a disparu est signalé au lieu de s’afficher vide",
+        "Les sauvegardes ont maintenant une empreinte : un fichier de sauvegarde ou un instantané endommagé ou modifié est refusé au lieu d’être restauré ; les instantanés sont relus après l’enregistrement, et le dossier de sauvegarde ne supprime les anciennes sauvegardes qu’une fois la nouvelle relue en entier",
         "Messages : envoyez des photos (📷 à côté de la zone de message ; elles sont réduites pour arriver vite), et ajoutez des émojis avec le bouton 😊",
         "Messages : réagissez à n’importe quel message avec ❤️ 👍 😂 😮 😢 🔥 (cliquez sur un message ; double-cliquez pour un ❤️ rapide). Cliquez de nouveau sur votre réaction pour la retirer",
         "Messages : « Vu » sous votre dernier message quand l’autre personne l’a lu, et des points « écrit… » pendant qu’elle écrit"

@@ -164,10 +164,10 @@
     peek(key) { return KV ? KV[key] : undefined; },
     /* everything worth keeping, for backups: all saved data except the file tree (that comes from fs.exportTree)
        and caches that are made again by themselves */
-    backupData() { const o = {}; const skip = new Set(['fs', 'wpCache', 'wpLockCache', 'wpThumbs', 'wxCache', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'systemUid', 'verifiedUids', 'accountPrompt', 'msgRead', 'msgOutbox']); const src = KV || (function () { const r = {}; try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => { try { r[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {} return r; })(); Object.keys(src).forEach((k) => { if (!skip.has(k)) o[k] = clone(src[k]); }); return o; },
+    backupData() { const o = {}; const skip = new Set(['fs', 'fsDamaged', 'wpCache', 'wpLockCache', 'wpThumbs', 'wxCache', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'systemUid', 'verifiedUids', 'accountPrompt', 'msgRead', 'msgOutbox']); const src = KV || (function () { const r = {}; try { Object.keys(localStorage).filter((k) => k.startsWith(PREFIX)).forEach((k) => { try { r[k.slice(PREFIX.length)] = JSON.parse(localStorage.getItem(k)); } catch (e) {} }); } catch (e) {} return r; })(); Object.keys(src).forEach((k) => { if (!skip.has(k)) o[k] = clone(src[k]); }); return o; },
     /* put saved data back from a backup: keys that are not in it are removed */
     restoreData(data) {
-      const keep = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'systemUid', 'verifiedUids', 'accountPrompt', 'msgRead', 'msgOutbox']); const neverRemove = new Set(['syncKey']); const old = KV ? Object.keys(KV) : [];
+      const keep = new Set(['fs', 'fsDamaged', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'systemUid', 'verifiedUids', 'accountPrompt', 'msgRead', 'msgOutbox']); const neverRemove = new Set(['syncKey']); const old = KV ? Object.keys(KV) : [];
       old.forEach((k) => { if (!keep.has(k) && !neverRemove.has(k) && !(k in data)) PatOS.store.remove(k); });
       Object.keys(data).forEach((k) => { if (!keep.has(k)) PatOS.store.set(k, clone(data[k])); });
     },
@@ -206,11 +206,13 @@
   try { (JSON.parse(localStorage.getItem(ERR_KEY) || '[]') || []).forEach((e) => { e.before = true; errs.push(e); }); } catch (e) {}
   let errSave = 0;
   PatOS.errors = {
-    report(err, where) {
+    /* info (optional): { severity: 'info'|'warning'|'error'|'critical', category: 'storage'|'app'|'sync'|..., app, recovered } */
+    report(err, where, info) {
+      info = info || {};
       const msg = String((err && (err.message || err.reason)) || err || 'Unknown error').slice(0, 300);
       const last = errs[errs.length - 1];
       if (last && !last.before && last.msg === msg && last.where === (where || '') && Date.now() - last.t < 2000) { last.n = (last.n || 1) + 1; return; } // (the same error in a loop counts once)
-      errs.push({ t: Date.now(), where: where || '', msg, stack: String((err && err.stack) || '').split('\n').slice(0, 4).join('\n').slice(0, 600), v: PatOS.version || '' });
+      errs.push({ t: Date.now(), where: where || '', msg, sev: info.severity || 'error', cat: info.category || String(where || '').split(' ')[0] || 'other', app: info.app || '', recovered: info.recovered == null ? null : !!info.recovered, stack: String((err && err.stack) || '').split('\n').slice(0, 4).join('\n').slice(0, 600), v: PatOS.version || '' });
       if (errs.length > 100) errs.splice(0, errs.length - 100);
       clearTimeout(errSave); errSave = setTimeout(() => { try { localStorage.setItem(ERR_KEY, JSON.stringify(errs.slice(-30).map((e) => { const c = Object.assign({}, e); delete c.before; return c; }))); } catch (e) {} }, 500);
       try { if (typeof PatOS.emit === 'function') (listeners['error'] || []).slice().forEach((f) => { try { f(errs[errs.length - 1]); } catch (e) {} }); } catch (e) {}
@@ -382,8 +384,49 @@
       '.Trash': d({})
     });
   }
+  /* ---------- the file tree, checked as it is read ----------
+     A damaged tree is never thrown away: it is kept as it was (fsDamaged, the last 3), PatOS starts with a fresh tree, and
+     after sign-in it offers to put back the newest snapshot. Small problems (an entry with no folder contents, a file whose
+     content isn't text) are mended in memory, and the tree as it was before is kept too. See PatOS.fs.integrity. */
+  function inspectTree(t, repair) {
+    const problems = []; let files = 0, dirs = 0;
+    if (!t || typeof t !== 'object' || t.type !== 'dir' || !t.children || typeof t.children !== 'object' || Array.isArray(t.children)) return { ok: false, fatal: true, problems: [{ path: '/', what: 'not a folder tree' }], files, dirs };
+    (function walk(n, p, depth) {
+      if (depth > 256) { problems.push({ path: p, what: 'folders nested too deep' }); return; }
+      for (const name of Object.keys(n.children)) {
+        const c = n.children[name], cp = (p === '/' ? '' : p) + '/' + name;
+        if (!c || typeof c !== 'object') { problems.push({ path: cp, what: 'empty entry', fixed: !!repair }); if (repair) delete n.children[name]; continue; }
+        if (!name || name.includes('/')) problems.push({ path: cp, what: 'name with a slash' });
+        if (c.type === 'dir') {
+          dirs++;
+          if (!c.children || typeof c.children !== 'object' || Array.isArray(c.children)) { problems.push({ path: cp, what: 'folder without contents', fixed: !!repair }); if (repair) c.children = {}; else continue; }
+          walk(c, cp, depth + 1);
+        } else if (c.type === 'file') {
+          files++;
+          if (c.content != null && typeof c.content !== 'string') { problems.push({ path: cp, what: 'content is not text', fixed: !!repair }); if (repair) c.content = (() => { try { return JSON.stringify(c.content); } catch (e) { return ''; } })(); }
+        } else { problems.push({ path: cp, what: 'unknown kind of entry', fixed: !!repair }); if (repair) { if (c.children && typeof c.children === 'object') { c.type = 'dir'; walk(c, cp, depth + 1); } else { c.type = 'file'; if (typeof c.content !== 'string') c.content = ''; } } }
+      }
+    })(t, '/', 0);
+    return { ok: !problems.length, fatal: false, problems, files, dirs };
+  }
+  const integrity = { load: { t: Date.now(), state: 'ok', problems: [] } };
+  function keepDamaged(tree, why) {
+    try { const l = PatOS.store.get('fsDamaged', []) || []; l.unshift({ t: Date.now(), why, tree }); PatOS.store.set('fsDamaged', l.slice(0, 3)); } catch (e) { PatOS.errors.report(e, 'storage keep damaged copy', { severity: 'critical', category: 'storage' }); }
+  }
   let root = PatOS.store.get('fs', null);
-  if (!root || root.type !== 'dir') { root = seedFS(); }
+  if (root == null) root = seedFS();
+  else {
+    const r = inspectTree(root, true);
+    if (r.fatal) {
+      keepDamaged(PatOS.store.get('fs', null), 'unreadable'); root = seedFS();
+      integrity.load = { t: Date.now(), state: 'damaged', problems: r.problems };
+      PatOS.errors.report(new Error('The file tree could not be read; it was kept, and PatOS started with a fresh one'), 'storage load', { severity: 'critical', category: 'storage', recovered: false });
+    } else if (r.problems.length) {
+      keepDamaged(PatOS.store.get('fs', null), 'mended');
+      integrity.load = { t: Date.now(), state: 'mended', problems: r.problems };
+      PatOS.errors.report(new Error(r.problems.length + ' file entries were mended while loading'), 'storage load', { severity: 'warning', category: 'storage', recovered: true });
+    }
+  }
   /* one-time clean-up: remove the old example files PatOS used to add (only if they were never changed) */
   if (!PatOS.store.get('fsCleaned2', false)) {
     const OLD = {
@@ -407,10 +450,14 @@
   /* big file contents are saved as separate records, so a small edit doesn't re-save every picture */
   if (!root.children.Videos) root.children.Videos = { type: 'dir', children: {}, mtime: now() };
   const FCLOAD = window.__FC || {};
-  (function rehydrate(n) {
-    if (n.type === 'dir') { Object.values(n.children).forEach(rehydrate); return; }
-    if (n.cref) { n.content = FCLOAD[n.cref] != null ? FCLOAD[n.cref] : ''; n.cid = n.cref; delete n.cref; persistedFC[n.cid] = n.content; }
-  })(root);
+  (function rehydrate(n, p) {
+    if (n.type === 'dir') { Object.keys(n.children).forEach((k) => rehydrate(n.children[k], (p === '/' ? '' : p) + '/' + k)); return; }
+    if (n.cref) {
+      // the content of a big file lives in its own record: if that record is gone, say so (it can come back from a snapshot)
+      if (FCLOAD[n.cref] == null) { integrity.load.problems.push({ path: p, what: 'content missing' }); if (integrity.load.state === 'ok') integrity.load.state = 'missing'; PatOS.errors.report(new Error('The content of a file is missing: ' + p.split('/').pop()), 'storage load', { severity: 'error', category: 'storage', recovered: false }); }
+      n.content = FCLOAD[n.cref] != null ? FCLOAD[n.cref] : ''; n.cid = n.cref; delete n.cref; persistedFC[n.cid] = n.content;
+    }
+  })(root, '/');
   const pendingBlobIds = new Set(); let gcBlobs = false;
   function saveFSNow() {
     if (!PatOS.store.idb) { PatOS.store.set('fs', root); return; }
@@ -637,11 +684,29 @@
       return blobUrls[key];
     },
     reset() { root = seedFS(); PatOS.store.set('fs', root); PatOS.emit('fs', { path: '/', dir: '/' }); },
+    /* integrity: what loading found, the damaged copies kept, and a full check (nothing is changed by the check) */
+    integrity: {
+      load: () => JSON.parse(JSON.stringify(integrity.load)),
+      inspect: (tree) => inspectTree(clone(tree), false),
+      damaged: () => (PatOS.store.get('fsDamaged', []) || []).map((d) => ({ t: d.t, why: d.why })),
+      damagedTree: (i) => { const d = (PatOS.store.get('fsDamaged', []) || [])[i || 0]; return d ? d.tree : null; },
+      forgetDamaged: () => PatOS.store.remove('fsDamaged'),
+      async check() {
+        const t0 = performance.now(); const r = inspectTree(clone(root), false); const out = { t: Date.now(), files: r.files, dirs: r.dirs, problems: r.problems.slice(), bigFiles: 0, bigMissing: 0, stored: 0 };
+        let have = null;
+        if (DBH) have = await new Promise((res) => { try { const q = DBH.transaction('blobs').objectStore('blobs').getAllKeys(); q.onsuccess = () => res(new Set(q.result)); q.onerror = () => res(null); } catch (e) { res(null); } });
+        (function walk(n, p) { if (n.type === 'dir') { Object.keys(n.children).forEach((k) => walk(n.children[k], (p === '/' ? '' : p) + '/' + k)); return; }
+          if (n.blob) { out.bigFiles++; if (have && !have.has(n.blob)) { out.bigMissing++; out.problems.push({ path: p, what: 'big file data missing' }); } } })(root, '/');
+        try { const e = await navigator.storage.estimate(); out.stored = e.usage || 0; out.quota = e.quota || 0; } catch (e) {}
+        out.ok = !out.problems.length; out.ms = Math.round(performance.now() - t0); out.unsaved = dirty.size + Object.keys(fcPut).length;
+        return out;
+      }
+    },
     /* the whole file tree with every file's content inside it (for backups) */
     exportTree() { const t = clone(root); (function strip(n) { delete n.cid; if (n.type === 'dir') Object.values(n.children).forEach(strip); })(t); return t; },
     /* replace the whole file tree (restoring a backup); big files whose data is no longer here are dropped, and counted */
     async importTree(tree) {
-      if (!tree || tree.type !== 'dir' || !tree.children) throw new Error('This is not a PatOS file tree');
+      if (inspectTree(tree, true).fatal) throw new Error('This is not a PatOS file tree');
       let missing = 0; const have = new Set();
       if (DBH) { await new Promise((res) => { try { const r = DBH.transaction('blobs').objectStore('blobs').getAllKeys(); r.onsuccess = () => { r.result.forEach((k) => have.add(k)); res(); }; r.onerror = () => res(); } catch (e) { res(); } }); }
       (function fix(n) { if (n.type !== 'dir') return; Object.keys(n.children).forEach((k) => { const c = n.children[k]; if (c.type === 'dir') fix(c); else if (c.blob && !have.has(c.blob)) { delete n.children[k]; missing++; } }); })(tree);
