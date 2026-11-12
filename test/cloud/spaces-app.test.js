@@ -44,13 +44,14 @@ test('a shared file: open as a copy, save back, conflicts keep both, offline sav
   const names = await A.ev((sid) => new Promise((res) => { const off = PatOS.spaces.files(PatOS.spaces.get(sid), (l) => { if (l.length >= 2) { off(); res(l.map((f) => [f.name, f.content])); } }); }), sid);
   assert.ok(names.some(([n, c]) => n === 'plan.txt' && /step 3 \(ann\)/.test(c)), 'Ann’s save is not overwritten');
   assert.ok(names.some(([n, c]) => /your version/.test(n) && /ben again/.test(c)), 'Ben’s version is kept as a copy');
-  // offline: a save waits on the device and goes out when the internet is back
-  await B.ctx.setOffline(true); await B.ev(() => window.dispatchEvent(new Event('offline')));
-  const q = await B.ev(async (sid) => { const f = await new Promise((res) => { const off = PatOS.spaces.files(PatOS.spaces.get(sid), (l) => { off(); res(l.find((x) => x.name === 'plan.txt')); }); }); Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false }); return PatOS.spaces.save(sid, f.id, 'offline edit', f.rev, f.name); }, sid);
+  // offline: a save waits on the device and goes out when the internet is back (the revision is read while still online)
+  const cur = await B.ev((sid) => new Promise((res) => { const off = PatOS.spaces.files(PatOS.spaces.get(sid), (l) => { const f = l.find((x) => x.name === 'plan.txt'); if (f && f.rev === 3) { off(); res({ id: f.id, rev: f.rev, name: f.name }); } }); }), sid);
+  await B.ctx.setOffline(true);
+  const q = await B.ev(async ([sid, f]) => { Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => false }); return PatOS.spaces.save(sid, f.id, 'offline edit', f.rev, f.name); }, [sid, cur]);
   assert.equal(q.queued, true); assert.equal(await B.ev(() => PatOS.spaces.pending().length), 1);
   await B.ctx.setOffline(false); await B.ev(() => { Object.defineProperty(navigator, 'onLine', { configurable: true, get: () => true }); window.dispatchEvent(new Event('online')); });
   await until(B, () => PatOS.spaces.pending().length === 0, null, 20000);
-  const f4 = await A.ev((sid) => new Promise((res) => { const off = PatOS.spaces.files(PatOS.spaces.get(sid), (l) => { const f = l.find((x) => x.name === 'plan.txt'); if (f && f.content === 'offline edit') { off(); res(f.rev); } }); }), sid);
+  const f4 = await A.ev((sid) => new Promise((res) => { const t = setTimeout(() => res('timeout'), 15000); const off = PatOS.spaces.files(PatOS.spaces.get(sid), (l) => { const f = l.find((x) => x.name === 'plan.txt'); if (f && f.content === 'offline edit') { clearTimeout(t); off(); res(f.rev); } }); }), sid);
   assert.equal(f4, 4);
   // the app and Command Center
   await A.ev(() => PatOS.launch('spaces')); await A.page.waitForSelector('.sp-si'); await A.page.click('.sp-si');
