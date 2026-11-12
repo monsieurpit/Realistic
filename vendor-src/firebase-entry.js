@@ -10,6 +10,13 @@
      conversations/{id}/messages/{id}       { from, text, t, at }        the history, never changed afterwards
      config/system                          { uid }                      the system account (PatOS); written only in the Firebase console
      bans/{uid}                             { reason, username, at, by } banned accounts; written only by the system account
+     spaces/{sid}                           { name, owner, members: { uid: role }, memberIds, names, created, updated }   Shared Spaces
+     spaces/{sid}/files/{fid}               { name, kind, content, rev, updatedBy, updatedAt, lockedBy, lockUntil }
+     spaces/{sid}/files/{fid}/revs/{rev}    { content, by, at }          each saved revision (never changed afterwards)
+     spaces/{sid}/comments/{cid}            { fid, text, by, byName, at }
+     spaces/{sid}/activity/{aid}            { what, name, by, byName, at }
+     spaceInvites/{sid_uid}                 { sid, uid, role, spaceName, by, byName, at }   an invitation, until it is answered
+   Roles (firestore.rules checks every one): owner > admin > editor > commenter > viewer.
 
    Accounts are username and password only. Firebase Authentication needs an email-shaped name, so the username is turned
    into one that can never receive mail (name@patos.invalid). Nobody types it, and no mail is ever sent. The password is
@@ -235,6 +242,81 @@ const api = {
   messageExists: wrap(async (cid, id) => { init(); return (await getDoc(doc(db, 'conversations', cid, 'messages', id))).exists(); }),
   /* the system account opens a conversation that was waiting or declined */
   open: wrap(async (cid) => { init(); await updateDoc(doc(db, 'conversations', cid), { status: 'accepted', decidedAt: serverTimestamp() }); }),
-  respond: wrap(async (cid, accept) => { init(); await updateDoc(doc(db, 'conversations', cid), { status: accept ? 'accepted' : 'declined', decidedAt: serverTimestamp() }); })
+  respond: wrap(async (cid, accept) => { init(); await updateDoc(doc(db, 'conversations', cid), { status: accept ? 'accepted' : 'declined', decidedAt: serverTimestamp() }); }),
+  /* ================= Shared Spaces ================= */
+  spacesListen(uid, cb, onError) { init(); return onSnapshot(query(collection(db, 'spaces'), where('memberIds', 'array-contains', uid)), (s) => cb(s.docs.map((d) => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' })))), (e) => { if (onError) onError(friendly(e)); }); },
+  spaceCreate: wrap(async (me, name) => {
+    init(); const ref = doc(collection(db, 'spaces')); const now = serverTimestamp();
+    const b = writeBatch(db);
+    b.set(ref, { name: String(name).slice(0, 60), owner: me.uid, members: { [me.uid]: 'owner' }, memberIds: [me.uid], names: { [me.uid]: me.username }, created: now, updated: now });
+    b.set(doc(collection(db, 'spaces', ref.id, 'activity')), { what: 'created', name: String(name).slice(0, 60), by: me.uid, byName: me.username, at: now });
+    await b.commit(); return ref.id;
+  }),
+  spaceInvite: wrap(async (me, sid, spaceName, username, role) => {
+    init(); const u = await getDoc(doc(db, 'usernames', String(username || '').toLowerCase()));
+    if (!u.exists()) throw fail('nouser', 'No account has that username.');
+    const uid = u.data().uid; if (uid === me.uid) throw fail('self', 'You are already in this space.');
+    const b = writeBatch(db); const now = serverTimestamp();
+    b.set(doc(db, 'spaceInvites', sid + '_' + uid), { sid, uid, username: String(username).toLowerCase(), role, spaceName: String(spaceName).slice(0, 60), by: me.uid, byName: me.username, at: now });
+    b.set(doc(collection(db, 'spaces', sid, 'activity')), { what: 'invited', name: String(username).toLowerCase(), by: me.uid, byName: me.username, at: now });
+    await b.commit(); return uid;
+  }),
+  invitesListen(uid, cb, onError) { init(); return onSnapshot(query(collection(db, 'spaceInvites'), where('uid', '==', uid)), (s) => cb(s.docs.map((d) => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' })))), (e) => { if (onError) onError(friendly(e)); }); },
+  inviteAccept: wrap(async (me, inv) => {
+    init(); const sref = doc(db, 'spaces', inv.sid), iref = doc(db, 'spaceInvites', inv.sid + '_' + me.uid);
+    await runTransaction(db, async (tx) => {
+      const iv = await tx.get(iref); if (!iv.exists()) throw fail('gone', 'This invitation is no longer there.');
+      const sp = await tx.get(sref); if (!sp.exists()) throw fail('gone', 'This space no longer exists.');
+      const d = sp.data(); const role = iv.data().role;
+      tx.update(sref, { ['members.' + me.uid]: role, memberIds: d.memberIds.concat([me.uid]), ['names.' + me.uid]: me.username, updated: serverTimestamp() });
+      tx.delete(iref);
+    });
+    await setDoc(doc(collection(db, 'spaces', inv.sid, 'activity')), { what: 'joined', name: me.username, by: me.uid, byName: me.username, at: serverTimestamp() });
+  }),
+  inviteDecline: wrap(async (me, inv) => { init(); await deleteDoc(doc(db, 'spaceInvites', inv.sid + '_' + me.uid)); }),
+  spaceInvitesOf: wrap(async (sid) => { init(); const s = await getDocs(query(collection(db, 'spaceInvites'), where('sid', '==', sid))); return s.docs.map((d) => Object.assign({ id: d.id }, d.data())); }),
+  spaceSetRole: wrap(async (me, sid, uid, role) => { init(); await updateDoc(doc(db, 'spaces', sid), { ['members.' + uid]: role, updated: serverTimestamp() }); }),
+  spaceRemove: wrap(async (me, sid, uid) => {
+    init(); const sref = doc(db, 'spaces', sid);
+    await runTransaction(db, async (tx) => { const sp = await tx.get(sref); if (!sp.exists()) return; const d = sp.data(); const m = Object.assign({}, d.members); delete m[uid]; const n = Object.assign({}, d.names || {}); delete n[uid];
+      tx.update(sref, { members: m, memberIds: d.memberIds.filter((x) => x !== uid), names: n, updated: serverTimestamp() }); });
+  }),
+  spaceRename: wrap(async (sid, name) => { init(); await updateDoc(doc(db, 'spaces', sid), { name: String(name).slice(0, 60), updated: serverTimestamp() }); }),
+  spaceDelete: wrap(async (sid) => {
+    init(); for (const sub of ['files', 'comments', 'activity']) { const s = await getDocs(collection(db, 'spaces', sid, sub)); for (const d of s.docs) { if (sub === 'files') { const r = await getDocs(collection(db, 'spaces', sid, 'files', d.id, 'revs')); for (const x of r.docs) await deleteDoc(x.ref); } await deleteDoc(d.ref); } }
+    await deleteDoc(doc(db, 'spaces', sid));
+  }),
+  filesListen(sid, cb, onError) { init(); return onSnapshot(collection(db, 'spaces', sid, 'files'), (s) => cb(s.docs.map((d) => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' })))), (e) => { if (onError) onError(friendly(e)); }); },
+  fileCreate: wrap(async (me, sid, name, kind, content) => {
+    init(); const ref = doc(collection(db, 'spaces', sid, 'files')); const now = serverTimestamp(); const b = writeBatch(db);
+    b.set(ref, { name: String(name).slice(0, 100), kind, content: String(content || ''), rev: 1, updatedBy: me.uid, updatedName: me.username, updatedAt: now, lockedBy: '', lockUntil: 0 });
+    b.set(doc(db, 'spaces', sid, 'files', ref.id, 'revs', '1'), { content: String(content || ''), by: me.uid, byName: me.username, at: now });
+    b.set(doc(collection(db, 'spaces', sid, 'activity')), { what: 'added', name: String(name).slice(0, 100), by: me.uid, byName: me.username, at: now });
+    await b.commit(); return ref.id;
+  }),
+  /* saves on top of baseRev; if someone saved in between, nothing is written and { conflict, theirs } comes back */
+  fileSave: wrap(async (me, sid, fid, content, baseRev) => {
+    init(); const ref = doc(db, 'spaces', sid, 'files', fid);
+    return runTransaction(db, async (tx) => {
+      const cur = await tx.get(ref); if (!cur.exists()) throw fail('gone', 'This file is no longer in the space.');
+      const d = cur.data(); if (d.rev !== baseRev) return { conflict: true, rev: d.rev, theirs: d.content, by: d.updatedName || '' };
+      if (d.lockedBy && d.lockedBy !== me.uid && d.lockUntil > Date.now()) return { locked: true, by: d.lockedName || '' };
+      const rev = d.rev + 1, now = serverTimestamp();
+      tx.update(ref, { content: String(content), rev, updatedBy: me.uid, updatedName: me.username, updatedAt: now });
+      tx.set(doc(db, 'spaces', sid, 'files', fid, 'revs', String(rev)), { content: String(content), by: me.uid, byName: me.username, at: now });
+      return { ok: true, rev };
+    });
+  }),
+  fileRevs: wrap(async (sid, fid) => { init(); const s = await getDocs(query(collection(db, 'spaces', sid, 'files', fid, 'revs'), orderBy('at', 'desc'), limit(30))); return s.docs.map((d) => Object.assign({ rev: +d.id }, d.data({ serverTimestamps: 'estimate' }))); }),
+  fileLock: wrap(async (me, sid, fid, on) => { init(); await updateDoc(doc(db, 'spaces', sid, 'files', fid), on ? { lockedBy: me.uid, lockedName: me.username, lockUntil: Date.now() + 10 * 60000 } : { lockedBy: '', lockedName: '', lockUntil: 0 }); }),
+  fileDelete: wrap(async (me, sid, fid, name) => {
+    init(); const r = await getDocs(collection(db, 'spaces', sid, 'files', fid, 'revs')); for (const x of r.docs) await deleteDoc(x.ref);
+    await deleteDoc(doc(db, 'spaces', sid, 'files', fid));
+    await setDoc(doc(collection(db, 'spaces', sid, 'activity')), { what: 'deleted', name: String(name || '').slice(0, 100), by: me.uid, byName: me.username, at: serverTimestamp() });
+  }),
+  commentsListen(sid, cb, onError) { init(); return onSnapshot(query(collection(db, 'spaces', sid, 'comments'), orderBy('at', 'desc'), limit(200)), (s) => cb(s.docs.map((d) => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' })))), (e) => { if (onError) onError(friendly(e)); }); },
+  commentAdd: wrap(async (me, sid, fid, text) => { init(); await setDoc(doc(collection(db, 'spaces', sid, 'comments')), { fid: fid || '', text: String(text).slice(0, 2000), by: me.uid, byName: me.username, at: serverTimestamp() }); }),
+  commentDelete: wrap(async (sid, cid) => { init(); await deleteDoc(doc(db, 'spaces', sid, 'comments', cid)); }),
+  activityListen(sid, cb, onError) { init(); return onSnapshot(query(collection(db, 'spaces', sid, 'activity'), orderBy('at', 'desc'), limit(50)), (s) => cb(s.docs.map((d) => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' })))), (e) => { if (onError) onError(friendly(e)); }); },
 };
 export default api;

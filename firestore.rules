@@ -168,6 +168,124 @@ service cloud.firestore {
       allow delete: if isSys();
     }
 
+    // ================= Shared Spaces =================
+    // spaces/{sid}: { name, owner, members: { uid: role }, memberIds, names, created, updated }
+    // Roles: owner > admin > editor > commenter > viewer. Every rule below checks the role stored in the space itself, so
+    // nothing the app sends (an id, a role, a name) can give more than the space allows.
+    function spacePath(sid) { return /databases/$(database)/documents/spaces/$(sid); }
+    function roleIn(sid) { return signedIn() && exists(spacePath(sid)) ? get(spacePath(sid)).data.members.get(request.auth.uid, '') : ''; }
+    function isMember(sid) { return roleIn(sid) != ''; }
+    function canEdit(sid) { return roleIn(sid) in ['owner', 'admin', 'editor']; }
+    function canComment(sid) { return roleIn(sid) in ['owner', 'admin', 'editor', 'commenter']; }
+    function isSpaceAdmin(sid) { return roleIn(sid) in ['owner', 'admin']; }
+    function ROLES() { return ['owner', 'admin', 'editor', 'commenter', 'viewer']; }
+    // members and memberIds always say the same thing
+    function consistent(d) { return d.memberIds.toSet() == d.members.keys().toSet(); }
+    function onlyChanges(keys) { return request.resource.data.diff(resource.data).affectedKeys().hasOnly(keys); }
+    function memberDiff() { return request.resource.data.members.diff(resource.data.members).affectedKeys(); }
+    function tops(m) { return m.values().size() - m.values().removeAll(['editor', 'commenter', 'viewer']).size(); }
+    function owners(m) { return m.values().size() - m.values().removeAll(['owner']).size(); }
+
+    match /spaces/{sid} {
+      allow list: if signedIn() && request.auth.uid in resource.data.memberIds;
+      // (someone with an invitation may read the space itself, its name and members, to join it; not its files)
+      allow get: if signedIn() && (request.auth.uid in resource.data.memberIds || exists(/databases/$(database)/documents/spaceInvites/$(sid + '_' + request.auth.uid)));
+      allow create: if signedIn() && !banned()
+        && request.resource.data.keys().hasOnly(['name', 'owner', 'members', 'memberIds', 'names', 'created', 'updated'])
+        && request.resource.data.owner == request.auth.uid
+        && request.resource.data.members.keys().hasOnly([request.auth.uid]) && request.resource.data.members[request.auth.uid] == 'owner'
+        && request.resource.data.memberIds == [request.auth.uid]
+        && request.resource.data.names.keys().hasOnly([request.auth.uid]) && request.resource.data.names[request.auth.uid] == myName()
+        && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60
+        && request.resource.data.created == request.time && request.resource.data.updated == request.time;
+      allow update: if signedIn() && !banned() && consistent(request.resource.data) && request.resource.data.updated == request.time && (
+        // 1. the owner or an admin: renames, or changes one member at a time; the owner stays the only owner; an admin can't
+        //    make or change admins (nor the owner)
+        (isSpaceAdmin(sid) && onlyChanges(['name', 'members', 'memberIds', 'names', 'updated'])
+          && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 60
+          && memberDiff().size() <= 1
+          && request.resource.data.members.values().hasOnly(ROLES())
+          && request.resource.data.members.get(resource.data.owner, '') == 'owner' && owners(request.resource.data.members) == 1
+          && (roleIn(sid) == 'owner' || tops(request.resource.data.members) == tops(resource.data.members)))
+        // 2. a member (not the owner) leaves: only they disappear
+        || (isMember(sid) && request.auth.uid != resource.data.owner && onlyChanges(['members', 'memberIds', 'names', 'updated'])
+          && memberDiff().hasOnly([request.auth.uid]) && !(request.auth.uid in request.resource.data.members))
+        // 3. someone joins with an invitation made for them: only they appear, with exactly the role it gives
+        || (!isMember(sid) && exists(/databases/$(database)/documents/spaceInvites/$(sid + '_' + request.auth.uid))
+          && onlyChanges(['members', 'memberIds', 'names', 'updated']) && memberDiff().hasOnly([request.auth.uid])
+          && request.resource.data.members[request.auth.uid] == get(/databases/$(database)/documents/spaceInvites/$(sid + '_' + request.auth.uid)).data.role
+          && request.resource.data.names[request.auth.uid] == myName())
+      );
+      allow delete: if roleIn(sid) == 'owner';
+
+      // files: { name, kind, content, rev, updatedBy, updatedName, updatedAt, lockedBy, lockedName, lockUntil }
+      match /files/{fid} {
+        allow read: if isMember(sid);
+        allow create: if canEdit(sid) && !banned()
+          && request.resource.data.keys().hasOnly(['name', 'kind', 'content', 'rev', 'updatedBy', 'updatedName', 'updatedAt', 'lockedBy', 'lockUntil'])
+          && request.resource.data.name is string && request.resource.data.name.size() > 0 && request.resource.data.name.size() <= 100
+          && request.resource.data.kind in ['text', 'note', 'doc', 'sheet', 'slides']
+          && request.resource.data.content is string && request.resource.data.content.size() <= 200000
+          && request.resource.data.rev == 1 && request.resource.data.updatedBy == request.auth.uid && request.resource.data.updatedAt == request.time;
+        allow update: if canEdit(sid) && !banned() && (
+          // a save: exactly the next revision, by you, and not while someone else holds the lock
+          (onlyChanges(['content', 'rev', 'updatedBy', 'updatedName', 'updatedAt'])
+            && request.resource.data.rev == resource.data.rev + 1 && request.resource.data.updatedBy == request.auth.uid && request.resource.data.updatedAt == request.time
+            && request.resource.data.content is string && request.resource.data.content.size() <= 200000
+            && (resource.data.get('lockedBy', '') in ['', request.auth.uid] || resource.data.get('lockUntil', 0) < request.time.toMillis()))
+          // taking or giving back the lock (only when it is free, yours, or ran out)
+          || (onlyChanges(['lockedBy', 'lockedName', 'lockUntil'])
+            && request.resource.data.lockedBy in ['', request.auth.uid]
+            && (resource.data.get('lockedBy', '') in ['', request.auth.uid] || resource.data.get('lockUntil', 0) < request.time.toMillis()))
+        );
+        allow delete: if canEdit(sid);
+        // each saved revision, written together with the save that made it, never changed afterwards
+        match /revs/{rev} {
+          allow read: if isMember(sid);
+          allow create: if canEdit(sid) && request.resource.data.by == request.auth.uid && request.resource.data.at == request.time
+            && request.resource.data.keys().hasOnly(['content', 'by', 'byName', 'at'])
+            && getAfter(/databases/$(database)/documents/spaces/$(sid)/files/$(fid)).data.rev == int(rev);
+          allow update: if false;
+          allow delete: if canEdit(sid);
+        }
+      }
+      // comments: written as yourself; removed by their author, or by the owner or an admin
+      match /comments/{cid} {
+        allow read: if isMember(sid);
+        allow create: if canComment(sid) && !banned() && request.resource.data.keys().hasOnly(['fid', 'text', 'by', 'byName', 'at'])
+          && request.resource.data.by == request.auth.uid && request.resource.data.byName == myName() && request.resource.data.at == request.time
+          && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000;
+        allow update: if false;
+        allow delete: if isMember(sid) && (resource.data.by == request.auth.uid || isSpaceAdmin(sid));
+      }
+      // activity: what happened, written as yourself, never changed
+      match /activity/{aid} {
+        allow read: if isMember(sid);
+        // (a member, or someone who becomes one in the same write: creating the space, joining it)
+        allow create: if (isMember(sid) || getAfter(spacePath(sid)).data.members.get(request.auth.uid, '') != '')
+          && request.resource.data.keys().hasOnly(['what', 'name', 'by', 'byName', 'at'])
+          && request.resource.data.by == request.auth.uid && request.resource.data.byName == myName() && request.resource.data.at == request.time;
+        allow update: if false;
+        allow delete: if roleIn(sid) == 'owner';
+      }
+    }
+
+    // spaceInvites/{sid_uid}: { sid, uid, username, role, spaceName, by, byName, at }. Made by the space's owner or an admin
+    // (an admin can't invite admins), for someone not already in it; seen by the person invited and by who invited them.
+    match /spaceInvites/{iid} {
+      allow get, list: if signedIn() && (resource.data.uid == request.auth.uid || resource.data.by == request.auth.uid);
+      allow create: if signedIn() && !banned()
+        && request.resource.data.keys().hasOnly(['sid', 'uid', 'username', 'role', 'spaceName', 'by', 'byName', 'at'])
+        && iid == request.resource.data.sid + '_' + request.resource.data.uid
+        && isSpaceAdmin(request.resource.data.sid)
+        && request.resource.data.role in ['admin', 'editor', 'commenter', 'viewer']
+        && (request.resource.data.role != 'admin' || roleIn(request.resource.data.sid) == 'owner')
+        && !(request.resource.data.uid in get(spacePath(request.resource.data.sid)).data.members)
+        && request.resource.data.by == request.auth.uid && request.resource.data.byName == myName() && request.resource.data.at == request.time;
+      allow update: if false;
+      allow delete: if signedIn() && (resource.data.uid == request.auth.uid || resource.data.by == request.auth.uid || isSpaceAdmin(resource.data.sid));
+    }
+
     // everything else stays closed
     match /{document=**} { allow read, write: if false; }
   }

@@ -4828,6 +4828,29 @@ html:not(.reduce-motion) .dlg { animation: dlgIn var(--spring-dur-short) var(--s
 .fp-row small { color: var(--text3); } .fp-row .btn { height: 26px; padding: 0 10px; font-size: 12px; }
 .fp-diff, .fp-preview { margin: 0; padding: 10px; border-radius: 10px; background: rgba(0,0,0,.2); font: 12px/1.5 ui-monospace, Menlo, monospace; white-space: pre-wrap; max-height: 420px; overflow: auto; }
 .fp-preview:empty { display: none; } .fp-diff .fd-add { background: rgba(48,209,88,.18); } .fp-diff .fd-del { background: rgba(255,69,58,.18); text-decoration: line-through; opacity: .85; } .fp-diff .fd-same { opacity: .6; }
+/* Shared Spaces */
+.spc { display: flex; height: 100%; min-height: 0; } .sp-side { width: 220px; flex: none; padding: 12px 8px; overflow-y: auto; background: var(--sidebar); border-right: 1px solid var(--border); }
+.sp-shead { display: flex; align-items: center; justify-content: space-between; padding: 0 6px 8px; } .sp-shead .btn { height: 26px; min-width: 30px; padding: 0 8px; }
+.sp-si { display: flex; align-items: center; gap: 8px; width: 100%; padding: 7px 8px; border-radius: 10px; color: inherit; text-align: left; font-size: 13.5px; } .sp-si small { margin-left: auto; color: var(--text3); } .sp-si.on { background: var(--accent); color: #fff; } .sp-si.on small { color: rgba(255,255,255,.8); }
+.sp-dot { width: 26px; height: 26px; flex: none; border-radius: 8px; display: grid; place-items: center; font-weight: 700; font-size: 13px; color: #fff; background: linear-gradient(140deg, #64d2ff, #5e5ce6); }
+.sp-inv { padding: 10px; margin: 0 2px 8px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 16%, transparent); } .sp-inv b { display: block; font-size: 13.5px; } .sp-inv small { color: var(--text2); font-size: 12px; } .sp-invb { display: flex; gap: 6px; margin-top: 8px; } .sp-invb .btn { height: 26px; font-size: 12px; padding: 0 10px; }
+.sp-main { flex: 1; min-width: 0; display: flex; flex-direction: column; overflow-y: auto; padding: 16px 20px; }
+.sp-head { display: flex; align-items: center; gap: 10px; } .sp-head h2 { margin: 0; font-size: 20px; } .sp-role { padding: 2px 9px; border-radius: 999px; font-size: 11.5px; font-weight: 600; background: rgba(127,127,127,.2); text-transform: capitalize; } .sp-role.r-owner, .sp-role.r-admin { background: color-mix(in srgb, var(--accent) 30%, transparent); }
+.sp-avs { display: flex; margin-left: auto; } .sp-av { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; font-size: 12px; font-weight: 700; color: #fff; background: linear-gradient(140deg, #ff9f0a, #ff375f); box-shadow: 0 0 0 2px var(--win-solid, #1c1c1e); margin-left: -6px; flex: none; }
+.sp-tabs { display: flex; gap: 4px; margin: 14px 0 10px; } .sp-tab { padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600; color: inherit; opacity: .7; } .sp-tab.on { opacity: 1; background: rgba(127,127,127,.2); }
+.sp-bar { display: flex; gap: 6px; align-items: center; margin-bottom: 10px; }
+.sp-split { display: flex; gap: 14px; min-height: 0; flex: 1; } .sp-files { width: 46%; min-width: 220px; display: flex; flex-direction: column; gap: 4px; }
+.sp-file { display: flex; gap: 10px; align-items: center; padding: 8px; border-radius: 12px; cursor: default; } .sp-file:hover { background: rgba(127,127,127,.1); } .sp-file.on { background: color-mix(in srgb, var(--accent) 20%, transparent); }
+.sp-fic, .sp-fic .icon-tile { width: 30px; height: 30px; border-radius: 8px; flex: none; } .sp-ft { min-width: 0; display: flex; flex-direction: column; } .sp-ft b { font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .sp-ft small { font-size: 11.5px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.sp-fpanel { flex: 1; min-width: 0; padding: 12px 14px; border-radius: 14px; background: rgba(127,127,127,.08); } .sp-fpanel h3 { margin: 0; font-size: 16px; } .sp-fpanel h4 { margin: 14px 0 6px; font-size: 12px; color: var(--text3); text-transform: uppercase; letter-spacing: .04em; }
+.sp-acts { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; align-items: center; } .sp-acts .field { height: 30px; } .sp-danger { margin-top: 22px; }
+.sp-comments { display: flex; flex-direction: column; gap: 6px; margin-bottom: 8px; } .sp-c { position: relative; padding: 7px 28px 7px 10px; border-radius: 10px; background: rgba(127,127,127,.12); font-size: 13px; } .sp-c b { margin-right: 6px; } .sp-c small { display: block; color: var(--text3); font-size: 11px; }
+.sp-cx { position: absolute; top: 4px; right: 6px; color: inherit; opacity: .5; font-size: 15px; } .sp-cx:hover { opacity: 1; }
+.sp-act { display: flex; flex-direction: column; gap: 4px; } .sp-arow { padding: 8px 10px; border-radius: 10px; background: rgba(127,127,127,.08); font-size: 13px; } .sp-arow small { float: right; color: var(--text3); }
+.sp-members { display: flex; flex-direction: column; gap: 6px; } .sp-mrow { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 12px; background: rgba(127,127,127,.08); } .sp-mrow .sp-av { margin-left: 0; } .sp-mrow b { flex: 1; font-size: 13.5px; } .sp-mrow select { width: 130px; height: 30px; }
+.sp-invite h4 { margin: 18px 0 4px; font-size: 12px; color: var(--text3); text-transform: uppercase; }
+.sp-muted { color: var(--text3); font-size: 13px; margin: 6px; } .sp-empty { margin: auto; text-align: center; max-width: 420px; } .sp-empty .sp-ic, .sp-empty .sp-ic .icon-tile { width: 72px; height: 72px; border-radius: 18px; margin: 0 auto 10px; } .sp-empty p { color: var(--text2); } .sp-fine { font-size: 12px; color: var(--text3) !important; }
+.mobile .sp-side { width: 100%; } .mobile .spc { flex-direction: column; } .mobile .sp-side { max-height: 40%; border-right: 0; border-bottom: 1px solid var(--border); } .mobile .sp-split { flex-direction: column; } .mobile .sp-files { width: auto; }
 
 </style>
   <style>
@@ -10267,7 +10290,8 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
     'Your account': 'Ton compte',
     'That isn’t available.': 'Ce n’est pas disponible.', 'That didn’t work.': 'Ça n’a pas marché.', 'Call': 'Appeler', 'Meet': 'Voir', 'That picture can’t be read.': 'Cette image ne peut pas être lue.', 'New wallpaper.': 'Nouveau fond d’écran.', 'Saved to Capture': 'Gardé dans Capture', 'Quiet hours': 'Heures calmes', 'No banners or sounds, except urgent ones.': 'Pas de bannières ni de sons, sauf les urgents.', 'To': 'À', 'Keep history': 'Garder l’historique', '1 day': '1 jour', '7 days': '7 jours', '30 days': '30 jours', 'Each app': 'Chaque app', 'Banners': 'Bannières', 'Sounds': 'Sons', 'never': 'jamais', 'didn’t finish': 'pas terminé', 'Retry': 'Réessayer', 'no progress for 10 minutes': 'aucun progrès depuis 10 minutes', 'Sync stopped': 'La synchro s’est arrêtée', 'The sync key is wrong.': 'La clé de synchro est mauvaise.', 'The server is full.': 'Le serveur est plein.', 'The server is busy.': 'Le serveur est occupé.', 'The server had a problem.': 'Le serveur a eu un problème.', 'items couldn’t be synced': 'éléments n’ont pas pu être synchronisés', 'No backup in over a week': 'Aucune sauvegarde depuis plus d’une semaine', 'No backup yet': 'Pas encore de sauvegarde', 'Back up now': 'Sauvegarder maintenant', 'Storage almost full': 'Stockage presque plein', 'Backup': 'Sauvegarde', 'Saving a snapshot…': 'Enregistrement d’un instantané…', 'Manual': 'Manuel', 'Setting': 'Réglage', 'Command': 'Commande', 'Search commands, settings and apps': 'Chercher des commandes, réglages et apps', 'Command Center': 'Centre de commande', 'Everything is fine.': 'Tout va bien.', 'No progress': 'Aucun progrès', 'Nothing running.': 'Rien en cours.', 'Waiting for internet': 'En attente d’Internet', 'Finished': 'Terminé', 'Didn’t finish': 'Pas terminé', 'Cancelled': 'Annulé', 'Activities': 'Activités', 'That action doesn’t exist.': 'Cette action n’existe pas.', 'This action can’t take that.': 'Cette action ne peut pas prendre ça.', 'Nothing can take this': 'Rien ne peut prendre ça', 'Search notifications': 'Chercher dans les notifications', 'Dismiss': 'Fermer', 'Clear all': 'Tout effacer',
     'Capture this page': 'Capturer cette page', 'Captured': 'Capturé', 'Share…': 'Partager…', 'New': 'Nouveau', 'Capture': 'Capture', 'Nothing to sort. Press Alt+C anywhere to capture something.': 'Rien à trier. Appuie sur Alt+C n’importe où pour capturer quelque chose.', 'Nothing here.': 'Rien ici.', 'Pick an item to see it and send it on.': 'Choisis un élément pour le voir et l’envoyer.', 'recognized as': 'reconnu comme', 'sent': 'envoyé', '#tags': '#étiquettes', 'Send to': 'Envoyer à', 'Back to Inbox': 'Remettre dans la boîte', 'Mark as Done': 'Marquer comme fait', 'a link': 'un lien', 'an email address': 'une adresse courriel', 'a phone number': 'un numéro de téléphone', 'a date': 'une date', 'Picture': 'Image', 'That picture is too big to capture': 'Cette image est trop grosse pour être capturée', 'Save it as a file, then capture the file.': 'Enregistre-la comme fichier, puis capture le fichier.', 'That item is gone.': 'Cet élément n’existe plus.', 'Type, paste or drop anything': 'Tape, colle ou dépose n’importe quoi', 'Enter saves · Shift+Enter new line · Esc': 'Entrée enregistre · Maj+Entrée nouvelle ligne · Échap', 'in your inbox': 'dans ta boîte', 'Inbox': 'Boîte de réception', 'Picture copied': 'Image copiée', 'This browser can’t copy pictures': 'Ce navigateur ne peut pas copier d’images', 'Use Capture to keep it instead.': 'Utilise Capture pour la garder.', 'Nothing to copy': 'Rien à copier', 'Copy as': 'Copier en', 'Collection': 'Collection', 'Add to a collection…': 'Ajouter à une collection…', 'UPPERCASE': 'MAJUSCULES', 'lowercase': 'minuscules', 'Clean spaces': 'Nettoyer les espaces', 'Remove duplicate lines': 'Enlever les lignes en double', 'Only the links': 'Seulement les liens', 'Only the domains': 'Seulement les domaines', 'Encode for a URL': 'Encoder pour une URL', 'Decode from a URL': 'Décoder d’une URL', 'Contact': 'Contact', 'Save anything now (Alt+C), sort it later.': 'Garde n’importe quoi maintenant (Alt+C), trie plus tard.',
-    'Tabs': 'Onglets', 'Close Tab': 'Fermer l’onglet', 'Versions': 'Versions', 'Look Inside…': 'Regarder dedans…', 'Compare': 'Comparer', 'Versions…': 'Versions…', 'captured': 'capturés', 'Split View': 'Vue partagée', 'Find Duplicates…': 'Trouver les doublons…', 'It isn’t there anymore.': 'Ce n’est plus là.', 'The folder it goes to is gone.': 'Le dossier de destination n’existe plus.', 'didn’t work': 'n’ont pas marché', 'Looking…': 'Recherche…', 'Duplicate files': 'Fichiers en double', 'Looking for duplicates': 'Recherche des doublons', 'No duplicates. Every file is one of a kind.': 'Aucun doublon. Chaque fichier est unique.', 'groups': 'groupes', 'could be freed': 'pourraient être libérés', 'Nothing is deleted unless you choose it.': 'Rien n’est supprimé sans ton choix.', 'Only text files can be compared.': 'Seuls les fichiers texte peuvent être comparés.', 'These files are too big to compare here.': 'Ces fichiers sont trop gros pour être comparés ici.', 'They are the same.': 'Ils sont pareils.', 'This archive can’t be read.': 'Cette archive ne peut pas être lue.', 'nothing is extracted until you choose': 'rien n’est extrait avant ton choix', 'Extract': 'Extraire', 'No earlier versions yet. A version is kept when you save over this file (at most one every 2 minutes, the last 10).': 'Pas encore de versions. Une version est gardée quand tu enregistres par-dessus ce fichier (au plus une toutes les 2 minutes, les 10 dernières).', 'Look': 'Voir', 'Versions of': 'Versions de', 'Copying': 'Copie de', 'Moving': 'Déplacement de', 'Moving to Trash': 'Mise à la corbeille de'
+    'Tabs': 'Onglets', 'Close Tab': 'Fermer l’onglet', 'Versions': 'Versions', 'Look Inside…': 'Regarder dedans…', 'Compare': 'Comparer', 'Versions…': 'Versions…', 'captured': 'capturés', 'Split View': 'Vue partagée', 'Find Duplicates…': 'Trouver les doublons…', 'It isn’t there anymore.': 'Ce n’est plus là.', 'The folder it goes to is gone.': 'Le dossier de destination n’existe plus.', 'didn’t work': 'n’ont pas marché', 'Looking…': 'Recherche…', 'Duplicate files': 'Fichiers en double', 'Looking for duplicates': 'Recherche des doublons', 'No duplicates. Every file is one of a kind.': 'Aucun doublon. Chaque fichier est unique.', 'groups': 'groupes', 'could be freed': 'pourraient être libérés', 'Nothing is deleted unless you choose it.': 'Rien n’est supprimé sans ton choix.', 'Only text files can be compared.': 'Seuls les fichiers texte peuvent être comparés.', 'These files are too big to compare here.': 'Ces fichiers sont trop gros pour être comparés ici.', 'They are the same.': 'Ils sont pareils.', 'This archive can’t be read.': 'Cette archive ne peut pas être lue.', 'nothing is extracted until you choose': 'rien n’est extrait avant ton choix', 'Extract': 'Extraire', 'No earlier versions yet. A version is kept when you save over this file (at most one every 2 minutes, the last 10).': 'Pas encore de versions. Une version est gardée quand tu enregistres par-dessus ce fichier (au plus une toutes les 2 minutes, les 10 dernières).', 'Look': 'Voir', 'Versions of': 'Versions de', 'Copying': 'Copie de', 'Moving': 'Déplacement de', 'Moving to Trash': 'Mise à la corbeille de',
+    'Spaces': 'Espaces', 'New Space': 'Nouvel espace', 'Group Project': 'Projet de groupe', 'Sign in to your PatOS account to use Shared Spaces.': 'Connecte-toi à ton compte PatOS pour utiliser les espaces partagés.', 'No spaces yet. Make one and invite your friends by username.': 'Pas encore d’espace. Crées-en un et invite tes amis par nom d’utilisateur.', 'changes are waiting for the internet': 'changements attendent Internet', 'Shared Spaces': 'Espaces partagés', 'Work on files with other people: each person has a role, and every change is kept.': 'Travaille sur des fichiers avec d’autres : chaque personne a un rôle, et chaque changement est gardé.', 'Spaces are stored in PatOS’s cloud so their members can read them. Unlike your own files, they aren’t end-to-end encrypted.': 'Les espaces sont gardés dans le nuage de PatOS pour que leurs membres puissent les lire. Contrairement à tes propres fichiers, ils ne sont pas chiffrés de bout en bout.', 'Notes.txt': 'Notes.txt', 'Add from Piles': 'Ajouter depuis Piles', 'In Piles, right-click a text file or a PatOS document, then Share… › Add to a Space.': 'Dans Piles, fais un clic droit sur un fichier texte ou un document PatOS, puis Partager… › Ajouter à un espace.', 'rev': 'rév.', 'being edited by': 'modifié par', 'No files yet.': 'Pas encore de fichiers.', 'You can read and comment.': 'Tu peux lire et commenter.', 'You can read.': 'Tu peux lire.', 'Pick a file.': 'Choisis un fichier.', 'Add a comment': 'Ajouter un commentaire', 'Open and edit': 'Ouvrir et modifier', 'Stop editing': 'Arrêter de modifier', 'I’m editing (lock)': 'Je modifie (verrou)', 'It is removed for everyone in the space, with its history.': 'Il est supprimé pour tout le monde dans l’espace, avec son historique.', 'No comments yet.': 'Pas encore de commentaires.', 'Role': 'Rôle', 'you': 'toi', 'Invite someone': 'Inviter quelqu’un', 'Invitation sent': 'Invitation envoyée', 'Invite': 'Inviter', 'The space, its files and their history are deleted for everyone.': 'L’espace, ses fichiers et leur historique sont supprimés pour tout le monde.', 'Delete Space': 'Supprimer l’espace', 'You won’t see it anymore unless someone invites you again.': 'Tu ne le verras plus à moins qu’on t’invite encore.', 'Leave Space': 'Quitter l’espace', 'Invitation to a space': 'Invitation à un espace', 'Sign in to use Shared Spaces.': 'Connecte-toi pour utiliser les espaces partagés.', 'your version': 'ta version', 'Someone saved first': 'Quelqu’un a enregistré avant toi', 'Your version was kept as a copy in the space.': 'Ta version a été gardée comme copie dans l’espace.', 'This file is being edited': 'Ce fichier est en train d’être modifié', 'Try again in a few minutes.': 'Réessaie dans quelques minutes.', 'Sending changes to Shared Spaces': 'Envoi des changements aux espaces partagés', 'changes are waiting': 'changements attendent', 'waiting': 'en attente', 'Only text files and PatOS documents under 200 KB can be shared for now.': 'Pour l’instant, seuls les fichiers texte et documents PatOS de moins de 200 Ko peuvent être partagés.', 'Add to a Space': 'Ajouter à un espace', 'owner': 'propriétaire', 'admin': 'administrateur', 'editor': 'éditeur', 'commenter': 'commentateur', 'viewer': 'lecteur', 'space': 'espace', 'spaces': 'espaces', 'invitation': 'invitation', 'invitations': 'invitations', 'created the space': 'a créé l’espace', 'invited': 'a invité', 'joined': 's’est joint', 'added': 'a ajouté', 'deleted': 'a supprimé', 'Activity': 'Activité', 'Members': 'Membres', 'Workspaces you share with other PatOS accounts.': 'Des espaces de travail partagés avec d’autres comptes PatOS.'
   };
   const PATTERNS = [
     [/^About (.+)$/, (m) => 'À propos de ' + t(m[1])], [/^Hide (.+)$/, (m) => 'Masquer ' + t(m[1])], [/^Quit (.+)$/, (m) => 'Quitter ' + t(m[1])], [/^Log Out (.+)…$/, (m) => 'Fermer la session de ' + m[1] + '…'],
@@ -14363,6 +14387,119 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
   }
 
   PatOS.finderPro = { duplicates, compare, sheet, duplicatesSheet, compareSheet, lookInside, versionsSheet };
+})();
+
+</script>
+  <script type="patos/js">
+/* Shared Spaces (3.3): workspaces you share with other PatOS accounts. The server (firestore.rules) decides what each person
+   may do from the role stored in the space (owner, admin, editor, commenter, viewer); the app only shows it.
+   - A file of a space is opened as a copy on this device, in /Spaces/<space>/, with the app that fits it (Docs, Sheets,
+     Slides, TextEdit). Saving the copy sends it back with the revision it was based on. If someone saved in between, nothing
+     is overwritten: your version is kept as "name (your version)" in the space, and you are told.
+   - Offline, saves wait in a list kept on this device and go out when the internet is back (a Live Activity while they do).
+   - Spaces are stored in PatOS's cloud so that their members can read them: unlike your own files (encrypted with your
+     password), they are not end-to-end encrypted. Settings and the Spaces app say so. */
+(function () {
+  'use strict';
+  const T = (s) => PatOS.t(s);
+  let F = null, me = null, spaces = [], invites = [], offS = null, offI = null, seenInv = new Set(PatOS.store.get('spacesSeenInv', []));
+  let pending = PatOS.store.get('spacesPending', []) || [];
+  let links = PatOS.store.get('spacesLinks', {}) || {}; // local copy path -> { sid, fid, rev, name }
+  const saveP = () => PatOS.store.set('spacesPending', pending), saveL = () => PatOS.store.set('spacesLinks', links);
+  const emit = () => PatOS.emit('spaces');
+  const ROLE_CAN = { owner: 5, admin: 4, editor: 3, commenter: 2, viewer: 1 };
+  const can = (sp, what) => { const r = sp && sp.members && me ? sp.members[me.uid] : ''; const lvl = ROLE_CAN[r] || 0; return what === 'edit' ? lvl >= 3 : what === 'comment' ? lvl >= 2 : what === 'admin' ? lvl >= 4 : what === 'owner' ? lvl === 5 : lvl >= 1; };
+
+  async function start() {
+    if (!PatOS.account || !PatOS.account.signedIn() || offS) return;
+    try { F = await PatOS.account.cloud(); } catch (e) { return; }
+    const i = PatOS.account.info(); me = { uid: i.uid, username: i.username };
+    offS = F.spacesListen(me.uid, (l) => { spaces = l.sort((a, b) => String(a.name).localeCompare(String(b.name))); emit(); }, () => {});
+    offI = F.invitesListen(me.uid, (l) => {
+      invites = l; emit();
+      l.filter((x) => !seenInv.has(x.id)).forEach((x) => { seenInv.add(x.id); PatOS.notify({ title: T('Invitation to a space'), body: x.byName + ' · ' + x.spaceName + ' (' + T(x.role) + ')', icon: 'spaces', priority: 'high', open: { app: 'spaces' },
+        actions: [{ label: T('Accept'), run: () => api.accept(x) }, { label: T('Decline'), run: () => api.decline(x) }] }); });
+      PatOS.store.set('spacesSeenInv', [...seenInv].slice(-100));
+    }, () => {});
+    flush();
+  }
+  function stop() { if (offS) offS(); if (offI) offI(); offS = offI = null; spaces = []; invites = []; me = null; emit(); }
+
+  /* ---------- saving, with the revision it was based on ---------- */
+  async function save(sid, fid, content, baseRev, name) {
+    if (!F || !me) return { queued: false, ok: false, message: T('Sign in to use Shared Spaces.') };
+    if (navigator.onLine === false) { pending = pending.filter((p) => !(p.sid === sid && p.fid === fid)); pending.push({ sid, fid, content, baseRev, name, t: Date.now() }); saveP(); emit(); return { queued: true }; }
+    const r = await F.fileSave(me, sid, fid, content, baseRev);
+    if (r.conflict) {
+      const copy = await F.fileCreate(me, sid, (name || T('File')).replace(/(\.[a-z0-9]+)?$/i, (m) => ' (' + T('your version') + ')' + m), kindOf(name), content);
+      PatOS.notify({ title: T('Someone saved first'), body: (r.by ? r.by + ' · ' : '') + T('Your version was kept as a copy in the space.'), icon: 'spaces', priority: 'high', open: { app: 'spaces', args: { sid } } });
+      return { conflict: true, copy, theirs: r.theirs, rev: r.rev };
+    }
+    if (r.locked) { PatOS.notify({ title: T('This file is being edited'), body: (r.by || '') + ' · ' + T('Try again in a few minutes.'), icon: 'spaces' }); return r; }
+    return r;
+  }
+  async function flush() {
+    if (!F || !me || !pending.length || navigator.onLine === false) return;
+    const job = PatOS.live.start({ app: 'spaces', title: T('Sending changes to Shared Spaces'), progress: 0 });
+    const all = pending.slice(); let i = 0, failed = 0;
+    for (const p of all) {
+      try { const r = await save(p.sid, p.fid, p.content, p.baseRev, p.name); if (r.ok || r.conflict) { pending = pending.filter((x) => x !== p); const l = Object.values(links).find((x) => x.sid === p.sid && x.fid === p.fid); if (l && r.rev) l.rev = r.rev; } else failed++; }
+      catch (e) { failed++; }
+      job.update({ progress: ++i / all.length }); saveP(); saveL();
+    }
+    emit(); job.end(failed ? 'failed' : 'done', failed ? failed + ' ' + T('changes are waiting') : '');
+  }
+  window.addEventListener('online', () => setTimeout(flush, 1500));
+
+  /* ---------- a file of a space, opened as a copy on this device ---------- */
+  const kindOf = (name) => (/\.pdoc$/i.test(name) ? 'doc' : /\.psheet$/i.test(name) ? 'sheet' : /\.pslides$/i.test(name) ? 'slides' : /\.md$/i.test(name) ? 'note' : 'text');
+  const safe = (s) => String(s).replace(/[\/\\:*?"<>|]/g, '-').slice(0, 60) || 'Space';
+  function openFile(sp, f) {
+    const dir = '/Spaces/' + safe(sp.name); ['/Spaces', dir].forEach((d) => { if (!PatOS.fs.exists(d)) PatOS.fs.mkdir(d); });
+    const path = dir + '/' + safe(f.name);
+    const had = links[path]; const localNewer = had && had.fid === f.id && PatOS.fs.exists(path) && pending.some((p) => p.fid === f.id);
+    if (!localNewer) { links[path] = { sid: sp.id, fid: f.id, rev: f.rev, name: f.name, writing: true }; PatOS.fs.write(path, f.content || ''); links[path].writing = false; saveL(); }
+    PatOS.openFile(path); return path;
+  }
+  // a copy that changes on this device is saved back (a moment after the last change)
+  const timers = {};
+  PatOS.on('fs', () => {
+    Object.keys(links).forEach((path) => {
+      const l = links[path]; if (l.writing || !PatOS.fs.exists(path)) return;
+      const c = PatOS.fs.read(path); if (typeof c !== 'string' || c === l.last) return;
+      clearTimeout(timers[path]); timers[path] = setTimeout(async () => {
+        l.last = c; const r = await save(l.sid, l.fid, c, l.rev, l.name).catch((e) => ({ ok: false, message: e.message }));
+        if (r.ok) { l.rev = r.rev; saveL(); } else if (r.conflict) { delete links[path]; saveL(); }
+      }, 1200);
+    });
+  });
+
+  const api = {
+    ready: () => !!(F && me),
+    me: () => me,
+    list: () => spaces.slice(), invites: () => invites.slice(), pending: () => pending.slice(), get: (sid) => spaces.find((s) => s.id === sid) || null,
+    roleOf: (sp) => (sp && me && sp.members ? sp.members[me.uid] || '' : ''), can,
+    summary: () => (!me ? T('Not signed in') : spaces.length + ' ' + T(spaces.length === 1 ? 'space' : 'spaces') + (invites.length ? ' · ' + invites.length + ' ' + T(invites.length === 1 ? 'invitation' : 'invitations') : '') + (pending.length ? ' · ' + pending.length + ' ' + T('waiting') : '')),
+    create: (name) => F.spaceCreate(me, String(name || '').trim() || T('New Space')),
+    invite: (sp, username, role) => F.spaceInvite(me, sp.id, sp.name, String(username || '').trim().replace(/^@/, '').toLowerCase(), role),
+    accept: (inv) => F.inviteAccept(me, inv), decline: (inv) => F.inviteDecline(me, inv),
+    setRole: (sp, uid, role) => F.spaceSetRole(me, sp.id, uid, role),
+    remove: (sp, uid) => F.spaceRemove(me, sp.id, uid), leave: (sp) => F.spaceRemove(me, sp.id, me.uid),
+    rename: (sp, name) => F.spaceRename(sp.id, name), del: (sp) => F.spaceDelete(sp.id),
+    files: (sp, cb) => F.filesListen(sp.id, cb, () => {}), comments: (sp, cb) => F.commentsListen(sp.id, cb, () => {}), activity: (sp, cb) => F.activityListen(sp.id, cb, () => {}),
+    addFile: (sp, name, content) => F.fileCreate(me, sp.id, name, kindOf(name), content),
+    addFromPiles: (sp, path) => { const c = PatOS.fs.read(path); if (typeof c !== 'string' || c.startsWith('data:') || c.length > 200000) throw new Error(T('Only text files and PatOS documents under 200 KB can be shared for now.')); return F.fileCreate(me, sp.id, PatOS.fs.basename(path), kindOf(path), c); },
+    save, flush, openFile, revs: (sp, f) => F.fileRevs(sp.id, f.id),
+    lock: (sp, f, on) => F.fileLock(me, sp.id, f.id, on), delFile: (sp, f) => F.fileDelete(me, sp.id, f.id, f.name),
+    comment: (sp, f, text) => F.commentAdd(me, sp.id, f ? f.id : '', text), delComment: (sp, c) => F.commentDelete(sp.id, c.id),
+    start, stop
+  };
+  PatOS.spaces = api;
+  PatOS.on('chat:account', () => { if (PatOS.account.signedIn()) start(); else stop(); });
+  setTimeout(start, 2500);
+  // "Add to a Space" for files (Universal Actions)
+  if (PatOS.actions) PatOS.actions.register({ id: 'spaces.add', app: 'spaces', title: 'Add to a Space', order: 35, accepts: (o) => !!o.path && /\.(txt|md|pdoc|psheet|pslides|csv|json|html|css|js)$/i.test(o.path) && api.ready() && spaces.some((s) => can(s, 'edit')),
+    run: (o) => { PatOS.launch('spaces', { addPath: o.path }); } }); // (the Spaces app asks which space)
 })();
 
 </script>
@@ -35128,6 +35265,106 @@ PatOS.sendWithPatDrop = async function (paths) {
       win.on('closed', off);
       draw();
     }
+  });
+})();
+
+</script>
+  <script type="patos/js">
+/* Shared Spaces: the app (the service is js/spaces.js; the server's rules decide what each role may do). */
+(function () {
+  'use strict';
+  const { h } = PatOS; const T = (s) => PatOS.t(s);
+  PatOS.iconDefs.spaces = { bg: 'linear-gradient(160deg,#64d2ff,#5e5ce6)', svg: () => '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><circle cx="24" cy="25" r="8" fill="#fff"/><circle cx="41" cy="25" r="8" fill="#fff" opacity=".7"/><path d="M10 48c1-8 7-13 14-13s13 5 14 13z" fill="#fff"/><path d="M30 48c1-8 6-13 11-13 7 0 12 5 13 13z" fill="#fff" opacity=".7"/></svg>' };
+  const ROLES = ['admin', 'editor', 'commenter', 'viewer'];
+  const when = (t) => (t ? new Date(t.toMillis ? t.toMillis() : t.seconds ? t.seconds * 1000 : t).toLocaleString(PatOS.locale, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' }) : '');
+  const ICON_OF = { doc: 'docs', sheet: 'sheets', slides: 'slides', note: 'notes', text: 'textedit' };
+
+  PatOS.registerApp({
+    id: 'spaces', name: 'Shared Spaces', icon: 'spaces', width: 940, height: 600, minWidth: 380, minHeight: 360, category: 'Productivity', keywords: 'shared spaces team group collaborate workspace share espace partagé équipe',
+    about: 'Workspaces you share with other PatOS accounts.',
+    launch(win, args) {
+      const S = PatOS.spaces;
+      let sel = args.sid || null, tab = 'files', fsel = null, offs = [], files = [], comments = [], activity = [], addPath = args.addPath || null;
+      const side = h('div', { class: 'sp-side' }), main = h('div', { class: 'sp-main' });
+      win.body.appendChild(h('div', { class: 'spc' }, side, main));
+      const msg = (title, body) => PatOS.alertBox(title, body, { icon: 'spaces' });
+      const guard = async (fn) => { try { return await fn(); } catch (e) { msg(T('That didn’t work'), e.message || String(e)); } };
+      function unsub() { offs.forEach((o) => o && o()); offs = []; }
+      function watch(sp) { unsub(); files = []; comments = []; activity = []; if (!sp) return; offs = [S.files(sp, (l) => { files = l.sort((a, b) => a.name.localeCompare(b.name)); drawMain(); }), S.comments(sp, (l) => { comments = l; drawMain(); }), S.activity(sp, (l) => { activity = l; if (tab === 'activity') drawMain(); })]; }
+      function drawSide() {
+        side.innerHTML = '';
+        side.append(h('div', { class: 'sp-shead' }, h('b', {}, T('Spaces')), h('button', { class: 'btn', disabled: !S.ready(), onclick: async () => { const n = await PatOS.ask(T('New Space'), T('Group Project'), { ok: T('Create'), icon: 'spaces' }); if (n) { const id = await guard(() => S.create(n)); if (id) { sel = id; draw(); } } } }, '+')));
+        if (!S.ready()) { side.appendChild(h('p', { class: 'sp-muted' }, T('Sign in to your PatOS account to use Shared Spaces.'))); return; }
+        S.invites().forEach((inv) => side.appendChild(h('div', { class: 'sp-inv' }, h('b', {}, inv.spaceName), h('small', {}, inv.byName + ' · ' + T(inv.role)),
+          h('div', { class: 'sp-invb' }, h('button', { class: 'btn primary', onclick: () => guard(async () => { await S.accept(inv); sel = inv.sid; }) }, T('Accept')), h('button', { class: 'btn', onclick: () => guard(() => S.decline(inv)) }, T('Decline'))))));
+        S.list().forEach((sp) => side.appendChild(h('button', { class: 'sp-si' + (sp.id === sel ? ' on' : ''), onclick: () => { sel = sp.id; fsel = null; tab = 'files'; draw(); } }, h('span', { class: 'sp-dot' }, (sp.name || '?').charAt(0).toUpperCase()), h('span', {}, sp.name), h('small', {}, Object.keys(sp.members || {}).length))));
+        if (!S.list().length && !S.invites().length) side.appendChild(h('p', { class: 'sp-muted' }, T('No spaces yet. Make one and invite your friends by username.')));
+        if (S.pending().length) side.appendChild(h('p', { class: 'sp-muted' }, S.pending().length + ' ' + T('changes are waiting for the internet')));
+      }
+      function drawMain() {
+        main.innerHTML = '';
+        const sp = S.get(sel);
+        if (!sp) { main.appendChild(h('div', { class: 'sp-empty' }, h('span', { class: 'sp-ic', html: PatOS.iconHTML('spaces') }), h('h2', {}, T('Shared Spaces')), h('p', {}, T('Work on files with other people: each person has a role, and every change is kept.')), h('p', { class: 'sp-fine' }, T('Spaces are stored in PatOS’s cloud so their members can read them. Unlike your own files, they aren’t end-to-end encrypted.')))); return; }
+        const role = S.roleOf(sp);
+        if (addPath) { const p = addPath; addPath = null; if (S.can(sp, 'edit')) guard(async () => { await S.addFromPiles(sp, p); PatOS.notify({ title: T('Added to') + ' ' + sp.name, body: PatOS.fs.basename(p), icon: 'spaces', priority: 'low' }); }); }
+        const tabs = h('div', { class: 'sp-tabs', role: 'tablist' }, ...[['files', 'Files'], ['activity', 'Activity'], ['members', 'Members']].map(([k, l]) => h('button', { class: 'sp-tab' + (tab === k ? ' on' : ''), role: 'tab', 'aria-selected': String(tab === k), onclick: () => { tab = k; drawMain(); } }, T(l))));
+        main.append(h('div', { class: 'sp-head' }, h('h2', {}, sp.name), h('span', { class: 'sp-role r-' + role }, T(role)), h('div', { class: 'sp-avs' }, ...Object.keys(sp.members).slice(0, 6).map((u) => h('span', { class: 'sp-av', title: '@' + ((sp.names || {})[u] || '?') + ' · ' + T(sp.members[u]) }, ((sp.names || {})[u] || '?').charAt(0).toUpperCase())))), tabs);
+        if (tab === 'files') drawFiles(sp); else if (tab === 'activity') drawActivity(); else drawMembers(sp);
+      }
+      function drawFiles(sp) {
+        const edit = S.can(sp, 'edit');
+        const bar = h('div', { class: 'sp-bar' },
+          edit ? h('button', { class: 'btn', onclick: async () => { const n = await PatOS.ask(T('New file'), T('Notes.txt'), { ok: T('Create'), icon: 'spaces' }); if (n) guard(() => S.addFile(sp, n.includes('.') ? n : n + '.txt', '')); } }, T('New file')) : null,
+          edit ? h('button', { class: 'btn', onclick: () => { PatOS.alertBox(T('Add from Piles'), T('In Piles, right-click a text file or a PatOS document, then Share… › Add to a Space.'), { icon: 'spaces' }); } }, T('Add from Piles')) : null,
+          !edit ? h('span', { class: 'sp-muted' }, role2(sp)) : null);
+        const list = h('div', { class: 'sp-files' }, ...(files.length ? files.map((f) => h('div', { class: 'sp-file' + (fsel === f.id ? ' on' : ''), onclick: () => { fsel = f.id; drawMain(); } },
+          h('span', { class: 'sp-fic', html: PatOS.iconHTML(ICON_OF[f.kind] || 'textedit') }), h('div', { class: 'sp-ft' }, h('b', {}, f.name), h('small', {}, T('rev') + ' ' + f.rev + ' · ' + (f.updatedName ? '@' + f.updatedName + ' · ' : '') + when(f.updatedAt) + (f.lockedBy && f.lockUntil > Date.now() ? ' · ' + T('being edited by') + ' @' + (f.lockedName || '') : ''))))) : [h('p', { class: 'sp-muted' }, T('No files yet.'))]));
+        main.append(bar, h('div', { class: 'sp-split' }, list, filePanel(sp, files.find((f) => f.id === fsel))));
+      }
+      const role2 = (sp) => ({ commenter: T('You can read and comment.'), viewer: T('You can read.') })[S.roleOf(sp)] || '';
+      function filePanel(sp, f) {
+        if (!f) return h('div', { class: 'sp-fpanel sp-muted' }, T('Pick a file.'));
+        const edit = S.can(sp, 'edit'); const mineLock = f.lockedBy === (S.me() || {}).uid && f.lockUntil > Date.now();
+        const note = h('p', { class: 'sp-muted' });
+        const cIn = h('input', { class: 'field', placeholder: T('Add a comment'), 'aria-label': T('Add a comment'), maxlength: '2000' });
+        cIn.addEventListener('keydown', (e) => { if (e.key === 'Enter' && cIn.value.trim()) { const t = cIn.value.trim(); cIn.value = ''; guard(() => S.comment(sp, f, t)); } });
+        const mineC = comments.filter((c) => c.fid === f.id).reverse();
+        return h('div', { class: 'sp-fpanel' },
+          h('h3', {}, f.name), h('small', { class: 'sp-muted' }, T('rev') + ' ' + f.rev),
+          h('div', { class: 'sp-acts' },
+            h('button', { class: 'btn primary', onclick: () => S.openFile(sp, f) }, edit ? T('Open and edit') : T('Open')),
+            edit ? h('button', { class: 'btn', onclick: () => guard(async () => { await S.lock(sp, f, !mineLock); }) }, mineLock ? T('Stop editing') : T('I’m editing (lock)')) : null,
+            h('button', { class: 'btn', onclick: () => guard(async () => { const r = await S.revs(sp, f); note.innerHTML = ''; r.forEach((v) => note.appendChild(h('div', {}, T('rev') + ' ' + v.rev + ' · @' + (v.byName || '') + ' · ' + when(v.at)))); }) }, T('History')),
+            edit ? h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox(T('Delete') + ' “' + f.name + '”?', T('It is removed for everyone in the space, with its history.'), { ok: T('Delete'), danger: true, icon: 'spaces' })) guard(() => S.delFile(sp, f)); } }, T('Delete')) : null),
+          note, h('h4', {}, T('Comments')), h('div', { class: 'sp-comments' }, ...(mineC.length ? mineC.map((c) => h('div', { class: 'sp-c' }, h('b', {}, '@' + c.byName), h('span', {}, c.text), h('small', {}, when(c.at)),
+            c.by === (S.me() || {}).uid || S.can(sp, 'admin') ? h('button', { class: 'sp-cx', 'aria-label': T('Delete'), onclick: () => guard(() => S.delComment(sp, c)) }, '×') : null)) : [h('p', { class: 'sp-muted' }, T('No comments yet.'))])),
+          S.can(sp, 'comment') ? cIn : null);
+      }
+      function drawActivity() {
+        const W = { created: 'created the space', invited: 'invited', joined: 'joined', added: 'added', deleted: 'deleted' };
+        main.appendChild(h('div', { class: 'sp-act' }, ...(activity.length ? activity.map((a) => h('div', { class: 'sp-arow' }, h('b', {}, '@' + a.byName), ' ' + T(W[a.what] || a.what) + ' ', a.what !== 'created' && a.what !== 'joined' ? h('i', {}, a.name) : null, h('small', {}, when(a.at)))) : [h('p', { class: 'sp-muted' }, T('Nothing yet.'))])));
+      }
+      function drawMembers(sp) {
+        const admin = S.can(sp, 'admin'), owner = S.can(sp, 'owner'), meU = (S.me() || {}).uid;
+        const rows = Object.keys(sp.members).map((u) => {
+          const r = sp.members[u]; const changeable = admin && u !== sp.owner && u !== meU && (owner || (r !== 'admin'));
+          const selR = h('select', { class: 'field', disabled: !changeable, 'aria-label': T('Role') }, ...(r === 'owner' ? ['owner'] : ROLES.filter((x) => owner || x !== 'admin' || r === 'admin')).map((x) => h('option', { value: x, selected: x === r }, T(x))));
+          selR.onchange = () => guard(() => S.setRole(sp, u, selR.value));
+          return h('div', { class: 'sp-mrow' }, h('span', { class: 'sp-av' }, ((sp.names || {})[u] || '?').charAt(0).toUpperCase()), h('b', {}, '@' + ((sp.names || {})[u] || '?') + (u === meU ? ' (' + T('you') + ')' : '')), selR,
+            changeable ? h('button', { class: 'btn', onclick: () => guard(() => S.remove(sp, u)) }, T('Remove')) : null);
+        });
+        const uIn = h('input', { class: 'field', placeholder: T('Username'), 'aria-label': T('Username') }), rIn = h('select', { class: 'field', 'aria-label': T('Role') }, ...ROLES.filter((x) => owner || x !== 'admin').map((x) => h('option', { value: x, selected: x === 'editor' }, T(x))));
+        main.append(h('div', { class: 'sp-members' }, ...rows),
+          admin ? h('div', { class: 'sp-invite' }, h('h4', {}, T('Invite someone')), h('div', { class: 'sp-acts' }, uIn, rIn, h('button', { class: 'btn primary', onclick: () => guard(async () => { await S.invite(sp, uIn.value, rIn.value); uIn.value = ''; PatOS.notify({ title: T('Invitation sent'), body: sp.name, icon: 'spaces', priority: 'low' }); }) }, T('Invite')))) : null,
+          h('div', { class: 'sp-acts sp-danger' }, owner ? h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox(T('Delete') + ' “' + sp.name + '”?', T('The space, its files and their history are deleted for everyone.'), { ok: T('Delete'), danger: true, icon: 'spaces' })) { await guard(() => S.del(sp)); sel = null; draw(); } } }, T('Delete Space'))
+            : h('button', { class: 'btn', onclick: async () => { if (await PatOS.confirmBox(T('Leave') + ' “' + sp.name + '”?', T('You won’t see it anymore unless someone invites you again.'), { ok: T('Leave'), icon: 'spaces' })) { await guard(() => S.leave(sp)); sel = null; draw(); } } }, T('Leave Space'))));
+      }
+      function draw() { drawSide(); watch(S.get(sel)); drawMain(); }
+      const off = PatOS.on('spaces', () => { drawSide(); if (sel && !S.get(sel)) { sel = null; unsub(); } drawMain(); });
+      win.on('closed', () => { off(); unsub(); });
+      if (!S.ready()) S.start().then(draw); else { if (addPath && !sel) { const sp = S.list().find((x) => S.can(x, 'edit')); if (sp) sel = sp.id; } draw(); }
+    },
+    onArgs(win, args) { if (args.addPath || args.sid) { win.close(); setTimeout(() => PatOS.launch('spaces', args), 300); } }
   });
 })();
 
