@@ -8,6 +8,7 @@ const root = __dirname;
   // a release with a "beta" number is still being put together: only people with Beta updates on are told about it
   const all = JSON.parse(fs.readFileSync(path.join(root, 'updates.json'), 'utf8'));
   fs.writeFileSync(path.join(root, 'js', 'version.js'), require('./update-manager.js').versionJS(all));
+  fs.writeFileSync(path.join(root, 'js', 'release-notes.js'), require('./update-manager.js').notesJS(all));
   // while a beta is being built, the newest finished version must be saved in its own folder (releases/<version>/), or people who
   // stay on finished versions would be given the beta files. Stop the build instead of shipping that mistake.
   const bad = require('./update-manager.js').create({ root }).problems();
@@ -21,7 +22,7 @@ const read = (p) => fs.readFileSync(path.join(root, p), 'utf8');
 html = html.replace(/<link rel="stylesheet" href="([^"]+)">/g, (_, href) => `<style>\n${read(href)}\n</style>`);
 // inline scripts (escape any closing script tags inside the code)
 // (the single file has every app inside, so apps do not load on demand there: drop the name-only list and treat lazy apps as normal)
-html = html.replace(/\s*<script type="patos\/js" src="js\/appmeta\.js"><\/script>/, '').replace(/type="patos\/lazy"/g, 'type="patos/js"');
+html = html.replace(/\s*<script type="patos\/js" src="js\/appmeta\.js"><\/script>/, '').replace(/type="patos\/notes"/g, 'type="patos/js"').replace(/type="patos\/lazy"/g, 'type="patos/js"').replace(/type="patos\/notes"/g, 'type="patos/js"'); // (and the release notes are built in)
 html = html.replace(/<script( type="patos\/(?:js|3d|pit)")? src="([^"]+)"><\/script>/g, (_, type, src) => `<script${type || ''}>\n${read(src).replace(/<\/script/gi, '<\\/script')}\n</script>`);
 // inline the icon, drop the manifest (single-file mode)
 const icon = 'data:image/svg+xml;base64,' + Buffer.from(read('assets/icon.svg')).toString('base64');

@@ -24,7 +24,7 @@
       const l1 = new THREE.PointLight(0x7d5cff, 60, 20); l1.position.set(-3, 2, 4); scene.add(l1);
       const l2 = new THREE.PointLight(0xff4fa0, 60, 20); l2.position.set(3, -2, 4); scene.add(l2);
       scene.add(new THREE.AmbientLight(0xffffff, 0.4));
-      let raf; const loop = () => { raf = requestAnimationFrame(loop); mesh.rotation.y += 0.015; mesh.rotation.x = Math.sin(Date.now() / 1200) * 0.2; r.paced(scene, cam); };
+      let raf; const loop = () => { raf = requestAnimationFrame(loop); if (win.minimized || document.hidden) return; mesh.rotation.y += 0.015; mesh.rotation.x = Math.sin(Date.now() / 1200) * 0.2; r.paced(scene, cam); };
       loop(); win.on('closed', () => { cancelAnimationFrame(raf); r.dispose(); geo.dispose(); });
     }
   });

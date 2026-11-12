@@ -148,7 +148,8 @@
   (document.readyState === 'loading' ? (fn) => document.addEventListener('DOMContentLoaded', fn) : (fn) => fn())(() => {
     PatOS.applyTheme && PatOS.applyTheme();
     // once the page has settled, measure how fast this computer is; a slow one gets the light look (Settings › Speed mode can change it)
-    setTimeout(() => (window.requestIdleCallback || setTimeout)(() => { if (PatOS.perf.measure() === 'light' && PatOS.perf.light()) PatOS.applyTheme(); }, { timeout: 4000 }), 2500);
+    // (three tries, a few seconds apart, when the page is idle; the best one counts)
+    [3000, 9000, 20000].forEach((ms) => setTimeout(() => (window.requestIdleCallback || setTimeout)(() => { const was = PatOS.perf.slow(); PatOS.perf.measure(); if (PatOS.perf.slow() !== was) PatOS.applyTheme(); }, { timeout: 5000 }), ms));
     $('.lock-form').addEventListener('submit', (e) => { e.preventDefault(); login(); });
     document.addEventListener('keydown', (e) => {
       if ($('#lock').classList.contains('hidden') || PatOS.loggedIn || e.target === $('.lock-pass')) return;

@@ -8,6 +8,8 @@
    highlights, the milky body and the shadow are here. Window titlebars are glass and window contents are opaque. */
 /* how much light a touch is putting into the glass right now (0 to 1, animated by js/flow.js): it spreads from where you press,
    like Apple's interactive glass, and only ever adds light, so the glass stays exactly as clear */
+/* the lens belongs to the one surface it was made for: inherited, it put the Dock's map on each of its 16 hidden labels */
+@property --lg-lens { syntax: '*'; inherits: false; }
 @property --g-touch { syntax: '<number>'; inherits: false; initial-value: 0; }
 /* ---------- tokens ---------- */
 :root {

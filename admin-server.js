@@ -12,7 +12,7 @@
    GITHUB_BRANCHES (comma-separated, default the repository's default branch), FIREBASE_PROJECT_ID (default patos-92a43). */
 'use strict';
 const crypto = require('crypto');
-const { versionJS } = require('./update-manager.js');
+const { versionJS, notesJS } = require('./update-manager.js');
 
 const PROJECT = () => (process.env.FIREBASE_PROJECT_ID || 'patos-92a43').trim();
 const CERTS_URL = 'https://www.googleapis.com/robot/v1/metadata/x509/securetoken@system.gserviceaccount.com';
@@ -85,7 +85,8 @@ async function release(want, who) {
     const all = finish(JSON.parse(Buffer.from(file.content, 'base64').toString('utf8')), want, today);
     const tree = await gh('POST', '/repos/' + repo + '/git/trees', { base_tree: commit.tree.sha, tree: [
       { path: 'updates.json', mode: '100644', type: 'blob', content: JSON.stringify(all, null, 2) + '\n' },
-      { path: 'js/version.js', mode: '100644', type: 'blob', content: versionJS(all) }] });
+      { path: 'js/version.js', mode: '100644', type: 'blob', content: versionJS(all) },
+      { path: 'js/release-notes.js', mode: '100644', type: 'blob', content: notesJS(all) }] });
     const c = await gh('POST', '/repos/' + repo + '/git/commits', { message: 'PatOS ' + want.version + ' released as a finished version (from the PatOS account)\n\nBeta ' + want.beta + ' becomes ' + want.version + '. Released by ' + who + ' in Settings › Software Update.', tree: tree.sha, parents: [ref.object.sha] });
     await gh('PATCH', '/repos/' + repo + '/git/refs/heads/' + encodeURIComponent(br), { sha: c.sha, force: false });
     done.push(br);

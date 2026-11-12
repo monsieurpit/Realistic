@@ -102,3 +102,8 @@ html.reduce-motion :is(.pat3-mic.on, #pat-panel, .pat3-me, .pat3-pat) { animatio
 :root[data-theme="light"] .pat3-end { background: rgba(255,255,255,.85); color: #1d1d1f; }
 @media (prefers-reduced-motion: reduce) { .pat-orb, .po-b { animation: none !important; } }
 html.reduce-motion :is(.pat-orb, .po-b) { animation: none !important; }
+/* (beta 8) only the orbs that say something move: the one in the header, the big welcome one and the thinking bubble. The
+   small one next to every answer stays still (with many answers, dozens of blended layers moved all the time), and nothing
+   moves while the panel is closed. */
+.pat-orb.po-av .po-b { animation: none; } .pat3-thinking .pat-orb.po-av .po-b { animation: poA 1.6s ease-in-out infinite; }
+#pat-panel.hidden .pat-orb, #pat-panel.hidden .po-b { animation-play-state: paused !important; }

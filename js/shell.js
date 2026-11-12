@@ -1241,7 +1241,7 @@
     $('#dimmer').style.opacity = String(1 - s.brightness);
     root.classList.toggle('lg-on', !!s.liquidGlass);
     root.classList.toggle('lg-tinted', !!s.liquidGlass && s.glassStyle === 'tinted');
-    root.classList.toggle('lg-refract', !!(s.liquidGlass && s.glassRefraction && lens.supported() && s.quality3d !== 'low' && !lessGlass && !root.classList.contains('mobile')));
+    root.classList.toggle('lg-refract', !!(s.liquidGlass && s.glassRefraction && lens.supported() && s.quality3d !== 'low' && !lessGlass && !PatOS.perf.slow() && !root.classList.contains('mobile')));
     lens.refresh();
   }
   PatOS.applyTheme = applyTheme;
@@ -1262,6 +1262,7 @@
     /* The lens is a dome, read from a thick gel slab: the whole face magnifies a little (the middle samples closer to the
        centre), and along the rounded rim the glass bends hardest (a quarter circle: flat face, steepest at the very edge).
        Returns the map (red = sideways, green = up/down, 128 = no move) and the filter scale that the map is encoded for. */
+    const LENS_MAX = 120000; // px², about a 600 × 200 surface
     const MAG = 1.1, MAG_MAX = 14; // 10% bigger, but never more than 14px of shift (so wide bars like the Dock don't swim)
     function domeMap(W, H, R, B) {
       const q = W * H > 60000 ? 2 : 1; // big panes: draw the (smooth) map at half size, the filter stretches it back
@@ -1307,7 +1308,7 @@
     function filterFor(w, hh, r, rimW) {
       const key = w + 'x' + hh + 'x' + r + 'x' + rimW; if (maps.has(key)) return maps.get(key);
       if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('width', '0'); svg.setAttribute('height', '0'); svg.setAttribute('aria-hidden', 'true'); svg.style.position = 'absolute'; document.body.appendChild(svg); }
-      if (maps.size > 48) { maps.clear(); svg.innerHTML = ''; } // sizes change rarely; never let old maps pile up
+      if (maps.size > 40) prune(); // (never removes a filter a surface still uses: that made the glass draw black)
       const id = 'lg-lens-' + (++n), bezel = Math.round(Math.min(rimW, Math.min(w, hh) * 0.3)); // the same band as the CSS bevel ring (--g-rim-w, at most 30%)
       const m = domeMap(w, hh, r, bezel);
       svg.insertAdjacentHTML('beforeend', '<filter id="' + id + '" x="0" y="0" width="100%" height="100%" color-interpolation-filters="sRGB">' +
@@ -1328,10 +1329,18 @@
         '<feComposite in="bent" in2="shade" operator="arithmetic" k1=".3" k2=".85" k3="0" k4="0"/></filter>');
       maps.set(key, id); return id;
     }
+    /* drop the maps no surface uses any more (sizes come and go as windows, menus and notifications change) */
+    function prune() {
+      const used = new Set(); document.querySelectorAll(SEL).forEach((el) => { const v = el.style.getPropertyValue('--lg-lens'); const m = v && v.match(/#(lg-lens-\d+)/); if (m) used.add(m[1]); });
+      for (const [key, id] of maps) if (!used.has(id)) { maps.delete(key); const f = svg && svg.querySelector('#' + id); if (f) f.remove(); }
+    }
     function fit(el) {
       if (!on()) { el.style.removeProperty('--lg-lens'); return; }
       const w = Math.round(el.offsetWidth), hh = Math.round(el.offsetHeight);
       if (w < 24 || hh < 16) return;
+      // the bend is drawn by the processor, not the graphics chip, again every time what's behind changes: on big surfaces
+      // (Pat's panel, the notification list, large dialogs) it cost whole frames. They keep the same clear glass, without the bend.
+      if (w * hh > LENS_MAX) { el.style.removeProperty('--lg-lens'); return; }
       const cs = getComputedStyle(el), r = Math.round(parseFloat(cs.borderTopLeftRadius) || 0);
       const rimW = Math.round(parseFloat(cs.getPropertyValue('--g-rim-w')) || 12);
       el.style.setProperty('--lg-lens', 'url(#' + filterFor(w, hh, r, rimW) + ')');
@@ -1340,7 +1349,11 @@
     const settle = (els) => { els.forEach((el) => { if (!el.style.getPropertyValue('--lg-lens')) fit(el); else pending.add(el); }); flush(); };
     // menus, notifications, dialogs and Spotlight come and go: new ones are picked up when they appear
     let mo = null;
-    const scan = (nodes) => { const found = []; nodes.forEach((n) => { if (n.nodeType !== 1) return; if (n.matches(SEL)) found.push(n); n.querySelectorAll && n.querySelectorAll(SEL).forEach((e) => found.push(e)); }); found.forEach((el) => { if (ro) ro.observe(el); }); };
+    // (new nodes are looked at together once a frame, not one by one as apps add them: typing in an editor or a long
+    //  terminal output adds nodes all the time)
+    const fresh = new Set(); let scanRaf = 0;
+    const scanNow = () => { scanRaf = 0; fresh.forEach((n) => { if (!n.isConnected || !ro) return; if (n.matches(SEL)) ro.observe(n); if (n.firstElementChild) n.querySelectorAll(SEL).forEach((e) => ro.observe(e)); }); fresh.clear(); };
+    const scan = (nodes) => { nodes.forEach((n) => { if (n.nodeType === 1) fresh.add(n); }); if (fresh.size && !scanRaf) scanRaf = requestAnimationFrame(scanNow); };
     function refresh() {
       const els = Array.from(document.querySelectorAll(SEL));
       if (!on()) { els.forEach((el) => el.style.removeProperty('--lg-lens')); if (ro) { ro.disconnect(); ro = null; } if (mo) { mo.disconnect(); mo = null; } return; }
@@ -1348,26 +1361,35 @@
       if (!mo && window.MutationObserver) { mo = new MutationObserver((recs) => recs.forEach((r) => scan(r.addedNodes))); mo.observe(document.getElementById('desktop') || document.body, { childList: true, subtree: true }); }
       els.forEach((el) => { fit(el); if (ro) ro.observe(el); });
     }
-    return { supported: () => isChromium, refresh, watch: (el) => { if (on()) { fit(el); if (ro) ro.observe(el); } } };
+    /* After the computer sleeps, the tab is hidden for a while or the graphics chip resets, Chrome can lose the pictures the
+       filters read, and glass that uses them draws black. Coming back, the filters are made again under new names, so the
+       browser has to read them afresh. */
+    function rebuild() { if (!on() || !svg) return; maps.clear(); svg.innerHTML = ''; refresh(); }
+    document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') setTimeout(rebuild, 60); });
+    window.addEventListener('pageshow', (e) => { if (e.persisted) rebuild(); });
+    return { supported: () => isChromium, refresh, rebuild, watch: (el) => { if (on()) { fit(el); if (ro) ro.observe(el); } } };
   })();
   PatOS.glassLens = lens;
 
   /* Liquid Glass light follows the pointer */
-  const GLASS_SEL = '#dock, .mh-dock, .menu, .toast, .sp-box, .dlg, .widget, .mw, .cc-tile, .asw-row, .nc-list, #pat-panel, .lg, .lg-clear, .lg-elevated';
   const TILT_SEL = '.cc-tile, #desk-widgets .widget'; let tilted = null;
   const untilt = () => { if (tilted) { tilted.style.removeProperty('--rx'); tilted.style.removeProperty('--ry'); tilted = null; } };
+  /* (3.2 beta 8: this used to write the pointer's position (--mx, --my) on whatever glass it was over, windows included, on every
+     mouse event. Nothing drew with those values, but each write made the browser restyle the whole window under the pointer:
+     thousands of elements, many times a frame. Now only the small tilting tiles are touched, once a frame.) */
+  let tiltEv = null, tiltRaf = 0;
+  const tiltNow = () => {
+    tiltRaf = 0; const e = tiltEv; if (!e) return;
+    const t = e.target.closest && e.target.closest(TILT_SEL);
+    if (tilted && tilted !== t) untilt();
+    if (!t || document.documentElement.classList.contains('reduce-motion')) return;
+    const r = t.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
+    t.style.setProperty('--rx', ((0.5 - fy) * 10).toFixed(2) + 'deg'); t.style.setProperty('--ry', ((fx - 0.5) * 10).toFixed(2) + 'deg'); tilted = t;
+  };
   document.addEventListener('pointermove', (e) => {
     if (e.pointerType === 'touch' || !document.documentElement.classList.contains('lg-on')) return;
-    const g = e.target.closest && e.target.closest(GLASS_SEL); if (!g) { untilt(); return; }
-    const r = g.getBoundingClientRect(), fx = (e.clientX - r.left) / r.width, fy = (e.clientY - r.top) / r.height;
-    g.style.setProperty('--mx', (fx * 100).toFixed(1) + '%');
-    g.style.setProperty('--my', (fy * 100).toFixed(1) + '%');
-    // a small tilt (at most 5 degrees) toward the pointer, like picking up a piece of glass
-    const t = g.matches(TILT_SEL) ? g : null;
-    if (tilted && tilted !== t) untilt();
-    if (t && !document.documentElement.classList.contains('reduce-motion')) {
-      t.style.setProperty('--rx', ((0.5 - fy) * 10).toFixed(2) + 'deg'); t.style.setProperty('--ry', ((fx - 0.5) * 10).toFixed(2) + 'deg'); tilted = t;
-    }
+    if (!tilted && !(e.target.closest && e.target.closest(TILT_SEL))) return; // (most moves: nothing to do)
+    tiltEv = e; if (!tiltRaf) tiltRaf = requestAnimationFrame(tiltNow);
   }, { passive: true });
   document.addEventListener('pointerleave', untilt);
   /* (one light for all the glass: --g-angle in css/glass.css, fixed at the upper left. It used to lean toward the pointer in

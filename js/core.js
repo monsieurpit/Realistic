@@ -304,15 +304,23 @@
   // a laptop that is also a tablet (EliteBook x360...): a touch screen on a computer
   PatOS.hw.touchLaptop = PatOS.hw.touch && !PatOS.hw.phone && !PatOS.hw.ios && !PatOS.hw.android;
   /* Speed: a 15 ms test of how fast this computer thinks. Slow ones (an old school laptop) get the light look by default. Nothing is stored: each start measures again. */
+  /* How fast this computer is. A short busy loop, timed; the best of several tries at quiet moments counts, because one try
+     made while the computer was busy (starting up, painting the wallpaper) used to call a fast computer slow.
+     - light(): the lighter look, which removes the blur behind glass. Only when you choose it (Settings › Speed mode): an
+       automatic guess must never make Liquid Glass go flat and dark while it is still turned on.
+     - slow(): the automatic guess (Speed mode on Automatic). It only turns off costly extras that don't change how see-through
+       glass is (the bend at the edges of glass). */
   PatOS.perf = (function () {
-    let tier = null;
+    let best = 0, tries = 0;
     function measure() {
-      if (tier) return tier;
-      let best = 0, x = 1;
+      let x = 1;
       for (let k = 0; k < 3; k++) { let n = 0; const end = performance.now() + 15; while (performance.now() < end) { for (let i = 0; i < 2000; i++) x = (x * 1.0000001 + i) % 1000003; n++; } best = Math.max(best, n); }
-      PatOS.perf.score = best; tier = best < 200 ? 'light' : 'full'; return tier; // about 500 on a fast laptop, about 150 on a 4x slower school computer
+      tries++; PatOS.perf.score = best; return tier(); // about 500 on a fast laptop, about 150 on a 4x slower school computer
     }
-    return { score: 0, tier: () => tier || 'full', measure, light: () => { const m = PatOS.settings.perfMode; return m === 'light' || (m !== 'full' && tier === 'light'); } };
+    const tier = () => (!tries || best >= 200 ? 'full' : 'light');
+    return { score: 0, tier, measure, tries: () => tries,
+      light: () => PatOS.settings.perfMode === 'light',
+      slow: () => PatOS.settings.perfMode === 'auto' && tries >= 2 && tier() === 'light' };
   })();
   PatOS.isIOS = PatOS.hw.ios;
   PatOS.detectMobile = function () {

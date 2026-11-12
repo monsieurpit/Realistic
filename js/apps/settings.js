@@ -210,6 +210,8 @@
             // what's in the version you have, and the ones before
             if (cur && cur.notes) out.append(h('h3', {}, T('What’s new in') + ' ' + label(cur)), h('div', { class: 'su-card' }, h('div', { class: 'su-chead' }, h('b', {}, rt(cur, 'title'), ' ', badge(cur)), cur.date ? h('small', {}, fmtDate(cur.date)) : null), notesOf(cur)));
             const list = ((U && U.releases && U.releases.length ? U.releases : PatOS.releases) || []).filter((x) => idOf(x) !== idOf(cur) && !(newer && tgt && idOf(x) === idOf(tgt)));
+            // (older versions' notes load only now: js/release-notes.js, kept out of start-up)
+            if (list.some((r) => r.more && !r.notes) && !PatOS.releaseNotes && !win._notesAsked) { win._notesAsked = true; const sc = document.createElement('script'); sc.src = 'js/release-notes.js'; sc.onload = () => { if (pane === 'update') renderMain(); }; document.head.appendChild(sc); }
             if (list.length) {
               out.appendChild(h('h3', {}, T('Update history')));
               out.appendChild(h('div', { class: 'su-history' }, ...list.map((r) => h('details', { class: 'su-old' }, h('summary', {}, h('b', {}, label(r)), h('span', {}, rt(r, 'title')), h('small', {}, fmtDate(r.date))), notesOf(r)))));

@@ -210,12 +210,17 @@
         const ctx = fx.getContext('2d');
         const calm = PatOS.settings.reduceMotion; const lite = PatOS.weakDevice ? 0.5 : 1;
         const parts = Array.from({ length: Math.round((m === 'rain' || m === 'storm' ? 160 : m === 'snow' ? 110 : m === 'clear' || m === 'night' ? 40 : 14) * lite) }, () => ({ x: Math.random(), y: Math.random(), s: 0.3 + Math.random(), r: Math.random() }));
-        let flash = 0;
-        const step = () => {
+        let flash = 0, last = 0;
+        // (the canvas is sized only when the window changes size: setting it on every frame cleared and re-made it and made
+        //  the browser lay the window out again 60 times a second. 30 frames a second is plenty for rain and snow.)
+        let W = 0, H = 0; const fit = () => { const w = fx.clientWidth, hh = fx.clientHeight; if (w !== W || hh !== H) { W = fx.width = w; H = fx.height = hh; } };
+        if (!fx._ro && window.ResizeObserver) { fx._ro = new ResizeObserver(() => { W = H = -1; }); fx._ro.observe(fx); }
+        const step = (t) => {
           if (closed || !fx.isConnected) return;
           if (!calm) raf = requestAnimationFrame(step);
           if (document.hidden || win.minimized) return;
-          const W = fx.width = fx.clientWidth, H = fx.height = fx.clientHeight;
+          if (!calm && t && t - last < 31) return; last = t || 0;
+          if (W <= 0 || !fx._ro) fit();
           ctx.clearRect(0, 0, W, H);
           parts.forEach((p) => {
             if (mode === 'rain' || mode === 'storm') { p.y += 0.02 * p.s; p.x -= 0.002; ctx.strokeStyle = 'rgba(200,220,255,.45)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.moveTo(p.x * W, p.y * H); ctx.lineTo(p.x * W - 3, p.y * H + 14 * p.s); ctx.stroke(); }
