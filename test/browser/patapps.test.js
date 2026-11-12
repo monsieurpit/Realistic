@@ -187,3 +187,42 @@ test('Develop: trying an app keeps the code in the form, and an opened .patapp f
   assert.equal(await page.inputValue('.as-form input[aria-label="Name"]'), 'Keeper');
   assert.deepEqual(errors, []); await page.close();
 });
+
+test('PatOS Intelligence: an app offers actions (they work after a reload, the app opens to do them), and may only run safe system ones', { skip: skipNoBrowser }, async () => {
+  const { page } = await setup();
+  const html = '<div id="h">dice</div><script>patos.actions.handle(function(id,p){ if(id==="roll") return "You rolled a " + (p.text||"6"); throw new Error("no"); }); patos.actions.register([{id:"roll",title:"Roll dice",phrases:["roll the probe dice"]},{id:"bad id!",title:"x",phrases:["xx"]}]);</script>';
+  await page.evaluate(async (app) => { await PatOS.patapps.install(app, { source: 'file' }); PatOS.launch('pa:com.test.dice'); }, APP({ id: 'com.test.dice', name: 'Dice', permissions: [], html }));
+  const f = await frameOf(page, 'com.test.dice');
+  await page.waitForFunction(() => PatOS.intel.list({ owner: 'app:com.test.dice' }).length === 1, null, { timeout: 8000 });
+  // the person asks; the app answers
+  const r1 = await page.evaluate(async () => (await PatOS.intel.respond('roll the probe dice 20')).message);
+  assert.equal(r1, 'You rolled a 20');
+  // the app may open an app (a safe system action), but not search the files
+  const ok = await call(f, 'patos.actions.run("app.open",{app:"calculator"})'); assert.equal(ok.ok.ok, true);
+  const no = await call(f, 'patos.actions.run("files.find",{q:"x"})'); assert.equal(no.ok.ok, false); assert.match(no.ok.message, /Apps can’t use this action/);
+  // after a reload, with the app closed, the action still works (PatOS opens the app to do it)
+  await reload(page); await page.waitForSelector('#lock:not(.hidden)'); await page.evaluate(() => PatOS.boot.login()); await stub(page);
+  const r2 = await page.evaluate(async () => { PatOS.wm.windowsOf('pa:com.test.dice').forEach((w) => w.close()); return (await PatOS.intel.respond('roll the probe dice')).message; });
+  assert.equal(r2, 'You rolled a 6');
+  // uninstalling removes its actions
+  const left = await page.evaluate(async () => { await PatOS.patapps.uninstall('com.test.dice'); return PatOS.intel.list({ owner: 'app:com.test.dice' }).length; });
+  assert.equal(left, 0);
+  await page.close();
+});
+
+test('compatibility and the Developer Center: an app for a newer PatOS is refused; the checker explains a file', { skip: skipNoBrowser }, async () => {
+  const { page } = await setup();
+  const r = await page.evaluate(async (app) => { window.__alerts = []; PatOS.alertBox = async (t, x) => { window.__alerts.push(t + ': ' + x); }; const ok = await PatOS.patapps.install(app, { source: 'file' }); return { ok, installed: PatOS.patapps.isInstalled('com.test.future'), alert: window.__alerts[0] || '' }; }, APP({ id: 'com.test.future', name: 'Future', permissions: [], minPatOS: '99.0.0', category: 'Games' }));
+  assert.equal(r.ok, false); assert.equal(r.installed, false); assert.match(r.alert, /needs a newer PatOS[\s\S]*99\.0\.0/);
+  const bad = await page.evaluate(async (app) => PatOS.patapps.install(app, { source: 'file' }).then(() => 'installed', (e) => e.message), APP({ id: 'com.test.badcat', category: 'Nonsense' }));
+  assert.match(bad, /category must be one of/);
+  await page.evaluate(() => PatOS.launch('developer')); await page.waitForSelector('.dv-si');
+  await page.click('.dv-si:has-text("Check a .patapp")');
+  await page.fill('.dv-paste', JSON.stringify({ format: 'patapp', formatVersion: 1, id: 'com.test.dc', name: 'Checked', version: '1.2.0', html: '<p>x</p>', permissions: ['notifications'], actions: [{ id: 'go', title: 'Go now', phrases: ['go now please'] }] }));
+  await page.waitForSelector('.dv-main .st-badge');
+  const txt = await page.textContent('.dv-main');
+  assert.match(txt, /Valid: Checked 1\.2\.0[\s\S]*Runs on this PatOS[\s\S]*notifications[\s\S]*Go now/);
+  await page.fill('.dv-paste', '{"format":"patapp","formatVersion":1,"id":"X","name":"a","version":"1","html":"x"}');
+  await page.waitForFunction(() => /Not valid/.test(document.querySelector('.dv-main').textContent));
+  await page.close();
+});

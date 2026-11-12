@@ -23,14 +23,14 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 
 **Liquid Glass**
 - See-through glass on the dock, menus, Control Center, notifications, widgets and the iPhone home screen, with a light that follows your pointer
-- In Chrome the edges of the Dock bend what's behind them like a lens; the menu bar adapts to the wallpaper; Transparent or Tinted (System Settings › Appearance)
+- In Chrome the edges of the Dock bend what's behind them like a lens; the menu bar adapts to the wallpaper; Transparent or Tinted (Settings › Appearance)
 
 **English and French**
-- PatOS uses French when your device is in French, English otherwise; change it in System Settings › General › Language
+- PatOS uses French when your device is in French, English otherwise; change it in Settings › General › Language
 - Pat in Messages understands its commands in French too ("ouvre calculatrice", "raconte une blague")
 
 **On iPhone (and other phones)**
-- PatOS switches to a phone layout automatically (or pick it in System Settings › General › Device style)
+- PatOS switches to a phone layout automatically (or pick it in Settings › General › Device style)
 - Lock screen: swipe up to open
 - Home screen pages with widgets and a 4-app dock; touch and hold an icon for quick actions
 - Apps open full screen, zooming out of their icon
@@ -67,7 +67,7 @@ A macOS-style desktop operating system that runs in any web browser. It's built 
 | Games | 2048, Snake, Minesweeper, Breakout, Connect Four and Memory, all offline |
 | Chess | full rules against the computer (3 levels) or a friend |
 | Screenshot | real screen pictures and screen recordings (on computers) |
-| Tic-Tac-Toe, Maps, System Settings, Activity Monitor | |
+| Tic-Tac-Toe, Maps, Settings, Activity Monitor | |
 | Docs | word processor: styles, fonts, colors, lists, tables, images, find & replace, print, export |
 | Sheets | spreadsheet with real formulas (SUM, AVERAGE, IF, COUNTIF, SUMIF…), sorting, charts, CSV import/export |
 | Slides | slide decks with themes, text, images, shapes, speaker notes and full-screen presenting with transitions |
@@ -120,7 +120,7 @@ Once it's on a real website, Chrome can install it as an app (⋮ menu → Insta
 
 ## How it's built
 
-Plain HTML, CSS and JavaScript with no npm dependencies. `build.js` only makes the single-file versions and the offline service worker. three.js r160, pdf.js and pdf-lib are in `vendor/` so they load even when school Wi-Fi blocks CDNs. three.js is only loaded when something 3D is about to show (a live wallpaper or a 3D app), and every 3D animation waits for the graphics chip to finish a frame before drawing the next, so slower Chromebooks get fewer frames instead of lag. Your files, notes and settings are saved in the browser's database (IndexedDB), which can hold gigabytes; System Settings › Storage can back them up to a file.
+Plain HTML, CSS and JavaScript with no npm dependencies. `build.js` only makes the single-file versions and the offline service worker. three.js r160, pdf.js and pdf-lib are in `vendor/` so they load even when school Wi-Fi blocks CDNs. three.js is only loaded when something 3D is about to show (a live wallpaper or a 3D app), and every 3D animation waits for the graphics chip to finish a frame before drawing the next, so slower Chromebooks get fewer frames instead of lag. Your files, notes and settings are saved in the browser's database (IndexedDB), which can hold gigabytes; Settings › Storage can back them up to a file.
 
 ## Terms and Privacy Policy
 

@@ -31,6 +31,10 @@
     theme: { label: 'Set dark or light mode', params: [{ k: 'value', type: 'choice', label: 'Mode', def: 'dark', choices: [['dark', 'Dark'], ['light', 'Light'], ['auto', 'Automatic']] }], run: async (p) => { if (!['dark', 'light', 'auto'].includes(p.value)) throw new Error('?'); PatOS.setSetting('theme', p.value); return p.value; } },
     volume: { label: 'Set the volume', params: [{ k: 'percent', type: 'number', label: 'Percent', def: 50, min: 0, max: 100 }], run: async (p) => { const v = Math.max(0, Math.min(100, +p.percent || 0)); PatOS.setSetting('volume', v / 100); return v + '%'; } },
     copy: { label: 'Copy text', params: [{ k: 'text', type: 'text', label: 'Text', def: '' }], run: async (p) => { await navigator.clipboard.writeText(String(p.text || '')); return T('Copied'); } },
+    // anything PatOS Intelligence can do, in words ("create a folder called Projects"): the same engine as Pat and Spotlight
+    command: { label: 'Do a command', params: [{ k: 'text', type: 'text', label: 'Command (like: open notes, turn on dark mode)', def: 'open notes' }], run: async (p) => {
+      const r = PatOS.intel ? PatOS.intel.respond(String(p.text || ''), { source: 'shortcut' }) : null; if (!r) throw new Error(T('PatOS doesn’t understand this step.'));
+      const x = await r; if (x.status === 'confirm') throw new Error(T('This step needs a yes, so it can’t run inside a shortcut.')); if (x.ok === false) throw new Error(x.message); return x.message; } },
     runShortcut: { label: 'Run another shortcut', params: [{ k: 'name', type: 'text', label: 'Shortcut name', def: '' }], run: async (p, ctx) => { const s = byName(p.name); if (!s) throw new Error(T('No shortcut has that name.')); if (ctx.depth >= 3) throw new Error(T('Shortcuts are running shortcuts too deep.')); const r = await run(s, { depth: ctx.depth + 1, quiet: true }); if (!r.ok) throw new Error(r.log.filter((x) => !x.ok).map((x) => x.error).join(' ')); return s.name; } }
   };
   const list = () => get(KEY, []).filter((s) => s && s.id);

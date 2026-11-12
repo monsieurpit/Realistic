@@ -70,68 +70,15 @@
       const f = findFiles(m[1]); if (!f.length) return L(`I couldn’t find a file called “${m[1]}”.`, `Je n’ai pas trouvé de fichier appelé « ${m[1]} ».`);
       ctx.list = { kind: 'file', items: f, t: Date.now() }; setTimeout(() => { try { PatOS.openFile(f[0]); } catch (e) { say(L('That file didn’t open: ', 'Ce fichier ne s’est pas ouvert : ') + e.message); } }, 400); return L(`Opening ${PatOS.fs.basename(f[0])}.`, `J’ouvre ${PatOS.fs.basename(f[0])}.`);
     }
-    if ((m = l.match(/^(?:open|launch|start)\s+(.+)/))) {
-      const q = m[1].replace(/[.!?]$/, '').trim(); const id = findApp(q);
-      if (id) { openApp(id); return L(`Sure, opening ${PatOS.apps[id].name}.`, `D’accord, j’ouvre ${PatOS.t(PatOS.apps[id].name)}.`); }
-      const near = suggestApp(q); if (near) return L(`I don’t have an app called "${q}". Did you mean ${PatOS.apps[near].name}? Say "open ${PatOS.apps[near].name.toLowerCase()}".`, `Je n’ai pas d’app appelée « ${q} ». Tu voulais dire ${PatOS.t(PatOS.apps[near].name)}? Écris « ouvre ${PatOS.t(PatOS.apps[near].name).toLowerCase()} ».`);
-      return L(`Hmm, I don’t have an app called "${q}". Say "list apps" and I’ll show you what’s there.`, `Hmm, je n’ai pas d’app appelée « ${q} ». Écris « liste des apps » et je te montre ce qu’il y a.`);
-    }
-    if (/list (all )?apps|what apps/.test(l)) return L('Here’s everything you’ve got: ', 'Voici tout ce que tu as : ') + PatOS.appOrder.filter((k) => !PatOS.apps[k].hidden).map((k) => PatOS.t(PatOS.apps[k].name)).join(', ') + '.';
-    // timers and alarms are rung by PatOS.alarms, so they ring even with Messages closed
-    if ((m = l.match(/^(?:set (?:a )?|start (?:a )?)?timer(?: for)?\s+(.+)/))) {
-      const ms = PatOS.parseDuration ? PatOS.parseDuration(m[1]) : 0;
-      if (ms > 0 && ms <= 24 * 3600000) { PatOS.quickTimer(Math.round(ms / 1000), ''); const mins = Math.round(ms / 60000); return L(`Timer set for ${mins >= 60 ? Math.floor(mins / 60) + ' h' + (mins % 60 ? ' ' + mins % 60 + ' min' : '') : mins < 1 ? Math.round(ms / 1000) + ' s' : mins + ' min'}. It will ring even if you close Pat.`, `Minuteur réglé pour ${mins >= 60 ? Math.floor(mins / 60) + ' h' + (mins % 60 ? ' ' + mins % 60 + ' min' : '') : mins < 1 ? Math.round(ms / 1000) + ' s' : mins + ' min'}. Il sonnera même si tu fermes Pat.`); }
-      return L('How long? Try “timer 10 min” or “timer 1h 20m”.', 'Combien de temps? Essaie « minuteur 10 min » ou « minuteur 1h 20m ».');
-    }
-    if ((m = l.match(/^(?:wake me(?: up)? at|set (?:an )?alarm(?: for| at)?)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/))) {
-      let hh = +m[1]; const mm = +(m[2] || 0); if (m[3] === 'pm' && hh < 12) hh += 12; if (m[3] === 'am' && hh === 12) hh = 0;
-      if (hh > 23 || mm > 59) return L('That isn’t a time I can use. Try “wake me at 7:30”.', 'Ce n’est pas une heure valide. Essaie « réveille-moi à 7h30 ».');
-      const time = String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0');
-      const list = PatOS.store.get('alarms', []); list.push({ id: PatOS.uid(), time, label: 'Pat', repeat: 'once', on: true }); PatOS.store.set('alarms', list); PatOS.emit('alarms'); PatOS.alarms && PatOS.alarms.askPermission();
-      return L(`Alarm set for ${fmtTime(time)}. It rings once; you can change it in Clock.`, `Alarme réglée à ${fmtTime(time)}. Elle sonne une fois; tu peux la changer dans Horloge.`);
-    }
-    // calendar and reminders
-    if ((m = l.match(/^(?:what(?:’s|'s| is)?(?: on)?|show|check)?\s*(?:my\s+)?(?:calendar|schedule|agenda)\s*(today|tomorrow)?\??$/)) || (m = l.match(/^what do i have\s*(today|tomorrow)?\??$/))) {
-      const d = new Date(); if (m[1] === 'tomorrow') d.setDate(d.getDate() + 1);
-      const evs = PatOS.calendarOn ? PatOS.calendarOn(d) : []; const day = m[1] === 'tomorrow' ? L('tomorrow', 'demain') : L('today', 'aujourd’hui');
-      if (!evs.length) return L(`Nothing on your calendar ${day}.`, `Rien dans ton calendrier ${day}.`);
-      return L(`On your calendar ${day}:\n`, `Dans ton calendrier ${day} :\n`) + evs.map((e) => '• ' + (e.time ? fmtTime(e.time) + '  ' : L('All day  ', 'Toute la journée  ')) + e.title).join('\n');
-    }
-    if ((m = t.match(/^(?:add event|event|schedule)\s*:?\s+(.+)/i))) {
-      const p = PatOS.parseReminder ? PatOS.parseReminder(m[1], null) : { text: m[1] }; const key = p.due || today();
-      const cal = PatOS.store.get('calendar', {}) || {}; (cal[key] = cal[key] || []).push({ id: PatOS.uid(), title: p.text, time: p.time || '', end: '', color: '#0a84ff', notes: '', repeat: '', alert: p.time ? '0' : 'none' });
-      PatOS.store.set('calendar', cal); PatOS.emit('calendar'); PatOS.calendarSync && PatOS.calendarSync();
-      return L(`Added “${p.text}” to your calendar on ${new Date(key + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' })}${p.time ? ' at ' + fmtTime(p.time) : ''}.`, `J’ai ajouté « ${p.text} » à ton calendrier le ${new Date(key + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' })}${p.time ? ' à ' + fmtTime(p.time) : ''}.`);
-    }
-    if (/^(?:my reminders|show (?:my )?reminders|what(?:’s|'s| is) due|what do i (?:need|have) to do)\??$/.test(l)) {
-      const k = today(); const due = (PatOS.store.get('reminders', []) || []).filter((r) => !r.done && r.due && r.due <= k).sort((a, b) => (a.due + (a.time || '')).localeCompare(b.due + (b.time || '')));
-      if (!due.length) return L('You’re all caught up. Nothing is due today.', 'Tu es à jour. Rien n’est dû aujourd’hui.');
-      return L('Due today or overdue:\n', 'Dû aujourd’hui ou en retard :\n') + due.slice(0, 8).map((r) => '• ' + r.text + (r.time ? ' (' + fmtTime(r.time) + ')' : '') + (r.due < k ? L(' · overdue', ' · en retard') : '')).join('\n') + (due.length > 8 ? '\n… +' + (due.length - 8) : '');
-    }
+    // (opening apps, timers, alarms, the calendar, reminders, notes, finding files: PatOS Intelligence, js/intelligence.js)
     if (/^clear( chat| the chat| conversation)?$/.test(l)) return '\u0000clear';
     if (/\btime\b/.test(l) && !/timer/.test(l)) return L('It’s ', 'Il est ') + new Date().toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' }) + '.';
     if (/\b(date|day is it|today)\b/.test(l) && !/calendar|due/.test(l)) return L('Today is ', 'On est le ') + new Date().toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }) + '.';
-    if ((m = t.match(/^(?:remind me to|reminder:?|add reminder:?)\s+(.+)/i))) {
-      const p = PatOS.parseReminder ? PatOS.parseReminder(m[1], null) : { text: m[1] };
-      const items = PatOS.store.get('reminders', []) || []; const r = { id: Date.now(), text: p.text, done: false }; if (p.due) r.due = p.due; if (p.time) { r.time = p.time; PatOS.alarms && PatOS.alarms.askPermission(); } if (p.prio) r.prio = p.prio; items.push(r); PatOS.store.set('reminders', items); PatOS.emit('reminders');
-      return L(`Got it. I added “${p.text}” to your reminders` + (p.due ? ' for ' + new Date(p.due + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'short', day: 'numeric' }) + (p.time ? ' at ' + fmtTime(p.time) : '') : '') + '.', `C’est noté. J’ai ajouté « ${p.text} » à tes rappels` + (p.due ? ' pour le ' + new Date(p.due + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'short', day: 'numeric' }) + (p.time ? ' à ' + fmtTime(p.time) : '') : '') + '.');
-    }
-    if ((m = t.match(/^(?:note:?|take a note:?|write down:?)\s+(.+)/i))) {
-      const notes = PatOS.store.get('notes', []) || []; notes.unshift({ id: PatOS.uid(), title: m[1].slice(0, 40), body: '<div>' + PatOS.esc(m[1]) + '</div>', mtime: Date.now() }); PatOS.store.set('notes', notes);
-      return L('Saved. You’ll find it at the top of Notes.', 'C’est enregistré. Tu la trouveras en haut de Notes.');
-    }
-    if ((m = l.match(/^find (?:the )?files?\s+(.+)/))) {
-      const f = findFiles(m[1]); if (!f.length) return L(`I couldn’t find a file with “${m[1]}” in its name.`, `Je n’ai pas trouvé de fichier avec « ${m[1]} » dans son nom.`);
-      ctx.list = { kind: 'file', items: f, t: Date.now() };
-      return L(`Found ${f.length}:\n`, `${f.length} trouvé${f.length > 1 ? 's' : ''} :\n`) + f.slice(0, 6).map((p) => '• ' + p).join('\n') + (f.length > 6 ? '\n… +' + (f.length - 6) : '') + L('\nSay “open file ' + m[1] + '” to open the first one.', '\nÉcris « ouvre le fichier ' + m[1] + ' » pour ouvrir le premier.');
-    }
     if ((m = l.match(/^(?:pick|choose)\s+(?:between\s+)?(.+)/)) && /,|\bor\b|\bou\b/.test(m[1])) { const opts = t.replace(/^(?:pick|choose)\s+(?:between\s+)?/i, '').split(/\s*,\s*|\s+or\s+|\s+ou\s+/i).map((x) => x.trim()).filter(Boolean); if (opts.length > 1) return L('I pick: ', 'Je choisis : ') + pick(opts) + '.'; }
     if (/joke/.test(l)) return pick(FR() ? JOKES_FR : JOKES);
     if (/fact/.test(l)) return L('Fun fact: ', 'Le savais-tu? ') + pick(FR() ? FACTS_FR : FACTS);
     if (/flip a coin|coin flip/.test(l)) return Math.random() < 0.5 ? L('Heads.', 'Pile.') : L('Tails.', 'Face.');
     if ((m = l.match(/roll (?:a )?(?:die|dice|d(\d+))/))) { const n = Math.max(2, Math.min(1000, +(m[1] || 6))); return L('You rolled a ', 'Tu as fait ') + (1 + Math.floor(Math.random() * n)) + '.'; }
-    if (/dark mode/.test(l)) { PatOS.setSetting('theme', 'dark'); return L('Done, dark mode is on.', 'C’est fait, le mode sombre est activé.'); }
-    if (/light mode/.test(l)) { PatOS.setSetting('theme', 'light'); return L('Done, light mode is on.', 'C’est fait, le mode clair est activé.'); }
     if (/wallpaper/.test(l)) { const all = [...Object.keys(PatOS.wallpaper.live), ...Object.keys(PatOS.wallpaper.palettes)]; const next = all[(all.indexOf(PatOS.settings.wallpaper) + 1) % all.length]; PatOS.setSetting('wallpaper', next); return L('New wallpaper: ', 'Nouveau fond d’écran : ') + PatOS.t((PatOS.wallpaper.live[next] || PatOS.wallpaper.palettes[next]).name) + '.'; }
     if (/play (some )?music|play a song/.test(l)) { PatOS.launch('music'); setTimeout(() => PatOS.music && !PatOS.music.nowPlaying() && PatOS.music.toggle(), 600); return L('Putting on a song.', 'Je mets une chanson.'); }
     if (/weather/.test(l)) { setTimeout(() => PatOS.launch('weather'), 400); return L('Here’s the weather.', 'Voici la météo.'); }
@@ -203,7 +150,13 @@
      A skill: { id, app, sensitive, match(text) → what it needs or null, run(what) → the answer, or { text, confirm(): answer } }.
      Pat only does what a skill says. Sensitive ones answer with what they will do, and confirm() runs after a yes. */
   const skills = [];
-  function skill(def) { if (def && def.id && def.match && def.run && !skills.some((s) => s.id === def.id)) skills.push(def); }
+  // a skill is also an action of PatOS Intelligence (js/intelligence.js), so Spotlight, Shortcuts and apps find it the same way
+  const SKILL_PERM = { notes: 'notes', finder: 'files', docs: 'files.write', calendar: 'calendar', shortcuts: 'shortcuts' };
+  function skill(def) {
+    if (!def || !def.id || !def.match || !def.run || skills.some((s) => s.id === def.id)) return;
+    skills.push(def);
+    if (PatOS.intel) PatOS.intel.action({ id: 'pat.' + def.id, owner: def.app || 'pat', title: def.title || def.id, permission: (def.sensitive && def.app === 'finder') ? 'files.write' : SKILL_PERM[def.app] || null, priority: 35, match: (t, raw) => def.match(raw), run: (a) => def.run(a) });
+  }
   const recent = () => ctx.list && Date.now() - ctx.list.t < 10 * 60 * 1000 ? ctx.list : null;
   function openItem(kind, it) {
     if (kind === 'note') { openApp2('notes', { id: it }); return L('Opening the note.', 'J’ouvre la note.'); }
@@ -364,7 +317,19 @@
   // one command, said any of the ways above; null when Pat does not understand it
   function one(text) {
     const t = prep(text);
-    return answer(t) ?? runSkills(t) ?? basic(t);
+    return answer(t) ?? intel(t) ?? basic(t);
+  }
+  /* PatOS Intelligence first: every action it knows (and Pat's skills, which are actions too) */
+  function intel(t) {
+    if (!PatOS.intel) return runSkills(t);
+    let r = PatOS.intel.respond(t, { source: 'pat' });
+    if (r == null && FR()) { const f = fromFrench(t); if (f !== t) r = PatOS.intel.respond(f, { source: 'pat' }); }
+    return r == null ? null : show(r);
+  }
+  function show(r) {
+    if (r && typeof r.then === 'function') { r.then((x) => say(show(x)), (e) => say(L('That didn’t work: ', 'Ça n’a pas marché : ') + (e && e.message))); return L('Working on it…', 'Je m’en occupe…'); }
+    if (r.status === 'confirm') { ctx.pending = { confirm: () => show(r.confirm()), t: Date.now() }; return r.message; }
+    return r.message;
   }
   // does this look like a command (without doing it)? Used to cut "open notes and set a timer" in two
   const STARTS = /^(?:open|launch|start|timer|set|wake|alarm|remind|note|take a note|write down|add|event|schedule|find|search|look|play|what(?:’s|'s| is)?|show|check|my|dark mode|light mode|turn|wallpaper|calendar|define|weather|roll|flip|pick|choose|summari[sz]e|tidy|organi[sz]e|clean|create|make|write|new|run|calculate|convert|tell me|brief me|ouvre|lance|mets|règle|regle|réveille|reveille|rappelle|prends|ajoute|crée|cree|cherche|trouve|joue|range|organise|résume|resume|minuteur|quelle|quel|écris|ecris)\b/i;
@@ -490,7 +455,7 @@
   if (bar) { bar.innerHTML = ICON; bar.title = PatOS.t('Pat'); bar.addEventListener('click', (e) => { e.stopPropagation(); toggle(); }); }
   document.addEventListener('pointerdown', (e) => { if (isOpen() && !e.target.closest('#pat-panel, #mb-pat, .dlg-layer, .menu')) close(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen() && !e.defaultPrevented) close(); });
-  PatOS.pat = { skill, skills: () => skills.map((x) => ({ id: x.id, app: x.app || null, sensitive: !!x.sensitive })), suggestions, open, close, toggle, isOpen, ask: (t) => { open(); const i = box.querySelector('.msg-in'); if (i) { i.value = t; i.focus(); } } };
+  PatOS.pat = { skill, undoAt: () => (ctx.undo ? ctx.undo.t || 0 : 0), remember: (kind, items) => { ctx.list = { kind, items: (items || []).slice(0, 50), t: Date.now() }; }, skills: () => skills.map((x) => ({ id: x.id, app: x.app || null, sensitive: !!x.sensitive })), suggestions, open, close, toggle, isOpen, ask: (t) => { open(); const i = box.querySelector('.msg-in'); if (i) { i.value = t; i.focus(); } } };
   /* on a phone there is no menu bar: Pat is an app in Launchpad that opens the same panel */
   PatOS.iconDefs.pat = { bg: 'linear-gradient(160deg,#7d5cff,#ff4fa0)', svg: () => '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path d="M12 14h40a6 6 0 0 1 6 6v20a6 6 0 0 1-6 6H31L19 56a1.5 1.5 0 0 1-2.5-1.2V46H12a6 6 0 0 1-6-6V20a6 6 0 0 1 6-6z" fill="#fff"/><circle cx="22" cy="30" r="3.4" fill="#7d5cff"/><circle cx="32" cy="30" r="3.4" fill="#a05cff"/><circle cx="42" cy="30" r="3.4" fill="#ff4fa0"/></svg>' };
   PatOS.registerApp({ id: 'pat', name: 'Pat', icon: 'pat', category: 'Utilities', keywords: 'pat helper assistant commands timer hey pat voice command chat', about: 'Pat, the command helper: type or say what you want (open an app, a timer, a reminder, the weather). A fixed list of commands, not an AI.', action: () => toggle() });

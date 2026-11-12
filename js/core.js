@@ -270,6 +270,8 @@
     motion: 'natural',       // calm | natural | playful (the springs every animation uses, js/wm.js)     // clear | tinted (Liquid Glass: Tinted is thicker, for more contrast)
     language: 'auto',      // auto | en | fr      // auto | desktop | mobile
     showWidgets: true,
+    notifSound: true, mutedApps: [],   // Settings › Notifications and › Applications
+    intelPerms: {},          // Settings › Pat & Intelligence: kinds of action turned off (js/intelligence.js)
     hiddenApps: [],
     mobileDock: ['browser', 'messages', 'music', 'photos']
   };

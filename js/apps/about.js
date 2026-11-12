@@ -11,7 +11,7 @@
         ['Graphics', PatOS.has3D ? 'WebGL · three.js r' + THREE.REVISION : PatOS.webgl ? 'WebGL' : 'No WebGL'], ['Display', screen.width + ' × ' + screen.height], ['Apps', PatOS.appOrder.length + ' installed'], ['Storage', PatOS.fmtBytes(PatOS.store.usage()) + ' used']];
       win.body.appendChild(h('div', { class: 'ab' }, canvas, h('div', { class: 'ab-info' }, h('h1', {}, 'PatOS'), h('div', { class: 'ab-ver' }, 'Version ' + (PatOS.versionNow ? PatOS.versionNow() : PatOS.version)),
         ...info.map(([k, v]) => h('div', { class: 'ab-row' }, h('span', {}, k), h('b', {}, v))),
-        h('div', { class: 'ab-btns' }, h('button', { class: 'btn', onclick: () => PatOS.launch('settings') }, 'System Settings…'), h('button', { class: 'btn', onclick: () => PatOS.launch('activity') }, 'Activity…')),
+        h('div', { class: 'ab-btns' }, h('button', { class: 'btn', onclick: () => PatOS.launch('settings') }, 'Settings…'), h('button', { class: 'btn', onclick: () => PatOS.launch('activity') }, 'Activity…')),
         h('small', { class: 'ab-cr' }, 'Made by Pat'))));
       if (!PatOS.has3D) return;
       const r = PatOS.makeRenderer(canvas); r.setSize(200, 200, false);

@@ -31,7 +31,7 @@
     const pass = $('.lock-pass');
     pass.value = '';
     pass.placeholder = s.password ? 'Enter Password' : 'Press Enter to log in';
-    $('.lock-hint').textContent = PatOS.isMobile ? (s.password ? 'Swipe up, then enter your password' : 'Swipe up to open') : (s.password ? '' : 'No password set. You can add one in System Settings › Lock Screen.');
+    $('.lock-hint').textContent = PatOS.isMobile ? (s.password ? 'Swipe up, then enter your password' : 'Swipe up to open') : (s.password ? '' : 'No password set. You can add one in Settings › Lock Screen.');
     lock.classList.remove('need-pass');
     lockClock(); clearInterval(lockTimer); lockTimer = setInterval(lockClock, 1000);
     if (soft && soft.wasIn && !s.password && !(PatOS.setup && document.getElementById('setup'))) { const was = soft; soft = Object.assign({}, was, { wasIn: false }); setTimeout(() => login(), 60); }

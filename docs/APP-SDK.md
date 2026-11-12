@@ -538,6 +538,41 @@ Owner routes need `Authorization: Bearer <token>`. The review page itself is `/a
 </script>
 ```
 
+## Offering actions to PatOS Intelligence (3.2)
+
+An app can offer actions that people ask for in Pat, Spotlight or Shortcuts (see docs/INTELLIGENCE.md). PatOS opens the
+app to do them if it isn't open.
+
+```html
+<script>
+  patos.actions.handle(function (id, params) {        // params.text: whatever the person said after the phrase
+    if (id === "roll") return "You rolled a " + (1 + Math.floor(Math.random() * (+params.text || 6)));
+    throw new Error("I don't know that one");          // the person is told it didn't work
+  });
+  patos.actions.register([{ id: "roll", title: "Roll dice", phrases: ["roll the dice", "roll a die"] }]);
+</script>
+```
+
+- Up to 10 actions; `id` is a-z, 0-9 and dashes; phrases are at least 3 characters. An app's actions never outrank
+  PatOS's own (saying "open calendar" always opens Calendar), and they only ever reach their own app.
+- Declare them in the file too (`"actions": [...]`) so they work before the app was ever opened.
+- `patos.actions.run(id, params)` asks PatOS to do one of the few system actions apps may use (opening an app,
+  opening a setting); anything else is refused. Every run is listed in Settings › Privacy; at most 20 a minute.
+
+## Optional manifest fields (3.2)
+
+| Field | Meaning |
+| --- | --- |
+| `minPatOS` | `"3.2.0"`: PatOS refuses to install the app on an older PatOS, and says why. |
+| `category` | One of Games, Productivity, Education, Utilities, Creativity, Music, Social, Other. |
+| `screenshots` | Up to 4 `data:image/png|jpeg|webp` addresses, under 400 KB each; the App Store shows them. |
+| `changelog` | What changed in this version. |
+| `actions` | The actions the app offers (as above). |
+| `homepage` | An `https://` address. |
+
+Older files without these stay valid. The Developer Center (an app in PatOS) checks a file with exactly the checks
+PatOS and the store use, and shows each installed app's permissions, grants and actions.
+
 ## Troubleshooting
 
 | Problem | What to do |

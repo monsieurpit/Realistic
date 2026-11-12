@@ -122,7 +122,8 @@ test('it never says something worked when it didn’t, and explains what it didn
     PatOS.launch = launch; off();
     return { first, said, hint: PatOS.assistantReply('could you remind me something about the thing'), hint2: PatOS.assistantReply('organize everything somehow'), other: PatOS.assistantReply('flarb the wobble') };
   });
-  assert.deepEqual(r.said, ['Calculator didn’t open.'], 'Pat says so after: ' + JSON.stringify(r.said));
+  // (since 3.2 Pat knows at once that the app didn't open, so it says so in its answer instead of a moment later)
+  assert.equal(r.first, 'Calculator didn’t open.'); assert.deepEqual(r.said, [], 'and never claimed it opened: ' + JSON.stringify(r.said));
   assert.match(r.hint, /Try it like this: “remind me to call Sam tomorrow at 5pm”/);
   assert.match(r.hint2, /tidy my downloads/);
   assert.match(r.other, /help/);

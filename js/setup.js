@@ -31,7 +31,7 @@
       c.append(hello, h('p', { class: 'su-sub' }, T('Welcome to PatOS')), next('Get Started', () => go(1)), have, dots);
     } else if (step === 1) {
       const pick = (code, label, flag) => { const b = h('button', { class: 'su-opt' + (PatOS.lang === code ? ' on' : '') }, h('span', { class: 'su-flag' }, flag), label); b.onclick = () => { if (PatOS.lang === code) return go(2); PatOS.setSetting('language', code); PatOS.store.set('setupStep', 2); (PatOS._leaving = true, location.reload()); }; return b; };
-      c.append(h('h1', {}, T('Choose your language')), h('p', { class: 'su-sub' }, T('You can change it later in System Settings.')), h('div', { class: 'su-opts' }, pick('en', 'English', 'EN'), pick('fr', 'Français', 'FR')), next(null, () => go(2)), dots);
+      c.append(h('h1', {}, T('Choose your language')), h('p', { class: 'su-sub' }, T('You can change it later in Settings.')), h('div', { class: 'su-opts' }, pick('en', 'English', 'EN'), pick('fr', 'Français', 'FR')), next(null, () => go(2)), dots);
     } else if (step === 2) {
       const inp = h('input', { class: 'field su-in', value: PatOS.settings.userName, maxlength: '24', spellcheck: 'false' });
       inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(); });

@@ -39,7 +39,7 @@ test('Spotlight finds apps, settings and what is inside files', { skip: skipNoBr
   const page = await b.newPage(); await boot(page, srv.base);
   await page.evaluate(() => PatOS.fs.write('/Documents/Lab.txt', 'The mitochondria is the powerhouse of the cell'));
   const q = async (text) => { await page.evaluate(() => PatOS.spotlight.show()); await page.fill('.sp-input', text); await page.waitForTimeout(200); return page.evaluate(() => [...document.querySelectorAll('.sp-res')].slice(0, 3).map((e) => e.textContent)); };
-  assert.match((await q('setings'))[0], /System Settings/);
+  assert.match((await q('setings'))[0], /^Settings/);
   assert.match((await q('mitochondria'))[0], /Lab\.txt/);
   assert.match((await q('wifi'))[0], /Network/);
   await page.close();

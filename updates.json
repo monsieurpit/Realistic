@@ -1,7 +1,7 @@
 [
   {
     "version": "3.2.0",
-    "beta": 2,
+    "beta": 3,
     "date": "2026-11-12",
     "title": {
       "en": "PatOS 3.2: Messages",
@@ -9,6 +9,14 @@
     },
     "notes": {
       "en": [
+        "New: PatOS Intelligence. Pat, Spotlight and Shortcuts now share one engine that understands what you ask and does it, on this device, without an AI: “create a reminder to finish my project tomorrow”, “set the volume to 40%”, “find files containing PatOS”, “open my latest document”, “create a folder called Projects”, “turn on reduce motion”, “show applications that have notifications”… It always says exactly what it did, asks before deleting anything, and “undo” takes most things back",
+        "Workspaces: “start my study workspace” turns on Do Not Disturb, opens Notes and Calendar and shows your reminders, each step reported on its own (✓ or ✗ and why). Edit them in Settings › Pat & Intelligence",
+        "Shortcuts: “create a shortcut called Morning that opens calendar and turns on dark mode” makes it; “what does my Morning shortcut do” explains it; any shortcut step can be a command",
+        "System Settings is now Settings, organized like an operating system’s: General, Appearance, Desktop & Multitasking, Applications, Notifications, Sound, Display, Privacy & Security, Internet & Connectivity, Account & Continuity, Storage, Backup & Restore, Pat & Intelligence, Accessibility and System. Searching (in Settings or Spotlight) finds each setting and opens Settings right on it",
+        "New in Settings: Applications (each app’s version, permissions, storage and problems; silence its notifications; uninstall community apps), Notifications (Do Not Disturb, sounds, history), Pat & Intelligence (what it may do, workspaces, everything you can ask, what it did) and Diagnostics (your files, snapshots, sync and account health, measured resources, checks, and a diagnostic report you read in full before sharing; it never contains passwords, keys, messages or your files)",
+        "Spotlight: type a command and Enter does it; finds single settings, shortcuts and calendar events; words in any order (“mode dark”); faster while typing",
+        "New: Developer Center: check a .patapp with the same checks PatOS uses, see each installed app’s permissions and actions, the SDK reference and how to publish. Apps can offer actions to PatOS Intelligence, declare the PatOS version they need, a category, screenshots and a changelog",
+        "Fixed: Pat understood dates (“tomorrow at 5pm”) only after the Reminders app had been opened once",
         "Your files are safer: if PatOS ever finds its saved file list damaged when it starts, it keeps the damaged copy aside (instead of replacing it), starts anyway, and offers to put back your newest snapshot. Small damage is mended, with the original kept, and a file whose content went missing is reported instead of silently showing as empty",
         "Backups now carry a fingerprint: a backup file or snapshot that was damaged or changed is refused instead of restored; snapshots are read back after saving, and the backup folder only removes old backups once the new one has been read back whole",
         "Messages: send photos (📷 next to the message box; they are made smaller so they arrive fast), and add emoji from the 😊 button",
@@ -16,6 +24,14 @@
         "Messages: “Seen” under your last message once the other person has read it, and “typing…” dots while they write"
       ],
       "fr": [
+        "Nouveau : PatOS Intelligence. Pat, Spotlight et Raccourcis partagent maintenant un même moteur qui comprend ce que vous demandez et le fait, sur cet appareil, sans IA : « crée un rappel pour finir mon projet demain », « règle le volume à 40 % », « trouve les fichiers contenant PatOS », « ouvre mon dernier document », « crée un dossier appelé Projets »… Il dit toujours exactement ce qu’il a fait, demande avant de supprimer quoi que ce soit, et « annule » défait la plupart des choses",
+        "Espaces de travail : « lance mon espace étude » active Ne pas déranger, ouvre Notes et Calendrier et montre vos rappels, chaque étape étant rapportée à part (✓ ou ✗ et pourquoi). Modifiez-les dans Réglages › Pat et Intelligence",
+        "Raccourcis : « crée un raccourci appelé Matin qui ouvre calendrier et active le mode sombre » le crée; « que fait mon raccourci Matin » l’explique; toute étape peut être une commande",
+        "Réglages Système s’appelle maintenant Réglages, organisé comme celui d’un système d’exploitation : Général, Apparence, Bureau et multitâche, Applications, Notifications, Son, Affichage, Confidentialité et sécurité, Internet et connectivité, Compte et continuité, Stockage, Sauvegarde et restauration, Pat et Intelligence, Accessibilité et Système. La recherche (dans Réglages ou Spotlight) trouve chaque réglage et ouvre Réglages directement dessus",
+        "Nouveau dans Réglages : Applications (version, permissions, stockage et problèmes de chaque app; rendre ses notifications silencieuses; désinstaller les apps de la communauté), Notifications (Ne pas déranger, sons, historique), Pat et Intelligence (ce qu’elle peut faire, espaces, tout ce que vous pouvez demander, ce qu’elle a fait) et Diagnostics (état de vos fichiers, instantanés, Sync et compte, ressources mesurées, vérifications et un rapport que vous lisez en entier avant de le partager; il ne contient jamais de mots de passe, clés, messages ni vos fichiers)",
+        "Spotlight : tapez une commande et Entrée la fait; trouve chaque réglage, les raccourcis et les événements; mots dans n’importe quel ordre; plus rapide pendant la frappe",
+        "Nouveau : Centre des développeurs : vérifier un .patapp avec les mêmes vérifications que PatOS, voir les permissions et actions de chaque app installée, la référence du SDK et comment publier. Les apps peuvent offrir des actions à PatOS Intelligence, déclarer la version de PatOS requise, une catégorie, des captures et des notes de version",
+        "Corrigé : Pat ne comprenait les dates (« demain à 17h ») qu’après une première ouverture de Rappels",
         "Vos fichiers sont mieux protégés : si PatOS trouve sa liste de fichiers endommagée au démarrage, il garde la copie endommagée de côté (au lieu de la remplacer), démarre quand même et propose de remettre votre plus récent instantané. Les petits dégâts sont réparés en gardant l’original, et un fichier dont le contenu a disparu est signalé au lieu de s’afficher vide",
         "Les sauvegardes ont maintenant une empreinte : un fichier de sauvegarde ou un instantané endommagé ou modifié est refusé au lieu d’être restauré ; les instantanés sont relus après l’enregistrement, et le dossier de sauvegarde ne supprime les anciennes sauvegardes qu’une fois la nouvelle relue en entier",
         "Messages : envoyez des photos (📷 à côté de la zone de message ; elles sont réduites pour arriver vite), et ajoutez des émojis avec le bouton 😊",

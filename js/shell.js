@@ -93,14 +93,15 @@
 
   /* =========================== NOTIFICATIONS =========================== */
   const notifs = [];
+  PatOS.notifications = { list: () => notifs.map((n) => ({ title: n.title, icon: n.icon, time: n.time })), clear: () => { notifs.length = 0; } };
   PatOS.notify = function (n) {
     n = Object.assign({ title: 'PatOS', body: '', icon: 'about', time: new Date() }, n);
     notifs.unshift(n); if (notifs.length > 30) notifs.pop();
     // screen readers: announce it; other tabs: show a real browser notification
     try { let lr = document.getElementById('sr-live'); if (!lr) { lr = document.createElement('div'); lr.id = 'sr-live'; lr.setAttribute('aria-live', 'polite'); lr.setAttribute('role', 'status'); lr.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)'; document.body.appendChild(lr); } if (PatOS.settings.srAnnounce !== false) lr.textContent = n.title + '. ' + n.body; } catch (e) {}
     if (document.hidden && PatOS.settings.systemNotifications !== false && window.Notification && Notification.permission === 'granted') { try { const sn = new Notification(n.title, { body: n.body, icon: 'assets/icon-180.png' }); sn.onclick = () => { window.focus(); n.onClick && n.onClick(); sn.close(); }; } catch (e) {} }
-    if (PatOS.focusMode) return;
-    PatOS.sound.notify();
+    if (PatOS.focusMode || (PatOS.settings.mutedApps || []).includes(n.icon)) return; // (Do Not Disturb, or an app silenced in Settings › Applications: kept in Notification Center only)
+    if (PatOS.settings.notifSound !== false) PatOS.sound.notify();
     const t = h('div', { class: 'toast' },
       h('div', { class: 'toast-icon', html: PatOS.iconHTML(n.icon) }),
       h('div', { class: 'toast-text' }, h('div', { class: 'toast-app' }, (PatOS.apps[n.icon] && PatOS.apps[n.icon].name) || 'PatOS', h('span', {}, 'now')), h('b', {}, n.title), h('div', {}, n.body)));
@@ -189,7 +190,7 @@
       system: [
         { label: 'About PatOS', action: () => PatOS.launch('about') },
         { divider: true },
-        { label: 'System Settings…', action: () => PatOS.launch('settings') },
+        { label: 'Settings…', action: () => PatOS.launch('settings') },
         { label: 'App Library (Launchpad)', action: () => PatOS.launchpad.show() },
         { divider: true },
         { label: 'Force Quit…', action: () => PatOS.launch('activity') },
@@ -754,8 +755,10 @@
     const words = t.split(/[\s\-_./·,()]+/).filter(Boolean);
     if (words.some((w) => w.startsWith(q))) return 78;
     const i = t.indexOf(q); if (i >= 0) return 62 - Math.min(10, i * 0.1);
-    if (!strict && q.length >= 2 && words.length > 1 && words.map((w) => w[0]).join('').startsWith(q)) return 66; // "ss" = System Settings
+    if (!strict && q.length >= 2 && words.length > 1 && words.map((w) => w[0]).join('').startsWith(q)) return 66; // "pn" = Pat Notes
     if (q.length >= 4 && words.some((w) => oneEdit(w.slice(0, q.length), q) || oneEdit(w.slice(0, q.length + 1), q) || oneEdit(w.slice(0, q.length - 1), q))) return 40; // one typo
+    // several words, in any order ("mode dark"): every word must start a word of the text
+    const qw = q.split(/\s+/).filter(Boolean); if (qw.length > 1 && qw.every((x) => words.some((w) => w.startsWith(x)))) return 58;
     if (!strict && q.length >= 3 && t.length <= 40) { let j = 0; for (const ch of t) { if (ch === q[j]) j++; if (j === q.length) break; } if (j === q.length) return 22; } // letters in order
     return 0;
   }
@@ -825,6 +828,11 @@
     if (tm) { const n = parseFloat(tm[1].replace(',', '.')); const un = (tm[2] || 'm')[0].toLowerCase(); const secs = Math.round(n * (un === 's' ? 1 : un === 'h' ? 3600 : 60)); if (secs > 0) out.push({ group: 'Timer', key: 'tm', score: 1000, label: T('Start a timer for') + ' ' + tm[1] + ' ' + (un === 's' ? 's' : un === 'h' ? 'h' : 'min'), icon: 'clock', run: () => PatOS.quickTimer(secs) }); }
     const c = calc(raw.trim());
     if (c !== null) out.push({ group: 'Calculator', key: 'calc', score: 1000, label: raw.trim() + ' = ' + c, icon: 'calculator', preview: () => h('div', { class: 'sp-pv-big' }, String(c)), copy: String(c), run: () => copyOut(String(c), String(c)) });
+    // PatOS Intelligence: a command typed here is done by the same engine as Pat ("create a folder called Projects")
+    if (PatOS.intel && raw.trim().length > 3) {
+      const ip = PatOS.intel.parse(raw);
+      if (ip && !/^(app\.open|app\.suggest|app\.list)$/.test(ip.id)) out.push({ group: 'PatOS Intelligence', key: 'intel:' + ip.id, score: 990, label: ip.text.charAt(0).toUpperCase() + ip.text.slice(1), sub: T(ip.action.title), icon: 'pat', run: () => runIntel(raw, ip.action) });
+    }
     const def = /^(?:define|definition|definir|définir|définition)\s+(.+)$/i.exec(raw.trim());
     if (def && PatOS.apps.dictionary) out.push({ group: 'Dictionary', key: 'def', score: 1000, label: T('Look up') + ' “' + def[1] + '”', icon: 'dictionary', run: () => PatOS.launch('dictionary', { word: def[1] }) });
     // apps
@@ -835,11 +843,21 @@
       const sc = Math.max(score(nm, q), score(a.name, q), score(a.keywords || '', q, true) * 0.75);
       add('Applications', 'app:' + id, sc, { appId: id, label: nm, icon: a.icon || id, run: () => PatOS.launch(id) });
     });
-    // settings
+    // settings: the pages, and each setting on its own (it opens right on it)
     if (PatOS.settingsIndex) PatOS.settingsIndex().forEach((st) => {
       const sc = Math.max(score(T(st.label), q), score(st.label, q), score(st.keywords, q, true) * 0.8);
-      add('System Settings', 'set:' + st.pane, sc * 0.95, { label: T(st.label), sub: T('System Settings'), icon: 'settings', run: () => PatOS.launch('settings', { pane: st.pane }) });
+      add('Settings', 'set:' + st.pane, sc * 0.9, { label: T(st.label), sub: T('Settings'), icon: 'settings', run: () => PatOS.launch('settings', { pane: st.pane }) });
     });
+    (PatOS.settingsCatalog || []).forEach((c) => {
+      const sc = Math.max(score(T(c.label), q), score(c.label, q), score(c.words, q, true) * 0.85);
+      add('Settings', 'setk:' + c.key, sc, { label: T(c.label), sub: T('Settings'), icon: 'settings', run: () => PatOS.launch('settings', { pane: c.pane, find: c.key }) });
+    });
+    // shortcuts: Enter runs it
+    if (PatOS.shortcuts) PatOS.shortcuts.list().forEach((sc0) => add('Shortcuts', 'sc:' + sc0.id, score(sc0.name, q), { label: sc0.name, sub: T('Run shortcut'), icon: 'shortcuts', run: () => PatOS.shortcuts.run(sc0) }));
+    // calendar events (the next 60 days and the last 30)
+    const cal = (PatOS.store.peek ? PatOS.store.peek('calendar') : PatOS.store.get('calendar', {})) || {};
+    if (q.length >= 2) { const lo = PatOS.dateKey(new Date(Date.now() - 30 * 864e5)), hi = PatOS.dateKey(new Date(Date.now() + 60 * 864e5));
+      Object.keys(cal).forEach((day) => { if (day < lo || day > hi) return; (cal[day] || []).forEach((ev) => add('Calendar', 'ev:' + ev.id, score(ev.title || '', q), { label: ev.title, sub: new Date(day + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'short', month: 'short', day: 'numeric' }) + (ev.time ? ' ' + ev.time : ''), icon: 'calendar', run: () => PatOS.launch('calendar', { date: day }) })); }); }
     // actions
     ACTIONS.forEach((a, i) => { const lab = actLabel(a); add('Actions', 'act:' + i, Math.max(score(lab, q), score(a.kw, q, true) * 0.85), { label: lab, icon: a.icon, run: a.run }); });
     // files: name first, then what's inside
@@ -852,14 +870,15 @@
     }
     files.sort((a, b) => b.sc - a.sc).slice(0, 10).forEach(({ f, sc, inText }) => out.push({ group: f.dir ? 'Folders' : 'Files', key: 'file:' + f.p, score: sc, filePath: f.p, inText, label: f.name, sub: PatOS.fs.dirname(f.p), iconHTML: PatOS.fileIconHTML(f.p, PatOS.fs.get(f.p)), run: () => PatOS.openFile(f.p) }));
     // notes, reminders, contacts
-    (PatOS.store.get('notes', []) || []).filter((n) => !n.deletedAt).forEach((n) => {
+    const look = (k, d) => (PatOS.store.peek && PatOS.store.peek(k) !== undefined ? PatOS.store.peek(k) : PatOS.store.get(k, d)) || d; // (read only: no copy per keystroke)
+    look('notes', []).filter((n) => !n.deletedAt).forEach((n) => {
       const sc = Math.max(score(n.title, q), q.length >= 3 && fold(n.body).includes(q) ? 35 : 0);
       add('Notes', 'note:' + n.id, sc, { label: n.title || T('Untitled'), icon: 'notes', snippet: n.body, run: () => PatOS.launch('notes', { id: n.id }) });
     });
     // what you copied (Timeline's clipboard history): Enter copies it again
     if (PatOS.timeline) PatOS.timeline.searchClips(raw.trim(), 3).forEach((c) => add('Clipboard', 'clip:' + c.id, 36, { label: c.text.replace(/\s+/g, ' ').slice(0, 90), sub: T('Copied'), icon: 'timeline', snippet: c.text, run: () => PatOS.timeline.copy(c.text).then(() => PatOS.notify({ title: T('Copied'), body: c.text.slice(0, 80), icon: 'timeline', duration: 2000 })) }));
-    (PatOS.store.get('reminders', []) || []).filter((r) => !r.done).forEach((r) => add('Reminders', 'rem:' + r.id, score(r.text, q), { label: r.text, sub: r.due ? r.due + (r.time ? ' ' + r.time : '') : '', icon: 'reminders', run: () => PatOS.launch('reminders') }));
-    (PatOS.store.get('contacts', []) || []).forEach((ct) => {
+    look('reminders', []).filter((r) => !r.done).forEach((r) => add('Reminders', 'rem:' + r.id, score(r.text, q), { label: r.text, sub: r.due ? r.due + (r.time ? ' ' + r.time : '') : '', icon: 'reminders', run: () => PatOS.launch('reminders') }));
+    look('contacts', []).forEach((ct) => {
       const name = ((ct.first || '') + ' ' + (ct.last || '')).trim() || ct.company || ct.email || '';
       add('Contacts', 'ct:' + ct.id, Math.max(score(name, q), score(ct.email || '', q) * 0.8, score(ct.company || '', q) * 0.7), { label: name, sub: ct.email || ct.phone || '', icon: 'contacts', run: () => PatOS.launch('contacts', { id: ct.id }) });
     });
@@ -867,14 +886,14 @@
     if (PatOS.passwords && !PatOS.passwords.locked) PatOS.passwords.all().forEach((pw) => add('Passwords', 'pw:' + pw.id, Math.max(score(pw.site, q), score(pw.username, q) * 0.8) * 0.9, { label: pw.site, sub: pw.username, icon: 'passwords', run: () => PatOS.launch('passwords', { site: pw.site }) }));
     // Patoogle bookmarks and history
     const seen = new Set();
-    [...(PatOS.store.get('bookmarks', []) || []).map((b) => ({ u: b.u, title: b.t })), ...(PatOS.store.get('browserHistory', []) || []).slice(0, 300)].forEach((x) => {
+    [...look('bookmarks', []).map((b) => ({ u: b.u, title: b.t })), ...look('browserHistory', []).slice(0, 300)].forEach((x) => {
       if (!x || !/^https?:/.test(x.u || '') || /igu=1/.test(x.u)) return; const k = x.u.replace(/[#?].*$/, ''); if (seen.has(k)) return; seen.add(k);
       let host = ''; try { host = new URL(x.u).hostname.replace(/^www\./, ''); } catch (e) {}
       add('Websites', 'web:' + k, Math.max(score(x.title || '', q), score(host, q)) * 0.85, { label: x.title && x.title !== host ? x.title : host, sub: host, icon: 'browser', run: () => PatOS.launch('browser', { url: x.u }) });
     });
     // groups in order of their best match; instant answers first; a "top hit" when one result clearly wins
     const groups = {}; out.forEach((r) => (groups[r.group] = groups[r.group] || []).push(r));
-    const LIMIT = { Clipboard: 3, Applications: 6, 'System Settings': 4, Actions: 3, Files: 8, Folders: 4, Notes: 4, Reminders: 3, Contacts: 3, Passwords: 3, Websites: 4 };
+    const LIMIT = { 'PatOS Intelligence': 1, Clipboard: 3, Applications: 6, Settings: 5, Shortcuts: 3, Calendar: 3, Actions: 3, Files: 8, Folders: 4, Notes: 4, Reminders: 3, Contacts: 3, Passwords: 3, Websites: 4 };
     const ordered = Object.entries(groups).map(([g, list]) => { list.sort((a, b) => b.score - a.score); return [g, list.slice(0, LIMIT[g] || 4)]; }).sort((a, b) => b[1][0].score - a[1][0].score);
     let res = [].concat(...ordered.map(([, l]) => l));
     // leave out weak guesses when there are good matches
@@ -883,6 +902,12 @@
     if (best && best.score < 1000 && best.score >= 70) res = [Object.assign({}, best, { group: 'Top Hit' })].concat(res.filter((r) => r !== best));
     res.push({ group: 'Web', key: 'web', label: T('Search Google for') + ' “' + raw.trim() + '”', icon: 'browser', run: () => webSearch(raw.trim()) });
     return res;
+  }
+  /* runs a command through PatOS Intelligence and says what happened (asks first when the action does) */
+  async function runIntel(raw, a) {
+    let r = PatOS.intel.respond(raw, { source: 'spotlight' }); if (!r) return; r = await r;
+    if (r.status === 'confirm') { if (!(await PatOS.confirmBox(PatOS.t(a.title), r.message, { icon: 'pat' }))) return; r = await r.confirm(); }
+    PatOS.notify({ title: PatOS.t(a.title), body: r.message.split('\n').slice(0, 3).join(' · '), icon: 'pat', onClick: r.data && r.data.files && r.data.files[0] ? () => PatOS.openFile(r.data.files[0]) : null });
   }
   function copyOut(text, shown) { (navigator.clipboard ? navigator.clipboard.writeText(text) : Promise.reject()).catch(() => {}); PatOS.notify({ title: PatOS.t('Copied'), body: shown, icon: 'calculator' }); }
 

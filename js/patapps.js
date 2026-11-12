@@ -55,7 +55,8 @@ camera:{snapshot:function(){return call('camera.snapshot');}},
 microphone:{record:function(ms){return call('microphone.record',{ms:ms});}},
 location:{get:function(){return call('location.get');}},
 log:function(t,e){return call('console',{text:t,err:!!e});},
-window:{setTitle:function(t){return call('window.setTitle',{t:t});},close:function(){return call('window.close');}}};
+window:{setTitle:function(t){return call('window.setTitle',{t:t});},close:function(){return call('window.close');}},
+actions:{register:function(l){return call('actions.register',{list:l});},handle:function(f){ev.action=[function(d){Promise.resolve().then(function(){return f(d.id,d.params||{});}).then(function(m){call('actions.done',{rid:d.rid,ok:true,message:String(m==null?'':m)});},function(e){call('actions.done',{rid:d.rid,ok:false,message:String(e&&e.message||e)});});}];},run:function(id,p){return call('actions.run',{id:id,params:p||{}});}}};
 call('hello').then(function(t){theme(t);});})();`;
   function themeNow() {
     const th = PatOS.settings.theme; const dark = th === 'dark' || (th === 'auto' && window.matchMedia && matchMedia('(prefers-color-scheme: dark)').matches);
@@ -140,11 +141,35 @@ call('hello').then(function(t){theme(t);});})();`;
       }
       case 'location.get': await allow(rec, 'location'); log(rec, 'location', 'used'); return await new Promise((res, rej) => navigator.geolocation.getCurrentPosition((p) => res({ lat: p.coords.latitude, lon: p.coords.longitude, accuracy: p.coords.accuracy }), () => rej(new Error('Your location is not available.')), { timeout: 15000 }));
       case 'console': if (ctx.onConsole) ctx.onConsole(String(a.text == null ? '' : a.text).slice(0, 4000), !!a.err); return true;
+      /* PatOS Intelligence: this app's own actions (said by the person, run by the app), and the few system ones apps may use */
+      case 'actions.register': { const l = Array.isArray(a.list) ? a.list.slice(0, 10) : []; const k = get('patAppActions', {}); k[id] = l.map((d) => ({ id: String(d.id || '').slice(0, 30), title: String(d.title || '').slice(0, 60), description: String(d.description || '').slice(0, 200), phrases: (Array.isArray(d.phrases) ? d.phrases : []).slice(0, 10).map((x) => String(x).slice(0, 80)) })); set('patAppActions', k); exposeActions(id); return PatOS.intel ? PatOS.intel.list({ owner: 'app:' + id }).length : 0; }
+      case 'actions.done': { const w = pendingActions.get(a.rid); if (w && w.app === id) { pendingActions.delete(a.rid); w.done({ ok: a.ok !== false, message: String(a.message || '').slice(0, 500) }); } return true; }
+      case 'actions.run': {
+        if (!PatOS.intel || typeof a.id !== 'string') throw new Error('PatOS Intelligence is not available.');
+        const now = Date.now(); const t = (actionRuns.get(id) || []).filter((x) => now - x < 60000); if (t.length >= 20) throw new Error('This app asked for too many actions. Wait a minute.'); t.push(now); actionRuns.set(id, t);
+        log(rec, 'actions', a.id.slice(0, 40)); const r = await PatOS.intel.execute(a.id, a.params && typeof a.params === 'object' ? a.params : {}, { source: 'app:' + id });
+        if (r.status === 'confirm') throw new Error('This action needs the person to confirm it, so apps can’t run it.'); return { ok: r.ok, message: r.message };
+      }
       case 'window.setTitle': ctx.win.setTitle(String(a.t || rec.name).slice(0, 80)); return true;
       case 'window.close': setTimeout(() => ctx.win.close(), 0); return true;
       default: throw new Error('Unknown request: ' + m.slice(0, 40));
     }
   }
+
+  /* ---------- actions an app offers to PatOS Intelligence (patos.actions.register): stored, so they work before the app is open ---------- */
+  const pendingActions = new Map(), actionRuns = new Map(); let rids = 0;
+  function liveOf(appId) { for (const c of live.values()) if (c.rec && c.rec.id === appId && c.frame && c.frame.isConnected) return c; return null; }
+  async function deliver(appId, actionId, params) {
+    let c = liveOf(appId);
+    if (!c) { PatOS.launch('pa:' + appId); for (let i = 0; i < 40 && !c; i++) { await sleep(200); c = liveOf(appId); } if (!c) throw new Error(T('The app didn’t open.')); await sleep(400); }
+    const rid = 'r' + (++rids) + Date.now().toString(36);
+    return new Promise((done) => {
+      const timer = setTimeout(() => { pendingActions.delete(rid); done({ ok: false, message: T('The app didn’t answer.') }); }, 10000);
+      pendingActions.set(rid, { app: appId, done: (r) => { clearTimeout(timer); done(r); } });
+      try { c.frame.contentWindow.postMessage({ patos: 2, event: 'action', data: { rid, id: actionId, params: { text: String((params && params.text) || '').slice(0, 200) } } }, '*'); } catch (e) { clearTimeout(timer); done({ ok: false, message: T('The app didn’t answer.') }); }
+    });
+  }
+  function exposeActions(appId) { if (!PatOS.intel) return; const defs = (get('patAppActions', {})[appId]) || []; PatOS.intel.exposeApp(appId, all()[appId] ? defs : [], (aid, p) => deliver(appId, aid, p)); }
 
   /* ---------- installed apps ---------- */
   const all = () => get(K.apps, {});
@@ -153,13 +178,14 @@ call('hello').then(function(t){theme(t);});})();`;
     PatOS.iconDefs['pa:' + app.id] = { bg: 'linear-gradient(160deg,rgba(255,255,255,.28),rgba(0,0,0,.22)),' + app.color, svg: () => '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><text x="32" y="44" font-size="34" font-family="system-ui,-apple-system,sans-serif" text-anchor="middle" fill="#fff">' + esc(app.icon) + '</text></svg>' };
   }
   function register(app) {
-    const id = 'pa:' + app.id; iconFor(app);
+    const id = 'pa:' + app.id; iconFor(app); try { exposeActions(app.id); } catch (e) {}
     const had = !!PatOS.apps[id];
     PatOS.registerApp({ id, name: app.name, icon: id, category: 'Community', width: app.width, height: app.height, minWidth: 240, minHeight: 200, single: true, patapp: true, about: app.description, keywords: (app.name + ' ' + app.description + ' ' + app.author).toLowerCase(), launch: (win) => launchApp(win, app) });
     if (had) { const i = PatOS.appOrder.indexOf(id), j = PatOS.appOrder.lastIndexOf(id); if (i !== j) PatOS.appOrder.splice(j, 1); }
   }
   const redraw = () => PatOS.setSetting('hiddenApps', (PatOS.settings.hiddenApps || []).slice()); // redraws Launchpad and the Home Screen
   function unregister(appId) {
+    if (PatOS.intel) PatOS.intel.exposeApp(appId, [], null); const ka = get('patAppActions', {}); if (ka[appId]) { delete ka[appId]; set('patAppActions', ka); }
     const id = 'pa:' + appId; PatOS.wm.windowsOf(id).forEach((w) => w.close());
     delete PatOS.apps[id]; const i = PatOS.appOrder.indexOf(id); if (i >= 0) PatOS.appOrder.splice(i, 1); delete PatOS.iconDefs[id];
     ['dockPinned', 'mobileDock'].forEach((k) => { const l = PatOS.settings[k] || []; if (l.includes(id)) PatOS.setSetting(k, l.filter((x) => x !== id)); });
@@ -194,7 +220,11 @@ call('hello').then(function(t){theme(t);});})();`;
     const v = F.validate(raw); if (!v.ok) throw new Error(T(v.error)); return v.app;
   }
   async function install(app, opts) {
-    opts = opts || {}; const have = all()[app.id]; const upd = !!have;
+    opts = opts || {};
+    // the file is checked again here, whoever calls: nothing half-valid is ever installed
+    const v = F.validate(app); if (!v.ok) throw new Error(v.error); app = v.app;
+    if (!F.compatible(app, PatOS.version)) { await PatOS.alertBox(T('This app needs a newer PatOS'), '“' + app.name + '” ' + T('needs PatOS') + ' ' + app.minPatOS + ' ' + T('or newer. This PatOS is') + ' ' + PatOS.version + '. ' + T('Update PatOS in Settings › General › Software Update.'), { icon: 'appstore' }); return false; }
+    const have = all()[app.id]; const upd = !!have;
     if (have && F.cmp(app.version, have.app.version) < 0 && !opts.downgrade) {
       if (!(await PatOS.confirmBox(T('Install an older version?'), '“' + app.name + '” ' + have.app.version + ' ' + T('is installed. This file is version') + ' ' + app.version + '.', { ok: T('Install'), icon: 'appstore' }))) return false;
     }
@@ -202,6 +232,7 @@ call('hello').then(function(t){theme(t);});})();`;
     const text = (app.author ? T('By') + ' ' + app.author + '. ' : '') + (app.description ? app.description + ' ' : '') + T('It asks for:') + ' ' + lines + '. ' + T('Each one is asked again the first time the app uses it.') + ' ' + (opts.source === 'store' ? T('This app was checked by the owner of this PatOS.') : T('This app was not checked. Only install apps you trust.'));
     if (!(await PatOS.confirmBox((upd ? T('Update') : T('Install')) + ' “' + app.name + '” ' + app.version + '?', text, { ok: upd ? T('Update') : T('Install'), icon: 'appstore', safe: !opts.source }))) return false;
     const a = all(); a[app.id] = { app, installed: have ? have.installed : Date.now(), updated: Date.now(), source: opts.source || 'file' }; set(K.apps, a);
+    if (app.actions) { const k = get('patAppActions', {}); k[app.id] = app.actions; set('patAppActions', k); } // (declared in the file: they work before the first open)
     register(app); redraw(); PatOS.emit('patapps');
     return true;
   }

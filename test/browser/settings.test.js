@@ -12,14 +12,17 @@ test('groups in the sidebar open lists of settings, and each setting opens with 
   const page = await b.newPage({ viewport: { width: 1200, height: 780 } }); const errors = []; page.on('pageerror', (e) => errors.push(e.message)); await boot(page, srv.base, { fresh: true });
   await page.evaluate(() => PatOS.launch('settings', { cat: 'general' })); await page.waitForSelector('.st-side .st-card');
   const side = await page.$$eval('.st-side .st-si', (els) => els.map((e) => e.textContent.trim()));
-  assert.equal(side.length, 6, side.join('|'));
-  assert.match(side.join('|'), /General/); assert.match(side.join('|'), /Appearance & Display/); assert.match(side.join('|'), /Privacy & Security/);
+  // 3.2: the categories of an operating system's settings
+  assert.equal(side.length, 15, side.join('|'));
+  ['General', 'Appearance', 'Desktop & Multitasking', 'Applications', 'Notifications', 'Sound', 'Display', 'Privacy & Security', 'Internet & Connectivity', 'Account & Continuity', 'Storage', 'Backup & Restore', 'Pat & Intelligence', 'Accessibility', 'System'].forEach((c) => assert.ok(side.includes(c), c + ' in ' + side.join('|')));
   const rows = await page.$$eval('.st-main .st-link', (els) => els.map((e) => e.textContent));
-  assert.ok(rows.some((x) => /Network/.test(x)) && rows.some((x) => /Software Update/.test(x)), rows.join('|'));
-  await page.click('.st-main .st-link:has-text("Network")'); await page.waitForSelector('.st-back');
-  assert.match(await page.textContent('.st-main h1'), /Network/); assert.match(await page.textContent('.st-back'), /General/);
-  await page.click('.st-back'); assert.ok(await page.locator('.st-main .st-link').count() >= 6);
+  assert.ok(rows.some((x) => /Software Update/.test(x)) && rows.some((x) => /Keyboard/.test(x)), rows.join('|'));
+  await page.click('.st-main .st-link:has-text("Software Update")'); await page.waitForSelector('.st-back');
+  assert.match(await page.textContent('.st-main h1'), /Software Update/); assert.match(await page.textContent('.st-back'), /General/);
+  await page.click('.st-back'); assert.ok(await page.locator('.st-main .st-link').count() >= 4);
   await page.click('.st-side .st-si:has-text("Appearance")'); assert.ok(await page.locator('.st-main .st-link:has-text("Wallpaper")').count() === 1);
+  // a category with one page opens it at once, without a list of one
+  await page.click('.st-side .st-si:has-text("Internet & Connectivity")'); assert.match(await page.textContent('.st-main h1'), /Network/); assert.equal(await page.locator('.st-back').count(), 0);
   assert.deepEqual(errors, []); await page.close();
 });
 

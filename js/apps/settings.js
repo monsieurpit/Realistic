@@ -1,34 +1,22 @@
-/* System Settings */
+/* Settings */
 (function () {
   'use strict';
   const { h } = PatOS;
   const T = (x) => PatOS.t(x);
   const ACCENTS = ['#0a84ff', '#bf5af2', '#ff375f', '#ff453a', '#ff9f0a', '#ffd60a', '#32d74b', '#64d2ff', '#8e8e93'];
   /* each setting: [key, name, icon] - the icon is a drawn symbol on a small colored glass tile ("symbol|color") */
-  const PANES = [
-    ['general', 'General', 'gear|#8e8e93'], ['account', 'Account', 'person|#0a84ff'], ['voice', 'Pat Voice', 'mic|#ff375f'], ['update', 'Software Update', 'download|#5e5ce6'], ['appearance', 'Appearance', 'contrast|#48484a'], ['accessibility', 'Accessibility', 'access|#0a84ff'], ['wallpaper', 'Wallpaper', 'image|#30b0c7'], ['dock', 'Home Screen & Dock', 'dock|#5e5ce6'],
-    ['display', 'Displays & 3D', 'display|#0a84ff'], ['sound', 'Sound', 'speaker|#ff375f'], ['lock', 'Lock Screen', 'lock|#ff9f0a'], ['network', 'Network', 'wifi|#0a84ff'], ['startup', 'Install & Start Up', 'rocket|#ff6a3d'], ['permissions', 'Permissions', 'shield|#30d158'], ['system', 'This Device', 'laptop|#8e8e93'],
-    ['legal', 'Privacy Policy & Terms', 'doc|#8e8e93'], ['keyboard', 'Keyboard', 'keyboard|#8e8e93'], ['storage', 'Storage', 'storage|#8e8e93'], ['backup', 'Backup & Restore', 'history|#30d158'], ['sync', 'Sync', 'cloud|#5ac8fa'], ['privacy', 'Privacy', 'hand|#0a84ff'], ['me', 'Account Info', 'person|#0a84ff']
-  ];
-  /* the sidebar shows these groups; a group opens a list of its settings */
-  const CATS = [
-    ['general', 'General', 'gear|#8e8e93', ['general', 'update', 'network', 'storage', 'startup', 'keyboard', 'system']],
-    ['cloud', 'Account & Cloud', 'cloud|#5ac8fa', ['account', 'sync', 'backup']],
-    ['looks', 'Appearance & Display', 'palette|#bf5af2', ['appearance', 'wallpaper', 'dock', 'display']],
-    ['access', 'Accessibility', 'access|#0a84ff', ['accessibility']],
-    ['sound', 'Sound & Voice', 'speaker|#ff375f', ['sound', 'voice']],
-    ['safe', 'Privacy & Security', 'hand|#30d158', ['privacy', 'permissions', 'lock']]
-  ];
+  const PANES = PatOS.settingsPages; // (js/settings-catalog.js)
+  const CATS = PatOS.settingsCategories; // (js/settings-catalog.js)
   // a small glass tile of the setting's color with its drawn symbol
   const stIc = (spec) => { const [n, c] = String(spec).split('|'); return h('span', { class: 'st-ic', style: { '--ic': c || '#8e8e93' }, html: PatOS.sym(n) }); };
   const catOf = (pane) => (CATS.find((c) => c[3].includes(pane)) || [])[0] || null;
-  const KW = { legal: 'privacy policy terms conditions legal law confidentialite politique conditions utilisation juridique', me: 'me user computer device info about name account profile utilisateur ordinateur appareil informations profil', voice: 'voice hey pat microphone speech listen talk say wake voix micro parler ecouter', account: 'account username password sign in sign up cloud save login compte nom utilisateur mot de passe connexion creer', privacy: 'privacy apps permissions camera microphone location log timeline clipboard history activity confidentialite applications permissions camera micro position journal historique presse-papiers activite', sync: 'sync cloud devices iphone chromebook account encrypted key code synchroniser appareils compte chiffre cle', backup: 'backup restore snapshot export import sauvegarde restaurer copie folder dossier recover recuperer data safe', update: 'update mise à jour version new nouveau what changed nouveautés restart redémarrer', general: 'name language langue layout disposition full screen plein écran clock horloge seconds secondes 24', appearance: 'dark sombre light clair theme thème color couleur glass verre transparency transparence motion animations', wallpaper: 'background fond écran 3d picture image photo', dock: 'dock icons icônes size taille grow hide masquer widgets home accueil apps', display: 'brightness luminosité 3d quality qualité graphics graphismes webgl', sound: 'volume sounds sons chime son', lock: 'password mot de passe lock verrouiller', network: 'wifi internet connection connexion', keyboard: 'shortcuts raccourcis keys touches alt', storage: 'backup sauvegarde erase effacer trash corbeille reset restore restaurer space espace', accessibility: 'contrast bold text motion focus screen reader lecteur écran accessibilité', permissions: 'camera microphone location notifications permissions', startup: 'install installer app application startup démarrage shelf étagère pin épingler files fichiers open with ouvrir avec full screen plein écran', system: 'device battery memory processor system appareil batterie mémoire' };
+  const KW = PatOS.settingsKeywords;
   // Spotlight searches Settings with this list
-  PatOS.settingsIndex = () => PANES.map(([k, l]) => ({ pane: k, label: l, keywords: KW[k] || '' }));
   PatOS.registerApp({
-    id: 'settings', name: 'System Settings', icon: 'settings', width: 800, height: 560, minWidth: 600, keywords: 'preferences settings control wallpaper theme dark parametres paramètres réglages reglages préférences',
+    id: 'settings', name: 'Settings', icon: 'settings', width: 800, height: 560, minWidth: 600, keywords: 'preferences settings control wallpaper theme dark parametres paramètres réglages reglages préférences',
     launch(win, args) {
       const toast = (t) => PatOS.notify({ title: t, body: '', icon: 'settings' });
+      let findKey = args.find || ''; // a single setting to open right on (from Spotlight, Pat or Settings search)
       let pane = args.pane || (args.cat ? null : 'general'); let cat = args.cat || catOf(pane) || 'general'; if (args.cat && !args.pane) pane = null;
       const side = h('div', { class: 'st-side' });
       const main = h('div', { class: 'st-main' });
@@ -38,11 +26,137 @@
       const S = () => PatOS.settings;
       const row = (label, ctl, sub) => h('div', { class: 'st-row' }, h('div', { class: 'st-rl' }, h('span', {}, label), sub ? h('small', {}, sub) : null), ctl);
       const group = (...rows) => h('div', { class: 'st-group' }, ...rows);
-      const toggle = (key, after) => { const t = h('button', { class: 'switch' + (S()[key] ? ' on' : '') }); t.onclick = () => { PatOS.setSetting(key, !S()[key]); t.classList.toggle('on', S()[key]); after && after(); }; return t; };
-      const range = (key, min, max, step, fmt) => { const v = h('span', { class: 'st-val' }); const r = h('input', { type: 'range', min, max, step: step || 1, value: S()[key] }); const upd = () => (v.textContent = fmt ? fmt(+r.value) : r.value); r.oninput = () => { PatOS.setSetting(key, +r.value); upd(); }; upd(); return h('div', { class: 'st-range' }, r, v); };
-      const select = (key, opts) => { const s = h('select', { class: 'field' }, ...opts.map(([v, l]) => h('option', { value: v, selected: S()[key] === v }, l))); s.onchange = () => PatOS.setSetting(key, s.value); return s; };
+      const toggle = (key, after) => { const t = h('button', { class: 'switch' + (S()[key] ? ' on' : ''), 'data-key': key, role: 'switch', 'aria-checked': String(!!S()[key]) }); t.onclick = () => { PatOS.setSetting(key, !S()[key]); t.classList.toggle('on', S()[key]); t.setAttribute('aria-checked', String(!!S()[key])); after && after(); }; return t; };
+      const range = (key, min, max, step, fmt) => { const v = h('span', { class: 'st-val' }); const r = h('input', { type: 'range', min, max, step: step || 1, value: S()[key], 'data-key': key }); const upd = () => (v.textContent = fmt ? fmt(+r.value) : r.value); r.oninput = () => { PatOS.setSetting(key, +r.value); upd(); }; upd(); return h('div', { class: 'st-range' }, r, v); };
+      const select = (key, opts) => { const s = h('select', { class: 'field', 'data-key': key }, ...opts.map(([v, l]) => h('option', { value: v, selected: S()[key] === v }, l))); s.onchange = () => PatOS.setSetting(key, s.value); return s; };
 
+      const fold = (x) => String(x || '').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '');
+      const fmtBytes = (n) => (n >= 1e9 ? (n / 1e9).toFixed(1) + ' GB' : n >= 1e6 ? (n / 1e6).toFixed(1) + ' MB' : Math.max(1, Math.round(n / 1e3)) + ' KB');
+      const when = (t) => new Date(t).toLocaleString(PatOS.locale, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+      const badge = (state, text) => h('span', { class: 'st-badge ' + state }, h('span', { class: 'st-dot', 'aria-hidden': 'true' }), text); // (color AND words, never color alone)
       const panes = {
+        /* ---------- Applications: every app, what it is, what it may do, what it keeps, what went wrong ---------- */
+        apps() {
+          const out = h('div', { class: 'st-apps' }); const PA = PatOS.patapps;
+          const q = h('input', { class: 'field st-search', placeholder: T('Search apps'), 'aria-label': T('Search apps'), type: 'search' });
+          const listEl = h('div', { class: 'st-group' }); const detail = h('div');
+          const muted = () => S().mutedApps || [];
+          function draw() {
+            listEl.innerHTML = ''; const f = fold(q.value.trim());
+            const ids = PatOS.appOrder.filter((k) => PatOS.apps[k] && !(PatOS.apps[k].hidden && !PatOS.apps[k].patapp) && (!f || fold(T(PatOS.apps[k].name)).includes(f)));
+            ids.forEach((k) => { const a = PatOS.apps[k]; const errs = (PatOS.errors.list() || []).filter((e) => e.app === k || String(e.where).includes(k)).length;
+              listEl.appendChild(h('button', { class: 'st-row st-link', onclick: () => open(k) }, h('span', { class: 'st-app-ic', html: PatOS.iconHTML(a.icon || k) }), h('span', { class: 'st-link-l' }, T(a.name), h('small', {}, a.patapp ? T('Community app') : T('Built into PatOS'))), errs ? badge('warn', errs + ' ' + T('problems')) : null, h('span', { class: 'st-chev', 'aria-hidden': 'true' }, '›'))); });
+            if (!ids.length) listEl.appendChild(h('div', { class: 'bk-empty' }, T('No app has that name.')));
+          }
+          function open(k) {
+            const a = PatOS.apps[k]; detail.innerHTML = ''; const ent = a.patapp && PA ? PA.list().find((x) => 'pa:' + x.id === k) : null; const rec = ent && ent.app ? Object.assign({ source: ent.source }, ent.app) : null;
+            const data = rec ? JSON.stringify((PatOS.store.get('patAppData', {}) || {})[rec.id] || {}).length : 0;
+            
+            const errs = (PatOS.errors.list() || []).filter((e) => e.app === k || String(e.where).includes(k)).slice(-5);
+            const mute = h('button', { class: 'switch' + (muted().includes(k) ? '' : ' on'), role: 'switch', 'aria-checked': String(!muted().includes(k)), 'aria-label': T('Notifications') });
+            mute.onclick = () => { const m = muted(); PatOS.setSetting('mutedApps', m.includes(k) ? m.filter((x) => x !== k) : m.concat(k)); mute.classList.toggle('on', !S().mutedApps.includes(k)); mute.setAttribute('aria-checked', String(!S().mutedApps.includes(k))); };
+            const hid = h('button', { class: 'switch' + ((S().hiddenApps || []).includes(k) ? '' : ' on'), role: 'switch', 'aria-label': T('Show in Launchpad') });
+            hid.onclick = () => { const l = S().hiddenApps || []; PatOS.setSetting('hiddenApps', l.includes(k) ? l.filter((x) => x !== k) : l.concat(k)); hid.classList.toggle('on', !S().hiddenApps.includes(k)); };
+            detail.append(h('h2', { class: 'st-sub' }, T(a.name)),
+              group(row(T('Version'), h('span', { class: 'st-val' }, rec ? rec.version : PatOS.version), rec ? T('By') + ' ' + rec.author : T('Comes with PatOS')),
+                row(T('Kind'), h('span', { class: 'st-val' }, rec ? (rec.source === 'store' ? T('From the App Store (reviewed)') : T('Opened from a file (not reviewed)')) : T('Built into PatOS'))),
+                rec ? row(T('Storage it uses'), h('span', { class: 'st-val' }, fmtBytes(data))) : null,
+                row(T('Notifications'), mute, T('When off, its notifications are kept in Notification Center but make no banner or sound.')),
+                row(T('Show in Launchpad'), hid),
+                row(T('Open'), h('button', { class: 'btn', onclick: () => PatOS.launch(k) }, T('Open')))),
+              rec ? h('h3', {}, T('Permissions')) : null,
+              rec ? group(...(rec.permissions.length ? rec.permissions.map((perm) => { const g = (PA.grants ? PA.grants(rec.id) : {})[perm]; return row(perm, h('span', { class: 'st-val' }, g === 'allow' ? T('Allowed') : g === 'deny' ? T('Denied') : T('Asks first'))); }) : [row(T('This app asked for no permissions.'), h('span'))])) : null,
+              errs.length ? h('h3', {}, T('Recent problems')) : null,
+              errs.length ? group(...errs.map((e) => row(e.msg, h('small', { class: 'st-val' }, when(e.t)), e.where))) : null,
+              rec ? group(row(T('Uninstall'), h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox(T('Uninstall') + ' ' + rec.name + '?', T('The app and the data it saved are removed from this device. Files it saved in Documents › Apps stay.'), { ok: T('Uninstall'), danger: true, icon: 'settings' })) { await PA.uninstall(rec.id); detail.innerHTML = ''; draw(); } } }, T('Uninstall…')))) : null);
+            detail.scrollIntoView({ block: 'nearest' });
+          }
+          q.addEventListener('input', draw); draw();
+          out.append(h('p', { class: 'st-desc' }, T('Every app on this device: its version, what it may do, what it keeps, and its notifications. Community apps can be uninstalled here.')), q, listEl, detail,
+            group(row(T('Get more apps'), h('button', { class: 'btn', onclick: () => PatOS.launch('appstore') }, T('App Store'))), row(T('Make your own'), h('button', { class: 'btn', onclick: () => PatOS.launch('developer') }, T('Developer Center')))));
+          return [out];
+        },
+        /* ---------- Notifications ---------- */
+        notifications() {
+          const out = h('div'); const hist = h('div', { class: 'st-group' });
+          const dnd = h('button', { class: 'switch' + (PatOS.focusMode ? ' on' : ''), role: 'switch', 'aria-checked': String(!!PatOS.focusMode), 'aria-label': T('Do Not Disturb') });
+          dnd.onclick = () => { PatOS.focusMode = !PatOS.focusMode; PatOS.emit('focus', PatOS.focusMode); dnd.classList.toggle('on', PatOS.focusMode); dnd.setAttribute('aria-checked', String(PatOS.focusMode)); };
+          const drawHist = () => { hist.innerHTML = ''; const l = PatOS.notifications ? PatOS.notifications.list() : []; if (!l.length) hist.appendChild(h('div', { class: 'bk-empty' }, T('No notifications yet.'))); l.slice(0, 15).forEach((n) => hist.appendChild(row(n.title, h('small', { class: 'st-val' }, when(n.time)), PatOS.apps[n.icon] ? T(PatOS.apps[n.icon].name) : 'PatOS'))); };
+          drawHist();
+          const muted = (S().mutedApps || []).filter((k) => PatOS.apps[k]);
+          out.append(group(row(T('Do Not Disturb'), dnd, T('Banners and sounds stay quiet; notifications still go to Notification Center.')),
+            row(T('Notification sounds'), toggle('notifSound'), T('A short sound with each banner.')),
+            row(T('Notifications in other tabs'), toggle('systemNotifications'), T('When PatOS is in a background tab, your browser shows the notification (if you allowed it).'))),
+            h('h3', {}, T('Apps you silenced')), group(...(muted.length ? muted.map((k) => row(T(PatOS.apps[k].name), h('button', { class: 'btn', onclick: () => { PatOS.setSetting('mutedApps', (S().mutedApps || []).filter((x) => x !== k)); renderMain(); } }, T('Turn On')))) : [h('div', { class: 'bk-empty' }, T('None. Silence an app in Settings › Applications.'))])),
+            h('h3', {}, T('History')), hist, group(row(T('Clear the history'), h('button', { class: 'btn', onclick: () => { PatOS.notifications && PatOS.notifications.clear(); drawHist(); } }, T('Clear')))));
+          return [out];
+        },
+        /* ---------- PatOS Intelligence ---------- */
+        intelligence() {
+          const I = PatOS.intel; const out = h('div');
+          out.appendChild(h('p', { class: 'st-desc' }, T('PatOS Intelligence does what you ask in Pat, Spotlight and Shortcuts. It is not an AI: it knows a fixed list of actions, says exactly what it did, runs on this device and works offline.')));
+          out.appendChild(h('h3', {}, T('What it may do')));
+          out.appendChild(group(...I.perms().map((p) => { const t = h('button', { class: 'switch' + (p.on ? ' on' : ''), role: 'switch', 'aria-checked': String(p.on), 'aria-label': p.label }); t.onclick = () => { I.setPerm(p.key, !t.classList.contains('on')); t.classList.toggle('on'); t.setAttribute('aria-checked', String(t.classList.contains('on'))); }; return row(p.label, t); })));
+          // workspaces: several actions at once ("start my study workspace")
+          out.appendChild(h('h3', {}, T('Workspaces')));
+          const wsBox = h('div'); const drawWs = () => { wsBox.innerHTML = ''; I.workspaces().forEach((w, i) => {
+            const steps = h('textarea', { class: 'field st-ws-steps', rows: Math.max(2, w.steps.length), 'aria-label': T('Steps, one per line') }); steps.value = w.steps.join('\n');
+            const name = h('input', { class: 'field', value: T(w.name), 'aria-label': T('Name') });
+            const save = () => { const all = I.workspaces().map((x) => Object.assign({}, x)); all[i] = Object.assign({}, w, { name: name.value.trim() || w.name, words: [fold(name.value.trim() || w.name)].concat(w.words || []), steps: steps.value.split('\n').map((x) => x.trim()).filter(Boolean).slice(0, 12) }); I.setWorkspaces(all); };
+            steps.onchange = save; name.onchange = save;
+            const test = h('small', { class: 'st-ws-check' }); const check = () => { const bad = steps.value.split('\n').map((x) => x.trim()).filter(Boolean).filter((x) => !I.parse(x)); test.textContent = bad.length ? '✗ ' + T('Not understood:') + ' ' + bad.join(', ') : '✓ ' + T('Every step is understood.'); test.className = 'st-ws-check ' + (bad.length ? 'bad' : 'ok'); };
+            steps.addEventListener('input', check); check();
+            wsBox.appendChild(h('div', { class: 'st-group st-ws' }, row(T('Name'), name), h('div', { class: 'st-row st-col' }, h('span', {}, T('Steps, one per line (anything you could ask Pat)')), steps, test),
+              h('div', { class: 'st-row' }, h('small', {}, T('Say') + ' “' + T('start my') + ' ' + fold(T(w.name)) + ' ' + T('workspace') + '”'), h('div', { class: 'su-btns' }, h('button', { class: 'btn', onclick: () => { const r = I.runWorkspace(w.name); PatOS.alertBox(T(w.name), r.message, { icon: 'settings' }); } }, T('Start')), h('button', { class: 'btn', onclick: () => { const all = I.workspaces().filter((_, j) => j !== i); I.setWorkspaces(all.length ? all : []); drawWs(); } }, T('Remove'))))));
+          }); };
+          drawWs();
+          out.append(wsBox, group(row(T('New workspace'), h('button', { class: 'btn', onclick: () => { I.setWorkspaces(I.workspaces().concat([{ id: 'w' + Date.now().toString(36), name: T('My workspace'), words: [], steps: ['open notes'] }])); drawWs(); } }, T('Add')))));
+          // what it understands
+          out.appendChild(h('h3', {}, T('What you can ask')));
+          const acts = I.list().filter((a) => a.examples.length);
+          out.appendChild(group(...acts.map((a) => row(T(a.title), h('span'), a.examples.slice(0, 2).map((x) => '“' + x + '”').join('  ·  ') + (a.confirm ? '  ·  ' + T('asks first') : '') + (a.undo ? '' : '')))));
+          // what it did
+          out.appendChild(h('h3', {}, T('Recent actions')));
+          const hist = I.history().slice(-12).reverse();
+          out.appendChild(group(...(hist.length ? hist.map((x) => row((x.ok ? '✓ ' : x.status === 'denied' ? '⊘ ' : '✗ ') + T(x.title), h('small', { class: 'st-val' }, when(x.t)), x.message)) : [h('div', { class: 'bk-empty' }, T('Nothing yet. Ask Pat something.'))]),
+            row(T('Clear this list'), h('button', { class: 'btn', onclick: () => { I.clearHistory(); renderMain(); } }, T('Clear')), T('Kept on this device only.'))));
+          out.appendChild(group(row(T('Shortcuts'), h('button', { class: 'btn', onclick: () => PatOS.launch('shortcuts') }, T('Open Shortcuts')), T('A shortcut step can be any command (“Do a command”).'))));
+          return [out];
+        },
+        /* ---------- Diagnostics: measured facts only, and safe checks ---------- */
+        diagnostics() {
+          const out = h('div'); const res = h('div');
+          const L = PatOS.fs.integrity ? PatOS.fs.integrity.load() : { state: 'ok', problems: [] };
+          const errs = PatOS.errors.list(); const sev = (s) => errs.filter((e) => e.sev === s).length;
+          const sync = PatOS.sync && PatOS.sync.status ? PatOS.sync.status() : null; const acct = PatOS.account ? PatOS.account.status() : null;
+          const bk = PatOS.backup ? PatOS.backup.list() : []; const lastSnap = bk[0];
+          const health = [
+            [T('Your files'), L.state === 'ok' ? badge('ok', T('Healthy at start-up')) : L.state === 'mended' ? badge('warn', T('Mended at start-up')) : badge('bad', T('Problem at start-up')), L.problems.length ? L.problems.length + ' ' + T('problems were found and written down') : ''],
+            [T('Snapshots'), lastSnap ? badge('ok', when(lastSnap.t)) : badge('warn', T('None yet')), lastSnap ? bk.length + ' ' + T('on this device') : T('Settings › Backup & Restore makes one')],
+            [T('Sync'), !sync || !sync.on ? badge('off', T('Off')) : sync.error ? badge('bad', T('Problem')) : badge('ok', T('Working')), sync && sync.error ? String(sync.error) : ''],
+            [T('Account (Firebase)'), !acct || !acct.signedIn ? badge('off', T('Not signed in')) : acct.state === 'ok' ? badge('ok', T('Connected')) : badge('warn', T(acct.state === 'offline' ? 'Offline' : 'Sign in again')), ''],
+            [T('Internet'), navigator.onLine === false ? badge('off', T('Offline')) : badge('ok', T('Online')), T('As the browser reports it')],
+            [T('Problems written down'), errs.length ? badge(sev('critical') ? 'bad' : sev('error') ? 'warn' : 'ok', String(errs.length)) : badge('ok', '0'), sev('critical') + ' ' + T('critical') + ' · ' + sev('error') + ' ' + T('errors') + ' · ' + sev('warning') + ' ' + T('warnings')]
+          ];
+          out.append(h('p', { class: 'st-desc' }, T('What PatOS can measure from inside the browser. Things a browser can’t see (the battery’s health, the processor’s temperature…) are not shown, and estimates say so.')),
+            h('h3', {}, T('System health')), group(...health.map(([l, b, s2]) => row(l, b, s2))));
+          // resources: measured or estimated, and labeled
+          const mem = performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) + ' MB ' + T('(measured: this page’s JavaScript)') : T('Not available in this browser');
+          const nav = performance.getEntriesByType ? performance.getEntriesByType('navigation')[0] : null;
+          const st = h('span', { class: 'st-val' }, '…'); if (navigator.storage && navigator.storage.estimate) navigator.storage.estimate().then((e) => { st.textContent = fmtBytes(e.usage || 0) + ' / ' + fmtBytes(e.quota || 0) + ' ' + T('(estimated by the browser)'); }, () => { st.textContent = T('Not available'); }); else st.textContent = T('Not available');
+          out.append(h('h3', {}, T('Resources')), group(row(T('Memory used by PatOS'), h('span', { class: 'st-val' }, mem)), row(T('Storage used'), st), row(T('Start-up'), h('span', { class: 'st-val' }, nav ? Math.round(nav.domContentLoadedEventEnd) + ' ms ' + T('(measured)') : T('Not available'))), row(T('Processor cores'), h('span', { class: 'st-val' }, navigator.hardwareConcurrency ? String(navigator.hardwareConcurrency) + ' ' + T('(reported by the browser)') : T('Not available')))));
+          // checks
+          const btn = (label, fn) => h('button', { class: 'btn', onclick: async (e) => { const b = e.currentTarget; b.disabled = true; res.innerHTML = ''; try { await fn(); } catch (x) { res.appendChild(group(row(T('That didn’t work'), h('span'), String(x.message || x)))); } b.disabled = false; } }, label);
+          out.append(h('h3', {}, T('Checks')), group(
+            row(T('Check your files'), btn(T('Check'), async () => { const c = await PatOS.fs.integrity.check(); res.appendChild(group(row(c.ok ? '✓ ' + T('No problems found') : '✗ ' + c.problems.length + ' ' + T('problems found'), h('span', { class: 'st-val' }, c.ms + ' ms'), c.files + ' ' + T('files') + ', ' + c.dirs + ' ' + T('folders') + ', ' + c.bigFiles + ' ' + T('big files')), ...c.problems.slice(0, 10).map((p) => row(p.path, h('span'), T(p.what))))); }), T('Reads everything and changes nothing.')),
+            row(T('Verify snapshots'), btn(T('Verify'), async () => { const v = await PatOS.backup.verifyAll(); res.appendChild(group(...(v.length ? v.map((x) => row(x.label || T('Snapshot'), badge(x.state === 'ok' ? 'ok' : x.state === 'unverified' ? 'warn' : 'bad', T(x.state === 'ok' ? 'Whole' : x.state === 'unverified' ? 'Unverified (older)' : 'Damaged')), when(x.t))) : [row(T('No snapshots yet.'), h('span'))]))); })),
+            row(T('Check Sync'), btn(T('Check'), async () => { if (!PatOS.sync || !PatOS.sync.status().on) { res.appendChild(group(row(T('Sync is off.'), h('span')))); return; } await PatOS.sync.now(); const s2 = PatOS.sync.status(); res.appendChild(group(row(s2.error ? '✗ ' + s2.error : '✓ ' + T('Sync is working'), h('span', { class: 'st-val' }, (s2.items || 0) + ' ' + T('items'))))); })),
+            row(T('Recent problems'), btn(T('Show'), async () => { const l = PatOS.errors.list().slice(-15).reverse(); res.appendChild(group(...(l.length ? l.map((e) => row(e.msg, h('small', { class: 'st-val' }, (e.sev || 'error') + ' · ' + when(e.t)), (e.cat || '') + (e.where ? ' · ' + e.where : '') + (e.recovered === true ? ' · ' + T('recovered') : ''))) : [row(T('No problems written down.'), h('span'))]))); }))),
+            res);
+          // the report: reviewed before it leaves
+          out.append(h('h3', {}, T('Diagnostic report')), group(row(T('Make a report'), h('button', { class: 'btn', onclick: async () => { const r = await PatOS.diagnostics.report(); PatOS.diagnostics.review(r); } }, T('Make Report…')), T('You see everything in it before copying or saving it. It never contains passwords, keys, sign-in tokens, messages or your files.'))));
+          return [out];
+        },
         general() {
           const name = h('input', { class: 'field', value: S().userName, style: { width: '180px' } });
           name.onchange = () => PatOS.setSetting('userName', name.value.trim() || 'Pat');
@@ -564,7 +678,7 @@
       sq.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const hits = PANES.filter(match); if (hits[0]) { pane = hits[0][0]; renderMain(); drawSide(); } } });
       const match = ([k, l]) => !filter || (l + ' ' + PatOS.t(l) + ' ' + KW[k]).toLowerCase().includes(filter);
       const goPane = (k) => { pane = k; cat = catOf(k) || cat; renderMain(); drawSide(); if (PatOS.mobile && PatOS.mobile.detail) PatOS.mobile.detail(win, true, PatOS.t(PANES.find((x) => x[0] === k)[1])); };
-      const goCat = (c) => { cat = c; pane = null; renderMain(); drawSide(); if (PatOS.mobile && PatOS.mobile.detail) PatOS.mobile.detail(win, true, PatOS.t(CATS.find((x) => x[0] === c)[1])); };
+      const goCat = (c) => { const cc = CATS.find((x) => x[0] === c); if (cc && cc[3].length === 1) return goPane(cc[3][0]); cat = c; pane = null; renderMain(); drawSide(); if (PatOS.mobile && PatOS.mobile.detail) PatOS.mobile.detail(win, true, PatOS.t(CATS.find((x) => x[0] === c)[1])); };
       function drawSide() {
         side.querySelectorAll('.st-si, .st-noresult, .st-legal').forEach((e) => e.remove());
         const legalLink = () => PatOS.legal && side.appendChild(h('button', { class: 'st-legal' + (pane === 'legal' ? ' on' : ''), onclick: () => goPane('legal') }, PatOS.legal.strings().link));
@@ -572,7 +686,10 @@
         if (!filter) { CATS.forEach(([c, l, ic]) => side.appendChild(h('button', { class: 'st-si' + (c === cat && pane !== 'me' && pane !== 'legal' ? ' on' : ''), onclick: () => goCat(c) }, stIc(ic), PatOS.t(l)))); legalLink(); return; }
         const hits = PANES.filter(match);
         hits.forEach(([k, l, ic]) => side.appendChild(h('button', { class: 'st-si' + (k === pane ? ' on' : ''), onclick: () => goPane(k) }, stIc(ic), PatOS.t(l))));
-        if (!hits.length) side.appendChild(h('div', { class: 'st-noresult' }, 'No results'));
+        // single settings, each opening right on itself
+        const one = (PatOS.settingsCatalog || []).filter((c) => { const f = fold(filter); return fold(T(c.label)).includes(f) || fold(c.label).includes(f) || fold(c.words).includes(f); }).slice(0, 8);
+        one.forEach((c) => { const pg = PANES.find((x) => x[0] === c.pane) || ['', '', 'gear|#8e8e93']; side.appendChild(h('button', { class: 'st-si st-si-one', onclick: () => { findKey = c.key; goPane(c.pane); } }, stIc(pg[2]), h('span', {}, T(c.label), h('small', {}, T(pg[1]))))); });
+        if (!hits.length && !one.length) side.appendChild(h('div', { class: 'st-noresult' }, T('No results')));
         legalLink();
       }
       function render(keepSearch) {
@@ -592,14 +709,17 @@
           win.setTitle(c[1]); return;
         }
         const p = PANES.find((x) => x[0] === pane); const c = CATS.find((x) => x[0] === catOf(pane));
-        main.append(...[c ? h('button', { class: 'st-back', onclick: () => goCat(c[0]) }, '‹ ' + PatOS.t(c[1])) : null, h('h1', {}, PatOS.t(p[1])), ...panes[pane]()].filter(Boolean)); // (append(null) would write "null")
+        main.append(...[c && c[3].length > 1 ? h('button', { class: 'st-back', onclick: () => goCat(c[0]) }, '‹ ' + PatOS.t(c[1])) : null, h('h1', {}, PatOS.t(p[1])), ...panes[pane]()].filter(Boolean)); // (append(null) would write "null")
         win.setTitle(p[1]);
+        if (findKey) { const want = (PatOS.settingsCatalog || []).find((x) => x.key === findKey); findKey = '';
+          if (want) setTimeout(() => { const lab = fold(T(want.label)); const tagged = main.querySelector('[data-key="' + want.key + '"]'); const rowEl = (tagged && tagged.closest('.st-row')) || [...main.querySelectorAll('.st-row')].find((r) => { const s2 = r.querySelector('.st-rl span, .st-rl'); return s2 && fold(s2.textContent).includes(lab); });
+            if (rowEl) { rowEl.scrollIntoView({ block: 'center' }); rowEl.classList.add('st-found'); const ctl = rowEl.querySelector('button, input, select'); if (ctl) ctl.focus({ preventScroll: true }); setTimeout(() => rowEl.classList.remove('st-found'), 2600); } }, 60); }
       }
       const paneName = (k) => PatOS.t((PANES.find((x) => x[0] === k) || [k, k])[1]);
-      win._pane = (p) => { pane = p; cat = catOf(p) || cat; render(); PatOS.paneIn && PatOS.paneIn(main); if (MB && MB.detail) MB.detail(win, true, paneName(p)); };
+      win._pane = (p, f) => { findKey = f || ''; pane = p; cat = catOf(p) || cat; render(); PatOS.paneIn && PatOS.paneIn(main); if (MB && MB.detail) MB.detail(win, true, paneName(p)); };
       render();
       if (args.pane && MB && MB.detail) MB.detail(win, true, paneName(args.pane));
     },
-    onArgs(win, args) { if (args.pane) win._pane(args.pane); }
+    onArgs(win, args) { if (args.pane) win._pane(args.pane, args.find); }
   });
 })();
