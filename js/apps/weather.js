@@ -24,7 +24,7 @@
 
   PatOS.registerApp({
     id: 'weather', name: 'Weather', icon: 'weather', width: 780, height: 600, titlebar: 'hidden', keywords: 'forecast rain temperature météo température neige snow wind',
-    about: 'Live forecast with a 10-day outlook, saved cities, air quality, and a summary of what the next hours bring.',
+    about: 'Forecast for 10 days, saved cities and air quality.',
     launch(win) {
       let place = PatOS.store.get('weatherPlace', { name: 'Montréal', lat: 45.5019, lon: -73.5674 });
       let unit = PatOS.store.get('weatherUnit', 'C');

@@ -305,7 +305,7 @@
 
   PatOS.registerApp({
     id: 'games', name: 'Games', icon: 'games', width: 900, height: 680, category: '3D & Games', keywords: 'game games play 2048 snake minesweeper breakout connect four memory arcade jeux jeu',
-    about: 'Games that work offline: 2048, Snake, Minesweeper, Breakout, Connect Four, Memory and more.',
+    about: 'Offline games: 2048, Snake, Minesweeper, Breakout, Connect Four, Memory and more.',
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'gm-win');
       const bests = () => PatOS.store.get('gamesBest', {}) || {};

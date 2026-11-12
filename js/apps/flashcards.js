@@ -52,7 +52,7 @@
 
   PatOS.registerApp({
     id: 'flashcards', name: 'Flashcards', icon: 'flashcards', width: 780, height: 580, keywords: 'study school learn quiz cards memorize vocabulary exam cartes étudier',
-    about: 'Study with spaced repetition: cards you know come back later, cards you miss come back today. Flip or type the answer.',
+    about: 'Cards you know come back later, cards you miss come back today.',
     launch(win) {
       win.el.classList.add('has-toolbar');
       let decks = migrate(PatOS.store.get('decks', null) || []);
@@ -97,7 +97,7 @@
         const box = h('textarea', { class: 'field fc-paste', placeholder: T('One card per line:\nbonjour\thello\nmerci\tthank you'), spellcheck: 'false', 'aria-label': T('List') });
         const info = h('div', { class: 'fc-pinfo' });
         box.addEventListener('input', () => { const n = parseList(box.value).length; info.textContent = n ? n + ' ' + T(n === 1 ? 'card found' : 'cards found') : ''; });
-        layer.appendChild(h('div', { class: 'dlg ce fc-pdlg' }, h('b', {}, T(into ? 'Add cards from a list' : 'Make a deck from a list')), h('p', { class: 'fc-pnote' }, T('Put the term and its definition on each line, with a tab between them (copying from Quizlet or a spreadsheet does this). A comma, semicolon or “ - ” works too.')), into ? null : name, box, info,
+        layer.appendChild(h('div', { class: 'dlg ce fc-pdlg' }, h('b', {}, T(into ? 'Add cards from a list' : 'Make a deck from a list')), h('p', { class: 'fc-pnote' }, T('One card per line: the term, a tab (or comma), then the definition. Pasting from Quizlet works.')), into ? null : name, box, info,
           h('div', { class: 'dlg-btns' }, h('button', { class: 'btn', onclick: close }, T('Cancel')), h('button', { class: 'btn primary', onclick: () => {
             const rows = parseList(box.value); if (!rows.length) { info.textContent = T('Nothing to import yet.'); return; }
             let d = into; if (!d) { d = { id: PatOS.uid(), name: (name.value || '').trim() || T('New Deck'), cards: [], mode: 'flip', dir: 'fb' }; decks.push(d); }

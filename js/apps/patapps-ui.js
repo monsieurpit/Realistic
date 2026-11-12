@@ -66,7 +66,7 @@
       if (own.length) { box.appendChild(h('h2', {}, T('Installed from files'))); const g = h('div', { class: 'as-list' }); own.forEach((a) => g.appendChild(row(a))); box.appendChild(g); }
     }
     P.store.list().then((list) => { chips(list.concat(mine)); draw(list); }).catch(() => {
-      box.innerHTML = ''; box.appendChild(h('p', { class: 'as-note' }, T('The store can’t be reached right now (are you offline?). Apps you installed still work.')));
+      box.innerHTML = ''; box.appendChild(h('p', { class: 'as-note' }, T('Can’t reach the store (offline?). Your installed apps still work.')));
       if (mine.length) { box.appendChild(h('h2', {}, T('Installed'))); const g = h('div', { class: 'as-list' }); mine.forEach((a) => g.appendChild(row(a))); box.appendChild(g); }
     });
   }
@@ -80,7 +80,7 @@
     const guide = h('button', { class: 'btn', onclick: () => PatOS.openExternal(location.origin + '/docs/APP-SDK.md') }, T('Developer Guide'));
     main.appendChild(h('div', { class: 'as-btns' }, open, send, guide));
     async function sendIt(app) {
-      if (!(await PatOS.confirmBox(T('Send') + ' “' + app.name + '” ' + T('for review?'), T('The owner of this PatOS reads the app and decides. If it is accepted, it shows up in Community for everyone who uses this server. You can follow its status below.'), { ok: T('Send'), icon: 'appstore' }))) return;
+      if (!(await PatOS.confirmBox(T('Send') + ' “' + app.name + '” ' + T('for review?'), T('The server’s owner reviews the app. If accepted, it shows in Community. Its status is below.'), { ok: T('Send'), icon: 'appstore' }))) return;
       await P.submit(app); PatOS.notify({ title: T('Sent for review'), body: app.name, icon: 'appstore' }); again();
     }
 

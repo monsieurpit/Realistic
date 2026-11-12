@@ -30,7 +30,7 @@
 
   PatOS.registerApp({
     id: 'focus', name: 'Focus', icon: 'focus', width: 760, height: 560, category: 'Utilities', keywords: 'pomodoro study timer concentrate homework productivity',
-    about: 'A study timer: 25 minutes of focus, then a break. Keeps track of your time.',
+    about: 'A study timer: 25 minutes of focus, then a break.',
     launch(win) {
       win.el.classList.add('has-toolbar');
       const cfg = Object.assign({ focus: 25, short: 5, long: 15, every: 4, auto: false, sound: 'off', goal: 4 }, PatOS.store.get('focusCfg', {}));

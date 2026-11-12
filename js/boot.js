@@ -17,7 +17,7 @@
   function markBooted() {
     if (bootMarked) return; bootMarked = true;
     const rolled = window.__patosBootOK && window.__patosBootOK();
-    if (rolled) setTimeout(() => PatOS.notify({ title: PatOS.t('PatOS went back to the previous version'), body: PatOS.t('The newest version didn’t start on this device, so the one that worked before is back. The next update will be tried again.'), icon: 'about', duration: 12000 }), 2500);
+    if (rolled) setTimeout(() => PatOS.notify({ title: PatOS.t('PatOS went back to the previous version'), body: PatOS.t('The new version didn’t start, so the previous one is back. The update will be tried again.'), icon: 'about', duration: 12000 }), 2500);
   }
   function showLock() {
     markBooted();
@@ -31,7 +31,7 @@
     const pass = $('.lock-pass');
     pass.value = '';
     pass.placeholder = s.password ? 'Enter Password' : 'Press Enter to log in';
-    $('.lock-hint').textContent = PatOS.isMobile ? (s.password ? 'Swipe up, then enter your password' : 'Swipe up to open') : (s.password ? '' : 'No password set. You can add one in Settings › Lock Screen.');
+    $('.lock-hint').textContent = PatOS.isMobile ? (s.password ? 'Swipe up, then enter your password' : 'Swipe up to open') : '';
     lock.classList.remove('need-pass');
     lockClock(); clearInterval(lockTimer); lockTimer = setInterval(lockClock, 1000);
     // (a first start goes straight to setup: no lock screen before it, nor between its steps when it reloads for a language)
@@ -74,7 +74,7 @@
     if (soft) return; // back from a restart: no welcome again
     setTimeout(() => {
       const body = PatOS.isMobile
-        ? (seen ? 'Tap Search above the Dock to find anything. Press and hold an app for more.' : 'Tap Search above the Dock to find anything. Press and hold an app for more. The ⊞ button in an app takes you home.')
+        ? (seen ? 'Tap Search above the Dock to find anything. Press and hold an app for more.' : 'Tap Search to find anything. Hold an app for more.')
         : (seen ? 'Press Ctrl+Space to search, Alt+L for Launchpad.' : 'Double-click “Welcome to PatOS” on the desktop for tips. Press Ctrl+Space to search.');
       PatOS.notify({ title: 'Welcome to PatOS, ' + PatOS.settings.userName + '!', body, icon: 'about', duration: 6500 });
       if (!seen) PatOS.store.set('seenWelcome', true);

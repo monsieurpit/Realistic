@@ -39,7 +39,7 @@
       const code = (t) => h('code', { class: 'dv-code' }, t);
       const S = {
         start() {
-          return [h('h1', {}, T('Developer Center')), h('p', { class: 'st-desc' }, T('A PatOS app is one .patapp file: a web page (HTML, CSS, JavaScript, or PitCode) with a name, an icon and what it asks for. It runs in a locked box and reaches PatOS only through patos.*.')),
+          return [h('h1', {}, T('Developer Center')), h('p', { class: 'st-desc' }, T('A PatOS app is one .patapp file: a web page with a name, an icon and permissions. It runs in a locked box.')),
             card(row(T('Write an app'), h('button', { class: 'btn primary', onclick: () => PatOS.launch('code') }, T('Open Code Studio')), T('Templates, a live preview, and export as .patapp.')),
               row(T('Try the example'), h('button', { class: 'btn', onclick: async () => { const src = PatOS.patapps.make({ id: 'local.example.' + Date.now().toString(36).slice(-4), name: 'Example', html: PatOS.patapps.example }); try { await PatOS.patapps.install(src, { source: 'file' }); } catch (e) { PatOS.alertBox(T('That didn’t work'), e.message); } } }, T('Install Example')), T('A small app that remembers how often it was opened.')),
               row(T('Check a .patapp file'), h('button', { class: 'btn', onclick: () => go('check') }, T('Check…'))),
@@ -62,12 +62,12 @@
           }
           const ta = h('textarea', { class: 'field dv-paste', rows: 6, placeholder: T('…or paste the file’s text here'), 'aria-label': T('The .patapp text') });
           ta.addEventListener('input', () => { if (ta.value.trim().length > 10) show(ta.value, T('Pasted')); });
-          out.append(h('h1', {}, T('Check a .patapp')), h('p', { class: 'st-desc' }, T('The same checks PatOS and the App Store use, plus whether it runs on this PatOS.')), pick, card(row(T('Choose a file'), h('button', { class: 'btn primary', onclick: () => pick.click() }, T('Choose…')))), ta, res);
+          out.append(h('h1', {}, T('Check a .patapp')), h('p', { class: 'st-desc' }, T('The same checks as the App Store, plus whether it runs here.')), pick, card(row(T('Choose a file'), h('button', { class: 'btn primary', onclick: () => pick.click() }, T('Choose…')))), ta, res);
           return [out];
         },
         installed() {
           const list = PatOS.patapps.list(); const acts = PatOS.store.get('patAppActions', {}) || {};
-          const out = [h('h1', {}, T('Installed apps')), h('p', { class: 'st-desc' }, T('What each community app asked for, what it was given, and what it offers to PatOS Intelligence.'))];
+          const out = [h('h1', {}, T('Installed apps')), h('p', { class: 'st-desc' }, T('What each community app asked for and was given.'))];
           if (!list.length) out.push(card(row(T('No community apps installed yet.'), h('button', { class: 'btn', onclick: () => PatOS.launch('appstore') }, T('App Store')))));
           list.forEach((x) => { const a = x.app; const g = PatOS.patapps.grants(a.id); const errs = PatOS.errors.list().filter((e) => String(e.where).includes(a.id) || e.app === 'pa:' + a.id).slice(-3);
             out.push(h('h3', {}, a.name + ' ' + a.version), card(row(T('Id'), code(a.id)), row(T('Source'), h('span', { class: 'st-val' }, x.source === 'store' ? T('App Store (reviewed)') : T('File (not reviewed)'))),
@@ -81,9 +81,9 @@
           const sys = PatOS.intel ? PatOS.intel.list({ apps: true }) : [];
           return [h('h1', {}, T('Reference')), h('h3', {}, 'patos.*'), card(...SDK.map(([api, what, perm]) => row(api, perm ? h('span', { class: 'st-badge' }, perm) : h('span'), T(what)))),
             h('h3', {}, T('Permissions')), card(...(F() ? F().PERMS : []).map((p) => { const [l, w] = PatOS.patapps.permInfo(p); return row(p, h('span'), l + ': ' + w); })),
-            h('p', { class: 'st-desc' }, T('Each permission is listed in the file, shown before installing, and asked again on the device the first time the app uses it. Settings › Privacy shows what each app did.')),
+            h('p', { class: 'st-desc' }, T('Permissions are shown before installing and asked the first time they’re used.')),
             h('h3', {}, T('System actions apps may run')), card(...sys.map((a) => row(code(a.id), h('span'), T(a.title) + (Object.keys(a.params).length ? ' (' + Object.keys(a.params).join(', ') + ')' : '')))),
-            h('p', { class: 'st-desc' }, T('Apps can’t run any other system action. Every run is written in Settings › Privacy, and an app can run at most 20 a minute.')),
+            h('p', { class: 'st-desc' }, T('Apps can’t do other system actions. Each one is logged in Settings › Privacy (20 a minute at most).')),
             h('h3', {}, T('Optional manifest fields')), card(...MANIFEST.map(([k, w]) => row(code(k), h('span'), T(w)))),
             card(row(T('The full guide'), h('span'), 'docs/APP-SDK.md · docs/INTELLIGENCE.md')) ];
         },
@@ -91,9 +91,9 @@
           return [h('h1', {}, T('Publish')), card(
             row('1. ' + T('Export your app as a .patapp file'), h('button', { class: 'btn', onclick: () => PatOS.launch('code') }, T('Code Studio'))),
             row('2. ' + T('Check it here'), h('button', { class: 'btn', onclick: () => go('check') }, T('Check…'))),
-            row('3. ' + T('Send it to the App Store'), h('button', { class: 'btn', onclick: () => PatOS.launch('appstore') }, T('App Store')), T('In the App Store: Submit an App. The owner of this PatOS server reads it before anyone can install it.')),
-            row('4. ' + T('Update it'), h('span'), T('Raise the version (1.0.1, 1.1.0…) and submit again: people who have it get the update; their data and permissions stay.'))),
-            h('p', { class: 'st-desc' }, T('The App Store only shows real information: no made-up ratings or download counts.')) ];
+            row('3. ' + T('Send it to the App Store'), h('button', { class: 'btn', onclick: () => PatOS.launch('appstore') }, T('App Store')), T('In the App Store, choose Submit an App. The server’s owner checks it first.')),
+            row('4. ' + T('Update it'), h('span'), T('Raise the version (1.0.1, 1.1.0…) and submit again. Users keep their data.'))),
+            h('p', { class: 'st-desc' }, T('The App Store shows only real data: no fake ratings or downloads.')) ];
         }
       };
       const NAV = [['start', 'Start', 'rocket|#ff6a3d'], ['check', 'Check a .patapp', 'check|#30d158'], ['installed', 'Installed apps', 'grid|#ff9f0a'], ['reference', 'Reference', 'list|#0a84ff'], ['publish', 'Publish', 'upload|#bf5af2']];

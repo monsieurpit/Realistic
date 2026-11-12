@@ -1,7 +1,7 @@
 [
   {
     "version": "3.2.0",
-    "beta": 9,
+    "beta": 10,
     "date": "2026-11-12",
     "title": {
       "en": "PatOS 3.2: Messages",
@@ -9,6 +9,9 @@
     },
     "notes": {
       "en": [
+        "New first start: pick your language, then sign in or create an account (now required). Signing in brings back your language, name, look and files. A new account goes on with the rest of setup.",
+        "Simpler words: about 170 long texts in Settings and apps are now short and plain, in English and French. Some extra tips were removed.",
+        "Faster with an app open: moving a window no longer redraws the desktop under it, and on a phone the home screen isn’t drawn behind an open app (the 3D wallpaper also pauses).",
         "New app icon look on the phone home screen: bigger icons that nearly fill each row, and with dark icons most apps now sit on a dark tile with their drawing in color (Pat, Passwords, YouTube and Google keep their own colored tile)",
         "Fixed: Liquid Glass could turn flat and dark by itself while still turned on. A quick speed test at start-up, if the computer happened to be busy, decided it was slow and removed the blur from all glass. Now an automatic guess never touches how see-through the glass is (only your own choice in Settings › Speed mode does), and the test is tried three times, keeping the best",
         "Fixed: glass could draw black after resizing many windows or opening many menus (the edge-bending effect threw away filters that glass was still using), or after the computer woke up. Filters still in use are kept, and they're made again when you come back to PatOS",
@@ -45,6 +48,9 @@
         "Messages: “Seen” under your last message once the other person has read it, and “typing…” dots while they write"
       ],
       "fr": [
+        "Nouveau premier démarrage : choisis ta langue, puis connecte-toi ou crée un compte (maintenant obligatoire). Te connecter ramène ta langue, ton nom, ton style et tes fichiers. Un nouveau compte continue avec le reste de la configuration.",
+        "Des mots plus simples : environ 170 longs textes dans Réglages et les apps sont maintenant courts et clairs, en anglais et en français. Quelques astuces en trop ont été enlevées.",
+        "Plus rapide avec une app ouverte : bouger une fenêtre ne redessine plus le bureau en dessous, et sur un téléphone l’écran d’accueil n’est plus dessiné derrière l’app ouverte (le fond 3D se met aussi en pause).",
         "Nouvelles icônes sur l’écran d’accueil du téléphone : des icônes plus grandes qui remplissent presque chaque rangée, et avec les icônes sombres la plupart des apps sont maintenant sur une tuile sombre avec leur dessin en couleur (Pat, Mots de passe, YouTube et Google gardent leur tuile de couleur)",
         "Corrigé : Liquid Glass pouvait devenir plat et sombre tout seul alors qu’il était activé. Un petit test de vitesse au démarrage, si l’ordinateur était occupé à ce moment-là, le jugeait lent et enlevait le flou de tout le verre. Maintenant une estimation automatique ne change jamais la transparence du verre (seul ton choix dans Réglages › Mode vitesse le fait), et le test est fait trois fois en gardant le meilleur",
         "Corrigé : le verre pouvait devenir noir après avoir redimensionné beaucoup de fenêtres ou ouvert beaucoup de menus (l’effet de bord courbé jetait des filtres encore utilisés), ou après la mise en veille de l’ordinateur. Les filtres utilisés sont gardés, et refaits quand tu reviens sur PatOS",

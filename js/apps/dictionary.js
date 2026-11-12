@@ -23,7 +23,7 @@
         try {
           let j = cache[word] && cache[word].d;
           if (!j) {
-            if (PatOS.isOffline()) { main.innerHTML = ''; main.appendChild(PatOS.offlineCard(() => look(word), { body: 'Looking up a new word needs the internet. Words you looked up before work offline.' })); return; }
+            if (PatOS.isOffline()) { main.innerHTML = ''; main.appendChild(PatOS.offlineCard(() => look(word), { body: 'Looking up a new word needs the internet. Words you looked up work offline.' })); return; }
             const r = await fetch('https://api.dictionaryapi.dev/api/v2/entries/en/' + encodeURIComponent(word));
             if (r.status === 404) { main.innerHTML = ''; main.appendChild(h('div', { class: 'dc-home' }, h('h2', {}, PatOS.t('No definition found')), h('p', {}, PatOS.t('Check the spelling and try again.') + ' (' + word + ')'))); return; }
             j = await r.json();

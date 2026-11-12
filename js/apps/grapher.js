@@ -154,7 +154,7 @@
 
   PatOS.registerApp({
     id: 'grapher', name: 'Grapher', icon: 'grapher', width: 1060, height: 680, category: 'Utilities', keywords: 'graph graphing calculator math function plot algebra equation desmos calculatrice graphique',
-    about: 'A graphing calculator: equations, inequalities, circles, sliders, tables, roots and crossing points.',
+    about: 'Graph equations, circles and tables, with sliders, roots and crossing points.',
     launch(win) {
       win.el.classList.add('has-toolbar');
       const saved = PatOS.store.get('grapher2', null);
@@ -172,7 +172,7 @@
       side.append(list, h('button', { class: 'btn gr-add', onclick: () => addRow('', true) }, '+ ' + T('Add Expression')),
         h('details', { class: 'gr-help' }, h('summary', {}, T('Examples and help')),
           h('div', { class: 'gr-exs' }, ...['y = 2x + 1', 'y = x^2 - 4x + 3', 'x^2 + y^2 = 25', 'y > x^2 - 4', 'y = a x^2 + b', 'r = 3sin(2θ)', 'f(x) = x^3 - 3x', 'y = |x| - 2', 'x = y^2 - 2', '(2, 3)', 'y = sqrt(x)', 'y = 1/x', '5! / 3', 'log(100)'].map((ex) => h('button', { class: 'gr-ex', onclick: () => addRow(ex) }, ex))),
-          h('small', {}, T('Write 2x for 2·x, x^2 for x², sqrt(x), |x|, pi or π. Letters like a and b become sliders. Drag to move the graph, scroll or pinch to zoom, click a gray point to see it.'))));
+          h('small', {}, T('Examples: 2x, x^2, sqrt(x), |x|, pi. Letters like a and b become sliders. Drag to move, scroll to zoom.'))));
       win.body.appendChild(h('div', { class: 'gr-wrap' }, side, stage));
       const bOut = h('button', { class: 'tbtn', title: T('Zoom out') }, '−'), bIn = h('button', { class: 'tbtn', title: T('Zoom in') }, '+'), bHome = h('button', { class: 'tbtn', title: T('Reset view') }, '⌂');
       const bDeg = h('button', { class: 'tbtn gr-deg', title: T('Degrees or radians') }); const syncDeg = () => { bDeg.textContent = deg ? 'DEG' : 'RAD'; }; syncDeg();

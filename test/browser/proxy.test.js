@@ -325,13 +325,16 @@ test('sites that need your account (Classroom…) open in their own window, neve
   await page.evaluate(() => PatOS.launch('browser', { url: 'https://classroom.google.com/' }));
   const r = await until(() => page.evaluate(() => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); const b = w && w.el.querySelector('.br-blocked'); return b ? { text: b.textContent, proxied: !!w.el.querySelector('iframe.br-proxied'), opened: window.__opened.slice() } : null; }));
   assert.ok(r, 'the Classroom page is shown');
-  assert.match(r.text, /classroom\.google\.com opens in its own window/); assert.match(r.text, /already signed in/);
+  assert.match(r.text, /classroom\.google\.com opens in its own window/); assert.match(r.text, /needs your account/);
   assert.equal(r.proxied, false, 'never through the proxy'); assert.deepEqual(r.opened, ['https://classroom.google.com/']);
   // a proxied site that sends you to a Google sign-in page
   await page.evaluate((u) => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); const o = w.el.querySelector('.br-omni'); o.value = u; o.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); }, S() + '/two');
   await until(async () => (await state()).title === 'Page Two');
-  await frame().evaluate(() => parent.postMessage({ patosProxy: 'page', url: 'https://accounts.google.com/v3/signin/identifier?continue=x', title: 'Sign in' }, '*'));
-  const s2 = await until(() => page.evaluate(() => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); const b = w.el.querySelector('.br-blocked'); return b ? { text: b.textContent, omni: w.el.querySelector('.br-omni').value } : null; }));
+  // (sent again until the browser has it: right after the page loads, its listener for this frame may not be set up yet)
+  const s2 = await until(async () => {
+    try { await frame().evaluate(() => parent.postMessage({ patosProxy: 'page', url: 'https://accounts.google.com/v3/signin/identifier?continue=x', title: 'Sign in' }, '*')); } catch (e) { /* the frame went away: it was replaced */ }
+    return page.evaluate(() => { const w = PatOS.wm.windows.find((x) => x.app.id === 'browser'); const b = w.el.querySelector('.br-blocked'); return b ? { text: b.textContent, omni: w.el.querySelector('.br-omni').value } : null; });
+  });
   assert.ok(s2, 'the sign-in page is not shown inside');
   assert.equal(s2.omni, S() + '/two', 'the address stays what you asked for'); assert.match(s2.text, /opens in its own window/);
   await page.evaluate(() => PatOS.wm.closeAll());

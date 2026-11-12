@@ -127,7 +127,7 @@
 
   PatOS.registerApp({
     id: 'calendar', name: 'Calendar', icon: 'calendar', width: 1000, height: 660, keywords: 'date events schedule agenda week day year class timetable horaire calendrier ics',
-    about: 'Day, week, month and year views, repeating events with alerts, and .ics import and export.',
+    about: 'Day, week, month and year views, repeating events, alerts, and .ics files.',
     launch(win, args) {
       win.el.classList.add('has-toolbar');
       let cursor = new Date(), selected = new Date(), mode = PatOS.store.get('calMode', 'month'), query = '';

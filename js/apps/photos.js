@@ -44,7 +44,7 @@
 
   PatOS.registerApp({
     id: 'photos', name: 'Photos', icon: 'photos', width: 1000, height: 660, keywords: 'pictures images gallery edit album camera roll photos',
-    about: 'Your pictures: albums, favorites, search, a viewer you can zoom and swipe, and an editor with filters.',
+    about: 'Your pictures: albums, favorites, search, a viewer and an editor.',
     launch(win, args) {
       win.el.classList.add('has-toolbar');
       let album = 'library', size = PatOS.store.get('photoSize', 160), list = [], selecting = false, query = '';

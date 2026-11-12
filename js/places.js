@@ -18,7 +18,7 @@
     if (!navigator.geolocation) return Promise.reject(fail('nogeo', T('This browser can’t tell where you are.')));
     return new Promise((ok, bad) => navigator.geolocation.getCurrentPosition(
       (p) => { here = { lat: p.coords.latitude, lon: p.coords.longitude, acc: p.coords.accuracy, t: Date.now() }; ok({ lat: here.lat, lon: here.lon, accuracy: here.acc }); },
-      (e) => bad(fail(e && e.code === 1 ? 'denied' : 'nogeo', e && e.code === 1 ? T('You didn’t allow PatOS to see your location. Allow it in the browser’s site settings to find places near you.') : T('Your location isn’t available right now.'))),
+      (e) => bad(fail(e && e.code === 1 ? 'denied' : 'nogeo', e && e.code === 1 ? T('Location is blocked. Allow it in the browser’s site settings to find places near you.') : T('Your location isn’t available right now.'))),
       { timeout: 12000, maximumAge: 120000 }));
   }
   // one request at a time (Nominatim's rule), with a clear error when offline

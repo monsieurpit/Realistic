@@ -62,7 +62,7 @@
               group(row(T('Version'), h('span', { class: 'st-val' }, rec ? rec.version : PatOS.version), rec ? T('By') + ' ' + rec.author : T('Comes with PatOS')),
                 row(T('Kind'), h('span', { class: 'st-val' }, rec ? (rec.source === 'store' ? T('From the App Store (reviewed)') : T('Opened from a file (not reviewed)')) : T('Built into PatOS'))),
                 rec ? row(T('Storage it uses'), h('span', { class: 'st-val' }, fmtBytes(data))) : null,
-                row(T('Notifications'), mute, T('When off, its notifications are kept in Notification Center but make no banner or sound.')),
+                row(T('Notifications'), mute, T('When off, its notifications stay in Notification Center, with no banner or sound.')),
                 row(T('Show in Launchpad'), hid),
                 row(T('Open'), h('button', { class: 'btn', onclick: () => PatOS.launch(k) }, T('Open')))),
               rec ? h('h3', {}, T('Permissions')) : null,
@@ -73,7 +73,7 @@
             detail.scrollIntoView({ block: 'nearest' });
           }
           q.addEventListener('input', draw); draw();
-          out.append(h('p', { class: 'st-desc' }, T('Every app on this device: its version, what it may do, what it keeps, and its notifications. Community apps can be uninstalled here.')), q, listEl, detail,
+          out.append(h('p', { class: 'st-desc' }, T('Every app on this device: version, permissions, data and notifications.')), q, listEl, detail,
             group(row(T('Get more apps'), h('button', { class: 'btn', onclick: () => PatOS.launch('appstore') }, T('App Store'))), row(T('Make your own'), h('button', { class: 'btn', onclick: () => PatOS.launch('developer') }, T('Developer Center')))));
           return [out];
         },
@@ -87,7 +87,7 @@
           const muted = (S().mutedApps || []).filter((k) => PatOS.apps[k]);
           out.append(group(row(T('Do Not Disturb'), dnd, T('Banners and sounds stay quiet; notifications still go to Notification Center.')),
             row(T('Notification sounds'), toggle('notifSound'), T('A short sound with each banner.')),
-            row(T('Notifications in other tabs'), toggle('systemNotifications'), T('When PatOS is in a background tab, your browser shows the notification (if you allowed it).'))),
+            row(T('Notifications in other tabs'), toggle('systemNotifications'), T('When PatOS is in a background tab, the browser shows the notification (if allowed).'))),
             h('h3', {}, T('Apps you silenced')), group(...(muted.length ? muted.map((k) => row(T(PatOS.apps[k].name), h('button', { class: 'btn', onclick: () => { PatOS.setSetting('mutedApps', (S().mutedApps || []).filter((x) => x !== k)); renderMain(); } }, T('Turn On')))) : [h('div', { class: 'bk-empty' }, T('None. Silence an app in Settings › Applications.'))])),
             h('h3', {}, T('History')), hist, group(row(T('Clear the history'), h('button', { class: 'btn', onclick: () => { PatOS.notifications && PatOS.notifications.clear(); drawHist(); } }, T('Clear')))));
           return [out];
@@ -95,12 +95,12 @@
         /* ---------- PatOS Intelligence ---------- */
         intelligence() {
           const I = PatOS.intel; const out = h('div');
-          out.appendChild(h('p', { class: 'st-desc' }, T('PatOS Intelligence does what you ask in Pat, Spotlight and Shortcuts. It is not an AI: it knows a fixed list of actions, says exactly what it did, runs on this device and works offline.')));
+          out.appendChild(h('p', { class: 'st-desc' }, T('PatOS Intelligence does what you ask in Pat, Spotlight and Shortcuts. No AI: a fixed list of actions, on this device, offline.')));
           out.appendChild(h('h3', {}, T('What it may do')));
           out.appendChild(group(...I.perms().map((p) => { const t = h('button', { class: 'switch' + (p.on ? ' on' : ''), role: 'switch', 'aria-checked': String(p.on), 'aria-label': p.label }); t.onclick = () => { I.setPerm(p.key, !t.classList.contains('on')); t.classList.toggle('on'); t.setAttribute('aria-checked', String(t.classList.contains('on'))); }; return row(p.label, t); })));
           out.appendChild(h('h3', {}, T('Code')));
           { const t = h('button', { class: 'switch' + (S().codeSuggestions !== false ? ' on' : ''), role: 'switch', 'data-key': 'codeSuggestions', 'aria-checked': String(S().codeSuggestions !== false), 'aria-label': T('Code suggestions') }); t.onclick = () => { PatOS.setSetting('codeSuggestions', S().codeSuggestions === false); t.classList.toggle('on', S().codeSuggestions !== false); t.setAttribute('aria-checked', String(S().codeSuggestions !== false)); };
-            out.appendChild(group(row(T('Code suggestions'), t, T('In PitCode Studio, Pat suggests the rest of what you type in PitCode, HTML, CSS and JavaScript, and closes your tags. Tab takes a suggestion, Ctrl+Space asks for one.')))); }
+            out.appendChild(group(row(T('Code suggestions'), t, T('Pat completes your code in PitCode Studio. Tab accepts, Ctrl+Space asks.')))); }
           // workspaces: several actions at once ("start my study workspace")
           out.appendChild(h('h3', {}, T('Workspaces')));
           const wsBox = h('div'); const drawWs = () => { wsBox.innerHTML = ''; I.workspaces().forEach((w, i) => {
@@ -146,7 +146,7 @@
             [T('Internet'), navigator.onLine === false ? badge('off', T('Offline')) : badge('ok', T('Online')), T('As the browser reports it')],
             [T('Problems written down'), errs.length ? badge(sev('critical') ? 'bad' : sev('error') ? 'warn' : 'ok', String(errs.length)) : badge('ok', '0'), sev('critical') + ' ' + T('critical') + ' · ' + sev('error') + ' ' + T('errors') + ' · ' + sev('warning') + ' ' + T('warnings')]
           ];
-          out.append(h('p', { class: 'st-desc' }, T('What PatOS can measure from inside the browser. Things a browser can’t see (the battery’s health, the processor’s temperature…) are not shown, and estimates say so.')),
+          out.append(h('p', { class: 'st-desc' }, T('What the browser lets PatOS measure. Estimates are marked.')),
             h('h3', {}, T('System health')), group(...health.map(([l, b, s2]) => row(l, b, s2))));
           // resources: measured or estimated, and labeled
           const mem = performance.memory ? Math.round(performance.memory.usedJSHeapSize / 1048576) + ' MB ' + T('(measured: this page’s JavaScript)') : T('Not available in this browser');
@@ -162,7 +162,7 @@
             row(T('Recent problems'), btn(T('Show'), async () => { const l = PatOS.errors.list().slice(-15).reverse(); res.appendChild(group(...(l.length ? l.map((e) => row(e.msg, h('small', { class: 'st-val' }, (e.sev || 'error') + ' · ' + when(e.t)), (e.cat || '') + (e.where ? ' · ' + e.where : '') + (e.recovered === true ? ' · ' + T('recovered') : ''))) : [row(T('No problems written down.'), h('span'))]))); }))),
             res);
           // the report: reviewed before it leaves
-          out.append(h('h3', {}, T('Diagnostic report')), group(row(T('Make a report'), h('button', { class: 'btn', onclick: async () => { const r = await PatOS.diagnostics.report(); PatOS.diagnostics.review(r); } }, T('Make Report…')), T('You see everything in it before copying or saving it. It never contains passwords, keys, sign-in tokens, messages or your files.'))));
+          out.append(h('h3', {}, T('Diagnostic report')), group(row(T('Make a report'), h('button', { class: 'btn', onclick: async () => { const r = await PatOS.diagnostics.report(); PatOS.diagnostics.review(r); } }, T('Make Report…')), T('You see everything before sharing. No passwords, keys, messages or files.'))));
           return [out];
         },
         general() {
@@ -280,7 +280,7 @@
             out.innerHTML = '';
             out.append(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('settings') }), h('div', {}, h('h2', {}, T('Your data is yours')), h('p', { class: 'su-status' }, ''))));
             const vaultWarn = PatOS.passwords && PatOS.passwords.deviceOnly && PatOS.passwords.all().length;
-            if (vaultWarn) out.appendChild(h('div', { class: 'pw-warn bk-warn' }, h('span', {}, T('Your saved passwords are locked with a key that never leaves this device, so a backup can’t open them on another device or after PatOS is erased. Add a master password in Passwords to include them safely.')), h('button', { class: 'btn', onclick: () => PatOS.launch('passwords') }, T('Open Passwords'))));
+            if (vaultWarn) out.appendChild(h('div', { class: 'pw-warn bk-warn' }, h('span', {}, T('Saved passwords can’t be opened from a backup unless you set a master password in Passwords.')), h('button', { class: 'btn', onclick: () => PatOS.launch('passwords') }, T('Open Passwords'))));
             out.appendChild(group(row(T('Kept safe by the browser'), persisted ? h('span', { class: 'st-val' }, T('Yes')) : h('button', { class: 'btn', onclick: spin(null, async () => { await B.persist.request(); paint(); }) }, T('Ask')), persisted ? '' : '')));
             // snapshots
             const now = h('button', { class: 'btn' }, T('Back Up Now')); now.onclick = spin(now, async () => { await B.snapshot(T('Snapshot'), 'manual'); toast(T('Snapshot saved')); paint(); });
@@ -319,29 +319,29 @@
           const paint = () => {
             out.innerHTML = '';
             out.appendChild(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('settings') }), h('div', {}, h('h2', {}, T('PatOS Account')), h('p', { class: 'su-status' }, ''))));
-            if (!A || !A.available()) { out.appendChild(h('div', { class: 'bk-empty' }, T('Accounts need PatOS opened from its web address (https) in a browser that can do encryption.'))); return; }
+            if (!A || !A.available()) { out.appendChild(h('div', { class: 'bk-empty' }, T('Accounts need PatOS opened from its https address in a recent browser.'))); return; }
             if (!A.signedIn()) {
               out.appendChild(group(row(T('Create an account'), h('button', { class: 'btn primary', onclick: () => PatOS.accountUI.open('signup') }, T('Create Account…')), ''), row(T('Already have one?'), h('button', { class: 'btn', onclick: () => PatOS.accountUI.open('signin') }, T('Sign In…')), '')));
-              out.appendChild(h('div', { class: 'bk-empty' }, T('There is no “forgot my password”: your saved things are locked with your password, so nobody can open them without it.'))); return;
+              out.appendChild(h('div', { class: 'bk-empty' }, T('There’s no password reset. Nobody can open your things without it.'))); return;
             }
             const st = PatOS.sync.status(); const i = A.info();
-            const label = A.status().state === 'reauth' ? T('Your sign-in expired. Sign in again to keep saving.') : st.state === 'syncing' ? T('Saving…') : st.state === 'offline' || st.offline ? T('Offline. Your changes are safe here and are saved when you are back online.') : st.error ? T('Saving had a problem. PatOS will try again.') : st.last ? T('Everything is saved') + ' · ' + (PatOS.backup ? PatOS.backup.when(st.last) : '') : T('Not saved yet');
+            const label = A.status().state === 'reauth' ? T('Your sign-in expired. Sign in again to keep saving.') : st.state === 'syncing' ? T('Saving…') : st.state === 'offline' || st.offline ? T('Offline. Your changes are safe and will be saved when you’re back online.') : st.error ? T('Saving had a problem. PatOS will try again.') : st.last ? T('Everything is saved') + ' · ' + (PatOS.backup ? PatOS.backup.when(st.last) : '') : T('Not saved yet');
             const now = h('button', { class: 'btn' }, T('Save Now')); now.onclick = async () => { now.disabled = true; try { await PatOS.sync.now(); } finally { now.disabled = false; } };
             out.appendChild(group(row(T('Signed in as'), h('span', { class: 'st-val' }, A.display(i.uid, i.username), A.isSystem() ? PatOS.systemBadge(14) : null)), row(T('Status'), now, label), row(T('Saved in your account'), h('span', { class: 'st-val' }, st.items + ' ' + T('items')), st.stay ? st.stay + ' ' + T('big files (videos and recordings) stay on this device only.') : '')));
             // the PatOS account: the system account once its id is in config/system (Firebase console). Until then, how.
-            if (A.isSystem()) out.appendChild(h('div', { class: 'su-card su-release' }, h('div', { class: 'su-chead' }, h('b', {}, T('PatOS system account')), PatOS.systemBadge(16)), h('p', { class: 'su-small' }, T('This account is PatOS. It has every account in Messages, its messages need no request and can’t be declined, it can ban and unban accounts (Messages), and it can release a beta as a finished version (Software Update).'))));
+            if (A.isSystem()) out.appendChild(h('div', { class: 'su-card su-release' }, h('div', { class: 'su-chead' }, h('b', {}, T('PatOS system account')), PatOS.systemBadge(16)), h('p', { class: 'su-small' }, T('This is the PatOS account. It can message everyone, ban accounts and release versions.'))));
             else if (i.username === 'patos') {
               const copy = h('button', { class: 'btn', onclick: () => { try { navigator.clipboard.writeText(i.uid); copy.textContent = T('Copied'); } catch (e) {} } }, T('Copy'));
               out.appendChild(h('div', { class: 'su-card su-release' }, h('div', { class: 'su-chead' }, h('b', {}, T('Make this the PatOS system account')), PatOS.systemBadge(16)),
-                h('p', { class: 'su-small' }, T('One step, in the Firebase console (so nobody else can ever do it): Firestore Database › Start collection “config” › Document ID “system” › field “uid” (string) with this value:')),
+                h('p', { class: 'su-small' }, T('In the Firebase console: Firestore › collection “config” › document “system” › field “uid” (string) with this value:')),
                 h('div', { class: 'su-btns' }, h('code', { class: 'st-val', style: { userSelect: 'all', wordBreak: 'break-all' } }, i.uid), copy),
                 h('p', { class: 'su-small' }, T('Then restart PatOS. docs/SYSTEM-ACCOUNT.md explains it.'))));
             }
             if (A.status().state === 'reauth') out.appendChild(group(row(T('Sign in again'), h('button', { class: 'btn primary', onclick: () => PatOS.accountUI.open('signin') }, T('Sign In…')))));
             out.appendChild(h('h3', {}, T('Sign out')));
-            const so = h('button', { class: 'btn', onclick: async () => { if (await PatOS.confirmBox(T('Sign out?'), T('Everything stays on this device. PatOS stops saving to your account until you sign in again.'), { ok: T('Sign Out'), icon: 'settings' })) { await A.signOut(); paint(); } } }, T('Sign Out…'));
+            const so = h('button', { class: 'btn', onclick: async () => { if (await PatOS.confirmBox(T('Sign out?'), T('Everything stays on this device. Nothing is saved to your account until you sign in again.'), { ok: T('Sign Out'), icon: 'settings' })) { await A.signOut(); paint(); } } }, T('Sign Out…'));
             const del = h('button', { class: 'btn danger', onclick: async () => {
-              const pw = await PatOS.ask(T('Delete your account?'), '', { password: true, ok: T('Delete Account'), danger: true, icon: 'settings', text: T('This deletes your username and everything saved in your account (not what is on this device). Messages you sent stay in your friends’ chats. Type your password to confirm.') });
+              const pw = await PatOS.ask(T('Delete your account?'), '', { password: true, ok: T('Delete Account'), danger: true, icon: 'settings', text: T('This deletes your username and your account’s data (not this device’s). Type your password to confirm.') });
               if (!pw) return; try { await A.deleteAccount(pw); paint(); msg(T('Account deleted'), T('Your account and its saved copy are gone. Everything is still on this device.')); } catch (e) { msg(T('That didn’t work'), String(e.message || e)); } } }, T('Delete Account…'));
             out.appendChild(group(row(T('Stop using this account on this device'), so), row(T('Delete this account'), del, '')));
           };
@@ -352,14 +352,14 @@
           const out = h('div', { class: 'bk vo' }); const V = PatOS.voice;
           const paint = () => {
             out.innerHTML = '';
-            out.appendChild(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('messages') }), h('div', {}, h('h2', {}, T('Pat Voice')), h('p', { class: 'su-status' }, T('Say “Hey Pat” and then what you want: “Hey Pat, timer 10 minutes”, “Hey Pat, open Notes”, or the name of one of your Shortcuts.')))));
+            out.appendChild(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('messages') }), h('div', {}, h('h2', {}, T('Pat Voice')), h('p', { class: 'su-status' }, T('Say “Hey Pat” then what you want, like “Hey Pat, timer 10 minutes”.')))));
             if (!V.supported()) { out.appendChild(h('div', { class: 'bk-empty' }, T('This browser cannot listen. Use Chrome or Safari.'))); return; }
             const on = h('button', { class: 'switch' + (V.on() ? ' on' : ''), role: 'switch', 'aria-checked': String(V.on()), 'aria-label': T('Hey Pat') });
             on.onclick = () => { try { V.on() ? V.disable() : V.enable(); } catch (e) { PatOS.alertBox(T('That didn’t work'), String(e.message || e), { icon: 'settings' }); } paint(); };
             const sp = h('button', { class: 'switch' + (V.speaks() ? ' on' : ''), role: 'switch', 'aria-checked': String(V.speaks()), 'aria-label': T('Pat answers out loud') }); sp.onclick = () => { PatOS.store.set('voiceSpeak', !V.speaks()); paint(); };
             out.appendChild(group(row(T('Hey Pat'), on, V.on() ? (V.state().listening ? T('Listening for “Hey Pat” while PatOS is open.') : T('Starting…')) : T('Off. Nothing is listening.')), row(T('Pat answers out loud'), sp, T('Pat also speaks the answer.'))));
             out.appendChild(group(row(T('Try it'), h('button', { class: 'btn', onclick: () => V.speak(T('Hi, I am Pat. Say Hey Pat, and then what you need.')) }, T('Hear Pat')))));
-            out.appendChild(h('div', { class: 'bk-empty' }, T('How it works: your browser turns what you say into text. In Chrome, the sound is sent to Google’s speech service to do that. PatOS listens only while this switch is on and PatOS is open, and shows a microphone pill the whole time. Your Shortcuts and the Pat commands do the rest on your device.')));
+            out.appendChild(h('div', { class: 'bk-empty' }, T('Your browser turns your voice into text (Chrome uses Google for this). PatOS only listens while this is on, and shows a mic.')));
           };
           const offs = [PatOS.on('voice:state', () => { if (pane === 'voice' && out.isConnected) paint(); })]; win.on('closed', () => offs.forEach((f) => f()));
           paint(); return [out];
@@ -368,17 +368,17 @@
           const out = h('div', { class: 'bk pv' }); const A = PatOS.patapps;
           const paint = () => {
             out.innerHTML = '';
-            out.appendChild(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('settings') }), h('div', {}, h('h2', {}, T('Privacy')), h('p', { class: 'su-status' }, T('Apps from the App Store Community run in a locked box. Each one has to ask before it uses your camera, microphone, location, files, clipboard, notifications or the internet. Here you see what each app may do, and what it did.')))));
+            out.appendChild(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('settings') }), h('div', {}, h('h2', {}, T('Privacy')), h('p', { class: 'su-status' }, T('Community apps must ask before using your camera, mic, location, files, clipboard, notifications or the internet. See what each app may do and did.')))));
             // Timeline: what PatOS remembers about what you do (js/timeline.js)
             out.appendChild(h('h3', {}, T('Timeline')));
             const days = h('select', { class: 'field', 'aria-label': T('Keep for'), onchange: (e) => PatOS.setSetting('timelineDays', +e.target.value) },
               ...[7, 30, 90, 365].map((d) => h('option', { value: d, selected: (+S().timelineDays || 30) === d }, d === 365 ? T('1 year') : d + ' ' + T('days'))));
             const tg = (k, lab) => { const t = toggle(k); t.setAttribute('role', 'switch'); t.setAttribute('aria-label', lab); return t; };
             const tlg = group(
-              row(T('Timeline'), tg('timeline', T('Timeline')), T('Remembers the apps, files, websites and notes you open, and the windows you had open, so you can find them again. Only on this device, never synced, no screenshots, nothing from Passwords.')),
+              row(T('Timeline'), tg('timeline', T('Timeline')), T('Remembers the apps, files, sites and windows you open so you can find them again. Stays on this device.')),
               row(T('Clipboard History'), tg('timelineClips', T('Clipboard History')), T('Keeps what you copy. Alt+V opens it anywhere and pastes.')),
               row(T('Keep for'), days),
-              row(T('Handoff'), tg('handoff', T('Handoff')), T('Your other devices can continue what you are doing here (the app and what is open in it, never its content), and this one can continue theirs. Needs Sync.')),
+              row(T('Handoff'), tg('handoff', T('Handoff')), T('Continue on another device what you’re doing here. Needs Sync.')),
               row(T('Open Timeline'), h('button', { class: 'btn', onclick: () => PatOS.launch('timeline') }, T('Open')), T('Pause it, forget the last hour, a day or everything from the Timeline app.')));
             tlg.classList.add('pv-tl'); out.appendChild(tlg);
             out.appendChild(h('h3', {}, T('Community apps')));
@@ -421,7 +421,7 @@
               try { await Y.join(inp.value); close(); paint(); } catch (e) { go.disabled = false; note.textContent = T(String(e.message || e)); }
             };
             inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go.click(); });
-            layer.appendChild(h('div', { class: 'dlg ce bk-dlg' }, h('b', {}, T('Join Sync')), h('p', { class: 'bk-note' }, T('Type the code shown in Settings › Sync on your other device. Things that are on both devices will use the version from Sync. PatOS keeps a snapshot first, so you can go back.')), inp, note, h('div', { class: 'dlg-btns' }, h('button', { class: 'btn', onclick: close }, T('Cancel')), go)));
+            layer.appendChild(h('div', { class: 'dlg ce bk-dlg' }, h('b', {}, T('Join Sync')), h('p', { class: 'bk-note' }, T('Type the code from Settings › Sync on your other device. A snapshot is saved first.')), inp, note, h('div', { class: 'dlg-btns' }, h('button', { class: 'btn', onclick: close }, T('Cancel')), go)));
             layer.addEventListener('pointerdown', (e) => { if (e.target === layer) close(); }); layer.addEventListener('keydown', (e) => { if (e.key === 'Escape') close(); });
             document.body.appendChild(layer); setTimeout(() => inp.focus(), 30);
           }
@@ -438,7 +438,7 @@
           const paint = async () => {
             const st = Y.status(); out.innerHTML = '';
             out.appendChild(h('div', { class: 'st-hero' }, h('div', { class: 'st-hero-ic', html: PatOS.iconHTML('settings') }), h('div', {}, h('h2', {}, T('Sync')), h('p', { class: 'su-status' }, ''))));
-            if (!Y.available()) { out.appendChild(h('div', { class: 'bk-empty' }, T('This browser can’t do the encryption Sync needs. Open PatOS from its https address, or in a newer browser.'))); return; }
+            if (!Y.available()) { out.appendChild(h('div', { class: 'bk-empty' }, T('This browser can’t encrypt, which Sync needs. Open PatOS from its https address, or use a newer browser.'))); return; }
             if (!st.on) {
               const on = h('button', { class: 'btn primary' }, T('Turn On Sync')); on.onclick = spin(on, async () => { await Y.enable(); shown = true; paint(); });
               const jn = h('button', { class: 'btn', onclick: joinDialog }, T('Join with a Code…'));
@@ -452,18 +452,18 @@
             const code = Y.code();
             const show = h('button', { class: 'btn' }, shown ? T('Hide') : T('Show Code')); show.onclick = () => { shown = !shown; paint(); };
             const cp = shown ? h('button', { class: 'btn', onclick: () => { try { navigator.clipboard.writeText(code); } catch (e) {} toast(T('Copied')); } }, T('Copy')) : null;
-            out.appendChild(group(row(T('Your sync code'), h('div', { class: 'bk-acts' }, cp, show), T('Type this code in Settings › Sync on another device to connect it. Keep it private: it unlocks your data. It is included in backups.')), shown ? h('div', { class: 'sy-code', 'aria-live': 'polite' }, code) : null));
+            out.appendChild(group(row(T('Your sync code'), h('div', { class: 'bk-acts' }, cp, show), T('Type this code in Settings › Sync on another device. Keep it private.')), shown ? h('div', { class: 'sy-code', 'aria-live': 'polite' }, code) : null));
             out.appendChild(group(row(T('On this device'), h('span', { class: 'st-val' }, st.items + ' ' + T('items')), st.stay ? st.stay + ' ' + T('big files (videos and recordings) stay on the device where they are.') : '')));
-            if (st.hold) { const ok = h('button', { class: 'btn primary' }, T('Sync These Deletions')); ok.onclick = spin(ok, async () => { await Y.now({ force: true }); }); out.appendChild(h('div', { class: 'pw-warn bk-warn' }, h('span', {}, st.hold + ' ' + T('items are missing on this device, so they would be deleted on your other devices too. If that is not what you wanted, restore a snapshot in Backup & Restore first.')), ok)); }
+            if (st.hold) { const ok = h('button', { class: 'btn primary' }, T('Sync These Deletions')); ok.onclick = spin(ok, async () => { await Y.now({ force: true }); }); out.appendChild(h('div', { class: 'pw-warn bk-warn' }, h('span', {}, st.hold + ' ' + T('items are missing here, so they would be deleted on your other devices too. To undo, restore a snapshot first.')), ok)); }
             if (st.rejected) { const rs = h('button', { class: 'btn' }, T('Try Again')); rs.onclick = spin(rs, async () => { await Y.resend(); }); out.appendChild(h('div', { class: 'pw-warn bk-warn' }, h('span', {}, st.rejected + ' ' + T('items could not be saved on the server (it may be full).')), rs)); }
             const sv = h('input', { class: 'field', placeholder: T('This website (recommended)'), value: Y.server_url(), spellcheck: 'false', autocapitalize: 'none', 'aria-label': T('Server address') });
             const svb = h('button', { class: 'btn' }, T('Save')); svb.onclick = spin(svb, async () => { await Y.setServer(sv.value); toast(T('Server saved')); paint(); });
-            out.appendChild(group(row(T('Server address'), h('div', { class: 'bk-acts' }, sv, svb), T('Deleted your Railway and made a new one? If this copy of PatOS is still open on the old address, paste the new address here: it sends everything it has to the new server. On the new website itself, restore a backup or join with your code.'))));
+            out.appendChild(group(row(T('Server address'), h('div', { class: 'bk-acts' }, sv, svb), T('New Railway server? Paste its address here to move everything to it.'))));
             const nc = h('button', { class: 'btn' }, T('Make a New Code…')); nc.onclick = spin(nc, async () => {
-              if (!(await PatOS.confirmBox(T('Make a new code?'), T('This device keeps everything and starts fresh on the server with a new code. The old code stops working, so your other devices must join again with the new one.'), { ok: T('Make New Code'), icon: 'settings' }))) return;
+              if (!(await PatOS.confirmBox(T('Make a new code?'), T('Starts fresh on the server with a new code. Your other devices must join again with it.'), { ok: T('Make New Code'), icon: 'settings' }))) return;
               shown = true; await Y.regenerate(); toast(T('New code ready')); paint();
             });
-            out.appendChild(group(row(T('New code'), nc, T('Lost your code, or shared it by mistake? Everything on this device is kept, and it can be shared again with a new code.'))));
+            out.appendChild(group(row(T('New code'), nc, T('Lost or shared your code? Make a new one. Nothing on this device is lost.'))));
             out.appendChild(group(row(T('Full copy on this computer'), h('button', { class: 'btn', onclick: () => { pane = 'backup'; renderMain(); drawSide(); } }, T('Open Backup & Restore')), '')));
             out.appendChild(h('h3', {}, T('Turn off')));
             out.appendChild(group(row(T('Stop syncing this device'), h('button', { class: 'btn', onclick: offDialog }, T('Turn Off…')))));
@@ -486,7 +486,7 @@
           });
           const acc = h('div', { class: 'st-acc' });
           ACCENTS.forEach((c) => { const b = h('button', { class: 'st-dot' + (S().accent === c ? ' on' : ''), style: { background: c } }); b.onclick = () => { PatOS.setSetting('accent', c); render(); }; acc.appendChild(b); });
-          return [h('h3', {}, T('Light or dark')), modes, group(row('Highlight color', acc), row(T('Motion'), select('motion', [['calm', T('Calm')], ['natural', T('Natural')], ['playful', T('Playful')]]), T('How windows, menus and panels move')), row(T('App icons'), select('iconStyle', [['auto', T('Automatic')], ['light', T('Light')], ['dark', T('Dark')]]), T('Light: apps with a color of their own get a tile of that color, the others are white. Dark: most apps sit on a dark tile with their drawing in color, a few keep their own tile. Automatic follows light or dark mode')), row('Fewer animations', toggle('reduceMotion'))),
+          return [h('h3', {}, T('Light or dark')), modes, group(row('Highlight color', acc), row(T('Motion'), select('motion', [['calm', T('Calm')], ['natural', T('Natural')], ['playful', T('Playful')]]), T('How windows, menus and panels move')), row(T('App icons'), select('iconStyle', [['auto', T('Automatic')], ['light', T('Light')], ['dark', T('Dark')]]), T('Dark: most apps on a dark tile. Light: colored or white tiles. Automatic follows the theme.')), row('Fewer animations', toggle('reduceMotion'))),
             h('h3', {}, 'Liquid Glass'),
             group(row('Liquid Glass', toggle('liquidGlass', render), ''),
               S().liquidGlass ? row(T('Glass style'), select('glassStyle', [['clear', T('Transparent')], ['tinted', T('Tinted (more contrast)')]]), '') : null,
@@ -507,7 +507,7 @@
           const heroImg = cur === 'custom' && S().customWallpaper ? S().customWallpaper : W.thumbLarge(all[cur] ? cur : 'lumen');
           return [h('div', { class: 'st-wp-hero' }, h('div', { class: 'st-wp-screen', style: { backgroundImage: 'url(' + heroImg + ')' } }, h('span', { class: 'st-wp-bar' }), h('span', { class: 'st-wp-dock' })),
               h('div', { class: 'st-wp-meta' }, h('small', {}, T('Current wallpaper')), h('h2', {}, cur === 'custom' ? T('Your picture') : T((curP || { name: 'Lumen' }).name)), h('p', {}, desc), upload)),
-            h('h3', {}, T('PatOS Signature')), h('p', { class: 'st-note' }, T('Lumen is painted by PatOS on your device, sharp at any screen size. The first one follows the time of day: dawn, day, dusk and night.')), grid(sig, true),
+            h('h3', {}, T('PatOS Signature')), h('p', { class: 'st-note' }, T('Painted on your device. The first one changes with the time of day.')), grid(sig, true),
             h('h3', {}, T('Live 3D Wallpapers')), grid(Object.keys(W.live)),
             group(row(T('Animate 3D wallpaper'), toggle('live3d'), PatOS.webgl ? '' : T('WebGL is not available on this device'))),
             h('h3', {}, T('Pictures')), grid(pics)];
@@ -529,7 +529,7 @@
         },
         display() {
           return [h('h3', {}, 'Display'), group(row('Brightness', range('brightness', 0.2, 1, 0.01, (v) => Math.round(v * 100) + '%')), row('Full screen', h('button', { class: 'btn', onclick: PatOS.toggleFullscreen }, document.fullscreenElement ? 'Exit Full Screen' : 'Enter Full Screen'))),
-            h('h3', {}, T('Speed')), group(row(T('Speed mode'), select('perfMode', [['auto', T('Automatic')], ['light', T('Lighter (faster on slow computers)')], ['full', T('Full looks')]]), '')), h('h3', {}, '3D Graphics'), group(row('3D quality', select('quality3d', [['low', T('Low (best for older Chromebooks)')], ['auto', 'Balanced'], ['high', 'High (sharpest)']])), row('WebGL', h('span', { class: 'st-val' }, PatOS.has3D ? 'Available (three.js r' + THREE.REVISION + ')' : 'Not available on this device')))];
+            h('h3', {}, T('Speed')), group(row(T('Speed mode'), select('perfMode', [['auto', T('Automatic')], ['light', T('Lighter (faster on slow computers)')], ['full', T('Full looks')]]), '')), h('h3', {}, '3D Graphics'), group(row('3D quality', select('quality3d', [['low', T('Low (best for older Chromebooks)')], ['auto', 'Balanced'], ['high', 'High (sharpest)']])))];
         },
         sound() { return [h('h3', {}, 'Sound'), group(row('Output volume', range('volume', 0, 1, 0.01, (v) => Math.round(v * 100) + '%')), row('Play user interface sounds', toggle('uiSounds')), row('Test', h('button', { class: 'btn', onclick: () => PatOS.sound.startup() }, 'Play Startup Chime')))]; },
         lock() {
@@ -550,7 +550,7 @@
               c.rtt != null ? row(T('Round-trip time'), h('span', { class: 'st-val' }, c.rtt + ' ms')) : null,
               c.saveData ? row(T('Data saver'), h('span', { class: 'st-val' }, T('On'))) : null),
             group(row(T('Response time of the PatOS server'), lat), row(T('Download speed'), h('div', { class: 'st-inline' }, spd, h('button', { class: 'btn', onclick: async (e) => { const b = e.currentTarget; b.disabled = true; spd.textContent = T('Testing…'); try { spd.textContent = await speedTest(); } catch (err) { spd.textContent = T('Couldn’t test'); } b.disabled = false; } }, T('Test'))))));
-            box.appendChild(h('p', { class: 'st-note' }, T('Wi-Fi and Bluetooth are controlled by ChromeOS. Click the clock in the bottom right corner of the screen (outside PatOS) to change them. PatOS shows what it can see from the browser.')));
+            box.appendChild(h('p', { class: 'st-note' }, T('Wi-Fi and Bluetooth are set in ChromeOS: click the clock in the corner of the screen.')));
             pingMs().then((ms) => { lat.textContent = ms == null ? T('Not reachable (PatOS is running as a file)') : ms + ' ms'; });
           };
           async function pingMs() { const base = PatOS.server && await PatOS.server(); if (!base) return null; const t = []; for (let i = 0; i < 3; i++) { const t0 = performance.now(); try { await fetch(base + '/api/ping', { cache: 'no-store' }); t.push(performance.now() - t0); } catch (e) {} } return t.length ? Math.round(Math.min(...t)) : null; }
@@ -594,7 +594,7 @@
             const onOld = m.useOld && m.previous;
             const btn = onOld
               ? h('button', { class: 'btn', onclick: async () => { await ask({ patosUseNewest: true }); PatOS._leaving = true; location.reload(); } }, T('Use the newest version'))
-              : m.previous ? h('button', { class: 'btn', onclick: async () => { if (!(await PatOS.confirmBox(T('Go back to the previous version?'), T('PatOS restarts with the version you had before this update. Your files and settings stay the same.'), { ok: T('Go Back'), icon: 'settings' }))) return; const r = await ask({ patosRollback: true }); if (r && r.ok) { PatOS._leaving = true; location.reload(); } else PatOS.alertBox(T('No previous version'), T('There is no earlier version saved on this device yet.'), { icon: 'settings' }); } }, T('Go back…')) : null;
+              : m.previous ? h('button', { class: 'btn', onclick: async () => { if (!(await PatOS.confirmBox(T('Go back to the previous version?'), T('PatOS goes back to the version you had before. Your files and settings stay.'), { ok: T('Go Back'), icon: 'settings' }))) return; const r = await ask({ patosRollback: true }); if (r && r.ok) { PatOS._leaving = true; location.reload(); } else PatOS.alertBox(T('No previous version'), T('There is no earlier version saved on this device yet.'), { icon: 'settings' }); } }, T('Go back…')) : null;
             upd.appendChild(group(
               row(T('Running'), h('span', { class: 'st-val' }, short(onOld ? m.previous : m.newest) + (onOld ? ' (' + T('previous version') + ')' : ''))),
               row(T('Previous version'), h('div', { class: 'st-inline' }, h('span', { class: 'st-val' }, m.previous ? short(m.previous) : T('none yet')), btn), '')));
@@ -635,19 +635,19 @@
             else if (I && I.canPrompt()) action = h('button', { class: 'btn primary', onclick: async () => { await I.prompt(); paint(); } }, T('Install PatOS'));
             else action = null;
             const status = installed ? T('You are using the PatOS app. It has its own window and its own icon in the shelf.')
-              : !canInstall ? T('Installing needs PatOS to be opened from its website (not from a saved file or a preview).')
-              : PatOS.store.get('appInstalled', false) ? T('PatOS is installed on this Chromebook. Open it from the Launcher or the shelf to use it as an app.')
+              : !canInstall ? T('Installing needs PatOS opened from its website.')
+              : PatOS.store.get('appInstalled', false) ? T('PatOS is installed. Open it from the Launcher or the shelf.')
               : I && I.canPrompt() ? ''
-              : T('Chrome hasn’t offered to install PatOS yet. You can install it from Chrome’s menu (see below).');
+              : T('Chrome hasn’t offered to install PatOS yet. Install it from Chrome’s menu (below).');
             box.append(h('div', { class: 'st-hero' }, h('img', { class: 'st-hero-ic', src: 'assets/icon-192.png', alt: '' }), h('div', {}, h('h2', {}, T('PatOS app')), h('p', {}, status), action ? h('div', { style: { marginTop: '10px' } }, action) : null)));
             if (!installed && canInstall && !(I && I.canPrompt())) {
-              box.append(h('h3', { class: 'st-h3' }, T('Install from Chrome')), steps(T('Click the three dots (⋮) at the top right of Chrome.'), T('Choose “Cast, save and share”, then “Install page as app…”. On some versions it is “Install PatOS…” directly in the menu.'), T('Click Install.')));
+              box.append(h('h3', { class: 'st-h3' }, T('Install from Chrome')), steps(T('Click the three dots (⋮) at the top right of Chrome.'), T('Choose “Cast, save and share” › “Install page as app…” (or “Install PatOS…”).'), T('Click Install.')));
             }
             box.append(h('h3', { class: 'st-h3' }, T('Open PatOS when your Chromebook starts')),
               steps(T('Install PatOS (above).'),
                 T('Right-click the PatOS icon in the shelf at the bottom of the screen and choose Pin.'),
-                T('Open the Chromebook’s Settings, search for “Restore apps on startup” and choose Always. If PatOS is open when you shut down, it opens again when you sign in.')),
-              h('p', { class: 'st-note' }, T('Only using Chrome? In Chrome Settings › On startup, choose “Open a specific page or set of pages” and add the PatOS address below.')),
+                T('In the Chromebook’s Settings, search “Restore apps on startup” and choose Always.')),
+              h('p', { class: 'st-note' }, T('Only Chrome? In Chrome Settings › On startup, add the PatOS address below.')),
               h('p', { class: 'st-note' }, ''));
             const addr = I ? I.address() : location.href;
             const copyBtn = h('button', { class: 'btn', onclick: () => { (navigator.clipboard ? navigator.clipboard.writeText(addr) : Promise.reject()).then(() => { copyBtn.textContent = T('Copied'); setTimeout(() => (copyBtn.textContent = T('Copy')), 1500); }).catch(() => PatOS.ask(T('PatOS address'), addr, { icon: 'settings' })); } }, T('Copy'));
@@ -655,7 +655,7 @@
               row(T('Ask for full screen at login'), toggle('askFullscreen'), '')));
             box.append(h('h3', { class: 'st-h3' }, T('Open your Chromebook’s files with PatOS')),
               h('p', { class: 'st-note' }, I && I.fileHandling()
-                ? T('Once PatOS is installed, right-click a file in the Chromebook’s Files app and choose Open with › PatOS. Word, Excel, PowerPoint, PDF, text, code, pictures, music and videos all work. When you save in PatOS, the real file is saved too.')
+                ? T('Once PatOS is installed, right-click a file in the Files app and choose Open with › PatOS. Saving in PatOS saves the real file.')
                 : T('This browser can’t hand files to PatOS. Use Piles › Open Files… instead.')),
               h('h3', { class: 'st-h3' }, T('Shortcuts')),
               h('p', { class: 'st-note' }, ''));
@@ -671,7 +671,7 @@
             group(row(T('Text size'), ts, T('Makes everything inside app windows bigger: text, buttons and pictures.'))),
             group(row(T('Reduce motion'), toggle('reduceMotion'), ''), row(T('Reduce transparency'), toggle('reduceTransparency'), ''), row(T('High contrast'), toggle('highContrast'), ''), row(T('Bold text'), toggle('boldText')), row(T('Always show keyboard focus'), toggle('showFocus'), ''), row(T('Larger click targets'), toggle('bigTargets'), '')),
             group(row(T('Read notifications aloud to screen readers'), toggle('srAnnounce'))),
-            h('p', { class: 'st-note' }, T('To make everything bigger, press Ctrl and + (and Ctrl and 0 to reset). PatOS rearranges itself to fit. On a Chromebook you can also use ChromeVox, the built-in screen reader (Ctrl+Alt+Z).'))];
+            h('p', { class: 'st-note' }, T('Press Ctrl and + to make everything bigger (Ctrl and 0 to reset). On a Chromebook, ChromeVox reads the screen (Ctrl+Alt+Z).'))];
         },
         keyboard() {
           const sc = [['Ctrl+Space / Alt+Space', 'Spotlight search'], ['Alt+L or F4', 'Launchpad'], ['Alt+↑ or F3', 'Mission Control'], ['Alt+W', 'Close window'], ['Alt+Q', 'Quit app'], ['Alt+M', 'Minimize'], ['Alt+F', 'Zoom window'], ['Alt+← / Alt+→', 'Tile window left / right'], ['Alt+N', 'New window'], ['Alt+`', 'Cycle windows'], ['Alt+T', 'Terminal'], ['Alt+E', 'Piles'], ['Alt+B', 'Patoogle browser'], ['Alt+,', 'Settings'], ['Alt+Esc', 'Lock screen'], ['Esc', 'Close menus & overlays']];
@@ -686,7 +686,7 @@
             const tree = JSON.parse(JSON.stringify(PatOS.fs.get('/'), (k, v) => (k === 'cid' ? undefined : v)));
             let blobs = 0; (function w(n) { if (n.type === 'dir') Object.values(n.children).forEach(w); else if (n.blob) blobs++; })(tree);
             PatOS.downloadFile('PatOS-backup.json', JSON.stringify({ patosBackup: 2, kv, fs: tree }));
-            if (blobs) PatOS.notify({ title: T('Backup saved'), body: blobs + ' ' + T('big files (videos and recordings) are not in the backup. Save them from Piles with “Save to This Chromebook…”.'), icon: 'settings' });
+            if (blobs) PatOS.notify({ title: T('Backup saved'), body: blobs + ' ' + T('big files (videos, recordings) aren’t in the backup. Save them from Piles.'), icon: 'settings' });
           };
           const importAll = () => { const i = h('input', { type: 'file', accept: '.json' }); i.onchange = () => { const r = new FileReader(); r.onload = async () => { try { const d = JSON.parse(r.result); if (d.patosBackup) { Object.entries(d.kv || {}).forEach(([k, v]) => PatOS.store.set(k, v)); PatOS.store.set('fs', d.fs); } else Object.entries(d).forEach(([k, v]) => { if (k.startsWith('patos:')) PatOS.store.set(k.slice(6), JSON.parse(v)); }); await PatOS.store.flush(); PatOS._leaving = true; location.reload(); } catch (e) { PatOS.alertBox(T('That file is not a PatOS backup'), T('Choose a PatOS-backup.json file.'), { icon: 'settings' }); } }; r.readAsText(i.files[0]); }; i.click(); };
           return [bar,

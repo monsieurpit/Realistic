@@ -51,7 +51,7 @@
 
   PatOS.registerApp({
     id: 'clock', name: 'Clock', icon: 'clock', width: 760, height: 540, dark: true, category: 'Utilities', keywords: 'time stopwatch timer alarm world horloge minuteur chronomètre réveil',
-    about: 'World clocks, alarms, a stopwatch and a timer that keep going when Clock is closed.',
+    about: 'World clocks, alarms, a stopwatch and a timer.',
     launch(win, args) {
       win.el.classList.add('has-toolbar');
       const tabs = ['World Clock', 'Alarms', 'Stopwatch', 'Timer'];

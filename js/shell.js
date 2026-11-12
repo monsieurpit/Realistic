@@ -292,12 +292,12 @@
       netTimer = setTimeout(() => {
         if (navigator.onLine === netShown) return; netShown = navigator.onLine;
         if (netShown) PatOS.notify({ title: PatOS.t('Back online'), body: PatOS.t('Apps that need the internet work again.'), icon: 'settings', duration: 3500 });
-        else PatOS.notify({ title: PatOS.t('You’re offline'), body: PatOS.t('Your files, Docs, Sheets, Slides, Notes and Code Studio keep working. Apps that need the internet will wait.'), icon: 'settings', duration: 7000 });
+        else PatOS.notify({ title: PatOS.t('You’re offline'), body: PatOS.t('Your files and apps keep working. Apps that need the internet will wait.'), icon: 'settings', duration: 7000 });
       }, 1500);
     };
     window.addEventListener('online', netChange); window.addEventListener('offline', netChange);
     // PatOS started without internet: say so once, after the welcome
-    if (!navigator.onLine) { netShown = false; setTimeout(() => { if (!navigator.onLine) PatOS.notify({ title: PatOS.t('You’re offline'), body: PatOS.t('Your files, Docs, Sheets, Slides, Notes and Code Studio keep working. Apps that need the internet will wait.'), icon: 'settings', duration: 7000 }); }, 2500); }
+    if (!navigator.onLine) { netShown = false; setTimeout(() => { if (!navigator.onLine) PatOS.notify({ title: PatOS.t('You’re offline'), body: PatOS.t('Your files and apps keep working. Apps that need the internet will wait.'), icon: 'settings', duration: 7000 }); }, 2500); }
 
     // battery (Chromebooks support the Battery API)
     const bat = $('#mb-battery');

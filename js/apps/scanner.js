@@ -180,7 +180,7 @@
         } catch (e) {
           stage.innerHTML = '';
           stage.appendChild(h('div', { class: 'sc-empty' }, h('div', { class: 'sc-bigic', html: PatOS.iconHTML('scanner') }), h('h2', {}, T('The camera isn’t available')),
-            h('p', {}, T('Allow the camera for PatOS (the lock icon next to the address). On a school Chromebook it may be turned off. You can also scan photos you already took.')),
+            h('p', {}, T('Allow the camera (the lock icon next to the address). It may be off on school Chromebooks. You can also scan saved photos.')),
             h('div', { class: 'sc-row' }, h('button', { class: 'btn', onclick: () => camera() }, T('Try Again')), h('button', { class: 'btn primary', onclick: pick }, T('Choose Photos…')))));
           return;
         }

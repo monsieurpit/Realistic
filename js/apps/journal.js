@@ -18,7 +18,7 @@
 
   PatOS.registerApp({
     id: 'journal', name: 'Journal', icon: 'journal', width: 940, height: 620, category: 'Apps', keywords: 'diary daily writing mood gratitude',
-    about: 'A private diary: one page per day, with your mood and a question to get you writing.',
+    about: 'A private diary: one page a day, with your mood and a question.',
     launch(win) {
       win.el.classList.add('has-toolbar');
       const data = PatOS.store.get('journal', {}); // { 'YYYY-MM-DD': { text, mood, updated } }

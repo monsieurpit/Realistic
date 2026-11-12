@@ -163,7 +163,7 @@
   } };
   // fetch the Google icons quietly after login, so the grid appears complete right away
   PatOS.on('wm:ready', () => setTimeout(() => { if (navigator.onLine === false) return; GOOGLE.forEach(([id]) => { const c = byId[id]; if (c && c.art) { const im = new Image(); im.referrerPolicy = 'no-referrer'; im.src = c.art; } }); }, 4000));
-  PatOS.registerApp({ id: 'google', name: 'Google', icon: 'google', category: 'Apps', keywords: 'google classroom docs sheets slides drive keep translate photos maps earth school ecole école', about: 'Your Google apps, one click away. They open in your browser, signed in with your Google account.', action: () => showGoogle() });
+  PatOS.registerApp({ id: 'google', name: 'Google', icon: 'google', category: 'Apps', keywords: 'google classroom docs sheets slides drive keep translate photos maps earth school ecole école', about: 'Your Google apps. They open in your browser.', action: () => showGoogle() });
   // put Google in the Dock once, right after Patoogle (it can be removed or moved like any Dock icon)
   if (!PatOS.store.get('googleDock1', false)) {
     PatOS.store.set('googleDock1', true);
@@ -185,7 +185,7 @@
       bOwn.onclick = () => openOnComputer(c, true);
       if (args.blocked || !c.frame || PatOS.sandboxed) {
         const card = h('div', { class: 'xw-card' }, h('div', { class: 'xw-ic', html: PatOS.iconHTML('x-' + c.id) }), h('h2', {}, c.name),
-          h('p', {}, PatOS.t(PatOS.sandboxed ? 'This copy of PatOS runs inside a Claude Artifact, which can’t open other websites. Open PatOS from its website.' : args.blocked ? 'Your browser blocked the new window. Press the button to open it.' : 'This website doesn’t allow being shown inside other apps, so it opens in its own window.')),
+          h('p', {}, PatOS.t(PatOS.sandboxed ? 'Claude Artifacts can’t open other websites. Open PatOS from its website.' : args.blocked ? 'Your browser blocked the new window. Press the button to open it.' : 'This website doesn’t allow being shown inside other apps, so it opens in its own window.')),
           h('button', { class: 'btn primary', onclick: () => openOnComputer(c, true) }, PatOS.t('Open') + ' ' + c.name),
           h('small', {}, c.web.replace(/^https:\/\//, '').replace(/\/$/, '')));
         win.body.appendChild(card); bReload.style.display = 'none'; return;

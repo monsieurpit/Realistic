@@ -33,7 +33,7 @@
     const esc = (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } };
     const pre = h('pre', { class: 'diag-pre', tabindex: '0', 'aria-label': T('The report') }, text);
     layer.appendChild(h('div', { class: 'dlg diag-dlg', role: 'dialog', 'aria-modal': 'true', 'aria-label': T('Diagnostic report') }, h('b', {}, T('Diagnostic report')),
-      h('p', {}, T('This is everything in the report. It has no passwords, keys, sign-in tokens, messages, file names or file contents.')), pre,
+      h('p', {}, T('This is the whole report. No passwords, keys, messages or files.')), pre,
       h('div', { class: 'dlg-btns' }, h('button', { class: 'btn', onclick: close }, T('Close')), h('button', { class: 'btn', onclick: () => { try { navigator.clipboard.writeText(text); PatOS.notify({ title: T('Copied'), body: T('Diagnostic report'), icon: 'settings' }); } catch (e) {} } }, T('Copy')),
         h('button', { class: 'btn primary', onclick: () => { const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([text], { type: 'application/json' })); a.download = 'PatOS-diagnostics-' + new Date().toISOString().slice(0, 10) + '.json'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); } }, T('Save…')))));
     document.addEventListener('keydown', esc, true); document.body.appendChild(layer); setTimeout(() => pre.focus(), 30);

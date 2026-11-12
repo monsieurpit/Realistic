@@ -8,7 +8,7 @@
 
   PatOS.registerApp({
     id: 'news', name: 'News', icon: 'news', width: 1060, height: 700, category: 'Apps', keywords: 'headlines articles journal nouvelles actualités',
-    about: 'Live headlines from NPR, Al Jazeera, Engadget, Space.com, NASA, Radio-Canada, La Presse and more.',
+    about: 'Live headlines from NPR, Radio-Canada, La Presse, NASA and more.',
     launch(win) {
       win.el.classList.add('has-toolbar');
       const saved = PatOS.store.get('newsSaved', []);
@@ -67,12 +67,12 @@
             window.addEventListener('online', back);
             return;
           }
-          main.innerHTML = ''; main.appendChild(PatOS.offlineCard(load, { body: 'The news needs the internet. Your saved stories are still here, in Library.' }));
+          main.innerHTML = ''; main.appendChild(PatOS.offlineCard(load, { body: 'The news needs the internet. Your saved stories are in Library.' }));
         };
         if (PatOS.isOffline()) return offline();
         const base = PatOS.server && await PatOS.server();
         if (!base && PatOS.isOffline()) return offline();
-        if (!base) { main.innerHTML = ''; main.appendChild(h('div', { class: 'nw-empty' }, h('h2', {}, PatOS.t('News needs the PatOS website')), h('p', {}, PatOS.sandboxed ? PatOS.t('This copy of PatOS runs inside a Claude Artifact, which blocks live news. Open PatOS from its website.') : PatOS.t('Open PatOS from its website (your Render link) to read the news.')))); return; }
+        if (!base) { main.innerHTML = ''; main.appendChild(h('div', { class: 'nw-empty' }, h('h2', {}, PatOS.t('News needs the PatOS website')), h('p', {}, PatOS.sandboxed ? PatOS.t('Live news is blocked in Claude Artifacts. Open PatOS from its website.') : PatOS.t('Open PatOS from its website (your Render link) to read the news.')))); return; }
         try {
           const r = await fetch(base + '/api/news?feed=' + feed); const j = await r.json(); if (j.error) throw new Error(j.error);
           items = j.items.map((x) => Object.assign(x, { source: j.source }));

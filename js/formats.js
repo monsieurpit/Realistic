@@ -13,7 +13,7 @@
     if (ext === 'docx') { const html = await PatOS.docx.toHTML(blob); const p = dest + '/' + PatOS.fs.uniqueName(dest, base + '.pdoc'); PatOS.fs.write(p, html); return { app: 'docs', path: p }; }
     if (ext === 'xlsx') { const book = await PatOS.xlsx.toBook(blob); const p = dest + '/' + PatOS.fs.uniqueName(dest, base + '.psheet'); PatOS.fs.write(p, JSON.stringify(book)); const skipped = book.sheets.reduce((n, s) => n + (s.skipped || 0), 0); if (skipped) PatOS.notify({ title: T('Some cells were skipped'), body: skipped + ' ' + T('cells are past column Z, which Sheets doesn’t have yet.'), icon: 'sheets' }); return { app: 'sheets', path: p }; }
     if (ext === 'pptx') { const deck = await PatOS.pptx.toDeck(blob); const p = dest + '/' + PatOS.fs.uniqueName(dest, base + '.pslides'); PatOS.fs.write(p, JSON.stringify(deck)); if (deck.warn) PatOS.notify({ title: T('Some pictures were skipped'), body: deck.warn + ' ' + T('pictures are in a format Slides can’t show.'), icon: 'slides' }); return { app: 'slides', path: p }; }
-    throw new Error(T('PatOS can open .docx, .xlsx and .pptx files. Older .doc, .xls and .ppt files need to be saved as the newer type first.'));
+    throw new Error(T('PatOS opens .docx, .xlsx and .pptx. Save older .doc, .xls and .ppt files in the new format first.'));
   };
   PatOS.openOffice = async function (path) {
     const name = PatOS.fs.basename(path); const ext = PatOS.fs.ext(path);

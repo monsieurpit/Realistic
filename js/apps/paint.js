@@ -24,7 +24,7 @@
 
   PatOS.registerApp({
     id: 'paint', name: 'Paint', icon: 'paint', width: 960, height: 660, keywords: 'draw sketch art brush dessin peinture',
-    about: 'Draw and paint with brushes, shapes and text. Choose your canvas size, zoom in, and save as a picture.',
+    about: 'Draw and paint with brushes, shapes and text.',
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'pt-win');
       let tool = 'brush', color = '#0a84ff', size = 8, alpha = 1, fillShapes = false, zoom = 1;

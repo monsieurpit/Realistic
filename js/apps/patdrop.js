@@ -21,7 +21,7 @@
       /* not linked yet */
       function welcome() {
         root.innerHTML = '';
-        if (!L().available()) { root.appendChild(h('div', { class: 'pd-empty' }, h('h2', {}, 'PatDrop'), h('p', {}, T('This browser can’t do the encryption PatDrop needs. Open PatOS from its https address, or in a newer browser.')))); return; }
+        if (!L().available()) { root.appendChild(h('div', { class: 'pd-empty' }, h('h2', {}, 'PatDrop'), h('p', {}, T('This browser can’t encrypt. Open PatOS from its https address, or use a newer browser.')))); return; }
         const label = h('input', { class: 'field', placeholder: T('A name for this chat (like Me and Bro)'), maxlength: '40', 'aria-label': T('Chat name') });
         const code = h('input', { class: 'field', placeholder: 'XXXX-XXXX-XXXX-XXXX-XXXX-XXXX-XXXX', spellcheck: 'false', autocapitalize: 'characters', autocomplete: 'off', 'aria-label': T('Code from your friend') });
         const note = h('div', { class: 'pd-note' });
@@ -30,7 +30,7 @@
         code.addEventListener('keydown', (e) => { if (e.key === 'Enter') join.click(); });
         root.appendChild(h('div', { class: 'pd-empty' },
           h('div', { class: 'pd-logo', html: PatOS.iconHTML('patdrop') }), h('h2', {}, 'PatDrop'),
-          h('p', {}, T('Chat with your friend and drop files, links, clipboard text and apps straight into their PatOS. It is encrypted on your device, it works offline (things wait until you are online), and nobody needs an account.')),
+          h('p', {}, T('Chat and send files, links and apps to a friend’s PatOS. Encrypted, and works offline.')),
           h('div', { class: 'pd-card' }, h('b', {}, T('Start')), h('p', {}, T('Make a code, then give it to your friend. They type it in PatDrop on their PatOS.')), label, make),
           h('div', { class: 'pd-card' }, h('b', {}, T('Have a code?')), h('p', {}, T('Type the code your friend gave you.')), code, join),
           note));
@@ -64,7 +64,7 @@
         win.setTitle(s.label || 'PatDrop');
         root.innerHTML = '';
         const status = s.state === 'offline' || s.offline ? T('Offline: what you send waits and goes out later') : s.state === 'key' ? T('Wrong code for this server') : s.state === 'full' ? T('The server is full') : s.state === 'error' ? T('The server had a problem') : s.outbox ? T('Sending…') : T('Connected');
-        const code = h('div', { class: 'pd-code' }, h('div', {}, h('b', {}, T('Your PatDrop code')), h('small', {}, T('Give it to your friend. Anyone with this code can read and write in this chat. Make a new chat to change it.'))), h('div', { class: 'pd-codebox' }, L().code()), h('div', { class: 'pd-acts' }, h('button', { class: 'btn', onclick: () => { try { navigator.clipboard.writeText(L().code()); PatOS.notify({ title: T('Code copied'), body: '', icon: 'patdrop' }); } catch (e) {} } }, T('Copy')), h('button', { class: 'btn', onclick: () => { shownCode = false; paint(); } }, T('Hide'))));
+        const code = h('div', { class: 'pd-code' }, h('div', {}, h('b', {}, T('Your PatDrop code')), h('small', {}, T('Give it to your friend. Anyone with this code can use this chat.'))), h('div', { class: 'pd-codebox' }, L().code()), h('div', { class: 'pd-acts' }, h('button', { class: 'btn', onclick: () => { try { navigator.clipboard.writeText(L().code()); PatOS.notify({ title: T('Code copied'), body: '', icon: 'patdrop' }); } catch (e) {} } }, T('Copy')), h('button', { class: 'btn', onclick: () => { shownCode = false; paint(); } }, T('Hide'))));
         const head = h('div', { class: 'pd-head' }, h('div', {}, h('b', {}, s.label || T('PatDrop')), h('small', {}, status)), h('div', { class: 'pd-acts' }, h('button', { class: 'tbtn', title: T('Show the code'), onclick: () => { shownCode = !shownCode; paint(); } }, T('Code')), h('button', { class: 'tbtn', title: T('More'), onclick: moreMenu }, '•••')));
         list = h('div', { class: 'pd-list', role: 'log', 'aria-live': 'polite' });
         const feed = L().feed();
@@ -94,11 +94,11 @@
         const r = e.currentTarget.getBoundingClientRect();
         PatOS.menu([
           { label: T('Name this chat…'), action: async () => { const n = await PatOS.ask(T('Name this chat'), L().label(), { icon: 'patdrop', ok: T('Save') }); if (n != null) { L().setLabel(n); paint(); } } },
-          { label: T('Clear the history on this device'), action: async () => { if (await PatOS.confirmBox(T('Clear the history?'), T('The messages are removed from this device only. Files you received stay in Downloads.'), { ok: T('Clear'), danger: true, icon: 'patdrop' })) { L().clearHistory(); paint(); } } },
+          { label: T('Clear the history on this device'), action: async () => { if (await PatOS.confirmBox(T('Clear the history?'), T('Messages are removed from this device only. Received files stay in Downloads.'), { ok: T('Clear'), danger: true, icon: 'patdrop' })) { L().clearHistory(); paint(); } } },
           { divider: true },
           { label: T('Leave this chat…'), action: async () => {
             if (!(await PatOS.confirmBox(T('Leave this chat?'), T('This device leaves the chat. Messages already here are kept until you clear them.'), { ok: T('Leave'), danger: true, icon: 'patdrop' }))) return;
-            const wipe = await PatOS.confirmBox(T('Also delete it for everyone?'), T('Delete the encrypted messages from the server too? That ends the chat for your friend as well.'), { ok: T('Delete for everyone'), cancel: T('Keep it for my friend'), safe: true, danger: true, icon: 'patdrop' });
+            const wipe = await PatOS.confirmBox(T('Also delete it for everyone?'), T('Also delete the messages from the server? This ends the chat for your friend too.'), { ok: T('Delete for everyone'), cancel: T('Keep it for my friend'), safe: true, danger: true, icon: 'patdrop' });
             await L().leave(wipe); paint(); } }
         ], r.left, r.bottom + 4);
       }

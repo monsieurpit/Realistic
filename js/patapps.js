@@ -238,7 +238,7 @@ call('hello').then(function(t){theme(t);});})();`;
   }
   async function uninstall(id) {
     const rec = recOf(id); if (!rec) return false;
-    if (!(await PatOS.confirmBox(T('Remove') + ' “' + rec.name + '”?', T('The app is removed from this device. Its saved data and permissions are removed too. Files it made in Documents › Apps are kept.'), { ok: T('Remove'), danger: true, icon: 'appstore' }))) return false;
+    if (!(await PatOS.confirmBox(T('Remove') + ' “' + rec.name + '”?', T('The app and its data are removed. Files it made in Documents › Apps stay.'), { ok: T('Remove'), danger: true, icon: 'appstore' }))) return false;
     const a = all(); delete a[id]; set(K.apps, a);
     const d = get(K.data, {}); delete d[id]; set(K.data, d); const g = get(K.grants, {}); delete g[id]; set(K.grants, g);
     unregister(id); redraw(); PatOS.emit('patapps'); return true;

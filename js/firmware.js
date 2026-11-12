@@ -75,7 +75,7 @@
       h('h1', {}, T('PatOS might have been deleted from this device')),
       h('p', {}, T('PatOS couldn’t find its System folder, so it can’t start.')),
       h('div', { class: 'fw-btns' }, h('button', { class: 'fw-btn primary', onclick: () => { sc.remove(); reinstall(); } }, T('Reinstall PatOS')), h('button', { class: 'fw-btn', onclick: () => { sc.remove(); setFw(Object.assign(fw(), {})); power('restart', true); } }, T('Restart'))),
-      h('small', {}, T('Reinstalling erases PatOS on this device and starts it fresh. A copy of your files and settings is kept on this device and offered back after setup.')));
+      h('small', {}, T('This erases PatOS on this device. Your files and settings are kept and offered back after setup.')));
     return sc;
   }
 
@@ -242,7 +242,7 @@
     const safe = (() => { try { return sessionStorage.getItem('patos-safe') === '1'; } catch (e) { return false; } })();
     PatOS.safeBoot = safe; document.documentElement.classList.toggle('safe-boot', safe);
   }
-  PatOS.on('wm:ready', () => { setTimeout(() => { panicReport(); if (PatOS.safeBoot) PatOS.notify({ title: T('Safe Boot'), body: T('PatOS started without widgets, the 3D wallpaper or automations. Restart normally to leave Safe Boot.'), icon: 'settings' }); }, 1200); });
+  PatOS.on('wm:ready', () => { setTimeout(() => { panicReport(); if (PatOS.safeBoot) PatOS.notify({ title: T('Safe Boot'), body: T('Safe Boot: no widgets, 3D wallpaper or automations. Restart to leave it.'), icon: 'settings' }); }, 1200); });
 
   ensureSystem();
   if (fw().state === 'installed') offerRescue();

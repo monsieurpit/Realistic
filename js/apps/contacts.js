@@ -96,7 +96,7 @@
 
   PatOS.registerApp({
     id: 'contacts', name: 'Contacts', icon: 'contacts', width: 820, height: 580, keywords: 'people address book phone email friends birthday vcard contacts carnet',
-    about: 'Keep phone numbers, emails and birthdays. Import and export vCard files, and merge duplicates.',
+    about: 'Phone numbers, emails and birthdays. Import and export vCard files.',
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'ct-win');
       win.body.style.position = 'relative';

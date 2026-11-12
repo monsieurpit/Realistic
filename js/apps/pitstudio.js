@@ -442,12 +442,11 @@
           let t = null; b.addEventListener('touchstart', () => { t = setTimeout(() => b.oncontextmenu({ preventDefault() {}, clientX: b.getBoundingClientRect().left + 40, clientY: b.getBoundingClientRect().bottom }), 600); }, { passive: true }); ['touchend', 'touchmove', 'touchcancel'].forEach((ev) => b.addEventListener(ev, () => clearTimeout(t), { passive: true }));
           side.appendChild(b);
         });
-        side.appendChild(h('small', { class: 'ps-tip' }, T('Right-click a file to rename or delete it. Press and hold on a phone.')));
       }
       async function newFile() {
         const name = await PatOS.ask(T('New file'), proj.meta.language === 'pitcode' ? 'extra.pit' : 'extra.js', { icon: 'pitstudio', ok: T('Add'), text: T('Use .pitx, .pit or .pitoss for PitCode; .html, .css or .js for the web.') });
         if (!name) return; const n = name.trim();
-        if (!/^[\w.-]{1,60}$/.test(n) || !EXT_OK.test(n) || n === META) return msg(T('That name doesn’t work'), T('Use letters, numbers, dots and dashes, and end with .pitx, .pit, .pitoss, .html, .css, .js, .json, .txt or .md.'));
+        if (!/^[\w.-]{1,60}$/.test(n) || !EXT_OK.test(n) || n === META) return msg(T('That name doesn’t work'), T('Use letters, numbers, dots and dashes, ending with .pitx, .pit, .pitoss, .html, .css, .js, .json, .txt or .md.'));
         if (proj.files[n] != null) return msg(T('That name doesn’t work'), T('A file with that name is already here.'));
         proj.files[n] = ''; fsx().write(pdir(proj.name) + '/' + n, ''); saveFile(); cur = n; view = 'code'; drawAll();
       }
@@ -486,12 +485,12 @@
         const num = (key, lo, hi) => { const i = h('input', { class: 'field', type: 'number', min: lo, max: hi, value: m[key], style: { width: '100px' } }); i.onchange = () => { m[key] = Math.max(lo, Math.min(hi, +i.value || lo)); i.value = m[key]; saveMeta(); }; return i; };
         const permRows = PERMS.map((p) => { const c = h('input', { type: 'checkbox' }); c.checked = m.permissions.indexOf(p) >= 0; c.onchange = () => { m.permissions = PERMS.filter((q) => (q === p ? c.checked : m.permissions.indexOf(q) >= 0)); saveMeta(); }; return h('label', { class: 'ps-perm' }, c, h('span', {}, h('b', {}, P.permInfo(p)[0]), h('small', {}, P.permInfo(p)[1]))); });
         const pi = h('div', { class: 'ps-pic' }); function drawPreviewIcon() { pi.innerHTML = ''; const t = h('div', { class: 'as-ic', html: '<div class="icon-tile" style="background:linear-gradient(160deg,rgba(255,255,255,.28),rgba(0,0,0,.22)),' + PatOS.esc(m.color || '#0a84ff') + '"><svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><text x="32" y="44" font-size="34" font-family="system-ui,sans-serif" text-anchor="middle" fill="#fff">' + PatOS.esc(m.icon || '?') + '</text></svg></div>' }); pi.appendChild(t); } drawPreviewIcon();
-        const del = h('button', { class: 'btn danger' }, T('Delete Project…')); del.onclick = async () => { if (!(await PatOS.confirmBox(T('Delete') + ' “' + proj.name + '”?', T('The project folder goes to the Trash. An app you installed from it stays installed.'), { ok: T('Delete'), danger: true, icon: 'pitstudio' }))) return; fsx().remove(pdir(proj.name)); closeProject(); };
+        const del = h('button', { class: 'btn danger' }, T('Delete Project…')); del.onclick = async () => { if (!(await PatOS.confirmBox(T('Delete') + ' “' + proj.name + '”?', T('The project goes to the Trash. Apps installed from it stay.'), { ok: T('Delete'), danger: true, icon: 'pitstudio' }))) return; fsx().remove(pdir(proj.name)); closeProject(); };
         settings.append(
           h('h2', {}, T('Project Settings')),
           h('div', { class: 'ps-grid' }, field(T('App name'), nameIn), field(T('Identifier'), idIn, m.published ? T('Locked: this app is in the store.') : T('Like com.maya.timer. Keep it the same for updates.')), field(T('Version'), verIn, T('Like 1.0.0. Raise it when you update.')), field(T('Your name'), txt('author', 40)), field(T('What it does'), txt('description', 300))),
           h('div', { class: 'ps-grid' }, field(T('Icon'), h('div', { class: 'ps-row' }, pi, icon, color), T('An emoji or a letter, and a color.')), field(T('Language'), lang, T('PitCode is the language from github.com/monsieurpit/PitCode.')), field(T('Start file'), entry), field(T('Window size'), h('div', { class: 'ps-row' }, num('width', 240, 1600), '×', num('height', 200, 1200)))),
-          h('h3', {}, T('Permissions')), h('p', { class: 'ps-note' }, T('Tick only what the app really needs. People are asked again, on their device, the first time it is used.')), h('div', { class: 'ps-perms' }, ...permRows),
+          h('h3', {}, T('Permissions')), h('p', { class: 'ps-note' }, T('Only tick what the app needs. People are asked the first time it’s used.')), h('div', { class: 'ps-perms' }, ...permRows),
           h('h3', {}, T('Danger zone')), del);
       }
 
@@ -522,7 +521,7 @@
         }
         const upd = !!(live || (st.mine && st.pending));
         const ok = await PatOS.confirmBox(upd ? T('Update') + ' “' + app.name + '” ' + app.version + '?' : T('Publish') + ' “' + app.name + '” ' + app.version + '?',
-          upd ? (live ? T('It replaces version') + ' ' + live + ' ' + T('once the owner accepts it.') : T('It replaces the version waiting for review.')) : T('The owner of this PatOS reads the app and decides. If it is accepted, it shows up in Community for everyone who uses this server. You can follow its status below.'), { ok: upd ? T('Update') : T('Publish'), icon: 'pitstudio' });
+          upd ? (live ? T('It replaces version') + ' ' + live + ' ' + T('once the owner accepts it.') : T('It replaces the version waiting for review.')) : T('The server’s owner reviews the app. If accepted, it shows in Community. Its status is below.'), { ok: upd ? T('Update') : T('Publish'), icon: 'pitstudio' });
         if (!ok) return;
         try { await P.submit(app); proj.meta.published = { version: app.version, at: Date.now() }; saveMeta(); PatOS.notify({ title: upd ? T('Update sent for review') : T('Sent for review'), body: app.name + ' ' + app.version, icon: 'pitstudio' }); refreshPub(); if (view !== 'code') drawSettings(); } catch (e) { fail(e); }
       }

@@ -17,7 +17,7 @@
     id: 'timeline', name: 'Timeline', icon: 'timeline', width: 1060, height: 690, category: 'Utilities', single: true,
     onArgs: (w, a) => w.emit('args', a),
     keywords: 'history activity clipboard recall moments restore past yesterday find again historique activité presse-papiers moments restaurer hier retrouver',
-    about: 'Everything you did in PatOS, day by day: find any file, website, note or copied text again, and bring back the windows you had open. It stays on this device.',
+    about: 'Everything you did, day by day. Find files, sites and copied text, and reopen your windows. Stays on this device.',
     launch(win, args) {
       const TL = PatOS.timeline;
       win.el.classList.add('has-toolbar');
@@ -63,7 +63,7 @@
         ], r.right - 220, r.bottom + 6);
       });
       async function forgetAsk(from, to, title) {
-        if (!(await PatOS.confirmBox(title, T('Activity, moments and copied text from that time are deleted from this device. Pinned clips stay.'), { ok: T('Forget') }))) return;
+        if (!(await PatOS.confirmBox(title, T('Activity and copied text from that time are deleted. Pinned clips stay.'), { ok: T('Forget') }))) return;
         TL.forget(from, to); render();
       }
 
@@ -247,7 +247,7 @@
         main.appendChild(ribbon(list));
         if (!shown.length) {
           const fresh = !TL.events().length && !TL.moments().length && !TL.clips().length;
-          return main.appendChild(fresh ? empty(T('Your Timeline starts now'), T('Use PatOS as usual. The apps and files you open, the websites you visit, what you copy and the windows you had open show up here, so you can find them again and pick up where you left off.'))
+          return main.appendChild(fresh ? empty(T('Your Timeline starts now'), T('Use PatOS as usual. What you open and copy shows up here.'))
             : empty(filter === 'all' ? T('Nothing recorded this day') : T('Nothing of this kind this day')));
         }
         // hour by hour, newest first, along a line

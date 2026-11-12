@@ -90,7 +90,7 @@
         go.disabled = cfg.source === 'screen' ? !canScreen : !canMedia;
         go.onclick = () => start(go);
         body.append(src, card, go, h('div', { class: 'rc-out', id: 'rc-out' }));
-        if (cfg.source === 'screen' && !canScreen) body.appendChild(h('p', { class: 'rc-warn' }, T('This device doesn’t allow screen capture (iPhones and iPads don’t). Use Camera only.')));
+        if (cfg.source === 'screen' && !canScreen) body.appendChild(h('p', { class: 'rc-warn' }, T('This device can’t capture the screen (iPhones and iPads can’t). Use Camera only.')));
         const last = PatOS.fs.list('/Videos').filter((f) => /^(Screen|Camera|Audio) Recording|^Enregistrement/.test(f.name)).sort((a, b) => (b.mtime || 0) - (a.mtime || 0))[0];
         if (last) body.appendChild(h('button', { class: 'rc-last', onclick: () => PatOS.launch('videos', { path: last.path }) }, T('Last recording') + ': ' + last.name.replace(/\.webm$/, '')));
       }
@@ -245,7 +245,7 @@
         const s = session;
         body.append(h('div', { class: 'rc-live' }, h('span', { class: 'ss-dot' }), h('b', { class: 'rc-time' }, fmtT(elapsed(s))), h('small', {}, T(s.kind))),
           h('div', { class: 'rc-livebtns' }, h('button', { class: 'btn rc-pause', onclick: () => document.getElementById('rc-pause').click() }, T('Pause')), h('button', { class: 'btn danger', onclick: () => s.rec.state !== 'inactive' && s.rec.stop() }, T('Stop and save'))),
-          h('p', { class: 'rc-hint' }, T('To stop from another window, use Chrome’s “Stop sharing” bar, or the red timer at the top of PatOS.')));
+          h('p', { class: 'rc-hint' }, T('To stop, use Chrome’s “Stop sharing” bar or the red timer at the top.')));
         s.listeners.add(() => { if (win.el.isConnected) render(); });
       }
       function showResult(r) {

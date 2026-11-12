@@ -7,13 +7,13 @@
     orbrunner: 'Race a glowing orb down a neon highway. Dodge blocks, grab gems, beat your best.',
     studio: 'Drop shapes into a 3D scene, paint them, make them spin and snap a picture.',
     code: 'Write HTML, CSS and JavaScript and watch your page update as you type.',
-    messages: 'Type commands to Pat to open apps, do math and add reminders. A simple command helper, not an AI.',
+    messages: 'Ask Pat to open apps, do math and add reminders. Not an AI.',
     piano: 'Play two octaves with your keyboard or fingers, record a melody and play it back.',
     flashcards: 'Make decks for any class and study them with cards that flip in 3D.',
-    music: 'Play your own songs with playlists and a queue, or let your computer compose some.',
+    music: 'Your songs, with playlists and a queue.',
     typing: 'Measure your typing speed and accuracy and watch your best score climb.',
     voicememos: 'Record your voice, see the waveform and play it back later.',
-    browser: 'Tabs, bookmarks and history. Searches open in your real browser, YouTube links in the YouTube app.',
+    browser: 'Tabs, bookmarks and history. Searches open in your browser, YouTube links in YouTube.',
     terminal: 'A real little shell: ls, cd, cat, mkdir, neofetch, matrix and more.',
     docs: 'Write essays and reports with headings, fonts, lists, tables and pictures. Saves as you type.',
     sheets: 'Spreadsheets with real formulas: SUM, AVERAGE, IF, COUNTIF and more, plus charts.',
@@ -24,12 +24,12 @@
     youtube: 'Search and watch YouTube with the real YouTube player, without leaving PatOS.',
     contacts: 'Keep your friends’ phone numbers, emails and birthdays. PatOS reminds you on their birthday.',
     freeform: 'An endless whiteboard: draw, drop sticky notes, text, shapes and pictures.',
-    preview: 'Read PDFs and pictures. Highlight, draw and add text to a PDF, then save it.',
+    preview: 'Read PDFs and pictures. Highlight, draw and add text to PDFs.',
     chess: 'Real chess with every rule, against the computer (3 levels) or a friend.',
     screenshot: 'Take a picture of your screen or record it as a video.',
     calculator: 'A basic calculator and a scientific one with sin, cos, logs, powers and more.',
     clock: 'World clocks, alarms, a stopwatch and a timer.',
-    grapher: 'A graphing calculator: graph equations and inequalities, use sliders, and find roots and crossing points.',
+    grapher: 'Graph equations with sliders, roots and crossing points.',
     focus: 'Work in 25-minute sessions with breaks, rain sounds and stats on your study time.',
     journal: 'Write a page a day, track your mood and keep your streak going.',
     sudoku: 'Fresh Sudoku puzzles at three levels, with notes, hints and undo.',
@@ -133,7 +133,7 @@
       function phoneTab() {
         const d = X.device();
         main.appendChild(h('h1', { class: 'as-h1' }, PatOS.t('Phone & Web')));
-        main.appendChild(h('p', { class: 'as-note' }, (d.kind === 'computer' ? PatOS.t('You’re on a computer:') + ' ' + d.name : PatOS.t('You’re on') + ' ' + d.name) + '. ' + (d.kind === 'computer' ? PatOS.t('These apps open their websites. On a phone they open the real apps.') : PatOS.t('These open the real apps on your phone, or the store page if you don’t have them yet.'))));
+        main.appendChild(h('p', { class: 'as-note' }, (d.kind === 'computer' ? PatOS.t('You’re on a computer:') + ' ' + d.name : PatOS.t('You’re on') + ' ' + d.name) + '. ' + (d.kind === 'computer' ? PatOS.t('These apps open their websites. On a phone they open the real apps.') : PatOS.t('These open the apps on your phone, or their store page.'))));
         const list = X.list().filter((c) => !q || (c.name + ' ' + c.cat).toLowerCase().includes(q));
         const mine = list.filter((c) => X.isInstalled(c.id));
         if (mine.length) { main.appendChild(h('h2', {}, PatOS.t('Installed'))); const g = h('div', { class: 'as-list' }); mine.forEach((c) => g.appendChild(xrow(c))); main.appendChild(g); }

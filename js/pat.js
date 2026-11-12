@@ -465,7 +465,7 @@
       function welcome() {
         const hr = new Date().getHours(); const nm = PatOS.settings.userName;
         const hi = FR() ? (hr < 12 ? 'Bon matin, ' : hr < 18 ? 'Bon après-midi, ' : 'Bonsoir, ') : (hr < 12 ? 'Good morning, ' : hr < 18 ? 'Good afternoon, ' : 'Good evening, ');
-        return h('div', { class: 'pat3-welcome' }, ORB('po-big'), h('h2', {}, hi + nm), h('p', {}, L('Ask me to do something on PatOS, or ask a question. I work offline and always say exactly what I did.', 'Demande-moi de faire quelque chose dans PatOS, ou pose une question. Je marche hors ligne et je dis toujours exactement ce que j’ai fait.')),
+        return h('div', { class: 'pat3-welcome' }, ORB('po-big'), h('h2', {}, hi + nm), h('p', {}, L('Ask me a question, or ask me to do something.', 'Pose-moi une question, ou demande-moi de faire quelque chose.')),
           h('div', { class: 'pat3-try' }, ...TRY().map(([icon, color, t, ask]) => h('button', { class: 'pat3-card-try', style: { '--c': color }, onclick: () => submit(ask) }, h('span', { class: 'pat3-ti', html: SVG[icon] }), h('b', {}, t), h('small', {}, '“' + ask + '”')))));
       }
       /* an answer's text: lines become a list, ✓/✗ lines become steps; never HTML */

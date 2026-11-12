@@ -18,7 +18,7 @@
   window.addEventListener('beforeinstallprompt', (e) => { e.preventDefault(); promptEvent = e; window.__installPrompt = e; changed(); });
   window.addEventListener('appinstalled', () => {
     promptEvent = null; window.__installPrompt = null; PatOS.store.set('appInstalled', true); changed();
-    PatOS.notify({ title: T('PatOS is installed'), body: T('Find it in your Launcher. Right-click its icon in the shelf and choose Pin to keep it there.'), icon: 'about', duration: 9000 });
+    PatOS.notify({ title: T('PatOS is installed'), body: T('Find it in your Launcher. Right-click its shelf icon › Pin to keep it.'), icon: 'about', duration: 9000 });
   });
 
   async function prompt() {
@@ -70,7 +70,7 @@
     if (standalone() || PatOS.isMobile || PatOS.store.get('installOffered', false) || sessions < 2) return;
     if (!promptEvent) return;
     PatOS.store.set('installOffered', true);
-    PatOS.notify({ title: T('Install PatOS as an app'), body: T('It opens in its own window with no browser bars, and gets an icon in your shelf. Click here to install.'), icon: 'about', duration: 12000, onClick: () => prompt() });
+    PatOS.notify({ title: T('Install PatOS as an app'), body: T('Install it to get its own window and an icon in your shelf. Click here.'), icon: 'about', duration: 12000, onClick: () => prompt() });
   }, 6000));
 
   PatOS.install = {

@@ -45,7 +45,7 @@
           return;
         }
         const sc = cur ? S().get(cur) : null;
-        if (!sc) { main.appendChild(h('div', { class: 'sc-card' }, h('h2', {}, T('Shortcuts')), h('p', {}, T('Little automations for PatOS. Open apps, ask Pat for a timer, change the theme, show a message. Start them by hand, when you unlock PatOS, every day at a time, or by saying “Hey Pat”.')), h('p', { class: 'sc-note' }, S().voice.supported() ? T('Turn on Hey Pat in Settings › Pat Voice to use your voice.') : T('Voice needs Chrome or Safari.')))); return; }
+        if (!sc) { main.appendChild(h('div', { class: 'sc-card' }, h('h2', {}, T('Shortcuts')), h('p', {}, T('Small automations: open apps, start a timer, change the theme. Run them by hand, at a time, at unlock or with “Hey Pat”.')), h('p', { class: 'sc-note' }, S().voice.supported() ? T('Turn on Hey Pat in Settings › Pat Voice to use your voice.') : T('Voice needs Chrome or Safari.')))); return; }
         const nameIn = h('input', { class: 'field', value: sc.name, maxlength: '40', 'aria-label': T('Name') }); nameIn.onchange = () => { sc.name = nameIn.value.trim() || T('New Shortcut'); S().save(sc); drawSide(); };
         const on = h('button', { class: 'switch' + (sc.on !== false ? ' on' : ''), role: 'switch', 'aria-checked': String(sc.on !== false), 'aria-label': T('Turned on') }); on.onclick = () => { sc.on = sc.on === false; S().save(sc); drawSide(); drawMain(); };
         // when it starts

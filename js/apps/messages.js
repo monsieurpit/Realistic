@@ -58,8 +58,8 @@
           loadEveryone(false);
           listEl.appendChild(h('div', { class: 'm2-h' }, T('PatOS Powers')));
           listEl.appendChild(h('div', { class: 'm2-powers' },
-            h('button', { class: 'btn', onclick: async () => { const t = await PatOS.ask(T('Announcement'), '', { icon: 'about', ok: T('Send to Everyone'), text: T('Everyone sees it once, the next time they open PatOS. Leave it empty to remove the announcement.') }); if (t == null) return; try { await C.announce(t); PatOS.notify({ title: T(t.trim() ? 'Announcement sent' : 'Announcement removed'), body: t.slice(0, 120), icon: 'about' }); } catch (e) { fail(e); } } }, T('Announce…')),
-            h('button', { class: 'btn', onclick: async () => { const t = await PatOS.ask(T('Message Everyone'), '', { icon: 'messages', ok: T('Send'), text: T('The same message to every account (not the banned ones), in each chat. No request needed.') }); if (!t || !t.trim()) return; try { const n = await C.messageEveryone(t); PatOS.notify({ title: T('Sent'), body: n + ' ' + T('accounts'), icon: 'messages' }); } catch (e) { fail(e); } } }, T('Message Everyone…'))));
+            h('button', { class: 'btn', onclick: async () => { const t = await PatOS.ask(T('Announcement'), '', { icon: 'about', ok: T('Send to Everyone'), text: T('Everyone sees it once, next time they open PatOS. Leave it empty to remove it.') }); if (t == null) return; try { await C.announce(t); PatOS.notify({ title: T(t.trim() ? 'Announcement sent' : 'Announcement removed'), body: t.slice(0, 120), icon: 'about' }); } catch (e) { fail(e); } } }, T('Announce…')),
+            h('button', { class: 'btn', onclick: async () => { const t = await PatOS.ask(T('Message Everyone'), '', { icon: 'messages', ok: T('Send'), text: T('The same message to every account (not banned ones). No request needed.') }); if (!t || !t.trim()) return; try { const n = await C.messageEveryone(t); PatOS.notify({ title: T('Sent'), body: n + ' ' + T('accounts'), icon: 'messages' }); } catch (e) { fail(e); } } }, T('Message Everyone…'))));
           listEl.appendChild(h('div', { class: 'm2-h' }, T('All Accounts') + (everyone ? ' (' + everyone.length + ')' : '')));
           if (!everyone) listEl.appendChild(h('div', { class: 'm2-empty' }, T('Loading…')));
           else everyone.forEach((u) => listEl.appendChild(row(u, u.ban ? T('Banned') + (u.ban.reason ? ': ' + u.ban.reason : '') : u.conv ? T('Open the chat') : T('Message (no request needed)'), u.ban ? h('span', { class: 'm2-ban' }, T('Banned')) : null, cur === u.cid, () => { if (u.conv) openConv(u.conv.id); else { target = u; cur = null; C.close(); drawSide(); drawMain(); win.el.classList.add('m2-chat'); } })));
@@ -108,9 +108,9 @@
       function drawMain() {
         main.innerHTML = '';
         if (!signedIn()) {
-          main.appendChild(h('div', { class: 'm2-card' }, h('h2', {}, T('Message your friends')), h('p', {}, T('Messages now work between PatOS accounts. Create a free account with just a username and a password, then find your friends by username. They accept your request first.')),
+          main.appendChild(h('div', { class: 'm2-card' }, h('h2', {}, T('Message your friends')), h('p', {}, T('Messages works between PatOS accounts. Create one, then find friends by username.')),
             h('div', { class: 'm2-cbtns' }, h('button', { class: 'btn primary', onclick: () => PatOS.accountUI.open('signup') }, T('Create Account')), h('button', { class: 'btn', onclick: () => PatOS.accountUI.open('signin') }, T('Sign In'))),
-            h('p', { class: 'm2-fine' }, T('Pat, the command helper, works without an account: click the speech bubble in the top bar.')))); return;
+            h('p', { class: 'm2-fine' }, T('Pat works without an account: click the speech bubble in the top bar.')))); return;
         }
         const c = cur ? C.find(cur) : null;
         if (!c && !target) { main.appendChild(h('div', { class: 'm2-card' }, h('h2', {}, T('Messages')), h('p', {}, T('Pick a conversation, or find someone by username in the search box.')), C.outbox() ? h('p', { class: 'm2-fine' }, C.outbox() + ' ' + T('waiting to be sent (you are offline or the connection is slow)')) : null)); return; }
@@ -130,7 +130,7 @@
           const lastMine = [...ms].reverse().find((m) => m.mine && !m.sending);
           if (lastMine && c.otherSeen && c.otherSeen >= lastMine.t - 2000 && ms[ms.length - 1] === lastMine) list.appendChild(h('div', { class: 'm2-seen' }, T('Seen') + ' ' + clock(c.otherSeen)));
           list.appendChild(h('div', { class: 'm2-typing' + (Date.now() - (c.otherTyping || 0) < 6000 ? ' on' : ''), 'aria-label': T('typing…') }, h('i'), h('i'), h('i')));
-          if (c.status === 'pending' && c.mine && !C.isSystem()) list.appendChild(h('div', { class: 'm2-sys' }, '@' + name + ' ' + T('has to accept your request before you can keep chatting. They get no notifications from you until then.')));
+          if (c.status === 'pending' && c.mine && !C.isSystem()) list.appendChild(h('div', { class: 'm2-sys' }, '@' + name + ' ' + T('has to accept your request before you can keep chatting.')));
         } else {
           list.appendChild(h('div', { class: 'm2-sys' }, C.isSystem() ? T('You are the PatOS account: your message opens the chat at once, no request needed.') : T('Your first message is sent as a request. @') + name + ' ' + T('decides whether to accept it, and gets no notifications from you until they do.')));
           C.outbox() && list.appendChild(h('div', { class: 'm2-sys' }, T('Sending…')));

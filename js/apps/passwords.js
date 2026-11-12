@@ -139,7 +139,7 @@
 
   PatOS.registerApp({
     id: 'passwords', name: 'Passwords', icon: 'passwords', width: 900, height: 600, category: 'Utilities', keywords: 'password manager keychain login vault mots de passe security',
-    about: 'Keep your passwords in one place, encrypted. Copy a login when you need it, or fill it into your own HTML pages in Patoogle.',
+    about: 'Your passwords in one place, encrypted. Copy a login when you need it.',
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'pw-win');
       touch();
@@ -182,9 +182,9 @@
       function renderList() {
         list.innerHTML = '';
         // without a master password, say clearly who can see the passwords
-        if (!P.encrypted && P.all().length) list.appendChild(h('div', { class: 'pw-warn' }, h('span', {}, P.plain ? T('This browser can’t encrypt passwords. Anyone using it can see them.') : T('Encrypted on this device, but anyone using this browser can open them. Add a master password to lock them.')), canCrypt ? h('button', { class: 'btn', onclick: () => settings() }, T('Add a Master Password')) : null));
+        if (!P.encrypted && P.all().length) list.appendChild(h('div', { class: 'pw-warn' }, h('span', {}, P.plain ? T('This browser can’t encrypt passwords. Anyone using it can see them.') : T('Anyone using this browser can open them. Add a master password to lock them.')), canCrypt ? h('button', { class: 'btn', onclick: () => settings() }, T('Add a Master Password')) : null));
         const l = filtered();
-        if (!l.length) { list.appendChild(h('div', { class: 'pw-empty' }, h('div', { class: 'pw-bigic', html: PatOS.iconHTML('passwords') }), h('b', {}, T(P.all().length ? 'No results' : 'No passwords yet')), P.all().length ? null : h('p', {}, T('Press + to add a login, or import the list you exported from Chrome, Safari or another password app.')))); return; }
+        if (!l.length) { list.appendChild(h('div', { class: 'pw-empty' }, h('div', { class: 'pw-bigic', html: PatOS.iconHTML('passwords') }), h('b', {}, T(P.all().length ? 'No results' : 'No passwords yet')), P.all().length ? null : h('p', {}, T('Press + to add a login, or import a list from Chrome, Safari or another app.')))); return; }
         let letter = '';
         l.forEach((x) => {
           const L = label(x.site)[0] ? label(x.site)[0].toUpperCase() : '#'; if (L !== letter) { letter = L; list.appendChild(h('div', { class: 'pw-letter' }, L)); }
@@ -208,7 +208,7 @@
           h('div', { class: 'pw-dhead' }, h('img', { class: 'pw-fav lg', src: fav(x.site), alt: '' }), h('div', {}, h('h2', {}, label(x.site)), isFile(x.site) ? h('small', {}, T('Page inside PatOS')) : null, h('small', {}, T('Last changed') + ' ' + new Date(x.updated).toLocaleDateString(PatOS.locale)))),
           h('div', { class: 'pw-field' }, h('label', {}, T('Username or email')), h('div', { class: 'pw-val' }, h('span', {}, x.username || '—'), x.username ? h('button', { class: 'tbtn', title: T('Copy'), html: OF.icon('copy', 17), onclick: () => copy(x.username, T('Username')) }) : null)),
           h('div', { class: 'pw-field' }, h('label', {}, T('Password')), h('div', { class: 'pw-val' }, pwSpan, bShow, h('button', { class: 'tbtn', title: T('Copy'), html: OF.icon('copy', 17), onclick: () => { copy(x.password, T('Password')); P.used(x.id); } })), meter(x.password)),
-          reused ? h('div', { class: 'pw-alert' }, T('You use this password on other sites too. If one site leaks it, the others are at risk.')) : null,
+          reused ? h('div', { class: 'pw-alert' }, T('You use this password on other sites. If one leaks it, the others are at risk.')) : null,
           leaks[x.id] ? h('div', { class: 'pw-alert red' }, T('This password appeared in known data leaks') + ' (' + leaks[x.id].toLocaleString() + '). ' + T('Change it on the site.')) : null,
           x.note ? h('div', { class: 'pw-field' }, h('label', {}, T('Note')), h('div', { class: 'pw-note' }, x.note)) : null,
           isFile(x.site) ? null : h('div', { class: 'pw-field' }, h('label', {}, T('Website')), h('div', { class: 'pw-val' }, h('a', { href: '#', onclick: (e) => { e.preventDefault(); PatOS.launch('browser', { url: x.url || 'https://' + x.site }); } }, x.url || 'https://' + x.site))),
@@ -247,7 +247,7 @@
         try {
           for (const x of all) leaks[x.id] = await P.pwned(x.password);
           const n = all.filter((x) => leaks[x.id] > 0).length;
-          PatOS.alertBox(n ? n + ' ' + T(n === 1 ? 'password was found in leaks' : 'passwords were found in leaks') : T('No leaked passwords found'), T('Only the first 5 characters of a scrambled version of each password were sent to haveibeenpwned.com, never the password itself.'), { icon: 'passwords' });
+          PatOS.alertBox(n ? n + ' ' + T(n === 1 ? 'password was found in leaks' : 'passwords were found in leaks') : T('No leaked passwords found'), T('Only the start of a scrambled version of each password was checked online, never the password.'), { icon: 'passwords' });
           if (n) filter = 'leaked'; render();
         } catch (e) { PatOS.alertBox(T('The check didn’t work'), T('Your network may block haveibeenpwned.com.'), { icon: 'passwords' }); }
       }
@@ -255,13 +255,13 @@
         const never = P.never();
         const layer = h('div', { class: 'pw-layer' }, h('div', { class: 'pw-modal' }, h('h3', {}, T('Settings')),
           h('b', {}, T('Master password')),
-          h('p', { class: 'pw-small' }, P.encrypted ? T('Your passwords are locked with your master password. They lock again when PatOS locks, or after 15 minutes without use.') : canCrypt ? T('Right now your passwords are encrypted with a key kept on this device, so anyone using this browser can open them. A master password locks them. If you forget it, they can’t be recovered.') : T('Open PatOS from its website to use a master password.')),
-          P.encrypted ? h('div', { class: 'pw-dbtns' }, h('button', { class: 'btn', onclick: () => { P.lock(); layer.remove(); } }, T('Lock now')), h('button', { class: 'btn', onclick: async () => { if (await PatOS.confirmBox(T('Remove the master password?'), T('Your passwords stay encrypted on this device, but anyone using this browser will be able to open them.'), { icon: 'passwords' })) { await P.removeMaster(); layer.remove(); } } }, T('Remove master password'))) : canCrypt ? h('button', { class: 'btn', onclick: async () => { const a = await PatOS.ask(T('New master password'), '', { icon: 'passwords', ok: T('Next'), password: true }); if (!a) return; if (a.length < 6) return PatOS.alertBox(T('Too short'), T('Use at least 6 characters.'), { icon: 'passwords' }); const b2 = await PatOS.ask(T('Type it again'), '', { icon: 'passwords', ok: T('Turn on'), password: true }); if (a !== b2) return PatOS.alertBox(T('They don’t match'), '', { icon: 'passwords' }); await P.setMaster(a); layer.remove(); OF.toast(win, T('Passwords encrypted')); } }, T('Add master password')) : null,
+          h('p', { class: 'pw-small' }, P.encrypted ? T('Locked with your master password. They lock again with PatOS, or after 15 minutes.') : canCrypt ? T('Anyone using this browser can open your passwords. A master password locks them. If you forget it, they’re lost.') : T('Open PatOS from its website to use a master password.')),
+          P.encrypted ? h('div', { class: 'pw-dbtns' }, h('button', { class: 'btn', onclick: () => { P.lock(); layer.remove(); } }, T('Lock now')), h('button', { class: 'btn', onclick: async () => { if (await PatOS.confirmBox(T('Remove the master password?'), T('Anyone using this browser will be able to open your passwords.'), { icon: 'passwords' })) { await P.removeMaster(); layer.remove(); } } }, T('Remove master password'))) : canCrypt ? h('button', { class: 'btn', onclick: async () => { const a = await PatOS.ask(T('New master password'), '', { icon: 'passwords', ok: T('Next'), password: true }); if (!a) return; if (a.length < 6) return PatOS.alertBox(T('Too short'), T('Use at least 6 characters.'), { icon: 'passwords' }); const b2 = await PatOS.ask(T('Type it again'), '', { icon: 'passwords', ok: T('Turn on'), password: true }); if (a !== b2) return PatOS.alertBox(T('They don’t match'), '', { icon: 'passwords' }); await P.setMaster(a); layer.remove(); OF.toast(win, T('Passwords encrypted')); } }, T('Add master password')) : null,
           h('b', {}, T('Never save for these sites')),
           never.length ? h('div', { class: 'pw-never' }, ...never.map((s) => h('div', {}, h('span', {}, s), h('button', { class: 'tbtn', onclick: (e) => { P.removeNever(s); e.currentTarget.parentNode.remove(); } }, '×')))) : h('p', { class: 'pw-small' }, T('None')),
           h('b', {}, T('Import and export')),
           h('div', { class: 'pw-dbtns' }, h('button', { class: 'btn', onclick: importCSV }, T('Import CSV…')), h('button', { class: 'btn', onclick: exportCSV }, T('Export CSV'))),
-          h('p', { class: 'pw-small' }, T('CSV files from Chrome, Edge, Safari and most password managers work. Exported files are not encrypted, so delete them after use.')),
+          h('p', { class: 'pw-small' }, T('CSV files from browsers and password managers work. Delete exported files after: they’re not encrypted.')),
           h('div', { class: 'pw-dbtns' }, h('button', { class: 'btn primary', onclick: () => layer.remove() }, T('Done')))));
         win.body.appendChild(layer);
       }
@@ -284,7 +284,7 @@
         const go = async () => { if (await P.unlock(inp.value)) return; err.textContent = T('That isn’t the master password.'); inp.select(); win.el.animate([{ transform: 'translateX(0)' }, { transform: 'translateX(-8px)' }, { transform: 'translateX(8px)' }, { transform: 'translateX(0)' }], { duration: 260 }); };
         inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); });
         if (P.unreadable) {
-          win.body.appendChild(h('div', { class: 'pw-lock' }, h('div', { class: 'pw-bigic', html: PatOS.iconHTML('passwords') }), h('h2', {}, T('These passwords can’t be opened here')), h('p', {}, T('They were saved on another device or browser, and only that device has the key. Restore a backup made with a master password, or start a new empty list.')),
+          win.body.appendChild(h('div', { class: 'pw-lock' }, h('div', { class: 'pw-bigic', html: PatOS.iconHTML('passwords') }), h('h2', {}, T('These passwords can’t be opened here')), h('p', {}, T('They were saved on another device, which has the key. Restore a backup with a master password, or start a new list.')),
             h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox(T('Start a new list?'), T('The passwords that can’t be opened will be replaced by an empty list.'), { ok: T('Start Over'), danger: true, icon: 'passwords' })) await P.startOver(); } }, T('Start a New List'))));
           return;
         }

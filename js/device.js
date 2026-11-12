@@ -88,7 +88,7 @@
   }
 
   async function linkFolder(dest) {
-    if (!supported) { PatOS.alertBox(T('Not available here'), T('Linking a folder needs Chrome on a computer or Chromebook, with PatOS opened from its website.'), { icon: 'finder' }); return null; }
+    if (!supported) { PatOS.alertBox(T('Not available here'), T('Linking a folder needs Chrome on a computer, with PatOS opened from its website.'), { icon: 'finder' }); return null; }
     let dh; try { dh = await showDirectoryPicker({ mode: 'readwrite' }); } catch (e) { return null; }
     dest = dest || '/Documents';
     const name = PatOS.fs.uniqueName(dest, dh.name); const path = dest + '/' + name;
@@ -144,7 +144,7 @@
   function needPermission(handle, path) {
     waiting.set(handle, path);
     if (waiting.size === 1) {
-      notify(T('Allow saving to this Chromebook?'), T('Click anywhere in PatOS and choose Allow to save your changes to the real file.'));
+      notify(T('Allow saving to this Chromebook?'), T('Click anywhere in PatOS and choose Allow to save to the real file.'));
       const once = async () => { const items = [...waiting.entries()]; waiting.clear(); for (const [h, p] of items) { if (await perm(h, true, true)) push(p).catch(() => {}); } };
       window.addEventListener('pointerdown', once, { once: true, capture: true });
     }

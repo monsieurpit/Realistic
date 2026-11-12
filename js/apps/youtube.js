@@ -92,7 +92,7 @@
 
   PatOS.registerApp({
     id: 'youtube', name: 'YouTube', icon: 'youtube', category: 'Apps', single: true, width: 1180, height: 740, keywords: 'video watch tube music shorts', titlebar: 'hidden',
-    about: 'YouTube inside PatOS: search, Shorts, channels, comments and subscriptions, with the official YouTube player.',
+    about: 'YouTube in PatOS: search, Shorts, channels, comments and subscriptions.',
     launch(win, args) {
       win.el.classList.add('ytx-win');
       const lib = Object.assign({ subs: [], liked: [], later: [], history: [] }, PatOS.store.get('ytLibrary', {}));
@@ -152,14 +152,14 @@
       const spinner = () => h('div', { class: 'ytx-load' }, h('div', { class: 'ytx-spin' }));
       const skeleton = (n, rows) => h('div', { class: rows ? 'ytx-results' : 'ytx-grid' }, ...Array.from({ length: n }, () => h('div', { class: 'ytx-card ytx-sk' + (rows ? ' row' : '') }, h('div', { class: 'ytx-th' }), h('div', { class: 'ytx-ci' }, rows ? null : h('div', { class: 'ytx-av' }), h('div', { class: 'ytx-ct' }, h('b', {}), h('small', {}), h('small', {}))))));
       function problem(e, retry) {
-        if (PatOS.isOffline()) return PatOS.offlineCard(retry, { body: 'YouTube needs the internet. Videos you were watching will load by themselves when you’re back online.' });
+        if (PatOS.isOffline()) return PatOS.offlineCard(retry, { body: 'YouTube needs the internet. Your videos will load when you’re back online.' });
         const box = h('div', { class: 'ytx-msg' });
         if (e.message === 'noserver' && /^https?:/.test(location.protocol) && !PatOS.sandboxed && !PatOS.store.get('ytKey', '')) {
           box.append(h('div', { class: 'ytx-bigic', html: PatOS.iconHTML('youtube') }), h('h2', {}, PatOS.t('The PatOS server didn’t answer')),
             h('p', {}, PatOS.t('It may be waking up, which can take up to a minute. Try again in a moment.')), retry ? h('button', { class: 'ytx-btn', onclick: () => { PatOS.resetServer(); retry(); } }, PatOS.t('Try again')) : null);
         } else if (e.message === 'noserver') {
           box.append(h('div', { class: 'ytx-bigic', html: PatOS.iconHTML('youtube') }), h('h2', {}, PatOS.t('YouTube needs the PatOS website')),
-            h('p', {}, PatOS.sandboxed ? PatOS.t('This copy of PatOS runs inside a Claude Artifact, which blocks YouTube. Open PatOS from its website (your Render link) and YouTube works there.') : PatOS.t('This copy of PatOS was opened as a file, so it has no server to ask YouTube for videos. Open PatOS from its website (your Render link), or type that link in Settings so this copy can use it.')),
+            h('p', {}, PatOS.sandboxed ? PatOS.t('YouTube is blocked in Claude Artifacts. Open PatOS from its website.') : PatOS.t('YouTube needs PatOS’s website. Open PatOS from its link, or add the link in Settings.')),
             h('button', { class: 'ytx-btn', onclick: () => go({ key: 'settings' }) }, PatOS.t('Settings')));
         } else box.append(h('h2', {}, PatOS.t('Something went wrong')), h('p', {}, navigator.onLine ? PatOS.t('YouTube didn’t answer. If you’re at school, YouTube may be blocked on this network.') + ' (' + e.message + ')' : PatOS.t('You’re offline.')), retry ? h('button', { class: 'ytx-btn', onclick: retry }, PatOS.t('Try again')) : null);
         return box;
@@ -273,7 +273,7 @@
         150: 'The uploader doesn’t allow this video to play outside youtube.com.',
         152: 'YouTube didn’t allow this video to play here.',
         153: 'YouTube didn’t allow this video to play here.',
-        auth: 'YouTube wants to check that you’re not a robot before it plays videos inside other apps on this network.',
+        auth: 'YouTube wants to check you’re not a robot on this network.',
         embedder_identity_denied: 'YouTube didn’t allow this video to play here.'
       };
       const NETWORK = (code) => code === 'auth' || code === 152 || code === 153 || code === 'embedder_identity_denied';
@@ -299,8 +299,8 @@
           const msg = ERR[code] || 'This video can’t play here.';
           const box = h('div', { class: 'ytx-perr' },
             h('b', {}, PatOS.t(msg)),
-            net ? h('small', {}, PatOS.t('This usually happens when the browser blocks YouTube’s sign-in inside other sites (common on school Chromebooks). Signing in to YouTube in this browser often fixes it. You can always watch on youtube.com.')) : null,
-            !net && errStreak >= 4 ? h('small', {}, PatOS.t('Lots of videos are failing in a row. Your school or network may limit YouTube on this device.')) : null,
+            net ? h('small', {}, PatOS.t('Your browser may block YouTube sign-in here (common on school Chromebooks). Sign in to YouTube in this browser, or watch on youtube.com.')) : null,
+            !net && errStreak >= 4 ? h('small', {}, PatOS.t('Many videos are failing. Your school or network may limit YouTube.')) : null,
             h('small', { class: 'ytx-code' }, PatOS.t('Error code') + ' ' + code),
             h('div', { class: 'ytx-perrb' },
               h('button', { class: 'ytx-btn', onclick: () => PatOS.openExternal('https://www.youtube.com/' + (o.short ? 'shorts/' : 'watch?v=') + id) }, PatOS.t('Watch on youtube.com')),
@@ -519,7 +519,7 @@
         main.appendChild(h('div', { class: 'ytx-settings' },
           h('h1', {}, PatOS.t('Settings')),
           h('h3', {}, PatOS.t('Connection')), status,
-          h('p', {}, PatOS.t('If you opened PatOS as a file, type your PatOS website address here (for example your Render link):')),
+          h('p', {}, PatOS.t('If you opened PatOS as a file, type its website address here:')),
           h('div', { class: 'ytx-srow2' }, srvIn, h('button', { class: 'ytx-btn', onclick: () => { PatOS.store.set('patosServer', srvIn.value.trim()); serverOK = null; settings2(); } }, PatOS.t('Save'))),
           h('h3', {}, PatOS.t('Autoplay')),
           (() => { const l = h('label', { class: 'ytx-ap' }, h('span', {}, PatOS.t('Play the next video automatically')), h('input', { type: 'checkbox' })); l.querySelector('input').checked = autoplay; l.querySelector('input').onchange = (e) => { autoplay = e.target.checked; PatOS.store.set('ytAutoplay', autoplay); }; return l; })(),
@@ -527,7 +527,7 @@
           h('p', { class: 'ytx-dim' }, PatOS.t('Only needed when there is no PatOS website to connect to.')),
           h('div', { class: 'ytx-srow2' }, keyIn, h('button', { class: 'ytx-btn', onclick: () => { PatOS.store.set('ytKey', keyIn.value.trim()); PatOS.notify({ title: PatOS.t('Saved'), body: 'YouTube', icon: 'youtube' }); } }, PatOS.t('Save'))),
           h('h3', {}, PatOS.t('Your data')),
-          h('p', { class: 'ytx-dim' }, PatOS.t('Subscriptions, likes, Watch later and history are kept on this device only.'))));
+          h('p', { class: 'ytx-dim' }, PatOS.t('Subscriptions, likes, Watch later and history stay on this device.'))));
         function settings2() { render(); }
       }
 

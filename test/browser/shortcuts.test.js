@@ -100,7 +100,7 @@ test('Hey Pat: off until you turn it on, then it listens for the words, answers,
 test('the Shortcuts window, the Pat Voice settings, and the microphone button in Pat’s panel (top bar)', { skip: skipNoBrowser }, async () => {
   const { ctx, page, errors } = await setup();
   await page.evaluate(() => { PatOS.launch('shortcuts'); }); await page.waitForSelector('.sc');
-  assert.match(await page.innerText('.sc-main'), /Little automations for PatOS/);
+  assert.match(await page.innerText('.sc-main'), /Small automations/);
   await page.click('text=Gallery'); await page.waitForSelector('.sc-gal'); assert.match(await page.innerText('.sc-main'), /Good morning[\s\S]*Study time[\s\S]*Bedtime[\s\S]*When I unlock/);
   await page.click('.sc-gal >> nth=1 >> text=Add'); await page.waitForSelector('.sc-step'); assert.equal(await page.locator('.sc-step').count(), 4);
   assert.match(await page.innerText('.sc-side'), /Study time[\s\S]*Runs when you press it/);
@@ -115,7 +115,7 @@ test('the Shortcuts window, the Pat Voice settings, and the microphone button in
   await page.click('.sc-acts .btn.danger'); await page.waitForFunction(() => PatOS.shortcuts.list().length === 0);
   // Settings › Pat Voice
   const v = await page.evaluate(async () => { const w = PatOS.launch('settings', { pane: 'voice' }); await new Promise((r) => setTimeout(r, 700)); const sw = w.body.querySelector('.vo .switch'); const o = { text: w.body.querySelector('.vo').innerText, before: sw.classList.contains('on') }; sw.click(); await new Promise((r) => setTimeout(r, 400)); o.after = PatOS.voice.on(); o.pill = !!document.querySelector('.voice-pill'); return o; });
-  assert.match(v.text, /Hey Pat[\s\S]*Off\. Nothing is listening[\s\S]*Google’s speech service/); assert.equal(v.before, false); assert.equal(v.after, true); assert.equal(v.pill, true);
+  assert.match(v.text, /Hey Pat[\s\S]*Off\. Nothing is listening[\s\S]*Chrome uses Google for this/); assert.equal(v.before, false); assert.equal(v.after, true); assert.equal(v.pill, true);
   // the microphone button in Pat's panel (Messages): hears one question, no wake word
   await page.evaluate(() => { PatOS.voice.disable(); }); await page.click('#mb-pat'); await page.waitForSelector('#pat-panel:not(.hidden) .pat3-mic');
   await page.click('#pat-panel .pat3-mic'); await page.waitForFunction(() => window.__sr && window.__sr.running); await page.evaluate(() => window.__say('what time is it'));

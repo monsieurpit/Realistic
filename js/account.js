@@ -155,7 +155,7 @@
         h('h2', { id: 'ban-t' }, T('Your account has been banned')),
         h('p', {}, T('PatOS banned @') + ((info() || {}).username || '') + '.'),
         h('div', { class: 'ban-why' }, h('small', {}, T('Reason')), h('div', {}, b.reason || T('No reason was given.'))),
-        h('p', { class: 'ban-fine' }, T('You can’t send messages or save to this account anymore. What is on this device stays here.')), out));
+        h('p', { class: 'ban-fine' }, T('You can’t send messages or save to this account anymore. This device keeps its things.')), out));
     banEl.addEventListener('keydown', (e) => { if (e.key === 'Escape') e.stopPropagation(); }, true);
     document.body.appendChild(banEl); setTimeout(() => out.focus(), 50);
   }

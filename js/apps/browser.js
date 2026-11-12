@@ -116,7 +116,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
 
   PatOS.registerApp({
     id: 'browser', name: 'Patoogle', icon: 'browser', single: true, width: 1100, height: 720, keywords: 'chrome safari web internet browser google',
-    about: 'A web browser with tabs, bookmarks and history. Searches open in your device’s own browser.',
+    about: 'A web browser with tabs, bookmarks and history.',
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'browser-win', 'pb-win');
       const OF = PatOS.office;
@@ -226,7 +226,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         const secure = cur.url.startsWith('https'), internal = cur.url.startsWith('patos');
         lockIc.innerHTML = internal ? '<svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="6.5"/><path d="m20 20-4.2-4.2"/></svg>' : PatOS.sym(secure ? 'lock' : 'warn');
         lockIc.classList.toggle('warn', !secure && !internal);
-        lockIc.classList.toggle('via', !!cur.proxied); bOut.style.display = cur.proxied ? '' : 'none'; bRead.style.display = cur.proxied ? '' : 'none'; lockIc.title = cur.proxied ? T('Shown through PatOS: this site doesn’t allow being shown inside other apps, so PatOS brings it here. Logins may not work.') : '';
+        lockIc.classList.toggle('via', !!cur.proxied); bOut.style.display = cur.proxied ? '' : 'none'; bRead.style.display = cur.proxied ? '' : 'none'; lockIc.title = cur.proxied ? T('This site blocks being shown in apps, so PatOS shows it here. Logins may not work.') : '';
         bBack.disabled = cur.idx <= 0; bFwd.disabled = cur.idx >= cur.hist.length - 1;
         if (cur.cloud) { bBack.disabled = !cur.cloud.back; bFwd.disabled = !cur.cloud.fwd; bOut.style.display = ''; bRead.style.display = 'none'; lockIc.classList.add('via'); lockIc.title = T('Running in Cloud Chrome, a real Chrome on your PatOS server'); }
         bKb.style.display = cur.cloud && PatOS.isMobile ? '' : 'none';
@@ -283,7 +283,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         else if (url.startsWith('patos://google')) { const q = new URL(url.replace('patos://', 'http://x/')).searchParams.get('q') || ''; t.title = q || 'Google'; if (googleCx()) t.pane.appendChild(googlePage(t, q)); else { setTimeout(() => navigate(q ? googleURL(q) : 'https://www.google.com/webhp?igu=1&hl=' + glang(), t, true), 0); } }
         else if (/^https?:/.test(url) && PatOS.isOffline()) {
           if (t.web) { webTabs--; t.web = false; }
-          t.title = host(url); t.pane.appendChild(PatOS.offlineCard(() => { if (t.url === url) navigate(url, t, true); }, { body: 'This website needs the internet. The page will load by itself when you’re back online.' }));
+          t.title = host(url); t.pane.appendChild(PatOS.offlineCard(() => { if (t.url === url) navigate(url, t, true); }, { body: 'This site needs the internet. It will load when you’re back online.' }));
         }
         else if (toCloud) { t.title = host(url); viaCloud(url.replace(/([?&])igu=1(&|$)/, (m, a, b) => (b ? a : '')), t); }
         else if (isBlocked(url)) { t.title = host(url); if (useProxy() && !ownWindow(url)) viaProxy(url, t); else { t.pane.appendChild(blockedPage(url)); autoOpen(url, t); } }
@@ -300,7 +300,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
             frame.addEventListener('load', () => { t.loading = false; bar.classList.add('done'); setTimeout(() => bar.remove(), 400); try { const d = frame.contentDocument; if (d && d.title) t.title = d.title; } catch (e) {} if (t === cur) syncUI(); });
             t.pane.innerHTML = ''; t.pane.append(bar, frame);
             applyZoom(t);
-            if (isGoogleFrame(url)) t.pane.insertBefore(h('div', { class: 'pg-banner g' }, h('span', {}, T('If a page says it refused to connect, that site doesn’t allow being shown inside other apps.')), h('button', { class: 'pg-link', onclick: () => PatOS.openExternal(url.replace('igu=1&', '').replace('?igu=1', '?')) }, T('Open this search in a new tab')), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup' + (gq ? '?q=' + encodeURIComponent(gq) : '')) }, T('Search settings'))), bar);
+            if (isGoogleFrame(url)) t.pane.insertBefore(h('div', { class: 'pg-banner g' }, h('span', {}, T('If a page refused to connect, that site can’t be shown inside apps.')), h('button', { class: 'pg-link', onclick: () => PatOS.openExternal(url.replace('igu=1&', '').replace('?igu=1', '?')) }, T('Open this search in a new tab')), h('button', { class: 'pg-link', onclick: () => navigate('patos://google-setup' + (gq ? '?q=' + encodeURIComponent(gq) : '')) }, T('Search settings'))), bar);
             setTimeout(() => { if (t.loading && t.gen === mine) { t.loading = false; bar.remove(); if (t === cur) syncUI(); } }, 12000);
           };
           if (isGoogleFrame(url)) build();
@@ -340,7 +340,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           el.render({ div: results.id, tag: 'searchresults-only', gname, attributes: { linkTarget: '_self', enableHistory: false } });
           el.getElement(gname).execute(q);
         }).catch((err) => {
-          status.textContent = err.message === 'restart' ? PatOS.t('Close and reopen PatOS to use your new Search engine ID.') : err.message === 'offline' && navigator.onLine ? PatOS.t('Google search was blocked. Your school’s Chromebook settings may not allow it on this network.') : PatOS.sandboxed ? PatOS.t('Google search can’t run inside a Claude Artifact. Open PatOS from its website.') : PatOS.t('Google search didn’t load. Check your internet connection, or the Search engine ID in Search settings.');
+          status.textContent = err.message === 'restart' ? PatOS.t('Close and reopen PatOS to use your new Search engine ID.') : err.message === 'offline' && navigator.onLine ? PatOS.t('Google search was blocked, maybe by your school’s settings.') : PatOS.sandboxed ? PatOS.t('Google search can’t run inside a Claude Artifact. Open PatOS from its website.') : PatOS.t('Google search didn’t load. Check your internet, or the Search engine ID in Search settings.');
         });
         else status.textContent = '';
         setTimeout(() => { if (!q) box.focus(); }, 50);
@@ -356,7 +356,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           h('div', { class: 'pr-wrap' }, h('div', { class: 'pr-col' }, answers, results,
             h('div', { class: 'pr-more' }, h('b', {}, PatOS.t('Want full web results?')), h('p', {}, PatOS.t('These results come from Wikipedia. Search Google for everything else.')),
               h('div', { class: 'pr-btns' }, h('button', { class: 'btn primary', onclick: () => navigate(googleURL(q)) }, 'Search Google'), h('button', { class: 'btn', onclick: () => navigate(bingURL(q)) }, 'Try Bing')),
-              h('small', {}, PatOS.t('Some schools block Bing. If you see “blocked by your administrator”, that’s your school’s setting.')))), panel));
+              h('small', {}, PatOS.t('If you see “blocked by your administrator”, your school blocks Bing.')))), panel));
         setTimeout(() => { if (!q) box.focus(); }, 50);
         if (!q) return page;
         // instant answers
@@ -388,7 +388,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
             panel.append(s.thumbnail ? h('img', { src: s.thumbnail.source, alt: '' }) : null, h('h3', {}, s.title), s.description ? h('small', {}, s.description) : null, h('p', {}, s.extract), h('button', { class: 'pg-link', onclick: () => navigate(s.content_urls.desktop.page) }, PatOS.t('Read more on Wikipedia')));
             panel.classList.add('on');
           }).catch(() => {});
-        }).catch(() => { results.innerHTML = ''; results.appendChild(h('div', { class: 'pg-status' }, PatOS.sandboxed ? PatOS.t('Search can’t run inside a Claude Artifact. Open PatOS from its website.') : PatOS.t('Search couldn’t reach Wikipedia. Check the internet connection, or your school may block it.'))); });
+        }).catch(() => { results.innerHTML = ''; results.appendChild(h('div', { class: 'pg-status' }, PatOS.sandboxed ? PatOS.t('Search can’t run inside a Claude Artifact. Open PatOS from its website.') : PatOS.t('Search couldn’t reach Wikipedia. Check your internet, or your school may block it.'))); });
         return page;
       }
       function googleSetup() {
@@ -614,7 +614,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
             t.sorryAt = Date.now(); let asked = ''; try { asked = new URL(d.url).searchParams.get('continue') || ''; } catch (x) {}
             let q = null; try { q = asked ? new URL(asked).searchParams.get('q') : null; } catch (x) {}
             if (q) { OF.toast(win, T('Google keeps asking servers for robot checks, so this search uses Bing')); cloudCmd(t, 'navigate', { url: bingURL(q) }).catch(() => {}); return; }
-            PatOS.notify({ title: T('Google is asking for a robot check'), body: T('Google does this to servers like Cloud Chrome’s. Tap here to open it in your own browser, where Google knows you.'), icon: 'browser', onClick: () => { const w = openAppWindow(asked || 'https://www.google.com/'); if (!w) PatOS.openExternal(asked || 'https://www.google.com/'); } });
+            PatOS.notify({ title: T('Google is asking for a robot check'), body: T('Google blocks this server. Tap to open it in your own browser.'), icon: 'browser', onClick: () => { const w = openAppWindow(asked || 'https://www.google.com/'); if (!w) PatOS.openExternal(asked || 'https://www.google.com/'); } });
           }
           if (d.url !== t.url) { t.url = d.url; const H = PatOS.store.get('browserHistory', []); if (!H[0] || H[0].u !== d.url) { H.unshift({ u: d.url, t: Date.now(), title: d.title || host(d.url) }); PatOS.store.set('browserHistory', H.slice(0, 300)); } saveSession(); }
           t.title = (d.title || host(d.url)).slice(0, 200); const H = PatOS.store.get('browserHistory', []); if (H[0] && H[0].u === d.url && d.title && H[0].title !== d.title) { H[0].title = d.title; PatOS.store.set('browserHistory', H); }
@@ -746,7 +746,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       async function cloudSetup() {
         await cloudCheck();
         if (!cloud.base) return PatOS.alertBox(T('Cloud Chrome'), T('Cloud Chrome needs the PatOS server (open PatOS from its web address).'), { icon: 'browser' });
-        if (!cloud.avail) return PatOS.alertBox(T('Cloud Chrome isn’t set up on the server'), T('On Railway, add the variable CLOUD_BROWSER_KEY (a password of at least 8 characters) and install Chrome (see docs/CLOUD-CHROME.md). Then come back here.'), { icon: 'browser' });
+        if (!cloud.avail) return PatOS.alertBox(T('Cloud Chrome isn’t set up on the server'), T('On Railway, add CLOUD_BROWSER_KEY (8+ characters) and install Chrome (docs/CLOUD-CHROME.md).'), { icon: 'browser' });
         const k = await PatOS.ask(T('Enter the password'), '', { icon: 'browser', password: true, ok: T('Turn on') });
         if (k == null) return;
         const old = cloudKey(); PatOS.store.set('cloudKey', String(k).trim());
@@ -832,7 +832,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         const card = h('div', { class: 'br-blank' },
           h('div', { class: 'bb-ic', html: '<svg viewBox="0 0 24 24" width="44" height="44" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="13" rx="2.5"/><path d="M9 21h6M12 17.5V21M9.5 9.5l5 4M14.5 9.5l-5 4"/></svg>' }),
           h('h2', {}, t.proxyError || T('This page didn’t show up here')),
-          h('p', {}, T('Some websites only work in a normal browser tab (for example sites that need a login, or big web apps). It opens there in one click.')),
+          h('p', {}, T('Some sites only work in a normal browser tab. Open it there in one click.')),
           h('div', { class: 'bb-btns' },
             h('button', { class: 'btn primary', onclick: () => { const w = openAppWindow(url); if (!w) PatOS.openExternal(url); } }, T('Open in its own window')),
             h('button', { class: 'btn', onclick: () => navigate(url, t, true) }, T('Try again'))));
@@ -902,14 +902,14 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       function autoOpen(url, t) {
         if (restoring || t !== cur || !PatOS.store.get('autoAppWindow', true) || PatOS.sandboxed || t.opened === url) return;
         t.opened = url; const w = openAppWindow(url);
-        if (w) { const note = t.pane.querySelector('.bb-note'); if (note) note.textContent = T('It opened in its own window. If you don’t see it, check that your browser allows pop-ups from this site.'); }
+        if (w) { const note = t.pane.querySelector('.bb-note'); if (note) note.textContent = T('It opened in a new window. Not there? Allow pop-ups for this site.'); }
       }
       function blockedPage(url, signIn) {
         const hn = host(url); const account = signIn || ownWindow(url);
         return h('div', { class: 'br-blocked' },
           h('div', { class: 'bb-ic', html: '<svg viewBox="0 0 24 24" width="52" height="52" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="4.5" width="17" height="13" rx="2.5"/><path d="M8 20.5h8M12 17.5v3M9 9l6 4M15 9l-6 4"/></svg>' }),
           h('h2', {}, account && !PatOS.sandboxed ? hn + ' ' + T('opens in its own window') : hn + ' ' + T('doesn’t allow being shown inside PatOS')),
-          h('p', {}, account && !PatOS.sandboxed ? T('This site needs your account (or works only in a normal browser tab). It opens in its own window, where you are already signed in.') : PatOS.sandboxed ? T('PatOS is running inside a Claude Artifact, which can’t show other websites inside it. Open the page in a real browser tab instead.') : T('This website tells browsers not to show it inside other pages. That is the website’s own rule, so PatOS opens it in its own window instead.')),
+          h('p', {}, account && !PatOS.sandboxed ? T('This site needs your account, so it opens in its own window.') : PatOS.sandboxed ? T('Claude Artifacts can’t show other websites. Open the page in a browser tab.') : T('This site can’t be shown inside a page, so it opens in its own window.')),
           h('p', { class: 'bb-note' }, PatOS.sandboxed ? '' : T('Opening in its own window…')),
           h('div', { class: 'br-alts' },
             h('button', { class: 'btn primary', onclick: () => { const w = openAppWindow(url); if (!w) PatOS.openExternal(url); } }, T('Open') + ' ' + hn + ' ' + T('in its own window')),

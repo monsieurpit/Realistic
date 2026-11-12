@@ -92,7 +92,7 @@ test('places: nearest gym with directions, near me, the second one, take me ther
   // location refused: says so honestly
   const ctx2 = await b.newContext(); const p3 = await ctx2.newPage(); await boot(p3, srv.base, { fresh: true });
   const no = await p3.evaluate(async () => { navigator.geolocation.getCurrentPosition = (ok, bad) => bad({ code: 1 }); return (await PatOS.intel.respond('nearest gym')).message; });
-  assert.match(no, /didn’t allow PatOS to see your location/); await ctx2.close();
+  assert.match(no, /Location is blocked/); await ctx2.close();
 });
 
 test('guesses: Pat offers the closest simple command as a question, and only does it on a yes', { skip: skipNoBrowser }, async () => {

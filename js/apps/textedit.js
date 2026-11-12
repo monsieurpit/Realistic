@@ -55,7 +55,7 @@
 
   PatOS.registerApp({
     id: 'textedit', name: 'TextEdit', icon: 'textedit', single: false, width: 760, height: 540, keywords: 'text editor write code notepad markdown',
-    about: 'Write plain text and code. Find and replace, word wrap, a Markdown preview, and drafts that are never lost.',
+    about: 'Write text and code, with find and replace and a Markdown preview.',
     launch(win, args) {
       win.el.classList.add('has-toolbar');
       let path = args.path || null; let dirty = false;

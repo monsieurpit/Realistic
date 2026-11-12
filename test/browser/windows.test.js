@@ -14,16 +14,16 @@ const CROS = 'Mozilla/5.0 (X11; CrOS x86_64 14541.0.0) AppleWebKit/537.36 (KHTML
 test('on Windows the words say computer, on a Chromebook they say Chromebook', { skip: skipNoBrowser }, async () => {
   for (const [ua, word, cls] of [[WIN, 'computer', true], [CROS, 'Chromebook', false]]) {
     const ctx = await b.newContext({ viewport: { width: 1366, height: 768 }, userAgent: ua }); const page = await ctx.newPage(); const errors = await boot(page, srv.base, { fresh: true });
-    const r = await page.evaluate(() => ({ a: PatOS.t('Save to This Chromebook…'), c: PatOS.t('Allow saving to this Chromebook?'), d: PatOS.t('Linking a folder needs Chrome on a computer or Chromebook, with PatOS opened from its website.'), win: document.documentElement.classList.contains('win'), hw: PatOS.hw.windows }));
+    const r = await page.evaluate(() => ({ a: PatOS.t('Save to This Chromebook…'), c: PatOS.t('Allow saving to this Chromebook?'), d: PatOS.t('Linking a folder needs Chrome on a computer, with PatOS opened from its website.'), win: document.documentElement.classList.contains('win'), hw: PatOS.hw.windows }));
     if (cls) { assert.equal(r.a, 'Save to This Computer…'); assert.equal(r.c, 'Allow saving to this computer?'); assert.ok(!/Chromebook/.test(r.d)); assert.equal(r.win, true); }
-    else { assert.equal(r.a, 'Save to This Chromebook…'); assert.ok(/Chromebook/.test(r.d)); assert.equal(r.win, false); }
+    else { assert.equal(r.a, 'Save to This Chromebook…'); assert.ok(r.d.length > 10); assert.equal(r.win, false); }
     assert.ok(r.a.includes(word === 'computer' ? 'Computer' : 'Chromebook')); assert.deepEqual(errors, []); await ctx.close();
   }
 });
 
 test('in French a Windows laptop reads ordinateur, never Chromebook', { skip: skipNoBrowser }, async () => {
   const ctx = await b.newContext({ viewport: { width: 1366, height: 768 }, userAgent: WIN, locale: 'fr-CA' }); const page = await ctx.newPage(); const errors = await boot(page, srv.base, { fresh: true });
-  const r = await page.evaluate(() => [PatOS.t('Save to This Chromebook…'), PatOS.t('Allow saving to this Chromebook?'), PatOS.t('Open from This Chromebook…'), PatOS.t('Low (best for older Chromebooks)'), PatOS.t('Open the Chromebook’s Settings, search for “Restore apps on startup” and choose Always. If PatOS is open when you shut down, it opens again when you sign in.')]);
+  const r = await page.evaluate(() => [PatOS.t('Save to This Chromebook…'), PatOS.t('Allow saving to this Chromebook?'), PatOS.t('Open from This Chromebook…'), PatOS.t('Low (best for older Chromebooks)'), PatOS.t('In the Chromebook’s Settings, search “Restore apps on startup” and choose Always.')]);
   assert.deepEqual(r.slice(0, 3), ['Enregistrer sur cet ordinateur…', 'Autoriser l’enregistrement sur cet ordinateur ?', 'Ouvrir depuis cet ordinateur…']);
   for (const x of r) assert.ok(!/Chromebook/.test(x), x); assert.ok(/vieux ordinateurs/.test(r[3])); assert.deepEqual(errors, []); await ctx.close();
 });

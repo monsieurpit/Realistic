@@ -291,7 +291,7 @@
   const svg = (d) => '<svg class="sym" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">' + d + '</svg>';
   PatOS.registerApp({
     id: 'music', name: 'Music', icon: 'music', width: 1040, height: 660, dark: true, keywords: 'songs audio player playlist mp3 musique',
-    about: 'Plays your songs with playlists and a queue, and composes its own music too.',
+    about: 'Your songs, with playlists and a queue. It can make music too.',
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'mu-win');
       let view = PatOS.store.get('musicView', 'songs'), sub = null, q = '';
@@ -416,12 +416,12 @@
         const head = header(title, paths.map((p) => ({ path: p })), paths.length + ' ' + T(paths.length === 1 ? 'song' : 'songs') + (total ? ' · ' + (total < 60 ? Math.round(total) + ' s' : total < 3600 ? Math.round(total / 60) + ' min' : Math.floor(total / 3600) + ' h ' + Math.round(total % 3600 / 60) + ' min') : ''));
         if (sub) head.prepend(h('button', { class: 'tbtn mu-back', title: T('Back'), onclick: () => { sub = null; renderMain(); } }, '‹'));
         main.appendChild(head);
-        if (!paths.length) { main.appendChild(view.startsWith('pl:') ? h('div', { class: 'mu-empty' }, h('p', {}, T('This playlist is empty. Drag songs onto it in the sidebar, or right-click a song › Add to Playlist.'))) : q ? h('div', { class: 'mu-empty' }, h('p', {}, T('No songs match your search.'))) : emptyLib()); return; }
+        if (!paths.length) { main.appendChild(view.startsWith('pl:') ? h('div', { class: 'mu-empty' }, h('p', {}, T('This playlist is empty. Drag songs onto it, or right-click a song › Add to Playlist.'))) : q ? h('div', { class: 'mu-empty' }, h('p', {}, T('No songs match your search.'))) : emptyLib()); return; }
         main.appendChild(songTable(paths));
         readPending(paths, refreshSoon);
       }
       const refreshSoon = PatOS.debounce(() => { if (!vizOn) { const st = main.scrollTop; renderMain(); main.scrollTop = st; } sync(); }, 400);
-      function emptyLib() { return h('div', { class: 'mu-empty' }, h('div', { class: 'mu-bigic', html: PatOS.iconHTML('music') }), h('h2', {}, T('Add your music')), h('p', {}, T('Add MP3, M4A, WAV or OGG files from your Chromebook, or drop them here. They are saved in the Music folder.')), h('div', { class: 'gm-row' }, h('button', { class: 'btn primary', onclick: () => bAdd.click() }, T('Add Music…')), h('button', { class: 'btn', onclick: () => { view = 'originals'; renderSide(); renderMain(); } }, T('Listen to PatOS Originals')))); }
+      function emptyLib() { return h('div', { class: 'mu-empty' }, h('div', { class: 'mu-bigic', html: PatOS.iconHTML('music') }), h('h2', {}, T('Add your music')), h('p', {}, T('Add MP3, M4A, WAV or OGG files, or drop them here. They go in the Music folder.')), h('div', { class: 'gm-row' }, h('button', { class: 'btn primary', onclick: () => bAdd.click() }, T('Add Music…')), h('button', { class: 'btn', onclick: () => { view = 'originals'; renderSide(); renderMain(); } }, T('Listen to PatOS Originals')))); }
 
       /* ----- adding music ----- */
       bAdd.onclick = async () => { const saved = await PatOS.importFiles('/Music', 'audio/*'); if (saved && saved.length) { PatOS.notify({ title: T('Music added'), body: saved.length + ' ' + T(saved.length === 1 ? 'song' : 'songs'), icon: 'music' }); view = 'recent'; renderSide(); renderMain(); } };

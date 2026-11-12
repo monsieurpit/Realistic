@@ -96,7 +96,7 @@
     if (j && j.format === ENC) { if (!pass) { const err = new Error('password needed'); err.needPassword = true; throw err; } j = await decrypt(j, pass); }
     if (!j || j.format !== FORMAT || !j.fs || !j.kv) throw new Error('This is not a PatOS backup');
     const v = await verify(j);
-    if (v === 'damaged') { const err = new Error('This backup is damaged: its contents don’t match its fingerprint, so PatOS won’t restore it.'); err.damaged = true; throw err; }
+    if (v === 'damaged') { const err = new Error('This backup is damaged, so PatOS won’t restore it.'); err.damaged = true; throw err; }
     if (PatOS.fs.integrity && PatOS.fs.integrity.inspect(j.fs).fatal) throw new Error('This backup is damaged: its file list can’t be read.');
     j.verified = v; return j;
   }
@@ -126,7 +126,7 @@
   /* ---------- putting a backup back ---------- */
   async function apply(state, opts) {
     if (!state || state.format !== FORMAT || !state.fs || !state.kv) throw new Error('This is not a PatOS backup');
-    if ((await verify(state)) === 'damaged') throw new Error('This backup is damaged: its contents don’t match its fingerprint, so PatOS won’t restore it.');
+    if ((await verify(state)) === 'damaged') throw new Error('This backup is damaged, so PatOS won’t restore it.');
     await snapshot(T('Before restoring'), 'before'); // always keep a way back
     if (opts && opts.blobDir) await loadBigFiles(opts.blobDir, state.fs);
     if (state.blobs) for (const id of Object.keys(state.blobs)) { const b = state.blobs[id]; const blob = new Blob([await unb64(b.data)], { type: b.type || '' }); await idb('blobs', 'readwrite', (s) => s.put(blob, id)); }
@@ -224,7 +224,7 @@
   const ui = {
     /* ask before replacing everything, then restart PatOS on its own boot screen */
     async confirmRestore(title, run) {
-      if (!(await PatOS.confirmBox(title, T('Your files and settings go back to how they were then, and anything newer is replaced. A copy of right now is saved first, as “Before restoring”.'), { ok: T('Restore'), danger: true, icon: 'settings' }))) return;
+      if (!(await PatOS.confirmBox(title, T('Your files and settings go back to that moment. A copy of now is saved first.'), { ok: T('Restore'), danger: true, icon: 'settings' }))) return;
       const r = await run();
       if (r && r.missing) await msg(T('Restored'), r.missing + ' ' + T(r.missing === 1 ? 'big file was not in this backup, so it was left out.' : 'big files were not in this backup, so they were left out.'));
       PatOS.restartPatOS ? PatOS.restartPatOS({ update: false }) : location.reload();
@@ -292,7 +292,7 @@
   async function offerRecovery() {
     const L = PatOS.fs.integrity && PatOS.fs.integrity.load(); if (!L || (L.state !== 'damaged' && L.state !== 'missing')) return;
     const snap = list()[0];
-    const body = (L.state === 'damaged' ? T('PatOS couldn’t read your files when it started, so it kept them aside and started with empty folders.') : T('Some files lost their content when PatOS started.')) + (snap ? ' ' + T('The newest snapshot is from') + ' ' + when(snap.t) + '.' : ' ' + T('There is no snapshot on this device. You can restore a backup file from Settings › Backup.'));
+    const body = (L.state === 'damaged' ? T('PatOS couldn’t read your files at start, so it kept them aside and started with empty folders.') : T('Some files lost their content when PatOS started.')) + (snap ? ' ' + T('The newest snapshot is from') + ' ' + when(snap.t) + '.' : ' ' + T('No snapshot on this device. You can restore a backup file in Settings › Backup.'));
     if (!snap) return msg(T('PatOS found a problem with your files'), body);
     if (await PatOS.confirmBox(T('PatOS found a problem with your files'), body, { ok: T('Restore the Snapshot'), icon: 'settings' })) {
       try { await restoreSnapshot(snap.key); PatOS.restartPatOS ? PatOS.restartPatOS({ update: false }) : location.reload(); } catch (e) { msg(T('That didn’t work'), String(e.message || e)); }

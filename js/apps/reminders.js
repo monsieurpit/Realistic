@@ -32,7 +32,7 @@
 
   PatOS.registerApp({
     id: 'reminders', name: 'Reminders', icon: 'reminders', width: 860, height: 560, keywords: 'todo tasks list checklist homework due rappels devoirs',
-    about: 'To-do lists with due dates and alerts. Type “Math test friday at 3pm !!” and Reminders fills in the date, time and priority.',
+    about: 'To-do lists with dates and alerts. Try “Math test friday at 3pm !!”.',
     launch(win) {
       let items = load(), lists = PatOS.store.get('remLists', [{ id: 'default', name: PatOS.t('Reminders'), color: COLORS[0] }]);
       let view = 'today', showDone = false, editing = null, query = '';
