@@ -1,7 +1,7 @@
 [
   {
     "version": "3.2.0",
-    "beta": 5,
+    "beta": 6,
     "date": "2026-11-12",
     "title": {
       "en": "PatOS 3.2: Messages",
@@ -9,6 +9,7 @@
     },
     "notes": {
       "en": [
+        "Pat’s new orb: a glass sphere with living color inside that swirls while Pat thinks and breathes while it listens; every icon in Pat’s panel is newly drawn, the suggestions get colored tiles, a status line says what Pat is doing, each answer can be copied or read aloud, and a button takes you back to the latest message",
         "Pat has a new, premium look: a living orb that shows when Pat is thinking or listening, a welcome with things to try, answers as clean text with cards (the weather, a translation, an answer and its source), buttons inside answers, every step of a multi-step request as its own row, and a bigger composer with voice",
         "Pat knows a lot more, in English and French, even offline: every country’s capital and currency, the chemical elements, the planets and many everyday facts. Ask “what is the capital of Japan”, “what is the symbol for gold”, “how many moons does Jupiter have”",
         "For anything else, Pat looks it up: a short answer from Wikipedia with its source, and a Search Google button",
@@ -35,6 +36,7 @@
         "Messages: “Seen” under your last message once the other person has read it, and “typing…” dots while they write"
       ],
       "fr": [
+        "Le nouvel orbe de Pat : une sphère de verre aux couleurs vivantes qui tourbillonnent quand Pat réfléchit et respirent quand il écoute; toutes les icônes du panneau de Pat sont redessinées, les suggestions ont des tuiles colorées, une ligne d’état dit ce que fait Pat, chaque réponse peut être copiée ou lue à voix haute, et un bouton ramène au dernier message",
         "Pat a un nouveau look haut de gamme : une orbe vivante qui montre quand Pat réfléchit ou écoute, un accueil avec des idées, des réponses claires avec des cartes (météo, traduction, réponse et sa source), des boutons dans les réponses, chaque étape sur sa propre ligne, et une zone de saisie plus grande avec la voix",
         "Pat en sait beaucoup plus, en français et en anglais, même hors ligne : la capitale et la monnaie de chaque pays, les éléments chimiques, les planètes et plein de faits. Demande « quelle est la capitale du Japon », « quel est le symbole de l’or »",
         "Pour le reste, Pat cherche : une courte réponse de Wikipédia avec sa source, et un bouton Chercher sur Google",

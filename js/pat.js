@@ -406,49 +406,74 @@
      built from text nodes (never HTML from an answer), and the list is a live region for screen readers. */
   let rich = null; // the card and buttons of the answer being shown (set by show(), taken by the panel)
   const takeRich = () => { const r = rich; rich = null; return r; };
+  /* every icon of the panel, drawn here (one stroke style: 24-unit grid, round caps) */
+  const ic = (d, w) => '<svg viewBox="0 0 24 24" width="' + (w || 18) + '" height="' + (w || 18) + '" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + d + '</svg>';
   const SVG = {
-    send: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>',
-    mic: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>',
-    plus: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
-    gear: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M4.2 7.5l2 1.2M17.8 15.3l2 1.2M4.2 16.5l2-1.2M17.8 8.7l2-1.2"/></svg>',
-    close: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>'
+    send: ic('<path d="M12 19V5M5.5 11.5 12 5l6.5 6.5" stroke-width="2.4"/>'),
+    mic: ic('<rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21M9 21h6"/>'),
+    plus: ic('<path d="M14.5 4.5H7A2.5 2.5 0 0 0 4.5 7v10A2.5 2.5 0 0 0 7 19.5h10a2.5 2.5 0 0 0 2.5-2.5V9.5"/><path d="M17.5 3.5l3 3-7 7H10.5v-3z"/>', 17),
+    gear: ic('<circle cx="12" cy="12" r="2.8"/><path d="M19.4 13.5a7.6 7.6 0 0 0 0-3l2-1.6-2-3.4-2.4.9a7.5 7.5 0 0 0-2.6-1.5L14 2.5h-4l-.4 2.4A7.5 7.5 0 0 0 7 6.4l-2.4-.9-2 3.4 2 1.6a7.6 7.6 0 0 0 0 3l-2 1.6 2 3.4 2.4-.9a7.5 7.5 0 0 0 2.6 1.5l.4 2.4h4l.4-2.4a7.5 7.5 0 0 0 2.6-1.5l2.4.9 2-3.4z"/>', 17),
+    close: ic('<path d="M6.5 6.5l11 11M17.5 6.5l-11 11" stroke-width="2.2"/>', 16),
+    copy: ic('<rect x="8.5" y="8.5" width="11" height="11" rx="2.5"/><path d="M15.5 8.5V6.5A2 2 0 0 0 13.5 4.5h-7a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h2"/>', 15),
+    speak: ic('<path d="M4.5 9.5v5h3.5l4.5 4v-13l-4.5 4z"/><path d="M15.5 9a4 4 0 0 1 0 6M18 6.5a7.5 7.5 0 0 1 0 11"/>', 15),
+    down: ic('<path d="M12 5v14M6 13l6 6 6-6" stroke-width="2.2"/>', 16),
+    check: ic('<path d="M5 12.5l4.5 4.5L19 7.5" stroke-width="2.4"/>', 14),
+    cross: ic('<path d="M7 7l10 10M17 7 7 17" stroke-width="2.4"/>', 14),
+    out: ic('<path d="M13.5 4.5h6v6M19.5 4.5l-8 8M17.5 13.5v4a2 2 0 0 1-2 2h-9a2 2 0 0 1-2-2v-9a2 2 0 0 1 2-2h4"/>', 13),
+    search: ic('<circle cx="10.5" cy="10.5" r="6"/><path d="M15 15l5 5"/>', 14),
+    // the suggestion cards
+    day: ic('<rect x="3.5" y="5" width="17" height="15" rx="3"/><path d="M3.5 10h17M8 3v4M16 3v4"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/>', 20),
+    weather: ic('<circle cx="9" cy="9" r="3.2"/><path d="M9 2.8v1.4M3.5 9H2.3M4.8 4.8l1 1M13.2 4.8l-1 1"/><path d="M8.5 19.5h9a3.5 3.5 0 0 0 .3-7 5 5 0 0 0-9.5 1.3 2.9 2.9 0 0 0 .2 5.7z"/>', 20),
+    translate: ic('<path d="M3.5 6h9M8 4v2c0 4-2.2 7-5 8.5M5.5 9.5c1.2 2.4 3.3 4.2 6 5"/><path d="M12.5 20l4-9 4 9M14 16.8h5"/>', 20),
+    place: ic('<path d="M12 21s-6.5-5.6-6.5-11a6.5 6.5 0 0 1 13 0c0 5.4-6.5 11-6.5 11z"/><circle cx="12" cy="10" r="2.4"/>', 20),
+    timer: ic('<circle cx="12" cy="13.5" r="7"/><path d="M12 13.5V9.5M10 2.8h4M18.5 6.5l1.5-1.5"/>', 20),
+    idea: ic('<path d="M9 17.5h6M10 21h4M12 3a6 6 0 0 0-3.5 10.9c.6.5 1 1.2 1 2V16.5h5v-.6c0-.8.4-1.5 1-2A6 6 0 0 0 12 3z"/>', 20)
   };
+  // things to try: [icon, color, title, what to say]
   const TRY = () => FR()
-    ? [['🗓', 'Ma journée', 'ma journée'], ['🌤', 'La météo', 'quel temps fait-il'], ['🌍', 'Traduire', 'traduis bonne nuit en espagnol'], ['📍', 'Lieux', 'trouve une pharmacie près de moi'], ['⏱', 'Minuteur', 'minuteur 25 min'], ['💡', 'Une question', 'quelle est la capitale du Japon']]
-    : [['🗓', 'My day', 'my day'], ['🌤', 'Weather', 'what’s the weather'], ['🌍', 'Translate', 'translate good night to Spanish'], ['📍', 'Places', 'find a pharmacy near me'], ['⏱', 'Timer', 'timer 25 min'], ['💡', 'Ask anything', 'what is the capital of Japan']];
+    ? [['day', '#ff453a', 'Ma journée', 'ma journée'], ['weather', '#0a84ff', 'La météo', 'quel temps fait-il'], ['translate', '#5e5ce6', 'Traduire', 'traduis bonne nuit en espagnol'], ['place', '#30d158', 'Lieux', 'trouve une pharmacie près de moi'], ['timer', '#ff9f0a', 'Minuteur', 'minuteur 25 min'], ['idea', '#bf5af2', 'Une question', 'quelle est la capitale du Japon']]
+    : [['day', '#ff453a', 'My day', 'my day'], ['weather', '#0a84ff', 'Weather', 'what’s the weather'], ['translate', '#5e5ce6', 'Translate', 'translate good night to Spanish'], ['place', '#30d158', 'Places', 'find a pharmacy near me'], ['timer', '#ff9f0a', 'Timer', 'timer 25 min'], ['idea', '#bf5af2', 'Ask anything', 'what is the capital of Japan']];
+  /* the orb: a glass sphere with liquid colors inside (three soft blobs that drift), a highlight and a rim */
+  const ORB = (cls) => h('div', { class: 'pat-orb ' + (cls || ''), 'aria-hidden': 'true' }, h('span', { class: 'po-b po-1' }), h('span', { class: 'po-b po-2' }), h('span', { class: 'po-b po-3' }), h('span', { class: 'po-gloss' }));
   function patHelper() {
       let log = PatOS.store.get('chatLog', null) || [];
       const list = h('div', { class: 'pat3-list', role: 'log', 'aria-live': 'polite', 'aria-label': PatOS.t('Conversation with Pat') });
       const input = h('textarea', { class: 'pat3-in', rows: 1, placeholder: PatOS.t('Ask Pat') + '…', spellcheck: 'true', autocomplete: 'off', enterkeyhint: 'send', 'aria-label': PatOS.t('Message Pat') });
       const send = h('button', { class: 'pat3-send', 'aria-label': PatOS.t('Send'), html: SVG.send, disabled: true });
-      const orb = h('div', { class: 'pat3-orb', 'aria-hidden': 'true' }, h('i'));
-      const state = (s) => { orb.dataset.state = s || ''; };
+      const orb = ORB('po-head');
+      const status = h('small', { class: 'pat3-status', role: 'status' });
+      const STATUS = { '': ['Ready', 'Prêt'], think: ['Thinking…', 'Je réfléchis…'], listen: ['Listening…', 'J’écoute…'], look: ['Looking it up…', 'Je cherche…'] };
+      const state = (s) => { root.dataset.state = s || ''; const off = navigator.onLine === false && !s; status.textContent = off ? L('Offline · what’s on this device still works', 'Hors ligne · ce qui est sur l’appareil marche') : L(STATUS[s || ''][0], STATUS[s || ''][1]); };
       const chips = h('div', { class: 'pat3-chips', role: 'toolbar', 'aria-label': PatOS.t('Suggestions') });
       function drawChips() {
         chips.innerHTML = '';
         suggestions().forEach((c) => chips.appendChild(h('button', { class: 'pat3-chip no-tr', onclick: () => { if (/(?:\bfor|dans mes notes)$/.test(c)) { input.value = c + ' '; grow(); input.focus(); } else submit(c); } }, c)));
       }
-      const head = h('div', { class: 'pat3-head' }, orb, h('div', { class: 'pat3-title' }, h('b', {}, 'Pat'), h('small', {}, 'PatOS Intelligence')), h('div', { style: { flex: 1 } }),
+      const head = h('div', { class: 'pat3-head' }, orb, h('div', { class: 'pat3-title' }, h('b', {}, 'Pat'), status), h('div', { style: { flex: 1 } }),
         h('button', { class: 'pat3-hb', title: PatOS.t('New conversation'), 'aria-label': PatOS.t('New conversation'), html: SVG.plus, onclick: () => clearAsk() }),
         h('button', { class: 'pat3-hb', title: PatOS.t('Settings'), 'aria-label': PatOS.t('Pat & Intelligence settings'), html: SVG.gear, onclick: () => { close(); PatOS.launch('settings', { pane: 'intelligence' }); } }),
         h('button', { class: 'pat3-hb', title: PatOS.t('Close'), 'aria-label': PatOS.t('Close'), html: SVG.close, onclick: () => close() }));
       const mic = PatOS.voice && PatOS.voice.supported() ? h('button', { class: 'pat3-mic', title: PatOS.t('Ask with your voice'), 'aria-label': PatOS.t('Ask with your voice'), html: SVG.mic }) : null;
-      const root = h('div', { class: 'pat3' }, head, list, chips, h('div', { class: 'pat3-bar' }, mic, input, send));
+      // back to the newest message, when you scrolled up
+      const toEnd = h('button', { class: 'pat3-end', 'aria-label': PatOS.t('Latest message'), html: SVG.down, onclick: () => { list.scrollTop = list.scrollHeight; } });
+      const root = h('div', { class: 'pat3' }, head, h('div', { class: 'pat3-mid' }, list, toEnd), chips, h('div', { class: 'pat3-bar' }, mic, input, send));
+      list.addEventListener('scroll', () => { toEnd.classList.toggle('on', list.scrollHeight - list.scrollTop - list.clientHeight > 120); }, { passive: true });
+      addEventListener('online', () => state(root.dataset.state)); addEventListener('offline', () => state(root.dataset.state));
       const grow = () => { input.style.height = 'auto'; input.style.height = Math.min(120, input.scrollHeight) + 'px'; send.disabled = !input.value.trim(); };
       input.addEventListener('input', grow);
       /* the welcome: a greeting and things to try */
       function welcome() {
         const hr = new Date().getHours(); const nm = PatOS.settings.userName;
         const hi = FR() ? (hr < 12 ? 'Bon matin, ' : hr < 18 ? 'Bon après-midi, ' : 'Bonsoir, ') : (hr < 12 ? 'Good morning, ' : hr < 18 ? 'Good afternoon, ' : 'Good evening, ');
-        return h('div', { class: 'pat3-welcome' }, h('div', { class: 'pat3-big-orb', 'aria-hidden': 'true' }, h('i')), h('h2', {}, hi + nm), h('p', {}, L('Ask me to do something on PatOS, or ask a question. I work offline and always say exactly what I did.', 'Demande-moi de faire quelque chose dans PatOS, ou pose une question. Je marche hors ligne et je dis toujours exactement ce que j’ai fait.')),
-          h('div', { class: 'pat3-try' }, ...TRY().map(([ic, t, ask]) => h('button', { class: 'pat3-card-try', onclick: () => submit(ask) }, h('span', { class: 'pat3-ti', 'aria-hidden': 'true' }, ic), h('b', {}, t), h('small', {}, '“' + ask + '”')))));
+        return h('div', { class: 'pat3-welcome' }, ORB('po-big'), h('h2', {}, hi + nm), h('p', {}, L('Ask me to do something on PatOS, or ask a question. I work offline and always say exactly what I did.', 'Demande-moi de faire quelque chose dans PatOS, ou pose une question. Je marche hors ligne et je dis toujours exactement ce que j’ai fait.')),
+          h('div', { class: 'pat3-try' }, ...TRY().map(([icon, color, t, ask]) => h('button', { class: 'pat3-card-try', style: { '--c': color }, onclick: () => submit(ask) }, h('span', { class: 'pat3-ti', html: SVG[icon] }), h('b', {}, t), h('small', {}, '“' + ask + '”')))));
       }
       /* an answer's text: lines become a list, ✓/✗ lines become steps; never HTML */
       function body(text) {
         const out = h('div', { class: 'pat3-text' }); let ul = null;
         String(text).split('\n').forEach((line) => {
           const m = /^\s*(•|✓|✗|…|\d+\.)\s+(.*)$/.exec(line);
-          if (m) { if (!ul) { ul = h('ul', { class: 'pat3-ul' }); out.appendChild(ul); } ul.appendChild(h('li', { class: m[1] === '✓' ? 'ok' : m[1] === '✗' ? 'bad' : m[1] === '…' ? 'wait' : '' }, m[1] === '•' ? null : h('span', { class: 'pat3-mark', 'aria-hidden': 'true' }, m[1]), m[2])); }
+          if (m) { if (!ul) { ul = h('ul', { class: 'pat3-ul' }); out.appendChild(ul); } ul.appendChild(h('li', { class: m[1] === '✓' ? 'ok' : m[1] === '✗' ? 'bad' : m[1] === '…' ? 'wait' : '' }, m[1] === '•' ? h('span', { class: 'pat3-dot', 'aria-hidden': 'true' }) : m[1] === '✓' ? h('span', { class: 'pat3-mark', html: SVG.check }) : m[1] === '✗' ? h('span', { class: 'pat3-mark', html: SVG.cross }) : h('span', { class: 'pat3-mark', 'aria-hidden': 'true' }, m[1]), h('span', { class: 'sr-only' }, m[1] === '✓' ? PatOS.t('Done') + ': ' : m[1] === '✗' ? PatOS.t('Didn’t work') + ': ' : ''), m[2])); }
           else { ul = null; if (line.trim()) out.appendChild(h('p', {}, line)); }
         });
         return out;
@@ -457,17 +482,20 @@
         if (!c) return null;
         return h('div', { class: 'pat3-ans' }, c.image ? h('img', { src: c.image, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }) : null,
           h('div', {}, c.title ? h('small', { class: 'pat3-ans-t' }, c.title) : null, c.value ? h('div', { class: 'pat3-ans-v' }, c.value) : null, c.text ? h('p', {}, c.text) : null, c.sub ? h('small', { class: 'pat3-ans-s' }, c.sub) : null,
-            c.source ? (c.url ? h('a', { class: 'pat3-src', href: c.url, target: '_blank', rel: 'noopener noreferrer' }, PatOS.t('Source') + ': ' + c.source + ' ↗') : h('small', { class: 'pat3-src' }, PatOS.t('Source') + ': ' + c.source)) : null));
+            c.source ? (c.url ? h('a', { class: 'pat3-src', href: c.url, target: '_blank', rel: 'noopener noreferrer' }, PatOS.t('Source') + ': ' + c.source, h('span', { html: SVG.out })) : h('small', { class: 'pat3-src' }, PatOS.t('Source') + ': ' + c.source)) : null));
       }
       function acts(b) {
         if (!b || !b.length) return null;
-        return h('div', { class: 'pat3-acts' }, ...b.map((x) => h('button', { class: 'pat3-act', onclick: () => { if (x.url) PatOS.openExternal ? PatOS.openExternal(x.url) : window.open(x.url, '_blank', 'noopener'); else if (x.launch) PatOS.launch(x.launch, x.args || {}); else if (x.say) submit(x.say); } }, x.label)));
+        return h('div', { class: 'pat3-acts' }, ...b.map((x) => h('button', { class: 'pat3-act', html: (x.url ? SVG.search : '') + '<span></span>', onclick: () => { if (x.url) PatOS.openExternal ? PatOS.openExternal(x.url) : window.open(x.url, '_blank', 'noopener'); else if (x.launch) PatOS.launch(x.launch, x.args || {}); else if (x.say) submit(x.say); } })).map((el, i) => { el.querySelector('span:last-child').textContent = b[i].label; return el; }));
       }
       function bubble(m, anim) {
         const wel = list.querySelector('.pat3-welcome'); if (wel) wel.remove();
         const time = m.t ? new Date(m.t).toLocaleString(PatOS.locale, { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : null;
         const el = m.from === 'me' ? h('div', { class: 'pat3-me' + (anim ? ' in' : ''), title: time }, h('div', { class: 'pat3-mb' }, m.text))
-          : h('div', { class: 'pat3-pat' + (anim ? ' in' : ''), title: time }, h('div', { class: 'pat3-av', 'aria-hidden': 'true' }), h('div', { class: 'pat3-pc' }, body(m.text), cardEl(m.card), acts(m.buttons)));
+          : h('div', { class: 'pat3-pat' + (anim ? ' in' : ''), title: time }, ORB('po-av'), h('div', { class: 'pat3-pc' }, body(m.text), cardEl(m.card), acts(m.buttons),
+              // under each answer: copy it, hear it
+              h('div', { class: 'pat3-tools' }, h('button', { class: 'pat3-tool', title: PatOS.t('Copy'), 'aria-label': PatOS.t('Copy'), html: SVG.copy, onclick: (e) => { try { navigator.clipboard.writeText(m.text); const b2 = e.currentTarget; b2.classList.add('done'); setTimeout(() => b2.classList.remove('done'), 1200); } catch (x) {} } }),
+                'speechSynthesis' in window ? h('button', { class: 'pat3-tool', title: PatOS.t('Read aloud'), 'aria-label': PatOS.t('Read aloud'), html: SVG.speak, onclick: () => { const u = new SpeechSynthesisUtterance(String(m.text).replace(/[•✓✗]/g, '')); u.lang = PatOS.lang === 'fr' ? 'fr-CA' : 'en-US'; speechSynthesis.cancel(); speechSynthesis.speak(u); } }) : null)));
         list.appendChild(el); list.scrollTop = list.scrollHeight;
       }
       function render() { list.innerHTML = ''; if (!log.length) list.appendChild(welcome()); else log.slice(-80).forEach((m) => bubble(m)); }
@@ -484,7 +512,7 @@
         sent.push(text); sent = sent.slice(-50); histAt = -1;
         const me = { from: 'me', text, t: Date.now() }; log.push(me); bubble(me, true);
         PatOS.sound.tone(1100, 0.08, { vol: 0.06, slide: 1500 });
-        const think = h('div', { class: 'pat3-pat pat3-thinking' }, h('div', { class: 'pat3-av', 'aria-hidden': 'true' }), h('div', { class: 'pat3-dots', 'aria-label': PatOS.t('Thinking…') }, h('i'), h('i'), h('i')));
+        const think = h('div', { class: 'pat3-pat pat3-thinking' }, ORB('po-av'), h('div', { class: 'pat3-dots', 'aria-label': PatOS.t('Thinking…') }, h('i'), h('i'), h('i')));
         list.appendChild(think); list.scrollTop = list.scrollHeight; state('think');
         setTimeout(() => {
           think.remove();
@@ -492,7 +520,7 @@
           if (out === '\u0000clear') { clearChat(); state(''); return; }
           lastHow = how;
           // an answer still on its way: the panel keeps "thinking" instead of showing a placeholder message
-          if (out === WAIT() || out === LOOK()) { waiting = h('div', { class: 'pat3-pat pat3-thinking' }, h('div', { class: 'pat3-av', 'aria-hidden': 'true' }), h('div', { class: 'pat3-dots', 'aria-label': out }, h('i'), h('i'), h('i')), out === LOOK() ? h('small', { class: 'pat3-look' }, out) : null); list.appendChild(waiting); list.scrollTop = list.scrollHeight; state('think'); return; }
+          if (out === WAIT() || out === LOOK()) { state(out === LOOK() ? 'look' : 'think'); waiting = h('div', { class: 'pat3-pat pat3-thinking' }, ORB('po-av'), h('div', { class: 'pat3-dots', 'aria-label': out }, h('i'), h('i'), h('i')), out === LOOK() ? h('small', { class: 'pat3-look' }, out) : null); list.appendChild(waiting); list.scrollTop = list.scrollHeight; return; }
           addPat(out, how, takeRich());
         }, PatOS.settings.reduceMotion ? 0 : 160 + Math.random() * 140);
       }
@@ -510,7 +538,7 @@
       send.onclick = () => submit();
       // something Pat finished later (a web answer, an app that did not open, a shortcut that stopped) is said here
       PatOS.on('pat:say', (x) => { if (!root.isConnected && !document.body.contains(root)) return; if (waiting) { waiting.remove(); waiting = null; } const o = typeof x === 'object' && x ? x : { text: x }; addPat(o.text, lastHow, o.rich || null); });
-      render(); drawChips();
+      render(); drawChips(); state('');
       return { el: root, focus: () => { drawChips(); input.focus(); }, clear: clearAsk };
   }
 
