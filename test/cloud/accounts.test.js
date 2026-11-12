@@ -154,7 +154,7 @@ test('the Messages window: Messages has no Pat, search, a request and its answer
   await A.ev(() => { PatOS.launch('messages'); }); await A.page.waitForSelector('.m2');
   assert.match(await A.page.innerText('.m2-main'), /Message your friends[\s\S]*Create Account[\s\S]*Pat, the command helper, works without an account/);
   assert.equal(await A.page.locator('.pat-btn, .m2-pat').count(), 0, 'Pat is not in Messages any more');
-  await A.page.click('#mb-pat'); await A.page.waitForSelector('#pat-panel:not(.hidden) .msg-chips'); await A.page.fill('#pat-panel .msg-in', 'hello'); await A.page.press('#pat-panel .msg-in', 'Enter'); await A.page.waitForFunction(() => document.querySelectorAll('#pat-panel .msg-b.them:not(.typing)').length >= 2, null, { timeout: 5000 });
+  await A.page.click('#mb-pat'); await A.page.waitForSelector('#pat-panel:not(.hidden) .pat3-in'); await A.page.fill('#pat-panel .pat3-in', 'hello'); await A.page.press('#pat-panel .pat3-in', 'Enter'); await A.page.waitForFunction(() => document.querySelectorAll('#pat-panel .pat3-pat:not(.pat3-thinking)').length >= 1, null, { timeout: 5000 });
   assert.match(await A.page.innerText('#pat-panel'), /Pat/); await A.page.click('#mb-pat'); assert.equal(await A.page.locator('#pat-panel:not(.hidden)').count(), 0);
   for (const [d, u] of [[A, an], [B, bn]]) await d.ev(async ([u, p]) => { await PatOS.account.signUp(u, p); }, [u, pw]);
   for (const d of [A, B]) await waitFor(d.page, () => PatOS.chat.ready(), null, 20000);

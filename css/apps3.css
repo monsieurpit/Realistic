@@ -906,3 +906,13 @@ html[data-theme="dark"] .ytx { --yb: #0f0f0f; --yb2: #272727; --yb3: #3f3f3f; --
 .ps-paste { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; background: rgba(0,0,0,.5); }
 .ps-pastecard { width: min(92%, 560px); max-height: 90%; padding: 16px; border-radius: 12px; background: var(--win-solid, #222); display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
 .ps-pastecard h2 { margin: 0; font-size: 16px; } .ps-pastebox { width: 100%; font: 12px ui-monospace, Menlo, monospace; resize: vertical; }
+/* setup: the account step */
+.su-tabs { display: inline-flex; padding: 3px; border-radius: 999px; background: rgba(127,127,127,.18); margin-top: 4px; }
+.su-tab { padding: 6px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 600; color: inherit; opacity: .7; }
+.su-tab.on { opacity: 1; background: rgba(255,255,255,.9); color: #1d1d1f; box-shadow: 0 1px 4px rgba(0,0,0,.18); }
+.su-form { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+.su-form .su-in { margin-top: 0; font-size: 16px !important; }
+.su-fine { margin: 0; font-size: 12.5px; opacity: .65; }
+.su-note { margin: 0; min-height: 18px; font-size: 13px; opacity: .8; } .su-note:empty { display: none; } .su-note.err { color: #ff6961; opacity: 1; font-weight: 600; }
+.su-spin { width: 44px; height: 44px; margin-top: 60px; border-radius: 50%; border: 3px solid rgba(127,127,127,.25); border-top-color: var(--accent); animation: suSpin .9s linear infinite; }
+@keyframes suSpin { to { transform: rotate(360deg); } }

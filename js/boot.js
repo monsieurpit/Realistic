@@ -34,6 +34,8 @@
     $('.lock-hint').textContent = PatOS.isMobile ? (s.password ? 'Swipe up, then enter your password' : 'Swipe up to open') : (s.password ? '' : 'No password set. You can add one in Settings › Lock Screen.');
     lock.classList.remove('need-pass');
     lockClock(); clearInterval(lockTimer); lockTimer = setInterval(lockClock, 1000);
+    // (a first start goes straight to setup: no lock screen before it, nor between its steps when it reloads for a language)
+    if (!PatOS.store.get('setupDone', false) && !s.password) { setTimeout(() => login(), 60); return; }
     if (soft && soft.wasIn && !s.password && !(PatOS.setup && document.getElementById('setup'))) { const was = soft; soft = Object.assign({}, was, { wasIn: false }); setTimeout(() => login(), 60); }
     setTimeout(() => pass.focus(), 300);
   }

@@ -2698,6 +2698,16 @@ html[data-theme="dark"] .ytx { --yb: #0f0f0f; --yb2: #272727; --yb3: #3f3f3f; --
 .ps-paste { position: absolute; inset: 0; z-index: 20; display: grid; place-items: center; background: rgba(0,0,0,.5); }
 .ps-pastecard { width: min(92%, 560px); max-height: 90%; padding: 16px; border-radius: 12px; background: var(--win-solid, #222); display: flex; flex-direction: column; gap: 10px; box-shadow: 0 10px 40px rgba(0,0,0,.5); }
 .ps-pastecard h2 { margin: 0; font-size: 16px; } .ps-pastebox { width: 100%; font: 12px ui-monospace, Menlo, monospace; resize: vertical; }
+/* setup: the account step */
+.su-tabs { display: inline-flex; padding: 3px; border-radius: 999px; background: rgba(127,127,127,.18); margin-top: 4px; }
+.su-tab { padding: 6px 16px; border-radius: 999px; font-size: 13.5px; font-weight: 600; color: inherit; opacity: .7; }
+.su-tab.on { opacity: 1; background: rgba(255,255,255,.9); color: #1d1d1f; box-shadow: 0 1px 4px rgba(0,0,0,.18); }
+.su-form { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; }
+.su-form .su-in { margin-top: 0; font-size: 16px !important; }
+.su-fine { margin: 0; font-size: 12.5px; opacity: .65; }
+.su-note { margin: 0; min-height: 18px; font-size: 13px; opacity: .8; } .su-note:empty { display: none; } .su-note.err { color: #ff6961; opacity: 1; font-weight: 600; }
+.su-spin { width: 44px; height: 44px; margin-top: 60px; border-radius: 50%; border: 3px solid rgba(127,127,127,.25); border-top-color: var(--accent); animation: suSpin .9s linear infinite; }
+@keyframes suSpin { to { transform: rotate(360deg); } }
 
 </style>
   <style>
@@ -10131,7 +10141,9 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":9};
     'Dawn': 'Aube', 'Night': 'Nuit', 'Changes with the time of day. Right now: ': 'Change selon l’heure. En ce moment : ', 'Liquid light, folded like satin': 'De la lumière liquide, plissée comme du satin', 'Moves gently in 3D': 'Bouge doucement en 3D', 'Follows light and dark mode': 'Suit le mode clair et sombre', 'A still picture': 'Une image fixe', 'Your picture': 'Ton image', 'Current wallpaper': 'Fond d’écran actuel', 'PatOS Signature': 'Signature PatOS', 'Lumen is painted by PatOS on your device, sharp at any screen size. The first one follows the time of day: dawn, day, dusk and night.': 'Lumen est peint par PatOS sur ton appareil, net sur tous les écrans. Le premier suit l’heure : aube, jour, crépuscule et nuit.', 'WebGL is not available on this device': 'WebGL n’est pas disponible sur cet appareil', 'Lumen Dawn': 'Lumen Aube', 'Lumen Day': 'Lumen Jour', 'Lumen Dusk': 'Lumen Crépuscule', 'Lumen Night': 'Lumen Nuit',
     'Light or dark': 'Clair ou sombre',
     'Code suggestions': 'Suggestions de code', 'In PitCode Studio, Pat suggests the rest of what you type in PitCode, HTML, CSS and JavaScript, and closes your tags. Tab takes a suggestion, Ctrl+Space asks for one.': 'Dans PitCode Studio, Pat suggère la suite de ce que tu tapes en PitCode, HTML, CSS et JavaScript, et ferme tes balises. Tab prend une suggestion, Ctrl+Espace en demande une.', 'Pat suggests': 'Pat suggère', 'a new variable': 'une nouvelle variable', 'state the page redraws from': 'l’état d’où la page se redessine', 'runs when the app opens': 's’exécute à l’ouverture de l’app', 'shows a page': 'affiche une page', 'prints to the console': 'écrit dans la console', 'waits for an answer': 'attend une réponse', 'a function': 'une fonction', 'a rule': 'une règle', 'close': 'fermer', 'expand': 'développer', 'save a value': 'enregistrer une valeur', 'read a saved value': 'lire une valeur enregistrée', 'on click': 'au clic', 'fetch JSON': 'charger du JSON', 'arrow function': 'fonction fléchée', 'for loop': 'boucle for',
-    'Light: apps with a color of their own get a tile of that color, the others are white. Dark: most apps sit on a dark tile with their drawing in color, a few keep their own tile. Automatic follows light or dark mode': 'Clair : les apps qui ont leur propre couleur ont une tuile de cette couleur, les autres sont blanches. Sombre : la plupart des apps sont sur une tuile sombre avec leur dessin en couleur, quelques-unes gardent leur tuile. Automatique suit le mode clair ou sombre'
+    'Light: apps with a color of their own get a tile of that color, the others are white. Dark: most apps sit on a dark tile with their drawing in color, a few keep their own tile. Automatic follows light or dark mode': 'Clair : les apps qui ont leur propre couleur ont une tuile de cette couleur, les autres sont blanches. Sombre : la plupart des apps sont sur une tuile sombre avec leur dessin en couleur, quelques-unes gardent leur tuile. Automatique suit le mode clair ou sombre',
+    'Swipe up and hold to switch apps': 'Glisse vers le haut et attends pour changer d’app', 'Ctrl+Space to search': 'Ctrl+Espace pour chercher', 'Alt+L to see all apps': 'Alt+L pour voir toutes les apps', 'Drag a window to an edge to snap it': 'Glisse une fenêtre sur un bord pour l’aligner', 'Welcome back, ': 'Bon retour, ', 'The passwords don’t match.': 'Les mots de passe ne sont pas pareils.', 'You’re offline. Connect to the internet to continue.': 'Tu es hors ligne. Connecte-toi à Internet pour continuer.', 'That didn’t work. Try again.': 'Ça n’a pas marché. Réessaie.', 'Create your account': 'Crée ton compte', 'A username and a password. No email needed.': 'Un nom d’utilisateur et un mot de passe. Pas besoin de courriel.', 'Your settings and files come back to this device.': 'Tes réglages et tes fichiers reviennent sur cet appareil.', 'Remember your password: it can’t be reset.': 'Retiens ton mot de passe : il ne peut pas être réinitialisé.', 'Getting your things…': 'On récupère tes affaires…',
+    'Your account': 'Ton compte'
   };
   const PATTERNS = [
     [/^About (.+)$/, (m) => 'À propos de ' + t(m[1])], [/^Hide (.+)$/, (m) => 'Masquer ' + t(m[1])], [/^Quit (.+)$/, (m) => 'Quitter ' + t(m[1])], [/^Log Out (.+)…$/, (m) => 'Fermer la session de ' + m[1] + '…'],
@@ -17003,7 +17015,7 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":9};
      is about this one device, a copy that is made again by itself, or a secret stays. With a sync code, only the list above. */
   let mode = 'code'; // 'code' (a sync code and the PatOS server) or 'account' (a PatOS account in the cloud)
   const DENY = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncKey', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'systemUid', 'verifiedUids', 'annSeen', 'fsDamaged', 'intelHistory', 'accountPrompt', 'accountSeen', 'msgRead', 'patAppGrants', 'privacyLog',
-    'setupStep', 'installOffered', 'iosHint', 'notifAsked', 'appInstalled', 'alarmQueue',
+    'setupStep', 'setupDone', 'setupBack', 'installOffered', 'iosHint', 'notifAsked', 'appInstalled', 'alarmQueue',
     'timeline', 'timelineMoments', 'clipHistory', 'timelinePause', 'handoffDevice', 'handoffSeen',
     'wpCache', 'wpLockCache', 'wpThumbs', 'wxCache', 'dictCache', 'googleCx', 'patosServer', 'ytKey', 'pwVault', 'musicState', 'settings']);
   const DENY_PREFIX = ['newsCache:', 'ytHome:'];
@@ -18016,14 +18028,24 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":9};
 
 </script>
   <script type="patos/js">
-/* Setup Assistant — runs the first time PatOS starts */
+/* Setup: runs the first time PatOS starts.
+   hello → language → account (required: sign in or create one)
+     - sign in: the account's settings and files come down (language, name, look, wallpaper...), and setup ends
+     - create: name → look → wallpaper → done
+   Where accounts can't work (the single-file PatOS, a page opened from a file), the account step is skipped. */
 (function () {
   'use strict';
   const { h, $ } = PatOS;
   const HELLOS = ['Hello', 'Bonjour', 'Hola', 'Ciao', 'Hallo', 'Olá', 'こんにちは', '안녕하세요', 'Привет', 'مرحبا', '你好'];
-  let step = 0, el = null, helloTimer = 0;
-  function show(startStep) {
-    step = startStep || 0;
+  const NEW = ['hello', 'lang', 'account', 'name', 'look', 'wallpaper', 'done']; // (the dots: someone who signs in skips name to wallpaper)
+  let step = 'hello', el = null, helloTimer = 0;
+  const A = () => PatOS.account;
+  const accountsWork = () => !!(A() && A().available());
+
+  function show(start) {
+    step = NEW.includes(start) || start === 'restore' ? start : 'hello';
+    if (step === 'account' && A() && A().signedIn()) step = 'name'; // (back after a reload, already signed in)
+    if (step === 'restore' && !(A() && A().signedIn())) step = 'account';
     el = h('div', { id: 'setup' }, h('div', { class: 'su-card lg' }));
     $('#desktop').appendChild(el);
     requestAnimationFrame(() => el.classList.add('in'));
@@ -18035,33 +18057,50 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":9};
     el.classList.remove('in'); setTimeout(() => el.remove(), 500);
     PatOS.sound.startup();
   }
-  function go(n) { step = n; const c = el.querySelector('.su-card'); c.animate([{ opacity: 0, transform: 'translateX(30px)' }, { opacity: 1, transform: 'none' }], { duration: 350, easing: 'cubic-bezier(.2,.9,.3,1)' }); render(); }
+  function go(s) {
+    step = s; PatOS.store.set('setupStep', s);
+    const c = el.querySelector('.su-card'); c.animate([{ opacity: 0, transform: 'translateX(30px)' }, { opacity: 1, transform: 'none' }], { duration: 350, easing: 'cubic-bezier(.2,.9,.3,1)' });
+    render();
+  }
+  const reloadAt = (s) => { PatOS.store.set('setupStep', s); PatOS._leaving = true; location.reload(); };
+
   function render() {
     clearInterval(helloTimer);
     const c = el.querySelector('.su-card'); c.innerHTML = '';
     const T = PatOS.t;
     const next = (label, fn) => h('button', { class: 'btn primary su-next', onclick: fn }, T(label || 'Continue'));
-    const dots = h('div', { class: 'su-dots' }, ...[0, 1, 2, 3, 4, 5].map((i) => h('span', { class: i === step ? 'on' : '' })));
-    if (step === 0) {
+    const dots = h('div', { class: 'su-dots' }, ...NEW.map((s) => h('span', { class: s === step ? 'on' : '' })));
+
+    if (step === 'hello') {
       const hello = h('div', { class: 'su-hello' }, 'Hello');
       let i = 0; helloTimer = setInterval(() => { i = (i + 1) % HELLOS.length; hello.animate([{ opacity: 1 }, { opacity: 0, transform: 'translateY(-8px)' }], { duration: 300 }).onfinish = () => { hello.textContent = HELLOS[i]; hello.animate([{ opacity: 0, transform: 'translateY(8px)' }, { opacity: 1, transform: 'none' }], { duration: 400 }); }; }, 1800);
-      const have = h('button', { class: 'su-link', onclick: (e) => { const B = PatOS.backup; if (!B) return; const r = e.currentTarget.getBoundingClientRect(); PatOS.menu([{ label: T('From a backup file…'), action: () => B.ui.pickFile() }, B.folder.supported() ? { label: T('From my backup folder…'), action: () => B.ui.folderMenu(null, e.currentTarget).catch(() => {}) } : null], r.left, r.top - 90); } }, T('I already have a backup'));
-      c.append(hello, h('p', { class: 'su-sub' }, T('Welcome to PatOS')), next('Get Started', () => go(1)), have, dots);
-    } else if (step === 1) {
-      const pick = (code, label, flag) => { const b = h('button', { class: 'su-opt' + (PatOS.lang === code ? ' on' : '') }, h('span', { class: 'su-flag' }, flag), label); b.onclick = () => { if (PatOS.lang === code) return go(2); PatOS.setSetting('language', code); PatOS.store.set('setupStep', 2); (PatOS._leaving = true, location.reload()); }; return b; };
-      c.append(h('h1', {}, T('Choose your language')), h('p', { class: 'su-sub' }, T('You can change it later in Settings.')), h('div', { class: 'su-opts' }, pick('en', 'English', 'EN'), pick('fr', 'Français', 'FR')), next(null, () => go(2)), dots);
-    } else if (step === 2) {
-      const inp = h('input', { class: 'field su-in', value: PatOS.settings.userName, maxlength: '24', spellcheck: 'false' });
+      c.append(hello, h('p', { class: 'su-sub' }, T('Welcome to PatOS')), next('Get Started', () => go('lang')), dots);
+
+    } else if (step === 'lang') {
+      const after = accountsWork() ? 'account' : 'name';
+      const pick = (code, label, flag) => { const b = h('button', { class: 'su-opt' + (PatOS.lang === code ? ' on' : '') }, h('span', { class: 'su-flag' }, flag), label); b.onclick = () => { if (PatOS.lang === code) return go(after); PatOS.setSetting('language', code); reloadAt(after); }; return b; };
+      c.append(h('h1', {}, T('Choose your language')), h('div', { class: 'su-opts' }, pick('en', 'English', 'EN'), pick('fr', 'Français', 'FR')), next(null, () => go(after)), dots);
+
+    } else if (step === 'account') {
+      account(c, dots);
+
+    } else if (step === 'restore') {
+      restore(c);
+
+    } else if (step === 'name') {
+      const inp = h('input', { class: 'field su-in', value: PatOS.settings.userName, maxlength: '24', spellcheck: 'false', 'aria-label': T('Your name') });
       inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') save(); });
-      const save = () => { PatOS.setSetting('userName', inp.value.trim() || 'Pat'); go(3); };
-      c.append(h('h1', {}, T('What’s your name?')), h('p', { class: 'su-sub' }, ''), inp, next(null, save), dots);
+      const save = () => { PatOS.setSetting('userName', inp.value.trim() || 'Pat'); go('look'); };
+      c.append(h('h1', {}, T('What’s your name?')), inp, next(null, save), dots);
       setTimeout(() => { inp.focus(); inp.select(); }, 50);
-    } else if (step === 3) {
+
+    } else if (step === 'look') {
       const modes = h('div', { class: 'su-opts' });
       [['light', 'Light'], ['dark', 'Dark'], ['auto', 'Auto']].forEach(([k, l]) => { const b = h('button', { class: 'su-opt' + (PatOS.settings.theme === k ? ' on' : '') }, h('div', { class: 'st-mode-pv ' + k }), T(l)); b.onclick = () => { PatOS.setSetting('theme', k); render(); }; modes.appendChild(b); });
-      const glass = h('button', { class: 'switch' + (PatOS.settings.liquidGlass ? ' on' : '') }); glass.onclick = () => { PatOS.setSetting('liquidGlass', !PatOS.settings.liquidGlass); render(); };
-      c.append(h('h1', {}, T('Choose your look')), modes, h('label', { class: 'su-row' }, glass, h('span', {}, T('Liquid Glass'))), next(null, () => go(4)), dots);
-    } else if (step === 4) {
+      const glass = h('button', { class: 'switch' + (PatOS.settings.liquidGlass ? ' on' : ''), role: 'switch', 'aria-checked': String(!!PatOS.settings.liquidGlass), 'aria-label': 'Liquid Glass' }); glass.onclick = () => { PatOS.setSetting('liquidGlass', !PatOS.settings.liquidGlass); render(); };
+      c.append(h('h1', {}, T('Choose your look')), modes, h('label', { class: 'su-row' }, glass, h('span', {}, T('Liquid Glass'))), next(null, () => go('wallpaper')), dots);
+
+    } else if (step === 'wallpaper') {
       const grid = h('div', { class: 'su-wps' });
       ['lumen', 'fold', 'nebula', 'waves', 'silk', 'aurora'].forEach((id) => {
         const src = PatOS.wallpaper.live[id] || PatOS.wallpaper.palettes[id];
@@ -18069,18 +18108,73 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":9};
         b.onclick = () => { PatOS.setSetting('wallpaper', id); if (src.live) PatOS.setSetting('live3d', true); render(); };
         grid.appendChild(b);
       });
-      c.append(h('h1', {}, T('Pick a wallpaper')), h('p', { class: 'su-sub' }, ''), grid, next(null, () => go(5)), dots);
+      c.append(h('h1', {}, T('Pick a wallpaper')), grid, next(null, () => go('done')), dots);
+
     } else {
+      const back = PatOS.store.get('setupBack', false);
       const tips = PatOS.isMobile
-        ? [['⬆️', T('Swipe up from the bottom to go home')], ['⏸', T('Swipe up and pause to switch apps')], ['⬇️', T('Pull down from the top right for Control Center')]]
-        : [['🔍', T('Ctrl+Space searches everything')], ['🚀', T('Alt+L shows all your apps')], ['🪟', T('Drag a window to the edge to snap it')]];
-      c.append(h('div', { class: 'su-check' }, '✓'), h('h1', {}, T('You’re all set, ') + PatOS.settings.userName + '!'), h('div', { class: 'su-tips' }, ...tips.map(([i, t]) => h('div', {}, h('span', {}, i), t))), next('Start Using PatOS', finish), dots);
+        ? [['⬆️', T('Swipe up from the bottom to go home')], ['⏸', T('Swipe up and hold to switch apps')], ['⬇️', T('Pull down from the top right for Control Center')]]
+        : [['🔍', T('Ctrl+Space to search')], ['🚀', T('Alt+L to see all apps')], ['🪟', T('Drag a window to an edge to snap it')]];
+      c.append(h('div', { class: 'su-check' }, '✓'), h('h1', {}, (back ? T('Welcome back, ') : T('You’re all set, ')) + PatOS.settings.userName + '!'),
+        h('div', { class: 'su-tips' }, ...tips.map(([i, t]) => h('div', {}, h('span', {}, i), t))), next('Start', () => { PatOS.store.remove('setupBack'); finish(); }));
     }
   }
+
+  /* the account: required. Sign in (an account you have) or create one. */
+  let mode = 'signup';
+  function account(c, dots) {
+    const T = PatOS.t;
+    const user = h('input', { class: 'field su-in', placeholder: T('Username'), autocomplete: 'username', autocapitalize: 'none', spellcheck: 'false', maxlength: '20', 'aria-label': T('Username') });
+    const pass = h('input', { class: 'field su-in', type: 'password', placeholder: T('Password'), autocomplete: mode === 'signup' ? 'new-password' : 'current-password', 'aria-label': T('Password') });
+    const again = mode === 'signup' ? h('input', { class: 'field su-in', type: 'password', placeholder: T('Password again'), autocomplete: 'new-password', 'aria-label': T('Password again') }) : null;
+    const note = h('p', { class: 'su-note', 'aria-live': 'polite' });
+    const btn = next2(mode === 'signup' ? T('Create Account') : T('Sign In'));
+    function next2(label) { return h('button', { class: 'btn primary su-next' }, label); }
+    const tabs = h('div', { class: 'su-tabs', role: 'tablist' }, ...[['signup', T('Create account')], ['signin', T('Sign in')]].map(([k, l]) =>
+      h('button', { class: 'su-tab' + (mode === k ? ' on' : ''), role: 'tab', 'aria-selected': String(mode === k), onclick: () => { if (mode !== k) { mode = k; render(); } } }, l)));
+    let busy = false;
+    const submit = async () => {
+      if (busy) return; note.className = 'su-note'; note.textContent = '';
+      if (mode === 'signup' && pass.value !== again.value) { note.className = 'su-note err'; note.textContent = T('The passwords don’t match.'); return; }
+      if (navigator.onLine === false) { note.className = 'su-note err'; note.textContent = T('You’re offline. Connect to the internet to continue.'); return; }
+      busy = true; [user, pass, again, btn].forEach((x) => x && (x.disabled = true)); note.textContent = mode === 'signup' ? T('Creating your account…') : T('Signing in…');
+      try {
+        if (mode === 'signup') {
+          await A().signUp(user.value, pass.value);
+          if (PatOS.settings.userName === 'Pat' || !PatOS.settings.userName) { const u = user.value.trim(); PatOS.setSetting('userName', u.charAt(0).toUpperCase() + u.slice(1)); }
+          go('name');
+        } else { await A().signIn(user.value, pass.value); step = 'restore'; PatOS.store.set('setupStep', 'restore'); render(); }
+      } catch (e) {
+        busy = false; [user, pass, again, btn].forEach((x) => x && (x.disabled = false));
+        note.className = 'su-note err'; note.textContent = (e && e.message) || T('That didn’t work. Try again.');
+      }
+    };
+    [user, pass, again].forEach((i) => i && i.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); }));
+    btn.onclick = submit;
+    c.append(h('h1', {}, T('Your account')), tabs,
+      h('p', { class: 'su-sub' }, mode === 'signup' ? T('A username and a password. No email needed.') : T('Your settings and files come back to this device.')),
+      h('div', { class: 'su-form' }, user, pass, again),
+      mode === 'signup' ? h('p', { class: 'su-fine' }, T('Remember your password: it can’t be reset.')) : null,
+      note, btn, dots);
+    setTimeout(() => user.focus(), 60);
+  }
+
+  /* signed in: wait for the account's settings and files (at most 25 s; the rest keeps coming in the background) */
+  async function restore(c) {
+    const T = PatOS.t;
+    c.append(h('div', { class: 'su-spin', 'aria-hidden': 'true' }), h('h1', {}, T('Getting your things…')), h('p', { class: 'su-sub' }, '@' + ((A().info() || {}).username || '')));
+    const lang0 = PatOS.settings.language;
+    try { await Promise.race([PatOS.sync.now(), new Promise((r) => setTimeout(r, 25000))]); } catch (e) { /* offline or slow: it goes on later */ }
+    PatOS.store.set('setupBack', true);
+    if (PatOS.settings.language !== lang0) return reloadAt('done'); // (the account's language: shown from the next screen on)
+    go('done');
+  }
+
   PatOS.setup = {
     maybeShow() {
       if (PatOS.store.get('setupDone', false)) return false;
-      show(PatOS.store.get('setupStep', 0)); return true;
+      const s = PatOS.store.get('setupStep', 'hello');
+      show(typeof s === 'number' ? ['hello', 'lang', 'name', 'look', 'wallpaper', 'done'][s] || 'hello' : s); return true; // (a number: a setup started before 3.2)
     },
     show
   };
@@ -34488,6 +34582,8 @@ PatOS.sendWithPatDrop = async function (paths) {
     $('.lock-hint').textContent = PatOS.isMobile ? (s.password ? 'Swipe up, then enter your password' : 'Swipe up to open') : (s.password ? '' : 'No password set. You can add one in Settings › Lock Screen.');
     lock.classList.remove('need-pass');
     lockClock(); clearInterval(lockTimer); lockTimer = setInterval(lockClock, 1000);
+    // (a first start goes straight to setup: no lock screen before it, nor between its steps when it reloads for a language)
+    if (!PatOS.store.get('setupDone', false) && !s.password) { setTimeout(() => login(), 60); return; }
     if (soft && soft.wasIn && !s.password && !(PatOS.setup && document.getElementById('setup'))) { const was = soft; soft = Object.assign({}, was, { wasIn: false }); setTimeout(() => login(), 60); }
     setTimeout(() => pass.focus(), 300);
   }
