@@ -1,0 +1,63 @@
+/* Pat's conversation (3.2): a premium panel on Liquid Glass. Pieces: the orb (what Pat is doing), the welcome, messages,
+   answer cards, buttons in answers, suggestions and the composer. Motion is short and calm; with Reduce motion it stops. */
+#pat-panel { width: 420px; height: min(660px, calc(100vh - 120px)); transform-origin: top right; }
+#pat-panel:not(.hidden) { animation: pat3In var(--dur-med, .28s) var(--ease-out, cubic-bezier(.2,.9,.3,1)); }
+@keyframes pat3In { from { opacity: 0; transform: translateY(-8px) scale(.96); } }
+.pat3 { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+/* the orb: a soft sphere of PatOS colors; it turns while Pat thinks and breathes while it listens */
+.pat3-orb, .pat3-av, .pat3-big-orb { position: relative; flex: none; border-radius: 50%; background: conic-gradient(from 200deg, #7d5cff, #ff4fa0, #ff9f0a, #32d7c4, #0a84ff, #7d5cff); box-shadow: inset 0 0 0 1px rgba(255,255,255,.35), 0 4px 14px rgba(125,92,255,.35); }
+.pat3-orb { width: 30px; height: 30px; } .pat3-av { width: 24px; height: 24px; margin-top: 2px; }
+.pat3-orb i, .pat3-av::after, .pat3-big-orb i { position: absolute; inset: 22%; border-radius: 50%; background: radial-gradient(circle at 35% 30%, rgba(255,255,255,.95), rgba(255,255,255,.25) 55%, transparent 70%); }
+.pat3-av::after { content: ''; }
+.pat3-orb[data-state="think"], .pat3-thinking .pat3-av { animation: pat3Spin 1.1s linear infinite; }
+.pat3-orb[data-state="listen"] { animation: pat3Breathe 1.2s ease-in-out infinite; }
+@keyframes pat3Spin { to { transform: rotate(360deg); } } @keyframes pat3Breathe { 50% { transform: scale(1.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.35), 0 0 22px rgba(255,79,160,.6); } }
+/* header */
+.pat3-head { display: flex; align-items: center; gap: 10px; padding: 12px 10px 10px 14px; }
+.pat3-title { display: flex; flex-direction: column; line-height: 1.15; } .pat3-title b { font-size: 16px; font-weight: 700; } .pat3-title small { font-size: 11.5px; opacity: .65; letter-spacing: .1px; }
+.pat3-hb { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: inherit; opacity: .8; transition: background var(--dur-fast, .15s), opacity var(--dur-fast, .15s); }
+.pat3-hb:hover { background: rgba(127,127,127,.18); opacity: 1; }
+/* the conversation */
+.pat3-list { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 16px 14px; display: flex; flex-direction: column; gap: 14px; scroll-behavior: smooth; overscroll-behavior: contain; }
+.pat3-me { align-self: flex-end; max-width: 82%; } .pat3-mb { padding: 9px 14px; border-radius: 20px 20px 6px 20px; background: linear-gradient(180deg, #2f9bff, #0a7cff); color: #fff; font-size: 14.5px; line-height: 1.38; white-space: pre-wrap; word-wrap: break-word; box-shadow: 0 4px 14px rgba(10,124,255,.25); }
+.pat3-pat { display: flex; gap: 10px; align-items: flex-start; max-width: 100%; }
+.pat3-pc { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.pat3-text { font-size: 14.5px; line-height: 1.5; } .pat3-text p { margin: 0 0 4px; } .pat3-text p:last-child { margin-bottom: 0; }
+.pat3-ul { list-style: none; margin: 2px 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.pat3-ul li { display: flex; gap: 8px; padding: 6px 10px; border-radius: 12px; background: rgba(127,127,127,.1); }
+.pat3-ul li.ok .pat3-mark { color: var(--ok, #30d158); font-weight: 700; } .pat3-ul li.bad .pat3-mark { color: var(--bad, #ff453a); font-weight: 700; } .pat3-ul li.wait .pat3-mark { opacity: .6; }
+.pat3-in-anim, .pat3-me.in, .pat3-pat.in { animation: pat3Msg var(--dur-med, .28s) var(--ease-out, cubic-bezier(.2,.9,.3,1)); }
+@keyframes pat3Msg { from { opacity: 0; transform: translateY(6px); } }
+/* answer cards */
+.pat3-ans { display: flex; gap: 12px; padding: 12px 14px; border-radius: 18px; background: rgba(127,127,127,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+.pat3-ans img { width: 64px; height: 64px; object-fit: cover; border-radius: 12px; flex: none; }
+.pat3-ans-t { display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; opacity: .65; }
+.pat3-ans-v { font-size: 26px; font-weight: 750; letter-spacing: -.4px; line-height: 1.2; margin: 2px 0; word-break: break-word; }
+.pat3-ans p { margin: 4px 0 0; font-size: 13.5px; line-height: 1.45; opacity: .9; } .pat3-ans-s { display: block; opacity: .7; margin-top: 2px; }
+.pat3-src { display: inline-block; margin-top: 6px; font-size: 12px; opacity: .75; color: inherit; } a.pat3-src:hover { opacity: 1; text-decoration: underline; }
+.pat3-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.pat3-act { min-height: 30px; padding: 0 13px; border-radius: 999px; font-size: 13px; font-weight: 600; background: rgba(10,132,255,.16); color: var(--accent, #0a84ff); }
+.pat3-act:hover { background: rgba(10,132,255,.26); }
+/* thinking */
+.pat3-dots { display: flex; gap: 5px; padding: 12px 4px; } .pat3-dots i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .45; animation: tdot 1s infinite; } .pat3-dots i:nth-child(2) { animation-delay: .15s; } .pat3-dots i:nth-child(3) { animation-delay: .3s; }
+/* the welcome */
+.pat3-welcome { margin: auto 0; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 10px 4px; }
+.pat3-big-orb { width: 64px; height: 64px; animation: pat3Spin 8s linear infinite; margin-bottom: 6px; }
+.pat3-welcome h2 { margin: 0; font-size: 22px; font-weight: 750; letter-spacing: -.3px; } .pat3-welcome p { margin: 0 0 8px; font-size: 13.5px; opacity: .75; max-width: 320px; line-height: 1.45; }
+.pat3-try { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+.pat3-card-try { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 11px 12px; border-radius: 16px; text-align: left; background: rgba(127,127,127,.12); transition: background var(--dur-fast, .15s), transform var(--dur-fast, .15s); }
+.pat3-card-try:hover { background: rgba(127,127,127,.2); transform: translateY(-1px); } .pat3-ti { font-size: 18px; } .pat3-card-try b { font-size: 13.5px; } .pat3-card-try small { font-size: 11.5px; opacity: .7; line-height: 1.3; }
+/* suggestions and the composer */
+.pat3-chips { display: flex; gap: 6px; overflow-x: auto; padding: 0 14px 8px; scrollbar-width: none; } .pat3-chips::-webkit-scrollbar { display: none; }
+.pat3-chip { flex: none; min-height: 30px; padding: 0 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600; background: rgba(127,127,127,.15); white-space: nowrap; }
+.pat3-chip:hover { background: rgba(127,127,127,.25); }
+.pat3-bar { display: flex; align-items: flex-end; gap: 8px; margin: 0 12px 12px; padding: 6px 6px 6px 8px; border-radius: 22px; background: rgba(127,127,127,.14); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); }
+.pat3-in { flex: 1; min-height: 32px; max-height: 120px; resize: none; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; font-size: 14.5px; line-height: 1.4; padding: 6px 4px; }
+.pat3-send, .pat3-mic { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; }
+.pat3-send { background: var(--accent, #0a84ff); color: #fff; transition: transform var(--dur-fast, .15s), opacity var(--dur-fast, .15s); } .pat3-send:disabled { opacity: .35; transform: scale(.92); }
+.pat3-mic { color: inherit; opacity: .8; } .pat3-mic.on { background: #ff375f; color: #fff; opacity: 1; animation: pat3Breathe 1.2s ease-in-out infinite; }
+.mobile #pat-panel { width: auto; height: auto; }
+.mobile .pat3-bar { margin-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+@media (prefers-reduced-motion: reduce) { .pat3-orb, .pat3-av, .pat3-big-orb, .pat3-mic.on, #pat-panel:not(.hidden), .pat3-me.in, .pat3-pat.in { animation: none !important; } }
+html.reduce-motion :is(.pat3-orb, .pat3-av, .pat3-big-orb, .pat3-mic.on, #pat-panel, .pat3-me, .pat3-pat) { animation: none !important; }
+.pat3-look { align-self: center; font-size: 12.5px; opacity: .7; }

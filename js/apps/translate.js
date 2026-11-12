@@ -6,7 +6,9 @@
   PatOS.registerApp({
     id: 'translate', name: 'Translate', icon: 'translate', width: 860, height: 520, category: 'Utilities', keywords: 'language translation french english spanish dictionary',
     about: 'Translate text between 20 languages and hear it read aloud.',
-    launch(win) {
+    onArgs(win, a) { if (win._set) win._set(a); },
+    launch(win, args) {
+      args = args || {};
       const st = PatOS.store.get('translatePrefs', { from: 'en', to: PatOS.lang === 'fr' ? 'en' : 'fr' });
       if (PatOS.lang === 'fr' && st.from === 'en' && st.to === 'fr' && !PatOS.store.get('translatePrefs')) { st.from = 'fr'; st.to = 'en'; }
       const sel = (v) => h('select', { class: 'field tr-lang' }, ...LANGS.map(([c, n]) => h('option', { value: c, selected: c === v }, n)));
@@ -30,10 +32,10 @@
         if (from.value === to.value) { out.textContent = text; return; }
         const id = ++reqId; out.classList.add('loading');
         try {
-          const r = await fetch('https://api.mymemory.translated.net/get?q=' + encodeURIComponent(text) + '&langpair=' + from.value + '|' + to.value);
-          const j = await r.json(); if (id !== reqId) return;
-          const t = j.responseData && j.responseData.translatedText;
-          out.textContent = t && !/MYMEMORY WARNING/i.test(t) ? t.replace(/&#39;/g, "'").replace(/&quot;/g, '"').replace(/&amp;/g, '&') : 'The free translation limit was reached for today. Try again tomorrow.';
+          // (the same service as Pat's “translate…”: PatOS.translate, js/intel-know.js)
+          let t = ''; try { t = await PatOS.translate(text, from.value, to.value); } catch (er) { if (/limit/i.test(er.message)) t = er.message; else throw er; }
+          if (id !== reqId) return;
+          out.textContent = t;
           saveHist(text, out.textContent);
         } catch (e) { if (id === reqId) out.textContent = PatOS.sandboxed ? 'Claude Artifacts block live data. Open PatOS from its own website to translate.' : 'Can’t reach the translation service. Check your internet connection.'; }
         out.classList.remove('loading');
@@ -45,7 +47,10 @@
       const savePrefs = () => PatOS.store.set('translatePrefs', { from: from.value, to: to.value });
       from.onchange = () => { savePrefs(); go(); }; to.onchange = () => { savePrefs(); go(); };
       swap.onclick = () => { const f = from.value; from.value = to.value; to.value = f; if (out.textContent) src.value = out.textContent; savePrefs(); go(); swap.animate([{ transform: 'rotate(0)' }, { transform: 'rotate(180deg)' }], { duration: 300 }); };
-      drawHist(); setTimeout(() => src.focus(), 60);
+      // opened by Pat (“translate good morning to Spanish”): that text, those languages
+      win._set = (a) => { if (!a || !a.text) return; const has = (sel, v) => [...sel.options].some((o) => o.value === v); if (a.from && has(from, a.from)) from.value = a.from; if (a.to && has(to, a.to)) to.value = a.to; src.value = String(a.text).slice(0, 500); savePrefs(); go(); };
+      win._set(args);
+      drawHist(); if (!args.text) setTimeout(() => src.focus(), 60);
     }
   });
 })();

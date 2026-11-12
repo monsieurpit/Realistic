@@ -144,13 +144,13 @@ test('skills are explicit: listed, marked sensitive, and an app can add one', { 
 
 test('the chat panel: suggestions follow what is going on, and late messages appear', { skip: skipNoBrowser }, async () => {
   await page.evaluate(() => { ['x.png', 'y.png', 'z.mp3'].forEach((n) => PatOS.fs.write('/Downloads/' + n, 'x')); PatOS.pat.open(); });
-  await page.waitForSelector('#pat-panel .msg-in');
-  await page.fill('#pat-panel .msg-in', 'tidy my downloads'); await page.press('#pat-panel .msg-in', 'Enter'); await wait(800);
-  const chips = await page.$$eval('#pat-panel .msg-chips button', (b) => b.map((x) => x.textContent));
+  await page.waitForSelector('#pat-panel .pat3-in');
+  await page.fill('#pat-panel .pat3-in', 'tidy my downloads'); await page.press('#pat-panel .pat3-in', 'Enter'); await wait(800);
+  const chips = await page.$$eval('#pat-panel .pat3-chips button', (b) => b.map((x) => x.textContent));
   assert.deepEqual(chips, ['yes', 'no']);
-  await page.click('#pat-panel .msg-chips button:has-text("no")'); await wait(800);
+  await page.click('#pat-panel .pat3-chips button:has-text("no")'); await wait(800);
   await page.evaluate(() => PatOS.emit('pat:say', 'A late message'));
-  assert.match(await page.textContent('#pat-panel .msg-list'), /left everything as it was[\s\S]*A late message/);
+  assert.match(await page.textContent('#pat-panel .pat3-list'), /left everything as it was[\s\S]*A late message/);
   await page.evaluate(() => PatOS.pat.close());
   assert.deepEqual(errors, []);
 });

@@ -192,7 +192,7 @@
     if (r && typeof r === 'object' && typeof r.confirm === 'function' && r.text != null) { // (a Pat skill that asks first)
       const c = r.confirm; return { ok: null, status: 'confirm', message: String(r.text), confirm: () => { const x = finish(a, c(), source); return x && x.then ? x : x; } };
     }
-    const res = r == null ? result(true, L('Done.', 'C’est fait.')) : typeof r === 'string' ? result(true, r) : result(r.ok !== false, r.message, { data: r.data });
+    const res = r == null ? result(true, L('Done.', 'C’est fait.')) : typeof r === 'string' ? result(true, r) : result(r.ok !== false, r.message, { data: r.data, card: r.card, buttons: r.buttons });
     if (r && typeof r === 'object' && typeof r.undo === 'function' && res.ok) { undos.push({ t: Date.now(), id: a.id, title: a.title, undo: r.undo }); if (undos.length > 10) undos.shift(); res.canUndo = true; }
     remember(a, res, source);
     hooks.after.forEach((f) => { try { f(a, params || {}, res, source); } catch (e) {} });

@@ -1,7 +1,7 @@
 [
   {
     "version": "3.2.0",
-    "beta": 4,
+    "beta": 5,
     "date": "2026-11-12",
     "title": {
       "en": "PatOS 3.2: Messages",
@@ -9,6 +9,11 @@
     },
     "notes": {
       "en": [
+        "Pat has a new, premium look: a living orb that shows when Pat is thinking or listening, a welcome with things to try, answers as clean text with cards (the weather, a translation, an answer and its source), buttons inside answers, every step of a multi-step request as its own row, and a bigger composer with voice",
+        "Pat knows a lot more, in English and French, even offline: every country’s capital and currency, the chemical elements, the planets and many everyday facts. Ask “what is the capital of Japan”, “what is the symbol for gold”, “how many moons does Jupiter have”",
+        "For anything else, Pat looks it up: a short answer from Wikipedia with its source, and a Search Google button",
+        "“Translate good night to Spanish” or “how do you say thank you in German”: Pat answers and opens it in the Translate app",
+        "Also: the weather (“will it rain tomorrow in Paris”), currencies (“convert 20 USD to CAD”), sunrise and sunset, spelling, square roots and tips, random numbers, date math, and friendly small talk",
         "PatOS Intelligence got much smarter: it asks for what’s missing (“create a reminder” → “What should I remind you about?”), does several things at once (“turn on dark mode, set the volume to 30 and start a 25 min timer”), and remembers the conversation: “move it to friday”, “do it again”, “the second one”, “and tomorrow?”, “rename it to Trips”, “delete it”, “what did you just do”",
         "Teach it your own phrases: “when I say get ready for class, start my study workspace”. It also understands slang and nicknames (“fire up the calculator”, “open my files”, “go dark”) and, when it isn’t sure, asks “Did you mean…?” instead of guessing",
         "Ask it about your PatOS: “how much storage do I have left”, “how many notes do I have”, “when is my next event”, “what’s due this week”, “how many days until christmas”, “what time is it in Tokyo”, “am I online”, “what version am I on”",
@@ -30,6 +35,11 @@
         "Messages: “Seen” under your last message once the other person has read it, and “typing…” dots while they write"
       ],
       "fr": [
+        "Pat a un nouveau look haut de gamme : une orbe vivante qui montre quand Pat réfléchit ou écoute, un accueil avec des idées, des réponses claires avec des cartes (météo, traduction, réponse et sa source), des boutons dans les réponses, chaque étape sur sa propre ligne, et une zone de saisie plus grande avec la voix",
+        "Pat en sait beaucoup plus, en français et en anglais, même hors ligne : la capitale et la monnaie de chaque pays, les éléments chimiques, les planètes et plein de faits. Demande « quelle est la capitale du Japon », « quel est le symbole de l’or »",
+        "Pour le reste, Pat cherche : une courte réponse de Wikipédia avec sa source, et un bouton Chercher sur Google",
+        "« Traduis bonne nuit en espagnol » : Pat répond et l’ouvre dans l’app Traduction",
+        "Aussi : la météo, les devises, le lever et le coucher du soleil, l’épellation, les racines carrées et les pourboires, les nombres au hasard, les calculs de dates et de la conversation",
         "PatOS Intelligence est beaucoup plus futée : elle demande ce qui manque (« crée un rappel » → « De quoi dois-je te rappeler? »), fait plusieurs choses à la fois et se souvient de la conversation : « déplace-le à vendredi », « refais-le », « le deuxième », « et demain? », « renomme-le en Voyages », « supprime-le »",
         "Apprends-lui tes propres phrases : « quand je dis prêt pour l’école, lance mon espace étude ». Elle comprend aussi l’argot et les surnoms, et quand elle n’est pas sûre, elle demande « Voulais-tu dire… ? » au lieu de deviner",
         "Pose-lui des questions sur ton PatOS : stockage restant, nombre de notes, prochain événement, ce qui est dû cette semaine, jours avant Noël, l’heure à Tokyo, si tu es en ligne, ta version",

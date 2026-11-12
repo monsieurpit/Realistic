@@ -46,7 +46,9 @@
   /* what Pat remembers between two messages: the last list it showed ("open the second one") and an action waiting for a yes */
   const ctx = { list: null, pending: null, undo: null };
   // a message that arrives later in the chat (when something Pat started turned out not to work)
-  const say = (text) => PatOS.emit('pat:say', text);
+  const say = (text, r) => PatOS.emit('pat:say', r && (r.card || r.buttons) ? { text, rich: { card: r.card, buttons: r.buttons } } : text);
+  let pendingWeb = false; // a web answer is on its way
+  const WAIT = () => L('One moment…', 'Un instant…'), LOOK = () => L('Let me look that up…', 'Je cherche…');
   // opens an app a moment after the answer is shown, and says so if it did not open
   function openApp(id) {
     setTimeout(() => {
@@ -317,7 +319,16 @@
   // one command, said any of the ways above; null when Pat does not understand it
   function one(text) {
     const t = prep(text);
-    return answer(t) ?? intel(t) ?? basic(t) ?? guess(t);
+    return answer(t) ?? intel(t) ?? basic(t) ?? guess(t) ?? web(t);
+  }
+  /* a question nothing here knows: a short answer from the web (Wikipedia), with its source and a Google button */
+  function web(t) {
+    if (!PatOS.intel || !PatOS.intel.webAnswer || !PatOS.intel.isQuestion(t)) return null;
+    if (navigator.onLine === false || PatOS.sandboxed) return L('I don’t know that one, and I can’t look it up offline. Ask me again when you’re online.', 'Je ne sais pas, et je ne peux pas chercher hors ligne. Redemande-moi quand tu seras en ligne.');
+    pendingWeb = true;
+    PatOS.intel.webAnswer(t).then((r) => { pendingWeb = false; if (r) say(r.message, r); else say(L('I couldn’t find a clear answer. Want to search Google?', 'Je n’ai pas trouvé de réponse claire. Chercher sur Google?'), { buttons: [{ label: L('Search Google', 'Chercher sur Google'), url: 'https://www.google.com/search?q=' + encodeURIComponent(t) }] }); },
+      () => { pendingWeb = false; say(L('I couldn’t reach Wikipedia right now.', 'Je n’ai pas pu joindre Wikipédia.'), { buttons: [{ label: L('Search Google', 'Chercher sur Google'), url: 'https://www.google.com/search?q=' + encodeURIComponent(t) }] }); });
+    return LOOK();
   }
   // last of all: the closest simple command, as a question ("Did you mean…?"), never done without a yes
   function guess(t) { if (!PatOS.intel) return null; const r = PatOS.intel.respond(t, { source: 'pat', guess: true }); return r && r.status === 'confirm' ? show(r) : null; }
@@ -329,7 +340,8 @@
     return r == null ? null : show(r);
   }
   function show(r) {
-    if (r && typeof r.then === 'function') { r.then((x) => say(show(x)), (e) => say(L('That didn’t work: ', 'Ça n’a pas marché : ') + (e && e.message))); return L('Working on it…', 'Je m’en occupe…'); }
+    if (r && typeof r.then === 'function') { r.then((x) => { const t = show(x); const rr = takeRich(); say(t, rr); }, (e) => say(L('That didn’t work: ', 'Ça n’a pas marché : ') + (e && e.message))); return WAIT(); }
+    if (r && (r.card || r.buttons)) rich = { card: r.card, buttons: r.buttons };
     if (r.status === 'confirm') { ctx.pending = { confirm: () => show(r.confirm()), t: Date.now() }; return r.message; }
     return r.message;
   }
@@ -360,6 +372,8 @@
   function reply(text) {
     text = String(text || '').trim(); if (!text) return '';
     const parts = split(text);
+    // several commands: PatOS Intelligence does them all and reports each step (✓/✗); Pat's own split is for the rest
+    if (parts && PatOS.intel) { const whole = intel(prep(text)); if (whole != null && /^(?:✓|✗|…) /m.test(whole)) return whole; }
     if (parts) { const outs = parts.map((p) => one(p) || notUnderstood(p)); return outs.join('\n'); }
     const r = one(text);
     if (r == null) return notUnderstood(text);
@@ -386,57 +400,116 @@
 
   /* Pat, the command helper: the same chat as always, now in a panel that opens from the Pat button in the top bar */
   /* the chat with Pat, as an element: a list of messages, quick suggestions, and a box to type in */
+  /* ================= Pat's conversation (3.2): a premium panel =================
+     A living orb that shows what Pat is doing, a welcome with things to try, Pat's answers as clean text with cards (an
+     answer with its source, a translation, the weather), buttons inside answers, and a composer with voice. Everything is
+     built from text nodes (never HTML from an answer), and the list is a live region for screen readers. */
+  let rich = null; // the card and buttons of the answer being shown (set by show(), taken by the panel)
+  const takeRich = () => { const r = rich; rich = null; return r; };
+  const SVG = {
+    send: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M12 19V5M5.5 11.5 12 5l6.5 6.5"/></svg>',
+    mic: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0M12 17.5V21"/></svg>',
+    plus: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>',
+    gear: '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9"><circle cx="12" cy="12" r="3"/><path d="M12 2.8v2.4M12 18.8v2.4M4.2 7.5l2 1.2M17.8 15.3l2 1.2M4.2 16.5l2-1.2M17.8 8.7l2-1.2"/></svg>',
+    close: '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M6 6l12 12M18 6 6 18"/></svg>'
+  };
+  const TRY = () => FR()
+    ? [['🗓', 'Ma journée', 'ma journée'], ['🌤', 'La météo', 'quel temps fait-il'], ['🌍', 'Traduire', 'traduis bonne nuit en espagnol'], ['📍', 'Lieux', 'trouve une pharmacie près de moi'], ['⏱', 'Minuteur', 'minuteur 25 min'], ['💡', 'Une question', 'quelle est la capitale du Japon']]
+    : [['🗓', 'My day', 'my day'], ['🌤', 'Weather', 'what’s the weather'], ['🌍', 'Translate', 'translate good night to Spanish'], ['📍', 'Places', 'find a pharmacy near me'], ['⏱', 'Timer', 'timer 25 min'], ['💡', 'Ask anything', 'what is the capital of Japan']];
   function patHelper() {
-      let log = PatOS.store.get('chatLog', null) || [{ from: 'pat', text: PatOS.lang === 'fr' ? `Salut ${PatOS.settings.userName}, moi c’est Pat. Demande-moi d’ouvrir une app, de faire un calcul ou d’ajouter un rappel. Écris « aide » si tu veux la liste.` : `Hi ${PatOS.settings.userName}, I’m Pat. Ask me to open an app, do some math or add a reminder. Type "help" if you want the list.`, t: Date.now() }];
-      const list = h('div', { class: 'msg-list' });
-      const input = h('input', { class: 'msg-in', placeholder: PatOS.t('Ask Pat') + '…', spellcheck: 'true', autocomplete: 'off', enterkeyhint: 'send', 'aria-label': PatOS.t('Message Pat') });
-      const send = h('button', { class: 'msg-send', 'aria-label': 'Send' }, '↑');
-      // suggestions follow what is going on (a yes/no question, a list to open, what is due today); a suggestion that needs
-      // the rest of the sentence ("search notes for") goes into the box instead of being sent
-      const chips = h('div', { class: 'msg-chips' });
+      let log = PatOS.store.get('chatLog', null) || [];
+      const list = h('div', { class: 'pat3-list', role: 'log', 'aria-live': 'polite', 'aria-label': PatOS.t('Conversation with Pat') });
+      const input = h('textarea', { class: 'pat3-in', rows: 1, placeholder: PatOS.t('Ask Pat') + '…', spellcheck: 'true', autocomplete: 'off', enterkeyhint: 'send', 'aria-label': PatOS.t('Message Pat') });
+      const send = h('button', { class: 'pat3-send', 'aria-label': PatOS.t('Send'), html: SVG.send, disabled: true });
+      const orb = h('div', { class: 'pat3-orb', 'aria-hidden': 'true' }, h('i'));
+      const state = (s) => { orb.dataset.state = s || ''; };
+      const chips = h('div', { class: 'pat3-chips', role: 'toolbar', 'aria-label': PatOS.t('Suggestions') });
       function drawChips() {
         chips.innerHTML = '';
-        suggestions().forEach((c) => chips.appendChild(h('button', { class: 'no-tr', onclick: () => { if (/(?:\bfor|dans mes notes)$/.test(c)) { input.value = c + ' '; input.focus(); } else submit(c); } }, c)));
+        suggestions().forEach((c) => chips.appendChild(h('button', { class: 'pat3-chip no-tr', onclick: () => { if (/(?:\bfor|dans mes notes)$/.test(c)) { input.value = c + ' '; grow(); input.focus(); } else submit(c); } }, c)));
       }
-      const head = h('div', { class: 'msg-head' }, h('div', { class: 'msg-av sm' }, 'P'), h('b', {}, 'Pat'));
-      const mic = PatOS.voice && PatOS.voice.supported() ? h('button', { class: 'msg-mic', title: PatOS.t('Ask with your voice'), 'aria-label': PatOS.t('Ask with your voice'), html: '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>' }) : null;
-      const root = h('div', { class: 'msg-main pat-main' }, head, list, chips, h('div', { class: 'msg-bar' }, mic, input, send));
+      const head = h('div', { class: 'pat3-head' }, orb, h('div', { class: 'pat3-title' }, h('b', {}, 'Pat'), h('small', {}, 'PatOS Intelligence')), h('div', { style: { flex: 1 } }),
+        h('button', { class: 'pat3-hb', title: PatOS.t('New conversation'), 'aria-label': PatOS.t('New conversation'), html: SVG.plus, onclick: () => clearAsk() }),
+        h('button', { class: 'pat3-hb', title: PatOS.t('Settings'), 'aria-label': PatOS.t('Pat & Intelligence settings'), html: SVG.gear, onclick: () => { close(); PatOS.launch('settings', { pane: 'intelligence' }); } }),
+        h('button', { class: 'pat3-hb', title: PatOS.t('Close'), 'aria-label': PatOS.t('Close'), html: SVG.close, onclick: () => close() }));
+      const mic = PatOS.voice && PatOS.voice.supported() ? h('button', { class: 'pat3-mic', title: PatOS.t('Ask with your voice'), 'aria-label': PatOS.t('Ask with your voice'), html: SVG.mic }) : null;
+      const root = h('div', { class: 'pat3' }, head, list, chips, h('div', { class: 'pat3-bar' }, mic, input, send));
+      const grow = () => { input.style.height = 'auto'; input.style.height = Math.min(120, input.scrollHeight) + 'px'; send.disabled = !input.value.trim(); };
+      input.addEventListener('input', grow);
+      /* the welcome: a greeting and things to try */
+      function welcome() {
+        const hr = new Date().getHours(); const nm = PatOS.settings.userName;
+        const hi = FR() ? (hr < 12 ? 'Bon matin, ' : hr < 18 ? 'Bon après-midi, ' : 'Bonsoir, ') : (hr < 12 ? 'Good morning, ' : hr < 18 ? 'Good afternoon, ' : 'Good evening, ');
+        return h('div', { class: 'pat3-welcome' }, h('div', { class: 'pat3-big-orb', 'aria-hidden': 'true' }, h('i')), h('h2', {}, hi + nm), h('p', {}, L('Ask me to do something on PatOS, or ask a question. I work offline and always say exactly what I did.', 'Demande-moi de faire quelque chose dans PatOS, ou pose une question. Je marche hors ligne et je dis toujours exactement ce que j’ai fait.')),
+          h('div', { class: 'pat3-try' }, ...TRY().map(([ic, t, ask]) => h('button', { class: 'pat3-card-try', onclick: () => submit(ask) }, h('span', { class: 'pat3-ti', 'aria-hidden': 'true' }, ic), h('b', {}, t), h('small', {}, '“' + ask + '”')))));
+      }
+      /* an answer's text: lines become a list, ✓/✗ lines become steps; never HTML */
+      function body(text) {
+        const out = h('div', { class: 'pat3-text' }); let ul = null;
+        String(text).split('\n').forEach((line) => {
+          const m = /^\s*(•|✓|✗|…|\d+\.)\s+(.*)$/.exec(line);
+          if (m) { if (!ul) { ul = h('ul', { class: 'pat3-ul' }); out.appendChild(ul); } ul.appendChild(h('li', { class: m[1] === '✓' ? 'ok' : m[1] === '✗' ? 'bad' : m[1] === '…' ? 'wait' : '' }, m[1] === '•' ? null : h('span', { class: 'pat3-mark', 'aria-hidden': 'true' }, m[1]), m[2])); }
+          else { ul = null; if (line.trim()) out.appendChild(h('p', {}, line)); }
+        });
+        return out;
+      }
+      function cardEl(c) {
+        if (!c) return null;
+        return h('div', { class: 'pat3-ans' }, c.image ? h('img', { src: c.image, alt: '', loading: 'lazy', referrerpolicy: 'no-referrer' }) : null,
+          h('div', {}, c.title ? h('small', { class: 'pat3-ans-t' }, c.title) : null, c.value ? h('div', { class: 'pat3-ans-v' }, c.value) : null, c.text ? h('p', {}, c.text) : null, c.sub ? h('small', { class: 'pat3-ans-s' }, c.sub) : null,
+            c.source ? (c.url ? h('a', { class: 'pat3-src', href: c.url, target: '_blank', rel: 'noopener noreferrer' }, PatOS.t('Source') + ': ' + c.source + ' ↗') : h('small', { class: 'pat3-src' }, PatOS.t('Source') + ': ' + c.source)) : null));
+      }
+      function acts(b) {
+        if (!b || !b.length) return null;
+        return h('div', { class: 'pat3-acts' }, ...b.map((x) => h('button', { class: 'pat3-act', onclick: () => { if (x.url) PatOS.openExternal ? PatOS.openExternal(x.url) : window.open(x.url, '_blank', 'noopener'); else if (x.launch) PatOS.launch(x.launch, x.args || {}); else if (x.say) submit(x.say); } }, x.label)));
+      }
       function bubble(m, anim) {
-        const b = h('div', { class: 'msg-b ' + (m.from === 'me' ? 'me' : 'them') + (anim ? ' pop' : ''), title: m.t ? new Date(m.t).toLocaleString(PatOS.locale, { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : null }, m.text);
-        list.appendChild(b); list.scrollTop = list.scrollHeight;
+        const wel = list.querySelector('.pat3-welcome'); if (wel) wel.remove();
+        const time = m.t ? new Date(m.t).toLocaleString(PatOS.locale, { weekday: 'short', hour: 'numeric', minute: '2-digit' }) : null;
+        const el = m.from === 'me' ? h('div', { class: 'pat3-me' + (anim ? ' in' : ''), title: time }, h('div', { class: 'pat3-mb' }, m.text))
+          : h('div', { class: 'pat3-pat' + (anim ? ' in' : ''), title: time }, h('div', { class: 'pat3-av', 'aria-hidden': 'true' }), h('div', { class: 'pat3-pc' }, body(m.text), cardEl(m.card), acts(m.buttons)));
+        list.appendChild(el); list.scrollTop = list.scrollHeight;
       }
-      function render() { list.innerHTML = ''; log.slice(-80).forEach((m) => bubble(m)); }
+      function render() { list.innerHTML = ''; if (!log.length) list.appendChild(welcome()); else log.slice(-80).forEach((m) => bubble(m)); }
+      function addPat(text, how, r) {
+        const m = { from: 'pat', text: String(text), t: Date.now() }; if (r && r.card) m.card = r.card; if (r && r.buttons) m.buttons = r.buttons;
+        log.push(m); bubble(m, true); drawChips(); state('');
+        if (how === 'voice' && PatOS.voice && PatOS.voice.speaks()) PatOS.voice.speak(String(text).replace(/[•\n✓✗]+/g, '. '));
+        PatOS.sound.tone(700, 0.12, { vol: 0.06 }); PatOS.sound.tone(1050, 0.12, { vol: 0.05, delay: 0.08 });
+        if (log.length > 200) log = log.slice(-200);
+        PatOS.store.set('chatLog', log);
+      }
       function submit(text, how) {
-        text = (text || input.value).trim(); if (!text) return; input.value = '';
+        text = (text || input.value).trim(); if (!text) return; input.value = ''; grow();
         sent.push(text); sent = sent.slice(-50); histAt = -1;
         const me = { from: 'me', text, t: Date.now() }; log.push(me); bubble(me, true);
         PatOS.sound.tone(1100, 0.08, { vol: 0.06, slide: 1500 });
-        const typing = h('div', { class: 'msg-b them typing' }, h('i'), h('i'), h('i')); list.appendChild(typing); list.scrollTop = list.scrollHeight;
+        const think = h('div', { class: 'pat3-pat pat3-thinking' }, h('div', { class: 'pat3-av', 'aria-hidden': 'true' }), h('div', { class: 'pat3-dots', 'aria-label': PatOS.t('Thinking…') }, h('i'), h('i'), h('i')));
+        list.appendChild(think); list.scrollTop = list.scrollHeight; state('think');
         setTimeout(() => {
-          typing.remove();
-          let out = PatOS.assistantReply ? PatOS.assistantReply(text) : reply(text);
-          if (out === '\u0000clear') { clearChat(); return; }
-          const r = { from: 'pat', text: out, t: Date.now() }; log.push(r); bubble(r, true); drawChips();
-          // asked out loud: the answer is said out loud too (Settings › Pat's voice can turn it off)
-          if (how === 'voice' && PatOS.voice && PatOS.voice.speaks()) PatOS.voice.speak(String(out).replace(/[•\n]+/g, '. '));
-          PatOS.sound.tone(700, 0.12, { vol: 0.06 }); PatOS.sound.tone(1050, 0.12, { vol: 0.05, delay: 0.08 });
-          if (log.length > 200) log = log.slice(-200);
-          PatOS.store.set('chatLog', log);
-        }, PatOS.settings.reduceMotion ? 0 : 120 + Math.random() * 120);
+          think.remove();
+          const out = PatOS.assistantReply ? PatOS.assistantReply(text) : reply(text);
+          if (out === '\u0000clear') { clearChat(); state(''); return; }
+          lastHow = how;
+          // an answer still on its way: the panel keeps "thinking" instead of showing a placeholder message
+          if (out === WAIT() || out === LOOK()) { waiting = h('div', { class: 'pat3-pat pat3-thinking' }, h('div', { class: 'pat3-av', 'aria-hidden': 'true' }), h('div', { class: 'pat3-dots', 'aria-label': out }, h('i'), h('i'), h('i')), out === LOOK() ? h('small', { class: 'pat3-look' }, out) : null); list.appendChild(waiting); list.scrollTop = list.scrollHeight; state('think'); return; }
+          addPat(out, how, takeRich());
+        }, PatOS.settings.reduceMotion ? 0 : 160 + Math.random() * 140);
       }
-      // up and down bring back what you typed before
+      let lastHow = null, waiting = null;
+      // up and down bring back what you typed before; Enter sends, Shift+Enter is a new line
       let sent = log.filter((x) => x.from === 'me').map((x) => x.text).slice(-50), histAt = -1;
       input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') submit();
-        else if (e.key === 'ArrowUp' && sent.length) { e.preventDefault(); histAt = histAt < 0 ? sent.length - 1 : Math.max(0, histAt - 1); input.value = sent[histAt]; }
-        else if (e.key === 'ArrowDown' && histAt >= 0) { e.preventDefault(); histAt++; if (histAt >= sent.length) { histAt = -1; input.value = ''; } else input.value = sent[histAt]; }
+        if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); submit(); }
+        else if (e.key === 'ArrowUp' && sent.length && !input.value.includes('\n')) { e.preventDefault(); histAt = histAt < 0 ? sent.length - 1 : Math.max(0, histAt - 1); input.value = sent[histAt]; grow(); }
+        else if (e.key === 'ArrowDown' && histAt >= 0) { e.preventDefault(); histAt++; if (histAt >= sent.length) { histAt = -1; input.value = ''; } else input.value = sent[histAt]; grow(); }
       });
-      function clearChat() { log = []; PatOS.store.remove('chatLog'); sent = []; list.innerHTML = ''; const hi = { from: 'pat', text: PatOS.lang === 'fr' ? 'C’est effacé. Écris « aide » si tu veux la liste des commandes.' : 'Cleared. Type "help" if you want the list of commands.', t: Date.now() }; log.push(hi); bubble(hi, true); PatOS.store.set('chatLog', log); }
-      const clearAsk = async () => { if (await PatOS.confirmBox(PatOS.t('Clear this conversation?'), PatOS.t('The messages will be deleted.'), { ok: PatOS.t('Clear'), danger: true, icon: 'messages' })) clearChat(); };
-      if (mic) { let stop = null; mic.onclick = () => { if (stop) { stop(); return; } mic.classList.add('on'); input.placeholder = PatOS.t('Listening…'); stop = PatOS.voice.listenOnce((t) => { submit(t, 'voice'); }, (err) => { stop = null; mic.classList.remove('on'); input.placeholder = PatOS.t('Ask Pat') + '…'; if (err) PatOS.notify({ title: 'Pat', body: err.message, icon: 'messages' }); }); }; }
+      function clearChat() { log = []; PatOS.store.remove('chatLog'); sent = []; render(); drawChips(); }
+      const clearAsk = async () => { if (!log.length) return; if (await PatOS.confirmBox(PatOS.t('Start a new conversation?'), PatOS.t('This conversation will be deleted.'), { ok: PatOS.t('New Conversation'), icon: 'pat' })) clearChat(); };
+      if (mic) { let stop = null; mic.onclick = () => { if (stop) { stop(); return; } mic.classList.add('on'); state('listen'); input.placeholder = PatOS.t('Listening…'); stop = PatOS.voice.listenOnce((t) => { submit(t, 'voice'); }, (err) => { stop = null; mic.classList.remove('on'); state(''); input.placeholder = PatOS.t('Ask Pat') + '…'; if (err) PatOS.notify({ title: 'Pat', body: String(err), icon: 'pat' }); }); }; }
       send.onclick = () => submit();
-      // something Pat started that turned out not to work (an app that did not open, a shortcut that stopped) is said here
-      PatOS.on('pat:say', (text) => { if (!root.isConnected && !document.body.contains(root)) return; const r = { from: 'pat', text: String(text), t: Date.now() }; log.push(r); bubble(r, true); PatOS.store.set('chatLog', log.slice(-200)); });
+      // something Pat finished later (a web answer, an app that did not open, a shortcut that stopped) is said here
+      PatOS.on('pat:say', (x) => { if (!root.isConnected && !document.body.contains(root)) return; if (waiting) { waiting.remove(); waiting = null; } const o = typeof x === 'object' && x ? x : { text: x }; addPat(o.text, lastHow, o.rich || null); });
       render(); drawChips();
       return { el: root, focus: () => { drawChips(); input.focus(); }, clear: clearAsk };
   }
@@ -451,9 +524,7 @@
     ['#control-center', '#notif-center'].forEach((s) => { const e = document.querySelector(s); if (e) e.classList.add('hidden'); });
     if (!built) {
       built = patHelper();
-      const top = h('div', { class: 'pat-top' }, h('b', {}, 'Pat'), h('span', { class: 'pat-sub' }, PatOS.t('Command helper, not an AI')), h('div', { style: { flex: 1 } }),
-        h('button', { class: 'tbtn', title: PatOS.t('Clear the conversation'), onclick: () => built.clear() }, PatOS.t('Clear')), h('button', { class: 'tbtn', title: PatOS.t('Close'), 'aria-label': PatOS.t('Close'), onclick: close }, '×'));
-      box.append(top, built.el);
+      box.append(built.el);
     }
     box.classList.remove('hidden'); bar && bar.classList.add('on'); setTimeout(() => built.focus(), 60);
   }
@@ -462,7 +533,7 @@
   if (bar) { bar.innerHTML = ICON; bar.title = PatOS.t('Pat'); bar.addEventListener('click', (e) => { e.stopPropagation(); toggle(); }); }
   document.addEventListener('pointerdown', (e) => { if (isOpen() && !e.target.closest('#pat-panel, #mb-pat, .dlg-layer, .menu')) close(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && isOpen() && !e.defaultPrevented) close(); });
-  PatOS.pat = { skill, undoAt: () => (ctx.undo ? ctx.undo.t || 0 : 0), remember: (kind, items) => { ctx.list = { kind, items: (items || []).slice(0, 50), t: Date.now() }; }, skills: () => skills.map((x) => ({ id: x.id, app: x.app || null, sensitive: !!x.sensitive })), suggestions, open, close, toggle, isOpen, ask: (t) => { open(); const i = box.querySelector('.msg-in'); if (i) { i.value = t; i.focus(); } } };
+  PatOS.pat = { takeRich, skill, undoAt: () => (ctx.undo ? ctx.undo.t || 0 : 0), remember: (kind, items) => { ctx.list = { kind, items: (items || []).slice(0, 50), t: Date.now() }; }, skills: () => skills.map((x) => ({ id: x.id, app: x.app || null, sensitive: !!x.sensitive })), suggestions, open, close, toggle, isOpen, ask: (t) => { open(); const i = box.querySelector('.msg-in'); if (i) { i.value = t; i.focus(); } } };
   /* on a phone there is no menu bar: Pat is an app in Launchpad that opens the same panel */
   PatOS.iconDefs.pat = { bg: 'linear-gradient(160deg,#7d5cff,#ff4fa0)', svg: () => '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path d="M12 14h40a6 6 0 0 1 6 6v20a6 6 0 0 1-6 6H31L19 56a1.5 1.5 0 0 1-2.5-1.2V46H12a6 6 0 0 1-6-6V20a6 6 0 0 1 6-6z" fill="#fff"/><circle cx="22" cy="30" r="3.4" fill="#7d5cff"/><circle cx="32" cy="30" r="3.4" fill="#a05cff"/><circle cx="42" cy="30" r="3.4" fill="#ff4fa0"/></svg>' };
   PatOS.registerApp({ id: 'pat', name: 'Pat', icon: 'pat', category: 'Utilities', keywords: 'pat helper assistant commands timer hey pat voice command chat', about: 'Pat, the command helper: type or say what you want (open an app, a timer, a reminder, the weather). A fixed list of commands, not an AI.', action: () => toggle() });
