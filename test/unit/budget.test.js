@@ -15,7 +15,7 @@ const scripts = [...html.matchAll(/<script(?: type="patos\/(\w+)")? src="([^"]+)
 
 const BUDGET = {
   eagerJs: { kb: 1700, gz: 545 },   // 3.0.0 beta 7: 1,223 KB, 398 KB gzipped; raised in 3.1.0 beta 7 (1,330 KB): Handoff, Pat skills, error log, Liquid Glass motion, Patoogle proxy features, 3.1 notes; raised in 3.1.0 beta 14 (1,403 KB, 455 KB gz): the firmware (boot screens, Recovery, reinstall) must run before login; raised in 3.2.0 beta 3 (1,488 KB): PatOS Intelligence (js/intelligence.js, the action registry used by Pat, Spotlight, Shortcuts and apps) and the shared date parser (js/dates.js, moved out of a lazy app); then 505 KB gz with the settings catalog and diagnostics (start-up files, so Spotlight finds settings before Settings is opened); then 530 KB gz for Intelligence 2 (js/intel-mind.js: conversation memory, questions, places; js/places.js); 545 KB gz for Pat 3 (js/intel-know.js: facts, translate, weather, currencies, web answers; the facts themselves load on demand)
-  css: { kb: 510 }                  // 3.0.0 beta 7: 447 KB; 3.2.0 beta 5 (492 KB): Pat’s new conversation panel; beta 7 (502 KB, after removing the old orb and dead Messages rules): Settings polish, the wallpaper page and code suggestions
+  css: { kb: 540 }                  // 3.0.0 beta 7: 447 KB; 3.2.0 beta 5 (492 KB): Pat’s new conversation panel; beta 7 (502 KB, after removing the old orb and dead Messages rules): Settings polish, the wallpaper page and code suggestions; 3.3 (515 KB): Command Center, the crystal Dock, notifications 2.0, and room for the 3.3 system screens
 };
 
 test('JavaScript loaded before login stays within its budget', () => {

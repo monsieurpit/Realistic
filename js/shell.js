@@ -91,24 +91,30 @@
   PatOS.setLaunchRect = (el) => { if (!el) return; const r = el.getBoundingClientRect(); PatOS._launchRect = { left: r.left, top: r.top, width: r.width, height: r.height, t: Date.now() }; };
   document.addEventListener('pointerdown', (e) => { if (openMenu && !e.target.closest('.menu') && !e.target.closest('#menubar [data-menu]')) closeMenus(); });
 
-  /* =========================== NOTIFICATIONS =========================== */
-  const notifs = [];
-  PatOS.notifications = { list: () => notifs.map((n) => ({ title: n.title, icon: n.icon, time: n.time })), clear: () => { notifs.length = 0; } };
+  /* =========================== NOTIFICATIONS ===========================
+     PatOS.notify keeps its old shape (title, body, icon, onClick, duration) and gains priority, actions, open, key and at
+     (js/services.js records it, applies the app's rules, quiet hours and Focus, and keeps the history). */
+  PatOS.notifications = { list: () => PatOS.nc.list().map((n) => ({ title: n.title, icon: n.app, time: new Date(n.time) })), clear: () => PatOS.nc.clear() };
   PatOS.notify = function (n) {
-    n = Object.assign({ title: 'PatOS', body: '', icon: 'about', time: new Date() }, n);
-    notifs.unshift(n); if (notifs.length > 30) notifs.pop();
+    n = Object.assign({ title: 'PatOS', body: '', icon: 'about' }, n);
+    const r = PatOS.nc._add(n);
+    if (r.scheduled || r.dropped) return r.scheduled || null;
     // screen readers: announce it; other tabs: show a real browser notification
-    try { let lr = document.getElementById('sr-live'); if (!lr) { lr = document.createElement('div'); lr.id = 'sr-live'; lr.setAttribute('aria-live', 'polite'); lr.setAttribute('role', 'status'); lr.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)'; document.body.appendChild(lr); } if (PatOS.settings.srAnnounce !== false) lr.textContent = n.title + '. ' + n.body; } catch (e) {}
-    if (document.hidden && PatOS.settings.systemNotifications !== false && window.Notification && Notification.permission === 'granted') { try { const sn = new Notification(n.title, { body: n.body, icon: 'assets/icon-180.png' }); sn.onclick = () => { window.focus(); n.onClick && n.onClick(); sn.close(); }; } catch (e) {} }
-    if (PatOS.focusMode || (PatOS.settings.mutedApps || []).includes(n.icon)) return; // (Do Not Disturb, or an app silenced in Settings › Applications: kept in Notification Center only)
-    if (PatOS.settings.notifSound !== false) PatOS.sound.notify();
-    const t = h('div', { class: 'toast' },
+    try { let lr = document.getElementById('sr-live'); if (!lr) { lr = document.createElement('div'); lr.id = 'sr-live'; lr.setAttribute('aria-live', 'polite'); lr.setAttribute('role', 'status'); lr.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)'; document.body.appendChild(lr); } lr.textContent = n.title + '. ' + (n.body || ''); } catch (e) {}
+    if (document.hidden && r.banner && PatOS.settings.systemNotifications !== false && window.Notification && Notification.permission === 'granted') { try { const sn = new Notification(n.title, { body: n.body, icon: 'assets/icon-180.png' }); sn.onclick = () => { window.focus(); PatOS.nc.open(r.id); }; } catch (e) {} }
+    if (r.sound && PatOS.settings.notifSound !== false) PatOS.sound.notify();
+    if (!r.banner) return r.id;
+    const old = document.querySelector('#toasts .toast[data-nid="' + r.id + '"]'); if (old) old.remove(); // (the same one again: one banner, counted)
+    const acts = (PatOS.nc.list().find((x) => x.id === r.id) || {}).actions || [];
+    const t = h('div', { class: 'toast' + (r.rec.priority === 'urgent' ? ' urgent' : ''), 'data-nid': r.id },
       h('div', { class: 'toast-icon', html: PatOS.iconHTML(n.icon) }),
-      h('div', { class: 'toast-text' }, h('div', { class: 'toast-app' }, (PatOS.apps[n.icon] && PatOS.apps[n.icon].name) || 'PatOS', h('span', {}, 'now')), h('b', {}, n.title), h('div', {}, n.body)));
-    t.addEventListener('click', () => { t.remove(); n.onClick && n.onClick(); });
+      h('div', { class: 'toast-text' }, h('div', { class: 'toast-app' }, r.rec.appName, h('span', {}, r.rec.count > 1 ? '×' + r.rec.count : PatOS.t('now'))), h('b', {}, n.title), n.body ? h('div', {}, n.body) : null,
+        acts.length ? h('div', { class: 'toast-acts' }, ...acts.map((a, i) => h('button', { class: 'toast-act', onclick: (e) => { e.stopPropagation(); PatOS.nc.act(r.id, i); t.remove(); } }, a.label))) : null));
+    t.addEventListener('click', () => { t.remove(); PatOS.nc.open(r.id); });
     $('#toasts').appendChild(t);
     requestAnimationFrame(() => t.classList.add('in'));
-    setTimeout(() => { t.classList.remove('in'); setTimeout(() => t.remove(), 400); }, n.duration || 4500);
+    setTimeout(() => { t.classList.remove('in'); setTimeout(() => t.remove(), 400); }, n.duration || (r.rec.priority === 'urgent' ? 12000 : acts.length ? 8000 : 4500));
+    return r.id;
   };
 
   /* One look for "you're offline" everywhere. retry() runs by itself when the connection comes back,
@@ -433,15 +439,31 @@
     return { cal, clock, up, remW, music };
   }
   PatOS.buildWidgets = buildWidgets;
+  let ncQuery = '';
+  const ago = (t) => { const s = Math.round((Date.now() - t) / 1000); return s < 60 ? PatOS.t('now') : s < 3600 ? Math.floor(s / 60) + ' min' : s < 86400 ? Math.floor(s / 3600) + ' h' : new Date(t).toLocaleDateString(PatOS.locale, { month: 'short', day: 'numeric' }); };
+  // a notification that arrives while Notification Center is open shows up in it
+  PatOS.on('notif', PatOS.debounce(() => { const p = document.getElementById('notif-center'); if (p && !p.classList.contains('hidden') && !(document.activeElement && document.activeElement.classList.contains('nc-search'))) renderNC(); }, 120));
   function renderNC() {
-    const nc = $('#notif-center'); nc.innerHTML = '';
+    const nc = $('#notif-center'); const keep = nc.querySelector('.nc-search'); const hadFocus = keep && document.activeElement === keep; nc.innerHTML = '';
     const { cal, clock, up, remW } = buildWidgets();
+    const T = PatOS.t;
+    const q = h('input', { class: 'field nc-search', type: 'search', placeholder: T('Search notifications'), 'aria-label': T('Search notifications'), value: ncQuery });
+    q.addEventListener('input', () => { ncQuery = q.value; renderNC(); });
+    const groups = PatOS.nc.groups().map((g) => ({ app: g.app, name: g.name, items: g.items.filter((n) => !ncQuery || (n.title + ' ' + n.body).toLowerCase().includes(ncQuery.toLowerCase())) })).filter((g) => g.items.length);
+    const item = (n) => h('div', { class: 'toast in static nc-item' + (n.priority === 'urgent' || n.priority === 'high' ? ' hi' : ''), onclick: () => { PatOS.nc.open(n.id); renderNC(); } },
+      h('div', { class: 'toast-icon', html: PatOS.iconHTML(n.app) }),
+      h('div', { class: 'toast-text' }, h('div', { class: 'toast-app' }, n.appName, h('span', {}, (n.count > 1 ? '×' + n.count + ' · ' : '') + ago(n.time))), h('b', {}, n.title), n.body ? h('div', {}, n.body) : null,
+        n.actions.length ? h('div', { class: 'toast-acts' }, ...n.actions.map((a, i) => h('button', { class: 'toast-act', onclick: (e) => { e.stopPropagation(); PatOS.nc.act(n.id, i); renderNC(); } }, a.label))) : null),
+      h('button', { class: 'nc-x', title: T('Dismiss'), 'aria-label': T('Dismiss'), onclick: (e) => { e.stopPropagation(); PatOS.nc.dismiss(n.id); renderNC(); } }, '×'));
     const list = h('div', { class: 'nc-list' },
-      h('div', { class: 'nc-head' }, h('b', {}, 'Notifications'), notifs.length ? h('button', { onclick: () => { notifs.length = 0; renderNC(); } }, 'Clear') : null),
-      notifs.length ? notifs.slice(0, 8).map((n) => h('div', { class: 'toast in static' },
-        h('div', { class: 'toast-icon', html: PatOS.iconHTML(n.icon) }),
-        h('div', { class: 'toast-text' }, h('b', {}, n.title), h('div', {}, n.body)))) : h('div', { class: 'w-muted pad' }, 'No new notifications'));
+      h('div', { class: 'nc-head' }, h('b', {}, T('Notifications')), groups.length ? h('button', { onclick: () => { PatOS.nc.clear(); renderNC(); } }, T('Clear all')) : null),
+      PatOS.nc.list().length > 3 || ncQuery ? q : null,
+      groups.length ? groups.map((g) => h('div', { class: 'nc-group' },
+        g.items.length > 1 ? h('div', { class: 'nc-ghead' }, h('span', {}, g.name + ' · ' + g.items.length), h('button', { onclick: () => { PatOS.nc.clearApp(g.app); renderNC(); } }, T('Clear'))) : null,
+        g.items.slice(0, 4).map(item))) : h('div', { class: 'w-muted pad' }, ncQuery ? T('Nothing matches.') : T('No new notifications')));
     nc.append(list, h('div', { class: 'nc-widgets' }, cal, clock, up, remW));
+    if (hadFocus) { const nq = nc.querySelector('.nc-search'); if (nq) { nq.focus(); nq.setSelectionRange(nq.value.length, nq.value.length); } }
+    PatOS.nc.markRead();
   }
   function drawAnalog(cv, d) {
     const x = cv.getContext('2d'); const W = cv.width, R = W / 2 - 4;

@@ -271,6 +271,8 @@
     language: 'auto',      // auto | en | fr      // auto | desktop | mobile
     showWidgets: true,
     notifSound: true, mutedApps: [],   // Settings › Notifications and › Applications
+    quietOn: false, quietFrom: '22:00', quietTo: '07:00', notifKeepDays: 7, notifRules: {}, // (3.3) quiet hours, history, a rule per app
+    cmdHidden: [],           // Command Center sections you hid
     intelPerms: {},          // Settings › Pat & Intelligence: kinds of action turned off (js/intelligence.js)
     hiddenApps: [],
     mobileDock: ['browser', 'messages', 'music', 'photos']

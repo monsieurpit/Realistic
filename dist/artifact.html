@@ -4735,6 +4735,53 @@ html:not(.reduce-motion) .dlg { animation: dlgIn var(--spring-dur-short) var(--s
 .st-wp-n { font-size: 12px; color: var(--text2); } .st-wp.on .st-wp-n { color: var(--text); font-weight: 600; }
 .mobile .st-wp-hero { flex-direction: column; align-items: stretch; } .mobile .st-wp-screen { width: auto; max-width: none; }
 
+/* ================= 3.3: Command Center, activities, notifications ================= */
+#cmd { position: fixed; z-index: 9500; top: 38px; right: 10px; width: min(420px, calc(100vw - 20px)); max-height: calc(100vh - 120px); overflow-y: auto; padding: 14px; border-radius: 26px;
+  color: var(--text); background: var(--menu, rgba(30,30,36,.8)); backdrop-filter: blur(30px) saturate(1.6); -webkit-backdrop-filter: blur(30px) saturate(1.6); box-shadow: 0 20px 60px rgba(0,0,0,.4), inset 0 0 0 .5px rgba(255,255,255,.18);
+  opacity: 0; transform: translateY(-8px) scale(.98); transform-origin: top right; transition: opacity .2s, transform .28s var(--ease-out, ease); }
+#cmd.in { opacity: 1; transform: none; }
+.mobile #cmd { top: calc(var(--sat, 0px) + 46px); left: 10px; right: 10px; width: auto; }
+.cmd-head { display: flex; align-items: center; gap: 8px; margin-bottom: 10px; } .cmd-head b { flex: 1; font-size: 16px; }
+.cmd-mark { width: 26px; height: 26px; border-radius: 8px; display: grid; place-items: center; color: #fff; background: linear-gradient(140deg, #5e5ce6, #0a84ff); }
+.cmd-mark svg, .cmd-ic svg { width: 15px; height: 15px; }
+.cmd-ic { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; color: inherit; opacity: .75; flex: none; } .cmd-ic:hover { opacity: 1; background: rgba(127,127,127,.16); }
+.cmd-q { width: 100%; height: 34px; margin-bottom: 6px; }
+.cmd-sec h3 { margin: 12px 4px 6px; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; color: var(--text3); }
+.cmd-list { display: flex; flex-direction: column; gap: 6px; }
+.cmd-item, .cmd-live { display: flex; align-items: center; gap: 10px; padding: 9px 10px; border-radius: 14px; background: rgba(127,127,127,.1); }
+.cmd-item[onclick], .cmd-item:has(+ *) { cursor: default; }
+.cmd-item.bad { background: color-mix(in srgb, #ff453a 16%, transparent); } .cmd-item.warn { background: color-mix(in srgb, #ff9f0a 14%, transparent); }
+.cmd-i { width: 30px; height: 30px; flex: none; display: grid; place-items: center; border-radius: 9px; background: rgba(127,127,127,.18); } .cmd-i svg { width: 17px; height: 17px; }
+.cmd-item.bad .cmd-i { color: #ff6961; } .cmd-item.warn .cmd-i { color: #ffb340; }
+.cmd-t { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; } .cmd-t b { font-size: 13.5px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .cmd-t small { font-size: 12px; color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cmd-item .btn { flex: none; height: 28px; padding: 0 12px; font-size: 12.5px; }
+.cmd-live-ic, .cmd-live-ic .icon-tile { width: 32px; height: 32px; flex: none; border-radius: 9px; } .cmd-live-ic.sm, .cmd-live-ic.sm .icon-tile { width: 24px; height: 24px; border-radius: 7px; }
+.cmd-bar { height: 4px; margin-top: 4px; border-radius: 2px; background: rgba(127,127,127,.25); overflow: hidden; } .cmd-bar i { display: block; height: 100%; border-radius: 2px; background: var(--accent); transition: width .3s; }
+.cmd-bar.busy i { width: 30%; animation: cmdBusy 1.2s ease-in-out infinite; } @keyframes cmdBusy { from { transform: translateX(-100%); } to { transform: translateX(340%); } }
+.cmd-live.paused .cmd-bar i { background: #ff9f0a; } .cmd-live.stalled .cmd-bar i { background: #ff453a; }
+.cmd-ok { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 14px; background: color-mix(in srgb, #30d158 13%, transparent); font-size: 13.5px; } .cmd-ok svg { width: 17px; height: 17px; color: #30d158; }
+.cmd-empty { margin: 4px; font-size: 13px; color: var(--text3); }
+.cmd-tiles { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.cmd-tile { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 10px 12px; border-radius: 14px; background: rgba(127,127,127,.1); text-align: left; color: inherit; }
+.cmd-tile:hover { background: rgba(127,127,127,.18); } .cmd-tile svg { width: 17px; height: 17px; opacity: .8; margin-bottom: 2px; } .cmd-tile small { font-size: 11.5px; color: var(--text3); } .cmd-tile b { font-size: 13px; font-weight: 600; }
+.cmd-tile.bad b { color: #ff6961; } .cmd-tile.warn b { color: #ffb340; }
+.cmd-results { display: flex; flex-direction: column; gap: 2px; } .cmd-row { display: flex; align-items: baseline; gap: 10px; padding: 8px 10px; border-radius: 10px; text-align: left; color: inherit; } .cmd-row:hover, .cmd-row:focus-visible { background: var(--accent); color: #fff; } .cmd-row small { width: 58px; flex: none; font-size: 11px; opacity: .7; }
+#mb-live { display: inline-flex; align-items: center; gap: 4px; padding: 0 8px; font-size: 12px; font-variant-numeric: tabular-nums; border-radius: 999px; background: rgba(127,127,127,.18); }
+#mb-live.hidden { display: none; } .mbl-spin { transform-origin: 10px 10px; animation: mblSpin 1s linear infinite; } @keyframes mblSpin { to { transform: rotate(360deg); } }
+#mb-cmd svg { width: 15px; height: 15px; }
+/* notifications: buttons, groups, search */
+.toast-acts { display: flex; gap: 6px; margin-top: 7px; } .toast-act { padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; color: inherit; background: rgba(127,127,127,.2); } .toast-act:hover { background: rgba(127,127,127,.32); }
+.toast.urgent { box-shadow: inset 0 0 0 1.5px #ff453a, 0 10px 30px rgba(0,0,0,.3) !important; }
+.nc-search { width: 100%; height: 30px; margin: 0 0 8px; }
+.nc-ghead { display: flex; justify-content: space-between; align-items: center; margin: 6px 4px 4px; font-size: 12px; font-weight: 600; color: var(--text3); } .nc-ghead button { font-size: 12px; color: var(--accent); }
+.nc-item { position: relative; } .nc-item.hi .toast-app { color: #ff9f0a; }
+.nc-x { position: absolute; top: 6px; right: 8px; width: 20px; height: 20px; border-radius: 50%; font-size: 14px; line-height: 1; color: inherit; opacity: 0; background: rgba(127,127,127,.3); }
+.nc-item:hover .nc-x, .nc-x:focus-visible { opacity: .9; } @media (hover: none) { .nc-x { opacity: .7; } }
+.st-rule { flex-wrap: wrap; gap: 8px; } .st-rule .st-rl { display: flex; align-items: center; gap: 10px; }
+.st-rule-ic, .st-rule-ic .icon-tile { width: 24px; height: 24px; border-radius: 6px; flex: none; }
+.st-rule-sw { display: flex; align-items: center; gap: 6px; margin-left: auto; } .st-rule-sw small { font-size: 11.5px; color: var(--text3); margin-left: 6px; }
+.st-rule-sw .switch { transform: scale(.82); transform-origin: right center; }
+
 </style>
   <style>
 /* ================= PatOS signature =================
@@ -5106,10 +5153,12 @@ html.reduce-motion :is(.pat-orb, .po-b) { animation: none !important; }
         <button class="mb-item" data-menu="help">Help</button>
       </div>
       <div class="mb-right">
+        <button class="mb-status mb-live hidden" id="mb-live" title="Activities"></button>
         <span class="mb-status" id="mb-battery" title="Battery"></span>
         <button class="mb-status" id="mb-wifi" title="Wi-Fi"></button>
         <button class="mb-status" id="mb-pat" title="Pat"></button>
         <button class="mb-status" id="mb-search" title="Spotlight (Ctrl+Space)"></button>
+        <button class="mb-status" id="mb-cmd" title="Command Center (Alt+K)" aria-label="Command Center"></button>
         <button class="mb-status" id="mb-cc" title="Control Center"></button>
         <button class="mb-clock" id="mb-clock"></button>
       </div>
@@ -5855,6 +5904,8 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
     language: 'auto',      // auto | en | fr      // auto | desktop | mobile
     showWidgets: true,
     notifSound: true, mutedApps: [],   // Settings › Notifications and › Applications
+    quietOn: false, quietFrom: '22:00', quietTo: '07:00', notifKeepDays: 7, notifRules: {}, // (3.3) quiet hours, history, a rule per app
+    cmdHidden: [],           // Command Center sections you hid
     intelPerms: {},          // Settings › Pat & Intelligence: kinds of action turned off (js/intelligence.js)
     hiddenApps: [],
     mobileDock: ['browser', 'messages', 'music', 'photos']
@@ -10166,7 +10217,8 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
     'Code suggestions': 'Suggestions de code', 'Pat completes your code in PitCode Studio. Tab accepts, Ctrl+Space asks.': 'Pat complète ton code dans PitCode Studio. Tab accepte, Ctrl+Espace demande.', 'Pat suggests': 'Pat suggère', 'a new variable': 'une nouvelle variable', 'state the page redraws from': 'l’état d’où la page se redessine', 'runs when the app opens': 's’exécute à l’ouverture de l’app', 'shows a page': 'affiche une page', 'prints to the console': 'écrit dans la console', 'waits for an answer': 'attend une réponse', 'a function': 'une fonction', 'a rule': 'une règle', 'close': 'fermer', 'expand': 'développer', 'save a value': 'enregistrer une valeur', 'read a saved value': 'lire une valeur enregistrée', 'on click': 'au clic', 'fetch JSON': 'charger du JSON', 'arrow function': 'fonction fléchée', 'for loop': 'boucle for',
     'Dark: most apps on a dark tile. Light: colored or white tiles. Automatic follows the theme.': 'Sombre : la plupart des apps sur une tuile sombre. Clair : tuiles de couleur ou blanches. Automatique suit le thème.',
     'Swipe up and hold to switch apps': 'Glisse vers le haut et attends pour changer d’app', 'Ctrl+Space to search': 'Ctrl+Espace pour chercher', 'Alt+L to see all apps': 'Alt+L pour voir toutes les apps', 'Drag a window to an edge to snap it': 'Glisse une fenêtre sur un bord pour l’aligner', 'Welcome back, ': 'Bon retour, ', 'The passwords don’t match.': 'Les mots de passe ne sont pas pareils.', 'You’re offline. Connect to the internet to continue.': 'Tu es hors ligne. Connecte-toi à Internet pour continuer.', 'That didn’t work. Try again.': 'Ça n’a pas marché. Réessaie.', 'Create your account': 'Crée ton compte', 'A username and a password. No email needed.': 'Un nom d’utilisateur et un mot de passe. Pas besoin de courriel.', 'Your settings and files come back to this device.': 'Tes réglages et tes fichiers reviennent sur cet appareil.', 'Remember your password: it can’t be reset.': 'Retiens ton mot de passe : il ne peut pas être réinitialisé.', 'Getting your things…': 'On récupère tes affaires…',
-    'Your account': 'Ton compte'
+    'Your account': 'Ton compte',
+    'That isn’t available.': 'Ce n’est pas disponible.', 'That didn’t work.': 'Ça n’a pas marché.', 'Call': 'Appeler', 'Meet': 'Voir', 'That picture can’t be read.': 'Cette image ne peut pas être lue.', 'New wallpaper.': 'Nouveau fond d’écran.', 'Saved to Capture': 'Gardé dans Capture', 'Quiet hours': 'Heures calmes', 'No banners or sounds, except urgent ones.': 'Pas de bannières ni de sons, sauf les urgents.', 'To': 'À', 'Keep history': 'Garder l’historique', '1 day': '1 jour', '7 days': '7 jours', '30 days': '30 jours', 'Each app': 'Chaque app', 'Banners': 'Bannières', 'Sounds': 'Sons', 'never': 'jamais', 'didn’t finish': 'pas terminé', 'Retry': 'Réessayer', 'no progress for 10 minutes': 'aucun progrès depuis 10 minutes', 'Sync stopped': 'La synchro s’est arrêtée', 'The sync key is wrong.': 'La clé de synchro est mauvaise.', 'The server is full.': 'Le serveur est plein.', 'The server is busy.': 'Le serveur est occupé.', 'The server had a problem.': 'Le serveur a eu un problème.', 'items couldn’t be synced': 'éléments n’ont pas pu être synchronisés', 'No backup in over a week': 'Aucune sauvegarde depuis plus d’une semaine', 'No backup yet': 'Pas encore de sauvegarde', 'Back up now': 'Sauvegarder maintenant', 'Storage almost full': 'Stockage presque plein', 'Backup': 'Sauvegarde', 'Saving a snapshot…': 'Enregistrement d’un instantané…', 'Manual': 'Manuel', 'Setting': 'Réglage', 'Command': 'Commande', 'Search commands, settings and apps': 'Chercher des commandes, réglages et apps', 'Command Center': 'Centre de commande', 'Everything is fine.': 'Tout va bien.', 'No progress': 'Aucun progrès', 'Nothing running.': 'Rien en cours.', 'Waiting for internet': 'En attente d’Internet', 'Finished': 'Terminé', 'Didn’t finish': 'Pas terminé', 'Cancelled': 'Annulé', 'Activities': 'Activités', 'That action doesn’t exist.': 'Cette action n’existe pas.', 'This action can’t take that.': 'Cette action ne peut pas prendre ça.', 'Nothing can take this': 'Rien ne peut prendre ça', 'Search notifications': 'Chercher dans les notifications', 'Dismiss': 'Fermer', 'Clear all': 'Tout effacer'
   };
   const PATTERNS = [
     [/^About (.+)$/, (m) => 'À propos de ' + t(m[1])], [/^Hide (.+)$/, (m) => 'Masquer ' + t(m[1])], [/^Quit (.+)$/, (m) => 'Quitter ' + t(m[1])], [/^Log Out (.+)…$/, (m) => 'Fermer la session de ' + m[1] + '…'],
@@ -12036,6 +12088,199 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
 
 </script>
   <script type="patos/js">
+/* PatOS system services (3.3): Universal Actions, Live Activities and Notifications 2.0.
+   Small, shared and used everywhere, so they load with PatOS. The screens that show them (Command Center, Capture,
+   Notification Center, the share sheet) build on these and nothing else. See docs/SERVICES.md. */
+(function () {
+  'use strict';
+  const T = (s) => PatOS.t(s);
+  const uid = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+
+  /* ======================= Universal Actions =======================
+     An object is plain data that says what it is: { type, ...fields }
+       file  { path }            image { path } or { url }      text { text }      url { url, title? }
+       contact { name, phone?, email? }    event { title, start?, end? }    document { path }
+     An action: { id, app, title, icon?, accepts: [types] | (obj) => bool, run(obj) -> result | Promise, undo?(result) }
+     - Only actions whose app is installed show up. run() gets a copy of the object, never more than it was given.
+     - Community apps (sandboxed) can't register actions here; they reach PatOS through their own permission system. */
+  const A = new Map();
+  const typeOfPath = (p) => {
+    const k = PatOS.fileKind ? PatOS.fileKind(p, PatOS.fs.get(p)) : '';
+    if (k === 'image') return 'image'; if (k === 'folder') return 'folder';
+    if (/\.(pdoc|docx|pdf|psheet|xlsx|pslides|pptx|txt|md)$/i.test(p)) return 'document';
+    return 'file';
+  };
+  const actions = {
+    register(def) {
+      if (!def || !/^[a-z0-9.-]{3,60}$/.test(def.id) || typeof def.run !== 'function') throw new Error('An action needs an id (a-z, 0-9, dots, dashes) and run().');
+      A.set(def.id, Object.assign({ accepts: [] }, def)); return def.id;
+    },
+    unregister: (id) => A.delete(id),
+    /* what an object is, from a file path, text or a link */
+    of(x) {
+      if (!x) return null;
+      if (typeof x === 'object' && x.type) return x;
+      const s = String(x);
+      if (s[0] === '/' && PatOS.fs.exists(s)) return { type: typeOfPath(s), path: s };
+      if (/^https?:\/\/\S+$/i.test(s.trim())) return { type: 'url', url: s.trim() };
+      return { type: 'text', text: s };
+    },
+    /* the actions that can take this object, in a stable order */
+    for(obj) {
+      obj = actions.of(obj); if (!obj) return [];
+      const alsoFile = obj.type === 'image' || obj.type === 'document';
+      return [...A.values()].filter((a) => {
+        if (a.app && !PatOS.apps[a.app]) return false;
+        const acc = a.accepts;
+        try { return typeof acc === 'function' ? !!acc(obj) : acc.includes(obj.type) || (alsoFile && acc.includes('file')); } catch (e) { return false; }
+      }).sort((a, b) => (a.order || 50) - (b.order || 50));
+    },
+    get: (id) => A.get(id) || null,
+    list: () => [...A.values()].map((a) => ({ id: a.id, app: a.app || '', title: a.title, accepts: typeof a.accepts === 'function' ? ['custom'] : a.accepts.slice() })),
+    /* runs one: { ok, message, result }. A failure is said, never hidden. */
+    async run(id, obj) {
+      const a = A.get(id); obj = actions.of(obj);
+      if (!a) return { ok: false, message: T('That action doesn’t exist.') };
+      if (!actions.for(obj).includes(a)) return { ok: false, message: T('This action can’t take that.') };
+      try {
+        const r = await a.run(Object.assign({}, obj));
+        PatOS.emit('action:ran', { id, type: obj.type });
+        return { ok: true, message: (r && r.message) || '', result: r, undo: a.undo ? () => a.undo(r) : null };
+      } catch (e) { return { ok: false, message: (e && e.message) || T('That didn’t work.') }; }
+    },
+    /* the share sheet: a menu of what can be done with the object, at x, y */
+    sheet(obj, x, y) {
+      obj = actions.of(obj); const list = actions.for(obj);
+      if (!list.length) { PatOS.notify({ title: T('Nothing can take this'), body: '', icon: 'settings' }); return null; }
+      return PatOS.menu([{ header: T('Share') }, ...list.map((a) => ({ label: T(a.title), action: async () => { const r = await actions.run(a.id, obj); if (!r.ok) PatOS.notify({ title: T('That didn’t work'), body: r.message, icon: a.app || 'settings', priority: 'high' }); else if (r.message) PatOS.notify({ title: T(a.title), body: r.message, icon: a.app || 'settings', priority: 'low' }); } }))], x, y);
+    }
+  };
+  PatOS.actions = actions;
+
+  /* ======================= Live Activities =======================
+     Something that is happening now: a copy, a backup, a download, a recording, music.
+       const a = PatOS.live.start({ app, title, detail?, progress?: 0..1 | null, open?: { app, args }, pause?, resume?, cancel?, retry? })
+       a.update({ progress, detail, title })     a.end('done' | 'failed' | 'cancelled', message?)
+     The owner of the operation drives it: progress is only what it reports (null = can't be measured), and only the
+     controls it gives (pause, cancel...) are offered. An activity left without news for 10 minutes is marked as stalled,
+     not as still running. Ended ones stay listed for a while, and a failure (or a long job that finished) also notifies. */
+  const L = new Map(); let ended = [];
+  const changed = () => PatOS.emit('live');
+  function pub(a) { return { id: a.id, app: a.app, title: a.title, detail: a.detail, progress: a.progress, status: a.status, started: a.started, updated: a.updated, ended: a.endedAt || 0, message: a.message || '', can: { pause: !!a.pause && a.status === 'running', resume: !!a.resume && a.status === 'paused', cancel: !!a.cancel && /running|paused/.test(a.status), retry: !!a.retry && a.status === 'failed', open: !!a.open }, eta: a.eta || 0 }; }
+  const live = {
+    start(o) {
+      const a = { id: o.id || uid(), app: o.app || 'settings', title: String(o.title || ''), detail: String(o.detail || ''), progress: o.progress == null ? null : Math.max(0, Math.min(1, +o.progress)), status: 'running', started: Date.now(), updated: Date.now(), open: o.open || null, pause: o.pause, resume: o.resume, cancel: o.cancel, retry: o.retry, rate: [] };
+      L.set(a.id, a); changed();
+      const h = {
+        id: a.id,
+        update(u) { if (!L.has(a.id)) return h; u = u || {}; if (u.progress != null) { const p = Math.max(0, Math.min(1, +u.progress)); a.rate.push([Date.now(), p]); if (a.rate.length > 8) a.rate.shift(); a.progress = p; a.eta = etaOf(a); } if (u.detail != null) a.detail = String(u.detail); if (u.title != null) a.title = String(u.title); if (u.status === 'paused' || u.status === 'running') a.status = u.status; a.updated = Date.now(); changed(); return h; },
+        end(status, message) { return live.end(a.id, status, message); }
+      };
+      return h;
+    },
+    end(id, status, message) {
+      const a = L.get(id); if (!a) return;
+      L.delete(id); a.status = /^(done|failed|cancelled)$/.test(status) ? status : 'done'; a.message = message || ''; a.endedAt = Date.now();
+      ended.unshift(a); ended = ended.slice(0, 20); changed();
+      const long = a.endedAt - a.started > 8000;
+      if (a.status === 'failed') PatOS.notify({ title: a.title + ': ' + T('didn’t finish'), body: a.message, icon: a.app, priority: 'high', category: 'activity', actions: a.retry ? [{ label: T('Retry'), run: () => a.retry() }] : null });
+      else if (a.status === 'done' && long) PatOS.notify({ title: a.title, body: a.message || T('Done'), icon: a.app, priority: 'low', category: 'activity' });
+    },
+    list: () => [...L.values()].map(pub),
+    recent: () => ended.map(pub),
+    get: (id) => (L.get(id) ? pub(L.get(id)) : null),
+    act(id, what) {
+      const a = L.get(id) || ended.find((x) => x.id === id); if (!a) return false;
+      if (what === 'open') { if (a.open) PatOS.launch(a.open.app, a.open.args || {}); return !!a.open; }
+      const fn = a[what]; if (typeof fn !== 'function') return false; // (only what the operation really supports)
+      if (what === 'retry') { ended = ended.filter((x) => x !== a); changed(); }
+      try { fn(); } catch (e) {}
+      if (what === 'pause' && L.has(id)) { a.status = 'paused'; changed(); }
+      if (what === 'resume' && L.has(id)) { a.status = 'running'; changed(); }
+      return true;
+    },
+    clearEnded() { ended = []; changed(); }
+  };
+  function etaOf(a) {
+    if (a.rate.length < 3 || a.progress >= 1) return 0;
+    const [t0, p0] = a.rate[0], [t1, p1] = a.rate[a.rate.length - 1]; if (p1 <= p0 || t1 - t0 < 1500) return 0;
+    return Math.round((1 - p1) * (t1 - t0) / (p1 - p0)); // (ms; shown only when the pace is steady enough to measure)
+  }
+  // no news for 10 minutes: say it is stalled instead of pretending it is still going
+  setInterval(() => { const now = Date.now(); let any = false; L.forEach((a) => { if (a.status === 'running' && now - a.updated > 600000) { a.status = 'stalled'; any = true; } }); if (any) changed(); }, 60000);
+  PatOS.live = live;
+
+  /* ======================= Notifications 2.0 =======================
+     PatOS.notify({ title, body, icon (the app), priority: 'low'|'normal'|'high'|'urgent', category, actions: [{ label, run }],
+                    open: { app, args }, key (same key = one notification, updated), at (a time to deliver it) })
+     - History: kept on this device (never synced), searchable, grouped by app, for notifKeepDays days (default 7, at most 400).
+     - Rules per app (Settings › Notifications): allow, banners, sounds. Quiet hours and Focus keep banners and sounds away,
+       except urgent ones. Everything still lands in Notification Center.
+     - The same notification again within a minute is counted (×2) instead of piling up.
+     - Scheduled ones (at) wait in a saved queue and are delivered on time, also after a restart (their buttons can't be saved,
+       their "open" link can). */
+  const KEEP = () => Math.max(1, Math.min(90, +PatOS.settings.notifKeepDays || 7));
+  let hist = (PatOS.store.get('notifHistory', []) || []).filter((n) => n && n.id);
+  let queue = PatOS.store.get('notifQueue', []) || [];
+  const runtime = new Map(); // id -> { actions, onClick } (functions can't be saved)
+  const saveHist = () => PatOS.store.set('notifHistory', hist.map(stripN)); // (the store itself groups its writes to disk)
+  function stripN(n) { const o = Object.assign({}, n); delete o.actions; delete o.onClick; return o; }
+  function prune() { const cut = Date.now() - KEEP() * 86400000; hist = hist.filter((n) => n.time >= cut).slice(0, 400); }
+  const rules = () => PatOS.settings.notifRules || {};
+  function ruleOf(app) {
+    const r = rules()[app] || {}; const muted = (PatOS.settings.mutedApps || []).includes(app);
+    return { allow: r.allow !== false, banner: r.banner !== false && !muted, sound: r.sound !== false && !muted };
+  }
+  function quietNow() {
+    if (!PatOS.settings.quietOn) return false;
+    const [a, b] = [PatOS.settings.quietFrom || '22:00', PatOS.settings.quietTo || '07:00'].map((s) => { const [h, m] = String(s).split(':').map(Number); return (h || 0) * 60 + (m || 0); });
+    const d = new Date(), now = d.getHours() * 60 + d.getMinutes();
+    return a <= b ? now >= a && now < b : now >= a || now < b;
+  }
+  const nc = {
+    /* what Notification Center shows: newest first, optionally only one app, or what matches a search */
+    list(opts) { opts = opts || {}; const q = String(opts.q || '').toLowerCase(); return hist.filter((n) => (!opts.app || n.app === opts.app) && (!q || (n.title + ' ' + n.body + ' ' + n.appName).toLowerCase().includes(q))).map((n) => Object.assign({}, n, { actions: (runtime.get(n.id) || {}).actions || [] })); },
+    groups() { const g = new Map(); nc.list().forEach((n) => { if (!g.has(n.app)) g.set(n.app, []); g.get(n.app).push(n); }); return [...g.entries()].map(([app, items]) => ({ app, name: items[0].appName, items })); },
+    unread: () => hist.filter((n) => !n.read).length,
+    markRead() { let any = false; hist.forEach((n) => { if (!n.read) { n.read = true; any = true; } }); if (any) { saveHist(); PatOS.emit('notif'); } },
+    dismiss(id) { hist = hist.filter((n) => n.id !== id); runtime.delete(id); saveHist(); PatOS.emit('notif'); },
+    clearApp(app) { hist = hist.filter((n) => n.app !== app); saveHist(); PatOS.emit('notif'); },
+    clear() { hist = []; runtime.clear(); saveHist(); PatOS.emit('notif'); },
+    act(id, i) { const r = runtime.get(id); const a = r && r.actions && r.actions[i]; if (!a) return false; try { a.run(); } catch (e) {} nc.dismiss(id); return true; },
+    open(id) { const n = hist.find((x) => x.id === id); const r = runtime.get(id); if (r && r.onClick) { try { r.onClick(); } catch (e) {} } else if (n && n.open && PatOS.apps[n.open.app]) PatOS.launch(n.open.app, n.open.args || {}); nc.dismiss(id); },
+    scheduled: () => queue.slice(),
+    cancelScheduled(id) { queue = queue.filter((q) => q.id !== id); PatOS.store.set('notifQueue', queue); },
+    quietNow, ruleOf,
+    /* (used by PatOS.notify in js/shell.js) records it, and says whether a banner / sound should show */
+    _add(n) {
+      if (n.at && +n.at > Date.now() + 1000) { const q = stripN(Object.assign({}, n, { id: n.id || uid(), at: +n.at })); delete q.at0; queue.push(q); PatOS.store.set('notifQueue', queue); return { scheduled: q.id }; }
+      const app = n.icon || 'about', r = ruleOf(app);
+      if (!r.allow) return { banner: false, sound: false, dropped: true };
+      const pr = /^(low|normal|high|urgent)$/.test(n.priority) ? n.priority : 'normal';
+      const key = n.key || (app + '|' + n.title + '|' + (n.body || ''));
+      const same = hist.find((x) => x.key === key && Date.now() - x.time < (n.key ? Infinity : 60000));
+      let rec;
+      if (same) { same.count = (same.count || 1) + (n.key ? 0 : 1); same.time = Date.now(); same.read = false; same.title = n.title; same.body = n.body || ''; hist = [same, ...hist.filter((x) => x !== same)]; rec = same; }
+      else { rec = { id: n.id || uid(), key, app, appName: (PatOS.apps[app] && PatOS.apps[app].name) || 'PatOS', title: String(n.title || ''), body: String(n.body || ''), priority: pr, category: n.category || '', time: Date.now(), read: false, count: 1, open: n.open || null }; hist.unshift(rec); }
+      if ((n.actions && n.actions.length) || n.onClick) runtime.set(rec.id, { actions: (n.actions || []).filter((a) => a && a.label && typeof a.run === 'function').slice(0, 3), onClick: n.onClick });
+      prune(); saveHist(); PatOS.emit('notif', rec);
+      const quiet = (PatOS.focusMode || quietNow()) && pr !== 'urgent';
+      return { id: rec.id, rec, banner: r.banner && !quiet && pr !== 'low', sound: r.sound && !quiet && pr !== 'low', counted: !!same };
+    }
+  };
+  // scheduled ones, delivered on time (checked every 20 s; at start, anything already due is delivered)
+  function deliverDue() {
+    const now = Date.now(), due = queue.filter((q) => q.at <= now); if (!due.length) return;
+    queue = queue.filter((q) => q.at > now); PatOS.store.set('notifQueue', queue);
+    due.forEach((q) => { const n = Object.assign({}, q); delete n.at; PatOS.notify(n); });
+  }
+  setInterval(deliverDue, 20000); setTimeout(deliverDue, 3000);
+  prune();
+  PatOS.nc = nc;
+})();
+
+</script>
+  <script type="patos/js">
 /* PatOS shell: menu bar, dock, launchpad, spotlight, control center, notifications, desktop, mission control */
 (function () {
   'use strict';
@@ -12129,24 +12374,30 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
   PatOS.setLaunchRect = (el) => { if (!el) return; const r = el.getBoundingClientRect(); PatOS._launchRect = { left: r.left, top: r.top, width: r.width, height: r.height, t: Date.now() }; };
   document.addEventListener('pointerdown', (e) => { if (openMenu && !e.target.closest('.menu') && !e.target.closest('#menubar [data-menu]')) closeMenus(); });
 
-  /* =========================== NOTIFICATIONS =========================== */
-  const notifs = [];
-  PatOS.notifications = { list: () => notifs.map((n) => ({ title: n.title, icon: n.icon, time: n.time })), clear: () => { notifs.length = 0; } };
+  /* =========================== NOTIFICATIONS ===========================
+     PatOS.notify keeps its old shape (title, body, icon, onClick, duration) and gains priority, actions, open, key and at
+     (js/services.js records it, applies the app's rules, quiet hours and Focus, and keeps the history). */
+  PatOS.notifications = { list: () => PatOS.nc.list().map((n) => ({ title: n.title, icon: n.app, time: new Date(n.time) })), clear: () => PatOS.nc.clear() };
   PatOS.notify = function (n) {
-    n = Object.assign({ title: 'PatOS', body: '', icon: 'about', time: new Date() }, n);
-    notifs.unshift(n); if (notifs.length > 30) notifs.pop();
+    n = Object.assign({ title: 'PatOS', body: '', icon: 'about' }, n);
+    const r = PatOS.nc._add(n);
+    if (r.scheduled || r.dropped) return r.scheduled || null;
     // screen readers: announce it; other tabs: show a real browser notification
-    try { let lr = document.getElementById('sr-live'); if (!lr) { lr = document.createElement('div'); lr.id = 'sr-live'; lr.setAttribute('aria-live', 'polite'); lr.setAttribute('role', 'status'); lr.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)'; document.body.appendChild(lr); } if (PatOS.settings.srAnnounce !== false) lr.textContent = n.title + '. ' + n.body; } catch (e) {}
-    if (document.hidden && PatOS.settings.systemNotifications !== false && window.Notification && Notification.permission === 'granted') { try { const sn = new Notification(n.title, { body: n.body, icon: 'assets/icon-180.png' }); sn.onclick = () => { window.focus(); n.onClick && n.onClick(); sn.close(); }; } catch (e) {} }
-    if (PatOS.focusMode || (PatOS.settings.mutedApps || []).includes(n.icon)) return; // (Do Not Disturb, or an app silenced in Settings › Applications: kept in Notification Center only)
-    if (PatOS.settings.notifSound !== false) PatOS.sound.notify();
-    const t = h('div', { class: 'toast' },
+    try { let lr = document.getElementById('sr-live'); if (!lr) { lr = document.createElement('div'); lr.id = 'sr-live'; lr.setAttribute('aria-live', 'polite'); lr.setAttribute('role', 'status'); lr.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)'; document.body.appendChild(lr); } lr.textContent = n.title + '. ' + (n.body || ''); } catch (e) {}
+    if (document.hidden && r.banner && PatOS.settings.systemNotifications !== false && window.Notification && Notification.permission === 'granted') { try { const sn = new Notification(n.title, { body: n.body, icon: 'assets/icon-180.png' }); sn.onclick = () => { window.focus(); PatOS.nc.open(r.id); }; } catch (e) {} }
+    if (r.sound && PatOS.settings.notifSound !== false) PatOS.sound.notify();
+    if (!r.banner) return r.id;
+    const old = document.querySelector('#toasts .toast[data-nid="' + r.id + '"]'); if (old) old.remove(); // (the same one again: one banner, counted)
+    const acts = (PatOS.nc.list().find((x) => x.id === r.id) || {}).actions || [];
+    const t = h('div', { class: 'toast' + (r.rec.priority === 'urgent' ? ' urgent' : ''), 'data-nid': r.id },
       h('div', { class: 'toast-icon', html: PatOS.iconHTML(n.icon) }),
-      h('div', { class: 'toast-text' }, h('div', { class: 'toast-app' }, (PatOS.apps[n.icon] && PatOS.apps[n.icon].name) || 'PatOS', h('span', {}, 'now')), h('b', {}, n.title), h('div', {}, n.body)));
-    t.addEventListener('click', () => { t.remove(); n.onClick && n.onClick(); });
+      h('div', { class: 'toast-text' }, h('div', { class: 'toast-app' }, r.rec.appName, h('span', {}, r.rec.count > 1 ? '×' + r.rec.count : PatOS.t('now'))), h('b', {}, n.title), n.body ? h('div', {}, n.body) : null,
+        acts.length ? h('div', { class: 'toast-acts' }, ...acts.map((a, i) => h('button', { class: 'toast-act', onclick: (e) => { e.stopPropagation(); PatOS.nc.act(r.id, i); t.remove(); } }, a.label))) : null));
+    t.addEventListener('click', () => { t.remove(); PatOS.nc.open(r.id); });
     $('#toasts').appendChild(t);
     requestAnimationFrame(() => t.classList.add('in'));
-    setTimeout(() => { t.classList.remove('in'); setTimeout(() => t.remove(), 400); }, n.duration || 4500);
+    setTimeout(() => { t.classList.remove('in'); setTimeout(() => t.remove(), 400); }, n.duration || (r.rec.priority === 'urgent' ? 12000 : acts.length ? 8000 : 4500));
+    return r.id;
   };
 
   /* One look for "you're offline" everywhere. retry() runs by itself when the connection comes back,
@@ -12471,15 +12722,31 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
     return { cal, clock, up, remW, music };
   }
   PatOS.buildWidgets = buildWidgets;
+  let ncQuery = '';
+  const ago = (t) => { const s = Math.round((Date.now() - t) / 1000); return s < 60 ? PatOS.t('now') : s < 3600 ? Math.floor(s / 60) + ' min' : s < 86400 ? Math.floor(s / 3600) + ' h' : new Date(t).toLocaleDateString(PatOS.locale, { month: 'short', day: 'numeric' }); };
+  // a notification that arrives while Notification Center is open shows up in it
+  PatOS.on('notif', PatOS.debounce(() => { const p = document.getElementById('notif-center'); if (p && !p.classList.contains('hidden') && !(document.activeElement && document.activeElement.classList.contains('nc-search'))) renderNC(); }, 120));
   function renderNC() {
-    const nc = $('#notif-center'); nc.innerHTML = '';
+    const nc = $('#notif-center'); const keep = nc.querySelector('.nc-search'); const hadFocus = keep && document.activeElement === keep; nc.innerHTML = '';
     const { cal, clock, up, remW } = buildWidgets();
+    const T = PatOS.t;
+    const q = h('input', { class: 'field nc-search', type: 'search', placeholder: T('Search notifications'), 'aria-label': T('Search notifications'), value: ncQuery });
+    q.addEventListener('input', () => { ncQuery = q.value; renderNC(); });
+    const groups = PatOS.nc.groups().map((g) => ({ app: g.app, name: g.name, items: g.items.filter((n) => !ncQuery || (n.title + ' ' + n.body).toLowerCase().includes(ncQuery.toLowerCase())) })).filter((g) => g.items.length);
+    const item = (n) => h('div', { class: 'toast in static nc-item' + (n.priority === 'urgent' || n.priority === 'high' ? ' hi' : ''), onclick: () => { PatOS.nc.open(n.id); renderNC(); } },
+      h('div', { class: 'toast-icon', html: PatOS.iconHTML(n.app) }),
+      h('div', { class: 'toast-text' }, h('div', { class: 'toast-app' }, n.appName, h('span', {}, (n.count > 1 ? '×' + n.count + ' · ' : '') + ago(n.time))), h('b', {}, n.title), n.body ? h('div', {}, n.body) : null,
+        n.actions.length ? h('div', { class: 'toast-acts' }, ...n.actions.map((a, i) => h('button', { class: 'toast-act', onclick: (e) => { e.stopPropagation(); PatOS.nc.act(n.id, i); renderNC(); } }, a.label))) : null),
+      h('button', { class: 'nc-x', title: T('Dismiss'), 'aria-label': T('Dismiss'), onclick: (e) => { e.stopPropagation(); PatOS.nc.dismiss(n.id); renderNC(); } }, '×'));
     const list = h('div', { class: 'nc-list' },
-      h('div', { class: 'nc-head' }, h('b', {}, 'Notifications'), notifs.length ? h('button', { onclick: () => { notifs.length = 0; renderNC(); } }, 'Clear') : null),
-      notifs.length ? notifs.slice(0, 8).map((n) => h('div', { class: 'toast in static' },
-        h('div', { class: 'toast-icon', html: PatOS.iconHTML(n.icon) }),
-        h('div', { class: 'toast-text' }, h('b', {}, n.title), h('div', {}, n.body)))) : h('div', { class: 'w-muted pad' }, 'No new notifications'));
+      h('div', { class: 'nc-head' }, h('b', {}, T('Notifications')), groups.length ? h('button', { onclick: () => { PatOS.nc.clear(); renderNC(); } }, T('Clear all')) : null),
+      PatOS.nc.list().length > 3 || ncQuery ? q : null,
+      groups.length ? groups.map((g) => h('div', { class: 'nc-group' },
+        g.items.length > 1 ? h('div', { class: 'nc-ghead' }, h('span', {}, g.name + ' · ' + g.items.length), h('button', { onclick: () => { PatOS.nc.clearApp(g.app); renderNC(); } }, T('Clear'))) : null,
+        g.items.slice(0, 4).map(item))) : h('div', { class: 'w-muted pad' }, ncQuery ? T('Nothing matches.') : T('No new notifications')));
     nc.append(list, h('div', { class: 'nc-widgets' }, cal, clock, up, remW));
+    if (hadFocus) { const nq = nc.querySelector('.nc-search'); if (nq) { nq.focus(); nq.setSelectionRange(nq.value.length, nq.value.length); } }
+    PatOS.nc.markRead();
   }
   function drawAnalog(cv, d) {
     const x = cv.getContext('2d'); const W = cv.width, R = W / 2 - 4;
@@ -13516,6 +13783,190 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
       setInterval(() => { $$('#dock .dock-item[data-app="calendar"] .dock-icon, #dock .dock-item[data-app="clock"] .dock-icon').forEach((el) => { el.innerHTML = PatOS.iconHTML(el.parentNode.dataset.app); }); }, 60000);
     }
   };
+})();
+
+</script>
+  <script type="patos/js">
+/* What PatOS's own apps can do with things (Universal Actions, js/services.js). Each action only calls something the app
+   really supports; reminders, notes and events go through PatOS Intelligence, so its permissions (Settings › PatOS
+   Intelligence) apply here too. Apps that can't take content from outside yet (Messages, Contacts) aren't listed: no button
+   that does nothing. */
+(function () {
+  'use strict';
+  const A = PatOS.actions, T = (s) => PatOS.t(s);
+  const fsx = () => PatOS.fs;
+  const textOf = (o) => (o.type === 'url' ? (o.title ? o.title + ' ' : '') + o.url : o.type === 'contact' ? [o.name, o.phone, o.email].filter(Boolean).join(', ') : o.type === 'event' ? o.title : String(o.text || o.name || ''));
+  async function intel(id, params) {
+    if (!PatOS.intel) throw new Error(T('That isn’t available.'));
+    const r = await PatOS.intel.execute(id, params, { source: 'actions', confirmed: true });
+    if (!r || r.ok === false) throw new Error((r && r.message) || T('That didn’t work.'));
+    return { message: r.message };
+  }
+
+  // open and show
+  A.register({ id: 'file.open', title: 'Open', accepts: ['file', 'image', 'document', 'folder'], order: 1, run: (o) => { PatOS.openFile(o.path); } });
+  A.register({ id: 'finder.reveal', app: 'finder', title: 'Show in Piles', accepts: ['file', 'image', 'document'], order: 2, run: (o) => { PatOS.launch('finder', { path: fsx().dirname(o.path) }); } });
+  A.register({ id: 'photos.open', app: 'photos', title: 'Open in Photos', accepts: ['image'], order: 5, run: (o) => { PatOS.launch('photos', { path: o.path }); } });
+  A.register({ id: 'paint.edit', app: 'paint', title: 'Edit in Paint', accepts: (o) => o.type === 'image' && !!o.path, order: 6, run: (o) => { PatOS.launch('paint', { path: o.path }); } });
+  A.register({ id: 'preview.open', app: 'preview', title: 'Open in Preview', accepts: (o) => !!o.path && /\.(pdf|png|jpe?g|gif|webp)$/i.test(o.path), order: 7, run: (o) => { PatOS.launch('preview', { path: o.path }); } });
+  A.register({ id: 'textedit.open', app: 'textedit', title: 'Open in TextEdit', accepts: (o) => !!o.path && /\.(txt|md|js|css|html|json|csv|py)$/i.test(o.path), order: 8, run: (o) => { PatOS.launch('textedit', { path: o.path }); } });
+  A.register({ id: 'browser.open', app: 'browser', title: 'Open in Patoogle', accepts: ['url'], order: 3, run: (o) => { PatOS.launch('browser', { url: o.url }); } });
+
+  // make something with it
+  A.register({ id: 'notes.add', app: 'notes', title: 'Add to Notes', accepts: ['text', 'url', 'contact', 'event'], order: 20, run: (o) => intel('notes.create', { text: textOf(o).slice(0, 5000) }) });
+  A.register({ id: 'reminders.add', app: 'reminders', title: 'Remind Me', accepts: ['text', 'url', 'contact', 'event'], order: 21, run: (o) => intel('reminders.create', { text: (o.type === 'contact' ? T('Call') + ' ' + o.name : textOf(o)).slice(0, 300) }) });
+  A.register({ id: 'calendar.add', app: 'calendar', title: 'Add to Calendar', accepts: ['event', 'contact'], order: 22, run: (o) => intel('calendar.create', { title: (o.type === 'contact' ? T('Meet') + ' ' + o.name : o.title).slice(0, 200), day: o.start ? new Date(o.start) : undefined }) });
+  A.register({
+    id: 'wallpaper.set', title: 'Use as Wallpaper', accepts: (o) => o.type === 'image' && !!o.path, order: 30,
+    async run(o) {
+      const n = fsx().get(o.path); let url = n && typeof n.content === 'string' && n.content.startsWith('data:image') ? n.content : null;
+      if (!url && fsx().getBlob) { const b = await fsx().getBlob(o.path); if (b) url = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(r.result); r.onerror = () => rej(new Error(T('That picture can’t be read.'))); r.readAsDataURL(b); }); }
+      if (!url) throw new Error(T('That picture can’t be read.'));
+      const prev = { w: PatOS.settings.wallpaper, c: PatOS.settings.customWallpaper };
+      PatOS.setSetting('customWallpaper', url); PatOS.setSetting('wallpaper', 'custom');
+      return { message: T('New wallpaper.'), prev };
+    },
+    undo: (r) => { if (r && r.prev) { PatOS.setSetting('customWallpaper', r.prev.c || ''); PatOS.setSetting('wallpaper', r.prev.w); } }
+  });
+
+  // copy and keep
+  A.register({ id: 'clipboard.copy', title: 'Copy', accepts: ['text', 'url', 'contact', 'event'], order: 40, run: async (o) => { await navigator.clipboard.writeText(textOf(o)); return { message: T('Copied') }; } });
+  A.register({ id: 'clipboard.copypath', title: 'Copy Path', accepts: ['file', 'image', 'document', 'folder'], order: 41, run: async (o) => { await navigator.clipboard.writeText(o.path); return { message: T('Copied') }; } });
+  A.register({ id: 'capture.add', title: 'Capture', accepts: () => !!PatOS.capture, order: 45, run: (o) => { PatOS.capture.add(o, { from: 'share' }); return { message: T('Saved to Capture') }; } });
+})();
+
+</script>
+  <script type="patos/js">
+/* Command Center (3.3): what is happening in PatOS, in one place. Not Control Center (that is quick settings); this answers
+   "what is going on, did it work, what needs me": things that need attention, activities running now (Live Activities),
+   the state of sync, backups, storage and the account, recent notifications, and a search for commands and places.
+   It only reads the system services (PatOS.live, PatOS.nc, PatOS.sync, PatOS.backup, PatOS.account); it keeps nothing of
+   its own except which sections you hid. Open it with Alt+K, the menu bar, or Control Center on a phone.
+   Also here: the menu bar pill that shows running activities. */
+(function () {
+  'use strict';
+  const { h, $ } = PatOS;
+  const T = (s) => PatOS.t(s);
+  let el = null, query = '', storage = null;
+  const ago = (t) => { if (!t) return T('never'); const s = Math.round((Date.now() - t) / 1000); if (s < 60) return T('just now'); const x = s < 3600 ? Math.floor(s / 60) + ' min' : s < 86400 ? Math.floor(s / 3600) + ' h' : Math.floor(s / 86400) + (PatOS.lang === 'fr' ? ' j' : ' d'); return PatOS.lang === 'fr' ? 'il y a ' + x : x + ' ago'; };
+  const hidden = () => PatOS.settings.cmdHidden || [];
+  const SECTIONS = [['attention', 'Needs attention'], ['now', 'Now'], ['status', 'Status'], ['recent', 'Recent']];
+
+  /* ---------- what PatOS knows (read from the services, never copied) ---------- */
+  function lastBackup() { try { const l = PatOS.backup && PatOS.backup.list ? PatOS.backup.list() : []; return l.reduce((m, x) => Math.max(m, +x.time || +x.t || 0), 0); } catch (e) { return 0; } }
+  function attention() {
+    const out = [];
+    PatOS.live.recent().filter((a) => a.status === 'failed').slice(0, 3).forEach((a) => out.push({ icon: 'warn', tone: 'bad', title: a.title + ': ' + T('didn’t finish'), sub: a.message, act: a.can.retry ? [T('Retry'), () => PatOS.live.act(a.id, 'retry')] : null }));
+    PatOS.live.list().filter((a) => a.status === 'stalled').forEach((a) => out.push({ icon: 'warn', tone: 'warn', title: a.title + ': ' + T('no progress for 10 minutes'), sub: '', act: a.can.cancel ? [T('Cancel'), () => PatOS.live.act(a.id, 'cancel')] : null }));
+    const s = PatOS.sync && PatOS.sync.status ? PatOS.sync.status() : null;
+    if (s && s.on && s.state === 'error') out.push({ icon: 'cloud', tone: 'bad', title: T('Sync stopped'), sub: { key: T('The sync key is wrong.'), full: T('The server is full.'), busy: T('The server is busy.') }[s.error] || T('The server had a problem.'), act: [T('Try again'), () => PatOS.sync.now()] });
+    if (s && s.on && s.rejected) out.push({ icon: 'cloud', tone: 'warn', title: s.rejected + ' ' + T('items couldn’t be synced'), sub: '', act: [T('Open'), () => PatOS.launch('settings', { pane: 'sync' })] });
+    const lb = lastBackup(); if (!lb || Date.now() - lb > 7 * 86400000) out.push({ icon: 'history', tone: 'warn', title: lb ? T('No backup in over a week') : T('No backup yet'), sub: '', act: [T('Back up now'), () => runBackup()] });
+    if (storage && storage.quota && storage.usage / storage.quota > 0.85) out.push({ icon: 'storage', tone: 'warn', title: T('Storage almost full'), sub: Math.round(storage.usage / storage.quota * 100) + '%', act: [T('Open'), () => PatOS.launch('settings', { pane: 'storage' })] });
+    PatOS.nc.list().filter((n) => !n.read && (n.priority === 'high' || n.priority === 'urgent')).slice(0, 3).forEach((n) => out.push({ icon: 'bell', tone: 'warn', title: n.title, sub: n.appName, act: [T('Open'), () => PatOS.nc.open(n.id)] }));
+    return out;
+  }
+  /* a backup, shown as a Live Activity (a real one: it ends when the snapshot is written, or says it failed) */
+  async function runBackup() {
+    if (!PatOS.backup || !PatOS.backup.snapshot) return;
+    const a = PatOS.live.start({ app: 'settings', title: T('Backup'), detail: T('Saving a snapshot…'), progress: null, open: { app: 'settings', args: { pane: 'backup' } } });
+    try { await PatOS.backup.snapshot(T('Manual'), 'manual'); a.end('done', T('Snapshot saved')); } catch (e) { a.end('failed', (e && e.message) || ''); }
+  }
+
+  /* ---------- search: commands, settings, apps and places ---------- */
+  function results(q) {
+    q = q.trim().toLowerCase(); if (!q) return [];
+    const out = [];
+    Object.values(PatOS.apps).filter((a) => !a.hidden && (a.name.toLowerCase().includes(q) || T(a.name).toLowerCase().includes(q))).slice(0, 4).forEach((a) => out.push({ k: T('App'), label: T(a.name), run: () => PatOS.launch(a.id) }));
+    (PatOS.settingsCatalog || []).filter((c) => (T(c.label) + ' ' + c.words).toLowerCase().includes(q)).slice(0, 4).forEach((c) => out.push({ k: T('Setting'), label: T(c.label), run: () => PatOS.launch('settings', { pane: c.pane, find: c.key }) }));
+    [['Back up now', runBackup], ['Sync now', () => PatOS.sync && PatOS.sync.now()], ['Clear notifications', () => PatOS.nc.clear()], ['Open Clipboard', () => PatOS.timeline && PatOS.timeline.clipPanel()], ['Capture', () => PatOS.capture && PatOS.capture.quick()]]
+      .filter(([l]) => T(l).toLowerCase().includes(q) || l.toLowerCase().includes(q)).forEach(([l, fn]) => out.push({ k: T('Command'), label: T(l), run: fn }));
+    return out.slice(0, 9);
+  }
+
+  /* ---------- the panel ---------- */
+  function sec(id, title, body) { if (hidden().includes(id) || !body) return null; return h('section', { class: 'cmd-sec', 'data-sec': id }, h('h3', {}, T(title)), body); }
+  function render() {
+    if (!el) return;
+    const keep = el.querySelector('.cmd-q'), focus = keep && document.activeElement === keep;
+    el.innerHTML = '';
+    const q = h('input', { class: 'field cmd-q', type: 'search', value: query, placeholder: T('Search commands, settings and apps'), 'aria-label': T('Search commands, settings and apps') });
+    q.addEventListener('input', () => { query = q.value; render(); });
+    q.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const r = results(query)[0]; if (r) { close(); r.run(); } } });
+    const head = h('div', { class: 'cmd-head' }, h('span', { class: 'cmd-mark', html: PatOS.sym('grid') }), h('b', {}, T('Command Center')),
+      h('button', { class: 'cmd-ic', title: T('Sections'), 'aria-label': T('Sections'), html: PatOS.sym('list'), onclick: (e) => { const r = e.currentTarget.getBoundingClientRect(); PatOS.menu(SECTIONS.map(([k, l]) => ({ label: T(l), checked: !hidden().includes(k), action: () => { const hd = hidden().slice(); const i = hd.indexOf(k); if (i >= 0) hd.splice(i, 1); else hd.push(k); PatOS.setSetting('cmdHidden', hd); render(); } })), r.left, r.bottom + 4); } }),
+      h('button', { class: 'cmd-ic', title: T('Close'), 'aria-label': T('Close'), html: PatOS.sym('close'), onclick: close }));
+    el.append(head, q);
+    if (query.trim()) {
+      const r = results(query);
+      el.appendChild(h('div', { class: 'cmd-results', role: 'listbox' }, ...(r.length ? r.map((x) => h('button', { class: 'cmd-row', role: 'option', onclick: () => { close(); x.run(); } }, h('small', {}, x.k), h('span', {}, x.label))) : [h('p', { class: 'cmd-empty' }, T('Nothing matches.'))])));
+      if (focus) { q.focus(); q.setSelectionRange(q.value.length, q.value.length); }
+      return;
+    }
+    // needs attention
+    const att = attention();
+    const attBody = att.length ? h('div', { class: 'cmd-list' }, ...att.map((x) => h('div', { class: 'cmd-item ' + x.tone }, h('span', { class: 'cmd-i', html: PatOS.sym(x.icon) }), h('div', { class: 'cmd-t' }, h('b', {}, x.title), x.sub ? h('small', {}, x.sub) : null), x.act ? h('button', { class: 'btn', onclick: () => { x.act[1](); setTimeout(render, 300); } }, x.act[0]) : null)))
+      : h('div', { class: 'cmd-ok' }, h('span', { html: PatOS.sym('check') }), T('Everything is fine.'));
+    // now: live activities
+    const now = PatOS.live.list();
+    const ctl = (a, what, label, sym) => (a.can[what] ? h('button', { class: 'cmd-ic', title: label, 'aria-label': label, html: PatOS.sym(sym), onclick: () => { PatOS.live.act(a.id, what); render(); } }) : null);
+    const nowBody = now.length ? h('div', { class: 'cmd-list' }, ...now.map((a) => h('div', { class: 'cmd-live' + (a.status !== 'running' ? ' ' + a.status : '') },
+      h('div', { class: 'cmd-live-ic', html: PatOS.iconHTML(a.app) }),
+      h('div', { class: 'cmd-t' }, h('b', {}, a.title), h('small', {}, [a.status === 'paused' ? T('Paused') : a.status === 'stalled' ? T('No progress') : a.detail, a.progress != null ? Math.round(a.progress * 100) + '%' : '', a.eta ? '~' + Math.max(1, Math.round(a.eta / 60000)) + ' min' : ''].filter(Boolean).join(' · ')),
+        h('div', { class: 'cmd-bar' + (a.progress == null ? ' busy' : '') }, h('i', { style: { width: a.progress == null ? '' : Math.round(a.progress * 100) + '%' } }))),
+      ctl(a, 'pause', T('Pause'), 'pause'), ctl(a, 'resume', T('Resume'), 'play'), ctl(a, 'open', T('Open'), 'up'), ctl(a, 'cancel', T('Cancel'), 'close'))))
+      : h('p', { class: 'cmd-empty' }, T('Nothing running.'));
+    // status
+    const s = PatOS.sync && PatOS.sync.status ? PatOS.sync.status() : { on: false };
+    const acct = PatOS.account && PatOS.account.info ? PatOS.account.info() : null;
+    const tile = (sym, label, value, tone, go) => h('button', { class: 'cmd-tile ' + (tone || ''), onclick: go }, h('span', { html: PatOS.sym(sym) }), h('small', {}, T(label)), h('b', {}, value));
+    const statusBody = h('div', { class: 'cmd-tiles' },
+      tile('cloud', 'Sync', !s.on ? T('Off') : s.state === 'syncing' ? T('Syncing…') : s.state === 'error' ? T('Stopped') : s.state === 'offline' ? T('Waiting for internet') : T('Up to date') + (s.last ? ' · ' + ago(s.last) : ''), s.state === 'error' ? 'bad' : '', () => { close(); PatOS.launch('settings', { pane: 'sync' }); }),
+      tile('history', 'Backup', ago(lastBackup()), '', () => { close(); PatOS.launch('settings', { pane: 'backup' }); }),
+      tile('storage', 'Storage', storage && storage.quota ? Math.round(storage.usage / 1048576) + ' MB · ' + Math.round(storage.usage / storage.quota * 100) + '%' : '—', storage && storage.quota && storage.usage / storage.quota > 0.85 ? 'warn' : '', () => { close(); PatOS.launch('settings', { pane: 'storage' }); }),
+      tile('person', 'Account', acct ? '@' + acct.username : T('Not signed in'), '', () => { close(); PatOS.launch('settings', { pane: 'me' }); }),
+      PatOS.spaces ? tile('apps', 'Shared Spaces', PatOS.spaces.summary(), '', () => { close(); PatOS.launch('spaces'); }) : null);
+    // recent
+    const rec = [...PatOS.live.recent().slice(0, 3).map((a) => ({ t: a.ended, icon: a.app, title: a.title, sub: a.status === 'done' ? T('Finished') : a.status === 'failed' ? T('Didn’t finish') : T('Cancelled') })),
+      ...PatOS.nc.list().slice(0, 4).map((n) => ({ t: n.time, icon: n.app, title: n.title, sub: n.appName, go: () => PatOS.nc.open(n.id) }))].sort((a, b) => b.t - a.t).slice(0, 6);
+    const recBody = rec.length ? h('div', { class: 'cmd-list' }, ...rec.map((x) => h('div', { class: 'cmd-item', onclick: x.go ? () => { close(); x.go(); } : null }, h('div', { class: 'cmd-live-ic sm', html: PatOS.iconHTML(x.icon) }), h('div', { class: 'cmd-t' }, h('b', {}, x.title), h('small', {}, x.sub + ' · ' + ago(x.t)))))) : null;
+    el.append(...[sec('attention', 'Needs attention', attBody), sec('now', 'Now', nowBody), sec('status', 'Status', statusBody), sec('recent', 'Recent', recBody)].filter(Boolean));
+    if (focus) q.focus();
+  }
+  function open() {
+    if (el) return;
+    el = h('div', { id: 'cmd', class: 'lg-elevated', role: 'dialog', 'aria-label': T('Command Center') });
+    document.body.appendChild(el); render();
+    requestAnimationFrame(() => el && el.classList.add('in'));
+    try { navigator.storage && navigator.storage.estimate().then((e) => { storage = e; render(); }); } catch (e) {}
+    setTimeout(() => { const q = el && el.querySelector('.cmd-q'); if (q && !PatOS.isMobile) q.focus(); }, 60);
+  }
+  function close() { if (!el) return; const e = el; el = null; query = ''; e.classList.remove('in'); setTimeout(() => e.remove(), 220); }
+  const toggle = () => (el ? close() : open());
+  const redraw = PatOS.debounce(() => { if (el && !(document.activeElement && document.activeElement.classList.contains('cmd-q') && query)) render(); pill(); }, 150);
+  PatOS.on('live', redraw); PatOS.on('notif', redraw); PatOS.on('sync', redraw);
+  document.addEventListener('keydown', (e) => { if (!PatOS.loggedIn) return; if (e.altKey && !e.ctrlKey && e.code === 'KeyK') { e.preventDefault(); toggle(); } else if (e.key === 'Escape' && el) close(); });
+  document.addEventListener('pointerdown', (e) => { if (el && !e.target.closest('#cmd, #mb-cmd, #mb-live, .menu, .dlg-layer, .cc-cmd')) close(); });
+
+  /* ---------- the menu bar: Command Center, and the pill for running activities ---------- */
+  function pill() {
+    const b = document.getElementById('mb-live'); if (!b) return;
+    const l = PatOS.live.list(); b.classList.toggle('hidden', !l.length);
+    if (!l.length) return;
+    const p = l.find((a) => a.progress != null); const pct = p ? Math.round(p.progress * 100) : null;
+    b.innerHTML = '<svg viewBox="0 0 20 20" width="15" height="15" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-opacity=".3" stroke-width="2.4"/>' +
+      (pct == null ? '<circle class="mbl-spin" cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-dasharray="12 36" stroke-linecap="round"/>' : '<circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="' + (47.1 * pct / 100).toFixed(1) + ' 47.1" transform="rotate(-90 10 10)"/>') + '</svg>' +
+      '<span>' + (l.length > 1 ? l.length : pct != null ? pct + '%' : '') + '</span>';
+    b.title = l.map((a) => a.title + (a.progress != null ? ' ' + Math.round(a.progress * 100) + '%' : '')).join('\n');
+    b.setAttribute('aria-label', T('Activities') + ': ' + b.title);
+  }
+  function wire() {
+    const c = document.getElementById('mb-cmd'); if (c && !c._w) { c._w = 1; c.innerHTML = PatOS.sym('grid'); c.addEventListener('click', (e) => { e.stopPropagation(); toggle(); }); }
+    const l = document.getElementById('mb-live'); if (l && !l._w) { l._w = 1; l.addEventListener('click', (e) => { e.stopPropagation(); open(); }); }
+    pill();
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
+  PatOS.command = { open, close, toggle, isOpen: () => !!el, attention, runBackup };
 })();
 
 </script>
@@ -17038,7 +17489,7 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":1};
      is about this one device, a copy that is made again by itself, or a secret stays. With a sync code, only the list above. */
   let mode = 'code'; // 'code' (a sync code and the PatOS server) or 'account' (a PatOS account in the cloud)
   const DENY = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncKey', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'systemUid', 'verifiedUids', 'annSeen', 'fsDamaged', 'intelHistory', 'accountPrompt', 'accountSeen', 'msgRead', 'patAppGrants', 'privacyLog',
-    'setupStep', 'setupDone', 'setupBack', 'installOffered', 'iosHint', 'notifAsked', 'appInstalled', 'alarmQueue',
+    'setupStep', 'setupDone', 'setupBack', 'notifHistory', 'notifQueue', 'installOffered', 'iosHint', 'notifAsked', 'appInstalled', 'alarmQueue',
     'timeline', 'timelineMoments', 'clipHistory', 'timelinePause', 'handoffDevice', 'handoffSeen',
     'wpCache', 'wpLockCache', 'wpThumbs', 'wxCache', 'dictCache', 'googleCx', 'patosServer', 'ytKey', 'pwVault', 'musicState', 'settings']);
   const DENY_PREFIX = ['newsCache:', 'ytHome:'];
@@ -24757,6 +25208,20 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           out.append(group(row(T('Do Not Disturb'), dnd, T('Banners and sounds stay quiet; notifications still go to Notification Center.')),
             row(T('Notification sounds'), toggle('notifSound'), T('A short sound with each banner.')),
             row(T('Notifications in other tabs'), toggle('systemNotifications'), T('When PatOS is in a background tab, the browser shows the notification (if allowed).'))),
+            h('h3', {}, T('Quiet hours')), (() => {
+              const tIn = (key, def) => { const i = h('input', { class: 'field', type: 'time', value: S()[key] || def, 'data-key': key, 'aria-label': T(key === 'quietFrom' ? 'From' : 'To'), style: { width: '110px' } }); i.onchange = () => PatOS.setSetting(key, i.value || def); return i; };
+              return group(row(T('Quiet hours'), toggle('quietOn', renderMain), T('No banners or sounds, except urgent ones.')), S().quietOn ? row(T('From'), tIn('quietFrom', '22:00')) : null, S().quietOn ? row(T('To'), tIn('quietTo', '07:00')) : null,
+                row(T('Keep history'), select('notifKeepDays', [[1, T('1 day')], [7, T('7 days')], [30, T('30 days')]])));
+            })(),
+            (() => { // a rule for each app that has sent notifications
+              const R = () => Object.assign({}, S().notifRules || {});
+              const sw = (app, k) => { const on = (R()[app] || {})[k] !== false; const b = h('button', { class: 'switch' + (on ? ' on' : ''), role: 'switch', 'aria-checked': String(on), 'aria-label': T(PatOS.apps[app].name) + ' ' + T(k === 'allow' ? 'Allow' : k === 'banner' ? 'Banners' : 'Sounds') });
+                b.onclick = () => { const all = R(); all[app] = Object.assign({}, all[app], { [k]: !b.classList.contains('on') }); PatOS.setSetting('notifRules', all); b.classList.toggle('on'); b.setAttribute('aria-checked', String(b.classList.contains('on'))); }; return b; };
+              const apps = [...new Set(PatOS.nc.list().map((n) => n.app).concat(Object.keys(S().notifRules || {})))].filter((a) => PatOS.apps[a]).slice(0, 20);
+              return apps.length ? h('div', {}, h('h3', {}, T('Each app')), group(...apps.map((a) => h('div', { class: 'st-row st-rule' }, h('div', { class: 'st-rl' }, h('span', { class: 'st-rule-ic', html: PatOS.iconHTML(a) }), h('span', {}, T(PatOS.apps[a].name))),
+                h('div', { class: 'st-rule-sw' }, h('small', {}, T('Allow')), sw(a, 'allow'), h('small', {}, T('Banners')), sw(a, 'banner'), h('small', {}, T('Sounds')), sw(a, 'sound')))))) : null;
+            })(),
+            PatOS.nc.scheduled().length ? h('div', {}, h('h3', {}, T('Scheduled')), group(...PatOS.nc.scheduled().map((q) => row(q.title, h('button', { class: 'btn', onclick: () => { PatOS.nc.cancelScheduled(q.id); renderMain(); } }, T('Cancel')), new Date(q.at).toLocaleString(PatOS.locale))))) : null,
             h('h3', {}, T('Apps you silenced')), group(...(muted.length ? muted.map((k) => row(T(PatOS.apps[k].name), h('button', { class: 'btn', onclick: () => { PatOS.setSetting('mutedApps', (S().mutedApps || []).filter((x) => x !== k)); renderMain(); } }, T('Turn On')))) : [h('div', { class: 'bk-empty' }, T('None. Silence an app in Settings › Applications.'))])),
             h('h3', {}, T('History')), hist, group(row(T('Clear the history'), h('button', { class: 'btn', onclick: () => { PatOS.notifications && PatOS.notifications.clear(); drawHist(); } }, T('Clear')))));
           return [out];

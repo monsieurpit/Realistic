@@ -88,6 +88,20 @@
           out.append(group(row(T('Do Not Disturb'), dnd, T('Banners and sounds stay quiet; notifications still go to Notification Center.')),
             row(T('Notification sounds'), toggle('notifSound'), T('A short sound with each banner.')),
             row(T('Notifications in other tabs'), toggle('systemNotifications'), T('When PatOS is in a background tab, the browser shows the notification (if allowed).'))),
+            h('h3', {}, T('Quiet hours')), (() => {
+              const tIn = (key, def) => { const i = h('input', { class: 'field', type: 'time', value: S()[key] || def, 'data-key': key, 'aria-label': T(key === 'quietFrom' ? 'From' : 'To'), style: { width: '110px' } }); i.onchange = () => PatOS.setSetting(key, i.value || def); return i; };
+              return group(row(T('Quiet hours'), toggle('quietOn', renderMain), T('No banners or sounds, except urgent ones.')), S().quietOn ? row(T('From'), tIn('quietFrom', '22:00')) : null, S().quietOn ? row(T('To'), tIn('quietTo', '07:00')) : null,
+                row(T('Keep history'), select('notifKeepDays', [[1, T('1 day')], [7, T('7 days')], [30, T('30 days')]])));
+            })(),
+            (() => { // a rule for each app that has sent notifications
+              const R = () => Object.assign({}, S().notifRules || {});
+              const sw = (app, k) => { const on = (R()[app] || {})[k] !== false; const b = h('button', { class: 'switch' + (on ? ' on' : ''), role: 'switch', 'aria-checked': String(on), 'aria-label': T(PatOS.apps[app].name) + ' ' + T(k === 'allow' ? 'Allow' : k === 'banner' ? 'Banners' : 'Sounds') });
+                b.onclick = () => { const all = R(); all[app] = Object.assign({}, all[app], { [k]: !b.classList.contains('on') }); PatOS.setSetting('notifRules', all); b.classList.toggle('on'); b.setAttribute('aria-checked', String(b.classList.contains('on'))); }; return b; };
+              const apps = [...new Set(PatOS.nc.list().map((n) => n.app).concat(Object.keys(S().notifRules || {})))].filter((a) => PatOS.apps[a]).slice(0, 20);
+              return apps.length ? h('div', {}, h('h3', {}, T('Each app')), group(...apps.map((a) => h('div', { class: 'st-row st-rule' }, h('div', { class: 'st-rl' }, h('span', { class: 'st-rule-ic', html: PatOS.iconHTML(a) }), h('span', {}, T(PatOS.apps[a].name))),
+                h('div', { class: 'st-rule-sw' }, h('small', {}, T('Allow')), sw(a, 'allow'), h('small', {}, T('Banners')), sw(a, 'banner'), h('small', {}, T('Sounds')), sw(a, 'sound')))))) : null;
+            })(),
+            PatOS.nc.scheduled().length ? h('div', {}, h('h3', {}, T('Scheduled')), group(...PatOS.nc.scheduled().map((q) => row(q.title, h('button', { class: 'btn', onclick: () => { PatOS.nc.cancelScheduled(q.id); renderMain(); } }, T('Cancel')), new Date(q.at).toLocaleString(PatOS.locale))))) : null,
             h('h3', {}, T('Apps you silenced')), group(...(muted.length ? muted.map((k) => row(T(PatOS.apps[k].name), h('button', { class: 'btn', onclick: () => { PatOS.setSetting('mutedApps', (S().mutedApps || []).filter((x) => x !== k)); renderMain(); } }, T('Turn On')))) : [h('div', { class: 'bk-empty' }, T('None. Silence an app in Settings › Applications.'))])),
             h('h3', {}, T('History')), hist, group(row(T('Clear the history'), h('button', { class: 'btn', onclick: () => { PatOS.notifications && PatOS.notifications.clear(); drawHist(); } }, T('Clear')))));
           return [out];
