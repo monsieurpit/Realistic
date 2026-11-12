@@ -1,0 +1,187 @@
+/* ================= PatOS 3 design language =================
+   One type scale, one 8px spacing rhythm and one component kit, used by every app. Loaded last, so it decides.
+   - Type: body 15px inside apps (comfortable, like a phone), titles 30px bold, headings 20/15px, captions 12px.
+   - Spacing: 4 / 8 / 12 / 16 / 24 / 32 (--sp-1 … --sp-6); corners 8 / 12 / 18 (--r-sm/md/lg).
+   - Components: controls are 32px tall; sidebar items 34px with 10px corners; list rows 44px; grouped lists have 14px
+     corners; toggles are phone-sized; the window toolbar is one 52px band.
+   Apps keep their own layouts; what they share (buttons, fields, sidebars, lists, headings, toggles, toolbars) comes from here. */
+:root {
+  --fs-cap: 12px; --fs-sm: 13px; --fs-body: 15px; --fs-head: 15px; --fs-title3: 20px; --fs-title2: 24px; --fs-title1: 30px; --fs-large: 34px;
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px;
+  --r-sm: 8px; --r-md: 12px; --r-lg: 18px;
+  --h-control: 32px; --h-side: 34px; --h-row: 44px; --h-toolbar: 52px;
+  /* 3.2: meaning, focus, motion and layers (one place; light and dark both work since they mix with the theme) */
+  --ok: #30d158; --warn: #ff9f0a; --bad: #ff453a; --info: #0a84ff; --off: #8e8e93;
+  --focus-ring: 0 0 0 3px color-mix(in srgb, var(--accent) 55%, transparent);
+  --dur-fast: .15s; --dur-med: .28s; --dur-slow: .45s; --ease-out: cubic-bezier(.2, .9, .3, 1);
+  --z-window: 10; --z-menubar: 1000; --z-popover: 5000; --z-dialog: 9000; --z-toast: 9500; --z-system: 2147482000;
+  --tap: 44px; /* the smallest touch target */
+}
+@media (prefers-reduced-motion: reduce) { :root { --dur-fast: 0s; --dur-med: 0s; --dur-slow: 0s; } }
+
+/* ---------- type ---------- */
+.window .win-body { font-size: var(--fs-body); line-height: 1.4; }
+.window .win-body :is(h1) { font-size: var(--fs-title1); font-weight: 750; letter-spacing: -.5px; line-height: 1.15; margin-top: 0; margin-bottom: var(--sp-4); }
+.window .win-body :is(h2) { font-size: var(--fs-title3); font-weight: 700; letter-spacing: -.25px; line-height: 1.25; }
+.window .win-body :is(h3) { font-size: var(--fs-head); font-weight: 650; letter-spacing: -.1px; }
+.window .win-body small { font-size: var(--fs-cap); }
+.win-title { font-size: 14px; font-weight: 650; letter-spacing: -.1px; }
+
+/* ---------- the toolbar: one 52px band, traffic lights and controls centered in it ---------- */
+html:not(.mobile) .window:not(.tb-hidden) > .titlebar { height: var(--h-toolbar); padding: 0 var(--sp-3) 0 var(--sp-4); gap: var(--sp-3); }
+html:not(.mobile) .traffic { gap: 8px; }
+html:not(.mobile) .tl { width: 13px; height: 13px; }
+
+/* ---------- controls: one height, one shape ---------- */
+.btn { height: var(--h-control); padding: 0 var(--sp-4); font-size: 14px; font-weight: 600; }
+.btn.sm { height: 28px; padding: 0 var(--sp-3); font-size: 13px; }
+.tbtn { height: var(--h-control); min-width: var(--h-control); padding: 0 var(--sp-2); }
+.tbtn .sym, .tbtn svg { width: 18px; height: 18px; }
+.field { height: var(--h-control); padding: 0 var(--sp-3); font-size: 14px; }
+textarea.field { height: auto; padding: var(--sp-2) var(--sp-3); }
+select.field { padding-right: var(--sp-6); }
+.seg { padding: 3px; gap: 2px; } .seg .tab { height: 28px; padding: 0 var(--sp-3); font-size: 13.5px; font-weight: 600; }
+/* phone-sized toggles */
+.switch { width: 46px; height: 28px; border-radius: 14px; }
+.switch::after { top: 2px; left: 2px; width: 24px !important; height: 24px; border-radius: 12px !important; }
+.switch.on::after { transform: translateX(18px) !important; }
+
+/* ---------- sidebars: the same items in every app ---------- */
+:is(.fd-side, .st-side, .dv-side, .mu-side, .pw-side, .nw-side, .rm-side, .notes-side, .msg-side, .ph-side, .cal-side, .ct-side) { padding: var(--sp-3) var(--sp-2); }
+:is(.fd-si, .st-si, .dv-si, .mu-si, .pw-si, .nw-si) {
+  display: flex; align-items: center; gap: 10px; width: 100%; min-height: var(--h-side); padding: 0 10px; border-radius: 10px;
+  font-size: 14px; font-weight: 500; text-align: left; transition: background .15s, color .15s;
+}
+:is(.fd-si, .st-si, .dv-si, .mu-si, .pw-si, .nw-si):hover { background: var(--hover); }
+:is(.fd-si, .st-si, .dv-si, .pw-si, .nw-si):is(.on, .sel, .active) { background: var(--accent); color: #fff; }
+:is(.fd-si, .dv-si, .mu-si, .pw-si) .sym { width: 18px; height: 18px; }
+/* (wider where names are long at the bigger size) */
+.st-side { width: 236px; }
+/* sidebar section labels */
+:is(.fd-sh, .fd-side h4, .st-side h4, .mu-side h4) { font-size: 12px; font-weight: 700; letter-spacing: .2px; color: var(--text3); margin: var(--sp-4) 10px var(--sp-1); }
+
+/* ---------- lists: grouped like a phone's settings ---------- */
+.st-group { border-radius: 14px; margin-bottom: var(--sp-5); overflow: hidden; }
+.st-row { min-height: var(--h-row); padding: var(--sp-2) var(--sp-4); font-size: var(--fs-body); }
+.st-row .st-rl > span { font-size: var(--fs-body); }
+.st-main { padding: var(--sp-5) var(--sp-6) var(--sp-6); }
+.st-main h1 { font-size: var(--fs-title1); margin-bottom: var(--sp-4); }
+.st-main h3 { font-size: 13px; font-weight: 600; color: var(--text2); text-transform: none; margin: var(--sp-5) var(--sp-4) var(--sp-2); }
+
+/* ---------- sheets (dialogs) ---------- */
+.dlg { padding: var(--sp-5); gap: var(--sp-3); }
+.dlg > b { font-size: 17px; font-weight: 700; }
+.dlg p { font-size: 14px; line-height: 1.45; }
+.dlg .btn { min-width: 96px; }
+
+/* ---------- menus ---------- */
+.menu-item { min-height: 30px; font-size: 14px; padding: 0 var(--sp-3) 0 var(--sp-2); }
+
+/* ---------- empty states: big, calm, centered ---------- */
+:is(.of-empty, .sc-none, .fd-empty, .nt-empty, .rm-empty) { font-size: 14px; line-height: 1.5; }
+
+/* ================= smarter windows ================= */
+/* snap layouts: the picker at the top of the screen while a window is dragged there (js/wm.js) */
+#snap-picker { position: absolute; top: 40px; left: 50%; transform: translate(-50%, -12px) scale(.96); z-index: 9400; display: flex; gap: 12px; padding: 12px;
+  border-radius: 22px; opacity: 0; pointer-events: none; transition: opacity .18s, transform .25s cubic-bezier(.2,.9,.3,1.2);
+  background: rgba(30,31,37,.55); -webkit-backdrop-filter: blur(24px) saturate(1.4); backdrop-filter: blur(24px) saturate(1.4);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.22), inset 0 0 0 .5px rgba(255,255,255,.16), 0 18px 50px rgba(0,0,0,.4); }
+:root[data-theme="light"] #snap-picker { background: rgba(255,255,255,.6); }
+#snap-picker.show { opacity: 1; transform: translate(-50%, 0) scale(1); pointer-events: auto; }
+.sl-box { position: relative; width: 84px; height: 54px; border-radius: 10px; background: rgba(255,255,255,.08); box-shadow: inset 0 0 0 1px rgba(255,255,255,.14); }
+:root[data-theme="light"] .sl-box { background: rgba(0,0,0,.05); box-shadow: inset 0 0 0 1px rgba(0,0,0,.1); }
+.sl-cell { position: absolute; padding: 3px; box-sizing: border-box; }
+.sl-cell::after { content: ""; display: block; width: 100%; height: 100%; border-radius: 6px; background: rgba(255,255,255,.22); transition: background .12s, transform .12s; }
+:root[data-theme="light"] .sl-cell::after { background: rgba(0,0,0,.14); }
+.sl-cell.on::after { background: var(--accent); transform: scale(1.04); }
+#snap-preview { border-radius: 16px; background: color-mix(in srgb, var(--accent) 22%, rgba(255,255,255,.12)); border: 1.5px solid color-mix(in srgb, var(--accent) 70%, #fff); }
+/* stage focus: the others wait as live thumbnails on the left; a thumbnail can only be clicked (to bring it on stage) */
+.window.stage-thumb { border-radius: 22px !important; box-shadow: 0 18px 40px rgba(0,0,0,.45) !important; cursor: pointer; }
+.window.stage-thumb * { pointer-events: none !important; }
+.window.stage-thumb:hover { filter: brightness(1.08); }
+body.stage-on .window { transition: left .32s cubic-bezier(.2,.8,.2,1), top .32s cubic-bezier(.2,.8,.2,1), width .32s cubic-bezier(.2,.8,.2,1), height .32s cubic-bezier(.2,.8,.2,1), transform .32s cubic-bezier(.2,.8,.2,1); }
+
+/* ================= motion: everything moves on the system spring (--spring, set by js/wm.js) ================= */
+:root { --spring: cubic-bezier(.2,.95,.25,1.08); --spring-dur: 520ms; --spring-dur-short: 320ms; }
+/* (resizes use the short spring: a window that is still growing after you clicked feels slow) */
+.window.animating, body.stage-on .window { transition-property: left, top, width, height, transform; transition-duration: var(--spring-dur-short) !important; transition-timing-function: var(--spring) !important; }
+html:not(.reduce-motion) :is(.menu, .panel, .sp-box) { animation-duration: var(--spring-dur-short) !important; animation-timing-function: var(--spring) !important; }
+html:not(.reduce-motion) .dlg { animation: dlgIn var(--spring-dur-short) var(--spring); }
+@keyframes dlgIn { from { opacity: 0; transform: scale(.9) translateY(10px); } }
+/* a panel being dragged follows the pointer; let go and it springs back or away */
+.panel.dragging { animation: none !important; transition: none !important; }
+.panel.springing { transition: transform var(--spring-dur-short) var(--spring), opacity .2s !important; }
+
+/* ================= 3.2: Settings (badges, single-setting results, the setting you asked for) ================= */
+.st-desc { margin: 0 0 var(--sp-4); color: var(--text2); font-size: var(--fs-sm); max-width: 62ch; }
+.st-sub { margin: var(--sp-5) 0 var(--sp-2); }
+.st-badge { display: inline-flex; align-items: center; gap: 6px; flex: none; font-size: var(--fs-sm); font-weight: 600; padding: 3px 10px; border-radius: 999px; background: var(--hover); }
+.st-badge .st-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--off); }
+.st-badge.ok .st-dot { background: var(--ok); } .st-badge.warn .st-dot { background: var(--warn); } .st-badge.bad .st-dot { background: var(--bad); }
+.st-badge.bad { color: var(--bad); }
+.st-found { animation: stFound 2.4s var(--ease-out); border-radius: var(--r-md); }
+@keyframes stFound { 0%, 60% { box-shadow: inset 0 0 0 2px var(--accent); background: color-mix(in srgb, var(--accent) 12%, transparent); } 100% { box-shadow: none; } }
+.st-si-one span { display: flex; flex-direction: column; line-height: 1.15; min-width: 0; } .st-si-one small { opacity: .65; font-size: 11.5px; }
+.st-si.st-si-one.on small, .st-si-one:hover small { opacity: .8; }
+.st-app-ic { width: 28px; height: 28px; flex: none; display: grid; place-items: center; } .st-app-ic > * { width: 28px !important; height: 28px !important; }
+.st-chev { opacity: .45; font-size: 18px; margin-left: auto; }
+.st-col { flex-direction: column; align-items: stretch; gap: var(--sp-2); }
+.st-ws-steps { width: 100%; font: 13px/1.5 ui-monospace, Menlo, monospace; resize: vertical; }
+.st-ws-check { font-size: var(--fs-cap); } .st-ws-check.ok { color: var(--ok); } .st-ws-check.bad { color: var(--bad); }
+.st-apps .st-search { margin-bottom: var(--sp-3); width: 100%; }
+.diag-dlg { width: min(720px, 94vw); max-height: 86vh; display: flex; flex-direction: column; }
+.diag-pre { flex: 1; min-height: 200px; max-height: 52vh; overflow: auto; margin: var(--sp-2) 0; padding: var(--sp-3); border-radius: var(--r-md); background: rgba(0,0,0,.25); font: 12px/1.45 ui-monospace, Menlo, monospace; white-space: pre-wrap; text-align: left; }
+/* keyboard focus: always visible, everywhere (WCAG 2.4.7 / 2.4.11) */
+:is(button, [role="button"], a, input, select, textarea, [tabindex]):focus-visible { outline: none; box-shadow: var(--focus-ring); }
+/* Developer Center */
+.dv-card { margin-bottom: var(--sp-4); } .dv-code { font: 12.5px ui-monospace, Menlo, monospace; padding: 2px 6px; border-radius: 6px; background: var(--hover); word-break: break-all; }
+.dv-paste { width: 100%; margin: var(--sp-3) 0; font: 12px ui-monospace, Menlo, monospace; }
+/* ================= 3.2 accessibility (WCAG 2.2 AA) ================= */
+/* text a screen of any brightness can read: secondary text at 4.5:1 or more */
+:root[data-theme="dark"] { --text3: rgba(235,235,245,.56); }
+:root[data-theme="light"] { --text2: rgba(60,60,67,.84); --text3: rgba(60,60,67,.76); }
+/* the selected item in a sidebar: white text on a deeper accent (4.5:1 with the default blue) */
+:is(.fd-si, .st-si, .dv-si, .pw-si, .nw-si):is(.on, .sel, .active) { background: color-mix(in srgb, var(--accent) 78%, #000); }
+.cal-num.today { background: #d93025; }
+/* menu bar buttons: at least 24×24 (WCAG 2.5.8) */
+#menubar button { height: 24px; min-width: 24px; justify-content: center; }
+/* Text size (Settings › Accessibility): the inside of every app window grows; the menu bar, Dock and window frames don't */
+.window .win-body { zoom: var(--text-zoom, 1); }
+.tl-day.l4 { background: color-mix(in srgb, var(--accent) 80%, #000); } .tl-f.on small { color: #fff; }
+.m2-card .m2-fine { opacity: .85; }
+/* App Store: categories, sorting, screenshots */
+.as-filter { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 var(--sp-3); } .as-filter select { margin-left: auto; }
+.as-chip { min-height: 30px; padding: 0 12px; border-radius: 999px; background: var(--hover); font-size: 13px; font-weight: 600; } .as-chip.on { background: color-mix(in srgb, var(--accent) 80%, #000); color: #fff; }
+.as-shots { display: flex; gap: var(--sp-3); overflow-x: auto; padding: var(--sp-2) 0 var(--sp-4); scroll-snap-type: x mandatory; } .as-shots img { height: 220px; border-radius: var(--r-md); scroll-snap-align: start; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
+
+/* ================= 3.2 beta 7: a more polished Settings ================= */
+.st-main h1 { letter-spacing: -.02em; font-weight: 700; }
+.st-sq { position: relative; display: block; margin: 0 0 10px; }
+.st-sq .st-search { width: 100%; height: 30px; margin: 0; padding-left: 30px !important; font-size: 13px; }
+.st-sq-ic { position: absolute; left: 11px; top: 50%; transform: translateY(-50%); display: grid; color: var(--text3); pointer-events: none; z-index: 1; }
+.st-sq:focus-within .st-sq-ic { color: var(--accent); }
+.st-si { transition: background var(--dur-fast, .15s); }
+.st-si.on { box-shadow: 0 2px 8px color-mix(in srgb, var(--accent) 35%, transparent); }
+.st-row { transition: background var(--dur-fast, .15s); }
+.st-link:hover, .st-link:focus-visible { background: rgba(127,127,127,.08); }
+.st-back { display: inline-flex; align-items: center; gap: 2px; padding: 3px 10px 3px 7px; margin: -6px 0 8px -6px; border-radius: 999px; font-weight: 500; }
+.st-back:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.st-hero { padding: 14px 16px; margin-bottom: var(--sp-5); border-radius: 16px; background: linear-gradient(135deg, color-mix(in srgb, var(--accent) 12%, var(--card)), var(--card)); box-shadow: inset 0 0 0 .5px var(--border2); }
+.st-hero .st-hero-ic { width: 64px; height: 64px; }
+/* Wallpaper: a preview of the screen, the signature set, then the rest */
+.st-wp-hero { display: flex; gap: 22px; align-items: center; padding: 16px; margin-bottom: var(--sp-5); border-radius: 18px; background: var(--card); box-shadow: inset 0 0 0 .5px var(--border2); }
+.st-wp-screen { position: relative; flex: none; width: 46%; max-width: 300px; aspect-ratio: 16/10; border-radius: 12px; background: #111 center/cover; overflow: hidden;
+  box-shadow: 0 0 0 5px #1c1c1e, 0 0 0 6px rgba(255,255,255,.14), 0 14px 30px rgba(0,0,0,.35); margin: 6px; }
+.st-wp-bar { position: absolute; left: 0; right: 0; top: 0; height: 7%; background: rgba(0,0,0,.18); backdrop-filter: blur(6px); }
+.st-wp-dock { position: absolute; left: 22%; right: 22%; bottom: 5%; height: 10%; border-radius: 6px; background: rgba(255,255,255,.22); box-shadow: inset 0 0 0 .5px rgba(255,255,255,.4); backdrop-filter: blur(6px); }
+.st-wp-meta { min-width: 0; } .st-wp-meta small { color: var(--text3); font-size: 11.5px; font-weight: 600; text-transform: uppercase; letter-spacing: .06em; }
+.st-wp-meta h2 { margin: 2px 0 4px; font-size: 22px; letter-spacing: -.01em; } .st-wp-meta p { margin: 0 0 12px; color: var(--text2); font-size: 13px; }
+.st-wps.big { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
+.st-wp { align-items: stretch; text-align: center; border-radius: 12px; padding: 0; background: none; }
+.st-wp-img { position: relative; display: block; border-radius: 10px; transition: transform var(--dur-med, .28s) var(--ease-out, ease), box-shadow var(--dur-fast, .15s); }
+.st-wp .st-wp-img img { display: block; width: 100%; aspect-ratio: 16/10; object-fit: cover; border-radius: 10px; box-shadow: 0 0 0 .5px var(--border2), 0 4px 12px rgba(0,0,0,.18); }
+.st-wp:hover .st-wp-img { transform: translateY(-2px); }
+.st-wp.on .st-wp-img img, .st-wp.on img { box-shadow: 0 0 0 2.5px var(--accent), 0 0 0 5px color-mix(in srgb, var(--accent) 25%, transparent), 0 6px 16px rgba(0,0,0,.22); }
+.st-wp-check { position: absolute; right: 6px; bottom: 6px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; background: var(--accent); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.3); }
+.st-wp-n { font-size: 12px; color: var(--text2); } .st-wp.on .st-wp-n { color: var(--text); font-weight: 600; }
+.mobile .st-wp-hero { flex-direction: column; align-items: stretch; } .mobile .st-wp-screen { width: auto; max-width: none; }

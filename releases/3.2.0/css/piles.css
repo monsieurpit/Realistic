@@ -1,0 +1,97 @@
+/* ================= Piles (js/apps/finder.js): Overview, the Piles view, search filters, rename many ================= */
+
+/* search filters, under the toolbar while searching */
+.fd-filters { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 14px; padding: 8px 14px; border-bottom: 1px solid var(--border); }
+.fd-filters.hidden { display: none; }
+.fd-fg { display: flex; flex-wrap: wrap; gap: 4px; }
+.fd-chip { height: 26px; padding: 0 11px; border-radius: 13px; font-size: 12.5px; font-weight: 600; color: var(--text2); background: color-mix(in srgb, var(--text) 6%, transparent); transition: background .15s, color .15s; }
+.fd-chip:hover { background: color-mix(in srgb, var(--text) 11%, transparent); color: var(--text); }
+.fd-chip.on { background: var(--accent); color: #fff; }
+
+/* list rows: the matched words and where the file is, under its name */
+.fd-rnt { display: flex; flex-direction: column; min-width: 0; overflow: hidden; }
+.fd-rnt > span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fd-match { font-size: 11.5px; color: var(--text2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fd-row .fd-where { font-size: 11px; color: var(--text3); }
+
+/* ---------- a pile: fanned cards ---------- */
+.fd-piles { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; padding: 4px 2px 8px; }
+.fd-pile { display: flex; flex-direction: column; align-items: center; gap: 3px; padding: 14px 10px 12px; border-radius: 18px; text-align: center; color: var(--text);
+  background: color-mix(in srgb, var(--text) 4%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--text) 7%, transparent);
+  transition: background .2s, transform .3s var(--spring), box-shadow .2s; }
+.fd-pile:hover { background: color-mix(in srgb, var(--pc) 12%, transparent); transform: translateY(-2px); }
+.fd-pile:active { transform: scale(.97); }
+.fd-pile.open { background: color-mix(in srgb, var(--pc) 16%, transparent); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--pc) 55%, transparent); }
+.fd-pile b { font-size: 13.5px; margin-top: 6px; } .fd-pile small { font-size: 11.5px; color: var(--text2); }
+.fd-fan { position: relative; width: 74px; height: 68px; }
+.fd-fc { position: absolute; left: 50%; bottom: 0; width: 56px; height: 56px; margin-left: -28px; transform-origin: 50% 100%;
+  transition: transform .35s var(--spring); filter: drop-shadow(0 3px 6px rgba(0,0,0,.25)); }
+.fd-fc > * { width: 56px !important; height: 56px !important; }
+.fd-fan.many .fd-fc { transform: rotate(calc((var(--k) - 1) * 9deg)) translateX(calc((var(--k) - 1) * 7px)); }
+.fd-pile:hover .fd-fan.many .fd-fc { transform: rotate(calc((var(--k) - 1) * 15deg)) translateX(calc((var(--k) - 1) * 12px)) translateY(-3px); }
+/* an opened pile spreads its items out below, across the whole row */
+.fd-spread { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 4px; padding: 10px; border-radius: 18px;
+  background: color-mix(in srgb, var(--pc) 7%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--pc) 25%, transparent);
+  animation: fdSpread .4s var(--spring) both; }
+@keyframes fdSpread { from { opacity: 0; transform: translateY(-8px) scale(.98); } }
+.fd-main.piles { display: block; }
+.fd-pilebar { display: flex; align-items: center; gap: 10px; margin: 2px 2px 12px; font-size: 12.5px; color: var(--text2); font-weight: 600; }
+
+/* ---------- the Overview ---------- */
+.fd-main.fd-ov { display: block; padding: 18px 22px 26px; }
+.fd-ovh { display: flex; align-items: baseline; justify-content: space-between; margin: 18px 2px 10px; }
+.fd-ovh:first-child { margin-top: 0; }
+.fd-ovh h2 { margin: 0 !important; font-size: 17px !important; }
+.fd-more { font-size: 12.5px; font-weight: 600; color: var(--accent); padding: 3px 8px; border-radius: 8px; } .fd-more:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.fd-ovempty { color: var(--text3); font-size: 13px; padding: 6px 2px 4px; }
+.fd-rec { display: flex; gap: 10px; overflow-x: auto; padding: 2px 2px 6px; scrollbar-width: thin; }
+.fd-rc { flex: 0 0 auto; width: 112px; display: flex; flex-direction: column; align-items: center; gap: 2px; padding: 12px 8px 10px; border-radius: 16px; color: var(--text);
+  background: color-mix(in srgb, var(--text) 4%, transparent); transition: background .15s, transform .25s var(--spring); }
+.fd-rc:hover { background: color-mix(in srgb, var(--text) 9%, transparent); transform: translateY(-2px); }
+.fd-rci { width: 48px; height: 48px; margin-bottom: 6px; } .fd-rci > * { width: 48px !important; height: 48px !important; }
+.fd-rc b { font-size: 12.5px; font-weight: 600; width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.fd-rc small { font-size: 11px; color: var(--text3); }
+.fd-store { padding: 14px 16px; border-radius: 16px; background: color-mix(in srgb, var(--text) 4%, transparent); }
+.fd-sbar { display: flex; gap: 2px; height: 12px; border-radius: 6px; overflow: hidden; background: color-mix(in srgb, var(--text) 8%, transparent); }
+.fd-sbar span { height: 100%; transform-origin: left; animation: fdGrow .7s var(--spring) both; }
+@keyframes fdGrow { from { transform: scaleX(0); } }
+.fd-legend { display: flex; flex-wrap: wrap; gap: 4px 14px; margin: 10px 0 4px; }
+.fd-lg { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text); padding: 2px 4px; border-radius: 6px; }
+.fd-lg:hover { background: color-mix(in srgb, var(--text) 7%, transparent); }
+.fd-lg i { width: 9px; height: 9px; border-radius: 3px; } .fd-lg small { color: var(--text3); }
+.fd-free { font-size: 11.5px; color: var(--text3); }
+.fd-places { display: grid; grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); gap: 8px; }
+.fd-place { display: grid; grid-template-columns: 30px 1fr; grid-template-rows: auto auto; column-gap: 8px; align-items: center; text-align: left; padding: 10px 12px; border-radius: 14px; color: var(--text);
+  background: color-mix(in srgb, var(--text) 4%, transparent); transition: background .15s; }
+.fd-place:hover { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.fd-pli { grid-row: 1 / 3; width: 30px; height: 30px; border-radius: 9px; display: grid; place-items: center; color: var(--accent); background: color-mix(in srgb, var(--accent) 14%, transparent); }
+.fd-pli .sym { width: 17px; height: 17px; }
+.fd-place b { font-size: 13px; } .fd-place small { font-size: 11.5px; color: var(--text3); }
+
+/* ---------- rename many ---------- */
+.fd-rmlayer { position: absolute; inset: 0; z-index: 20; display: grid; place-items: start center; padding: 60px 16px; background: rgba(0,0,0,.35); animation: fdFade .2s ease both; }
+@keyframes fdFade { from { opacity: 0; } }
+.fd-rmcard { width: min(440px, 100%); display: flex; flex-direction: column; gap: 10px; padding: 18px; border-radius: 20px; background: var(--win-solid, #1e1f24); color: var(--text);
+  box-shadow: 0 24px 70px rgba(0,0,0,.45), inset 0 0 0 1px color-mix(in srgb, var(--text) 8%, transparent); animation: dlgIn .32s var(--spring) both; }
+.fd-rmcard > b { font-size: 16px; }
+.fd-rmf { display: flex; gap: 8px; } .fd-rmf .field { flex: 1; min-width: 0; }
+.fd-rml { display: flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text2); white-space: nowrap; } .fd-rml .field { width: 70px; flex: 0 0 auto; }
+.fd-rmp { display: flex; flex-direction: column; gap: 3px; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--text) 5%, transparent); font-size: 12.5px; max-height: 180px; overflow: auto; }
+.fd-rmp > div { display: grid; grid-template-columns: 1fr auto 1fr; gap: 8px; align-items: center; }
+.fd-rmp span { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text2); } .fd-rmp span.chg { color: var(--text); font-weight: 600; }
+.fd-rmp b { color: var(--text3); font-weight: 400; } .fd-rmp .more { color: var(--text3); display: block; }
+.fd-rme { color: #ff6961; font-size: 12px; min-height: 15px; }
+.fd-rmb { display: flex; justify-content: flex-end; gap: 8px; }
+
+.mobile .fd-main.fd-ov { padding: 14px; } .mobile .fd-piles { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); }
+html.reduce-motion :is(.fd-spread, .fd-sbar span, .fd-rmlayer, .fd-rmcard) { animation: none !important; }
+html.reduce-motion .fd-fc, html.reduce-motion .fd-pile { transition: none !important; }
+
+/* rows with a matched line or a place under the name grow to fit it */
+.fd-row:has(.fd-match), .fd-row:has(.fd-where) { height: auto; min-height: 28px; padding-top: 5px; padding-bottom: 5px; }
+.fd-row:has(.fd-match) .fd-ric, .fd-row:has(.fd-where) .fd-ric { width: 28px; height: 28px; }
+.fd-row .fd-rnt span, .fd-row .fd-rnt small { color: inherit; }
+.fd-row .fd-rnt .fd-match, .fd-row .fd-rnt .fd-where { color: var(--text2); }
+.fd-row.sel .fd-rnt .fd-match, .fd-row.sel .fd-rnt .fd-where { color: rgba(255,255,255,.8); }
+/* the selected place in the sidebar keeps its symbol visible on the highlight */
+.fd-side .fd-si.on .symw, .fd-side .fd-si.on .sym { color: #fff; }
