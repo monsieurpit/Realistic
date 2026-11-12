@@ -4,6 +4,12 @@
   const { h, $, $$, clamp } = PatOS;
   const M = (PatOS.mobile = { front: null, built: false });
   const html = document.documentElement;
+  // a 3D wallpaper doesn't need to move while an app covers the whole phone screen (it kept rendering every frame behind it)
+  let wpPaused = null;
+  new MutationObserver(() => {
+    const cover = html.classList.contains('mobile') && html.classList.contains('m-in-app') && !html.classList.contains('m-peek');
+    if (cover !== wpPaused && PatOS.wallpaper) { wpPaused = cover; PatOS.wallpaper.pause(cover); }
+  }).observe(html, { attributes: true, attributeFilter: ['class'] });
   const ICON_SIG = '<svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>';
   const ICON_WIFI = '<svg viewBox="0 0 24 18"><path d="M12 17.5l3.2-3.3a4.6 4.6 0 0 0-6.4 0zM5 10.6a10 10 0 0 1 14 0l-1.9 1.9a7.3 7.3 0 0 0-10.2 0zM1.5 7a15 15 0 0 1 21 0l-1.9 1.9a12.3 12.3 0 0 0-17.2 0z"/></svg>';
   const motion = () => !PatOS.settings.reduceMotion;
@@ -299,6 +305,7 @@
       const dy = Math.max(0, g.y - e.clientY), dx = e.clientX - g.x;
       if (Math.abs(g.v) < 0.15 && dy > 120) g.held = g.held || now; else if (Math.abs(g.v) > 0.3) g.held = 0;
       if (M.front) {
+        if (dy > 2) html.classList.add('m-peek'); // (the home screen shows again behind the app being swiped away)
         const s = Math.max(0.45, 1 - dy / 900);
         g.tf = `translate(${dx * 0.5}px, ${-dy * 0.55}px) scale(${s})`;
         M.front.el.style.transition = 'none';
@@ -313,6 +320,7 @@
     };
     const end = (e) => {
       if (!g) return;
+      setTimeout(() => html.classList.remove('m-peek'), 500);
       const dy = Math.max(0, g.y - e.clientY); const s = g; g = null;
       if (e.type === 'pointerup' && dy < 8 && Math.abs(e.clientX - s.x) < 10 && Date.now() - s.t < 400) { if (M.front) { M.front.el.style.transform = ''; M.front.el.style.borderRadius = ''; } passTap(e); return; }
       const front = M.front;

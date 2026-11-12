@@ -146,7 +146,7 @@ html[data-wp-top="light"] .desk-icon:not(.sel) .di-name { color: #1d1d1f; text-s
 .window.closing { opacity: 0; transform: scale(.94); pointer-events: none; }
 .window.minimizing { transition: transform .38s cubic-bezier(.5, 0, .3, 1), opacity .38s ease; }
 .window.animating { transition: left .3s var(--ease), top .3s var(--ease), width .3s var(--ease), height .3s var(--ease); }
-.window.moving { transition: none; }
+.window.moving { transition: none; will-change: translate; }
 .window.maximized { border-radius: 0; }
 .window:not(.active) { box-shadow: 0 10px 34px rgba(0,0,0,.3), 0 0 0 .5px var(--border2); }
 .reduce-transparency .window, .reduce-transparency .menu, .reduce-transparency .panel { background: var(--win-solid); backdrop-filter: none; }
@@ -454,3 +454,6 @@ body.patos-fs #desktop-widgets, body.patos-fs .desk-widgets { transition: opacit
 .st-legal:hover, .st-legal.on { color: var(--accent); }
 .st-legal-when { font-size: 12.5px; color: var(--text2); margin: -4px 0 14px; }
 .st-legal-text { max-width: 720px; color: var(--text); user-select: text; -webkit-user-select: text; }
+/* (3.2) a window's shadow while it is dragged: on its own layer, so moving it redraws nothing under it (js/wm.js) */
+.win-ghost-shadow { position: absolute; pointer-events: none; will-change: translate; background: transparent; }
+.window.shadow-out { box-shadow: none !important; transition: none !important; }

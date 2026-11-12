@@ -167,7 +167,7 @@ html[data-wp-top="light"] .desk-icon:not(.sel) .di-name { color: #1d1d1f; text-s
 .window.closing { opacity: 0; transform: scale(.94); pointer-events: none; }
 .window.minimizing { transition: transform .38s cubic-bezier(.5, 0, .3, 1), opacity .38s ease; }
 .window.animating { transition: left .3s var(--ease), top .3s var(--ease), width .3s var(--ease), height .3s var(--ease); }
-.window.moving { transition: none; }
+.window.moving { transition: none; will-change: translate; }
 .window.maximized { border-radius: 0; }
 .window:not(.active) { box-shadow: 0 10px 34px rgba(0,0,0,.3), 0 0 0 .5px var(--border2); }
 .reduce-transparency .window, .reduce-transparency .menu, .reduce-transparency .panel { background: var(--win-solid); backdrop-filter: none; }
@@ -475,6 +475,9 @@ body.patos-fs #desktop-widgets, body.patos-fs .desk-widgets { transition: opacit
 .st-legal:hover, .st-legal.on { color: var(--accent); }
 .st-legal-when { font-size: 12.5px; color: var(--text2); margin: -4px 0 14px; }
 .st-legal-text { max-width: 720px; color: var(--text); user-select: text; -webkit-user-select: text; }
+/* (3.2) a window's shadow while it is dragged: on its own layer, so moving it redraws nothing under it (js/wm.js) */
+.win-ghost-shadow { position: absolute; pointer-events: none; will-change: translate; background: transparent; }
+.window.shadow-out { box-shadow: none !important; transition: none !important; }
 
 </style>
   <style>
@@ -1482,6 +1485,9 @@ html.mobile, html.mobile body { overscroll-behavior: none; touch-action: manipul
 /* ---------- home screen ---------- */
 .mobile #m-home { display: flex; flex-direction: column; position: absolute; inset: 0; z-index: 3; padding-top: calc(var(--mtop) + 34px); padding-bottom: calc(var(--sab) + 8px); transition: transform .45s cubic-bezier(.2,.9,.3,1), filter .45s, opacity .45s; }
 .mobile.m-in-app #m-home { transform: scale(.88); filter: blur(8px); opacity: .6; pointer-events: none; }
+/* (3.2: once an app has opened over it, the home screen is hidden: it was still drawn and blurred behind the app, again each
+   time anything on it changed, like the clock widget every second. It shows again as soon as a swipe home starts.) */
+.mobile.m-in-app:not(.m-peek) #m-home { visibility: hidden; transition: transform .45s cubic-bezier(.2,.9,.3,1), filter .45s, opacity .45s, visibility 0s linear .45s; }
 .mobile.m-switching #m-home { transform: scale(.92); filter: blur(14px) brightness(.6); pointer-events: none; }
 .mh-pages { flex: 1; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .mh-pages::-webkit-scrollbar { display: none; }
@@ -11118,7 +11124,7 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":9};
   PatOS.snapLayouts = LAYOUTS;
 
   function setupDrag(win, handle, bodyMode) {
-    let sx, sy, ox, oy, dragging = false, snap = null, pid = null, zone = null;
+    let sx, sy, ox, oy, dragging = false, snap = null, pid = null, zone = null, base = null, last = null, ghost = null;
     const preview = () => $('#snap-preview') || layer().appendChild(h('div', { id: 'snap-preview' }));
     handle.addEventListener('pointerdown', (e) => {
       if (e.button !== 0 || PatOS.isMobile) return;
@@ -11140,7 +11146,17 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":9};
         }
         let nx = ox + dx, ny = Math.max(MENUBAR, oy + dy);
         ny = Math.min(ny, window.innerHeight - 40);
-        win.el.style.left = nx + 'px'; win.el.style.top = ny + 'px';
+        // (moved with translate while dragging: the graphics chip slides the window as it is. Setting left and top on every
+        //  move made the browser lay it out and redraw it each frame; they're set once when the drag ends.)
+        if (base === null) {
+          base = { x: win.el.offsetLeft, y: win.el.offsetTop };
+          // the window's shadow travels on its own layer during the drag: drawn on the window, the browser paints it into the
+          // desktop under it, so every move redrew the wallpaper and widgets there (most of a drag's cost)
+          const cs = getComputedStyle(win.el);
+          ghost = h('div', { class: 'win-ghost-shadow' }); Object.assign(ghost.style, { left: base.x + 'px', top: base.y + 'px', width: win.el.offsetWidth + 'px', height: win.el.offsetHeight + 'px', borderRadius: cs.borderTopLeftRadius, boxShadow: cs.boxShadow, zIndex: String((parseInt(cs.zIndex, 10) || 1) - 1) });
+          win.el.parentNode.insertBefore(ghost, win.el); win.el.classList.add('shadow-out');
+        }
+        last = { x: nx, y: ny }; win.el.style.translate = (nx - base.x) + 'px ' + (ny - base.y) + 'px'; if (ghost) ghost.style.translate = win.el.style.translate;
         const area = workArea(); const p = preview();
         snap = ev.clientX <= 3 ? 'left' : ev.clientX >= window.innerWidth - 3 ? 'right' : ev.clientY <= MENUBAR + 1 ? 'max' : null;
         // near the top, the layout picker opens; pointing at one of its zones previews exactly where the window will go
@@ -11162,6 +11178,8 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":9};
       };
       const up = () => {
         handle.removeEventListener('pointermove', move); handle.removeEventListener('pointerup', up); handle.removeEventListener('pointercancel', up);
+        if (last) { win.el.style.translate = ''; win.el.style.left = last.x + 'px'; win.el.style.top = last.y + 'px'; } base = null; last = null;
+        if (ghost) { const g0 = ghost; ghost = null; win.el.style.transition = 'none'; win.el.classList.remove('shadow-out'); void win.el.offsetWidth; g0.remove(); requestAnimationFrame(() => { win.el.style.transition = ''; }); }
         try { handle.releasePointerCapture(pid); } catch (er) {}
         layer().classList.remove('dragging'); win.el.classList.remove('moving');
         preview().classList.remove('show'); if (pickerEl) pickerEl.classList.remove('show');
@@ -13451,12 +13469,10 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":9};
         if (s.key === 'dockPinned') renderDock();
       });
       matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
-      ['wm:open', 'wm:close', 'wm:minimize'].forEach((ev) => PatOS.on(ev, () => {
-        renderDock();
-        // pause 3D wallpaper while a window covers the whole screen (saves battery on Chromebooks)
-        PatOS.wallpaper.pause(PatOS.wm.windows.some((w) => w.maximized && !w.minimized));
-      }));
-      PatOS.on('wm:focus', () => PatOS.wallpaper.pause(PatOS.wm.windows.some((w) => w.maximized && !w.minimized)));
+      // pause the 3D wallpaper while a window covers the whole screen (saves battery on Chromebooks; on a phone, any open app)
+      const covered = () => { const H = document.documentElement; return H.classList.contains('mobile') ? H.classList.contains('m-in-app') && !H.classList.contains('m-peek') : PatOS.wm.windows.some((w) => w.maximized && !w.minimized); };
+      ['wm:open', 'wm:close', 'wm:minimize'].forEach((ev) => PatOS.on(ev, () => { renderDock(); PatOS.wallpaper.pause(covered()); }));
+      PatOS.on('wm:focus', () => PatOS.wallpaper.pause(covered()));
       renderDock(); renderDesktop(); renderDeskWidgets();
       setInterval(renderDeskWidgets, 30000);
       setInterval(() => { const c = $('#desk-widgets .w-clock canvas'); if (c) drawAnalog(c, new Date()); }, 1000);
@@ -15241,6 +15257,12 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":9};
   const { h, $, $$, clamp } = PatOS;
   const M = (PatOS.mobile = { front: null, built: false });
   const html = document.documentElement;
+  // a 3D wallpaper doesn't need to move while an app covers the whole phone screen (it kept rendering every frame behind it)
+  let wpPaused = null;
+  new MutationObserver(() => {
+    const cover = html.classList.contains('mobile') && html.classList.contains('m-in-app') && !html.classList.contains('m-peek');
+    if (cover !== wpPaused && PatOS.wallpaper) { wpPaused = cover; PatOS.wallpaper.pause(cover); }
+  }).observe(html, { attributes: true, attributeFilter: ['class'] });
   const ICON_SIG = '<svg viewBox="0 0 18 12"><rect x="0" y="8" width="3" height="4" rx="1"/><rect x="5" y="5.5" width="3" height="6.5" rx="1"/><rect x="10" y="3" width="3" height="9" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>';
   const ICON_WIFI = '<svg viewBox="0 0 24 18"><path d="M12 17.5l3.2-3.3a4.6 4.6 0 0 0-6.4 0zM5 10.6a10 10 0 0 1 14 0l-1.9 1.9a7.3 7.3 0 0 0-10.2 0zM1.5 7a15 15 0 0 1 21 0l-1.9 1.9a12.3 12.3 0 0 0-17.2 0z"/></svg>';
   const motion = () => !PatOS.settings.reduceMotion;
@@ -15536,6 +15558,7 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":9};
       const dy = Math.max(0, g.y - e.clientY), dx = e.clientX - g.x;
       if (Math.abs(g.v) < 0.15 && dy > 120) g.held = g.held || now; else if (Math.abs(g.v) > 0.3) g.held = 0;
       if (M.front) {
+        if (dy > 2) html.classList.add('m-peek'); // (the home screen shows again behind the app being swiped away)
         const s = Math.max(0.45, 1 - dy / 900);
         g.tf = `translate(${dx * 0.5}px, ${-dy * 0.55}px) scale(${s})`;
         M.front.el.style.transition = 'none';
@@ -15550,6 +15573,7 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":9};
     };
     const end = (e) => {
       if (!g) return;
+      setTimeout(() => html.classList.remove('m-peek'), 500);
       const dy = Math.max(0, g.y - e.clientY); const s = g; g = null;
       if (e.type === 'pointerup' && dy < 8 && Math.abs(e.clientX - s.x) < 10 && Date.now() - s.t < 400) { if (M.front) { M.front.el.style.transform = ''; M.front.el.style.borderRadius = ''; } passTap(e); return; }
       const front = M.front;

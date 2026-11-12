@@ -73,3 +73,29 @@ test('older release notes are not loaded at start, and Software Update still sho
   const off = await page.evaluate(() => new Promise((res) => { const sc = document.createElement('script'); sc.src = 'js/release-notes.js'; sc.onload = () => res(PatOS.releases.every((r) => r.notes)); sc.onerror = () => res('error'); document.head.appendChild(sc); }));
   assert.equal(off, true, 'the notes file puts every version’s notes back');
 });
+
+test('dragging a window slides it (and its shadow) without redrawing what is under it, then puts it in place', { skip: skipNoBrowser }, async () => {
+  await page.evaluate(() => { PatOS.wm.windows.slice().forEach((w) => w.close()); PatOS.launch('notes'); }); await page.waitForTimeout(800);
+  const tb = await (await page.$('.window .titlebar')).boundingBox(); const x0 = await page.evaluate(() => document.querySelector('.window').offsetLeft);
+  await page.mouse.move(tb.x + tb.width / 2, tb.y + 10); await page.mouse.down();
+  for (let i = 1; i <= 10; i++) await page.mouse.move(tb.x + tb.width / 2 + i * 10, tb.y + 10 + i * 3);
+  const mid = await page.evaluate(() => { const w = document.querySelector('.window'); return { translate: w.style.translate, ghost: !!document.querySelector('.win-ghost-shadow'), noShadow: getComputedStyle(w).boxShadow === 'none' }; });
+  await page.mouse.up();
+  const end = await page.evaluate(() => { const w = document.querySelector('.window'); return { left: w.offsetLeft, translate: w.style.translate, ghost: !!document.querySelector('.win-ghost-shadow'), shadow: getComputedStyle(w).boxShadow !== 'none' }; });
+  assert.match(mid.translate, /px/); assert.ok(mid.ghost && mid.noShadow, 'the shadow moves on its own layer');
+  assert.equal(end.translate, ''); assert.equal(end.ghost, false); assert.ok(end.shadow, 'the shadow is back on the window');
+  assert.ok(Math.abs(end.left - (x0 + 100)) <= 2, 'the window ends where it was dropped: ' + end.left + ' vs ' + (x0 + 100));
+});
+
+test('on a phone, the home screen is not drawn behind an open app, and a 3D wallpaper pauses', { skip: skipNoBrowser }, async () => {
+  const { devices } = require('playwright');
+  const ctx = await b.newContext({ ...devices['iPhone 13'] }); const p = await ctx.newPage(); const errs = await boot(p, srv.base, { fresh: true });
+  await p.evaluate(() => PatOS.launch('notes')); await p.waitForTimeout(900);
+  const r = await p.evaluate(async () => { let paused = null; const tick = () => new Promise((res) => setTimeout(res, 20)); const real = PatOS.wallpaper.pause; PatOS.wallpaper.pause = (on) => { paused = on; return real(on); };
+    const H = document.documentElement; const hidden = getComputedStyle(document.getElementById('m-home')).visibility;
+    H.classList.add('m-peek'); await tick(); const peek = getComputedStyle(document.getElementById('m-home')).visibility; const pausedPeek = paused; H.classList.remove('m-peek'); await tick();
+    return { hidden, peek, pausedPeek, pausedAgain: paused }; });
+  assert.equal(r.hidden, 'hidden'); assert.equal(r.peek, 'visible', 'a swipe home shows it again');
+  assert.equal(r.pausedPeek, false); assert.equal(r.pausedAgain, true, 'the wallpaper pauses while the app covers the screen');
+  assert.deepEqual(errs, []); await ctx.close();
+});

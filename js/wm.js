@@ -216,7 +216,7 @@
   PatOS.snapLayouts = LAYOUTS;
 
   function setupDrag(win, handle, bodyMode) {
-    let sx, sy, ox, oy, dragging = false, snap = null, pid = null, zone = null;
+    let sx, sy, ox, oy, dragging = false, snap = null, pid = null, zone = null, base = null, last = null, ghost = null;
     const preview = () => $('#snap-preview') || layer().appendChild(h('div', { id: 'snap-preview' }));
     handle.addEventListener('pointerdown', (e) => {
       if (e.button !== 0 || PatOS.isMobile) return;
@@ -238,7 +238,17 @@
         }
         let nx = ox + dx, ny = Math.max(MENUBAR, oy + dy);
         ny = Math.min(ny, window.innerHeight - 40);
-        win.el.style.left = nx + 'px'; win.el.style.top = ny + 'px';
+        // (moved with translate while dragging: the graphics chip slides the window as it is. Setting left and top on every
+        //  move made the browser lay it out and redraw it each frame; they're set once when the drag ends.)
+        if (base === null) {
+          base = { x: win.el.offsetLeft, y: win.el.offsetTop };
+          // the window's shadow travels on its own layer during the drag: drawn on the window, the browser paints it into the
+          // desktop under it, so every move redrew the wallpaper and widgets there (most of a drag's cost)
+          const cs = getComputedStyle(win.el);
+          ghost = h('div', { class: 'win-ghost-shadow' }); Object.assign(ghost.style, { left: base.x + 'px', top: base.y + 'px', width: win.el.offsetWidth + 'px', height: win.el.offsetHeight + 'px', borderRadius: cs.borderTopLeftRadius, boxShadow: cs.boxShadow, zIndex: String((parseInt(cs.zIndex, 10) || 1) - 1) });
+          win.el.parentNode.insertBefore(ghost, win.el); win.el.classList.add('shadow-out');
+        }
+        last = { x: nx, y: ny }; win.el.style.translate = (nx - base.x) + 'px ' + (ny - base.y) + 'px'; if (ghost) ghost.style.translate = win.el.style.translate;
         const area = workArea(); const p = preview();
         snap = ev.clientX <= 3 ? 'left' : ev.clientX >= window.innerWidth - 3 ? 'right' : ev.clientY <= MENUBAR + 1 ? 'max' : null;
         // near the top, the layout picker opens; pointing at one of its zones previews exactly where the window will go
@@ -260,6 +270,8 @@
       };
       const up = () => {
         handle.removeEventListener('pointermove', move); handle.removeEventListener('pointerup', up); handle.removeEventListener('pointercancel', up);
+        if (last) { win.el.style.translate = ''; win.el.style.left = last.x + 'px'; win.el.style.top = last.y + 'px'; } base = null; last = null;
+        if (ghost) { const g0 = ghost; ghost = null; win.el.style.transition = 'none'; win.el.classList.remove('shadow-out'); void win.el.offsetWidth; g0.remove(); requestAnimationFrame(() => { win.el.style.transition = ''; }); }
         try { handle.releasePointerCapture(pid); } catch (er) {}
         layer().classList.remove('dragging'); win.el.classList.remove('moving');
         preview().classList.remove('show'); if (pickerEl) pickerEl.classList.remove('show');

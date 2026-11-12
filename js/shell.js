@@ -1466,12 +1466,10 @@
         if (s.key === 'dockPinned') renderDock();
       });
       matchMedia('(prefers-color-scheme: dark)').addEventListener('change', applyTheme);
-      ['wm:open', 'wm:close', 'wm:minimize'].forEach((ev) => PatOS.on(ev, () => {
-        renderDock();
-        // pause 3D wallpaper while a window covers the whole screen (saves battery on Chromebooks)
-        PatOS.wallpaper.pause(PatOS.wm.windows.some((w) => w.maximized && !w.minimized));
-      }));
-      PatOS.on('wm:focus', () => PatOS.wallpaper.pause(PatOS.wm.windows.some((w) => w.maximized && !w.minimized)));
+      // pause the 3D wallpaper while a window covers the whole screen (saves battery on Chromebooks; on a phone, any open app)
+      const covered = () => { const H = document.documentElement; return H.classList.contains('mobile') ? H.classList.contains('m-in-app') && !H.classList.contains('m-peek') : PatOS.wm.windows.some((w) => w.maximized && !w.minimized); };
+      ['wm:open', 'wm:close', 'wm:minimize'].forEach((ev) => PatOS.on(ev, () => { renderDock(); PatOS.wallpaper.pause(covered()); }));
+      PatOS.on('wm:focus', () => PatOS.wallpaper.pause(covered()));
       renderDock(); renderDesktop(); renderDeskWidgets();
       setInterval(renderDeskWidgets, 30000);
       setInterval(() => { const c = $('#desk-widgets .w-clock canvas'); if (c) drawAnalog(c, new Date()); }, 1000);

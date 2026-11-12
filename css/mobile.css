@@ -35,6 +35,9 @@ html.mobile, html.mobile body { overscroll-behavior: none; touch-action: manipul
 /* ---------- home screen ---------- */
 .mobile #m-home { display: flex; flex-direction: column; position: absolute; inset: 0; z-index: 3; padding-top: calc(var(--mtop) + 34px); padding-bottom: calc(var(--sab) + 8px); transition: transform .45s cubic-bezier(.2,.9,.3,1), filter .45s, opacity .45s; }
 .mobile.m-in-app #m-home { transform: scale(.88); filter: blur(8px); opacity: .6; pointer-events: none; }
+/* (3.2: once an app has opened over it, the home screen is hidden: it was still drawn and blurred behind the app, again each
+   time anything on it changed, like the clock widget every second. It shows again as soon as a swipe home starts.) */
+.mobile.m-in-app:not(.m-peek) #m-home { visibility: hidden; transition: transform .45s cubic-bezier(.2,.9,.3,1), filter .45s, opacity .45s, visibility 0s linear .45s; }
 .mobile.m-switching #m-home { transform: scale(.92); filter: blur(14px) brightness(.6); pointer-events: none; }
 .mh-pages { flex: 1; display: flex; overflow-x: auto; overflow-y: hidden; scroll-snap-type: x mandatory; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
 .mh-pages::-webkit-scrollbar { display: none; }
