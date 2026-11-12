@@ -263,3 +263,33 @@ test('PatOS powers: an announcement everyone sees once, Message Everyone, and a 
   await waitFor(B.page, (id) => PatOS.account.isVerified(id), vi.uid, 15000);
   await G.ctx.close(); await B.ctx.close();
 });
+
+test('Messages 3.2 in real windows: a photo, a reaction, Seen and typing…', { skip: emu.skip }, async () => {
+  const an = uniq('mia'), bn = uniq('leo'), pw = 'chat passwords are long';
+  const A = await device(), B = await device();
+  for (const [d, u] of [[A, an], [B, bn]]) await d.ev(async ([u, p]) => { await PatOS.account.signUp(u, p); }, [u, pw]);
+  for (const d of [A, B]) await waitFor(d.page, () => PatOS.chat.ready(), null, 20000);
+  const leo = (await A.ev(async (p) => (await PatOS.chat.search(p))[0], bn));
+  await A.ev(async (o) => { await PatOS.chat.request(o, 'hey'); }, { uid: leo.uid, username: leo.username });
+  await waitFor(B.page, () => PatOS.chat.requests().length === 1, null, 15000);
+  const cid = await B.ev(() => PatOS.chat.requests()[0].id); await B.ev(async (id) => { await PatOS.chat.respond(id, true); }, cid);
+  await waitFor(A.page, () => PatOS.chat.conversations()[0] && PatOS.chat.conversations()[0].status === 'accepted', null, 15000);
+  // a photo (a real small picture, made the way the 📷 button does)
+  await A.ev(async (id) => { const cv = document.createElement('canvas'); cv.width = 64; cv.height = 48; const g = cv.getContext('2d'); g.fillStyle = '#ff2d55'; g.fillRect(0, 0, 64, 48); PatOS.chat.send(id, 'look', cv.toDataURL('image/jpeg', 0.8)); }, cid);
+  await B.ev((id) => { PatOS.launch('messages', { chat: id }); }, cid);
+  await B.page.waitForSelector('.m2-img', { timeout: 15000 });
+  assert.match(await B.ev(() => PatOS.chat.conversations()[0].last), /📷/);
+  // B reacts; A sees it
+  const mid = await B.ev(() => PatOS.chat.messages().find((m) => m.img).id);
+  await B.ev(async ([id, m]) => { await PatOS.chat.react(id, m, '🔥'); }, [cid, mid]);
+  await A.ev((id) => { PatOS.launch('messages', { chat: id }); }, cid);
+  await A.page.waitForFunction(() => /🔥/.test((document.querySelector('.m2-reacts') || {}).textContent || ''), null, { timeout: 15000 });
+  // A sees "Seen" (B had the chat open)
+  await A.page.waitForSelector('.m2-seen', { timeout: 15000 });
+  // A types; B sees the dots
+  await A.ev((id) => { PatOS.chat.typing(id); }, cid);
+  await B.page.waitForSelector('.m2-typing.on', { timeout: 10000 });
+  await B.page.screenshot({ path: require('path').join(require('os').tmpdir(), 'patos-messages-32.png') });
+  assert.deepEqual(A.errors, []); assert.deepEqual(B.errors, []);
+  await A.ctx.close(); await B.ctx.close();
+});

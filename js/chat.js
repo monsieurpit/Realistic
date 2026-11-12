@@ -9,6 +9,9 @@
 (function () {
   'use strict';
   const T = (s) => PatOS.t(s);
+  let typingAt = 0; const seenSent = {};
+  /* tells the other person their messages were seen (once per new message, only when the window is looked at) */
+  function seen(c) { if (!F || !me || !c || c.status !== 'accepted' || c.lastFromMe || document.hidden || (seenSent[c.id] || 0) >= c.lastAt) return; seenSent[c.id] = c.lastAt; F.markSeen(c.id, me.uid).catch(() => {}); }
   let F = null, me = null, offConv = null, offMsg = null, convs = [], current = null, msgs = [], loaded = false, flushing = false, lastError = '';
   const prev = new Map(); // conversation id -> { at, status } from the last look, to know what is new
   const read = () => PatOS.store.get('msgRead', {});
@@ -21,7 +24,8 @@
   /* a conversation, as the person sees it */
   function shape(c) {
     const other = c.members.find((u) => u !== me.uid);
-    return { id: c.id, other: { uid: other, username: (c.usernames && c.usernames[other]) || '?' }, status: c.status, mine: c.requester === me.uid, last: c.lastMessage || '', lastAt: ms(c.lastMessageAt), lastFromMe: c.lastFrom === me.uid, created: ms(c.createdAt) };
+    return { id: c.id, other: { uid: other, username: (c.usernames && c.usernames[other]) || '?' }, status: c.status, mine: c.requester === me.uid, last: c.lastMessage || '', lastAt: ms(c.lastMessageAt), lastFromMe: c.lastFrom === me.uid, created: ms(c.createdAt),
+      otherSeen: ms(c.seen && c.seen[other]), otherTyping: ms(c.typing && c.typing[other]) };
   }
   const isUnread = (c) => c.status === 'accepted' && !c.lastFromMe && c.lastAt > (read()[c.id] || 0);
 
@@ -63,7 +67,7 @@
       for (const it of outbox()) {
         try {
           if (it.kind === 'request') { await withTimeout(F.requestChat(me, it.other, it.text, it.id, PatOS.account.isSystem())); }
-          else await withTimeout(F.sendMessage(it.cid, me, it.text, it.id));
+          else await withTimeout(F.sendMessage(it.cid, me, it.text, it.id, it.img));
         } catch (e) {
           if (e && e.code === 'offline') break; // try again later
           let there = false; if (it.kind !== 'request') { try { there = await F.messageExists(it.cid, it.id); } catch (x) {} } // it may have gone through already
@@ -83,8 +87,8 @@
     declined: () => convs.filter((c) => c.status === 'declined' && !c.mine),
     unread: () => convs.filter(isUnread).length + convs.filter((c) => c.status === 'pending' && !c.mine).length,
     find: (id) => convs.find((c) => c.id === id) || null,
-    messages: () => msgs.map((m) => ({ id: m.id, mine: m.from === (me && me.uid), text: m.text, t: m.t || ms(m.at), sending: false }))
-      .concat(outbox().filter((o) => o.cid === current || (o.kind === 'request' && current === F.convId(me.uid, o.other.uid))).filter((o) => !msgs.some((m) => m.id === o.id)).map((o) => ({ id: o.id, mine: true, text: o.text, t: o.t, sending: true }))).sort((a, b) => a.t - b.t),
+    messages: () => msgs.map((m) => ({ id: m.id, mine: m.from === (me && me.uid), text: m.text, img: typeof m.img === 'string' && m.img.startsWith('data:image/') ? m.img : '', reactions: m.reactions || {}, t: m.t || ms(m.at), sending: false }))
+      .concat(outbox().filter((o) => o.cid === current || (o.kind === 'request' && current === F.convId(me.uid, o.other.uid))).filter((o) => !msgs.some((m) => m.id === o.id)).map((o) => ({ id: o.id, mine: true, text: o.text, img: o.img || '', reactions: {}, t: o.t, sending: true }))).sort((a, b) => a.t - b.t),
     outbox: () => outbox().length,
     status: () => ({ signedIn: !!(PatOS.account && PatOS.account.signedIn()), ready: !!me, unread: convs.filter(isUnread).length + convs.filter((c) => c.status === 'pending' && !c.mine).length, outbox: outbox().length }),
     error: () => lastError,
@@ -95,7 +99,7 @@
       api.markRead(cid); emit('chat:messages');
     },
     close() { api.open(null); },
-    markRead(cid) { if (!cid) return; const c = convs.find((x) => x.id === cid); const r = read(); const at = Math.max(Date.now(), c ? c.lastAt : 0); if ((r[cid] || 0) < at - 1000 || !r[cid]) { r[cid] = at; PatOS.store.set('msgRead', r); emit(); } },
+    markRead(cid) { if (!cid) return; const c = convs.find((x) => x.id === cid); seen(c); const r = read(); const at = Math.max(Date.now(), c ? c.lastAt : 0); if ((r[cid] || 0) < at - 1000 || !r[cid]) { r[cid] = at; PatOS.store.set('msgRead', r); emit(); } },
     /* a first message to someone: they can accept or decline it */
     async request(other, text) {
       if (!F) await start(); text = String(text || '').trim(); if (!text) return; if (!me) throw new Error(T('Sign in first.'));
@@ -107,11 +111,20 @@
       if (c) throw new Error(T('Your message request is waiting for an answer.'));
       setOutbox(outbox().concat([{ kind: 'request', id: 'request', key: newId(), cid, other: { uid: other.uid, username: other.username }, text: text.slice(0, 2000), t: Date.now() }])); emit('chat:messages'); flush(); return cid;
     },
-    send(cid, text) {
-      text = String(text || '').trim(); if (!text) return; const c = convs.find((x) => x.id === cid);
+    send(cid, text, img) {
+      text = String(text || '').trim(); if (!text && !img) return; const c = convs.find((x) => x.id === cid);
       if (!c || c.status !== 'accepted') throw new Error(c && c.status === 'pending' ? T('Your message request is waiting for an answer.') : T('You can’t message this person right now.'));
-      setOutbox(outbox().concat([{ kind: 'msg', id: newId(), cid, text: text.slice(0, 2000), t: Date.now() }])); emit('chat:messages'); flush();
+      setOutbox(outbox().concat([{ kind: 'msg', id: newId(), cid, text: text.slice(0, 2000), img: img || undefined, t: Date.now() }])); emit('chat:messages'); flush();
     },
+    /* a reaction to a message: the same emoji again removes it */
+    async react(cid, mid, emoji) {
+      if (!F || !me) return; const m = msgs.find((x) => x.id === mid); const cur = m && m.reactions && m.reactions[me.uid];
+      const next = cur === emoji ? null : emoji;
+      if (m) { m.reactions = Object.assign({}, m.reactions); if (next) m.reactions[me.uid] = next; else delete m.reactions[me.uid]; emit('chat:messages'); } // shown at once
+      await F.react(cid, mid, me.uid, next);
+    },
+    /* "typing…": at most every 4 seconds */
+    typing(cid) { const c = convs.find((x) => x.id === cid); if (!F || !me || !c || c.status !== 'accepted' || Date.now() - typingAt < 4000) return; typingAt = Date.now(); F.typing(cid, me.uid).catch(() => {}); },
     async respond(cid, accept) { if (!F) await start(); await F.respond(cid, !!accept); },
     /* ---------- the system account (PatOS) ---------- */
     isSystem: () => PatOS.account.isSystem(),

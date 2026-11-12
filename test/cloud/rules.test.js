@@ -170,3 +170,31 @@ test('announcements and verified badges: only PatOS writes them, everyone signed
   await no(F.deleteDoc(b.doc('verified', b.uid)), 'removing a badge');
   await ok(F.deleteDoc(god.doc('verified', b.uid))); await ok(F.deleteDoc(god.doc('announcements', 'current')));
 });
+
+test('Messages 3.2: photos, reactions (only your own), seen and typing (only your own time)', { skip: emu.skip }, async () => {
+  const { a, b, c, cid } = await pair();
+  const conv = (p) => p.doc('conversations', cid), msg = (p, id) => p.doc('conversations', cid, 'messages', id);
+  const bt = F.writeBatch(a.db); bt.set(conv(a), convData(a, b)); bt.set(msg(a, 'request'), { from: a.uid, text: 'hi', t: Date.now(), at: now() }); await ok(bt.commit());
+  await no(F.updateDoc(msg(b, 'request'), { ['reactions.' + b.uid]: '❤️' }), 'reacting before the chat is accepted');
+  await no(F.updateDoc(conv(b), { ['seen.' + b.uid]: now() }), 'seen before accepting');
+  await ok(F.updateDoc(conv(b), { status: 'accepted', decidedAt: now() }));
+  // a photo
+  const img = 'data:image/jpeg;base64,' + 'A'.repeat(1000);
+  const p1 = F.writeBatch(a.db); p1.set(msg(a, 'p1'), { from: a.uid, text: '', img, t: Date.now(), at: now() }); p1.update(conv(a), { lastMessage: '📷 Photo', lastMessageAt: now(), lastFrom: a.uid }); await ok(p1.commit());
+  const p2 = F.writeBatch(a.db); p2.set(msg(a, 'p2'), { from: a.uid, text: '', img: 'x'.repeat(400001), t: Date.now(), at: now() }); p2.update(conv(a), { lastMessage: 'x', lastMessageAt: now(), lastFrom: a.uid }); await no(p2.commit(), 'a photo that is too big');
+  const p3 = F.writeBatch(a.db); p3.set(msg(a, 'p3'), { from: a.uid, text: '', t: Date.now(), at: now() }); p3.update(conv(a), { lastMessage: 'x', lastMessageAt: now(), lastFrom: a.uid }); await no(p3.commit(), 'no words and no photo');
+  // reactions
+  await ok(F.updateDoc(msg(b, 'p1'), { ['reactions.' + b.uid]: '❤️' }));
+  await ok(F.updateDoc(msg(a, 'p1'), { ['reactions.' + a.uid]: '😂' }));
+  await no(F.updateDoc(msg(b, 'p1'), { ['reactions.' + a.uid]: '👎' }), 'changing someone else\'s reaction');
+  await no(F.updateDoc(msg(b, 'p1'), { text: 'edited', ['reactions.' + b.uid]: '👍' }), 'editing the message with a reaction');
+  await no(F.updateDoc(msg(c, 'p1'), { ['reactions.' + c.uid]: '❤️' }), 'a stranger reacting');
+  await ok(F.updateDoc(msg(b, 'p1'), { ['reactions.' + b.uid]: F.deleteField() }));
+  const r = (await F.getDoc(msg(a, 'p1'))).data().reactions; assert.deepEqual(r, { [a.uid]: '😂' });
+  // seen and typing
+  await ok(F.updateDoc(conv(b), { ['seen.' + b.uid]: now() }));
+  await ok(F.updateDoc(conv(a), { ['typing.' + a.uid]: now() }));
+  await no(F.updateDoc(conv(b), { ['seen.' + a.uid]: now() }), 'marking it seen for someone else');
+  await no(F.updateDoc(conv(b), { ['seen.' + b.uid]: new Date(0) }), 'a made-up time');
+  await no(F.updateDoc(conv(c), { ['typing.' + c.uid]: now() }), 'a stranger typing');
+});

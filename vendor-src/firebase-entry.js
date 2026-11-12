@@ -16,7 +16,7 @@
    only ever given to Firebase Authentication, which keeps a salted hash, never the password itself. */
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as fbSignOut, onAuthStateChanged, deleteUser, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
-import { initializeFirestore, connectFirestoreEmulator, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where, orderBy, limit, documentId, serverTimestamp, writeBatch, onSnapshot, runTransaction } from 'firebase/firestore';
+import { initializeFirestore, connectFirestoreEmulator, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where, orderBy, limit, documentId, serverTimestamp, writeBatch, onSnapshot, runTransaction, deleteField } from 'firebase/firestore';
 
 const config = {
   apiKey: 'AIzaSyCBQGN0bxf1aHI0QMkiIm_x-K99Lg5VJGM',
@@ -219,12 +219,19 @@ const api = {
     b.set(doc(db, 'conversations', cid, 'messages', 'request'), { from: me.uid, text: String(text).slice(0, 2000), t: Date.now(), at: now });
     await b.commit(); return { cid, existed: false, status: 'pending' };
   }),
-  sendMessage: wrap(async (cid, me, text, id) => {
-    init(); const b = writeBatch(db); const now = serverTimestamp();
-    b.set(doc(db, 'conversations', cid, 'messages', id), { from: me.uid, text: String(text).slice(0, 2000), t: Date.now(), at: now });
-    b.update(doc(db, 'conversations', cid), { lastMessage: String(text).slice(0, 140), lastMessageAt: now, lastFrom: me.uid });
+  /* a message: text, and maybe a photo (a small JPEG as a data address, under 400 KB) */
+  sendMessage: wrap(async (cid, me, text, id, img) => {
+    init(); const b = writeBatch(db); const now = serverTimestamp(); text = String(text || '').slice(0, 2000);
+    const m = { from: me.uid, text, t: Date.now(), at: now }; if (img) m.img = String(img);
+    b.set(doc(db, 'conversations', cid, 'messages', id), m);
+    b.update(doc(db, 'conversations', cid), { lastMessage: (img ? '📷 ' : '') + (text || (img ? 'Photo' : '')).slice(0, 130), lastMessageAt: now, lastFrom: me.uid });
     await b.commit();
   }),
+  /* your reaction to a message (one per person; null removes it) */
+  react: wrap(async (cid, mid, uid, emoji) => { init(); await updateDoc(doc(db, 'conversations', cid, 'messages', mid), { ['reactions.' + uid]: emoji ? String(emoji).slice(0, 16) : deleteField() }); }),
+  /* "seen" and "typing…": a time per person in the conversation */
+  markSeen: wrap(async (cid, uid) => { init(); await updateDoc(doc(db, 'conversations', cid), { ['seen.' + uid]: serverTimestamp() }); }),
+  typing: wrap(async (cid, uid) => { init(); await updateDoc(doc(db, 'conversations', cid), { ['typing.' + uid]: serverTimestamp() }); }),
   messageExists: wrap(async (cid, id) => { init(); return (await getDoc(doc(db, 'conversations', cid, 'messages', id))).exists(); }),
   /* the system account opens a conversation that was waiting or declined */
   open: wrap(async (cid) => { init(); await updateDoc(doc(db, 'conversations', cid), { status: 'accepted', decidedAt: serverTimestamp() }); }),

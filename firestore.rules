@@ -114,6 +114,14 @@ service cloud.firestore {
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['status', 'decidedAt'])
           && request.resource.data.status == 'accepted')
         ||
+        // "seen" and "typing…": each person only sets their own time, in an accepted conversation
+        (resource.data.status == 'accepted'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['seen', 'typing'])
+          && request.resource.data.get('seen', {}).diff(resource.data.get('seen', {})).affectedKeys().hasOnly([request.auth.uid])
+          && request.resource.data.get('typing', {}).diff(resource.data.get('typing', {})).affectedKeys().hasOnly([request.auth.uid])
+          && (!(request.auth.uid in request.resource.data.get('seen', {})) || request.resource.data.seen[request.auth.uid] == request.time || request.resource.data.seen[request.auth.uid] == resource.data.get('seen', {})[request.auth.uid])
+          && (!(request.auth.uid in request.resource.data.get('typing', {})) || request.resource.data.typing[request.auth.uid] == request.time || request.resource.data.typing[request.auth.uid] == resource.data.get('typing', {})[request.auth.uid]))
+        ||
         // a new message updates the preview, but only once the request is accepted
         (resource.data.status == 'accepted'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['lastMessage', 'lastMessageAt', 'lastFrom'])
@@ -127,12 +135,20 @@ service cloud.firestore {
         function conv() { return getAfter(convPath(cid)).data; }
         allow read: if signedIn() && request.auth.uid in get(convPath(cid)).data.members;
         allow create: if signedIn() && !banned() && request.auth.uid in conv().members
-          && request.resource.data.keys().hasOnly(['from', 'text', 't', 'at'])
+          && request.resource.data.keys().hasOnly(['from', 'text', 't', 'at', 'img'])
           && request.resource.data.from == request.auth.uid
-          && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000
+          && request.resource.data.text is string && request.resource.data.text.size() <= 2000
+          // a photo: a small picture saved in the message (under 400 KB); a message has words, a photo, or both
+          && (!('img' in request.resource.data) || (request.resource.data.img is string && request.resource.data.img.size() > 30 && request.resource.data.img.size() <= 400000))
+          && (request.resource.data.text.size() > 0 || 'img' in request.resource.data)
           && request.resource.data.t is number && request.resource.data.at == request.time
           && (conv().status == 'accepted' || (conv().status == 'pending' && conv().requester == request.auth.uid && mid == 'request'));
-        allow update, delete: if false;
+        // reactions: each person sets or removes only their own, once the chat is accepted; nothing else changes
+        allow update: if signedIn() && !banned() && request.auth.uid in get(convPath(cid)).data.members && get(convPath(cid)).data.status == 'accepted'
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])
+          && request.resource.data.reactions.diff(resource.data.get('reactions', {})).affectedKeys().hasOnly([request.auth.uid])
+          && (!(request.auth.uid in request.resource.data.reactions) || (request.resource.data.reactions[request.auth.uid] is string && request.resource.data.reactions[request.auth.uid].size() <= 16));
+        allow delete: if false;
       }
     }
 

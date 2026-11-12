@@ -1,5 +1,26 @@
 [
   {
+    "version": "3.2.0",
+    "beta": 1,
+    "date": "2026-11-12",
+    "title": {
+      "en": "PatOS 3.2: Messages",
+      "fr": "PatOS 3.2 : Messages"
+    },
+    "notes": {
+      "en": [
+        "Messages: send photos (📷 next to the message box; they are made smaller so they arrive fast), and add emoji from the 😊 button",
+        "Messages: react to any message with ❤️ 👍 😂 😮 😢 🔥 (click a message; double-click for a quick ❤️). Click your reaction again to remove it",
+        "Messages: “Seen” under your last message once the other person has read it, and “typing…” dots while they write"
+      ],
+      "fr": [
+        "Messages : envoyez des photos (📷 à côté de la zone de message ; elles sont réduites pour arriver vite), et ajoutez des émojis avec le bouton 😊",
+        "Messages : réagissez à n’importe quel message avec ❤️ 👍 😂 😮 😢 🔥 (cliquez sur un message ; double-cliquez pour un ❤️ rapide). Cliquez de nouveau sur votre réaction pour la retirer",
+        "Messages : « Vu » sous votre dernier message quand l’autre personne l’a lu, et des points « écrit… » pendant qu’elle écrit"
+      ]
+    }
+  },
+  {
     "version": "3.1.0",
     "date": "2026-11-12",
     "title": {
