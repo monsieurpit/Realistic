@@ -60,7 +60,7 @@ test('versions, duplicates (nothing deleted by itself), compare, look inside a z
     const d = PatOS.finderPro.compare('a\nb\nc', 'a\nc\nd');
     const blob = await PatOS.zip.zipPaths(['/Documents/a.txt', '/Documents/essay.txt']); await PatOS.fs.writeBlob('/Documents/pack.zip', blob);
     const win = PatOS.launch('finder', { path: '/Documents' }); await new Promise((res) => setTimeout(res, 400));
-    await PatOS.finderPro.lookInside(win, '/Documents/pack.zip'); const rows = [...win.body.querySelectorAll('.fp-sheet .fp-path')].map((x) => x.textContent);
+    await PatOS.finderPro.lookInside(win, '/Documents/pack.zip'); const rows = [...win.body.querySelectorAll('.ui-sheet .fp-path')].map((x) => x.textContent);
     const before = PatOS.fs.exists('/Documents/a.txt') && PatOS.fs.exists('/Pictures/b.txt');
     return { v: v.length, ok, now, v2, gPaths: g && g.paths, cIn: groups.some((x) => x.paths.includes('/Documents/c.txt')), d, rows, extracted: PatOS.fs.list('/Documents').some((x) => x.name === 'pack'), before };
   });

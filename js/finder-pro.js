@@ -40,15 +40,8 @@
   }
 
   /* ---------- a sheet over a window ---------- */
-  function sheet(win, title, body, actions) {
-    const host = (win && win.body) || document.body; const old = host.querySelector('.fp-sheet'); if (old) old.remove();
-    const close = () => el.remove();
-    const el = h('div', { class: 'fp-sheet', role: 'dialog', 'aria-label': title },
-      h('div', { class: 'fp-card' }, h('div', { class: 'fp-head' }, h('b', {}, title), h('button', { class: 'fp-x', 'aria-label': T('Close'), onclick: close }, '×')), h('div', { class: 'fp-body' }, body), actions ? h('div', { class: 'fp-acts' }, ...actions(close)) : null));
-    el.addEventListener('keydown', (e) => { if (e.key === 'Escape') { e.stopPropagation(); close(); } });
-    host.appendChild(el); setTimeout(() => { const f = el.querySelector('button, input'); f && f.focus(); }, 30);
-    return { el, close };
-  }
+  // (the design system's sheet: js/ui.js)
+  const sheet = (win, title, body, actions) => PatOS.ui.sheet(win, { title, body, actions });
 
   async function duplicatesSheet(win, root) {
     const body = h('div', { class: 'fp-dups' }, h('p', { class: 'fp-muted' }, T('Looking…')));
