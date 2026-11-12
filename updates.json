@@ -1,7 +1,7 @@
 [
   {
     "version": "3.2.0",
-    "beta": 8,
+    "beta": 9,
     "date": "2026-11-12",
     "title": {
       "en": "PatOS 3.2: Messages",
@@ -9,6 +9,7 @@
     },
     "notes": {
       "en": [
+        "New app icon look on the phone home screen: bigger icons that nearly fill each row, and with dark icons most apps now sit on a dark tile with their drawing in color (Pat, Passwords, YouTube and Google keep their own colored tile)",
         "Fixed: Liquid Glass could turn flat and dark by itself while still turned on. A quick speed test at start-up, if the computer happened to be busy, decided it was slow and removed the blur from all glass. Now an automatic guess never touches how see-through the glass is (only your own choice in Settings › Speed mode does), and the test is tried three times, keeping the best",
         "Fixed: glass could draw black after resizing many windows or opening many menus (the edge-bending effect threw away filters that glass was still using), or after the computer woke up. Filters still in use are kept, and they're made again when you come back to PatOS",
         "PatOS is faster: moving the mouse no longer makes the browser restyle the whole window under it; Weather’s rain and snow stopped re-making their canvas 60 times a second; the bending glass edge is skipped on big surfaces like Pat’s panel (the glass stays just as clear); the Dock’s hidden labels no longer each run the Dock’s glass filter; Pat’s small orbs next to answers stay still; About PatOS stops drawing while minimized; new glass is picked up once a frame instead of on every change",
@@ -44,6 +45,7 @@
         "Messages: “Seen” under your last message once the other person has read it, and “typing…” dots while they write"
       ],
       "fr": [
+        "Nouvelles icônes sur l’écran d’accueil du téléphone : des icônes plus grandes qui remplissent presque chaque rangée, et avec les icônes sombres la plupart des apps sont maintenant sur une tuile sombre avec leur dessin en couleur (Pat, Mots de passe, YouTube et Google gardent leur tuile de couleur)",
         "Corrigé : Liquid Glass pouvait devenir plat et sombre tout seul alors qu’il était activé. Un petit test de vitesse au démarrage, si l’ordinateur était occupé à ce moment-là, le jugeait lent et enlevait le flou de tout le verre. Maintenant une estimation automatique ne change jamais la transparence du verre (seul ton choix dans Réglages › Mode vitesse le fait), et le test est fait trois fois en gardant le meilleur",
         "Corrigé : le verre pouvait devenir noir après avoir redimensionné beaucoup de fenêtres ou ouvert beaucoup de menus (l’effet de bord courbé jetait des filtres encore utilisés), ou après la mise en veille de l’ordinateur. Les filtres utilisés sont gardés, et refaits quand tu reviens sur PatOS",
         "PatOS est plus rapide : bouger la souris ne fait plus recalculer le style de toute la fenêtre en dessous; la pluie et la neige de Météo ne refont plus leur image 60 fois par seconde; le bord courbé du verre est sauté sur les grandes surfaces comme le panneau de Pat (le verre reste aussi transparent); les étiquettes cachées du Dock n’exécutent plus chacune le filtre du Dock; les petits orbes de Pat à côté des réponses restent immobiles; À propos de PatOS arrête de dessiner quand il est réduit; le nouveau verre est repéré une fois par image au lieu de à chaque changement",

@@ -193,7 +193,9 @@ html.mobile.m-kb { --app-bottom: 0px; }
 /* Home Screen */
 .real-phone #m-home { padding-top: calc(var(--sat) + 14px); }
 .mobile .mh-grid { row-gap: 0; }
-.mobile .mh-ic { width: min(64px, calc((100vw - 96px) / 4)); height: min(64px, calc((100vw - 96px) / 4)); border-radius: 22%; }
+/* (3.2: bigger icons that nearly fill each row, like a phone's home screen: about 74px on a 390px-wide phone) */
+.mobile .mh-ic { width: min(74px, calc((100vw - 76px) / 4)); height: min(74px, calc((100vw - 76px) / 4)); border-radius: 23%; }
+.mobile .mh-grid { column-gap: 6px; }
 .mobile .mh-app { font-size: 12px; gap: 7px; }
 .mobile .mh-app span { max-width: 84px; }
 .mh-search { display: none; }

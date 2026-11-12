@@ -486,7 +486,7 @@
           });
           const acc = h('div', { class: 'st-acc' });
           ACCENTS.forEach((c) => { const b = h('button', { class: 'st-dot' + (S().accent === c ? ' on' : ''), style: { background: c } }); b.onclick = () => { PatOS.setSetting('accent', c); render(); }; acc.appendChild(b); });
-          return [h('h3', {}, T('Light or dark')), modes, group(row('Highlight color', acc), row(T('Motion'), select('motion', [['calm', T('Calm')], ['natural', T('Natural')], ['playful', T('Playful')]]), T('How windows, menus and panels move')), row(T('App icons'), select('iconStyle', [['auto', T('Automatic')], ['light', T('Light')], ['dark', T('Dark')]]), T('Apps with a color of their own get a tile of that color; the others are white with Light, dark with Dark. Automatic follows light or dark mode')), row('Fewer animations', toggle('reduceMotion'))),
+          return [h('h3', {}, T('Light or dark')), modes, group(row('Highlight color', acc), row(T('Motion'), select('motion', [['calm', T('Calm')], ['natural', T('Natural')], ['playful', T('Playful')]]), T('How windows, menus and panels move')), row(T('App icons'), select('iconStyle', [['auto', T('Automatic')], ['light', T('Light')], ['dark', T('Dark')]]), T('Light: apps with a color of their own get a tile of that color, the others are white. Dark: most apps sit on a dark tile with their drawing in color, a few keep their own tile. Automatic follows light or dark mode')), row('Fewer animations', toggle('reduceMotion'))),
             h('h3', {}, 'Liquid Glass'),
             group(row('Liquid Glass', toggle('liquidGlass', render), ''),
               S().liquidGlass ? row(T('Glass style'), select('glassStyle', [['clear', T('Transparent')], ['tinted', T('Tinted (more contrast)')]]), '') : null,

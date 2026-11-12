@@ -506,6 +506,8 @@
     }
     planCache.set(id, plan); return plan;
   }
+  // with Dark icons, these keep their colored tile (YouTube and Google keep their own logos on their own tile in every mode)
+  const KEEP_TILE = new Set(['pat', 'passwords']);
   PatOS.iconHTML = function (id, arg) {
     const gi = GLASS[id];
     // drawn in glass (above), shown as a picture: the browser draws each icon (its gradients and blurred halos) once and reuses it,
@@ -514,7 +516,10 @@
     if (gi) {
       // app icons on a tile are painted for the tile in use (light icons: Settings › Appearance › App icons); file icons stay as they are
       const root = document.documentElement, tiled = gi.bg !== 'transparent';
-      const color = tiled && root.classList.contains('icons-color') ? colorPlan(id, gi, arg) : null;
+      // Dark: most apps on the same dark tile, their drawing keeping its own colors (the way a phone's dark icons look); a few
+      // keep their colored tile there too (KEEP_TILE), as some apps do on a phone. Light: an app with one main color gets a
+      // tile of that color with the drawing in white.
+      const color = tiled && root.classList.contains('icons-color') && (!root.classList.contains('icons-dark') || KEEP_TILE.has(id)) ? colorPlan(id, gi, arg) : null;
       // colored tiles paint their other parts in deep colors; without a color of their own, a tile is white (Light) or the dark glass (Dark)
       LIGHT = tiled && root.classList.contains('icons-color') && (!!color || !root.classList.contains('icons-dark')); COLOR = color;
       let svg; try { svg = gi.svg(arg); } finally { LIGHT = false; COLOR = null; }

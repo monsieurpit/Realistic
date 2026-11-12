@@ -150,12 +150,12 @@ test('one-color apps get a tile of their own color with a white drawing in Light
     out.autoLight = document.documentElement.classList.contains('icons-color') && !document.documentElement.classList.contains('icons-dark');
     PatOS.setSetting('theme', 'dark'); await wait(400);
     out.autoDark = document.documentElement.classList.contains('icons-dark');
-    out.darkMusicColored = tile('music').classList.contains('colored'); out.darkPhotosBg = getComputedStyle(tile('photos')).backgroundImage;
+    out.darkMusicColored = tile('music').classList.contains('colored'); out.darkPatColored = /class="icon-tile gi colored/.test(PatOS.iconHTML('pat')); out.darkPhotosBg = getComputedStyle(tile('photos')).backgroundImage;
     return out;
   });
   assert.equal(r.musicColored, true); assert.match(r.musicBg, /gradient/); assert.equal(r.musicWhite, true, 'Music’s note is white on its red tile');
   assert.equal(r.photosColored, false, 'Photos keeps a white tile');
   assert.equal(r.autoLight, true); assert.equal(r.autoDark, true);
-  assert.equal(r.darkMusicColored, true, 'Music keeps its red tile in Dark'); assert.doesNotMatch(r.darkPhotosBg, /255, 255, 255/, 'Photos is on the dark glass in Dark');
+  assert.equal(r.darkMusicColored, false, 'Dark: Music is on the dark tile with its red note, like most apps'); assert.equal(r.darkPatColored, true, 'a few keep their colored tile in Dark (Pat)'); assert.doesNotMatch(r.darkPhotosBg, /255, 255, 255/, 'Photos is on the dark glass in Dark');
   assert.deepEqual(errors, []); await page.close();
 });
