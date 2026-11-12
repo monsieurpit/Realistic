@@ -35,6 +35,7 @@
   PatOS.settingsIndex = () => PANES.map(([k, l]) => ({ pane: k, label: l, keywords: KW[k] || '' }));
   const CATALOG = [
     { key: 'theme', type: 'enum', values: ['dark', 'light', 'auto'], pane: 'appearance', label: 'Appearance', words: 'appearance theme dark mode light mode night mode automatic apparence theme mode sombre mode clair mode nuit' },
+    { key: 'textScale', type: 'enum', values: [1, 1.15, 1.3, 1.5], pane: 'accessibility', label: 'Text size', words: 'text size font size bigger text larger text zoom taille du texte texte plus grand police' },
     { key: 'reduceMotion', type: 'bool', pane: 'accessibility', label: 'Reduce motion', words: 'reduce motion animations movement reduire les animations mouvement' },
     { key: 'highContrast', type: 'bool', pane: 'accessibility', label: 'High contrast', words: 'high contrast increase contrast contraste eleve augmenter le contraste' },
     { key: 'boldText', type: 'bool', pane: 'accessibility', label: 'Bold text', words: 'bold text texte en gras gras' },

@@ -103,8 +103,8 @@
 
     <div id="spotlight" class="hidden">
       <div class="sp-box">
-        <div class="sp-row"><span class="sp-icon"></span><input class="sp-input" placeholder="Spotlight Search" spellcheck="false"></div>
-        <div class="sp-results"></div>
+        <div class="sp-row"><span class="sp-icon"></span><input class="sp-input" placeholder="Spotlight Search" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="sp-results" aria-autocomplete="list" aria-label="Spotlight Search"></div>
+        <div class="sp-results" id="sp-results" role="listbox" aria-label="Results"></div>
       </div>
     </div>
 

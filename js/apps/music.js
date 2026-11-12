@@ -309,7 +309,7 @@
       const bRep = h('button', { class: 'mu-b sm', title: T('Repeat'), html: svg('<path d="M4 11V9a3 3 0 0 1 3-3h13M17 3l3 3-3 3M20 13v2a3 3 0 0 1-3 3H4M7 21l-3-3 3-3"/>') });
       const bQueue = h('button', { class: 'mu-b sm', title: T('Up Next'), html: svg('<path d="M4 6h12M4 12h12M4 18h8M18 15v6M15 18h6"/>') });
       const bViz = h('button', { class: 'mu-b sm', title: T('Now Playing'), html: svg('<path d="M4 18V12M8 18V6M12 18v-9M16 18V4M20 18v-6"/>') });
-      const prog = h('div', { class: 'mu-prog scrub', role: 'slider', 'aria-label': T('Position') }, h('span')); const tA = h('small'); const tB = h('small');
+      const prog = h('div', { class: 'mu-prog scrub', role: 'slider', 'aria-label': T('Position'), 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': '0', tabindex: '0' }, h('span')); const tA = h('small'); const tB = h('small');
       const vol = h('input', { type: 'range', min: 0, max: 100, value: Math.round(PatOS.settings.volume * 100), class: 'mu-vol', 'aria-label': T('Volume') });
       const bar = h('div', { class: 'mu-bar' }, art, h('div', { class: 'mu-info' }, tt, ar), h('div', { class: 'mu-ctl' }, bShuf, bPrev, bPlay, bNext, bRep), h('div', { class: 'mu-time' }, tA, prog, tB), bQueue, bViz, vol);
       win.body.append(h('div', { class: 'mu-wrap2' }, side, main, queueBox), bar);
@@ -465,7 +465,7 @@
         if (viz) viz.setHue(s ? s.hue : 0.6);
       }
       E.listeners.add(sync);
-      const ti = setInterval(() => { const p = position(); tA.textContent = fmt(p.t); tB.textContent = '-' + fmt(Math.max(0, p.d - p.t)); prog.firstChild.style.width = (p.d ? Math.min(100, p.t / p.d * 100) : 0) + '%'; }, 250);
+      const ti = setInterval(() => { const p = position(); tA.textContent = fmt(p.t); tB.textContent = '-' + fmt(Math.max(0, p.d - p.t)); prog.setAttribute('aria-valuenow', String(p.d ? Math.round(Math.min(100, p.t / p.d * 100)) : 0)); prog.setAttribute('aria-valuetext', fmt(p.t)); prog.firstChild.style.width = (p.d ? Math.min(100, p.t / p.d * 100) : 0) + '%'; }, 250);
       win.el.addEventListener('keydown', (e) => {
         if (e.target.closest('input, textarea, select')) { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') { e.preventDefault(); search.focus(); } return; }
         if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); PatOS.music.toggle(); }

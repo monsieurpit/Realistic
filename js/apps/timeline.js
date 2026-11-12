@@ -209,8 +209,8 @@
       function ribbon(list) {
         const per = new Array(24).fill(0); list.forEach((it) => per[new Date(it.t).getHours()]++);
         const max = Math.max(1, ...per); const nowH = day === startOf(Date.now()) ? new Date().getHours() : -1;
-        const r = h('div', { class: 'tl-ribbon', role: 'img', 'aria-label': T('Activity by hour') });
-        per.forEach((n, hr) => r.appendChild(h('button', { class: 'tl-bar' + (n ? '' : ' none') + (hr === nowH ? ' now' : ''), style: { '--v': (n / max).toFixed(3), '--d': hr * 18 + 'ms' }, title: String(hr).padStart(2, '0') + ':00 · ' + n, onclick: () => { const g = main.querySelector('[data-hour="' + hr + '"]'); if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' }); } })));
+        const r = h('div', { class: 'tl-ribbon', role: 'group', 'aria-label': T('Activity by hour') });
+        per.forEach((n, hr) => r.appendChild(h('button', { class: 'tl-bar' + (n ? '' : ' none') + (hr === nowH ? ' now' : ''), style: { '--v': (n / max).toFixed(3), '--d': hr * 18 + 'ms' }, title: String(hr).padStart(2, '0') + ':00 · ' + n, 'aria-label': String(hr).padStart(2, '0') + ':00, ' + n, onclick: () => { const g = main.querySelector('[data-hour="' + hr + '"]'); if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' }); } })));
         const lab = h('div', { class: 'tl-rlab' }); [0, 6, 12, 18, 24].forEach((x) => lab.appendChild(h('span', {}, new Date(2000, 0, 1, x % 24).toLocaleTimeString(PatOS.locale, { hour: 'numeric' }))));
         return h('div', { class: 'tl-rib' }, r, lab);
       }

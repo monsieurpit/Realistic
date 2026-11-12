@@ -29,17 +29,43 @@
       b.onclick = async (e) => { e.stopPropagation(); try { if (!have || newer) { if (await P.store.install(a.id)) again(); } else P.open(a.id); } catch (er) { fail(er); } };
       const ed = have && have.source === 'file' ? h('button', { class: 'btn', style: { marginLeft: '8px' }, onclick: (e) => { e.stopPropagation(); edit(have.app); } }, T('Edit this app')) : null;
       const rm = have && !newer ? h('button', { class: 'btn', style: { marginLeft: '8px' }, onclick: async (e) => { e.stopPropagation(); if (await P.uninstall(a.id)) again(); } }, T('Remove')) : null;
-      return h('div', { class: 'as-row' }, h('div', { class: 'as-ic', html: tile(a) }), h('div', { class: 'as-txt' }, h('b', {}, a.name + ' ' + a.version), h('small', {}, (a.author ? a.author + ' · ' : '') + (a.description || '')), permTags(a)), b, ed, rm);
+      const el = h('div', { class: 'as-row', role: 'button', tabindex: '0', 'aria-label': a.name + ' ' + a.version }, h('div', { class: 'as-ic', html: tile(a) }), h('div', { class: 'as-txt' }, h('b', {}, a.name + ' ' + a.version), h('small', {}, (a.author ? a.author + ' · ' : '') + (a.category ? T(a.category) + ' · ' : '') + (a.description || '')), permTags(a)), b, ed, rm);
+      el.addEventListener('click', () => detail(a, b)); el.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target === el) detail(a, b); });
+      return el;
     };
-    const fits = (a) => !q || (a.name + ' ' + (a.description || '') + ' ' + (a.author || '')).toLowerCase().includes(q);
-    const mine = P.list().map((r) => r.app).filter(fits);
+    /* an app's page: only what is really known about it (no made-up ratings or download counts) */
+    function detail(a, getBtn) {
+      main.innerHTML = ''; const F = window.PatAppFormat; const ok = !F || !F.compatible || F.compatible(a, PatOS.version);
+      const info = (l, v) => (v ? h('div', { class: 'st-row' }, h('div', { class: 'st-rl' }, h('span', {}, l)), h('span', { class: 'st-val' }, v)) : null);
+      main.append(h('button', { class: 'btn as-back', onclick: again }, '‹ ' + T('Back')),
+        h('div', { class: 'as-detail' }, h('div', { class: 'as-dic', html: tile(a) }), h('div', {}, h('h1', {}, a.name), h('p', { class: 'as-cat' }, (a.author ? T('By') + ' ' + a.author : '') + (a.category ? ' · ' + T(a.category) : '')), h('div', { class: 'as-btns' }, getBtn.cloneNode(true))) ),
+        h('p', { class: 'as-desc' }, a.description || ''),
+        a.screenshots && a.screenshots.length ? h('div', { class: 'as-shots', role: 'list', 'aria-label': T('Screenshots') }, ...a.screenshots.map((src, i) => h('img', { src, alt: a.name + ' ' + T('screenshot') + ' ' + (i + 1), role: 'listitem', loading: 'lazy' }))) : null,
+        h('div', { class: 'st-group' }, info(T('Version'), a.version), info(T('Runs on this PatOS'), ok ? T('Yes') : T('Needs PatOS') + ' ' + a.minPatOS), info(T('Permissions'), (a.permissions || []).map((p) => PatOS.patapps.permInfo(p)[0]).join(', ') || T('none')),
+          info(T('Actions it offers'), (a.actions || []).map((x) => x.title + ' (“' + (x.phrases[0] || '') + '”)').join(', ')), a.homepage ? h('div', { class: 'st-row' }, h('div', { class: 'st-rl' }, h('span', {}, T('Website'))), h('a', { href: a.homepage, target: '_blank', rel: 'noopener noreferrer' }, a.homepage.replace(/^https:\/\//, ''))) : null),
+        a.changelog ? h('div', {}, h('h2', {}, T('What’s new in') + ' ' + a.version), h('p', { class: 'as-desc', style: { whiteSpace: 'pre-wrap' } }, a.changelog)) : null);
+      const nb = main.querySelector('.as-btns button'); if (nb) nb.onclick = (e) => { e.stopPropagation(); getBtn.click(); };
+    }
+    // categories (from the apps themselves) and sorting
+    let cat = '', sort = 'name';
+    const bar = h('div', { class: 'as-filter', role: 'toolbar', 'aria-label': T('Filter') });
+    const sortSel = h('select', { class: 'field', 'aria-label': T('Sort by') }, h('option', { value: 'name' }, T('Name')), h('option', { value: 'new' }, T('Recently updated')));
+    sortSel.onchange = () => { sort = sortSel.value; draw(lastList); };
+    main.appendChild(bar);
+    const fits = (a) => (!q || (a.name + ' ' + (a.description || '') + ' ' + (a.author || '') + ' ' + (a.category || '')).toLowerCase().includes(q)) && (!cat || a.category === cat);
+    let lastList = null;
+    function chips(list) { bar.innerHTML = ''; const cats = [...new Set(list.map((a) => a.category).filter(Boolean))].sort(); [''].concat(cats).forEach((c) => bar.appendChild(h('button', { class: 'as-chip' + (c === cat ? ' on' : ''), 'aria-pressed': String(c === cat), onclick: () => { cat = c; chips(list); draw(list); } }, c ? T(c) : T('All')))); bar.appendChild(sortSel); }
+    const order = (l) => l.slice().sort((x, y) => (sort === 'new' ? (y.updated || 0) - (x.updated || 0) : x.name.localeCompare(y.name)));
+    const mine = P.list().map((r) => Object.assign({ updated: r.updated }, r.app));
     box.appendChild(h('p', { class: 'as-note' }, T('Loading…')));
-    P.store.list().then((list) => {
-      box.innerHTML = ''; const ids = new Set(list.map((a) => a.id)); const shown = list.filter(fits);
+    function draw(list) {
+      if (!list) return; lastList = list;
+      box.innerHTML = ''; const ids = new Set(list.map((a) => a.id)); const shown = order(list.filter(fits));
       if (shown.length) { const g = h('div', { class: 'as-list' }); shown.forEach((a) => g.appendChild(row(a))); box.appendChild(g); } else box.appendChild(h('p', { class: 'as-note' }, q ? T('No apps match.') : T('No community apps yet. Make the first one in the Develop tab.')));
-      const own = mine.filter((a) => !ids.has(a.id));
+      const own = order(mine.filter((a) => !ids.has(a.id) && fits(a)));
       if (own.length) { box.appendChild(h('h2', {}, T('Installed from files'))); const g = h('div', { class: 'as-list' }); own.forEach((a) => g.appendChild(row(a))); box.appendChild(g); }
-    }).catch(() => {
+    }
+    P.store.list().then((list) => { chips(list.concat(mine)); draw(list); }).catch(() => {
       box.innerHTML = ''; box.appendChild(h('p', { class: 'as-note' }, T('The store can’t be reached right now (are you offline?). Apps you installed still work.')));
       if (mine.length) { box.appendChild(h('h2', {}, T('Installed'))); const g = h('div', { class: 'as-list' }); mine.forEach((a) => g.appendChild(row(a))); box.appendChild(g); }
     });

@@ -250,7 +250,7 @@
     uiSounds: true,
     volume: 0.7,
     brightness: 1,
-    reduceMotion: false, highContrast: false, boldText: false, showFocus: false, bigTargets: false, srAnnounce: true, systemNotifications: true,
+    textScale: 1, reduceMotion: false, highContrast: false, boldText: false, showFocus: false, bigTargets: false, srAnnounce: true, systemNotifications: true,
     reduceTransparency: false,
     quality3d: 'auto',       // low | auto | high
     perfMode: 'auto',        // auto | light | full (Speed mode: light turns off the see-through blur and the long animations)

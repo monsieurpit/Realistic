@@ -125,7 +125,7 @@
       win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '70px';
       search.setAttribute('placeholder', T('Search names and contents')); search.setAttribute('aria-label', T('Search names and contents'));
 
-      const side = h('div', { class: 'fd-side' });
+      const side = h('nav', { class: 'fd-side', tabindex: '0', 'aria-label': PatOS.t('Places') });
       const main = h('div', { class: 'fd-main', tabindex: '0' });
       const pathbar = h('div', { class: 'fd-path' });
       const status = h('div', { class: 'fd-status' });

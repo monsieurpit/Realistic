@@ -24,7 +24,8 @@
       // on a phone: the list of settings first, each pane on its own screen
       const MB = PatOS.mobile; if (MB && MB.stack) { MB.stack(win, PatOS.t('Settings')); side.classList.add('m-list'); main.classList.add('m-detail'); }
       const S = () => PatOS.settings;
-      const row = (label, ctl, sub) => h('div', { class: 'st-row' }, h('div', { class: 'st-rl' }, h('span', {}, label), sub ? h('small', {}, sub) : null), ctl);
+      // a control takes its row's words as its accessible name (screen readers say "24-hour clock, switch, off")
+      const row = (label, ctl, sub) => { if (ctl && ctl.nodeType === 1 && /^(BUTTON|INPUT|SELECT|TEXTAREA)$/.test(ctl.tagName) && !ctl.getAttribute('aria-label') && typeof label === 'string' && !(ctl.tagName === 'BUTTON' && ctl.textContent.trim())) ctl.setAttribute('aria-label', label); return h('div', { class: 'st-row' }, h('div', { class: 'st-rl' }, h('span', {}, label), sub ? h('small', {}, sub) : null), ctl); };
       const group = (...rows) => h('div', { class: 'st-group' }, ...rows);
       const toggle = (key, after) => { const t = h('button', { class: 'switch' + (S()[key] ? ' on' : ''), 'data-key': key, role: 'switch', 'aria-checked': String(!!S()[key]) }); t.onclick = () => { PatOS.setSetting(key, !S()[key]); t.classList.toggle('on', S()[key]); t.setAttribute('aria-checked', String(!!S()[key])); after && after(); }; return t; };
       const range = (key, min, max, step, fmt) => { const v = h('span', { class: 'st-val' }); const r = h('input', { type: 'range', min, max, step: step || 1, value: S()[key], 'data-key': key }); const upd = () => (v.textContent = fmt ? fmt(+r.value) : r.value); r.oninput = () => { PatOS.setSetting(key, +r.value); upd(); }; upd(); return h('div', { class: 'st-range' }, r, v); };
@@ -643,7 +644,10 @@
           return [box];
         },
         accessibility() {
+          const ts = h('select', { class: 'field', 'data-key': 'textScale' }, ...[[1, T('Default')], [1.15, T('Larger')], [1.3, T('Large')], [1.5, T('Largest')]].map(([v, l]) => h('option', { value: v, selected: +S().textScale === v }, l)));
+          ts.onchange = () => PatOS.setSetting('textScale', +ts.value);
           return [
+            group(row(T('Text size'), ts, T('Makes everything inside app windows bigger: text, buttons and pictures.'))),
             group(row(T('Reduce motion'), toggle('reduceMotion'), ''), row(T('Reduce transparency'), toggle('reduceTransparency'), ''), row(T('High contrast'), toggle('highContrast'), ''), row(T('Bold text'), toggle('boldText')), row(T('Always show keyboard focus'), toggle('showFocus'), ''), row(T('Larger click targets'), toggle('bigTargets'), '')),
             group(row(T('Read notifications aloud to screen readers'), toggle('srAnnounce'))),
             h('p', { class: 'st-note' }, T('To make everything bigger, press Ctrl and + (and Ctrl and 0 to reset). PatOS rearranges itself to fit. On a Chromebook you can also use ChromeVox, the built-in screen reader (Ctrl+Alt+Z).'))];

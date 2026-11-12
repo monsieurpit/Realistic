@@ -929,8 +929,8 @@
     const fq = fold(q);
     let lastG = '';
     spResults.forEach((r, i) => {
-      if (r.group !== lastG) { box.appendChild(h('div', { class: 'sp-group' }, PatOS.t(r.group))); lastG = r.group; }
-      const row = h('div', { class: 'sp-res' + (i === 0 ? ' sel' : ''), role: 'option' }, h('div', { class: 'sp-ri', html: r.iconHTML || PatOS.iconHTML(r.icon) }), markLabel(r.label, fq), r.sub ? h('small', {}, r.sub) : null);
+      if (r.group !== lastG) { box.appendChild(h('div', { class: 'sp-group', role: 'presentation' }, PatOS.t(r.group))); lastG = r.group; }
+      const row = h('div', { class: 'sp-res' + (i === 0 ? ' sel' : ''), role: 'option', id: 'sp-opt-' + i, 'aria-selected': String(i === 0) }, h('div', { class: 'sp-ri', html: r.iconHTML || PatOS.iconHTML(r.icon) }), markLabel(r.label, fq), r.sub ? h('small', {}, r.sub) : null);
       row.addEventListener('click', () => go(r));
       row.addEventListener('pointermove', () => { if (spSel !== i) setSel(i); });
       box.appendChild(row);
@@ -947,7 +947,8 @@
   function setSel(i) {
     const rows = $$('.sp-res'); if (!rows.length) return;
     spSel = (i + rows.length) % rows.length;
-    rows.forEach((r, j) => r.classList.toggle('sel', j === spSel));
+    rows.forEach((r, j) => { r.classList.toggle('sel', j === spSel); r.setAttribute('aria-selected', String(j === spSel)); });
+    const inp = $('.sp-input'); if (inp) inp.setAttribute('aria-activedescendant', rows[spSel].id || ''); // (screen readers follow the highlighted result)
     rows[spSel].scrollIntoView({ block: 'nearest' });
     preview(spResults[spSel]);
   }
@@ -1236,6 +1237,7 @@
     }
     root.classList.toggle('win', !!PatOS.hw.windows);
     ['highContrast', 'boldText', 'showFocus', 'bigTargets'].forEach((k) => root.classList.toggle(k.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase()), !!s[k]));
+    root.style.setProperty('--text-zoom', String([1, 1.15, 1.3, 1.5].includes(+s.textScale) ? +s.textScale : 1)); // Settings › Accessibility › Text size (what is inside app windows)
     $('#dimmer').style.opacity = String(1 - s.brightness);
     root.classList.toggle('lg-on', !!s.liquidGlass);
     root.classList.toggle('lg-tinted', !!s.liquidGlass && s.glassStyle === 'tinted');

@@ -4617,6 +4617,23 @@ html:not(.reduce-motion) .dlg { animation: dlgIn var(--spring-dur-short) var(--s
 /* Developer Center */
 .dv-card { margin-bottom: var(--sp-4); } .dv-code { font: 12.5px ui-monospace, Menlo, monospace; padding: 2px 6px; border-radius: 6px; background: var(--hover); word-break: break-all; }
 .dv-paste { width: 100%; margin: var(--sp-3) 0; font: 12px ui-monospace, Menlo, monospace; }
+/* ================= 3.2 accessibility (WCAG 2.2 AA) ================= */
+/* text a screen of any brightness can read: secondary text at 4.5:1 or more */
+:root[data-theme="dark"] { --text3: rgba(235,235,245,.56); }
+:root[data-theme="light"] { --text2: rgba(60,60,67,.84); --text3: rgba(60,60,67,.76); }
+/* the selected item in a sidebar: white text on a deeper accent (4.5:1 with the default blue) */
+:is(.fd-si, .st-si, .dv-si, .pw-si, .nw-si):is(.on, .sel, .active) { background: color-mix(in srgb, var(--accent) 78%, #000); }
+.cal-num.today { background: #d93025; }
+/* menu bar buttons: at least 24×24 (WCAG 2.5.8) */
+#menubar button { height: 24px; min-width: 24px; justify-content: center; }
+/* Text size (Settings › Accessibility): the inside of every app window grows; the menu bar, Dock and window frames don't */
+.window .win-body { zoom: var(--text-zoom, 1); }
+.tl-day.l4 { background: color-mix(in srgb, var(--accent) 80%, #000); } .tl-f.on small { color: #fff; }
+.m2-card .m2-fine { opacity: .85; }
+/* App Store: categories, sorting, screenshots */
+.as-filter { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin: 0 0 var(--sp-3); } .as-filter select { margin-left: auto; }
+.as-chip { min-height: 30px; padding: 0 12px; border-radius: 999px; background: var(--hover); font-size: 13px; font-weight: 600; } .as-chip.on { background: color-mix(in srgb, var(--accent) 80%, #000); color: #fff; }
+.as-shots { display: flex; gap: var(--sp-3); overflow-x: auto; padding: var(--sp-2) 0 var(--sp-4); scroll-snap-type: x mandatory; } .as-shots img { height: 220px; border-radius: var(--r-md); scroll-snap-align: start; box-shadow: 0 6px 20px rgba(0,0,0,.25); }
 
 </style>
   <style>
@@ -4896,8 +4913,8 @@ html.safe-boot #menubar::after { content: "Safe Boot"; position: absolute; left:
 
     <div id="spotlight" class="hidden">
       <div class="sp-box">
-        <div class="sp-row"><span class="sp-icon"></span><input class="sp-input" placeholder="Spotlight Search" spellcheck="false"></div>
-        <div class="sp-results"></div>
+        <div class="sp-row"><span class="sp-icon"></span><input class="sp-input" placeholder="Spotlight Search" spellcheck="false" role="combobox" aria-expanded="true" aria-controls="sp-results" aria-autocomplete="list" aria-label="Spotlight Search"></div>
+        <div class="sp-results" id="sp-results" role="listbox" aria-label="Results"></div>
       </div>
     </div>
 
@@ -5606,7 +5623,7 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
     uiSounds: true,
     volume: 0.7,
     brightness: 1,
-    reduceMotion: false, highContrast: false, boldText: false, showFocus: false, bigTargets: false, srAnnounce: true, systemNotifications: true,
+    textScale: 1, reduceMotion: false, highContrast: false, boldText: false, showFocus: false, bigTargets: false, srAnnounce: true, systemNotifications: true,
     reduceTransparency: false,
     quality3d: 'auto',       // low | auto | high
     perfMode: 'auto',        // auto | light | full (Speed mode: light turns off the see-through blur and the long animations)
@@ -9918,7 +9935,9 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":3};
     'The app didn’t open.': 'L’app ne s’est pas ouverte.', 'The app didn’t answer.': 'L’app n’a pas répondu.', 'Run shortcut': 'Lancer le raccourci',
     'Desktop & Multitasking': 'Bureau et multitâche', 'Internet & Connectivity': 'Internet et connectivité', 'Account & Continuity': 'Compte et continuité', 'Pat & Intelligence': 'Pat et Intelligence', 'PatOS Intelligence': 'PatOS Intelligence', 'Diagnostics': 'Diagnostics',
     'Community app': 'App de la communauté', 'Built into PatOS': 'Intégrée à PatOS', 'problems': 'problèmes', 'No app has that name.': 'Aucune app n’a ce nom.', 'Show in Launchpad': 'Afficher dans Launchpad', 'Comes with PatOS': 'Fournie avec PatOS', 'From the App Store (reviewed)': 'De l’App Store (vérifiée)', 'Opened from a file (not reviewed)': 'Ouverte depuis un fichier (non vérifiée)', 'Storage it uses': 'Stockage utilisé', 'When off, its notifications are kept in Notification Center but make no banner or sound.': 'Désactivé, ses notifications restent dans le centre de notifications, sans bannière ni son.', 'Denied': 'Refusé', 'Asks first': 'Demande d’abord', 'This app asked for no permissions.': 'Cette app n’a demandé aucune permission.', 'Recent problems': 'Problèmes récents', 'Uninstall': 'Désinstaller', 'The app and the data it saved are removed from this device. Files it saved in Documents › Apps stay.': 'L’app et les données qu’elle a enregistrées sont retirées de cet appareil. Les fichiers enregistrés dans Documents › Apps restent.', 'Uninstall…': 'Désinstaller…', 'Every app on this device: its version, what it may do, what it keeps, and its notifications. Community apps can be uninstalled here.': 'Chaque app de cet appareil : sa version, ce qu’elle peut faire, ce qu’elle garde et ses notifications. Les apps de la communauté peuvent être désinstallées ici.', 'Get more apps': 'Obtenir d’autres apps', 'Make your own': 'Créer la vôtre', 'Developer Center': 'Centre des développeurs', 'No notifications yet.': 'Aucune notification pour l’instant.', 'Banners and sounds stay quiet; notifications still go to Notification Center.': 'Bannières et sons restent silencieux; les notifications vont quand même au centre de notifications.', 'Notification sounds': 'Sons des notifications', 'A short sound with each banner.': 'Un court son avec chaque bannière.', 'When PatOS is in a background tab, your browser shows the notification (if you allowed it).': 'Quand PatOS est dans un onglet en arrière-plan, votre navigateur affiche la notification (si vous l’avez permis).', 'Apps you silenced': 'Apps rendues silencieuses', 'None. Silence an app in Settings › Applications.': 'Aucune. Rendez une app silencieuse dans Réglages › Applications.', 'Clear the history': 'Effacer l’historique', 'PatOS Intelligence does what you ask in Pat, Spotlight and Shortcuts. It is not an AI: it knows a fixed list of actions, says exactly what it did, runs on this device and works offline.': 'PatOS Intelligence fait ce que vous demandez dans Pat, Spotlight et Raccourcis. Ce n’est pas une IA : elle connaît une liste fixe d’actions, dit exactement ce qu’elle a fait, fonctionne sur cet appareil et hors ligne.', 'What it may do': 'Ce qu’elle peut faire', 'Workspaces': 'Espaces de travail', 'Steps, one per line': 'Étapes, une par ligne', 'Not understood:': 'Pas compris :', 'Every step is understood.': 'Chaque étape est comprise.', 'Steps, one per line (anything you could ask Pat)': 'Étapes, une par ligne (tout ce que vous pourriez demander à Pat)', 'Say': 'Dites', 'start my': 'lance mon', 'workspace': 'espace', 'New workspace': 'Nouvel espace', 'My workspace': 'Mon espace', 'What you can ask': 'Ce que vous pouvez demander', 'asks first': 'demande d’abord', 'Recent actions': 'Actions récentes', 'Nothing yet. Ask Pat something.': 'Rien pour l’instant. Demandez quelque chose à Pat.', 'Clear this list': 'Effacer cette liste', 'Kept on this device only.': 'Gardé sur cet appareil seulement.', 'Open Shortcuts': 'Ouvrir Raccourcis', 'A shortcut step can be any command (“Do a command”).': 'Une étape de raccourci peut être n’importe quelle commande (« Faire une commande »).', 'Your files': 'Vos fichiers', 'Healthy at start-up': 'En bon état au démarrage', 'Mended at start-up': 'Réparés au démarrage', 'Problem at start-up': 'Problème au démarrage', 'problems were found and written down': 'problèmes trouvés et notés', 'None yet': 'Aucun pour l’instant', 'on this device': 'sur cet appareil', 'Settings › Backup & Restore makes one': 'Réglages › Sauvegarde et restauration en crée un', 'Problem': 'Problème', 'Working': 'Fonctionne', 'Account (Firebase)': 'Compte (Firebase)', 'Online': 'En ligne', 'As the browser reports it': 'Selon le navigateur', 'Problems written down': 'Problèmes notés', 'critical': 'critiques', 'errors': 'erreurs', 'warnings': 'avertissements', 'What PatOS can measure from inside the browser. Things a browser can’t see (the battery’s health, the processor’s temperature…) are not shown, and estimates say so.': 'Ce que PatOS peut mesurer depuis le navigateur. Ce qu’un navigateur ne peut pas voir (l’état de la batterie, la température du processeur…) n’est pas affiché, et les estimations le disent.', 'System health': 'État du système', '(measured: this page’s JavaScript)': '(mesuré : le JavaScript de cette page)', '(estimated by the browser)': '(estimé par le navigateur)', 'Not available': 'Non disponible', 'Resources': 'Ressources', 'Memory used by PatOS': 'Mémoire utilisée par PatOS', 'Storage used': 'Stockage utilisé', 'Start-up': 'Démarrage', '(measured)': '(mesuré)', 'Processor cores': 'Cœurs du processeur', '(reported by the browser)': '(selon le navigateur)', 'Checks': 'Vérifications', 'Check your files': 'Vérifier vos fichiers', 'No problems found': 'Aucun problème trouvé', 'problems found': 'problèmes trouvés', 'big files': 'gros fichiers', 'Reads everything and changes nothing.': 'Lit tout et ne change rien.', 'Verify snapshots': 'Vérifier les instantanés', 'No snapshots yet.': 'Aucun instantané pour l’instant.', 'Check Sync': 'Vérifier Sync', 'Sync is off.': 'Sync est désactivé.', 'Sync is working': 'Sync fonctionne', 'recovered': 'rétabli', 'No problems written down.': 'Aucun problème noté.', 'Diagnostic report': 'Rapport de diagnostic', 'Make a report': 'Faire un rapport', 'Make Report…': 'Faire un rapport…', 'You see everything in it before copying or saving it. It never contains passwords, keys, sign-in tokens, messages or your files.': 'Vous voyez tout son contenu avant de le copier ou l’enregistrer. Il ne contient jamais de mots de passe, de clés, de jetons de connexion, de messages ni vos fichiers.', 'The report': 'Le rapport', 'This is everything in the report. It has no passwords, keys, sign-in tokens, messages, file names or file contents.': 'Voici tout le contenu du rapport. Il ne contient ni mots de passe, ni clés, ni jetons de connexion, ni messages, ni noms ou contenus de fichiers.', 'Save…': 'Enregistrer…',
-    'Sections': 'Sections', 'A PatOS app is one .patapp file: a web page (HTML, CSS, JavaScript, or PitCode) with a name, an icon and what it asks for. It runs in a locked box and reaches PatOS only through patos.*.': 'Une app PatOS est un seul fichier .patapp : une page web (HTML, CSS, JavaScript ou PitCode) avec un nom, une icône et ce qu’elle demande. Elle tourne dans une boîte verrouillée et n’atteint PatOS que par patos.*.', 'Write an app': 'Écrire une app', 'Open Code Studio': 'Ouvrir Code Studio', 'Templates, a live preview, and export as .patapp.': 'Modèles, aperçu en direct et export en .patapp.', 'Try the example': 'Essayer l’exemple', 'Install Example': 'Installer l’exemple', 'A small app that remembers how often it was opened.': 'Une petite app qui se souvient du nombre de fois qu’elle a été ouverte.', 'Check a .patapp file': 'Vérifier un fichier .patapp', 'Check…': 'Vérifier…', 'Publish to the App Store': 'Publier dans l’App Store', 'This is not JSON': 'Ce n’est pas du JSON', 'Not valid': 'Non valide', 'Valid': 'Valide', 'Runs on this PatOS': 'Fonctionne sur ce PatOS', 'Needs PatOS': 'Demande PatOS', 'Id': 'Id', 'Engine': 'Moteur', 'none': 'aucune', 'Actions it offers': 'Actions offertes', 'Install it here to test it': 'L’installer ici pour la tester', '…or paste the file’s text here': '…ou collez le texte du fichier ici', 'The .patapp text': 'Le texte du .patapp', 'Pasted': 'Collé', 'Check a .patapp': 'Vérifier un .patapp', 'The same checks PatOS and the App Store use, plus whether it runs on this PatOS.': 'Les mêmes vérifications que PatOS et l’App Store, et si elle fonctionne sur ce PatOS.', 'Choose a file': 'Choisir un fichier', 'Installed apps': 'Apps installées', 'What each community app asked for, what it was given, and what it offers to PatOS Intelligence.': 'Ce que chaque app de la communauté a demandé, ce qu’elle a reçu et ce qu’elle offre à PatOS Intelligence.', 'No community apps installed yet.': 'Aucune app de la communauté installée pour l’instant.', 'Source': 'Source', 'App Store (reviewed)': 'App Store (vérifiée)', 'File (not reviewed)': 'Fichier (non vérifié)', 'Permission': 'Permission', 'Reference': 'Référence', 'Each permission is listed in the file, shown before installing, and asked again on the device the first time the app uses it. Settings › Privacy shows what each app did.': 'Chaque permission est écrite dans le fichier, montrée avant l’installation et redemandée sur l’appareil la première fois que l’app l’utilise. Réglages › Confidentialité montre ce que chaque app a fait.', 'System actions apps may run': 'Actions système que les apps peuvent faire', 'Apps can’t run any other system action. Every run is written in Settings › Privacy, and an app can run at most 20 a minute.': 'Les apps ne peuvent faire aucune autre action système. Chaque action est notée dans Réglages › Confidentialité, et une app peut en faire au plus 20 par minute.', 'Optional manifest fields': 'Champs facultatifs du manifeste', 'The full guide': 'Le guide complet', 'Export your app as a .patapp file': 'Exporter votre app en fichier .patapp', 'Check it here': 'La vérifier ici', 'Send it to the App Store': 'L’envoyer à l’App Store', 'In the App Store: Submit an App. The owner of this PatOS server reads it before anyone can install it.': 'Dans l’App Store : Soumettre une app. Le propriétaire de ce serveur PatOS la lit avant que quiconque puisse l’installer.', 'Update it': 'La mettre à jour', 'Raise the version (1.0.1, 1.1.0…) and submit again: people who have it get the update; their data and permissions stay.': 'Augmentez la version (1.0.1, 1.1.0…) et soumettez de nouveau : ceux qui l’ont reçoivent la mise à jour; leurs données et permissions restent.', 'The App Store only shows real information: no made-up ratings or download counts.': 'L’App Store ne montre que de vraies informations : pas de notes ni de nombres de téléchargements inventés.', 'This app needs a newer PatOS': 'Cette app demande un PatOS plus récent', 'needs PatOS': 'demande PatOS', 'or newer. This PatOS is': 'ou plus récent. Ce PatOS est', 'Update PatOS in Settings › General › Software Update.': 'Mettez PatOS à jour dans Réglages › Général › Mise à jour logicielle.'
+    'Sections': 'Sections', 'A PatOS app is one .patapp file: a web page (HTML, CSS, JavaScript, or PitCode) with a name, an icon and what it asks for. It runs in a locked box and reaches PatOS only through patos.*.': 'Une app PatOS est un seul fichier .patapp : une page web (HTML, CSS, JavaScript ou PitCode) avec un nom, une icône et ce qu’elle demande. Elle tourne dans une boîte verrouillée et n’atteint PatOS que par patos.*.', 'Write an app': 'Écrire une app', 'Open Code Studio': 'Ouvrir Code Studio', 'Templates, a live preview, and export as .patapp.': 'Modèles, aperçu en direct et export en .patapp.', 'Try the example': 'Essayer l’exemple', 'Install Example': 'Installer l’exemple', 'A small app that remembers how often it was opened.': 'Une petite app qui se souvient du nombre de fois qu’elle a été ouverte.', 'Check a .patapp file': 'Vérifier un fichier .patapp', 'Check…': 'Vérifier…', 'Publish to the App Store': 'Publier dans l’App Store', 'This is not JSON': 'Ce n’est pas du JSON', 'Not valid': 'Non valide', 'Valid': 'Valide', 'Runs on this PatOS': 'Fonctionne sur ce PatOS', 'Needs PatOS': 'Demande PatOS', 'Id': 'Id', 'Engine': 'Moteur', 'none': 'aucune', 'Actions it offers': 'Actions offertes', 'Install it here to test it': 'L’installer ici pour la tester', '…or paste the file’s text here': '…ou collez le texte du fichier ici', 'The .patapp text': 'Le texte du .patapp', 'Pasted': 'Collé', 'Check a .patapp': 'Vérifier un .patapp', 'The same checks PatOS and the App Store use, plus whether it runs on this PatOS.': 'Les mêmes vérifications que PatOS et l’App Store, et si elle fonctionne sur ce PatOS.', 'Choose a file': 'Choisir un fichier', 'Installed apps': 'Apps installées', 'What each community app asked for, what it was given, and what it offers to PatOS Intelligence.': 'Ce que chaque app de la communauté a demandé, ce qu’elle a reçu et ce qu’elle offre à PatOS Intelligence.', 'No community apps installed yet.': 'Aucune app de la communauté installée pour l’instant.', 'Source': 'Source', 'App Store (reviewed)': 'App Store (vérifiée)', 'File (not reviewed)': 'Fichier (non vérifié)', 'Permission': 'Permission', 'Reference': 'Référence', 'Each permission is listed in the file, shown before installing, and asked again on the device the first time the app uses it. Settings › Privacy shows what each app did.': 'Chaque permission est écrite dans le fichier, montrée avant l’installation et redemandée sur l’appareil la première fois que l’app l’utilise. Réglages › Confidentialité montre ce que chaque app a fait.', 'System actions apps may run': 'Actions système que les apps peuvent faire', 'Apps can’t run any other system action. Every run is written in Settings › Privacy, and an app can run at most 20 a minute.': 'Les apps ne peuvent faire aucune autre action système. Chaque action est notée dans Réglages › Confidentialité, et une app peut en faire au plus 20 par minute.', 'Optional manifest fields': 'Champs facultatifs du manifeste', 'The full guide': 'Le guide complet', 'Export your app as a .patapp file': 'Exporter votre app en fichier .patapp', 'Check it here': 'La vérifier ici', 'Send it to the App Store': 'L’envoyer à l’App Store', 'In the App Store: Submit an App. The owner of this PatOS server reads it before anyone can install it.': 'Dans l’App Store : Soumettre une app. Le propriétaire de ce serveur PatOS la lit avant que quiconque puisse l’installer.', 'Update it': 'La mettre à jour', 'Raise the version (1.0.1, 1.1.0…) and submit again: people who have it get the update; their data and permissions stay.': 'Augmentez la version (1.0.1, 1.1.0…) et soumettez de nouveau : ceux qui l’ont reçoivent la mise à jour; leurs données et permissions restent.', 'The App Store only shows real information: no made-up ratings or download counts.': 'L’App Store ne montre que de vraies informations : pas de notes ni de nombres de téléchargements inventés.', 'This app needs a newer PatOS': 'Cette app demande un PatOS plus récent', 'needs PatOS': 'demande PatOS', 'or newer. This PatOS is': 'ou plus récent. Ce PatOS est', 'Update PatOS in Settings › General › Software Update.': 'Mettez PatOS à jour dans Réglages › Général › Mise à jour logicielle.',
+    'Larger': 'Plus grand', 'Large': 'Grand', 'Largest': 'Très grand', 'Default': 'Par défaut', 'Makes everything inside app windows bigger: text, buttons and pictures.': 'Agrandit tout dans les fenêtres des apps : texte, boutons et images.',
+    'screenshot': 'capture', 'Recently updated': 'Mis à jour récemment', 'Creativity': 'Créativité'
   };
   const PATTERNS = [
     [/^About (.+)$/, (m) => 'À propos de ' + t(m[1])], [/^Hide (.+)$/, (m) => 'Masquer ' + t(m[1])], [/^Quit (.+)$/, (m) => 'Quitter ' + t(m[1])], [/^Log Out (.+)…$/, (m) => 'Fermer la session de ' + m[1] + '…'],
@@ -12623,8 +12642,8 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":3};
     const fq = fold(q);
     let lastG = '';
     spResults.forEach((r, i) => {
-      if (r.group !== lastG) { box.appendChild(h('div', { class: 'sp-group' }, PatOS.t(r.group))); lastG = r.group; }
-      const row = h('div', { class: 'sp-res' + (i === 0 ? ' sel' : ''), role: 'option' }, h('div', { class: 'sp-ri', html: r.iconHTML || PatOS.iconHTML(r.icon) }), markLabel(r.label, fq), r.sub ? h('small', {}, r.sub) : null);
+      if (r.group !== lastG) { box.appendChild(h('div', { class: 'sp-group', role: 'presentation' }, PatOS.t(r.group))); lastG = r.group; }
+      const row = h('div', { class: 'sp-res' + (i === 0 ? ' sel' : ''), role: 'option', id: 'sp-opt-' + i, 'aria-selected': String(i === 0) }, h('div', { class: 'sp-ri', html: r.iconHTML || PatOS.iconHTML(r.icon) }), markLabel(r.label, fq), r.sub ? h('small', {}, r.sub) : null);
       row.addEventListener('click', () => go(r));
       row.addEventListener('pointermove', () => { if (spSel !== i) setSel(i); });
       box.appendChild(row);
@@ -12641,7 +12660,8 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":3};
   function setSel(i) {
     const rows = $$('.sp-res'); if (!rows.length) return;
     spSel = (i + rows.length) % rows.length;
-    rows.forEach((r, j) => r.classList.toggle('sel', j === spSel));
+    rows.forEach((r, j) => { r.classList.toggle('sel', j === spSel); r.setAttribute('aria-selected', String(j === spSel)); });
+    const inp = $('.sp-input'); if (inp) inp.setAttribute('aria-activedescendant', rows[spSel].id || ''); // (screen readers follow the highlighted result)
     rows[spSel].scrollIntoView({ block: 'nearest' });
     preview(spResults[spSel]);
   }
@@ -12930,6 +12950,7 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":3};
     }
     root.classList.toggle('win', !!PatOS.hw.windows);
     ['highContrast', 'boldText', 'showFocus', 'bigTargets'].forEach((k) => root.classList.toggle(k.replace(/[A-Z]/g, (m) => '-' + m.toLowerCase()), !!s[k]));
+    root.style.setProperty('--text-zoom', String([1, 1.15, 1.3, 1.5].includes(+s.textScale) ? +s.textScale : 1)); // Settings › Accessibility › Text size (what is inside app windows)
     $('#dimmer').style.opacity = String(1 - s.brightness);
     root.classList.toggle('lg-on', !!s.liquidGlass);
     root.classList.toggle('lg-tinted', !!s.liquidGlass && s.glassStyle === 'tinted');
@@ -13235,6 +13256,7 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":3};
   PatOS.settingsIndex = () => PANES.map(([k, l]) => ({ pane: k, label: l, keywords: KW[k] || '' }));
   const CATALOG = [
     { key: 'theme', type: 'enum', values: ['dark', 'light', 'auto'], pane: 'appearance', label: 'Appearance', words: 'appearance theme dark mode light mode night mode automatic apparence theme mode sombre mode clair mode nuit' },
+    { key: 'textScale', type: 'enum', values: [1, 1.15, 1.3, 1.5], pane: 'accessibility', label: 'Text size', words: 'text size font size bigger text larger text zoom taille du texte texte plus grand police' },
     { key: 'reduceMotion', type: 'bool', pane: 'accessibility', label: 'Reduce motion', words: 'reduce motion animations movement reduire les animations mouvement' },
     { key: 'highContrast', type: 'bool', pane: 'accessibility', label: 'High contrast', words: 'high contrast increase contrast contraste eleve augmenter le contraste' },
     { key: 'boldText', type: 'bool', pane: 'accessibility', label: 'Bold text', words: 'bold text texte en gras gras' },
@@ -17300,7 +17322,7 @@ PatOS.build = {"channel":"beta","version":"3.2.0","beta":3};
       win.toolbar.style.justifyContent = 'flex-start'; win.toolbar.style.paddingLeft = '70px';
       search.setAttribute('placeholder', T('Search names and contents')); search.setAttribute('aria-label', T('Search names and contents'));
 
-      const side = h('div', { class: 'fd-side' });
+      const side = h('nav', { class: 'fd-side', tabindex: '0', 'aria-label': PatOS.t('Places') });
       const main = h('div', { class: 'fd-main', tabindex: '0' });
       const pathbar = h('div', { class: 'fd-path' });
       const status = h('div', { class: 'fd-status' });
@@ -22365,7 +22387,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       const bRep = h('button', { class: 'mu-b sm', title: T('Repeat'), html: svg('<path d="M4 11V9a3 3 0 0 1 3-3h13M17 3l3 3-3 3M20 13v2a3 3 0 0 1-3 3H4M7 21l-3-3 3-3"/>') });
       const bQueue = h('button', { class: 'mu-b sm', title: T('Up Next'), html: svg('<path d="M4 6h12M4 12h12M4 18h8M18 15v6M15 18h6"/>') });
       const bViz = h('button', { class: 'mu-b sm', title: T('Now Playing'), html: svg('<path d="M4 18V12M8 18V6M12 18v-9M16 18V4M20 18v-6"/>') });
-      const prog = h('div', { class: 'mu-prog scrub', role: 'slider', 'aria-label': T('Position') }, h('span')); const tA = h('small'); const tB = h('small');
+      const prog = h('div', { class: 'mu-prog scrub', role: 'slider', 'aria-label': T('Position'), 'aria-valuemin': '0', 'aria-valuemax': '100', 'aria-valuenow': '0', tabindex: '0' }, h('span')); const tA = h('small'); const tB = h('small');
       const vol = h('input', { type: 'range', min: 0, max: 100, value: Math.round(PatOS.settings.volume * 100), class: 'mu-vol', 'aria-label': T('Volume') });
       const bar = h('div', { class: 'mu-bar' }, art, h('div', { class: 'mu-info' }, tt, ar), h('div', { class: 'mu-ctl' }, bShuf, bPrev, bPlay, bNext, bRep), h('div', { class: 'mu-time' }, tA, prog, tB), bQueue, bViz, vol);
       win.body.append(h('div', { class: 'mu-wrap2' }, side, main, queueBox), bar);
@@ -22521,7 +22543,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         if (viz) viz.setHue(s ? s.hue : 0.6);
       }
       E.listeners.add(sync);
-      const ti = setInterval(() => { const p = position(); tA.textContent = fmt(p.t); tB.textContent = '-' + fmt(Math.max(0, p.d - p.t)); prog.firstChild.style.width = (p.d ? Math.min(100, p.t / p.d * 100) : 0) + '%'; }, 250);
+      const ti = setInterval(() => { const p = position(); tA.textContent = fmt(p.t); tB.textContent = '-' + fmt(Math.max(0, p.d - p.t)); prog.setAttribute('aria-valuenow', String(p.d ? Math.round(Math.min(100, p.t / p.d * 100)) : 0)); prog.setAttribute('aria-valuetext', fmt(p.t)); prog.firstChild.style.width = (p.d ? Math.min(100, p.t / p.d * 100) : 0) + '%'; }, 250);
       win.el.addEventListener('keydown', (e) => {
         if (e.target.closest('input, textarea, select')) { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') { e.preventDefault(); search.focus(); } return; }
         if (e.key === ' ' && !e.target.closest('button')) { e.preventDefault(); PatOS.music.toggle(); }
@@ -23526,7 +23548,8 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       // on a phone: the list of settings first, each pane on its own screen
       const MB = PatOS.mobile; if (MB && MB.stack) { MB.stack(win, PatOS.t('Settings')); side.classList.add('m-list'); main.classList.add('m-detail'); }
       const S = () => PatOS.settings;
-      const row = (label, ctl, sub) => h('div', { class: 'st-row' }, h('div', { class: 'st-rl' }, h('span', {}, label), sub ? h('small', {}, sub) : null), ctl);
+      // a control takes its row's words as its accessible name (screen readers say "24-hour clock, switch, off")
+      const row = (label, ctl, sub) => { if (ctl && ctl.nodeType === 1 && /^(BUTTON|INPUT|SELECT|TEXTAREA)$/.test(ctl.tagName) && !ctl.getAttribute('aria-label') && typeof label === 'string' && !(ctl.tagName === 'BUTTON' && ctl.textContent.trim())) ctl.setAttribute('aria-label', label); return h('div', { class: 'st-row' }, h('div', { class: 'st-rl' }, h('span', {}, label), sub ? h('small', {}, sub) : null), ctl); };
       const group = (...rows) => h('div', { class: 'st-group' }, ...rows);
       const toggle = (key, after) => { const t = h('button', { class: 'switch' + (S()[key] ? ' on' : ''), 'data-key': key, role: 'switch', 'aria-checked': String(!!S()[key]) }); t.onclick = () => { PatOS.setSetting(key, !S()[key]); t.classList.toggle('on', S()[key]); t.setAttribute('aria-checked', String(!!S()[key])); after && after(); }; return t; };
       const range = (key, min, max, step, fmt) => { const v = h('span', { class: 'st-val' }); const r = h('input', { type: 'range', min, max, step: step || 1, value: S()[key], 'data-key': key }); const upd = () => (v.textContent = fmt ? fmt(+r.value) : r.value); r.oninput = () => { PatOS.setSetting(key, +r.value); upd(); }; upd(); return h('div', { class: 'st-range' }, r, v); };
@@ -24145,7 +24168,10 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           return [box];
         },
         accessibility() {
+          const ts = h('select', { class: 'field', 'data-key': 'textScale' }, ...[[1, T('Default')], [1.15, T('Larger')], [1.3, T('Large')], [1.5, T('Largest')]].map(([v, l]) => h('option', { value: v, selected: +S().textScale === v }, l)));
+          ts.onchange = () => PatOS.setSetting('textScale', +ts.value);
           return [
+            group(row(T('Text size'), ts, T('Makes everything inside app windows bigger: text, buttons and pictures.'))),
             group(row(T('Reduce motion'), toggle('reduceMotion'), ''), row(T('Reduce transparency'), toggle('reduceTransparency'), ''), row(T('High contrast'), toggle('highContrast'), ''), row(T('Bold text'), toggle('boldText')), row(T('Always show keyboard focus'), toggle('showFocus'), ''), row(T('Larger click targets'), toggle('bigTargets'), '')),
             group(row(T('Read notifications aloud to screen readers'), toggle('srAnnounce'))),
             h('p', { class: 'st-note' }, T('To make everything bigger, press Ctrl and + (and Ctrl and 0 to reset). PatOS rearranges itself to fit. On a Chromebook you can also use ChromeVox, the built-in screen reader (Ctrl+Alt+Z).'))];
@@ -31736,17 +31762,43 @@ call('hello').then(function(t){theme(t);});})();`;
       b.onclick = async (e) => { e.stopPropagation(); try { if (!have || newer) { if (await P.store.install(a.id)) again(); } else P.open(a.id); } catch (er) { fail(er); } };
       const ed = have && have.source === 'file' ? h('button', { class: 'btn', style: { marginLeft: '8px' }, onclick: (e) => { e.stopPropagation(); edit(have.app); } }, T('Edit this app')) : null;
       const rm = have && !newer ? h('button', { class: 'btn', style: { marginLeft: '8px' }, onclick: async (e) => { e.stopPropagation(); if (await P.uninstall(a.id)) again(); } }, T('Remove')) : null;
-      return h('div', { class: 'as-row' }, h('div', { class: 'as-ic', html: tile(a) }), h('div', { class: 'as-txt' }, h('b', {}, a.name + ' ' + a.version), h('small', {}, (a.author ? a.author + ' · ' : '') + (a.description || '')), permTags(a)), b, ed, rm);
+      const el = h('div', { class: 'as-row', role: 'button', tabindex: '0', 'aria-label': a.name + ' ' + a.version }, h('div', { class: 'as-ic', html: tile(a) }), h('div', { class: 'as-txt' }, h('b', {}, a.name + ' ' + a.version), h('small', {}, (a.author ? a.author + ' · ' : '') + (a.category ? T(a.category) + ' · ' : '') + (a.description || '')), permTags(a)), b, ed, rm);
+      el.addEventListener('click', () => detail(a, b)); el.addEventListener('keydown', (e) => { if (e.key === 'Enter' && e.target === el) detail(a, b); });
+      return el;
     };
-    const fits = (a) => !q || (a.name + ' ' + (a.description || '') + ' ' + (a.author || '')).toLowerCase().includes(q);
-    const mine = P.list().map((r) => r.app).filter(fits);
+    /* an app's page: only what is really known about it (no made-up ratings or download counts) */
+    function detail(a, getBtn) {
+      main.innerHTML = ''; const F = window.PatAppFormat; const ok = !F || !F.compatible || F.compatible(a, PatOS.version);
+      const info = (l, v) => (v ? h('div', { class: 'st-row' }, h('div', { class: 'st-rl' }, h('span', {}, l)), h('span', { class: 'st-val' }, v)) : null);
+      main.append(h('button', { class: 'btn as-back', onclick: again }, '‹ ' + T('Back')),
+        h('div', { class: 'as-detail' }, h('div', { class: 'as-dic', html: tile(a) }), h('div', {}, h('h1', {}, a.name), h('p', { class: 'as-cat' }, (a.author ? T('By') + ' ' + a.author : '') + (a.category ? ' · ' + T(a.category) : '')), h('div', { class: 'as-btns' }, getBtn.cloneNode(true))) ),
+        h('p', { class: 'as-desc' }, a.description || ''),
+        a.screenshots && a.screenshots.length ? h('div', { class: 'as-shots', role: 'list', 'aria-label': T('Screenshots') }, ...a.screenshots.map((src, i) => h('img', { src, alt: a.name + ' ' + T('screenshot') + ' ' + (i + 1), role: 'listitem', loading: 'lazy' }))) : null,
+        h('div', { class: 'st-group' }, info(T('Version'), a.version), info(T('Runs on this PatOS'), ok ? T('Yes') : T('Needs PatOS') + ' ' + a.minPatOS), info(T('Permissions'), (a.permissions || []).map((p) => PatOS.patapps.permInfo(p)[0]).join(', ') || T('none')),
+          info(T('Actions it offers'), (a.actions || []).map((x) => x.title + ' (“' + (x.phrases[0] || '') + '”)').join(', ')), a.homepage ? h('div', { class: 'st-row' }, h('div', { class: 'st-rl' }, h('span', {}, T('Website'))), h('a', { href: a.homepage, target: '_blank', rel: 'noopener noreferrer' }, a.homepage.replace(/^https:\/\//, ''))) : null),
+        a.changelog ? h('div', {}, h('h2', {}, T('What’s new in') + ' ' + a.version), h('p', { class: 'as-desc', style: { whiteSpace: 'pre-wrap' } }, a.changelog)) : null);
+      const nb = main.querySelector('.as-btns button'); if (nb) nb.onclick = (e) => { e.stopPropagation(); getBtn.click(); };
+    }
+    // categories (from the apps themselves) and sorting
+    let cat = '', sort = 'name';
+    const bar = h('div', { class: 'as-filter', role: 'toolbar', 'aria-label': T('Filter') });
+    const sortSel = h('select', { class: 'field', 'aria-label': T('Sort by') }, h('option', { value: 'name' }, T('Name')), h('option', { value: 'new' }, T('Recently updated')));
+    sortSel.onchange = () => { sort = sortSel.value; draw(lastList); };
+    main.appendChild(bar);
+    const fits = (a) => (!q || (a.name + ' ' + (a.description || '') + ' ' + (a.author || '') + ' ' + (a.category || '')).toLowerCase().includes(q)) && (!cat || a.category === cat);
+    let lastList = null;
+    function chips(list) { bar.innerHTML = ''; const cats = [...new Set(list.map((a) => a.category).filter(Boolean))].sort(); [''].concat(cats).forEach((c) => bar.appendChild(h('button', { class: 'as-chip' + (c === cat ? ' on' : ''), 'aria-pressed': String(c === cat), onclick: () => { cat = c; chips(list); draw(list); } }, c ? T(c) : T('All')))); bar.appendChild(sortSel); }
+    const order = (l) => l.slice().sort((x, y) => (sort === 'new' ? (y.updated || 0) - (x.updated || 0) : x.name.localeCompare(y.name)));
+    const mine = P.list().map((r) => Object.assign({ updated: r.updated }, r.app));
     box.appendChild(h('p', { class: 'as-note' }, T('Loading…')));
-    P.store.list().then((list) => {
-      box.innerHTML = ''; const ids = new Set(list.map((a) => a.id)); const shown = list.filter(fits);
+    function draw(list) {
+      if (!list) return; lastList = list;
+      box.innerHTML = ''; const ids = new Set(list.map((a) => a.id)); const shown = order(list.filter(fits));
       if (shown.length) { const g = h('div', { class: 'as-list' }); shown.forEach((a) => g.appendChild(row(a))); box.appendChild(g); } else box.appendChild(h('p', { class: 'as-note' }, q ? T('No apps match.') : T('No community apps yet. Make the first one in the Develop tab.')));
-      const own = mine.filter((a) => !ids.has(a.id));
+      const own = order(mine.filter((a) => !ids.has(a.id) && fits(a)));
       if (own.length) { box.appendChild(h('h2', {}, T('Installed from files'))); const g = h('div', { class: 'as-list' }); own.forEach((a) => g.appendChild(row(a))); box.appendChild(g); }
-    }).catch(() => {
+    }
+    P.store.list().then((list) => { chips(list.concat(mine)); draw(list); }).catch(() => {
       box.innerHTML = ''; box.appendChild(h('p', { class: 'as-note' }, T('The store can’t be reached right now (are you offline?). Apps you installed still work.')));
       if (mine.length) { box.appendChild(h('h2', {}, T('Installed'))); const g = h('div', { class: 'as-list' }); mine.forEach((a) => g.appendChild(row(a))); box.appendChild(g); }
     });
@@ -32649,8 +32701,8 @@ PatOS.sendWithPatDrop = async function (paths) {
       function ribbon(list) {
         const per = new Array(24).fill(0); list.forEach((it) => per[new Date(it.t).getHours()]++);
         const max = Math.max(1, ...per); const nowH = day === startOf(Date.now()) ? new Date().getHours() : -1;
-        const r = h('div', { class: 'tl-ribbon', role: 'img', 'aria-label': T('Activity by hour') });
-        per.forEach((n, hr) => r.appendChild(h('button', { class: 'tl-bar' + (n ? '' : ' none') + (hr === nowH ? ' now' : ''), style: { '--v': (n / max).toFixed(3), '--d': hr * 18 + 'ms' }, title: String(hr).padStart(2, '0') + ':00 · ' + n, onclick: () => { const g = main.querySelector('[data-hour="' + hr + '"]'); if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' }); } })));
+        const r = h('div', { class: 'tl-ribbon', role: 'group', 'aria-label': T('Activity by hour') });
+        per.forEach((n, hr) => r.appendChild(h('button', { class: 'tl-bar' + (n ? '' : ' none') + (hr === nowH ? ' now' : ''), style: { '--v': (n / max).toFixed(3), '--d': hr * 18 + 'ms' }, title: String(hr).padStart(2, '0') + ':00 · ' + n, 'aria-label': String(hr).padStart(2, '0') + ':00, ' + n, onclick: () => { const g = main.querySelector('[data-hour="' + hr + '"]'); if (g) g.scrollIntoView({ behavior: 'smooth', block: 'start' }); } })));
         const lab = h('div', { class: 'tl-rlab' }); [0, 6, 12, 18, 24].forEach((x) => lab.appendChild(h('span', {}, new Date(2000, 0, 1, x % 24).toLocaleTimeString(PatOS.locale, { hour: 'numeric' }))));
         return h('div', { class: 'tl-rib' }, r, lab);
       }

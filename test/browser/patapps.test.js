@@ -226,3 +226,19 @@ test('compatibility and the Developer Center: an app for a newer PatOS is refuse
   await page.waitForFunction(() => /Not valid/.test(document.querySelector('.dv-main').textContent));
   await page.close();
 });
+
+test('App Store community page: categories, and an app page with only real information', { skip: skipNoBrowser }, async () => {
+  const { page } = await setup();
+  const png = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==';
+  await page.evaluate(async (app) => { await PatOS.patapps.install(app, { source: 'file' }); PatOS.launch('appstore'); }, APP({ id: 'com.test.shop', name: 'Shoppy', permissions: [], category: 'Games', changelog: 'Faster dice.', screenshots: [png], actions: [{ id: 'go', title: 'Go', phrases: ['go shoppy'] }] }));
+  await page.waitForSelector('.as-side, .as-tab, .as-nav', { timeout: 8000 }).catch(() => {});
+  await page.evaluate(() => { const b = [...document.querySelectorAll('button')].find((x) => /^Community$/.test(x.textContent.trim())); if (b) b.click(); });
+  await page.waitForSelector('.as-chip', { timeout: 10000 });
+  assert.ok(await page.locator('.as-chip:has-text("Games")').count() >= 1, 'a category chip from the apps themselves');
+  await page.click('.as-row:has-text("Shoppy")');
+  await page.waitForSelector('.as-shots img');
+  const t = await page.textContent('.window:has(.as-shots)');
+  assert.match(t, /Shoppy[\s\S]*Games[\s\S]*Runs on this PatOS\s*Yes[\s\S]*Go \(“go shoppy”\)[\s\S]*What’s new in 1\.0\.0[\s\S]*Faster dice\./);
+  assert.ok(!/★|rating|downloads/i.test(t), 'no made-up ratings or download counts');
+  await page.close();
+});
