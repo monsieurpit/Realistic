@@ -394,7 +394,11 @@
       h('div', { class: 'cc-tile cc-row2' },
         tog('3D Wallpaper', live ? (s.live3d ? 'Animating' : 'Paused') : 'Pick in Settings', live && s.live3d, 'sparkle', () => { if (live) PatOS.setSetting('live3d', !s.live3d); else PatOS.launch('settings', { pane: 'wallpaper' }); }),
         tog('UI Sounds', s.uiSounds ? 'On' : 'Off', s.uiSounds, 'note', () => PatOS.setSetting('uiSounds', !s.uiSounds))),
-      PatOS.music && PatOS.music.nowPlaying ? nowPlayingTile() : null
+      PatOS.music && PatOS.music.nowPlaying ? nowPlayingTile() : null,
+      // (3.3) the way to Command Center and Capture (on a phone there is no menu bar)
+      h('div', { class: 'cc-tile cc-row2 cc-cmd' },
+        h('button', { class: 'cc-cmdb', onclick: () => { togglePanel('#control-center'); PatOS.command && PatOS.command.open(); } }, h('span', { html: PatOS.sym('grid') }), PatOS.t('Command Center'), PatOS.live && PatOS.live.list().length ? h('small', {}, String(PatOS.live.list().length)) : null),
+        h('button', { class: 'cc-cmdb', onclick: () => { togglePanel('#control-center'); PatOS.capture && PatOS.capture.quick(); } }, h('span', { html: PatOS.sym('download') }), PatOS.t('Capture')))
     ].filter(Boolean));
   }
   function nowPlayingTile() {

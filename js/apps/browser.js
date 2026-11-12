@@ -992,6 +992,8 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           { divider: true },
           { label: T('Duplicate tab'), disabled: !cur || cur.url === 'patos://newtab', action: () => newTab(cur.url) },
           { label: T('Copy link'), disabled: !cur || cur.url.startsWith('patos'), action: () => copy(cur.url, T('Link')) },
+          { label: T('Capture this page'), disabled: !cur || cur.url.startsWith('patos') || !PatOS.capture, action: () => { PatOS.capture.add({ type: 'url', url: cur.url, title: cur.title || '' }, { from: 'browser' }); PatOS.notify({ title: T('Captured'), body: cur.title || cur.url, icon: 'capture', priority: 'low', duration: 2200 }); } },
+          { label: T('Share…'), disabled: !cur || cur.url.startsWith('patos'), action: () => PatOS.actions.sheet({ type: 'url', url: cur.url, title: cur.title || '' }, r.left - 120, r.bottom + 4) },
           { divider: true },
           { label: T('Find on page…'), shortcut: 'Ctrl+F', action: openFind },
           { label: T('Reader view'), disabled: !findable(), action: readerView },

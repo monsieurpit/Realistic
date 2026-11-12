@@ -121,10 +121,22 @@
   function lastSession() { for (let i = moments.length - 1; i >= 0; i--) if (moments[i].t1 < bootT) return moments[i]; return null; }
 
   /* ---------- clipboard ---------- */
+  /* (3.3) things that look secret are never kept: card numbers (with a valid check digit), API keys and tokens, private keys,
+     and single "words" mixing upper, lower, digits and symbols (a password). Copying them still works; they just aren't saved. */
+  function luhn(d) { let s = 0, alt = false; for (let i = d.length - 1; i >= 0; i--) { let n = +d[i]; if (alt) { n *= 2; if (n > 9) n -= 9; } s += n; alt = !alt; } return s % 10 === 0; }
+  function looksSecret(t) {
+    const x = t.trim();
+    if (/-----BEGIN [A-Z ]*PRIVATE KEY-----/.test(x) || /\beyJ[\w-]{8,}\.[\w-]{8,}\.[\w-]{8,}/.test(x)) return true;
+    if (/\b(?:sk|pk|rk)_(?:live|test)_[A-Za-z0-9]{10,}|\bsk-[A-Za-z0-9_-]{20,}|\bgh[pousr]_[A-Za-z0-9]{20,}|\bxox[abposr]-[A-Za-z0-9-]{10,}|\bAKIA[0-9A-Z]{16}\b|\bAIza[0-9A-Za-z_-]{30,}/.test(x)) return true;
+    const digits = x.replace(/[\s-]/g, ''); if (/^\d{13,19}$/.test(digits) && luhn(digits)) return true;
+    if (!/\s/.test(x) && x.length >= 8 && x.length <= 64 && /[a-z]/.test(x) && /[A-Z]/.test(x) && /\d/.test(x) && /[^A-Za-z0-9]/.test(x) && !/^https?:|@.+\./.test(x)) return true;
+    return false;
+  }
   function addClip(text, src) {
     if (!clipsOn()) return;
     text = String(text == null ? '' : text); if (!text.trim()) return;
     if (NEVER.has(activeApp())) return;
+    if (PatOS.settings.clipKeepSecrets !== true && looksSecret(text)) return;
     if (text.length > MAX_CLIP_LEN) text = text.slice(0, MAX_CLIP_LEN);
     const i = clips.findIndex((c) => c.text === text);
     let c;
@@ -167,7 +179,7 @@
   /* ---------- forgetting ---------- */
   function prune() {
     const cut = Date.now() - keepDays() * DAY;
-    const ne = events.filter((e) => e.t >= cut), nm = moments.filter((m) => m.t1 >= cut), nc = clips.filter((c) => c.pin || c.t >= cut);
+    const ne = events.filter((e) => e.t >= cut), nm = moments.filter((m) => m.t1 >= cut), ccut = Date.now() - Math.max(1, +PatOS.settings.clipDays || keepDays()) * DAY, nc = clips.filter((c) => c.pin || c.t >= ccut); // (the clipboard can keep its own number of days)
     if (ne.length !== events.length || nm.length !== moments.length || nc.length !== clips.length) { events = ne; moments = nm; clips = nc; touch(); }
   }
   function forget(from, to) {
@@ -202,6 +214,11 @@
   }
   async function paste(c) {
     const target = prevEl; closePanel();
+    if (c.img) { // a picture: back on the clipboard as a picture, where the browser allows it
+      try { const blob = await (await fetch(c.img)).blob(); await navigator.clipboard.write([new ClipboardItem({ [blob.type || 'image/png']: blob })]); PatOS.notify({ title: T('Picture copied'), body: '', icon: 'timeline', duration: 2200, priority: 'low' }); }
+      catch (e) { PatOS.notify({ title: T('This browser can’t copy pictures'), body: T('Use Capture to keep it instead.'), icon: 'timeline' }); }
+      return;
+    }
     await writeClip(c.text);
     addClip(c.text, 'paste');
     if (editable(target)) {
@@ -214,21 +231,48 @@
       }
     } else PatOS.notify({ title: T('Copied'), body: c.text.slice(0, 80), icon: 'timeline', duration: 2200 });
   }
+  /* ---------- (3.3) what can be done with one entry: transform it, file it, capture it ---------- */
+  const TRANSFORMS = [
+    ['Plain text', (t) => t.replace(/[\u200B-\u200D\uFEFF]/g, '').replace(/\t/g, ' ')],
+    ['UPPERCASE', (t) => t.toUpperCase()], ['lowercase', (t) => t.toLowerCase()],
+    ['Clean spaces', (t) => t.split('\n').map((l) => l.replace(/\s+/g, ' ').trim()).join('\n').replace(/\n{3,}/g, '\n\n').trim()],
+    ['Remove duplicate lines', (t) => [...new Set(t.split('\n'))].join('\n')],
+    ['Only the links', (t) => (t.match(/https?:\/\/[^\s<>"')]+/g) || []).join('\n')],
+    ['Only the domains', (t) => [...new Set((t.match(/https?:\/\/[^\s<>"')]+/g) || []).map((u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } }).filter(Boolean))].join('\n')],
+    ['Encode for a URL', (t) => encodeURIComponent(t)], ['Decode from a URL', (t) => { try { return decodeURIComponent(t); } catch (e) { return t; } }]
+  ];
+  function transformClip(text, i) { const out = TRANSFORMS[i][1](String(text)); return out; }
+  function clipMenu(c, x, y, after) {
+    const items = c.img ? [] : TRANSFORMS.map(([label], i) => ({ label: T(label), action: () => { const out = transformClip(c.text, i); if (!out) return PatOS.notify({ title: T('Nothing to copy'), body: T(label), icon: 'timeline', priority: 'low' }); writeClip(out); addClip(out, 'transform'); after && after(); } }));
+    PatOS.menu([...(items.length ? [{ header: T('Copy as') }, ...items, { divider: true }] : []),
+      { label: c.col ? T('Collection') + ': ' + c.col + '…' : T('Add to a collection…'), action: async () => { const n = await PatOS.ask(T('Collection'), c.col || '', { ok: T('Save'), icon: 'timeline' }); if (n == null) return; c.col = String(n).trim().slice(0, 30); touch(); after && after(); } },
+      PatOS.capture ? { label: T('Capture'), action: () => PatOS.capture.add(c.img ? { type: 'image', url: c.img } : PatOS.actions.of(c.text), { from: 'clipboard' }) } : null], x, y);
+  }
+  // a picture pasted inside PatOS is kept too (up to about 400 KB; PatOS can't see what other programs copy)
+  window.addEventListener('paste', (e) => {
+    if (!clipsOn() || NEVER.has(activeApp())) return;
+    const f = [...((e.clipboardData && e.clipboardData.items) || [])].find((i) => i.kind === 'file' && /^image\//.test(i.type)); if (!f) return;
+    const b = f.getAsFile(); if (!b || b.size > 400 * 1024) return;
+    const r = new FileReader(); r.onload = () => { const id = Date.now().toString(36) + Math.random().toString(36).slice(2, 6); clips.push({ id, t: Date.now(), text: T('Picture') + ' (' + Math.round(b.size / 1024) + ' KB)', img: r.result, app: activeApp(), src: 'paste' }); touch(); }; r.readAsDataURL(b);
+  });
   function clipPanel() {
     if (panel) return closePanel();
     prevEl = document.activeElement;
     const q = h('input', { class: 'cp-q', placeholder: T('Search what you copied'), spellcheck: 'false', 'aria-label': T('Search what you copied') });
-    const list = h('div', { class: 'cp-list', role: 'listbox' });
+    const list = h('div', { class: 'cp-list', role: 'listbox' }), chips = h('div', { class: 'cp-chips' }); let col = '';
     const fill = () => {
       const s = q.value.trim().toLowerCase();
-      shown = clips.slice().reverse().sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0)).filter((c) => !s || c.text.toLowerCase().includes(s)).slice(0, 40);
+      shown = clips.slice().reverse().sort((a, b) => (b.pin ? 1 : 0) - (a.pin ? 1 : 0)).filter((c) => (!col || c.col === col) && (!s || c.text.toLowerCase().includes(s) || (c.col || '').toLowerCase().includes(s))).slice(0, 40);
+      chips.innerHTML = ''; const cols = [...new Set(clips.map((c) => c.col).filter(Boolean))];
+      if (cols.length) [T('All'), ...cols].forEach((name, i) => chips.appendChild(h('button', { class: 'cp-chip' + ((i ? name : '') === col ? ' on' : ''), onclick: () => { col = i ? name : ''; sel = 0; fill(); } }, name)));
       sel = Math.min(sel, Math.max(0, shown.length - 1));
       list.innerHTML = '';
       if (!shown.length) list.appendChild(h('div', { class: 'cp-empty' }, h('span', { html: PatOS.sym('history') }), clips.length ? T('Nothing matches.') : (PatOS.settings.timelineClips === false ? T('Clipboard history is off. Turn it on in the Timeline app.') : T('What you copy shows up here. Copy something, then press Alt+V.'))));
       shown.forEach((c, i) => {
         const row = h('div', { class: 'cp-row' + (i === sel ? ' sel' : '') + (c.pin ? ' pin' : ''), role: 'option', style: { '--i': Math.min(i, 12) } },
           h('span', { class: 'cp-k' }, i < 9 ? String(i + 1) : ''),
-          h('div', { class: 'cp-txt' }, h('div', {}, c.text.length > 240 ? c.text.slice(0, 240) + '…' : c.text), h('small', {}, ago(c.t) + (c.text.length > 240 ? ' · ' + c.text.length + ' ' + T('characters') : ''))),
+          h('div', { class: 'cp-txt' }, c.img ? h('img', { class: 'cp-img', src: c.img, alt: '' }) : h('div', {}, c.text.length > 240 ? c.text.slice(0, 240) + '…' : c.text), h('small', {}, ago(c.t) + (c.text.length > 240 ? ' · ' + c.text.length + ' ' + T('characters') : ''))),
+          h('button', { class: 'cp-b', title: T('More'), 'aria-label': T('More'), html: PatOS.sym('wand'), onclick: (e) => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); clipMenu(c, r.left, r.bottom + 4, fill); } }),
           h('button', { class: 'cp-b' + (c.pin ? ' on' : ''), title: c.pin ? T('Unpin') : T('Pin'), 'aria-label': c.pin ? T('Unpin') : T('Pin'), html: PatOS.sym('pin'), onclick: (e) => { e.stopPropagation(); c.pin = !c.pin; touch(); fill(); } }),
           h('button', { class: 'cp-b', title: T('Remove'), 'aria-label': T('Remove'), html: PatOS.sym('close'), onclick: (e) => { e.stopPropagation(); forgetItem('clip', c.id); fill(); } }));
         row.addEventListener('click', () => paste(c));
@@ -246,7 +290,7 @@
     panel = h('div', { id: 'clip-panel', class: 'lg-elevated', role: 'dialog', 'aria-label': T('Clipboard') },
       h('div', { class: 'cp-head' }, h('span', { class: 'cp-ic', html: PatOS.sym('history') }), h('b', {}, T('Clipboard')), h('small', {}, T('Enter pastes · 1–9 · Esc')),
         h('button', { class: 'cp-open', onclick: () => { closePanel(); PatOS.launch('timeline', { filter: 'clip' }); } }, T('Open Timeline'))),
-      q, list);
+      q, chips, list);
     panel.addEventListener('pointerdown', (e) => e.stopPropagation());
     document.body.appendChild(panel);
     fill(); setTimeout(() => q.focus(), 20);
@@ -276,7 +320,7 @@
 
   PatOS.timeline = {
     events: () => events.slice(), moments: () => moments.slice(), clips: () => clips.slice(),
-    record, forget, forgetItem, prune, pause, paused, restoreMoment, lastSession, clipPanel, searchClips, addClip, snapMoment,
+    record, forget, forgetItem, prune, pause, paused, restoreMoment, lastSession, clipPanel, searchClips, addClip, snapMoment, looksSecret, transformClip, TRANSFORMS,
     copy: (t) => writeClip(t).then(() => addClip(t, 'app')),
     pin: (id) => { const c = clips.find((x) => x.id === id); if (c) { c.pin = !c.pin; touch(); } },
     pauseUntil: () => +PatOS.store.get('timelinePause', 0) || 0,
