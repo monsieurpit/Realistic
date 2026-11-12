@@ -1,3 +1,132 @@
+/* Pat code suggestions (PatOS Intelligence for code): completes PitCode (.pitx, .pit), PitCode styles (.pitoss), HTML,
+   CSS, JavaScript and JSON as you type. Rules only, no AI model: the words of the language, the PatOS app API, snippets for
+   the usual shapes, the names already in your file, HTML tags and their attributes, CSS properties and their values, and
+   closing tags. Nothing leaves the device.
+   PatOS.codesense.suggest(text, caret, lang) → { from, prefix, items: [{ label, insert, kind, detail, caret? }] }
+     insert may hold "|" where the caret should land (it is removed); from..caret is the text an item replaces. */
+(function () {
+  'use strict';
+  const uniq = (a) => [...new Set(a)];
+  const KW = {
+    pitcode: ['pit', 'lock', 'back', 'say', 'when', 'orwhen', 'other', 'loop', 'in', 'stop', 'skip', 'and', 'or', 'not', 'is', 'true', 'false', 'nil', 'kind', 'me', 'up', 'match', 'attempt', 'rescue', 'always', 'raise', 'wait', 'give', 'use', 'share', 'next', 'store', 'draw', 'start'],
+    js: ['const', 'let', 'var', 'function', 'return', 'if', 'else', 'for', 'while', 'switch', 'case', 'break', 'continue', 'new', 'class', 'extends', 'this', 'try', 'catch', 'finally', 'throw', 'async', 'await', 'typeof', 'instanceof', 'true', 'false', 'null', 'undefined', 'document', 'window', 'console', 'patos', 'Math', 'JSON', 'Array', 'Object', 'String', 'Number', 'Promise', 'setTimeout', 'setInterval', 'addEventListener', 'querySelector', 'querySelectorAll', 'getElementById', 'textContent', 'innerHTML', 'classList', 'forEach', 'map', 'filter', 'reduce', 'push', 'length', 'includes', 'indexOf', 'slice', 'split', 'join', 'trim', 'toFixed', 'parseInt', 'parseFloat', 'fetch', 'then', 'localStorage']
+  };
+  // members after a dot: obj. → what it has
+  const MEMBERS = {
+    console: ['log', 'warn', 'error', 'info', 'table', 'clear'],
+    document: ['getElementById', 'querySelector', 'querySelectorAll', 'createElement', 'body', 'title', 'addEventListener'],
+    Math: ['round', 'floor', 'ceil', 'random', 'min', 'max', 'abs', 'sqrt', 'pow', 'PI'],
+    JSON: ['parse', 'stringify'],
+    patos: ['storage', 'notify', 'app', 'files', 'clipboard', 'theme'],
+    'patos.storage': ['get', 'set', 'remove', 'keys'],
+    'patos.app': ['name', 'id', 'version'],
+    'js.patos': ['storage', 'notify', 'app', 'files', 'clipboard'],
+    'js.patos.storage': ['get', 'set', 'remove', 'keys'],
+    'js.patos.app': ['name', 'id', 'version'],
+    classList: ['add', 'remove', 'toggle', 'contains'],
+    _any: ['length', 'map', 'filter', 'forEach', 'push', 'includes', 'join', 'slice', 'split', 'trim', 'toUpperCase', 'toLowerCase', 'then', 'textContent', 'value', 'style', 'classList', 'addEventListener']
+  };
+  const CALLS = { log: '(|)', warn: '(|)', error: '(|)', get: '("|")', set: '("|", )', notify: '({ title: "|" })', getElementById: '("|")', querySelector: '("|")', querySelectorAll: '("|")', createElement: '("|")', addEventListener: '("|", () => {\n  \n})', map: '((x) => |)', filter: '((x) => |)', forEach: '((x) => {\n  |\n})', round: '(|)', floor: '(|)', random: '()|', parse: '(|)', stringify: '(|)', includes: '(|)', join: '("|")', split: '("|")', push: '(|)', add: '("|")', remove: '("|")', toggle: '("|")', contains: '("|")', then: '((v) => {\n  |\n})' };
+  const SNIP = {
+    pitcode: [
+      ['when', 'when | {\n  \n}', 'when … { }'], ['orwhen', 'orwhen | {\n  \n}', 'orwhen … { }'], ['other', 'other {\n  |\n}', 'other { }'],
+      ['loop', 'loop item in | {\n  \n}', 'loop … in … { }'], ['attempt', 'attempt {\n  |\n} rescue err {\n  say(err)\n}', 'attempt / rescue'],
+      ['match', 'match | {\n  \n}', 'match … { }'], ['pit', 'pit | = ', 'a new variable'], ['store', 'store({|})', 'state the page redraws from'],
+      ['start', 'start() => {\n  |\n}', 'runs when the app opens'], ['draw', 'draw(|)', 'shows a page'], ['say', 'say(|)', 'prints to the console'],
+      ['wait', 'wait |', 'waits for an answer'], ['fn', '|() => {\n  \n}', 'a function']
+    ],
+    js: [
+      ['function', 'function |() {\n  \n}', 'function'], ['if', 'if (|) {\n  \n}', 'if'], ['ife', 'if (|) {\n  \n} else {\n  \n}', 'if / else'],
+      ['for', 'for (let i = 0; i < |; i++) {\n  \n}', 'for loop'], ['forof', 'for (const item of |) {\n  \n}', 'for … of'],
+      ['while', 'while (|) {\n  \n}', 'while'], ['try', 'try {\n  |\n} catch (e) {\n  console.error(e);\n}', 'try / catch'],
+      ['arrow', '(|) => {\n  \n}', 'arrow function'], ['log', 'console.log(|);', 'console.log'], ['timeout', 'setTimeout(() => {\n  |\n}, 1000);', 'setTimeout'],
+      ['click', '.addEventListener("click", () => {\n  |\n});', 'on click'], ['class', 'class | {\n  constructor() {\n    \n  }\n}', 'class'],
+      ['fetch', 'fetch("|").then((r) => r.json()).then((data) => {\n  \n});', 'fetch JSON'], ['save', 'patos.storage.set("|", );', 'save a value'], ['load', 'patos.storage.get("|").then((v) => {\n  \n});', 'read a saved value']
+    ]
+  };
+  const TAGS = ['div', 'span', 'p', 'a', 'h1', 'h2', 'h3', 'h4', 'button', 'input', 'label', 'form', 'select', 'option', 'textarea', 'img', 'ul', 'ol', 'li', 'main', 'section', 'header', 'footer', 'nav', 'article', 'aside', 'strong', 'em', 'small', 'table', 'thead', 'tbody', 'tr', 'th', 'td', 'canvas', 'video', 'audio', 'script', 'style', 'link', 'meta', 'br', 'hr', 'pre', 'code', 'details', 'summary', 'dialog', 'svg', 'template'];
+  const VOID = new Set(['img', 'input', 'br', 'hr', 'meta', 'link', 'source', 'area', 'col', 'wbr']);
+  const ATTR = { _: ['class', 'id', 'style', 'title', 'hidden', 'onclick', 'aria-label', 'role', 'tabindex', 'data-'],
+    a: ['href', 'target', 'rel'], img: ['src', 'alt', 'width', 'height', 'loading'], input: ['type', 'name', 'value', 'placeholder', 'checked', 'disabled', 'min', 'max', 'step', 'required', 'autofocus'],
+    button: ['type', 'disabled'], form: ['action', 'method'], label: ['for'], link: ['rel', 'href'], script: ['src', 'type', 'defer'], meta: ['name', 'content', 'charset'],
+    select: ['name', 'multiple'], option: ['value', 'selected'], textarea: ['rows', 'cols', 'placeholder', 'name'], video: ['src', 'controls', 'autoplay', 'loop', 'muted'], audio: ['src', 'controls', 'autoplay', 'loop'], canvas: ['width', 'height'] };
+  const ATTRVAL = { type: ['text', 'button', 'submit', 'checkbox', 'radio', 'number', 'email', 'password', 'range', 'color', 'date', 'file'], target: ['_blank', '_self'], rel: ['stylesheet', 'noopener'], loading: ['lazy', 'eager'], method: ['get', 'post'] };
+  const CSSP = { display: ['flex', 'grid', 'block', 'inline-block', 'inline', 'none'], position: ['relative', 'absolute', 'fixed', 'sticky', 'static'], 'flex-direction': ['row', 'column'], 'justify-content': ['center', 'space-between', 'space-around', 'flex-start', 'flex-end'], 'align-items': ['center', 'flex-start', 'flex-end', 'stretch'], 'text-align': ['center', 'left', 'right'], 'font-weight': ['400', '500', '600', '700', 'bold'], cursor: ['pointer', 'default', 'text'], overflow: ['hidden', 'auto', 'scroll', 'visible'], 'box-sizing': ['border-box'], 'font-family': ['system-ui, sans-serif', 'ui-monospace, monospace', 'Georgia, serif'], color: ['var(--patos-accent)', '#ffffff', '#000000'], background: ['var(--patos-accent)', 'transparent', '#ffffff'], margin: ['0', 'auto', '0 auto'], padding: ['0', '8px', '12px', '20px'], 'border-radius': ['8px', '12px', '50%'], border: ['0', '1px solid #8884'], width: ['100%', 'auto'], height: ['100%', 'auto'], gap: ['8px', '12px'], transition: ['all .2s ease'], 'box-shadow': ['0 4px 12px rgba(0,0,0,.2)'], 'font-size': ['14px', '16px', '24px', '32px'], opacity: ['0', '.5', '1'], 'grid-template-columns': ['repeat(3, 1fr)', '1fr 1fr'], 'z-index': ['1', '10'], 'line-height': ['1.4', '1.6'], 'object-fit': ['cover', 'contain'], 'white-space': ['nowrap', 'pre'], 'user-select': ['none'], 'pointer-events': ['none', 'auto'], transform: ['scale(1.05)', 'translateY(-2px)'], animation: [], 'max-width': ['100%'], 'min-height': ['100vh'], 'flex-wrap': ['wrap'], flex: ['1'], 'aspect-ratio': ['1', '16 / 9'] };
+  // PitCode styles: the friendly names it adds (vendor/pitcode.js) next to the usual ones; no ":" and plain numbers mean pixels
+  const PITOSS = { 'text-color': ['#ffffff', '#000000'], corners: ['8', '12'], arrange: ['center', 'space-between', 'start', 'end'], align: ['center', 'start', 'end'], flow: ['row', 'column'], wrap: ['wrap'], stack: ['1', '10'], shadow: ['0 4 12 #0003'], 'column-sizes': ['1fr 1fr'], 'row-sizes': ['auto 1fr'], fit: ['cover', 'contain'], ratio: ['1', '16 / 9'], clicks: ['none'], select: ['none'], weight: ['600', '700'] };
+
+  const word = (s) => (s.match(/[A-Za-z_$][\w$-]*$/) || [''])[0];
+  function docWords(text, prefix) { const m = text.match(/[A-Za-z_$][\w$]{2,}/g) || []; const c = {}; m.forEach((w) => { if (w !== prefix) c[w] = (c[w] || 0) + 1; }); return Object.keys(c).sort((a, b) => c[b] - c[a]); }
+  const rank = (list, prefix) => { const p = prefix.toLowerCase(); return list.filter((x) => x.label.toLowerCase().startsWith(p) && x.label !== prefix); };
+  const it = (label, insert, kind, detail) => ({ label, insert: insert == null ? label : insert, kind, detail: detail || '' });
+
+  function openTags(before) { // the tags still open before the caret, innermost last
+    const st = []; const re = /<(\/?)([a-zA-Z][\w-]*)[^<>]*?(\/?)>/g; let m;
+    while ((m = re.exec(before))) { const t = m[2].toLowerCase(); if (m[1]) { const i = st.lastIndexOf(t); if (i >= 0) st.length = i; } else if (!m[3] && !VOID.has(t)) st.push(t); }
+    return st;
+  }
+  function html(text, pos) {
+    const before = text.slice(0, pos), line = before.slice(before.lastIndexOf('\n') + 1);
+    let m;
+    if ((m = before.match(/<\/([\w-]*)$/))) { const st = openTags(before.slice(0, before.length - m[0].length)); const t = st[st.length - 1]; return t ? { from: pos - m[1].length, prefix: m[1], items: [it(t, t + '>', 'tag', 'close')] } : null; }
+    if ((m = before.match(/<([\w-]*)$/))) return { from: pos - m[1].length, prefix: m[1], items: rank(TAGS.map((t) => it(t, VOID.has(t) ? t + (t === 'img' ? ' src="|" alt="">' : t === 'input' ? ' type="|">' : t === 'link' ? ' rel="stylesheet" href="|">' : '>|') : t + '>|</' + t + '>', 'tag')), m[1]) };
+    if ((m = before.match(/<([\w-]+)((?:\s+[\w-]+(?:="[^"]*")?)*)\s+([\w-]*)$/))) { const tag = m[1].toLowerCase(); const have = new Set((m[2].match(/[\w-]+(?==|\s|$)/g) || [])); return { from: pos - m[3].length, prefix: m[3], items: rank(uniq([...(ATTR[tag] || []), ...ATTR._]).filter((a) => !have.has(a)).map((a) => it(a, /^(hidden|checked|disabled|required|autofocus|controls|autoplay|loop|muted|multiple|selected|defer)$/.test(a) ? a : a + '="|"', 'attr')), m[3]) }; }
+    if ((m = before.match(/\s([\w-]+)="([^"]*)$/)) && ATTRVAL[m[1]]) return { from: pos - m[2].length, prefix: m[2], items: rank(ATTRVAL[m[1]].map((v) => it(v, v, 'value')), m[2]) };
+    // a short way to write tags (like Emmet): div.card, ul>li*3, button#go
+    if ((m = line.match(/(?:^|\s)([a-z][\w]*(?:[.#][\w-]+)*(?:>[a-z][\w]*(?:[.#][\w-]+)*(?:\*\d+)?)*)$/)) && /[.#>*]/.test(m[1]) && TAGS.includes(m[1].split(/[.#>*]/)[0])) {
+      const one = (s) => { const [, t, rest] = s.match(/^([a-z]\w*)(.*)$/); const cls = (rest.match(/\.[\w-]+/g) || []).map((x) => x.slice(1)), id = (rest.match(/#[\w-]+/) || [''])[0].slice(1); return { t, a: (id ? ' id="' + id + '"' : '') + (cls.length ? ' class="' + cls.join(' ') + '"' : '') }; };
+      const build = (parts) => { if (!parts.length) return '|'; const [p0, ...rest] = parts; const n = +((p0.match(/\*(\d+)$/) || [0, 1])[1]); const o = one(p0.replace(/\*\d+$/, '')); let out = ''; for (let i = 0; i < Math.min(n, 20); i++) out += '<' + o.t + o.a + '>' + (VOID.has(o.t) ? '' : build(rest).replace(i ? /\|/g : /(?!)/, '') + '</' + o.t + '>'); return out; };
+      const ins = build(m[1].split('>')); return { from: pos - m[1].length, prefix: m[1], items: [it(m[1], ins.includes('|') ? ins : ins + '|', 'snippet', 'expand')], expand: true };
+    }
+    const w = word(before); if (!w) return null;
+    return { from: pos - w.length, prefix: w, items: rank(docWords(text, w).map((x) => it(x, x, 'word')), w).slice(0, 8) };
+  }
+  function css(text, pos, pit) {
+    const before = text.slice(0, pos), line = before.slice(before.lastIndexOf('\n') + 1);
+    const props = pit ? Object.assign({}, CSSP, PITOSS) : CSSP; let m;
+    if (pit && (m = line.match(/^\s*([\w-]*)$/)) && !/\{\s*$/.test(line)) { // pitoss: "style" to start a rule, or a property
+      const it2 = rank([it('style', 'style | {\n  \n}', 'snippet', 'a rule'), ...Object.keys(props).map((p) => it(p, p + ': |', 'prop', PITOSS[p] ? 'PitCode' : ''))], m[1]);
+      return { from: pos - m[1].length, prefix: m[1], items: it2 };
+    }
+    if ((m = line.match(/^\s*([\w-]*)$/))) return { from: pos - m[1].length, prefix: m[1], items: rank(Object.keys(props).map((p) => it(p, p + ': |;', 'prop')), m[1]) };
+    if ((m = line.match(/^\s*([\w-]+)\s*:\s*([^;]*)$/)) && props[m[1]]) { const v = (m[2].match(/[^\s]*$/) || [''])[0]; return { from: pos - v.length, prefix: v, items: (v ? rank : (l) => l)(props[m[1]].map((x) => it(x, x + (pit ? '' : ';'), 'value')), v) }; }
+    return null;
+  }
+  function code(text, pos, lang) {
+    const before = text.slice(0, pos); let m;
+    if ((m = before.match(/([\w$]+(?:\.[\w$]+)*)\.([\w$]*)$/))) { // members
+      const obj = m[1], last = obj.split('.').pop(); const list = MEMBERS[obj] || MEMBERS[last] || MEMBERS._any;
+      return { from: pos - m[2].length, prefix: m[2], items: rank(list.map((x) => it(x, x + (CALLS[x] && lang === 'js' ? CALLS[x] : CALLS[x] && lang === 'pitcode' && /^(get|set|log)$/.test(x) ? CALLS[x] : ''), 'member', obj)), m[2]) };
+    }
+    if (lang === 'pitcode' && (m = before.match(/<([\w-]*)$/))) return html(text, pos); // pages in PitCode are HTML-like
+    const w = word(before), ln = before.slice(before.lastIndexOf('\n') + 1).replace(/\\./g, '');
+    if (!w || ['"', "'", '`'].some((q) => (ln.split(q).length - 1) % 2)) return null; // (not inside a string)
+    const sn = (SNIP[lang] || []).map(([k, ins, d]) => Object.assign(it(k, ins, 'snippet', d)));
+    const kw = (KW[lang] || []).filter((k) => !sn.some((s) => s.label === k)).map((k) => it(k, k, 'keyword'));
+    const dw = docWords(text, w).filter((x) => !(KW[lang] || []).includes(x)).map((x) => it(x, x, 'word'));
+    return { from: pos - w.length, prefix: w, items: rank([...sn, ...kw, ...dw], w).slice(0, 12) };
+  }
+  function langOf(name) { const e = (String(name).match(/\.(\w+)$/) || ['', ''])[1].toLowerCase(); return { pitx: 'pitcode', pit: 'pitcode', pitoss: 'pitoss', html: 'html', htm: 'html', css: 'css', js: 'js', mjs: 'js', json: 'json' }[e] || ''; }
+  function suggest(text, pos, lang) {
+    try {
+      if (lang === 'html') { const before = text.slice(0, pos); const inScript = /<script[^>]*>(?![\s\S]*<\/script>)[\s\S]*$/i.test(before), inStyle = /<style[^>]*>(?![\s\S]*<\/style>)[\s\S]*$/i.test(before); return inScript ? code(text, pos, 'js') : inStyle ? css(text, pos, false) : html(text, pos); }
+      if (lang === 'css') return css(text, pos, false);
+      if (lang === 'pitoss') return css(text, pos, true);
+      if (lang === 'js' || lang === 'pitcode') return code(text, pos, lang);
+      if (lang === 'json') { const w = word(text.slice(0, pos)); return w ? { from: pos - w.length, prefix: w, items: rank(['true', 'false', 'null'].map((x) => it(x, x, 'keyword')), w) } : null; }
+    } catch (e) { return null; }
+    return null;
+  }
+  /* after typing ">" in HTML (or a PitCode page): the closing tag to put after the caret, or '' */
+  function autoClose(text, pos, lang) {
+    if (!(lang === 'html' || lang === 'pitcode')) return '';
+    const m = text.slice(0, pos).match(/<([a-zA-Z][\w-]*)(?:\s[^<>]*)?>$/); if (!m || /\/>$/.test(m[0]) || VOID.has(m[1].toLowerCase())) return '';
+    if (text.slice(pos).startsWith('</' + m[1])) return '';
+    return '</' + m[1] + '>';
+  }
+  PatOS.codesense = { suggest, autoClose, langOf };
+})();
+
 /* PitCode Studio: make PatOS apps in PatOS, like Xcode.
    - A project is a folder in Documents › Studio: your code files and a project.patproj (name, id, icon, permissions...).
    - Write in PitCode (.pitx pages, .pit code, .pitoss styles: github.com/monsieurpit/PitCode) or in plain HTML and JavaScript.
@@ -146,6 +275,40 @@
     const code = h('div', { class: 'ps-code' }, pre, ta);
     const el = h('div', { class: 'ps-ed' }, gut, code);
     let opts = {}, plain = true;
+    /* Pat's suggestions: a list under the caret, and the rest of the best one shown faintly after it (Tab takes it) */
+    const ICON = { snippet: '{ }', keyword: 'K', member: '.', word: 'W', tag: '<>', attr: '=', prop: 'P', value: 'V' };
+    const ghost = h('span', { class: 'ps-ghost', 'aria-hidden': 'true' });
+    const pop = h('div', { class: 'ps-ac', role: 'listbox', 'aria-label': T('Suggestions') });
+    code.append(ghost); el.appendChild(pop);
+    let sug = null, sel = 0, typed = false, picked = false, overs = []; // closing tags Pat wrote, which typing them again just walks through
+    const on = () => PatOS.settings.codeSuggestions !== false && api.lang;
+    let cw = 0; const charW = () => { if (cw) return cw; const m = h('span', { style: { position: 'absolute', visibility: 'hidden', whiteSpace: 'pre', font: getComputedStyle(ta).font } }, 'x'.repeat(40)); document.body.appendChild(m); cw = m.getBoundingClientRect().width / 40 || 7.8; m.remove(); return cw; };
+    const caretXY = () => { const b = ta.value.slice(0, ta.selectionStart), line = b.split('\n').length - 1, col = b.length - b.lastIndexOf('\n') - 1; const cs = getComputedStyle(ta), lh = parseFloat(cs.lineHeight) || 19; return { x: parseFloat(cs.paddingLeft) + col * charW(), y: parseFloat(cs.paddingTop) + line * lh, lh }; };
+    function hideSug() { sug = null; pop.classList.remove('on'); ghost.textContent = ''; }
+    function showSug() {
+      if (!on() || ta.selectionStart !== ta.selectionEnd) return hideSug();
+      const r = PatOS.codesense.suggest(ta.value, ta.selectionStart, api.lang);
+      if (!r || !r.items || !r.items.length || (!r.prefix && !r.expand && !/[.<]$|<\/$/.test(ta.value.slice(0, ta.selectionStart)) && !/:\s*$/.test(ta.value.slice(0, ta.selectionStart).split('\n').pop()))) return hideSug();
+      sug = r; sel = 0; picked = false; pop.innerHTML = '';
+      pop.appendChild(h('div', { class: 'ps-ac-head' }, h('i', { class: 'ps-ac-orb' }), T('Pat suggests'), h('small', {}, 'Tab')));
+      r.items.slice(0, 8).forEach((x, i) => { const b = h('div', { class: 'ps-ac-it' + (i ? '' : ' on'), role: 'option', 'aria-selected': String(!i) }, h('b', { class: 'ps-ac-k k-' + x.kind }, ICON[x.kind] || '·'), h('span', { class: 'ps-ac-l' }, x.label), x.detail ? h('small', {}, T(x.detail)) : null);
+        b.addEventListener('mousedown', (e) => { e.preventDefault(); sel = i; take(); }); pop.appendChild(b); });
+      const p = caretXY(); pop.style.left = (gut.offsetWidth + p.x - r.prefix.length * charW() + 2) + 'px'; pop.style.top = (p.y + p.lh + 4) + 'px';
+      pop.classList.add('on'); drawGhost(); if (pop.offsetTop + pop.offsetHeight > el.scrollTop + el.clientHeight && p.y - pop.offsetHeight - 4 > el.scrollTop) pop.style.top = (p.y - pop.offsetHeight - 4) + 'px';
+    }
+    function drawGhost() {
+      ghost.textContent = ''; if (!sug) return; const x = sug.items[sel]; const plainIns = x.insert.replace('|', '');
+      if (!sug.expand && plainIns.toLowerCase().startsWith(sug.prefix.toLowerCase())) { const rest = plainIns.slice(sug.prefix.length).split('\n')[0]; if (rest) { const p = caretXY(); ghost.textContent = rest; ghost.style.left = p.x + 'px'; ghost.style.top = p.y + 'px'; } }
+    }
+    function move(d) { if (!sug) return; picked = true; const n = Math.min(8, sug.items.length); sel = (sel + d + n) % n; [...pop.querySelectorAll('.ps-ac-it')].forEach((b, i) => { b.classList.toggle('on', i === sel); b.setAttribute('aria-selected', String(i === sel)); if (i === sel) b.scrollIntoView({ block: 'nearest' }); }); drawGhost(); }
+    function take() {
+      if (!sug) return false; const x = sug.items[sel], from = sug.from, to = ta.selectionStart;
+      const ls = ta.value.lastIndexOf('\n', from - 1) + 1, indent = (ta.value.slice(ls, from).match(/^[ \t]*/) || [''])[0];
+      const ins = x.insert.replace(/\n/g, '\n' + indent), at = ins.indexOf('|'), text = ins.replace('|', '');
+      hideSug(); edit(from, to, text, at >= 0 ? from + at : from + text.length); typed = false; return true;
+    }
+    ta.addEventListener('blur', () => setTimeout(hideSug, 120));
+    ta.addEventListener('click', hideSug);
     const render = () => {
       const src = ta.value; let html = '';
       const pit = window.PitCode;
@@ -154,15 +317,42 @@
       const n = src.split('\n').length; if (gut.childElementCount !== n) { gut.innerHTML = ''; for (let i = 1; i <= n; i++) gut.appendChild(h('div', {}, String(i))); }
       ta.style.width = pre.offsetWidth + 'px'; ta.style.height = pre.offsetHeight + 'px';
     };
-    const caretVisible = () => {
+    // the line numbers stay put over the code: keep the caret from hiding under them
+    const fixX = () => requestAnimationFrame(() => { const b = ta.value.slice(0, ta.selectionStart), col = b.length - b.lastIndexOf('\n') - 1, x = 14 + col * (cw || 7.8);
+      if (x < el.scrollLeft + 8) el.scrollLeft = Math.max(0, x - 40); });
+    ['keyup', 'click', 'focus'].forEach((ev) => ta.addEventListener(ev, fixX));
+    const caretVisible = () => { fixX();
       const lh = parseFloat(getComputedStyle(ta).lineHeight) || 19; const line = ta.value.slice(0, ta.selectionStart).split('\n').length;
       const top = (line - 1) * lh + 10, bottom = top + lh + 10; const v = el.clientHeight;
       if (top < el.scrollTop) el.scrollTop = top - 10; else if (bottom > el.scrollTop + v) el.scrollTop = bottom - v;
     };
     const edit = (start, end, text, selStart, selEnd) => { ta.focus(); ta.setSelectionRange(start, end); if (!document.execCommand || !document.execCommand('insertText', false, text)) { ta.setRangeText(text, start, end, 'end'); ta.dispatchEvent(new Event('input')); } if (selStart != null) ta.setSelectionRange(selStart, selEnd == null ? selStart : selEnd); };
-    ta.addEventListener('input', () => { render(); caretVisible(); onInput(ta.value); });
+    ta.addEventListener('input', (e) => {
+      render(); caretVisible(); onInput(ta.value);
+      if (!on()) return;
+      // typing ">" after an opening tag writes its closing tag
+      if (e.data === '>' && ta.selectionStart === ta.selectionEnd) { const c = PatOS.codesense.autoClose(ta.value, ta.selectionStart, api.lang); if (c) { const at = ta.selectionStart; edit(at, at, c, at); overs.push({ len: c.length, tail: ta.value.length - at - c.length }); return hideSug(); } }
+      if (e.inputType && /^insert/.test(e.inputType) && e.data != null) { typed = true; showSug(); } else hideSug();
+    });
     ta.addEventListener('keydown', (e) => {
       const v = ta.value, s = ta.selectionStart, en = ta.selectionEnd;
+      if (overs.length) { // (counted from the end of the file, so typing before them doesn't move them)
+        if (s !== en || e.key === 'Escape' || ((e.ctrlKey || e.metaKey) && /^[az]$/i.test(e.key))) overs = [];
+        overs = overs.filter((o) => { const oEnd = v.length - o.tail; return s <= oEnd && oEnd - o.len >= 0; });
+        const o = overs.find((x) => { const oEnd = v.length - x.tail; return s >= oEnd - x.len && s < oEnd; });
+        if (o && e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey && v[s] === e.key) {
+          e.preventDefault(); ta.setSelectionRange(s + 1, s + 1); if (s + 1 >= v.length - o.tail) overs = overs.filter((x) => x !== o); if (e.key === '>') hideSug(); return;
+        }
+      }
+      if ((e.ctrlKey || e.metaKey) && e.key === ' ') { e.preventDefault(); typed = true; showSug(); if (!sug && on()) { const r = PatOS.codesense.suggest(v, s, api.lang); if (r && r.items.length) { sug = r; sel = 0; showSug(); } } return; }
+      if (sug) {
+        if (e.key === 'ArrowDown') { e.preventDefault(); return move(1); }
+        if (e.key === 'ArrowUp') { e.preventDefault(); return move(-1); }
+        if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); return hideSug(); }
+        if (e.key === 'Tab' && !e.shiftKey) { e.preventDefault(); take(); return; }
+        if (e.key === 'Enter' && !e.shiftKey && picked) { e.preventDefault(); take(); return; } // (Enter is a new line unless a suggestion was picked with the arrows)
+        if (/^(ArrowLeft|ArrowRight|Home|End|PageUp|PageDown)$/.test(e.key)) hideSug();
+      }
       if (e.key === 'Tab') {
         e.preventDefault();
         if (s === en && !e.shiftKey) return edit(s, en, '  ');
@@ -174,12 +364,14 @@
         e.preventDefault(); edit(s, en, '\n' + indent + more + closing, s + 1 + indent.length + more.length);
       }
     });
-    return {
+    const api = {
+      lang: '', suggest: showSug, accept: take, hideSuggestions: hideSug, suggestions: () => sug,
       el, ta, focus: () => ta.focus(),
       set(text, o) { opts = o || {}; plain = !o; ta.value = text; render(); el.scrollTop = 0; el.scrollLeft = 0; },
       get: () => ta.value, rerender: render,
       goto(line, col) { const lines = ta.value.split('\n'); let off = 0; for (let i = 0; i < Math.min(line - 1, lines.length); i++) off += lines[i].length + 1; ta.focus(); ta.setSelectionRange(off + Math.max(0, col - 1), off + Math.max(0, col - 1)); caretVisible(); }
     };
+    return api;
   }
 
   /* ---------- the app ---------- */
@@ -357,7 +549,7 @@
         const code = view === 'code'; codeBox.style.display = code ? '' : 'none'; settings.style.display = code ? 'none' : '';
         if (code) {
           if (cur == null || proj.files[cur] == null) cur = proj.files[proj.meta.entry] != null ? proj.meta.entry : Object.keys(proj.files)[0];
-          codeBox.firstChild.textContent = cur || ''; ed.set(cur ? proj.files[cur] : '', cur ? optsFor(cur) : null); ed.ta.disabled = !cur; checkNow();
+          codeBox.firstChild.textContent = cur || ''; ed.lang = cur ? PatOS.codesense.langOf(cur) : ''; ed.set(cur ? proj.files[cur] : '', cur ? optsFor(cur) : null); ed.ta.disabled = !cur; checkNow();
         } else drawSettings();
       }
       function open(name) {

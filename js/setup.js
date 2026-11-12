@@ -45,7 +45,7 @@
       c.append(h('h1', {}, T('Choose your look')), modes, h('label', { class: 'su-row' }, glass, h('span', {}, T('Liquid Glass'))), next(null, () => go(4)), dots);
     } else if (step === 4) {
       const grid = h('div', { class: 'su-wps' });
-      ['nebula', 'waves', 'crystals', 'sonora', 'aurora', 'sunrise'].forEach((id) => {
+      ['lumen', 'fold', 'nebula', 'waves', 'silk', 'aurora'].forEach((id) => {
         const src = PatOS.wallpaper.live[id] || PatOS.wallpaper.palettes[id];
         const b = h('button', { class: 'su-wp' + (PatOS.settings.wallpaper === id ? ' on' : '') }, h('img', { src: PatOS.wallpaper.thumb(id), alt: '' }), h('span', {}, T(src.name)));
         b.onclick = () => { PatOS.setSetting('wallpaper', id); if (src.live) PatOS.setSetting('live3d', true); render(); };

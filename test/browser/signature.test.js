@@ -88,7 +88,7 @@ test('a desktop icon takes clicks on its picture and name only, not on the empty
 
 test('Fold is the new wallpaper (Silk moves to it once); Liquid Glass on the desktop follows the wallpaper, floating panels follow the theme; light icons are their own setting; flat icons have no line over them', { skip: skipNoBrowser }, async () => {
   const page = await b.newPage({ viewport: { width: 1366, height: 768 } }); const errors = await boot(page, srv.base, { fresh: true });
-  assert.equal(await page.evaluate(() => PatOS.settings.wallpaper), 'fold', 'a new install starts on Fold');
+  assert.equal(await page.evaluate(() => PatOS.settings.wallpaper), 'lumen', 'a new install starts on Lumen');
   const r = await page.evaluate(async () => {
     const wait = (ms) => new Promise((res) => setTimeout(res, ms));
     PatOS.setSetting('theme', 'light'); PatOS.setSetting('wallpaper', 'silk'); await wait(1500);

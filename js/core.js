@@ -239,7 +239,7 @@
     password: '',
     theme: 'dark',           // dark | light | auto
     accent: '#0a84ff',
-    wallpaper: 'fold',       // see wallpaper.js (a new install starts on Fold; people keep the one they chose)
+    wallpaper: 'lumen',      // see wallpaper.js (a new install starts on Lumen, which follows the time of day; people keep the one they chose)
     customWallpaper: null,
     live3d: true,
     dockSize: 54,

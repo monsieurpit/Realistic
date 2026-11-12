@@ -200,3 +200,47 @@ test('publishing: the first time publishes, after that it is an update of the sa
   const low = await page.evaluate(async (a) => { a.version = '1.0.1'; try { await PatOS.patapps.submit(a); return 'sent'; } catch (e) { return e.message; } }, app); assert.match(low, /Version 1\.0\.1 is already in the store/);
   assert.deepEqual(errors, []); await page.close();
 });
+
+test('Pat’s code suggestions: HTML tags, attributes, closing tags, short tag writing, CSS, JavaScript and PitCode', { skip: skipNoBrowser }, async () => {
+  const { page, errors } = await setup();
+  await page.evaluate(() => { PatOS.studio.newProject({ name: 'Sense', language: 'web', template: 'blank' }); PatOS.launch('pitstudio', { project: 'Sense' }); }); await page.waitForSelector('.ps-sidehead');
+  const ta = '.ps-win .ps-ta';
+  const openFile = async (f) => { await page.click('.ps-side >> text=' + f); await page.waitForTimeout(200); await page.click(ta); await page.keyboard.press('Control+End'); await page.keyboard.press('Enter'); };
+  await openFile('index.html');
+  await page.keyboard.type('<di'); await page.waitForSelector('.ps-ac.on');
+  assert.match(await page.textContent('.ps-ac'), /Pat suggests[\s\S]*div/);
+  assert.equal(await page.textContent('.ps-ghost'), 'v></div>', 'the rest of the best suggestion shows faintly');
+  await page.keyboard.press('Tab'); await page.keyboard.type('Hi');
+  assert.match(await page.inputValue(ta), /<div>Hi<\/div>$/, 'Tab takes it, the caret lands inside');
+  await page.keyboard.press('End'); await page.keyboard.press('Enter'); await page.keyboard.type('<section>');
+  assert.match(await page.inputValue(ta), /<section><\/section>$/, 'typing ">" closes the tag');
+  await page.keyboard.press('End'); await page.keyboard.press('Enter'); await page.keyboard.type('<input ty'); await page.waitForSelector('.ps-ac.on'); await page.keyboard.press('Tab');
+  assert.match(await page.inputValue(ta), /<input type=""$/);
+  await page.keyboard.press('End'); await page.keyboard.press('Enter'); await page.keyboard.type('ul>li*2'); await page.waitForSelector('.ps-ac.on'); await page.keyboard.press('Tab');
+  assert.match(await page.inputValue(ta), /<ul><li><\/li><li><\/li><\/ul>$/, 'short tag writing expands');
+  await page.keyboard.press('Escape');
+  await openFile('style.css'); await page.keyboard.type('p {'); await page.keyboard.press('Enter'); await page.keyboard.type('disp'); await page.waitForSelector('.ps-ac.on'); await page.keyboard.press('Tab'); await page.keyboard.type('gr'); await page.waitForSelector('.ps-ac.on'); await page.keyboard.press('Tab');
+  assert.match(await page.inputValue(ta), /display: grid;/);
+  await openFile('app.js'); await page.keyboard.type('console.l'); await page.waitForSelector('.ps-ac.on'); await page.keyboard.press('Tab'); await page.keyboard.type('"ok"');
+  assert.match(await page.inputValue(ta), /console\.log\("ok"\)/);
+  await page.keyboard.press('End'); await page.keyboard.press('Enter'); await page.keyboard.type('patos.storage.'); await page.waitForSelector('.ps-ac.on');
+  assert.match(await page.textContent('.ps-ac'), /get[\s\S]*set/, 'the PatOS app API');
+  await page.keyboard.press('Escape'); assert.equal(await page.locator('.ps-ac.on').count(), 0, 'Escape closes it');
+  // PitCode
+  const pit = await page.evaluate(() => PatOS.codesense.suggest('wh', 2, 'pitcode').items[0].insert); assert.match(pit, /^when \| \{/);
+  const sty = await page.evaluate(() => PatOS.codesense.suggest('style h1 {\n  corn', 16, 'pitoss').items[0].label); assert.equal(sty, 'corners');
+  // can be turned off
+  await page.evaluate(() => PatOS.setSetting('codeSuggestions', false)); await page.keyboard.press('End'); await page.keyboard.press('Enter'); await page.keyboard.type('consol'); await page.waitForTimeout(200);
+  assert.equal(await page.locator('.ps-ac.on').count(), 0);
+  assert.deepEqual(errors, []); await page.close();
+});
+
+test('typing a closing tag the editor already wrote walks through it, and Enter is a new line', { skip: skipNoBrowser }, async () => {
+  const { page, errors } = await setup();
+  await page.evaluate(() => { PatOS.studio.newProject({ name: 'Over', language: 'web', template: 'blank' }); PatOS.launch('pitstudio', { project: 'Over' }); }); await page.waitForSelector('.ps-sidehead');
+  await page.click('.ps-side >> text=index.html'); await page.waitForTimeout(200); await page.click('.ps-win .ps-ta'); await page.keyboard.press('Control+A');
+  await page.keyboard.type('<main><h1>Reef Timer</h1></main>\nsay');
+  await page.keyboard.press('Enter'); await page.keyboard.type('ok');
+  assert.equal(await page.inputValue('.ps-win .ps-ta'), '<main><h1>Reef Timer</h1></main>\nsay\nok');
+  assert.deepEqual(errors, []); await page.close();
+});

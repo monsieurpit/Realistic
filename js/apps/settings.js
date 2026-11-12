@@ -98,6 +98,9 @@
           out.appendChild(h('p', { class: 'st-desc' }, T('PatOS Intelligence does what you ask in Pat, Spotlight and Shortcuts. It is not an AI: it knows a fixed list of actions, says exactly what it did, runs on this device and works offline.')));
           out.appendChild(h('h3', {}, T('What it may do')));
           out.appendChild(group(...I.perms().map((p) => { const t = h('button', { class: 'switch' + (p.on ? ' on' : ''), role: 'switch', 'aria-checked': String(p.on), 'aria-label': p.label }); t.onclick = () => { I.setPerm(p.key, !t.classList.contains('on')); t.classList.toggle('on'); t.setAttribute('aria-checked', String(t.classList.contains('on'))); }; return row(p.label, t); })));
+          out.appendChild(h('h3', {}, T('Code')));
+          { const t = h('button', { class: 'switch' + (S().codeSuggestions !== false ? ' on' : ''), role: 'switch', 'data-key': 'codeSuggestions', 'aria-checked': String(S().codeSuggestions !== false), 'aria-label': T('Code suggestions') }); t.onclick = () => { PatOS.setSetting('codeSuggestions', S().codeSuggestions === false); t.classList.toggle('on', S().codeSuggestions !== false); t.setAttribute('aria-checked', String(S().codeSuggestions !== false)); };
+            out.appendChild(group(row(T('Code suggestions'), t, T('In PitCode Studio, Pat suggests the rest of what you type in PitCode, HTML, CSS and JavaScript, and closes your tags. Tab takes a suggestion, Ctrl+Space asks for one.')))); }
           // workspaces: several actions at once ("start my study workspace")
           out.appendChild(h('h3', {}, T('Workspaces')));
           const wsBox = h('div'); const drawWs = () => { wsBox.innerHTML = ''; I.workspaces().forEach((w, i) => {
@@ -481,7 +484,7 @@
           });
           const acc = h('div', { class: 'st-acc' });
           ACCENTS.forEach((c) => { const b = h('button', { class: 'st-dot' + (S().accent === c ? ' on' : ''), style: { background: c } }); b.onclick = () => { PatOS.setSetting('accent', c); render(); }; acc.appendChild(b); });
-          return [h('h3', {}, 'Appearance'), modes, group(row('Highlight color', acc), row(T('Motion'), select('motion', [['calm', T('Calm')], ['natural', T('Natural')], ['playful', T('Playful')]]), T('How windows, menus and panels move')), row(T('App icons'), select('iconStyle', [['auto', T('Automatic')], ['light', T('Light')], ['dark', T('Dark')]]), T('Apps with a color of their own get a tile of that color; the others are white with Light, dark with Dark. Automatic follows light or dark mode')), row('Fewer animations', toggle('reduceMotion'))),
+          return [h('h3', {}, T('Light or dark')), modes, group(row('Highlight color', acc), row(T('Motion'), select('motion', [['calm', T('Calm')], ['natural', T('Natural')], ['playful', T('Playful')]]), T('How windows, menus and panels move')), row(T('App icons'), select('iconStyle', [['auto', T('Automatic')], ['light', T('Light')], ['dark', T('Dark')]]), T('Apps with a color of their own get a tile of that color; the others are white with Light, dark with Dark. Automatic follows light or dark mode')), row('Fewer animations', toggle('reduceMotion'))),
             h('h3', {}, 'Liquid Glass'),
             group(row('Liquid Glass', toggle('liquidGlass', render), ''),
               S().liquidGlass ? row(T('Glass style'), select('glassStyle', [['clear', T('Transparent')], ['tinted', T('Tinted (more contrast)')]]), '') : null,
@@ -489,11 +492,23 @@
               row('Reduce transparency', toggle('reduceTransparency'), matchMedia('(prefers-reduced-transparency: reduce)').matches ? T('Your device asks for less transparency, so PatOS uses less') : ''))];
         },
         wallpaper() {
-          const grid = (ids, src) => { const g = h('div', { class: 'st-wps' }); ids.forEach((id) => { const b = h('button', { class: 'st-wp' + (S().wallpaper === id ? ' on' : '') }, h('img', { src: PatOS.wallpaper.thumb(id), alt: '' }), h('span', {}, src[id].name + (src[id].live ? ' ✦' : ''))); b.onclick = () => { PatOS.setSetting('wallpaper', id); if (src[id].live && !S().live3d) PatOS.setSetting('live3d', true); render(); }; g.appendChild(b); }); return g; };
-          const upload = h('button', { class: 'btn', onclick: () => { const i = h('input', { type: 'file', accept: 'image/*' }); i.onchange = () => { const f = i.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { const img = new Image(); img.onload = () => { const c = document.createElement('canvas'); const s = Math.min(1, 1920 / img.width); c.width = img.width * s; c.height = img.height * s; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); PatOS.setSetting('customWallpaper', c.toDataURL('image/jpeg', 0.82)); PatOS.setSetting('wallpaper', 'custom'); render(); }; img.src = r.result; }; r.readAsDataURL(f); }; i.click(); } }, 'Choose a Photo…');
-          return [h('h3', {}, 'Live 3D Wallpapers'), h('p', { class: 'st-note' }, ''), grid(Object.keys(PatOS.wallpaper.live), PatOS.wallpaper.live),
-            group(row('Animate 3D wallpaper', toggle('live3d'), PatOS.webgl ? '' : 'WebGL is not available on this device')),
-            h('h3', {}, 'Pictures'), grid(Object.keys(PatOS.wallpaper.palettes), PatOS.wallpaper.palettes), group(row('Your own picture', upload))];
+          const W = PatOS.wallpaper, cur = S().wallpaper, all = Object.assign({}, W.live, W.palettes);
+          const pick = (id) => { PatOS.setSetting('wallpaper', id); if (all[id] && all[id].live && !S().live3d) PatOS.setSetting('live3d', true); render(); };
+          const tile = (id, big) => h('button', { class: 'st-wp' + (big ? ' big' : '') + (cur === id ? ' on' : ''), 'aria-pressed': String(cur === id), onclick: () => pick(id) },
+            h('span', { class: 'st-wp-img' }, h('img', { src: W.thumb(id), alt: '' }), cur === id ? h('i', { class: 'st-wp-check', html: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>' }) : null),
+            h('span', { class: 'st-wp-n' }, T(all[id].name) + (all[id].live ? ' ✦' : '')));
+          const grid = (ids, big) => h('div', { class: 'st-wps' + (big ? ' big' : '') }, ...ids.map((id) => tile(id, big)));
+          const sig = Object.keys(W.palettes).filter((k) => W.palettes[k].lumen), pics = Object.keys(W.palettes).filter((k) => !W.palettes[k].lumen);
+          const LV = { dawn: T('Dawn'), day: T('Day'), dusk: T('Dusk'), night: T('Night') };
+          const curP = all[cur], desc = cur === 'custom' ? T('Your own picture') : curP && curP.lumen ? (curP.variant === 'auto' ? T('Changes with the time of day. Right now: ') + LV[W.lumenVariant()] : T('Liquid light, folded like satin')) : curP && curP.live ? T('Moves gently in 3D') : curP && curP.fold ? T('Follows light and dark mode') : T('A still picture');
+          const upload = h('button', { class: 'btn', onclick: () => { const i = h('input', { type: 'file', accept: 'image/*' }); i.onchange = () => { const f = i.files[0]; if (!f) return; const r = new FileReader(); r.onload = () => { const img = new Image(); img.onload = () => { const c = document.createElement('canvas'); const s = Math.min(1, 1920 / img.width); c.width = img.width * s; c.height = img.height * s; c.getContext('2d').drawImage(img, 0, 0, c.width, c.height); PatOS.setSetting('customWallpaper', c.toDataURL('image/jpeg', 0.82)); PatOS.setSetting('wallpaper', 'custom'); render(); }; img.src = r.result; }; r.readAsDataURL(f); }; i.click(); } }, T('Choose a Photo…'));
+          const heroImg = cur === 'custom' && S().customWallpaper ? S().customWallpaper : W.thumbLarge(all[cur] ? cur : 'lumen');
+          return [h('div', { class: 'st-wp-hero' }, h('div', { class: 'st-wp-screen', style: { backgroundImage: 'url(' + heroImg + ')' } }, h('span', { class: 'st-wp-bar' }), h('span', { class: 'st-wp-dock' })),
+              h('div', { class: 'st-wp-meta' }, h('small', {}, T('Current wallpaper')), h('h2', {}, cur === 'custom' ? T('Your picture') : T((curP || { name: 'Lumen' }).name)), h('p', {}, desc), upload)),
+            h('h3', {}, T('PatOS Signature')), h('p', { class: 'st-note' }, T('Lumen is painted by PatOS on your device, sharp at any screen size. The first one follows the time of day: dawn, day, dusk and night.')), grid(sig, true),
+            h('h3', {}, T('Live 3D Wallpapers')), grid(Object.keys(W.live)),
+            group(row(T('Animate 3D wallpaper'), toggle('live3d'), PatOS.webgl ? '' : T('WebGL is not available on this device'))),
+            h('h3', {}, T('Pictures')), grid(pics)];
         },
         dock() {
           if (PatOS.isMobile) {
@@ -681,7 +696,10 @@
         }
       };
       let filter = '';
-      const sq = h('input', { class: 'field st-search', placeholder: 'Search', spellcheck: 'false' });
+      const sq = h('input', { class: 'field st-search', placeholder: PatOS.t('Search'), spellcheck: 'false', type: 'search', 'aria-label': PatOS.t('Search settings') });
+      const sqWrap = h('label', { class: 'st-sq' }, h('span', { class: 'st-sq-ic', html: '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="10.5" cy="10.5" r="6.5"/><path d="M15.5 15.5L20 20"/></svg>' }), sq);
+      sq.addEventListener('keydown', (e) => { if (e.key === 'Escape' && sq.value) { e.stopPropagation(); sq.value = ''; filter = ''; drawSide(); } });
+      win.el.addEventListener('keydown', (e) => { if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f' && !e.target.closest('.st-main input, .st-main textarea')) { e.preventDefault(); sq.focus(); sq.select(); } });
       sq.addEventListener('input', () => { filter = sq.value.trim().toLowerCase(); drawSide(); const hits = PANES.filter(match); if (filter && hits.length && !hits.some((p) => p[0] === pane)) { pane = hits[0][0]; renderMain(); drawSide(); } });
       sq.addEventListener('keydown', (e) => { if (e.key === 'Enter') { const hits = PANES.filter(match); if (hits[0]) { pane = hits[0][0]; renderMain(); drawSide(); } } });
       const match = ([k, l]) => !filter || (l + ' ' + PatOS.t(l) + ' ' + KW[k]).toLowerCase().includes(filter);
@@ -704,11 +722,13 @@
         side.innerHTML = '';
         const acct = PatOS.account && PatOS.account.signedIn() ? PatOS.account.info() : null;
         side.appendChild(h('button', { class: 'st-card', onclick: () => goPane('me') }, h('div', { class: 'lock-avatar st-card-av' }, S().userName.charAt(0).toUpperCase()), h('div', { class: 'st-card-t' }, h('b', {}, S().userName), h('small', {}, acct ? (PatOS.account.isSystem(acct.uid) ? h('span', { class: 'm2-name' }, 'PatOS', PatOS.systemBadge(13)) : '@' + acct.username) : PatOS.t('Sign in or create an account'))), h('span', { class: 'st-card-go' }, '›')));
-        side.appendChild(sq); if (!keepSearch) { sq.value = filter; }
+        side.appendChild(sqWrap); if (!keepSearch) { sq.value = filter; }
         drawSide();
         renderMain();
       }
+      let shown = null;
       function renderMain() {
+        const where = pane || ('cat:' + cat); if (where !== shown) { shown = where; main.scrollTop = 0; PatOS.paneIn && PatOS.paneIn(main); } // (a new page slides in; a change on the same page doesn't move it)
         PatOS.remember && PatOS.remember(win, pane ? { pane } : { cat });
         main.innerHTML = '';
         if (!pane) { // a group: the list of its settings
@@ -717,7 +737,7 @@
           win.setTitle(c[1]); return;
         }
         const p = PANES.find((x) => x[0] === pane); const c = CATS.find((x) => x[0] === catOf(pane));
-        main.append(...[c && c[3].length > 1 ? h('button', { class: 'st-back', onclick: () => goCat(c[0]) }, '‹ ' + PatOS.t(c[1])) : null, h('h1', {}, PatOS.t(p[1])), ...panes[pane]()].filter(Boolean)); // (append(null) would write "null")
+        main.append(...[c && c[3].length > 1 && PatOS.t(c[1]) !== PatOS.t(p[1]) ? h('button', { class: 'st-back', onclick: () => goCat(c[0]) }, '‹ ' + PatOS.t(c[1])) : null, h('h1', {}, PatOS.t(p[1])), ...panes[pane]()].filter(Boolean)); // (append(null) would write "null")
         win.setTitle(p[1]);
         if (findKey) { const want = (PatOS.settingsCatalog || []).find((x) => x.key === findKey); findKey = '';
           if (want) setTimeout(() => { const lab = fold(T(want.label)); const tagged = main.querySelector('[data-key="' + want.key + '"]'); const rowEl = (tagged && tagged.closest('.st-row')) || [...main.querySelectorAll('.st-row')].find((r) => { const s2 = r.querySelector('.st-rl span, .st-rl'); return s2 && fold(s2.textContent).includes(lab); });

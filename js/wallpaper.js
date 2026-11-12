@@ -4,6 +4,12 @@
   const { $ } = PatOS;
 
   const PALETTES = {
+    // Lumen (the PatOS signature): liquid light, folded like satin, painted pixel by pixel. "Lumen" follows the time of day
+    lumen:       { name: 'Lumen', lumen: true, variant: 'auto', dark: true },
+    lumenDawn:   { name: 'Lumen Dawn', lumen: true, variant: 'dawn', dark: true },
+    lumenDay:    { name: 'Lumen Day', lumen: true, variant: 'day', dark: false },
+    lumenDusk:   { name: 'Lumen Dusk', lumen: true, variant: 'dusk', dark: true },
+    lumenNight:  { name: 'Lumen Night', lumen: true, variant: 'night', dark: true },
     // calm sculpted sheets (painted by paintFolds): Fold follows light and dark mode, Dusk stays violet
     fold:      { name: 'Fold', fold: true, variant: 'auto', dark: true },
     dusk:      { name: 'Dusk', fold: true, variant: 'dusk', dark: true },
@@ -89,6 +95,73 @@
     light: { dark: false, bg: ['#f3ece3', '#e8ddd0', '#dacfbf'], glow: [.8, .08, 'rgba(255,255,255,.85)'], sheets: ['#e0d4c5', '#e8dfd3', '#efe8de', '#f6f1ea', '#fcfaf6'], rim: [255, 255, 255], shade: 'rgba(110,84,58,.26)' },
     dusk: { dark: true, bg: ['#0c0a1d', '#191237', '#090716'], glow: [.76, .12, 'rgba(176,120,255,.3)'], sheets: ['#1f1942', '#292055', '#35296a', '#433382', '#5541a0'], rim: [232, 216, 255], shade: 'rgba(4,0,18,.6)' }
   };
+
+  /* Lumen: domain-warped noise (a field folded into itself twice) gives flowing, silky shapes; read as a height field it is
+     lit like satin (soft shade, a sheen and a specular glint), then colored along a four-color ramp. Painted at a quarter
+     size (smooth by nature) and drawn up, then light streaks, a vignette and grain at full size. About 0.2 s, once; kept. */
+  const LUMEN = {
+    night: { ramp: ['#03030c', '#140f45', '#4a24c9', '#2fc6ff', '#e9f3ff'], glow: '#6d4bff', dark: true },
+    dawn:  { ramp: ['#120818', '#4b1650', '#d2457a', '#ff9d6b', '#fff0dc'], glow: '#ff7a8a', dark: true },
+    day:   { ramp: ['#0b2f78', '#1d6bff', '#46c8ff', '#b9ecff', '#ffffff'], glow: '#8fd8ff', dark: false },
+    dusk:  { ramp: ['#08020f', '#3a0b4d', '#b4167a', '#ff5a5f', '#ffd29a'], glow: '#ff3d8b', dark: true }
+  };
+  function lumenVariant(p) {
+    if (p.variant !== 'auto') return p.variant;
+    const hr = new Date().getHours();
+    return hr >= 5 && hr < 9 ? 'dawn' : hr >= 9 && hr < 17 ? 'day' : hr >= 17 && hr < 21 ? 'dusk' : 'night';
+  }
+  function noise2(seed) {
+    const P = new Uint8Array(512), r = rng(seed); const b = [...Array(256).keys()];
+    for (let i = 255; i > 0; i--) { const j = Math.floor(r() * (i + 1)); [b[i], b[j]] = [b[j], b[i]]; }
+    for (let i = 0; i < 512; i++) P[i] = b[i & 255];
+    const G = new Float32Array(256); for (let i = 0; i < 256; i++) G[i] = r();
+    const n = (x, y) => { const xi = Math.floor(x), yi = Math.floor(y), xf = x - xi, yf = y - yi, X = xi & 255, Y = yi & 255;
+      const u = xf * xf * (3 - 2 * xf), v = yf * yf * (3 - 2 * yf);
+      const a = G[P[P[X] + Y]], b2 = G[P[P[X + 1] + Y]], c = G[P[P[X] + Y + 1]], d = G[P[P[X + 1] + Y + 1]];
+      return a + (b2 - a) * u + (c - a) * v + (a - b2 - c + d) * u * v; };
+    return (x, y) => { let s = 0, a = .5; for (let o = 0; o < 4; o++) { s += a * n(x, y); x = x * 2.02 + 17.3; y = y * 2.03 + 9.1; a *= .38; } return s / .8; };
+  }
+  const hex3 = (c) => [1, 3, 5].map((i) => parseInt(c.substr(i, 2), 16));
+  function paintLumen(ctx, p, w, hgt, seed) {
+    const L = LUMEN[lumenVariant(p)], ramp = L.ramp.map(hex3), fbm = noise2(seed);
+    const cw = Math.max(160, Math.min(900, Math.round(w / 2.5))), ch = Math.max(100, Math.round(cw * hgt / w)), asp = cw / ch;
+    const F = new Float32Array(cw * ch), Q = new Float32Array(cw * ch);
+    for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) {
+      const x = i / cw * .95 * asp, y = j / ch * .95;
+      const qx = fbm(x, y), qy = fbm(x + 5.2, y + 1.3);
+      const rx = fbm(x + 2.2 * qx + 1.7, y + 2.2 * qy + 9.2), ry = fbm(x + 2.2 * qx + 8.3, y + 2.2 * qy + 2.8);
+      const k = j * cw + i; F[k] = fbm(x + 2.4 * rx, y + 2.4 * ry); Q[k] = Math.hypot(qx, qy);
+    }
+    let lo = 1, hi = 0; for (let k = 0; k < F.length; k++) { if (F[k] < lo) lo = F[k]; if (F[k] > hi) hi = F[k]; }
+    const sc = 1 / Math.max(.001, hi - lo), off = document.createElement('canvas'); off.width = cw; off.height = ch;
+    const oc = off.getContext('2d'), img = oc.createImageData(cw, ch), D = img.data;
+    const lx = -.45, ly = -.62, lz = .64; // light from the upper left
+    for (let j = 0; j < ch; j++) for (let i = 0; i < cw; i++) {
+      const k = j * cw + i, f = (F[k] - lo) * sc;
+      const fx = (F[j * cw + Math.min(cw - 1, i + 1)] - F[j * cw + Math.max(0, i - 1)]) * sc * cw * .05;
+      const fy = (F[Math.min(ch - 1, j + 1) * cw + i] - F[Math.max(0, j - 1) * cw + i]) * sc * ch * .05 * asp;
+      const nl = 1 / Math.hypot(fx, fy, 1), nx = -fx * nl, ny = -fy * nl, nz = nl;
+      const dif = Math.max(0, nx * lx + ny * ly + nz * lz);
+      const hz = nz + lz, hl = 1 / Math.hypot(nx * 0 + lx, ly, hz) , spec = Math.pow(Math.max(0, (nx * lx + ny * ly + nz * hz) * hl), 70);
+      // the ramp: depth (f, curved toward the dark end so most of the screen stays calm) plus a lift from the folds
+      const bx = i / cw, by = j / ch, band = by - (.92 - bx * .78 - .16 * Math.sin(bx * 3.4 + 1.1)), M = Math.exp(-band * band / .055);
+      let t = (Math.pow(f, 1.3) * .62 + .14) * (.28 + .9 * M) + Math.min(1, Q[k] * .9) * .16 + (dif - .6) * .25; t = t < 0 ? 0 : t > 1 ? 1 : t;
+      const seg = t * (ramp.length - 1), s0 = Math.min(ramp.length - 2, Math.floor(seg)), u = seg - s0, A = ramp[s0], B = ramp[s0 + 1];
+      const shade = .6 + .5 * dif, sheen = (spec * (L.dark ? 200 : 110) + Math.pow(dif, 8) * 22) * (.25 + .75 * M);
+      const o = k * 4;
+      D[o] = Math.min(255, (A[0] + (B[0] - A[0]) * u) * shade + sheen); D[o + 1] = Math.min(255, (A[1] + (B[1] - A[1]) * u) * shade + sheen); D[o + 2] = Math.min(255, (A[2] + (B[2] - A[2]) * u) * shade + sheen); D[o + 3] = 255;
+    }
+    oc.putImageData(img, 0, 0);
+    ctx.imageSmoothingEnabled = true; ctx.imageSmoothingQuality = 'high'; ctx.drawImage(off, 0, 0, w, hgt);
+    // a soft bloom of the brightest light
+    try { ctx.save(); ctx.globalCompositeOperation = 'screen'; ctx.globalAlpha = L.dark ? .22 : .12; ctx.filter = `blur(${Math.round(w / 50)}px)`; ctx.drawImage(off, 0, 0, w, hgt); ctx.restore(); } catch (e) { ctx.restore(); }
+    const g = ctx.createRadialGradient(w * .3, hgt * .2, 0, w * .3, hgt * .2, Math.max(w, hgt) * .7);
+    g.addColorStop(0, L.glow + '30'); g.addColorStop(1, L.glow + '00'); ctx.globalCompositeOperation = 'screen'; ctx.fillStyle = g; ctx.fillRect(0, 0, w, hgt); ctx.globalCompositeOperation = 'source-over';
+    const v = ctx.createRadialGradient(w / 2, hgt * .45, Math.min(w, hgt) * .35, w / 2, hgt / 2, Math.max(w, hgt) * .8);
+    v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, L.dark ? 'rgba(0,0,0,.5)' : 'rgba(10,40,90,.18)'); ctx.fillStyle = v; ctx.fillRect(0, 0, w, hgt);
+    ctx.globalCompositeOperation = 'overlay'; ctx.globalAlpha = L.dark ? .22 : .16; ctx.fillStyle = grainPattern(ctx, rng(seed)); ctx.fillRect(0, 0, w, hgt); ctx.globalAlpha = 1; ctx.globalCompositeOperation = 'source-over';
+  }
+  const vkey = (p) => (!p ? '' : p.fold ? '|' + foldVariant(p) : p.lumen ? '|' + lumenVariant(p) : '');
   function foldVariant(p) { return p.variant === 'auto' ? (document.documentElement.dataset.theme === 'light' ? 'light' : 'dark') : p.variant; }
   function paintFolds(ctx, p, w, hgt, r) {
     const f = FOLDS[foldVariant(p)];
@@ -124,6 +197,7 @@
   }
   function paint(canvas, id, w, hgt) {
     const p = PALETTES[id] || PALETTES.sonora;
+    if (p.lumen) { canvas.width = w; canvas.height = hgt; paintLumen(canvas.getContext('2d'), p, w, hgt, hash('lumen' + (p.seed || ''))); return; }
     if (p.fold) { canvas.width = w; canvas.height = hgt; paintFolds(canvas.getContext('2d'), p, w, hgt, rng(hash(id))); return; }
     if (p.silk) { canvas.width = w; canvas.height = hgt; paintSilk(canvas.getContext('2d'), p, w, hgt, rng(hash(id))); return; }
     canvas.width = w; canvas.height = hgt;
@@ -165,13 +239,14 @@
   }
 
   const thumbCache = {};
-  function thumb(id) {
-    if (thumbCache[id]) return thumbCache[id];
+  function thumb(id0) {
+    const id = id0, tk = id0 + vkey(PALETTES[id0]);
+    if (thumbCache[tk]) return thumbCache[tk];
     const c = document.createElement('canvas');
     const src = LIVE[id] ? LIVE[id].fallback : id;
     paint(c, src, 192, 120);
     if (LIVE[id]) decorateThumb(c, id);
-    return (thumbCache[id] = c.toDataURL('image/jpeg', 0.85));
+    return (thumbCache[tk] = c.toDataURL('image/jpeg', 0.85));
   }
   function decorateThumb(c, id) {
     const ctx = c.getContext('2d'); const r = rng(hash(id + 'x'));
@@ -409,10 +484,10 @@
       };
       img.src = PatOS.settings.customWallpaper; return;
     }
-    const src = LIVE[id] ? LIVE[id].fallback : id, full = PALETTES[src] && (PALETTES[src].silk || PALETTES[src].fold) ? Math.min(1, 2560 / innerWidth) / scale : 1;
+    const src = LIVE[id] ? LIVE[id].fallback : id, full = PALETTES[src] && (PALETTES[src].silk || PALETTES[src].fold || PALETTES[src].lumen) ? Math.min(1, 2560 / innerWidth) / scale : 1;
     const w = Math.max(320, Math.round(innerWidth * scale * full)), hh = Math.max(200, Math.round(innerHeight * scale * full));
     // the painting is the same every time for a given size, so the last one is kept and shown again
-    const key = src + (PALETTES[src] && PALETTES[src].fold ? '|' + foldVariant(PALETTES[src]) : '') + '|' + w + 'x' + hh, saved = PatOS.store.get('wpCache', null);
+    const key = src + vkey(PALETTES[src]) + '|' + w + 'x' + hh, saved = PatOS.store.get('wpCache', null);
     if (saved && saved.key === key && saved.url) {
       c.width = w; c.height = hh; const img = new Image(); const mine = ++drawN;
       img.onload = () => { if (mine === drawN) { c.getContext('2d').drawImage(img, 0, 0, w, hh); readTone(c); } };
@@ -444,7 +519,7 @@
   let lockCache = {};
   function thumbLarge(id0) {
     // (Fold looks different in light and dark mode, so each look is kept on its own)
-    const id = id0 + (PALETTES[id0] && PALETTES[id0].fold ? '|' + foldVariant(PALETTES[id0]) : '');
+    const id = id0 + vkey(PALETTES[id0]);
     if (lockCache[id]) return lockCache[id];
     const saved = PatOS.store.get('wpLockCache', null);
     if (saved && saved.id === id && saved.url) return (lockCache[id] = saved.url);
@@ -459,9 +534,13 @@
   new MutationObserver(() => { const p = PALETTES[PatOS.settings.wallpaper]; if (p && p.fold && p.variant === 'auto' && document.getElementById('wallpaper')) apply(); })
     .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
 
+  // Lumen follows the time of day: dawn, day, dusk and night (checked every few minutes; repainted only when it changes)
+  let lumenNow = lumenVariant({ variant: 'auto' });
+  setInterval(() => { const v = lumenVariant({ variant: 'auto' }); if (v === lumenNow) return; lumenNow = v; const p = PALETTES[PatOS.settings.wallpaper]; if (p && p.lumen && p.variant === 'auto' && document.getElementById('wallpaper')) apply(); }, 5 * 60 * 1000);
   PatOS.wallpaper = {
     palettes: PALETTES, live: LIVE, apply, thumb, thumbLarge,
-    isDark(id) { id = id || PatOS.settings.wallpaper; return LIVE[id] ? true : PALETTES[id] ? PALETTES[id].dark : true; },
+    isDark(id) { id = id || PatOS.settings.wallpaper; return LIVE[id] ? true : PALETTES[id] ? (PALETTES[id].lumen ? LUMEN[lumenVariant(PALETTES[id])].dark : PALETTES[id].dark) : true; },
+    lumenVariant: () => lumenVariant({ variant: 'auto' }),
     pause(on) { if (three) three.paused = on; },
     hold, held: () => performance.now() < holdUntil,
     stop: stop3D

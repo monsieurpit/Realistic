@@ -126,7 +126,7 @@ test('it never says something worked when it didn’t, and explains what it didn
   assert.equal(r.first, 'Calculator didn’t open.'); assert.deepEqual(r.said, [], 'and never claimed it opened: ' + JSON.stringify(r.said));
   assert.match(r.hint, /Try it like this: “remind me to call Sam tomorrow at 5pm”/);
   assert.match(r.hint2, /tidy my downloads/);
-  assert.match(r.other, /help/);
+  assert.match(r.other, /help|better at opening apps/, 'one of Pat’s ways of saying it didn’t understand (picked at random)');
 });
 
 test('skills are explicit: listed, marked sensitive, and an app can add one', { skip: skipNoBrowser }, async () => {
