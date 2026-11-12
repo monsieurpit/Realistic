@@ -96,7 +96,7 @@ test('the sign-up screens: the big invitation, the form, saving, and Later', { s
   await page.waitForFunction(() => /All saved/.test((document.querySelector('.acc-card') || {}).innerText || ''), null, { timeout: 30000 });
   assert.match(await page.innerText('.acc-card'), new RegExp('@' + user)); await page.click('.acc-card .btn.primary'); assert.equal(await page.locator('.acc-layer').count(), 0);
   // Settings: the header and the Account pane
-  const r = await page.evaluate(async () => { const w = PatOS.launch('settings', { pane: 'account' }); await new Promise((res) => setTimeout(res, 800)); return { head: w.body.querySelector('.st-user').innerText, pane: w.body.querySelector('.ac').innerText }; });
+  const r = await page.evaluate(async () => { const w = PatOS.launch('settings', { pane: 'account' }); await new Promise((res) => setTimeout(res, 800)); return { head: (w.body.querySelector('.st-card') || w.el.querySelector('.st-card')).innerText, pane: w.body.querySelector('.ac').innerText }; });
   assert.match(r.head, /@erin/); assert.match(r.pane, /Signed in as[\s\S]*@erin[\s\S]*Everything is saved[\s\S]*Sign Out/);
   assert.deepEqual(A.errors, []); await A.ctx.close();
 });

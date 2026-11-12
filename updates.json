@@ -1,14 +1,14 @@
 [
   {
     "version": "3.1.0",
-    "beta": 16,
-    "date": "2026-11-11",
+    "date": "2026-11-12",
     "title": {
       "en": "PatOS 3.1: Handoff",
       "fr": "PatOS 3.1 : Continuité"
     },
     "notes": {
       "en": [
+        "French: PatOS no longer translates what you wrote or copied (a copied “Delete” stayed “Delete” in English, but was shown as “Supprimer”), in Timeline, Notes, Messages, file names and page titles",
         "The PatOS account can now also send an announcement that everyone sees when they open PatOS, send one message to every account at once, and give any account a blue Verified badge (or take it away). In Messages: PatOS Powers, and Verify next to Ban",
         "New: the PatOS account. One account is PatOS itself: it shows as PatOS with a check-mark badge, its messages open the chat at once (no request, and they can’t be declined), it has every account in Messages, it can ban an account (the person sees why and can only log out) and unban it, and it can release a beta as the finished version from Settings › Software Update",
         "Only the account named in the Firebase console can be the PatOS account, so nobody can make themselves PatOS, not even by taking the name; the database and PatOS’s server check every one of its powers, and releasing asks for its password again. docs/SYSTEM-ACCOUNT.md shows how to set it up",
@@ -45,6 +45,7 @@
         "Cloud Chrome: typing now keeps every character. Dots, dashes and symbols such as ! # $ % & ' ( were taken for Delete, Insert, Home, End and the arrow keys, so emails and passwords came out wrong (someone.test@gmail.com became someonetest@gmailcom). On a phone, tapping a text box of the page opens the keyboard by itself, and the first letter is no longer lost"
       ],
       "fr": [
+        "Français : PatOS ne traduit plus ce que vous avez écrit ou copié (un « Delete » copié s’affichait « Supprimer »), dans Timeline, Notes, Messages, les noms de fichiers et les titres de pages",
         "Le compte PatOS peut maintenant aussi envoyer une annonce que tout le monde voit en ouvrant PatOS, envoyer un message à tous les comptes d’un coup, et donner à n’importe quel compte un badge bleu Vérifié (ou le retirer). Dans Messages : Pouvoirs de PatOS, et Vérifier à côté de Bannir",
         "Nouveau : le compte PatOS. Un compte est PatOS lui-même : il s’affiche comme PatOS avec un badge à coche, ses messages ouvrent la discussion tout de suite (sans demande, et ils ne peuvent pas être refusés), il a tous les comptes dans Messages, il peut bannir un compte (la personne voit pourquoi et peut seulement se déconnecter) et le débannir, et il peut publier une bêta comme version finale depuis Réglages › Mise à jour logicielle",
         "Seul le compte indiqué dans la console Firebase peut être le compte PatOS, donc personne ne peut se faire passer pour PatOS, même en prenant le nom ; la base de données et le serveur de PatOS vérifient chacun de ses pouvoirs, et la publication redemande son mot de passe. docs/SYSTEM-ACCOUNT.md explique comment le configurer",

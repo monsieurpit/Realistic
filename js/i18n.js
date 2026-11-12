@@ -2334,7 +2334,8 @@
 
   /* translate interface text as it appears */
   if (PatOS.lang !== 'fr') return;
-  const SKIP = '.notes-ed, .te-area, textarea, .term, .cs-wrap, .msg-b, .sticky-ta, [contenteditable="true"], .no-tr, .doc-page, .sh-grid, .sl-el, .fd-nm, .di-name, .fd-rn, .ph-bar b, script, style, .mu-item b, .mu-tt, .mu-ar, .tr-out, .tr-hi, .dc-main, .yt-title, .yt-info, .yt-winfo, .yt-dtext, .yt-cm, .nt-item, .rm-txt, .fc-face, .fc-erow, .fm-ans, .dv-txt b, .as-txt b, .cal-ev, .cal-item b, .w-ev, .mw-ev, .vm-it b, .sp-res small';
+  // what people wrote, copied or named is never translated (only PatOS's own words are): mark new views with translate="no" or .no-tr
+  const SKIP = '[translate="no"], .tl-ctext, .tl-et b, .tl-snip, .cp-txt, .m2-rt small, .m2-name, .m2-who, .m2-msgs .msg-b, .nt-txt, .nf-name, .fd-title, .ql-text, .ql-body, .sp-pv-text, .pr-title, .pr-snip, .rd-body, .asw-name, .ban-why div, .notes-ed, .te-area, textarea, .term, .cs-wrap, .msg-b, .sticky-ta, [contenteditable="true"], .no-tr, .doc-page, .sh-grid, .sl-el, .fd-nm, .di-name, .fd-rn, .ph-bar b, script, style, .mu-item b, .mu-tt, .mu-ar, .tr-out, .tr-hi, .dc-main, .yt-title, .yt-info, .yt-winfo, .yt-dtext, .yt-cm, .nt-item, .rm-txt, .fc-face, .fc-erow, .fm-ans, .dv-txt b, .as-txt b, .cal-ev, .cal-item b, .w-ev, .mw-ev, .vm-it b, .sp-res small';
   const ATTRS = ['placeholder', 'title', 'aria-label'];
   function skip(el) { return el && el.closest && el.closest(SKIP); }
   function doText(node) {
