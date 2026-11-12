@@ -98,8 +98,14 @@
 
   /* ---------- finding things in what was said ---------- */
   const appNames = (k) => [fold(PatOS.apps[k].name), fold(T(PatOS.apps[k].name))];
+  // what people call apps ("files", "pics", "prefs"): checked before the names themselves
+  const ALIASES = { browser: ['browser', 'web', 'internet', 'web browser', 'chrome', 'google', 'safari', 'navigateur'], finder: ['files', 'file manager', 'explorer', 'my files', 'file explorer', 'fichiers'], settings: ['preferences', 'prefs', 'control panel', 'system settings', 'parametres', 'reglages', 'reglage'],
+    terminal: ['console', 'command line', 'shell', 'cmd', 'command prompt'], calculator: ['calc', 'calculatrice'], photos: ['pics', 'pictures', 'gallery', 'camera roll', 'galerie'], music: ['songs', 'my music', 'musique'], messages: ['texts', 'chat', 'sms', 'imessage', 'texto', 'textos'],
+    notes: ['notepad', 'note pad', 'bloc-notes'], calendar: ['agenda', 'calendrier', 'schedule app'], appstore: ['store', 'app store', 'apps store'], weather: ['meteo', 'forecast'], maps: ['map', 'carte', 'cartes', 'plans', 'gps'], clock: ['alarms', 'alarm clock', 'stopwatch', 'horloge'] };
+  function alias(q) { for (const [id, words] of Object.entries(ALIASES)) if (PatOS.apps[id] && words.includes(q)) return id; return null; }
   function findApp(q) {
     q = fold(q).replace(/[.!?]$/, '').replace(/^(the|my|le|la|les|l'|mon|ma|mes)\s*/, '').replace(/\s+(app|application|appli)$/, '').trim(); if (!q) return null;
+    const al = alias(q); if (al) return al;
     const ids = PatOS.appOrder.filter((k) => PatOS.apps[k] && !PatOS.apps[k].hidden);
     return ids.find((k) => appNames(k).includes(q) || k === q) || ids.find((k) => appNames(k).some((n) => n.startsWith(q) && q.length >= 3)) || null;
   }
@@ -128,15 +134,49 @@
     t = t.replace(/[\s,]*(?:please|pls|plz|for me|thanks|thank you|svp|stp|s'il te pla[iî]t|s'il vous pla[iî]t|merci)[.!?\s]*$/i, '').replace(/[.!?]+$/, '').trim();
     return t;
   }
-  function parse(text) {
-    const raw = prep(text); if (!raw) return null; const t = fold(raw);
+  /* extension points (js/intel-mind.js plugs in here; nothing else is needed to make Intelligence smarter):
+     normalize(raw) → raw    words rewritten before understanding (synonyms, phrases you taught)
+     fallback(t, raw, E)     when no action matched: a guess { id, params, guess: true }
+     before(text, opts)      a whole request handled another way (a conversation going on, several commands at once)
+     after(action, params, result, source)   something happened (memory of the conversation) */
+  const hooks = { normalize: [], fallback: [], before: [], after: [] };
+  function parse(text, opts) {
+    let raw = prep(text); if (!raw) return null;
+    if (!(opts && opts.raw)) for (const n of hooks.normalize) { try { const x = n(raw); if (x) raw = prep(x); } catch (e) {} }
+    const t = fold(raw);
     const sorted = [...actions.values()].filter((a) => a.match).sort((a, b) => b.priority - a.priority);
     for (const a of sorted) {
       let p = null; try { p = a.match(t, raw, E); } catch (e) { p = null; }
       if (p) return { action: a, id: a.id, params: p === true ? {} : p, text: raw };
     }
+    if (opts && opts.guess) for (const f of hooks.fallback) { let g = null; try { g = f(t, raw, E); } catch (e) {} if (g && actions.get(g.id)) return Object.assign({ action: actions.get(g.id), text: raw, guess: true }, g); }
     return null;
   }
+  /* a detail that is missing, and the question that asks for it ("What should I remind you about?") */
+  function missing(a, p) { for (const [k, s2] of Object.entries(a.params || {})) if (s2.required && s2.ask && (p[k] == null || p[k] === '')) return k; return null; }
+  const askText = (a, k) => { const q = a.params[k].ask; return Array.isArray(q) ? L(q[0], q[1]) : q; };
+  // the answer to that question, turned into the right kind of value
+  function slotValue(spec, text) {
+    const raw = prep(text) || String(text || '').trim();
+    if (spec.fromText) return spec.fromText(raw);
+    if (spec.type === 'app') return findApp(raw) || raw;
+    if (spec.type === 'date') return dateOf('x ' + raw).due || null;
+    if (spec.type === 'number') { const n = parseFloat(raw.replace(',', '.')); return Number.isFinite(n) ? n : null; }
+    return raw;
+  }
+  let dialog = null; // { id, params, slot, t, opts }: a question PatOS Intelligence asked and waits for
+  hooks.before.push((text, opts) => {
+    if (!dialog || Date.now() - dialog.t > 3 * 60 * 1000) { dialog = null; return null; }
+    const t = fold(prep(text));
+    if (/^(?:cancel|never mind|nevermind|stop|forget it|no|annule|laisse tomber|non)$/.test(t)) { dialog = null; return result(true, L('Okay, I left it.', 'D’accord, j’ai laissé tomber.')); }
+    const other = parse(text); if (other && !other.guess && other.id !== dialog.id && !missing(other.action, other.params)) { dialog = null; return null; } // (something else entirely: answer that instead)
+    const a = actions.get(dialog.id); const d = dialog; dialog = null;
+    const v = slotValue(a.params[d.slot], text);
+    if (v == null || v === '') { dialog = Object.assign(d, { t: Date.now() }); return { ok: null, status: 'ask', message: L('I didn’t get that. ', 'Je n’ai pas compris. ') + askText(a, d.slot) }; }
+    const params = Object.assign({}, d.params, { [d.slot]: v });
+    const next = missing(a, params); if (next) { dialog = { id: a.id, params, slot: next, t: Date.now(), opts: d.opts }; return { ok: null, status: 'ask', message: askText(a, next) }; }
+    return execute(a.id, params, opts || d.opts);
+  });
 
   /* ---------- doing it ---------- */
   const history = []; const undos = []; const HISTORY_KEY = 'intelHistory';
@@ -148,13 +188,15 @@
   };
   const result = (ok, message, extra) => Object.assign({ ok, status: ok ? 'done' : 'failed', message: String(message || '') }, extra || {});
   // what a run() gave back → a result
-  function finish(a, r, source) {
+  function finish(a, r, source, params) {
     if (r && typeof r === 'object' && typeof r.confirm === 'function' && r.text != null) { // (a Pat skill that asks first)
       const c = r.confirm; return { ok: null, status: 'confirm', message: String(r.text), confirm: () => { const x = finish(a, c(), source); return x && x.then ? x : x; } };
     }
     const res = r == null ? result(true, L('Done.', 'C’est fait.')) : typeof r === 'string' ? result(true, r) : result(r.ok !== false, r.message, { data: r.data });
     if (r && typeof r === 'object' && typeof r.undo === 'function' && res.ok) { undos.push({ t: Date.now(), id: a.id, title: a.title, undo: r.undo }); if (undos.length > 10) undos.shift(); res.canUndo = true; }
-    remember(a, res, source); return res;
+    remember(a, res, source);
+    hooks.after.forEach((f) => { try { f(a, params || {}, res, source); } catch (e) {} });
+    return res;
   }
   const fail = (a, msg, source, status) => { const r = result(false, msg, { status: status || 'failed' }); if (a) remember(a, r, source); return r; };
   /* runs an action. Synchronous when the action is (Pat answers at once); a Promise otherwise. */
@@ -170,11 +212,19 @@
     if (ask && !opts.confirmed) return { ok: null, status: 'confirm', message: typeof ask === 'string' ? ask : L('Are you sure? ', 'Êtes-vous sûr? ') + a.title + '?', confirm: () => execute(id, params, Object.assign({}, opts, { confirmed: true })) };
     let r; try { r = a.run(Object.assign({}, params), { source, context }); }
     catch (e) { PatOS.errors && PatOS.errors.report(e, 'intelligence ' + a.id, { category: 'intelligence', severity: 'warning' }); return fail(a, L('That didn’t work: ', 'Ça n’a pas marché : ') + (e.message || e), source); }
-    if (r && typeof r.then === 'function') return r.then((x) => finish(a, x, source), (e) => fail(a, L('That didn’t work: ', 'Ça n’a pas marché : ') + (e && e.message || e), source));
-    return finish(a, r, source);
+    if (r && typeof r.then === 'function') return r.then((x) => finish(a, x, source, params), (e) => fail(a, L('That didn’t work: ', 'Ça n’a pas marché : ') + (e && e.message || e), source));
+    return finish(a, r, source, params);
   }
   /* text → the result (or null when nothing matched) */
-  function respond(text, opts) { const p = parse(text); if (!p) return null; return execute(p.id, p.params, opts); }
+  function respond(text, opts) {
+    opts = opts || {};
+    for (const b of hooks.before) { let r = null; try { r = b(text, opts); } catch (e) {} if (r) return r; }
+    const p = parse(text, { guess: !!opts.guess }); if (!p) return null;
+    const k = missing(p.action, p.params);
+    if (k) { dialog = { id: p.id, params: p.params, slot: k, t: Date.now(), opts }; return { ok: null, status: 'ask', message: askText(p.action, k) }; }
+    if (p.guess) { const ex = p.say || p.text; return { ok: null, status: 'confirm', message: L('Did you mean “', 'Voulais-tu dire « ') + ex + L('”?', ' »?'), confirm: () => execute(p.id, p.params, opts) }; }
+    return execute(p.id, p.params, opts);
+  }
   function undo() {
     const u = undos.pop(); if (!u || Date.now() - u.t > 30 * 60 * 1000) return result(false, L('There is nothing to undo.', 'Il n’y a rien à annuler.'));
     try { const m = u.undo(); return result(true, m || L('Undone: ', 'Annulé : ') + T(u.title) + '.'); } catch (e) { return result(false, L('That couldn’t be undone: ', 'Impossible d’annuler : ') + e.message); }
@@ -184,9 +234,9 @@
   const W = (re) => (t) => (re.test(t) ? {} : null);
 
   // ---- apps ----
-  action({ id: 'app.open', title: 'Open an app', description: 'Opens an app by its name.', permission: 'apps', params: { app: { type: 'app', required: true, label: 'App' } }, apps: true, priority: 40,
+  action({ id: 'app.open', title: 'Open an app', description: 'Opens an app by its name.', permission: 'apps', params: { app: { type: 'app', required: true, label: 'App', ask: ['Which app?', 'Quelle app?'] } }, apps: true, priority: 40,
     examples: ['open calendar', 'launch the calculator', 'ouvre notes'],
-    match: (t) => { const m = /^(?:open|launch|start|show|run|go to|ouvre|ouvrir|lance|lancer|demarre|affiche)\s+(?:the\s+|my\s+|le\s+|la\s+|l'|les\s+|mon\s+|ma\s+)?(?:app\s+|application\s+|appli\s+)?(.+)$/.exec(t); if (!m) return null; const id = findApp(m[1]); return id ? { app: id } : null; },
+    match: (t) => { if (/^(?:open|launch|start|ouvre|lance)\s+(?:an?\s+)?(?:app|application|appli)$/.test(t)) return {}; const m = /^(?:open|launch|start|show|run|go to|take me to|bring me to|bring up|pull up|fire up|boot up|switch to|ouvre|ouvrir|lance|lancer|demarre|affiche|va dans|emmene-moi (?:a|dans))\s+(?:the\s+|my\s+|le\s+|la\s+|l'|les\s+|mon\s+|ma\s+)?(?:app\s+|application\s+|appli\s+)?(.+)$/.exec(t); if (!m) return null; const id = findApp(m[1]); return id ? { app: id } : null; },
     run: ({ app }) => { const w = PatOS.launch(app); if (!w && !(PatOS.apps[app] && PatOS.apps[app].action)) return { ok: false, message: L(appName(app) + ' didn’t open.', appName(app) + ' ne s’est pas ouvert.') }; return { ok: true, message: L('Sure, opening ' + appName(app) + '.', 'D’accord, j’ouvre ' + appName(app) + '.'), undo: () => { PatOS.wm.windowsOf(app).forEach((x) => x.close()); return L(appName(app) + ' closed.', appName(app) + ' fermé.'); } }; } });
   // "open calcluator": not an app, but close to one
   action({ id: 'app.suggest', title: 'Suggest an app name', permission: null, priority: 5,
@@ -214,7 +264,7 @@
     });
     return out;
   }
-  action({ id: 'files.find', title: 'Find files', description: 'Finds files by name, or by what is in them.', permission: 'files', params: { q: { type: 'string', required: true, max: 100 }, inside: { type: 'boolean' } }, apps: false, priority: 38,
+  action({ id: 'files.find', title: 'Find files', description: 'Finds files by name, or by what is in them.', permission: 'files', params: { q: { type: 'string', required: true, max: 100, ask: ['What should I look for?', 'Que dois-je chercher?'] }, inside: { type: 'boolean' } }, apps: false, priority: 38,
     examples: ['find files containing PatOS', 'find file essay', 'trouve les fichiers contenant PatOS'],
     match: (t, raw) => {
       let m = mt(/^(?:find|search(?: for)?|look for|show|trouve|cherche|montre)\s+(?:all\s+|my\s+|the\s+|les\s+|mes\s+|tous les\s+)?(?:files?|documents?|docs?|fichiers?)\s+(?:that\s+)?(?:containing|contain|with|mentioning|that mention|qui contiennent|contenant|avec|qui mentionnent)\s+(.+)$/i, raw);
@@ -227,9 +277,10 @@
       if (!f.length) return { ok: true, message: inside ? L(`No file contains “${q}”.`, `Aucun fichier ne contient « ${q} ».`) : L(`I couldn’t find a file with “${q}” in its name.`, `Je n’ai pas trouvé de fichier avec « ${q} » dans son nom.`), data: { files: [] } };
       return { message: L(`Found ${f.length} file${f.length > 1 ? 's' : ''}:\n`, `${f.length} fichier${f.length > 1 ? 's' : ''} trouvé${f.length > 1 ? 's' : ''} :\n`) + f.slice(0, 6).map((p) => '• ' + p).join('\n') + (f.length > 6 ? '\n… +' + (f.length - 6) : '') + L('\nSay “open it” to open the first one.', '\nDis « ouvre-le » pour ouvrir le premier.'), data: { files: f } };
     } });
-  action({ id: 'folder.create', title: 'Create a folder', permission: 'files.write', params: { name: { type: 'string', required: true, max: 100 }, dir: { type: 'path' } }, priority: 42,
+  action({ id: 'folder.create', title: 'Create a folder', permission: 'files.write', params: { name: { type: 'string', required: true, max: 100, ask: ['What should I call the folder?', 'Comment dois-je appeler le dossier?'] }, dir: { type: 'path' } }, priority: 42,
     examples: ['create a folder called Projects', 'make a folder named Trips in Desktop', 'crée un dossier appelé Projets'],
     match: (t, raw) => {
+      if (/^(?:create|make|add|new|cree|fais)\s+(?:a\s+|un\s+)?(?:new\s+|nouveau\s+)?(?:folder|directory|dossier)$/.test(t)) return { dir: '/Documents' };
       const m = mt(/^(?:create|make|add|new|cree|creer|fais|ajoute)\s+(?:a\s+|an\s+|un\s+)?(?:new\s+|nouveau\s+)?(?:folder|directory|dossier|repertoire)\s+(?:called|named|nomme|appele|qui s'appelle)?\s*["“']?([^"”'/]+?)["”']?(?:\s+(?:in|on|inside|dans|sur)\s+(?:the\s+|my\s+|le\s+|mon\s+)?(\w+))?$/i, raw);
       if (!m) return null;
       const places = { desktop: '/Desktop', bureau: '/Desktop', documents: '/Documents', downloads: '/Downloads', telechargements: '/Downloads', pictures: '/Pictures', images: '/Pictures', music: '/Music', musique: '/Music', videos: '/Videos' };
@@ -249,13 +300,15 @@
 
   // ---- reminders ----
   const loadRem = () => PatOS.store.get('reminders', []) || [];
-  action({ id: 'reminders.create', title: 'Create a reminder', permission: 'reminders', params: { text: { type: 'string', required: true, max: 300 }, due: { type: 'date' }, time: { type: 'string', max: 5 } }, apps: false, priority: 42,
+  action({ id: 'reminders.create', title: 'Create a reminder', permission: 'reminders', params: { text: { type: 'string', required: true, max: 300, ask: ['What should I remind you about?', 'De quoi dois-je te rappeler?'] }, due: { type: 'date' }, time: { type: 'string', max: 5 } }, apps: false, priority: 42,
     examples: ['create a reminder to finish my project tomorrow', 'remind me to call Sam friday at 5pm', 'rappelle-moi de payer le loyer demain'],
     match: (t, raw) => {
+      if (/^(?:(?:create|add|make|set|new)\s+(?:a\s+)?(?:new\s+)?reminder|remind me|(?:cree|ajoute)\s+un\s+rappel|rappelle[- ]moi)$/.test(t)) return {};
       const m = mt(/^(?:(?:create|add|make|set|new|cree|ajoute)\s+(?:a\s+|un\s+)?(?:new\s+)?(?:reminder|rappel)\s*(?:to|for|that|:|pour|de|d')?|remind me\s+(?:to|that|about)|reminder:|add reminder:?|rappelle[- ]moi(?:\s+de|\s+d'|\s+que)?)\s*(.+)$/i, raw);
       if (!m) return null; const p = dateOf(m[1].trim()); return { text: p.text, due: p.due || undefined, time: p.time || undefined };
     },
     run: ({ text, due, time }) => {
+      if (!due && !time) { const p = dateOf(text); if (p.due || p.time) { text = p.text || text; due = p.due; time = p.time; } } // (an answer to "what about?" can carry a date)
       const items = loadRem(); const r = { id: Date.now(), text, done: false }; if (due) r.due = due; if (time) { r.time = time; PatOS.alarms && PatOS.alarms.askPermission && PatOS.alarms.askPermission(); }
       items.push(r); PatOS.store.set('reminders', items); PatOS.emit('reminders');
       const when = due ? ' ' + L('for', 'pour') + ' ' + dayWords(due) + (time ? ' ' + L('at', 'à') + ' ' + fmtTime(time) : '') : '';
@@ -287,30 +340,33 @@
       if (!evs.length) return L(`Nothing on your calendar ${label}.`, `Rien dans ton calendrier ${label}.`);
       return L(`On your calendar ${label}:\n`, `Dans ton calendrier ${label} :\n`) + evs.map((e) => '• ' + (e.time ? fmtTime(e.time) + '  ' : L('All day  ', 'Toute la journée  ')) + e.title).join('\n');
     } });
-  action({ id: 'calendar.create', title: 'Add a calendar event', permission: 'calendar', params: { title: { type: 'string', required: true, max: 200 }, day: { type: 'date' }, time: { type: 'string', max: 5 } }, priority: 42, examples: ['add event dentist friday 2pm', 'schedule lunch tomorrow at noon'],
-    match: (t, raw) => { const m = mt(/^(?:add (?:an )?event|create (?:an )?event|new event|event|schedule|ajoute un evenement|ajoute un événement|nouvel evenement)\s*:?\s+(.+)$/i, raw); if (!m) return null; const p = dateOf(m[1]); return { title: p.text, day: p.due || undefined, time: p.time || undefined }; },
+  action({ id: 'calendar.create', title: 'Add a calendar event', permission: 'calendar', params: { title: { type: 'string', required: true, max: 200, ask: ['What’s the event, and when?', 'Quel est l’événement, et quand?'] }, day: { type: 'date' }, time: { type: 'string', max: 5 } }, priority: 42, examples: ['add event dentist friday 2pm', 'schedule lunch tomorrow at noon'],
+    match: (t, raw) => { if (/^(?:add|create|new)\s+(?:an\s+)?event$|^ajoute un evenement$/.test(t)) return {}; const m = mt(/^(?:add (?:an )?event|create (?:an )?event|new event|event|schedule|ajoute un evenement|ajoute un événement|nouvel evenement)\s*:?\s+(.+)$/i, raw); if (!m) return null; const p = dateOf(m[1]); return { title: p.text, day: p.due || undefined, time: p.time || undefined }; },
     run: ({ title, day, time }) => {
+      if (!day && !time) { const p = dateOf(title); if (p.due || p.time) { title = p.text || title; day = p.due; time = p.time; } }
       const key = day || today(); const cal = PatOS.store.get('calendar', {}) || {}; const id = PatOS.uid();
       (cal[key] = cal[key] || []).push({ id, title, time: time || '', end: '', color: '#0a84ff', notes: '', repeat: '', alert: time ? '0' : 'none' });
       PatOS.store.set('calendar', cal); PatOS.emit('calendar'); PatOS.calendarSync && PatOS.calendarSync();
-      return { message: L(`Added “${title}” to your calendar on ${new Date(key + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' })}${time ? ' at ' + fmtTime(time) : ''}.`, `J’ai ajouté « ${title} » à ton calendrier le ${new Date(key + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' })}${time ? ' à ' + fmtTime(time) : ''}.`),
+      return { data: { day: key, id }, message: L(`Added “${title}” to your calendar on ${new Date(key + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' })}${time ? ' at ' + fmtTime(time) : ''}.`, `J’ai ajouté « ${title} » à ton calendrier le ${new Date(key + 'T12:00').toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' })}${time ? ' à ' + fmtTime(time) : ''}.`),
         undo: () => { const c = PatOS.store.get('calendar', {}) || {}; c[key] = (c[key] || []).filter((e) => e.id !== id); PatOS.store.set('calendar', c); PatOS.emit('calendar'); return L('Event removed.', 'Événement retiré.'); } };
     } });
 
   // ---- notes ----
-  action({ id: 'notes.create', title: 'Take a note', permission: 'notes', params: { text: { type: 'string', required: true, max: 5000 } }, priority: 42, examples: ['note: buy milk', 'take a note call the coach'],
-    match: (t, raw) => { const m = mt(/^(?:note:?|take a note:?|write down:?|make a note:?|create a note:?|new note:?|prends une note:?|note que)\s+([\s\S]+)$/i, raw); return m ? { text: m[1].trim() } : null; },
+  action({ id: 'notes.create', title: 'Take a note', permission: 'notes', params: { text: { type: 'string', required: true, max: 5000, ask: ['What should the note say?', 'Que doit dire la note?'] } }, priority: 42, examples: ['note: buy milk', 'take a note call the coach'],
+    match: (t, raw) => { if (/^(?:take|make|create|new|write)\s+(?:a\s+)?note$|^prends une note$/.test(t)) return {}; const m = mt(/^(?:note:?|take a note:?|write down:?|make a note:?|create a note:?|new note:?|prends une note:?|note que)\s+([\s\S]+)$/i, raw); return m ? { text: m[1].trim() } : null; },
     run: ({ text }) => {
       const notes = PatOS.store.get('notes', []) || []; const id = PatOS.uid(); notes.unshift({ id, title: text.slice(0, 40), body: '<div>' + PatOS.esc(text) + '</div>', mtime: Date.now() }); PatOS.store.set('notes', notes); PatOS.emit('notes');
       return { message: L('Saved. You’ll find it at the top of Notes.', 'C’est enregistré. Tu la trouveras en haut de Notes.'), undo: () => { PatOS.store.set('notes', (PatOS.store.get('notes', []) || []).filter((n) => n.id !== id)); PatOS.emit('notes'); return L('Note removed.', 'Note retirée.'); } };
     } });
 
   // ---- timers and alarms (PatOS.alarms rings them, even with Clock closed) ----
-  action({ id: 'timer.start', title: 'Start a timer', permission: 'system', params: { seconds: { type: 'number', required: true } }, priority: 42, examples: ['timer 10 min', 'set a timer for 1h 20m'],
-    match: (t) => { const m = /^(?:set (?:a )?|start (?:a )?)?timer(?: for)?\s+(.+)$/.exec(t); if (!m) return null; const ms = PatOS.parseDuration ? PatOS.parseDuration(m[1]) : 0; return { seconds: ms > 0 ? Math.round(ms / 1000) : -1 }; },
+  action({ id: 'timer.start', title: 'Start a timer', permission: 'system', params: { seconds: { type: 'number', required: true, ask: ['How long?', 'Combien de temps?'], fromText: (r) => { const ms = PatOS.parseDuration ? PatOS.parseDuration(r) : 0; return ms > 0 ? Math.round(ms / 1000) : null; } } }, priority: 42, examples: ['timer 10 min', 'set a timer for 1h 20m'],
+    match: (t) => { if (/^(?:(?:set|start)\s+(?:a\s+)?)?timer$|^(?:mets|lance)\s+un\s+minuteur$/.test(t)) return {};
+      const m2 = /^(?:set|start)\s+(?:a\s+|an\s+)?(.+?)\s+timer$/.exec(t); if (m2) { const ms2 = PatOS.parseDuration ? PatOS.parseDuration(m2[1]) : 0; if (ms2 > 0) return { seconds: Math.round(ms2 / 1000) }; }
+      const m = /^(?:set (?:a )?|start (?:a )?)?timer(?: for)?\s+(.+)$/.exec(t); if (!m) return null; const ms = PatOS.parseDuration ? PatOS.parseDuration(m[1]) : 0; return { seconds: ms > 0 ? Math.round(ms / 1000) : -1 }; },
     run: ({ seconds }) => { if (!(seconds > 0 && seconds <= 86400)) return { ok: false, message: L('How long? Try “timer 10 min” or “timer 1h 20m”.', 'Combien de temps? Essaie « minuteur 10 min » ou « minuteur 1h 20m ».') }; PatOS.quickTimer(seconds, ''); const mins = Math.round(seconds / 60); return L(`Timer set for ${mins >= 60 ? Math.floor(mins / 60) + ' h' + (mins % 60 ? ' ' + mins % 60 + ' min' : '') : mins >= 1 ? mins + ' min' : seconds + ' s'}. It rings even if you close Messages.`, `Minuteur réglé pour ${mins >= 60 ? Math.floor(mins / 60) + ' h' + (mins % 60 ? ' ' + mins % 60 + ' min' : '') : mins >= 1 ? mins + ' min' : seconds + ' s'}.`); } });
-  action({ id: 'alarm.set', title: 'Set an alarm', permission: 'system', params: { time: { type: 'string', required: true, max: 5 } }, priority: 42, examples: ['wake me at 7:30', 'set an alarm for 6am'],
-    match: (t) => { const m = /^(?:wake me(?: up)? at|set (?:an )?alarm(?: for| at)?)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/.exec(t); if (!m) return null; let hh = +m[1]; const mm = +(m[2] || 0); if (m[3] === 'pm' && hh < 12) hh += 12; if (m[3] === 'am' && hh === 12) hh = 0; return { time: hh > 23 || mm > 59 ? 'bad' : String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0') }; },
+  action({ id: 'alarm.set', title: 'Set an alarm', permission: 'system', params: { time: { type: 'string', required: true, max: 5, ask: ['What time?', 'À quelle heure?'], fromText: (r) => { const p = dateOf('x at ' + r).time || dateOf('x ' + r).time; return p || null; } } }, priority: 42, examples: ['wake me at 7:30', 'set an alarm for 6am'],
+    match: (t) => { if (/^(?:set\s+(?:an\s+)?alarm|wake me(?: up)?|mets un reveil)$/.test(t)) return {}; const m = /^(?:wake me(?: up)? at|set (?:an )?alarm(?: for| at)?)\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)?$/.exec(t); if (!m) return null; let hh = +m[1]; const mm = +(m[2] || 0); if (m[3] === 'pm' && hh < 12) hh += 12; if (m[3] === 'am' && hh === 12) hh = 0; return { time: hh > 23 || mm > 59 ? 'bad' : String(hh).padStart(2, '0') + ':' + String(mm).padStart(2, '0') }; },
     run: ({ time }) => {
       if (!/^\d{2}:\d{2}$/.test(time)) return { ok: false, message: L('That isn’t a time I can use. Try “wake me at 7:30”.', 'Ce n’est pas une heure valide. Essaie « réveille-moi à 7h30 ».') };
       const id = PatOS.uid(); const list2 = PatOS.store.get('alarms', []); list2.push({ id, time, label: 'Pat', repeat: 'once', on: true }); PatOS.store.set('alarms', list2); PatOS.emit('alarms'); PatOS.alarms && PatOS.alarms.askPermission && PatOS.alarms.askPermission();
@@ -436,7 +492,7 @@
     });
   }
 
-  PatOS.intel = { action, list, parse, execute, respond, undo, context, history: () => history.slice(), clearHistory: () => { history.length = 0; PatOS.store.set(HISTORY_KEY, []); }, undoAvailable: () => undos.length > 0,
+  PatOS.intel = { action, list, parse, execute, respond, undo, context, hooks, missing, waiting: () => !!(dialog && Date.now() - dialog.t < 3 * 60 * 1000), cancelDialog: () => { dialog = null; }, history: () => history.slice(), clearHistory: () => { history.length = 0; PatOS.store.set(HISTORY_KEY, []); }, undoAvailable: () => undos.length > 0,
     perms: () => Object.keys(PERMS).map((k) => ({ key: k, label: L(PERMS[k][0], PERMS[k][1]), on: allowedKind(k) })), setPerm: (k, on) => { if (!PERMS[k]) return; const p = Object.assign({}, userPerms()); if (on) delete p[k]; else p[k] = false; PatOS.setSetting('intelPerms', p); },
     workspaces: spaces, setWorkspaces: (l) => PatOS.setSetting('intelWorkspaces', l), runWorkspace: (name) => { const sp = spaces().find((s) => s.name === name || s.id === name); return sp ? runSpace(sp, 'user') : null; },
     exposeApp, entities: E, prep };

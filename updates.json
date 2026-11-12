@@ -1,7 +1,7 @@
 [
   {
     "version": "3.2.0",
-    "beta": 3,
+    "beta": 4,
     "date": "2026-11-12",
     "title": {
       "en": "PatOS 3.2: Messages",
@@ -9,6 +9,12 @@
     },
     "notes": {
       "en": [
+        "PatOS Intelligence got much smarter: it asks for what’s missing (“create a reminder” → “What should I remind you about?”), does several things at once (“turn on dark mode, set the volume to 30 and start a 25 min timer”), and remembers the conversation: “move it to friday”, “do it again”, “the second one”, “and tomorrow?”, “rename it to Trips”, “delete it”, “what did you just do”",
+        "Teach it your own phrases: “when I say get ready for class, start my study workspace”. It also understands slang and nicknames (“fire up the calculator”, “open my files”, “go dark”) and, when it isn’t sure, asks “Did you mean…?” instead of guessing",
+        "Ask it about your PatOS: “how much storage do I have left”, “how many notes do I have”, “when is my next event”, “what’s due this week”, “how many days until christmas”, “what time is it in Tokyo”, “am I online”, “what version am I on”",
+        "Places: “bring me to the nearest gym” finds the closest one (OpenStreetMap), shows it in Maps and opens directions; also “find a pharmacy near me”, “directions to the library”, “where am I”, “show Paris on the map”",
+        "Accessibility: secondary text and selected items are easier to read, Spotlight works with screen readers, and Settings › Accessibility has a new Text size",
+        "Fixed: Timeline recorded PatOS’s own System folder as files you edited",
         "New: PatOS Intelligence. Pat, Spotlight and Shortcuts now share one engine that understands what you ask and does it, on this device, without an AI: “create a reminder to finish my project tomorrow”, “set the volume to 40%”, “find files containing PatOS”, “open my latest document”, “create a folder called Projects”, “turn on reduce motion”, “show applications that have notifications”… It always says exactly what it did, asks before deleting anything, and “undo” takes most things back",
         "Workspaces: “start my study workspace” turns on Do Not Disturb, opens Notes and Calendar and shows your reminders, each step reported on its own (✓ or ✗ and why). Edit them in Settings › Pat & Intelligence",
         "Shortcuts: “create a shortcut called Morning that opens calendar and turns on dark mode” makes it; “what does my Morning shortcut do” explains it; any shortcut step can be a command",
@@ -24,6 +30,12 @@
         "Messages: “Seen” under your last message once the other person has read it, and “typing…” dots while they write"
       ],
       "fr": [
+        "PatOS Intelligence est beaucoup plus futée : elle demande ce qui manque (« crée un rappel » → « De quoi dois-je te rappeler? »), fait plusieurs choses à la fois et se souvient de la conversation : « déplace-le à vendredi », « refais-le », « le deuxième », « et demain? », « renomme-le en Voyages », « supprime-le »",
+        "Apprends-lui tes propres phrases : « quand je dis prêt pour l’école, lance mon espace étude ». Elle comprend aussi l’argot et les surnoms, et quand elle n’est pas sûre, elle demande « Voulais-tu dire… ? » au lieu de deviner",
+        "Pose-lui des questions sur ton PatOS : stockage restant, nombre de notes, prochain événement, ce qui est dû cette semaine, jours avant Noël, l’heure à Tokyo, si tu es en ligne, ta version",
+        "Lieux : « emmène-moi au gym le plus proche » trouve le plus proche (OpenStreetMap), le montre dans Plans et ouvre l’itinéraire; aussi « trouve une pharmacie près de moi », « itinéraire vers la bibliothèque », « où suis-je »",
+        "Accessibilité : texte secondaire et éléments sélectionnés plus lisibles, Spotlight fonctionne avec les lecteurs d’écran, et une nouvelle Taille du texte dans Réglages › Accessibilité",
+        "Corrigé : Timeline notait le dossier System de PatOS comme des fichiers que vous aviez modifiés",
         "Nouveau : PatOS Intelligence. Pat, Spotlight et Raccourcis partagent maintenant un même moteur qui comprend ce que vous demandez et le fait, sur cet appareil, sans IA : « crée un rappel pour finir mon projet demain », « règle le volume à 40 % », « trouve les fichiers contenant PatOS », « ouvre mon dernier document », « crée un dossier appelé Projets »… Il dit toujours exactement ce qu’il a fait, demande avant de supprimer quoi que ce soit, et « annule » défait la plupart des choses",
         "Espaces de travail : « lance mon espace étude » active Ne pas déranger, ouvre Notes et Calendrier et montre vos rappels, chaque étape étant rapportée à part (✓ ou ✗ et pourquoi). Modifiez-les dans Réglages › Pat et Intelligence",
         "Raccourcis : « crée un raccourci appelé Matin qui ouvre calendrier et active le mode sombre » le crée; « que fait mon raccourci Matin » l’explique; toute étape peut être une commande",

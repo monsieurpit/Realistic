@@ -4,10 +4,12 @@
   const { h } = PatOS;
   /* Maps: embeddable OpenStreetMap with place search */
   PatOS.registerApp({
+    onArgs(win, a) { if (win._place) win._place(a); },
     id: 'maps', name: 'Maps', icon: 'maps', category: 'Apps', width: 900, height: 600, keywords: 'map location directions',
-    launch(win) {
+    launch(win, args) {
+      args = args || {};
       win.el.classList.add('has-toolbar');
-      const q = h('input', { class: 'field', placeholder: 'Search for a place', style: { width: '260px' }, spellcheck: 'false' });
+      const q = h('input', { class: 'field', placeholder: 'Search for a place', 'aria-label': 'Search for a place', style: { width: '260px' }, spellcheck: 'false' });
       const bLoc = h('button', { class: 'tbtn', title: 'My location' }, '➤');
       const bG = h('button', { class: 'tbtn', title: 'Open in Google Maps' }, '↗');
       win.toolbar.append(bLoc, q, bG);
@@ -29,10 +31,9 @@
       q.addEventListener('keydown', async (e) => {
         if (e.key !== 'Enter' || !q.value.trim()) return;
         try {
-          const r = await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q=' + encodeURIComponent(q.value));
-          const j = await r.json();
+          const j = await PatOS.places.search(q.value, null, 1); // (js/places.js: the same search PatOS Intelligence uses)
           if (!j.length) { info.textContent = 'No place found for “' + q.value + '”'; info.classList.remove('hidden'); return; }
-          lat = +j[0].lat; lon = +j[0].lon; label = j[0].display_name.split(',').slice(0, 3).join(','); show(0.03);
+          lat = j[0].lat; lon = j[0].lon; label = j[0].name + (j[0].address ? ', ' + j[0].address : ''); show(0.03);
         } catch (er) { if (PatOS.isOffline()) return start(); info.textContent = PatOS.t('Search needs an internet connection.'); info.classList.remove('hidden'); }
       });
       bLoc.onclick = () => navigator.geolocation && navigator.geolocation.getCurrentPosition((p) => { lat = p.coords.latitude; lon = p.coords.longitude; label = 'Your location'; show(0.01); }, () => PatOS.notify({ title: 'Location unavailable', body: 'PatOS could not get your location.', icon: 'maps' }));
@@ -45,7 +46,9 @@
         frame.style.display = ''; show(z);
       };
       const _show = show; show = (z) => { if (PatOS.isOffline()) return start(z); _show(z); };
-      start();
+      // opened on a place (by PatOS Intelligence: "nearest gym", "show Paris on the map")
+      win._place = (a) => { if (a && Number.isFinite(+a.lat) && Number.isFinite(+a.lon)) { lat = +a.lat; lon = +a.lon; label = String(a.label || '').slice(0, 200); q.value = a.query || ''; start(a.zoom || 0.01); return true; } return false; };
+      if (!win._place(args)) start();
     }
   });
 })();

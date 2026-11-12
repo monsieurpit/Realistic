@@ -317,8 +317,10 @@
   // one command, said any of the ways above; null when Pat does not understand it
   function one(text) {
     const t = prep(text);
-    return answer(t) ?? intel(t) ?? basic(t);
+    return answer(t) ?? intel(t) ?? basic(t) ?? guess(t);
   }
+  // last of all: the closest simple command, as a question ("Did you mean…?"), never done without a yes
+  function guess(t) { if (!PatOS.intel) return null; const r = PatOS.intel.respond(t, { source: 'pat', guess: true }); return r && r.status === 'confirm' ? show(r) : null; }
   /* PatOS Intelligence first: every action it knows (and Pat's skills, which are actions too) */
   function intel(t) {
     if (!PatOS.intel) return runSkills(t);
@@ -348,6 +350,9 @@
   function notUnderstood(text) {
     const h2 = HINTS.find(([re]) => re.test(text));
     if (h2) return L('I didn’t catch that one. Try it like this: “' + h2[1] + '”. Type “help” for everything I can do.', 'Je n’ai pas compris. Essaie comme ceci : « ' + h2[2] + ' ». Écris « aide » pour tout ce que je sais faire.');
+    // the closest things PatOS Intelligence knows (from its examples), when there are some
+    const near = PatOS.intel && PatOS.intel.closest ? PatOS.intel.closest(text, 2) : [];
+    if (near.length) return L('I’m not sure what you mean. Did you mean “' + near.join('” or “') + '”? Type “help” for everything I can do.', 'Je ne suis pas sûr de comprendre. Voulais-tu dire « ' + near.join(' » ou « ') + ' »? Écris « aide » pour tout ce que je sais faire.');
     return pick(FR() ? ['Je ne suis pas sûr de comprendre. Écris « aide » pour voir ce que je sais faire.', 'Ça, je ne sais pas encore le faire. Essaie « aide ».'] : ['I’m not sure what you mean. Type "help" to see what I can do.', 'That one’s beyond me for now. Try "help".', 'I can’t answer that, sorry. I’m better at opening apps, timers, quick math and reminders.']);
   }
   const MORE_HELP = () => L('\n\nNew:\n• search notes for recipe\n• find documents about trip\n• create a document called Trip plan\n• tidy my downloads (asks first, and you can undo)\n• summarize: (paste a text)\n• my day\n• run shortcut good morning\n• two at once: open notes and set a timer for 5 min\n• after a list: open it · the second one',
@@ -365,6 +370,8 @@
   function suggestions() {
     const fr = FR(), out = [];
     if (ctx.pending) return fr ? ['oui', 'non'] : ['yes', 'no'];
+    if (PatOS.intel && PatOS.intel.waiting && PatOS.intel.waiting()) return fr ? ['annule'] : ['cancel'];
+    if (PatOS.intel && PatOS.intel.suggestions) PatOS.intel.suggestions(3).forEach((x) => out.push(x));
     if (recent()) out.push(fr ? 'ouvre-le' : 'open it');
     if (ctx.undo && Date.now() - ctx.undo.t < 10 * 60 * 1000) out.push(fr ? 'annule' : 'undo');
     const k = today(); const due = (PatOS.store.get('reminders', []) || []).some((r) => !r.done && r.due && r.due <= k);

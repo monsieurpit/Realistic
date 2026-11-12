@@ -112,6 +112,10 @@
           }); };
           drawWs();
           out.append(wsBox, group(row(T('New workspace'), h('button', { class: 'btn', onclick: () => { I.setWorkspaces(I.workspaces().concat([{ id: 'w' + Date.now().toString(36), name: T('My workspace'), words: [], steps: ['open notes'] }])); drawWs(); } }, T('Add')))));
+          // phrases you taught ("when I say …, …")
+          out.appendChild(h('h3', {}, T('Phrases you taught')));
+          const ph = S().intelPhrases || [];
+          out.appendChild(group(...(ph.length ? ph.map((x) => row('“' + x.phrase + '”', h('button', { class: 'btn', onclick: () => { PatOS.setSetting('intelPhrases', (S().intelPhrases || []).filter((y) => y.phrase !== x.phrase)); renderMain(); } }, T('Remove')), '→ ' + x.command)) : [h('div', { class: 'bk-empty' }, T('None yet. Tell Pat: “when I say homework time, start my study workspace”.'))])));
           // what it understands
           out.appendChild(h('h3', {}, T('What you can ask')));
           const acts = I.list().filter((a) => a.examples.length);
