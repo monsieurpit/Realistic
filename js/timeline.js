@@ -50,7 +50,7 @@
 
   const hostOf = (u) => { try { return new URL(u).hostname.replace(/^www\./, ''); } catch (e) { return ''; } };
   const strip = (html) => String(html || '').replace(/<(br|\/div|\/p|\/li)[^>]*>/gi, '\n').replace(/<[^>]+>/g, '').replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>');
-  const hidden = (p) => !p || /(^|\/)\./.test(p);
+  const hidden = (p) => !p || /(^|\/)\./.test(p) || p === '/System' || p.startsWith('/System/'); // (PatOS's own system folder is not your activity)
 
   function onOpen(win) {
     if (!win || !win.app || NEVER.has(win.app.id) || win.app.hidden) return;
