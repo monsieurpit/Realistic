@@ -175,10 +175,12 @@ async function setChannel(ch) {
 const runningId = () => (state.useOld && state.previous ? state.previous : state.installed);
 const status = () => ({ ok: true, running: cacheName(runningId()), newest: cacheName(state.installed), current: cacheName(state.installed), previous: state.previous ? cacheName(state.previous) : null, useOld: !!state.useOld, since: state.since, channel: state.channel, installed: state.installed, pending: state.pending || null, ver: state.ver || null, legacy: !!state.legacy });
 
-self.addEventListener('install', (e) => { log('worker installed', { ua: (/(Chrome|Edg|Firefox|Version)\/(\d+)/.exec(self.navigator.userAgent) || [])[0] || '' }); e.waitUntil((async () => { try { await prepare(); } catch (er) { /* the page still works from the network; this is tried again on the next start */ } await self.skipWaiting(); })()); });
+// (a download that hangs must never keep the worker from starting: it waits at most 60 s, the rest goes on afterwards)
+const atMost = (p, ms) => Promise.race([p, new Promise((r) => setTimeout(r, ms))]);
+self.addEventListener('install', (e) => { log('worker installed', { ua: (/(Chrome|Edg|Firefox|Version)\/(\d+)/.exec(self.navigator.userAgent) || [])[0] || '' }); e.waitUntil((async () => { try { await atMost(prepare(), 60000); } catch (er) { /* the page still works from the network; this is tried again on the next start */ } await self.skipWaiting(); })()); });
 self.addEventListener('activate', (e) => { e.waitUntil((async () => {
-  await stateReady; try { await prepare(); } catch (er) {}
-  await cleanup(); await self.clients.claim();
+  await stateReady; try { await atMost(prepare(), 60000); } catch (er) {}
+  await cleanup(); await self.clients.claim(); log('worker active', {});
   if (state && state.legacy && state.pending) (await self.clients.matchAll()).forEach((c) => c.postMessage({ patosUpdate: true })); // an older copy of PatOS: tell it a newer one is ready
 })()); });
 

@@ -6917,6 +6917,17 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":7};
   }
   const INSTALLING = 'patos-installing';
 
+  /* (3.3) the update log (server: /api/updates/log, Railway's logs): what this page sees, to understand a device that doesn't update */
+  const pageLog = (ev, d) => { try { fetch('/api/updates/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dev: 'page', ev, d: Object.assign({ run: PatOS.build }, d || {}) }), keepalive: true }).catch(() => {}); } catch (e) {} };
+  const noWorker = () => !(navigator.serviceWorker && navigator.serviceWorker.controller);
+  /* Without a service worker (it is blocked, or failed to start), a version can't be saved on the device. The server is told the
+     version chosen instead (a cookie it reads for every file), so PatOS starts on it from the website. */
+  function chooseOnServer(t) {
+    const ch = t.beta ? 'beta' : t.version;
+    try { document.cookie = 'patos_ch=' + ch + '; path=/; max-age=31536000; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : ''); } catch (e) {}
+    return document.cookie.indexOf('patos_ch=' + ch) >= 0;
+  }
+
   /* starts watching for updates. opts.soft is set when PatOS was just restarted on purpose (to show "PatOS was updated") */
   function setup(opts) {
     opts = opts || {};
@@ -6942,7 +6953,12 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":7};
       async restart(o) {
         o = o || {};
         if (o.update !== false && U.newer) {
-          const t = U.target; set('downloading');
+          const t = U.target;
+          if (noWorker()) { // (no service worker on this device: the server serves the chosen version instead)
+            const ok = chooseOnServer(t); pageLog('install without a worker', { want: t.version + (t.beta ? 'b' + t.beta : ''), cookie: ok });
+            if (ok) return PatOS.restartPatOS ? PatOS.restartPatOS(o) : location.reload();
+          }
+          set('downloading');
           const r = await ask(t.beta ? { patosInstall: { beta: true } } : { patosInstall: { id: t.version } }, 180000);
           if (!r || !r.ok) { set('ready'); PatOS.alertBox(T('That didn’t work'), (r && r.error) || T('You’re offline. PatOS checks again when the internet is back.'), { icon: 'about' }); return false; }
           remember(r);
@@ -6983,6 +6999,12 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":7};
       if (PatOS.errors) PatOS.errors.report(new Error('update: still on ' + idOf(runningRel()) + ' after installing ' + inst.want + ' (controller: ' + !!navigator.serviceWorker.controller + ')'), 'update');
     }
     if (/[?&]updated=/.test(location.search)) try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}
+    // what this device's service worker is doing (reported once, a few seconds after start)
+    setTimeout(async () => {
+      let regs = []; try { regs = (await navigator.serviceWorker.getRegistrations()).map((r) => ({ scope: r.scope, installing: r.installing && r.installing.state, waiting: r.waiting && r.waiting.state, active: r.active && r.active.state })); } catch (e) { regs = ['error: ' + e.message]; }
+      pageLog('page start', { controller: !!navigator.serviceWorker.controller, regs, cookie: (/patos_ch=([^;]*)/.exec(document.cookie) || [])[1] || '', secure: window.isSecureContext, betaOn: betaOn() });
+    }, 6000);
+    navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).catch((e) => pageLog('worker failed to register', { err: String((e && e.message) || e), name: e && e.name }));
     navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((r) => {
       reg = r; ask({ patosHello: { betaOn: betaOn() } }).then((st) => { remember(st); check(true); });
     }).catch(() => {});
