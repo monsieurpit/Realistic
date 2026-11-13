@@ -92,11 +92,14 @@
     Object.assign(el.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: ht + 'px' });
 
     const handlers = {};
+    // (3.3) the app's process: its code runs inside it, so PatOS can measure it and stop it (js/process.js)
+    const proc = PatOS.proc ? PatOS.proc.forApp(app) : null;
+    const inProc = (fn, args) => (proc ? PatOS.proc.run(proc, fn, null, args || []) : fn.apply(null, args || []));
     const win = {
       id, app, el, body, titlebar, toolbar, titleEl, args: args || {},
       minimized: false, maximized: false, prevRect: null,
       on(ev, fn) { (handlers[ev] = handlers[ev] || []).push(fn); return () => { handlers[ev] = (handlers[ev] || []).filter((f) => f !== fn); }; },
-      emit(ev, d) { (handlers[ev] || []).slice().forEach((f) => { try { f(d); } catch (e) { console.error(e); PatOS.errors && PatOS.errors.report(e, app.id + ' ' + ev); } }); },
+      emit(ev, d) { (handlers[ev] || []).slice().forEach((f) => { try { inProc(f, [d]); } catch (e) { console.error(e); PatOS.errors && PatOS.errors.report(e, app.id + ' ' + ev); } }); },
       setTitle(t) { titleEl.textContent = t; win.title = t; el.setAttribute('aria-label', t); PatOS.emit('wm:title', win); },
       close: () => closeWindow(win),
       minimize: () => minimizeWindow(win),
@@ -105,7 +108,9 @@
       focus: () => focusWindow(win),
       rect() { return { x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight }; }
     };
-    win.title = app.name;
+    win.title = app.name; win.pid = proc ? proc.pid : 0; if (proc) proc.windows.add(win);
+    const sysRun = (fn) => (PatOS.proc ? PatOS.proc.sys('windowserver', fn) : fn());
+    sysRun(() => { // (the title bar, its buttons, moving and resizing: the window server's work, not the app's)
 
     traffic.querySelector('.close').addEventListener('click', (e) => { e.stopPropagation(); win.close(); });
     traffic.querySelector('.min').addEventListener('click', (e) => { e.stopPropagation(); win.minimize(); });
@@ -116,6 +121,7 @@
     setupDrag(win, titlebar);
     setupResize(win);
     if (app.titlebar === 'hidden') setupDrag(win, body, true);
+    });
 
     layer().appendChild(el);
     wins.push(win);
@@ -136,7 +142,7 @@
       box.appendChild(document.createElement('br')); box.appendChild(again); body.appendChild(box);
     };
     const run = () => {
-      try { const r = app.launch(win, win.args); if (r && typeof r.then === 'function') r.then(null, failed); } catch (e) { failed(e); }
+      try { const r = inProc(() => app.launch(win, win.args)); if (r && typeof r.then === 'function') r.then(null, failed); } catch (e) { failed(e); }
     };
     // 3D apps wait for three.js, which PatOS only loads when it is needed
     if (app.needs3D && !window.THREE && PatOS.webgl) {
@@ -359,13 +365,14 @@
   function closeWindow(win) {
     if (win.closed) return; // (closing twice, e.g. a double tap, must not run every cleanup twice)
     let veto = false;
-    win.emit('beforeclose', { cancel: () => { veto = true; } });
+    if (!win._force) win.emit('beforeclose', { cancel: () => { veto = true; } }); // (Force Quit doesn't ask)
     if (veto) return;
     if (motionOK()) win.el.animate([{ transform: 'none', opacity: 1 }, { transform: 'scale(.92)', opacity: 0, filter: 'blur(4px)' }], { duration: 200, easing: 'ease-in', fill: 'forwards' });
     else win.el.classList.add('closing');
     win.el.style.pointerEvents = 'none';
     win.closed = true;
     win.emit('closed');
+    if (PatOS.proc && win.pid) { const pr = PatOS.proc._raw(win.pid); if (pr) PatOS.proc.windowClosed(pr, win); }
     const i = wins.indexOf(win); if (i >= 0) wins.splice(i, 1);
     if (win.fullscreen) { win.fullscreen = false; if (!wins.some((w) => w.fullscreen) && weAskedBrowserFS && document.fullscreenElement) { weAskedBrowserFS = false; document.exitFullscreen().catch(() => {}); } }
     updateFS();
@@ -527,7 +534,7 @@
     if (app.single && existing.length) {
       const w = existing[0];
       restoreWindow(w);
-      if (args && app.onArgs) app.onArgs(w, args);
+      if (args && app.onArgs) { const pr = PatOS.proc && PatOS.proc.forApp(app); if (pr) PatOS.proc.run(pr, app.onArgs, app, [w, args]); else app.onArgs(w, args); }
       return w;
     }
     if (!existing.length && PatOS.dock) PatOS.dock.bounce(appId);

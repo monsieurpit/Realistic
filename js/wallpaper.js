@@ -433,7 +433,7 @@
       if (!renderer.gpuReady()) return; // the graphics chip is still busy with the last frame
       update(t, step); renderer.paced(scene, camera);
     };
-    three.raf = requestAnimationFrame(loop);
+    three.raf = PatOS.proc ? PatOS.proc.sys('wallpaperd', () => requestAnimationFrame(loop)) : requestAnimationFrame(loop); // (its frames are measured as wallpaperd: js/process.js)
     three.dispose = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('resize', resize); disposables.forEach((d) => d.dispose()); };
     return true;
   }

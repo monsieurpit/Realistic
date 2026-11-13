@@ -106,8 +106,35 @@
         uname(a) { text(a.includes('-a') ? 'PatOS patos ' + PatOS.version + ' patos-kernel ' + PatOS.version + ' #1 SMP ' + new Date().toDateString() + ' x86_64 PatOS' : 'PatOS'); },
         dmesg() { PatOS.firmware.log().forEach((l, i) => text('[' + (0.1 + i * 0.07).toFixed(6).padStart(12) + '] ' + l)); },
         async df() { let used = 0, quota = 0; try { const e = await navigator.storage.estimate(); used = e.usage || 0; quota = e.quota || 0; } catch (e) {} const g = (n) => (n / 1073741824).toFixed(1) + 'G'; text('Filesystem    Size   Used  Avail Use%  Mounted on'); text('patos-disk   ' + g(quota).padStart(6) + ' ' + g(used).padStart(6) + ' ' + g(Math.max(0, quota - used)).padStart(6) + ' ' + (quota ? Math.round(used / quota * 100) : 0) + '%    /'); },
-        ps() { text('  PID  COMMAND'); [[1, 'launchd'], [42, 'kernel_task'], [88, 'windowserver'], [97, 'spotlightd'], [103, 'syncd']].concat((PatOS.wm.windows || []).map((w, i) => [300 + i, w.app.name])).forEach(([pid, n]) => text(String(pid).padStart(5) + '  ' + n)); },
-        kill(a) { const pid = a.filter((x) => !x.startsWith('-'))[0]; if (!pid) return text('usage: kill <pid>', 'err'); if (pid === '1' || pid === '42') { if (!PatOS.fs.isRoot()) return text('kill: ' + pid + ': Operation not permitted', 'err'); PatOS.firmware.panic(pid === '1' ? 'Attempted to kill init!' : 'Attempted to kill the kernel'); return; } const w = (PatOS.wm.windows || [])[+pid - 300]; if (w) { w.close(); return; } text('kill: ' + pid + ': No such process', 'err'); },
+        // (3.3) real processes (js/process.js): ps · top · kill [-9] <pid> · killall <name>
+        ps(a) {
+          const l = PatOS.proc ? PatOS.proc.list() : [];
+          const all = a.some((x) => /a|x/.test(x)); text('  PID  %CPU   TIME     STATE           COMMAND');
+          l.filter((p) => all || !p.system || p.pid === 1).forEach((p) => text(String(p.pid).padStart(5) + '  ' + p.cpu.toFixed(1).padStart(4) + '  ' + (p.cpuTime / 1000).toFixed(2).padStart(7) + 's  ' + p.state.padEnd(15) + ' ' + (p.system ? p.name : p.name)));
+          if (!all) text('(ps aux: with the system processes)');
+        },
+        top() {
+          const l = PatOS.proc ? PatOS.proc.list().sort((x, y) => y.cpu - x.cpu) : [];
+          const mem = performance.memory ? PatOS.fmtBytes(performance.memory.usedJSHeapSize) : 'n/a';
+          text('Processes: ' + l.length + ' total, ' + l.filter((p) => p.state === 'running').length + ' running, ' + l.filter((p) => p.state === 'background').length + ' in the background · CPU (measured): ' + l.reduce((s2, p) => s2 + p.cpu, 0).toFixed(1) + '% · JS memory: ' + mem);
+          text('  PID  %CPU  THREADS  ENERGY  MEMORY      COMMAND');
+          l.slice(0, 12).forEach((p) => text(String(p.pid).padStart(5) + '  ' + p.cpu.toFixed(1).padStart(4) + '  ' + String(p.threads).padStart(7) + '  ' + String(p.energy).padStart(6) + '  ' + (p.memory ? PatOS.fmtBytes(p.memory) : '-').padEnd(10) + '  ' + p.name));
+        },
+        kill(a) {
+          const force = a.includes('-9') || a.includes('-KILL'); const pid = a.filter((x) => !x.startsWith('-'))[0];
+          if (!pid) return text('usage: kill [-9] <pid>', 'err');
+          if (pid === '1' || pid === '42') { if (!PatOS.fs.isRoot()) return text('kill: ' + pid + ': Operation not permitted', 'err'); PatOS.firmware.panic(pid === '1' ? 'Attempted to kill init!' : 'Attempted to kill the kernel'); return; }
+          const p = PatOS.proc && PatOS.proc.get(pid);
+          if (!p) return text('kill: ' + pid + ': No such process', 'err');
+          if (p.system) return text('kill: ' + pid + ': ' + (PatOS.fs.isRoot() ? p.name + ' is part of PatOS and can’t be stopped' : 'Operation not permitted'), 'err');
+          if (force) PatOS.proc.kill(p.pid); else PatOS.proc.quit(p.pid);
+        },
+        killall(a) {
+          const name = a.filter((x) => !x.startsWith('-')).join(' ').toLowerCase(); if (!name) return text('usage: killall [-9] <name>', 'err');
+          const l = (PatOS.proc ? PatOS.proc.list() : []).filter((p) => !p.system && (p.name.toLowerCase() === name || p.app === name));
+          if (!l.length) return text('No matching processes were found', 'err');
+          l.forEach((p) => (a.includes('-9') ? PatOS.proc.kill(p.pid) : PatOS.proc.quit(p.pid)));
+        },
         nvram(a) { const m = a.join(' '); if (/boot-args=.*-v/.test(m)) { if (!PatOS.fs.isRoot()) return text('nvram: Operation not permitted (use sudo)', 'err'); PatOS.firmware.verboseAlways(true); text('boot-args set: PatOS will start with the boot log.'); } else if (/-d\s+boot-args/.test(m)) { if (!PatOS.fs.isRoot()) return text('nvram: Operation not permitted (use sudo)', 'err'); PatOS.firmware.verboseAlways(false); text('boot-args removed.'); } else text('boot-args\t' + (PatOS.firmware.state().verboseAlways ? '-v' : '')); },
         csrutil(a) { if (a[0] === 'disable' || a[0] === 'enable') return text('csrutil: this can only be changed in Recovery (restart holding R, or: reboot --recovery)', 'err'); text('System Integrity Protection status: ' + (PatOS.firmware.sipOff() ? 'disabled' : 'enabled') + '.'); },
         errors(a) {

@@ -2704,6 +2704,32 @@ html[data-theme="dark"] .ytx { --yb: #0f0f0f; --yb2: #272727; --yb3: #3f3f3f; --
 .su-spin { width: 44px; height: 44px; margin-top: 60px; border-radius: 50%; border: 3px solid rgba(127,127,127,.25); border-top-color: var(--accent); animation: suSpin .9s linear infinite; }
 @keyframes suSpin { to { transform: rotate(360deg); } }
 
+/* Activity Monitor 3.3 */
+.am2-win .win-body { background: var(--win-solid); }
+.am2-tb { width: 30px; height: 28px; border: 0; border-radius: 8px; background: transparent; color: var(--text); display: grid; place-items: center; cursor: pointer; }
+.am2-tb .sym { width: 16px; height: 16px; } .am2-tb:hover:not(:disabled) { background: rgba(127,127,127,.15); } .am2-tb:disabled { opacity: .35; cursor: default; } .am2-tb.on { color: var(--accent); }
+.am2-win .win-toolbar .ui-seg { margin-left: 8px; } .am2-win .win-toolbar .ui-search { width: 180px; }
+.am2-table { flex: 1; overflow: auto; font-size: 12.5px; }
+.am2-row { display: grid; grid-template-columns: var(--am2-cols); align-items: center; min-height: 28px; padding: 0 12px; gap: 8px; cursor: default; }
+.am2-row:nth-child(even):not(.am2-head) { background: rgba(127,127,127,.06); }
+.am2-row.sel { background: var(--accent) !important; color: #fff; } .am2-row.sel .am2-st { color: #fff; } .am2-row.sys:not(.sel) .am2-name { color: var(--text2); }
+.am2-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.am2-head { position: sticky; top: 0; z-index: 1; background: var(--win-solid); border-bottom: 1px solid var(--border); min-height: 30px; }
+.am2-hc { border: 0; background: none; color: var(--text2); font: 600 11.5px/1 inherit; text-align: left; padding: 6px 0; cursor: pointer; white-space: nowrap; } .am2-hc:not(:first-child) { text-align: right; } .am2-hc.on { color: var(--text); }
+.am2-name { display: flex; align-items: center; gap: 8px; min-width: 0; } .am2-name span:last-child { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.am2-ic, .am2-ic .icon-tile, .am2-ic svg, .am2-ic img { width: 18px; height: 18px; border-radius: 5px; flex: 0 0 18px; display: grid; place-items: center; } .am2-ic .sym { width: 14px; height: 14px; }
+.am2-num { text-align: right; font-variant-numeric: tabular-nums; } .am2-num.hot { color: #ff9f0a; font-weight: 600; } .am2-row.sel .am2-num.hot { color: #fff; }
+.am2-st { text-align: right; font-size: 12px; color: var(--text2); } .am2-st.not-responding { color: #ff453a; font-weight: 600; } .am2-st.background { color: #bf5af2; }
+.am2-foot { flex: 0 0 auto; display: flex; flex-wrap: wrap; align-items: center; gap: 16px; padding: 10px 14px; border-top: 1px solid var(--border); background: var(--toolbar); }
+.am2-stats { display: flex; gap: 22px; flex-wrap: wrap; } .am2-stat small { display: block; font-size: 11px; color: var(--text2); } .am2-stat b { font-size: 14px; font-variant-numeric: tabular-nums; }
+.am2-gbox { margin-left: auto; } .am2-gbox small { display: block; font-size: 11px; color: var(--text2); margin-bottom: 3px; } .am2-graph { width: 240px; height: 54px; border-radius: 8px; background: rgba(0,0,0,.35); display: block; }
+.am2-fine { width: 100%; margin: 0; font-size: 11px; color: var(--text3); }
+.am2-p { margin: 0; line-height: 1.5; color: var(--text2); }
+.am2-insp { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 18px; min-width: 420px; }
+.am2-kv { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; } .am2-kv span { color: var(--text2); } .am2-kv b { font-variant-numeric: tabular-nums; }
+.am2-errs { grid-column: 1 / -1; margin-top: 8px; font-size: 12px; } .am2-errs small { color: var(--text2); font-weight: 600; } .am2-errs div { padding: 4px 0; color: #ff453a; font-family: ui-monospace, monospace; font-size: 11.5px; }
+.mobile .am2-insp { grid-template-columns: 1fr; min-width: 0; } .mobile .am2-gbox { display: none; }
+
 </style>
   <style>
 /* ===== Shared office UI (Docs, Sheets, Slides, Forms) ===== */
@@ -6981,6 +7007,255 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
 
 </script>
   <script type="patos/js">
+/* PatOS processes (3.3): every app that runs is a process, with a PID, measured and stoppable.
+
+   What makes it real: everything an app starts is done "inside" its process, and PatOS keeps track of it.
+     - its code: starting the app, its window's events, and every timer, repeating timer, animation frame and event listener
+       it sets up (they run inside its process again when they fire, so whatever they set up is its too)
+     - what it opens: background workers, network requests, the microphone and camera, audio and video players
+   So PatOS knows, for each app:
+     - the processor time its code really used (measured: % CPU over the last seconds, and the total)
+     - long blocks of work (over 250 ms: PatOS froze for that long) and the problems it ran into
+     - how many timers, loops, workers, listeners and streams it holds; an estimate of its memory; its energy impact
+   States: Running · Background (no window, but still doing something, like music playing after its window closed) ·
+   Not responding (it blocked PatOS for a long time) · Ended.
+   Quit closes its windows the normal way. Force Quit stops everything it started: its windows close (even if they would
+   ask), its repeating timers and animation loops stop, its page-wide listeners are removed, its workers end, its network
+   requests are cancelled, its microphone and camera turn off, its players pause, and its activities leave the Pill.
+   Copies, backups and other system jobs are never stopped by force-quitting the app that started them.
+   An app whose last window closed ends by itself once nothing of it is still running.
+
+   Limits (a web page has one main thread): an app that loops forever freezes all of PatOS, and can't be stopped from inside;
+   work that continues after an "await" is not counted for its app. */
+(function () {
+  'use strict';
+  const raw = {
+    setTimeout: window.setTimeout.bind(window), clearTimeout: window.clearTimeout.bind(window),
+    setInterval: window.setInterval.bind(window), clearInterval: window.clearInterval.bind(window),
+    requestAnimationFrame: window.requestAnimationFrame.bind(window), cancelAnimationFrame: window.cancelAnimationFrame.bind(window)
+  };
+  PatOS.rawTimers = raw;
+  const now = () => performance.now();
+  const procs = new Map(), byApp = new Map();
+  let nextPid = 400, cur = null; const stack = [];
+
+  function mk(o) {
+    return { pid: o.pid || nextPid++, app: o.app || '', name: o.name, system: !!o.system, started: Date.now(), windows: new Set(),
+      intervals: new Set(), timeouts: new Set(), rafs: new Set(), listeners: new Set(), workers: new Set(), streams: new Set(), media: new Set(), aborts: new Set(),
+      cpu: 0, ring: new Float64Array(8), ringSec: new Float64Array(8), longs: [], worst: 0, errors: [], dead: false, endedAt: 0, forced: false, napped: false };
+  }
+  // the parts of PatOS itself (some are measured: the window server, the Pill, the wallpaper)
+  const SYS = {};
+  [[1, 'launchd'], [42, 'kernel_task'], [88, 'windowserver'], [97, 'spotlightd'], [103, 'syncd'], [110, 'pilld'], [120, 'wallpaperd']].forEach(([pid, name]) => { const p = mk({ pid, name, system: true }); SYS[name] = p; procs.set(pid, p); });
+
+  /* ---------- running code inside a process, and measuring it ---------- */
+  function account(p, dt) {
+    if (!(dt > 0)) return;
+    p.cpu += dt; const s = Math.floor(Date.now() / 1000), i = s % 8;
+    if (p.ringSec[i] !== s) { p.ringSec[i] = s; p.ring[i] = 0; } p.ring[i] += dt;
+    if (dt > 250) { p.longs.push([Date.now(), dt]); if (p.longs.length > 20) p.longs.shift(); if (dt > p.worst) p.worst = dt; }
+  }
+  function run(p, fn, self, args) {
+    if (!p || typeof fn !== 'function') return fn && fn.apply(self, args);
+    const t = now();
+    if (stack.length) { const top = stack[stack.length - 1]; account(top.p, t - top.t0); }
+    stack.push({ p, t0: t }); const prev = cur; cur = p;
+    try { return fn.apply(self, args); }
+    catch (e) { p.errors.push({ t: Date.now(), m: String((e && e.message) || e).slice(0, 200) }); if (p.errors.length > 20) p.errors.shift(); throw e; }
+    finally { const t2 = now(); const me = stack.pop(); account(me.p, t2 - me.t0); cur = prev; if (stack.length) stack[stack.length - 1].t0 = t2; }
+  }
+  const cpuPct = (p) => { const s = Math.floor(Date.now() / 1000); let sum = 0; for (let k = 1; k <= 3; k++) { const i = (s - k) % 8; if (p.ringSec[i] === s - k) sum += p.ring[i]; } return Math.min(100, sum / 30); };
+
+  /* ---------- timers, frames, listeners, workers, requests, media: whoever starts them owns them ---------- */
+  const tOwner = new Map(), rOwner = new Map();
+  window.setTimeout = function (fn, ms, ...a) {
+    if (!cur || typeof fn !== 'function') return raw.setTimeout(fn, ms, ...a);
+    const p = cur; let id;
+    id = raw.setTimeout(function () { p.timeouts.delete(id); tOwner.delete(id); if (p.dead) return fn.apply(this, a); return run(p, fn, this, a); }, ms);
+    p.timeouts.add(id); tOwner.set(id, p); return id;
+  };
+  window.clearTimeout = function (id) { const p = tOwner.get(id); if (p) { p.timeouts.delete(id); tOwner.delete(id); } return raw.clearTimeout(id); };
+  window.setInterval = function (fn, ms, ...a) {
+    if (!cur || typeof fn !== 'function') return raw.setInterval(fn, ms, ...a);
+    const p = cur; const id = raw.setInterval(function () { if (p.dead) { raw.clearInterval(id); return; } return run(p, fn, this, a); }, ms);
+    p.intervals.add(id); tOwner.set(id, p); return id;
+  };
+  window.clearInterval = function (id) { const p = tOwner.get(id); if (p) { p.intervals.delete(id); tOwner.delete(id); } return raw.clearInterval(id); };
+  window.requestAnimationFrame = function (fn) {
+    if (!cur || typeof fn !== 'function') return raw.requestAnimationFrame(fn);
+    const p = cur; let id;
+    id = raw.requestAnimationFrame((t) => { p.rafs.delete(id); rOwner.delete(id); if (p.dead) return; run(p, fn, window, [t]); });
+    p.rafs.add(id); rOwner.set(id, p); return id;
+  };
+  window.cancelAnimationFrame = function (id) { const p = rOwner.get(id); if (p) { p.rafs.delete(id); rOwner.delete(id); } return raw.cancelAnimationFrame(id); };
+
+  // listeners: those on the page itself (the window, the document) are what an app forgets; they are removed when it ends
+  const ael = EventTarget.prototype.addEventListener, rel = EventTarget.prototype.removeEventListener;
+  const wrapped = new WeakMap();
+  const isGlobal = (t) => !(t instanceof Node) || t === document || t === document.documentElement || t === document.body;
+  EventTarget.prototype.addEventListener = function (type, l, opts) {
+    if (!cur || !l || (typeof l !== 'function' && typeof l.handleEvent !== 'function')) return ael.call(this, type, l, opts);
+    const p = cur, capture = typeof opts === 'boolean' ? opts : !!(opts && opts.capture);
+    const list = wrapped.get(l) || [];
+    if (list.some((e) => e.target === this && e.type === type && e.capture === capture)) return;
+    const e = { target: this, type, capture, p, once: !!(opts && typeof opts === 'object' && opts.once) };
+    e.w = function (ev) {
+      if (e.once) drop(l, e);
+      if (p.dead) return;
+      return typeof l === 'function' ? run(p, l, this, [ev]) : run(p, l.handleEvent, l, [ev]);
+    };
+    list.push(e); wrapped.set(l, list); if (isGlobal(this)) p.listeners.add(e);
+    return ael.call(this, type, e.w, opts);
+  };
+  function drop(l, e) { const list = wrapped.get(l); if (list) { const i = list.indexOf(e); if (i >= 0) list.splice(i, 1); } e.p.listeners.delete(e); }
+  EventTarget.prototype.removeEventListener = function (type, l, opts) {
+    const list = l && wrapped.get(l);
+    if (list) {
+      const capture = typeof opts === 'boolean' ? opts : !!(opts && opts.capture);
+      const e = list.find((x) => x.target === this && x.type === type && x.capture === capture);
+      if (e) { drop(l, e); return rel.call(this, type, e.w, opts); }
+    }
+    return rel.call(this, type, l, opts);
+  };
+  // workers
+  if (window.Worker) { const W = window.Worker; const PW = function (...a) { const w = new W(...a); if (cur) { const p = cur; p.workers.add(w); const t0 = w.terminate.bind(w); w.terminate = () => { p.workers.delete(w); t0(); }; } return w; }; PW.prototype = W.prototype; window.Worker = PW; }
+  // network requests (cancelled when the app is force-quit)
+  const f0 = window.fetch && window.fetch.bind(window);
+  if (f0) window.fetch = function (input, init) {
+    if (!cur || !window.AbortController) return f0(input, init);
+    const p = cur, ac = new AbortController(); const o = Object.assign({}, init || {});
+    if (o.signal) { if (!AbortSignal.any) return f0(input, init); o.signal = AbortSignal.any([o.signal, ac.signal]); } else o.signal = ac.signal;
+    p.aborts.add(ac); const done = () => p.aborts.delete(ac);
+    const r = f0(input, o); r.then(done, done); return r;
+  };
+  // the microphone and camera, and audio/video players
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+    const g0 = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+    navigator.mediaDevices.getUserMedia = async (c) => { const p = cur; const s = await g0(c); if (p) p.streams.add(s); return s; };
+  }
+  const ce = Document.prototype.createElement;
+  Document.prototype.createElement = function (tag) { const el = ce.apply(this, arguments); if (cur && /^(audio|video)$/i.test(tag)) cur.media.add(el); return el; };
+  if (window.Audio) { const A = window.Audio; const PA = function (...a) { const el = new A(...a); if (cur) cur.media.add(el); return el; }; PA.prototype = A.prototype; window.Audio = PA; }
+
+  /* ---------- the life of a process ---------- */
+  function forApp(app) {
+    let p = byApp.get(app.id);
+    if (!p || p.dead) { p = mk({ app: app.id, name: app.name }); procs.set(p.pid, p); byApp.set(app.id, p); PatOS.emit('proc:start', { pid: p.pid, app: app.id }); }
+    return p;
+  }
+  const liveStreams = (p) => [...p.streams].filter((s) => s.getTracks().some((t) => t.readyState === 'live'));
+  const playing = (p) => [...p.media].filter((m) => !m.paused && !m.ended);
+  // still doing something without a window: a repeating timer, a pending timer, a worker, the microphone or camera, sound
+  const busy = (p) => p.intervals.size || p.timeouts.size || p.workers.size || liveStreams(p).length || playing(p).length;
+  function stopAll(p) {
+    p.intervals.forEach((id) => raw.clearInterval(id)); p.intervals.clear();
+    p.rafs.forEach((id) => raw.cancelAnimationFrame(id)); p.rafs.clear();
+    p.listeners.forEach((e) => { try { rel.call(e.target, e.type, e.w, e.capture); } catch (er) {} }); p.listeners.clear();
+  }
+  function end(p, forced) {
+    if (p.dead || p.system) return;
+    p.dead = true; p.forced = !!forced; p.endedAt = Date.now();
+    stopAll(p);
+    if (forced) {
+      p.timeouts.forEach((id) => { tOwner.delete(id); }); // (they still run once, outside the process: system work they hold, like saving, must happen)
+      p.workers.forEach((w) => { try { w.terminate(); } catch (e) {} }); p.workers.clear();
+      p.aborts.forEach((ac) => { try { ac.abort(); } catch (e) {} }); p.aborts.clear();
+      p.streams.forEach((s) => s.getTracks().forEach((t) => t.stop())); p.streams.clear();
+      p.media.forEach((m) => { try { m.pause(); } catch (e) {} }); p.media.clear();
+      if (PatOS.pill && PatOS.pill.dismissApp) PatOS.pill.dismissApp(p.app);
+    }
+    p.timeouts.clear(); p.media.clear(); p.streams.clear();
+    if (byApp.get(p.app) === p) byApp.delete(p.app);
+    procs.delete(p.pid); recent.unshift(info(p)); recent = recent.slice(0, 10);
+    PatOS.emit('proc:exit', { pid: p.pid, app: p.app, forced: !!forced });
+  }
+  let recent = [];
+  function windowClosed(p, win) {
+    if (!p) return; p.windows.delete(win);
+    if (!p.windows.size) raw.setTimeout(() => check(p), 1500); // (its close handlers stop what they started first)
+  }
+  function check(p) {
+    if (p.dead || p.system || p.windows.size) return;
+    p.rafs.forEach((id) => raw.cancelAnimationFrame(id)); p.rafs.clear(); // (drawing for a window that is gone)
+    if (!busy(p)) end(p, false);
+  }
+
+  /* quit: its windows close the normal way (they may ask to save). force quit: everything it started stops */
+  function quit(pid) { const p = procs.get(+pid); if (!p || p.system) return false; if (!p.windows.size) { end(p, true); return true; } [...p.windows].forEach((w) => w.close()); return true; }
+  function kill(pid) {
+    const p = procs.get(+pid); if (!p || p.system) return false;
+    [...p.windows].forEach((w) => { w._force = true; try { w.close(); } catch (e) {} });
+    end(p, true);
+    if (PatOS.pill && PatOS.pill.flash) PatOS.pill.flash({ lead: '<span class="pl-app">' + PatOS.iconHTML((PatOS.apps[p.app] && PatOS.apps[p.app].icon) || p.app) + '</span>', title: p.name, sub: PatOS.t('was force quit'), status: 'failed', tone: '#ff453a' });
+    return true;
+  }
+
+  /* ---------- what Activity Monitor and the Terminal show ---------- */
+  function memOf(p) {
+    let b = 0;
+    if (p.system) {
+      if (p.name === 'kernel_task' && performance.memory) return performance.memory.usedJSHeapSize;
+      if (p.name === 'windowserver') return document.getElementsByTagName('*').length * 700;
+      if (p.name === 'wallpaperd') { const c = document.querySelector('#wallpaper canvas, canvas.wp3d, #desktop canvas'); return c ? c.width * c.height * 8 : 0; }
+      return 0;
+    }
+    p.windows.forEach((w) => { b += w.el.getElementsByTagName('*').length * 700; w.el.querySelectorAll('canvas').forEach((c) => { b += c.width * c.height * 4; }); });
+    b += p.workers.size * 4e6 + p.media.size * 2e6 + 2e5;
+    return b;
+  }
+  function stateOf(p) {
+    if (p.dead) return p.forced ? 'force quit' : 'ended';
+    const recentLong = p.longs.filter(([t]) => Date.now() - t < 6000);
+    if (recentLong.some(([, d]) => d > 1500) || recentLong.length >= 3) return 'not responding';
+    if (!p.system && !p.windows.size) return 'background';
+    return 'running';
+  }
+  function info(p) {
+    const cpu = cpuPct(p), threads = p.intervals.size + p.timeouts.size + p.rafs.size + p.workers.size;
+    const streams = liveStreams(p).length, sound = playing(p).length;
+    const gpu = [...p.windows].some((w) => w.el.querySelector('canvas.g3d, canvas.webgl, canvas[data-gl]')) || p.name === 'wallpaperd';
+    return {
+      pid: p.pid, name: p.name, app: p.app, system: p.system, state: stateOf(p), started: p.started, windows: p.windows.size,
+      cpu: Math.round(cpu * 10) / 10, cpuTime: p.cpu, threads, intervals: p.intervals.size, timeouts: p.timeouts.size, frames: p.rafs.size, workers: p.workers.size,
+      listeners: p.listeners.size, requests: p.aborts.size, streams, sound, memory: memOf(p),
+      energy: Math.min(100, Math.round(cpu * 1.6 + p.rafs.size * 4 + streams * 10 + sound * 6 + (gpu ? 8 : 0) + p.workers.size * 3)),
+      longs: p.longs.slice(-5), worst: Math.round(p.worst), errors: p.errors.slice(-5)
+    };
+  }
+
+  /* ---------- watching: an app that blocks PatOS, keeps failing, or uses a lot in the background (the Pill says so) ---------- */
+  const told = new Map();
+  raw.setInterval(() => {
+    procs.forEach((p) => {
+      if (p.system || p.dead) return;
+      if (!p.windows.size && !busy(p)) { check(p); return; }
+      const st = stateOf(p), errs = p.errors.filter((e) => Date.now() - e.t < 20000).length, cpu = cpuPct(p);
+      const key = 'proc-' + p.pid; const until = told.get(key) || 0; if (Date.now() < until) return;
+      let warn = null;
+      if (st === 'not responding') warn = { title: p.name + ' ' + PatOS.t('is slowing PatOS down'), sub: PatOS.t('It kept PatOS busy for') + ' ' + (p.worst / 1000).toFixed(1) + ' s', status: 'critical', priority: 'critical' };
+      else if (errs >= 3) warn = { title: p.name + ' ' + PatOS.t('keeps running into problems'), sub: p.errors[p.errors.length - 1].m, status: 'warning', priority: 'important' };
+      else if (!p.windows.size && cpu > 25) { p.hot = (p.hot || 0) + 1; if (p.hot >= 10) warn = { title: p.name + ' ' + PatOS.t('is using a lot of energy'), sub: PatOS.t('In the background') + ' · ' + Math.round(cpu) + '% CPU', status: 'warning', priority: 'important' }; }
+      else p.hot = 0;
+      if (warn && PatOS.pill && PatOS.pill.create && !PatOS.pill.has(key)) {
+        try { PatOS.pill.create(Object.assign({ id: key, app: p.app, actions: [{ id: 'kill', label: PatOS.t('Force Quit'), icon: 'stop', run: () => { told.set(key, 0); PatOS.pill.dismiss(key); kill(p.pid); } }, { id: 'wait', label: PatOS.t('Wait'), icon: 'clock', run: () => { told.set(key, Date.now() + 60000); PatOS.pill.dismiss(key); } }, { id: 'am', label: PatOS.t('Activity Monitor'), icon: 'chart', run: () => PatOS.launch('activity', { pid: p.pid }) }] }, warn)); } catch (e) {}
+      } else if (!warn && PatOS.pill && PatOS.pill.has && PatOS.pill.has(key)) PatOS.pill.dismiss(key);
+    });
+  }, 1000);
+  PatOS.on('proc:exit', (e) => { if (PatOS.pill && PatOS.pill.has && PatOS.pill.has('proc-' + e.pid)) PatOS.pill.dismiss('proc-' + e.pid); });
+
+  PatOS.proc = {
+    forApp, run, quit, kill, windowClosed, _raw: (pid) => procs.get(+pid) || null,
+    sys: (name, fn, self, args) => run(SYS[name], fn, self, args), // (runs PatOS's own work as that part of the system, measured)
+    list: () => [...procs.values()].map(info).sort((a, b) => a.pid - b.pid),
+    get: (pid) => { const p = procs.get(+pid); return p ? info(p) : null; },
+    ofApp: (id) => { const p = byApp.get(id); return p && !p.dead ? info(p) : null; },
+    recent: () => recent.slice(),
+    current: () => (cur ? cur.pid : 0)
+  };
+})();
+
+</script>
+  <script type="patos/js">
 /* generated by build.js from updates.json: do not edit */
 PatOS.version = "3.2.1";
 PatOS.releases = [{"version":"3.2.1","date":"2026-11-13","title":{"en":"PatOS 3.2.1","fr":"PatOS 3.2.1"},"notes":{"en":["Fixed: on some devices PatOS asked to be set up again (with its sign-in) after a restart: a sync bug deleted the note that setup was done. Devices with an account go straight back in, and sync never deletes device-only settings again"],"fr":["Corrigé : sur certains appareils, PatOS demandait d’être configuré à nouveau (avec sa connexion) après un redémarrage : un bug de synchro effaçait la note disant que la configuration était faite. Les appareils avec un compte reviennent directement, et la synchro n’efface plus jamais les réglages propres à l’appareil"]}},{"version":"3.2.0","date":"2026-11-12","title":{"en":"PatOS 3.2: Messages","fr":"PatOS 3.2 : Messages"},"more":true},{"version":"3.1.0","date":"2026-11-12","title":{"en":"PatOS 3.1: Handoff","fr":"PatOS 3.1 : Continuité"},"more":true},{"version":"3.0.0","date":"2026-11-10","title":{"en":"PatOS 3: Prism","fr":"PatOS 3 : Prisme"},"more":true},{"version":"2.3.1","date":"2026-11-09","title":{"en":"Drawn glass icons","fr":"Des icônes dessinées en verre"},"more":true},{"version":"2.3.0","date":"2026-11-09","title":{"en":"Liquid Glass, everywhere","fr":"Liquid Glass, partout"},"more":true},{"version":"2.2.2","date":"2026-11-09","title":{"en":"Liquid Glass without the light bar","fr":"Liquid Glass sans la barre de lumière"},"more":true},{"version":"2.2.1","date":"2026-11-09","title":{"en":"Thick, clear Liquid Glass","fr":"Liquid Glass épais et clair"},"more":true},{"version":"2.2.0","date":"2026-11-09","title":{"en":"Liquid Glass, rebuilt","fr":"Liquid Glass, refait"},"more":true},{"version":"2.1.3","date":"2026-11-06","title":{"en":"PitCode Studio on iPhone","fr":"PitCode Studio sur iPhone"},"more":true},{"version":"2.1.2","date":"2026-11-06","title":{"en":"Importing projects, made sturdier","fr":"Importer des projets, en plus solide"},"more":true},{"version":"2.1.1","date":"2026-11-06","title":{"en":"Importing files on phones","fr":"Importer des fichiers sur téléphone"},"more":true},{"version":"2.1.0","date":"2026-11-05","title":{"en":"PatOS 2.1: Slither and a better Studio","fr":"PatOS 2.1 : Slither et un meilleur Studio"},"more":true},{"version":"2.0.0","date":"2026-11-05","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"more":true},{"version":"1.7.0","date":"2026-11-04","title":{"en":"Better apps","fr":"De meilleures apps"},"more":true},{"version":"1.6.0","date":"2026-11-03","title":{"en":"Software Update","fr":"Mise à jour de logiciels"},"more":true},{"version":"1.5.0","date":"2026-11-03","title":{"en":"iPhone swipe up, Reminders in plain words","fr":"Balayage sur iPhone, Rappels en mots simples"},"more":true},{"version":"1.4.0","date":"2026-11-03","title":{"en":"Clock and Calculator","fr":"Horloge et Calculatrice"},"more":true},{"version":"1.3.0","date":"2026-11-03","title":{"en":"Finder and TextEdit","fr":"Finder et TextEdit"},"more":true},{"version":"1.2.0","date":"2026-11-03","title":{"en":"Faster start, smoother 3D","fr":"Démarrage plus rapide, 3D plus fluide"},"more":true},{"version":"1.1.0","date":"2026-11-03","title":{"en":"Security","fr":"Sécurité"},"more":true}];
@@ -8371,6 +8646,7 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":10};
     'Battery very low': 'Batterie très faible', 'Battery low': 'Batterie faible', 'The sync code isn’t accepted': 'Le code de synchro n’est pas accepté', 'The sync server is full': 'Le serveur de synchro est plein', 'The sync server is busy': 'Le serveur de synchro est occupé', 'The sync server had a problem': 'Le serveur de synchro a eu un problème', 'It will try again': 'Il va réessayer', 'Playing': 'Lecture',
     'Messages and important notifications': 'Messages et notifications importantes', 'They show in the Pill instead of a banner, and still go to Notification Center.': 'Ils s’affichent dans la pilule au lieu d’une bannière, et vont quand même au centre de notifications.', 'Open when the pointer rests on it': 'Ouvrir quand le pointeur reste dessus', 'Show what finished recently': 'Montrer ce qui s’est terminé récemment', 'Second activity bubble': 'Bulle de la deuxième activité', 'Music bars': 'Barres de musique', 'How long quick messages stay': 'Durée des messages rapides', 'In full-screen apps': 'Dans les apps en plein écran', 'Only important things': 'Seulement l’important', 'Short': 'Courte', 'Long': 'Longue', 'Always': 'Toujours', 'Timers, music, copies and the microphone, at the top of the screen. Alt+A opens the Activity Overview.': 'Minuteurs, musique, copies et micro, en haut de l’écran. Alt+A ouvre l’aperçu des activités.', 'Break': 'Pause',
     'finished recently': 'terminés récemment',
+    'Inspect': 'Inspecter', 'System processes': 'Processus système', 'Processes': 'Processus', 'CPU load': 'Charge du processeur', 'not shared by this browser': 'non partagée par ce navigateur', 'CPU is measured: the time each app’s own code runs. Memory is an estimate from what its windows hold.': 'Le processeur est mesuré : le temps que le code de chaque app tourne. La mémoire est une estimation d’après ce que ses fenêtres contiennent.', 'Force quit': 'Forcer à quitter', 'Everything it started stops now: its windows, timers, animations, workers, network requests, microphone, camera and sound. What it hasn’t saved is lost. Copies and backups keep going.': 'Tout ce qu’elle a lancé s’arrête maintenant : ses fenêtres, minuteurs, animations, tâches de fond, requêtes réseau, micro, caméra et son. Ce qu’elle n’a pas enregistré est perdu. Les copies et sauvegardes continuent.', 'Problems': 'Problèmes', 'was force quit': 'a été forcée à quitter', 'is slowing PatOS down': 'ralentit PatOS', 'It kept PatOS busy for': 'Elle a occupé PatOS pendant', 'keeps running into problems': 'a des problèmes à répétition', 'is using a lot of energy': 'utilise beaucoup d’énergie', 'In the background': 'En arrière-plan',
     'Tile All Windows': 'Disposer toutes les fenêtres', 'Merge All Windows': 'Fusionner toutes les fenêtres', 'Move Tab to New Window': 'Placer l’onglet dans une nouvelle fenêtre', 'Magnetic edges': 'Bords magnétiques', 'Windows click to the screen’s edges and to each other. Hold Shift to place one freely.': 'Les fenêtres s’accrochent aux bords de l’écran et entre elles. Maintenez Maj pour en placer une librement.',
     'Stage Focus': 'Focus sur la scène', 'Save Window Group…': 'Enregistrer un groupe de fenêtres…', 'Save Window Group': 'Enregistrer un groupe de fenêtres', 'Delete a Window Group…': 'Supprimer un groupe de fenêtres…', 'window': 'fenêtre', 'windows': 'fenêtres', 'Window group saved': 'Groupe de fenêtres enregistré', 'Reopen them all from the Window menu.': 'Rouvrez-les toutes depuis le menu Fenêtre.',
     'Motion': 'Mouvement', 'Calm': 'Calme', 'Natural': 'Naturel', 'Playful': 'Enjoué', 'How windows, menus and panels move': 'La façon dont bougent les fenêtres, les menus et les panneaux',
@@ -11439,11 +11715,14 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":10};
     Object.assign(el.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: ht + 'px' });
 
     const handlers = {};
+    // (3.3) the app's process: its code runs inside it, so PatOS can measure it and stop it (js/process.js)
+    const proc = PatOS.proc ? PatOS.proc.forApp(app) : null;
+    const inProc = (fn, args) => (proc ? PatOS.proc.run(proc, fn, null, args || []) : fn.apply(null, args || []));
     const win = {
       id, app, el, body, titlebar, toolbar, titleEl, args: args || {},
       minimized: false, maximized: false, prevRect: null,
       on(ev, fn) { (handlers[ev] = handlers[ev] || []).push(fn); return () => { handlers[ev] = (handlers[ev] || []).filter((f) => f !== fn); }; },
-      emit(ev, d) { (handlers[ev] || []).slice().forEach((f) => { try { f(d); } catch (e) { console.error(e); PatOS.errors && PatOS.errors.report(e, app.id + ' ' + ev); } }); },
+      emit(ev, d) { (handlers[ev] || []).slice().forEach((f) => { try { inProc(f, [d]); } catch (e) { console.error(e); PatOS.errors && PatOS.errors.report(e, app.id + ' ' + ev); } }); },
       setTitle(t) { titleEl.textContent = t; win.title = t; el.setAttribute('aria-label', t); PatOS.emit('wm:title', win); },
       close: () => closeWindow(win),
       minimize: () => minimizeWindow(win),
@@ -11452,7 +11731,9 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":10};
       focus: () => focusWindow(win),
       rect() { return { x: el.offsetLeft, y: el.offsetTop, w: el.offsetWidth, h: el.offsetHeight }; }
     };
-    win.title = app.name;
+    win.title = app.name; win.pid = proc ? proc.pid : 0; if (proc) proc.windows.add(win);
+    const sysRun = (fn) => (PatOS.proc ? PatOS.proc.sys('windowserver', fn) : fn());
+    sysRun(() => { // (the title bar, its buttons, moving and resizing: the window server's work, not the app's)
 
     traffic.querySelector('.close').addEventListener('click', (e) => { e.stopPropagation(); win.close(); });
     traffic.querySelector('.min').addEventListener('click', (e) => { e.stopPropagation(); win.minimize(); });
@@ -11463,6 +11744,7 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":10};
     setupDrag(win, titlebar);
     setupResize(win);
     if (app.titlebar === 'hidden') setupDrag(win, body, true);
+    });
 
     layer().appendChild(el);
     wins.push(win);
@@ -11483,7 +11765,7 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":10};
       box.appendChild(document.createElement('br')); box.appendChild(again); body.appendChild(box);
     };
     const run = () => {
-      try { const r = app.launch(win, win.args); if (r && typeof r.then === 'function') r.then(null, failed); } catch (e) { failed(e); }
+      try { const r = inProc(() => app.launch(win, win.args)); if (r && typeof r.then === 'function') r.then(null, failed); } catch (e) { failed(e); }
     };
     // 3D apps wait for three.js, which PatOS only loads when it is needed
     if (app.needs3D && !window.THREE && PatOS.webgl) {
@@ -11706,13 +11988,14 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":10};
   function closeWindow(win) {
     if (win.closed) return; // (closing twice, e.g. a double tap, must not run every cleanup twice)
     let veto = false;
-    win.emit('beforeclose', { cancel: () => { veto = true; } });
+    if (!win._force) win.emit('beforeclose', { cancel: () => { veto = true; } }); // (Force Quit doesn't ask)
     if (veto) return;
     if (motionOK()) win.el.animate([{ transform: 'none', opacity: 1 }, { transform: 'scale(.92)', opacity: 0, filter: 'blur(4px)' }], { duration: 200, easing: 'ease-in', fill: 'forwards' });
     else win.el.classList.add('closing');
     win.el.style.pointerEvents = 'none';
     win.closed = true;
     win.emit('closed');
+    if (PatOS.proc && win.pid) { const pr = PatOS.proc._raw(win.pid); if (pr) PatOS.proc.windowClosed(pr, win); }
     const i = wins.indexOf(win); if (i >= 0) wins.splice(i, 1);
     if (win.fullscreen) { win.fullscreen = false; if (!wins.some((w) => w.fullscreen) && weAskedBrowserFS && document.fullscreenElement) { weAskedBrowserFS = false; document.exitFullscreen().catch(() => {}); } }
     updateFS();
@@ -11874,7 +12157,7 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":10};
     if (app.single && existing.length) {
       const w = existing[0];
       restoreWindow(w);
-      if (args && app.onArgs) app.onArgs(w, args);
+      if (args && app.onArgs) { const pr = PatOS.proc && PatOS.proc.forApp(app); if (pr) PatOS.proc.run(pr, app.onArgs, app, [w, args]); else app.onArgs(w, args); }
       return w;
     }
     if (!existing.length && PatOS.dock) PatOS.dock.bounce(appId);
@@ -12553,7 +12836,7 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":10};
       if (!renderer.gpuReady()) return; // the graphics chip is still busy with the last frame
       update(t, step); renderer.paced(scene, camera);
     };
-    three.raf = requestAnimationFrame(loop);
+    three.raf = PatOS.proc ? PatOS.proc.sys('wallpaperd', () => requestAnimationFrame(loop)) : requestAnimationFrame(loop); // (its frames are measured as wallpaperd: js/process.js)
     three.dispose = () => { window.removeEventListener('pointermove', onMove); window.removeEventListener('resize', resize); disposables.forEach((d) => d.dispose()); };
     return true;
   }
@@ -15193,7 +15476,8 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":10};
     pill._digits = [...box.querySelectorAll('.pl-digits')].map((d) => d.textContent);
   }
 
-  function render() {
+  function render() { return PatOS.proc ? PatOS.proc.sys('pilld', renderNow) : renderNow(); } // (measured as pilld: js/process.js)
+  function renderNow() {
     if (!pill) return;
     const vis = on() && PatOS.loggedIn && !document.getElementById('setup');
     if (!flashNow && flashQ.length && vis) startFlash(flashQ.shift());
@@ -15297,6 +15581,8 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":10};
     setProgress: (id, p) => update(id, { progress: p }), setPriority: (id, p) => update(id, { priority: p }),
     // (3.3 beta 8 names)
     set: (id, item) => { try { create(Object.assign({ id: String(id) }, item)); } catch (e) {} }, clear: (id) => dismiss(String(id)),
+    has: (id) => acts.has(String(id)),
+    dismissApp: (app) => { [...acts.values()].filter((a) => a.app === app && !a.system).forEach((a) => dismiss(a.id)); }, // (its app was force-quit)
     flash, notify: takeNotification, expand: () => expand(true), collapse, render, preview,
     history: () => hist.slice(), clearHistory: () => { hist = []; saveHist(); schedule(); },
     get state() { return { mode, items: shown.map((x) => x.id), flash: flashNow ? flashNow.title : null }; }
@@ -24302,8 +24588,35 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         uname(a) { text(a.includes('-a') ? 'PatOS patos ' + PatOS.version + ' patos-kernel ' + PatOS.version + ' #1 SMP ' + new Date().toDateString() + ' x86_64 PatOS' : 'PatOS'); },
         dmesg() { PatOS.firmware.log().forEach((l, i) => text('[' + (0.1 + i * 0.07).toFixed(6).padStart(12) + '] ' + l)); },
         async df() { let used = 0, quota = 0; try { const e = await navigator.storage.estimate(); used = e.usage || 0; quota = e.quota || 0; } catch (e) {} const g = (n) => (n / 1073741824).toFixed(1) + 'G'; text('Filesystem    Size   Used  Avail Use%  Mounted on'); text('patos-disk   ' + g(quota).padStart(6) + ' ' + g(used).padStart(6) + ' ' + g(Math.max(0, quota - used)).padStart(6) + ' ' + (quota ? Math.round(used / quota * 100) : 0) + '%    /'); },
-        ps() { text('  PID  COMMAND'); [[1, 'launchd'], [42, 'kernel_task'], [88, 'windowserver'], [97, 'spotlightd'], [103, 'syncd']].concat((PatOS.wm.windows || []).map((w, i) => [300 + i, w.app.name])).forEach(([pid, n]) => text(String(pid).padStart(5) + '  ' + n)); },
-        kill(a) { const pid = a.filter((x) => !x.startsWith('-'))[0]; if (!pid) return text('usage: kill <pid>', 'err'); if (pid === '1' || pid === '42') { if (!PatOS.fs.isRoot()) return text('kill: ' + pid + ': Operation not permitted', 'err'); PatOS.firmware.panic(pid === '1' ? 'Attempted to kill init!' : 'Attempted to kill the kernel'); return; } const w = (PatOS.wm.windows || [])[+pid - 300]; if (w) { w.close(); return; } text('kill: ' + pid + ': No such process', 'err'); },
+        // (3.3) real processes (js/process.js): ps · top · kill [-9] <pid> · killall <name>
+        ps(a) {
+          const l = PatOS.proc ? PatOS.proc.list() : [];
+          const all = a.some((x) => /a|x/.test(x)); text('  PID  %CPU   TIME     STATE           COMMAND');
+          l.filter((p) => all || !p.system || p.pid === 1).forEach((p) => text(String(p.pid).padStart(5) + '  ' + p.cpu.toFixed(1).padStart(4) + '  ' + (p.cpuTime / 1000).toFixed(2).padStart(7) + 's  ' + p.state.padEnd(15) + ' ' + (p.system ? p.name : p.name)));
+          if (!all) text('(ps aux: with the system processes)');
+        },
+        top() {
+          const l = PatOS.proc ? PatOS.proc.list().sort((x, y) => y.cpu - x.cpu) : [];
+          const mem = performance.memory ? PatOS.fmtBytes(performance.memory.usedJSHeapSize) : 'n/a';
+          text('Processes: ' + l.length + ' total, ' + l.filter((p) => p.state === 'running').length + ' running, ' + l.filter((p) => p.state === 'background').length + ' in the background · CPU (measured): ' + l.reduce((s2, p) => s2 + p.cpu, 0).toFixed(1) + '% · JS memory: ' + mem);
+          text('  PID  %CPU  THREADS  ENERGY  MEMORY      COMMAND');
+          l.slice(0, 12).forEach((p) => text(String(p.pid).padStart(5) + '  ' + p.cpu.toFixed(1).padStart(4) + '  ' + String(p.threads).padStart(7) + '  ' + String(p.energy).padStart(6) + '  ' + (p.memory ? PatOS.fmtBytes(p.memory) : '-').padEnd(10) + '  ' + p.name));
+        },
+        kill(a) {
+          const force = a.includes('-9') || a.includes('-KILL'); const pid = a.filter((x) => !x.startsWith('-'))[0];
+          if (!pid) return text('usage: kill [-9] <pid>', 'err');
+          if (pid === '1' || pid === '42') { if (!PatOS.fs.isRoot()) return text('kill: ' + pid + ': Operation not permitted', 'err'); PatOS.firmware.panic(pid === '1' ? 'Attempted to kill init!' : 'Attempted to kill the kernel'); return; }
+          const p = PatOS.proc && PatOS.proc.get(pid);
+          if (!p) return text('kill: ' + pid + ': No such process', 'err');
+          if (p.system) return text('kill: ' + pid + ': ' + (PatOS.fs.isRoot() ? p.name + ' is part of PatOS and can’t be stopped' : 'Operation not permitted'), 'err');
+          if (force) PatOS.proc.kill(p.pid); else PatOS.proc.quit(p.pid);
+        },
+        killall(a) {
+          const name = a.filter((x) => !x.startsWith('-')).join(' ').toLowerCase(); if (!name) return text('usage: killall [-9] <name>', 'err');
+          const l = (PatOS.proc ? PatOS.proc.list() : []).filter((p) => !p.system && (p.name.toLowerCase() === name || p.app === name));
+          if (!l.length) return text('No matching processes were found', 'err');
+          l.forEach((p) => (a.includes('-9') ? PatOS.proc.kill(p.pid) : PatOS.proc.quit(p.pid)));
+        },
         nvram(a) { const m = a.join(' '); if (/boot-args=.*-v/.test(m)) { if (!PatOS.fs.isRoot()) return text('nvram: Operation not permitted (use sudo)', 'err'); PatOS.firmware.verboseAlways(true); text('boot-args set: PatOS will start with the boot log.'); } else if (/-d\s+boot-args/.test(m)) { if (!PatOS.fs.isRoot()) return text('nvram: Operation not permitted (use sudo)', 'err'); PatOS.firmware.verboseAlways(false); text('boot-args removed.'); } else text('boot-args\t' + (PatOS.firmware.state().verboseAlways ? '-v' : '')); },
         csrutil(a) { if (a[0] === 'disable' || a[0] === 'enable') return text('csrutil: this can only be changed in Recovery (restart holding R, or: reboot --recovery)', 'err'); text('System Integrity Protection status: ' + (PatOS.firmware.sipOff() ? 'disabled' : 'enabled') + '.'); },
         errors(a) {
@@ -27781,43 +28094,109 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
 
 </script>
   <script type="patos/js">
-/* Activity Monitor */
+/* Activity Monitor (3.3): the processes of PatOS (js/process.js), measured live.
+   CPU · Memory · Energy views; click a column to sort; select a process to Quit or Force Quit it; double-click (or "i") to
+   see everything about it: what it holds (timers, loops, workers, listeners, requests, microphone/camera, sound), its long
+   blocks of work and its problems. The numbers are measured (CPU time) or estimated (memory: from what its windows hold),
+   and said to be. */
 (function () {
   'use strict';
-  const { h } = PatOS;
+  const { h } = PatOS; const T = (s) => PatOS.t(s);
+  const fmtTime = (ms) => { const s = ms / 1000; return s < 60 ? s.toFixed(2) + ' s' : Math.floor(s / 60) + ':' + String(Math.floor(s % 60)).padStart(2, '0'); };
+  const ST = { running: 'Running', background: 'Background', 'not responding': 'Not responding', ended: 'Ended', 'force quit': 'Force quit' };
   PatOS.registerApp({
-    id: 'activity', name: 'Activity Monitor', icon: 'activity', width: 680, height: 460, category: 'Utilities', keywords: 'task manager force quit cpu memory fps',
-    launch(win) {
-      const stats = h('div', { class: 'am-stats' });
-      const table = h('div', { class: 'am-table' });
-      const graph = h('canvas', { class: 'am-graph', width: 600, height: 80 });
-      win.body.append(stats, graph, table);
-      let frames = 0, fps = 60, last = performance.now(), raf; const hist = [];
-      const loop = (t) => { frames++; if (t - last >= 1000) { fps = Math.round(frames * 1000 / (t - last)); frames = 0; last = t; hist.push(fps); if (hist.length > 60) hist.shift(); } raf = requestAnimationFrame(loop); };
+    id: 'activity', name: 'Activity Monitor', icon: 'activity', single: true, width: 860, height: 560, minWidth: 560, minHeight: 360, category: 'Utilities', keywords: 'task manager force quit cpu memory energy processes ps top fps',
+    launch(win, args) {
+      win.el.classList.add('has-toolbar', 'am2-win');
+      let tab = PatOS.store.get('amTab', 'cpu'), sortK = 'cpu', sortDir = -1, sel = args && args.pid ? +args.pid : 0, q = '', showSys = PatOS.store.get('amSys', true);
+      const COLS = {
+        cpu: [['name', 'Process'], ['cpu', '% CPU'], ['cpuTime', 'CPU Time'], ['threads', 'Threads'], ['windows', 'Windows'], ['state', 'State'], ['pid', 'PID']],
+        memory: [['name', 'Process'], ['memory', 'Memory'], ['workers', 'Workers'], ['listeners', 'Listeners'], ['requests', 'Requests'], ['pid', 'PID']],
+        energy: [['name', 'Process'], ['energy', 'Energy Impact'], ['frames', 'Animations'], ['streams', 'Mic / Camera'], ['sound', 'Sound'], ['pid', 'PID']]
+      };
+      // toolbar
+      const seg = PatOS.ui.segmented([['cpu', 'CPU'], ['memory', 'Memory'], ['energy', 'Energy']], tab, (v) => { tab = v; PatOS.store.set('amTab', v); sortK = v === 'cpu' ? 'cpu' : v === 'memory' ? 'memory' : 'energy'; sortDir = -1; draw(); });
+      const bQuit = h('button', { class: 'am2-tb', title: T('Force Quit'), 'aria-label': T('Force Quit'), html: PatOS.sym('stop'), onclick: () => askKill() });
+      const bInfo = h('button', { class: 'am2-tb', title: T('Inspect'), 'aria-label': T('Inspect'), html: PatOS.sym('search'), onclick: () => inspect() });
+      const sysT = h('button', { class: 'am2-tb' + (showSys ? ' on' : ''), title: T('System processes'), 'aria-label': T('System processes'), html: PatOS.sym('gear'), onclick: () => { showSys = !showSys; PatOS.store.set('amSys', showSys); sysT.classList.toggle('on', showSys); draw(); } });
+      const search = PatOS.ui.search({ placeholder: 'Search', onInput: (v) => { q = v.toLowerCase(); draw(); } });
+      win.toolbar.append(bQuit, bInfo, sysT, seg, h('div', { style: { flex: 1 } }), search);
+      const table = h('div', { class: 'am2-table', role: 'grid', 'aria-label': T('Processes') });
+      const foot = h('div', { class: 'am2-foot' });
+      win.body.append(table, foot);
+      const hist = []; let frames = 0, fps = 60, last = performance.now(), raf;
+      const loop = (t) => { frames++; if (t - last >= 1000) { fps = Math.round(frames * 1000 / (t - last)); frames = 0; last = t; } raf = requestAnimationFrame(loop); };
       raf = requestAnimationFrame(loop);
-      function render() {
-        const mem = performance.memory ? PatOS.fmtBytes(performance.memory.usedJSHeapSize) : 'n/a';
-        stats.innerHTML = '';
-        [['FPS', fps], ['Memory used', mem], ['Windows', PatOS.wm.windows.length], ['Items on screen', document.getElementsByTagName('*').length.toLocaleString()], ['Storage', PatOS.fmtBytes(PatOS.store.usage())], ['Time on', Math.round(performance.now() / 60000) + ' min']]
-          .forEach(([k, v]) => stats.appendChild(h('div', { class: 'am-stat' }, h('small', {}, k), h('b', {}, String(v)))));
-        const x = graph.getContext('2d'); graph.width = graph.clientWidth || 600; x.clearRect(0, 0, graph.width, 80);
-        x.strokeStyle = '#32d74b'; x.lineWidth = 2; x.beginPath();
-        hist.forEach((v, i) => { const px = i / 59 * graph.width, py = 78 - Math.min(v, 75); i ? x.lineTo(px, py) : x.moveTo(px, py); }); x.stroke();
-        table.innerHTML = '';
-        table.appendChild(h('div', { class: 'am-row am-h' }, h('span', {}, 'App'), h('span', {}, 'Windows'), h('span', {}, 'Items'), h('span', {}, '')));
-        const apps = [...new Set(PatOS.wm.windows.map((w) => w.app.id))];
-        if (!apps.length) table.appendChild(h('div', { class: 'am-row' }, h('span', { class: 'am-p' }, 'No apps are open'), h('span'), h('span'), h('span')));
-        apps.forEach((id) => {
-          const app = PatOS.apps[id]; const ws = PatOS.wm.windowsOf(id);
-          const nodes = ws.reduce((n, w) => n + w.el.getElementsByTagName('*').length, 0);
-          const gpu = ws.some((w) => w.el.querySelector('canvas.g3d, canvas.mu-canvas, canvas.ab-canvas'));
-          table.appendChild(h('div', { class: 'am-row' }, h('span', { class: 'am-p' }, h('span', { class: 'am-ic', html: PatOS.iconHTML(app.icon || id) }), app.name, gpu ? h('small', { class: 'am-gpu' }, '3D') : null), h('span', {}, ws.length), h('span', {}, nodes.toLocaleString()),
-            id !== 'activity' ? h('button', { class: 'btn danger', onclick: () => { PatOS.wm.quit(id); render(); } }, 'Force Quit') : h('span')));
-        });
+
+      const valueOf = (p, k) => (k === 'state' ? p.state : k === 'name' ? p.name.toLowerCase() : p[k] || 0);
+      const cell = (p, k) => {
+        if (k === 'name') return h('span', { class: 'am2-name' }, h('span', { class: 'am2-ic', html: p.system ? PatOS.sym('gear') : PatOS.iconHTML((PatOS.apps[p.app] && PatOS.apps[p.app].icon) || p.app) }), h('span', {}, p.name));
+        if (k === 'cpu') return h('span', { class: 'am2-num' + (p.cpu > 25 ? ' hot' : '') }, p.cpu.toFixed(1));
+        if (k === 'cpuTime') return h('span', { class: 'am2-num' }, fmtTime(p.cpuTime));
+        if (k === 'memory') return h('span', { class: 'am2-num' }, p.memory ? PatOS.fmtBytes(p.memory) : '—');
+        if (k === 'energy') return h('span', { class: 'am2-num' + (p.energy > 40 ? ' hot' : '') }, String(p.energy));
+        if (k === 'state') return h('span', { class: 'am2-st ' + p.state.replace(/ /g, '-') }, T(ST[p.state] || p.state));
+        if (k === 'streams') return h('span', { class: 'am2-num' }, p.streams ? '● ' + p.streams : '—');
+        if (k === 'sound') return h('span', { class: 'am2-num' }, p.sound ? T('Playing') : '—');
+        return h('span', { class: 'am2-num' }, String(p[k] == null ? '—' : p[k]));
+      };
+      function list() {
+        const l = PatOS.proc.list().filter((p) => (showSys || !p.system) && (!q || p.name.toLowerCase().includes(q) || String(p.pid) === q));
+        return l.sort((a, b) => { const x = valueOf(a, sortK), y = valueOf(b, sortK); return (x > y ? 1 : x < y ? -1 : a.pid - b.pid) * sortDir; });
       }
-      const t = setInterval(render, 1000); render();
+      function draw() {
+        const cols = COLS[tab], l = list(), scroll = table.scrollTop;
+        table.style.setProperty('--am2-cols', cols.map((c, i) => (i === 0 ? 'minmax(180px, 1fr)' : c[0] === 'state' ? '120px' : '96px')).join(' '));
+        table.innerHTML = '';
+        table.appendChild(h('div', { class: 'am2-row am2-head', role: 'row' }, ...cols.map(([k, l2]) => h('button', { class: 'am2-hc' + (sortK === k ? ' on' : ''), role: 'columnheader', onclick: () => { if (sortK === k) sortDir = -sortDir; else { sortK = k; sortDir = k === 'name' || k === 'pid' ? 1 : -1; } draw(); } }, T(l2), sortK === k ? (sortDir < 0 ? ' ↓' : ' ↑') : ''))));
+        if (!l.length) table.appendChild(PatOS.ui.empty({ icon: 'search', title: 'No processes', text: q ? 'Nothing matches your search.' : '' }));
+        l.forEach((p) => {
+          const r = h('div', { class: 'am2-row' + (p.pid === sel ? ' sel' : '') + (p.system ? ' sys' : ''), role: 'row', tabindex: '0', 'aria-selected': String(p.pid === sel), onclick: () => { sel = p.pid; draw(); }, ondblclick: () => { sel = p.pid; inspect(); }, onkeydown: (e) => { if (e.key === 'Enter') inspect(); } }, ...cols.map(([k]) => cell(p, k)));
+          table.appendChild(r);
+        });
+        table.scrollTop = scroll;
+        const s = PatOS.proc.get(sel); bQuit.disabled = !s || s.system; bInfo.disabled = !s;
+        // the totals, under the table
+        const apps = l.filter((p) => !p.system), all = PatOS.proc.list();
+        const total = all.reduce((a, p) => a + p.cpu, 0); hist.push(total); if (hist.length > 60) hist.shift();
+        foot.innerHTML = '';
+        const stat = (k, v) => h('div', { class: 'am2-stat' }, h('small', {}, T(k)), h('b', {}, String(v)));
+        if (tab === 'cpu') {
+          const g = h('canvas', { class: 'am2-graph', width: 240, height: 54 });
+          foot.append(h('div', { class: 'am2-stats' }, stat('Measured CPU', total.toFixed(1) + '%'), stat('Frames per second', fps), stat('Processes', all.length), stat('Threads', all.reduce((a, p) => a + p.threads, 0))), h('div', { class: 'am2-gbox' }, h('small', {}, T('CPU load')), g));
+          const x = g.getContext('2d'); x.clearRect(0, 0, 240, 54); x.fillStyle = 'rgba(48,209,88,.25)'; x.strokeStyle = '#30d158'; x.lineWidth = 1.5; x.beginPath(); x.moveTo(0, 54);
+          hist.forEach((v, i) => x.lineTo(i / 59 * 240, 53 - Math.min(52, v / 100 * 52 * 2))); x.lineTo((hist.length - 1) / 59 * 240, 54); x.closePath(); x.fill();
+        } else if (tab === 'memory') {
+          const heap = performance.memory ? PatOS.fmtBytes(performance.memory.usedJSHeapSize) + ' / ' + PatOS.fmtBytes(performance.memory.jsHeapSizeLimit) : T('not shared by this browser');
+          foot.append(h('div', { class: 'am2-stats' }, stat('JavaScript memory', heap), stat('Items on screen', document.getElementsByTagName('*').length.toLocaleString()), stat('Apps (estimate)', PatOS.fmtBytes(apps.reduce((a, p) => a + p.memory, 0))), stat('Storage', PatOS.fmtBytes(PatOS.store.usage()))));
+        } else {
+          foot.append(h('div', { class: 'am2-stats' }, stat('Energy impact', all.reduce((a, p) => a + p.energy, 0)), stat('Animations', all.reduce((a, p) => a + p.frames, 0)), stat('Mic / Camera', all.reduce((a, p) => a + p.streams, 0) || '—'), stat('Playing sound', all.filter((p) => p.sound).map((p) => p.name).join(', ') || '—')));
+        }
+        foot.appendChild(h('p', { class: 'am2-fine' }, T('CPU is measured: the time each app’s own code runs. Memory is an estimate from what its windows hold.')));
+      }
+      function askKill() {
+        const p = PatOS.proc.get(sel); if (!p || p.system) return;
+        PatOS.ui.sheet(win, { title: T('Force quit') + ' “' + p.name + '”?', body: h('p', { class: 'am2-p' }, T('Everything it started stops now: its windows, timers, animations, workers, network requests, microphone, camera and sound. What it hasn’t saved is lost. Copies and backups keep going.')),
+          actions: (close) => [h('button', { class: 'btn', onclick: () => { close(); PatOS.proc.quit(p.pid); setTimeout(draw, 300); } }, T('Quit')), h('button', { class: 'btn danger', onclick: () => { close(); PatOS.proc.kill(p.pid); sel = 0; setTimeout(draw, 100); } }, T('Force Quit'))] });
+      }
+      function inspect() {
+        const p = PatOS.proc.get(sel); if (!p) return;
+        const row = (k, v) => h('div', { class: 'am2-kv' }, h('span', {}, T(k)), h('b', {}, String(v)));
+        const body = h('div', { class: 'am2-insp' },
+          row('PID', p.pid), row('State', T(ST[p.state] || p.state)), row('Started', new Date(p.started).toLocaleTimeString(PatOS.locale)), row('CPU now', p.cpu.toFixed(1) + '%'), row('CPU time', fmtTime(p.cpuTime)),
+          row('Windows', p.windows), row('Repeating timers', p.intervals), row('Pending timers', p.timeouts), row('Animations', p.frames), row('Workers', p.workers), row('Page listeners', p.listeners), row('Network requests', p.requests),
+          row('Microphone / camera', p.streams || '—'), row('Playing sound', p.sound || '—'), row('Memory (estimate)', p.memory ? PatOS.fmtBytes(p.memory) : '—'), row('Energy impact', p.energy),
+          row('Longest block', p.worst ? (p.worst / 1000).toFixed(2) + ' s' : '—'),
+          p.errors.length ? h('div', { class: 'am2-errs' }, h('small', {}, T('Problems')), ...p.errors.map((e) => h('div', {}, new Date(e.t).toLocaleTimeString(PatOS.locale) + ' · ' + e.m))) : null);
+        PatOS.ui.sheet(win, { title: p.name, body, actions: (close) => p.system ? [h('button', { class: 'btn', onclick: close }, T('Done'))] : [h('button', { class: 'btn', onclick: () => { close(); PatOS.proc.quit(p.pid); } }, T('Quit')), h('button', { class: 'btn danger', onclick: () => { close(); sel = p.pid; askKill(); } }, T('Force Quit')), h('button', { class: 'btn primary', onclick: close }, T('Done'))] });
+      }
+      win.onKey = (e) => { if ((e.key === 'Delete' || e.key === 'Backspace') && sel) askKill(); };
+      win.body.addEventListener('keydown', (e) => win.onKey(e));
+      const t = setInterval(() => { if (!win.body.querySelector('.ui-sheet')) draw(); }, 1000); draw();
+      win._select = (pid) => { sel = +pid; draw(); };
       win.on('closed', () => { clearInterval(t); cancelAnimationFrame(raf); });
-    }
+    },
+    onArgs(win, args) { if (args && args.pid && win._select) win._select(args.pid); }
   });
 })();
 

@@ -415,7 +415,8 @@
     pill._digits = [...box.querySelectorAll('.pl-digits')].map((d) => d.textContent);
   }
 
-  function render() {
+  function render() { return PatOS.proc ? PatOS.proc.sys('pilld', renderNow) : renderNow(); } // (measured as pilld: js/process.js)
+  function renderNow() {
     if (!pill) return;
     const vis = on() && PatOS.loggedIn && !document.getElementById('setup');
     if (!flashNow && flashQ.length && vis) startFlash(flashQ.shift());
@@ -519,6 +520,8 @@
     setProgress: (id, p) => update(id, { progress: p }), setPriority: (id, p) => update(id, { priority: p }),
     // (3.3 beta 8 names)
     set: (id, item) => { try { create(Object.assign({ id: String(id) }, item)); } catch (e) {} }, clear: (id) => dismiss(String(id)),
+    has: (id) => acts.has(String(id)),
+    dismissApp: (app) => { [...acts.values()].filter((a) => a.app === app && !a.system).forEach((a) => dismiss(a.id)); }, // (its app was force-quit)
     flash, notify: takeNotification, expand: () => expand(true), collapse, render, preview,
     history: () => hist.slice(), clearHistory: () => { hist = []; saveHist(); schedule(); },
     get state() { return { mode, items: shown.map((x) => x.id), flash: flashNow ? flashNow.title : null }; }
