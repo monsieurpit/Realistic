@@ -93,3 +93,19 @@ test('profiles: each has its own look, widgets and windows; switching is instant
   assert.equal(await ev(() => PatOS.profiles.remove('school-b')), true);
   assert.deepEqual(errors, []); await page.close();
 });
+
+test('the menu bar shows the profile you are in, and a click switches to another one', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1400, height: 900 } }); const errors = await boot(page, srv.base, { fresh: true });
+  const ev = (f, a) => page.evaluate(f, a);
+  await ev(() => PatOS.profiles.create({ name: 'School' }));
+  const first = await ev(() => PatOS.profiles.current().name);
+  await page.waitForSelector('#mb-profile:not([hidden])');
+  assert.match(await ev(() => document.querySelector('#mb-profile .mb-pname').textContent), new RegExp(first));
+  await page.click('#mb-profile'); await page.waitForSelector('.menu');
+  const items = await ev(() => [...document.querySelectorAll('.menu .menu-item, .menu button, .menu [role=menuitem]')].map((x) => x.textContent.trim()).filter(Boolean));
+  assert.ok(items.some((t) => /School/.test(t)) && items.some((t) => t.includes(first)), 'every profile is offered: ' + JSON.stringify(items));
+  await page.locator('.menu >> text=School').first().click(); await page.waitForTimeout(500);
+  assert.equal(await ev(() => PatOS.profiles.current().name), 'School', 'switched');
+  assert.equal(await ev(() => document.querySelector('#mb-profile .mb-pname').textContent), 'School', 'and the menu bar says so');
+  assert.deepEqual(errors, []); await page.close();
+});

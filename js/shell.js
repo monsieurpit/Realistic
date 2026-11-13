@@ -276,6 +276,20 @@
     $('#mb-search').innerHTML = '<svg viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="6" stroke="currentColor" stroke-width="2.2" fill="none"/><path d="M15 15l5 5" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"/></svg>';
     $('#mb-cc').innerHTML = '<svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="5.5" rx="2.75" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="7.6" cy="7.75" r="1.7" fill="currentColor"/><rect x="3" y="13.5" width="18" height="5.5" rx="2.75" fill="none" stroke="currentColor" stroke-width="1.8"/><circle cx="16.4" cy="16.25" r="1.7" fill="currentColor"/></svg>';
     $('#mb-search').addEventListener('click', () => PatOS.spotlight.toggle());
+    // (4.0) the profile you're in, and a click to switch to another one
+    const mbProf = $('#mb-profile');
+    const paintProfile = () => {
+      const p = PatOS.profiles && PatOS.profiles.current();
+      if (!mbProf) return; mbProf.hidden = !PatOS.profiles;
+      const name = p ? PatOS.t(p.name) : PatOS.t('Profile');
+      mbProf.innerHTML = '<svg viewBox="0 0 24 24"><circle cx="12" cy="8.2" r="3.6" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M4.8 19.5c.9-3.6 3.7-5.6 7.2-5.6s6.3 2 7.2 5.6" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></svg><span class="mb-pname"></span>';
+      mbProf.querySelector('.mb-pname').textContent = name.length > 14 ? name.slice(0, 13) + '…' : name;
+      mbProf.title = PatOS.t('Profile') + ': ' + name + ' · ' + PatOS.t('Click to switch');
+    };
+    if (mbProf) {
+      mbProf.addEventListener('click', (e) => { e.stopPropagation(); if (!PatOS.profiles) return; const r = mbProf.getBoundingClientRect(); PatOS.profiles.menu(Math.min(r.left, innerWidth - 240), r.bottom + 6); });
+      ['profiles', 'profile:switched', 'settings', 'lang'].forEach((ev) => PatOS.on(ev, paintProfile)); paintProfile();
+    }
     $('#mb-cc').addEventListener('click', (e) => { e.stopPropagation(); togglePanel('#control-center'); });
     $('#mb-clock').addEventListener('click', (e) => { e.stopPropagation(); togglePanel('#notif-center'); });
     $('#mb-wifi').addEventListener('click', (e) => {

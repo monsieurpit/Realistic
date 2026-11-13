@@ -97,7 +97,7 @@
 
   /* the switcher: Control Center tile, Spotlight ("profile school"), Pat ("switch to my school profile"), the PatOS menu */
   function menu(x, y) {
-    PatOS.menu([{ header: T('Profiles') }, ...data.list.map((p) => ({ label: p.name, checked: p.id === active(), action: () => switchTo(p.id) })), { divider: true }, { label: T('New Profile…'), action: () => PatOS.launch('settings', { pane: 'profiles' }) }], x, y);
+    PatOS.menu([{ header: T('Profiles') }, ...data.list.map((p) => ({ label: p.name, checked: p.id === active(), action: () => switchTo(p.id) })), { divider: true }, { label: T('New Profile…'), action: () => PatOS.launch('settings', { pane: 'profiles' }) }, { label: T('Manage Profiles…'), action: () => PatOS.launch('settings', { pane: 'profiles' }) }], x, y);
   }
   PatOS.profiles = { list: () => data.list.map((p) => ({ id: p.id, name: p.name, icon: p.icon, color: p.color, active: p.id === active(), windows: (p.windows || []).length })), active, current: () => data.list.find((p) => p.id === active()), create, switchTo, remove, update, exportProfile, importProfile, configOf, setConfig, menu, ICONS, COLORS, SETTINGS, STORE };
   // the device remembers which profile it is in; the first time, the profile you have now is "Personal", as you set it up

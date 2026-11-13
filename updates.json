@@ -1,7 +1,7 @@
 [
   {
     "version": "4.0.0",
-    "beta": 11,
+    "beta": 12,
     "date": "2026-11-13",
     "title": {
       "en": "PatOS 4.0: Beyond the desktop",
@@ -9,6 +9,7 @@
     },
     "notes": {
       "en": [
+        "The menu bar shows the profile you are in, next to Pat and Spotlight. Click it to switch to another profile, make a new one or manage them",
         "PatOS Commons, redesigned: it now looks and works like the rest of PatOS, with the same sidebar, tabs, lists and buttons, a plain feed of posts, and a Home with what's new in all your communities. What you are writing is never lost when new posts come in. The PatOS Pill, completed: the weather (the temperature, rain or snow coming within the hour, and storms or strong wind from the forecast; you can turn it off in Settings), a Favourite button and the next songs for Music (with a new Favourites list in Music), and copies with their speed, the file being copied and Open the destination folder",
         "Much less lag, with or without apps open (games like 2048 included). The cause: the rainbow edge of Liquid Glass on desktop widgets. That edge is three bends (one per color) that the processor draws again on every frame where anything on screen moves. Desktop widgets keep the same bend, bevel and clear glass; only the rainbow is left out on them. The Dock, menus and notifications keep it",
         "PatOS Commons: communities of PatOS people. Find public communities in Discover and join them, or make your own, public or private (people ask, a moderator lets them in). Post, announce (moderators), plan events you add to your Calendar in one click, run challenges and enter them, and showcase what you made: share your desktop, a gallery or a widget made in Studio, which others can try (and put theirs back) or import. Profiles, follows, likes. Safe by design, enforced by PatOS’s server and not just the app: one post every 20 seconds, reports only moderators see, bans, and blocking someone hides their posts and stops them from following you. Only data is ever shared, never code",
@@ -24,6 +25,7 @@
         "The desktop becomes a dashboard: widgets you can place anywhere, resize, stack and configure (clock, calendar, up next, reminders you can check off, music controls, system, weather, notes, countdown, apps, photo, collections), widgets you make in PatOS Studio, and widgets from others that run sandboxed with only the permissions you give them"
       ],
       "fr": [
+        "La barre des menus montre le profil où tu es, à côté de Pat et de Spotlight. Clique dessus pour passer à un autre profil, en créer un ou les gérer",
         "PatOS Commons, redessiné : il ressemble maintenant au reste de PatOS et fonctionne pareil, avec la même barre latérale, les mêmes onglets, listes et boutons, un fil de publications simple, et un Accueil avec les nouveautés de toutes tes communautés. Ce que tu écris n’est jamais perdu quand de nouvelles publications arrivent. La PatOS Pill, complétée : la météo (la température, la pluie ou la neige qui arrive dans l’heure, et les orages ou vents forts selon les prévisions; tu peux la désactiver dans Réglages), un bouton Favori et les prochaines chansons pour Musique (avec une nouvelle liste Favoris dans Musique), et les copies avec leur vitesse, le fichier en cours et Ouvrir le dossier de destination",
         "Beaucoup moins de lenteur, avec ou sans apps ouvertes (y compris dans les jeux comme 2048). La cause : le bord arc-en-ciel du Liquid Glass sur les widgets du bureau. Ce bord, c’est trois courbures (une par couleur) que le processeur redessine à chaque image où quelque chose bouge à l’écran. Les widgets du bureau gardent la même courbure, le même biseau et le même verre clair; seul l’arc-en-ciel n’y est plus. Le Dock, les menus et les notifications le gardent",
         "PatOS Commons : des communautés de gens de PatOS. Trouve des communautés publiques dans Découvrir et rejoins-les, ou crée la tienne, publique ou privée (les gens demandent, un modérateur les fait entrer). Publie, fais des annonces (modérateurs), planifie des événements que tu ajoutes à ton calendrier en un clic, lance des défis et participes-y, et montre ce que tu as fait : partage ton bureau, une galerie ou un widget fait dans Studio, que les autres peuvent essayer (et remettre le leur) ou importer. Profils, abonnements, j’aime. Sûr dès le départ, et c’est le serveur de PatOS qui l’impose, pas seulement l’app : une publication toutes les 20 secondes, des signalements que seuls les modérateurs voient, des bannissements, et bloquer quelqu’un cache ses publications et l’empêche de te suivre. Seules des données sont partagées, jamais du code",
