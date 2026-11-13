@@ -21,6 +21,8 @@ Nothing on this list exists in PatOS yet.
 3. **Video calls**
    Calls with camera and microphone between PatOS accounts (WebRTC), shown live in the PatOS Pill with mute, camera,
    hang up and how long the call has lasted.
+   (4.0 already has voice calls inside a Shared Space, in PatOS Live: video builds on that connection, adds the camera,
+   calls between any two accounts, and a TURN relay for networks where browsers can't reach each other directly.)
 
 4. **Continuity 2.0**
    Reuses the call connections between your own devices:
