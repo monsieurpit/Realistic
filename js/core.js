@@ -266,6 +266,7 @@
     deviceMode: 'auto',
     liquidGlass: true,
     glassRefraction: true,
+    glassDispersion: true,   // the lens splits colors a little at the very edge, like real glass (js/shell.js lens)
     glassStyle: 'clear',
     motion: 'natural',       // calm | natural | playful (the springs every animation uses, js/wm.js)     // clear | tinted (Liquid Glass: Tinted is thicker, for more contrast)
     language: 'auto',      // auto | en | fr      // auto | desktop | mobile

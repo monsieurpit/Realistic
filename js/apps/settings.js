@@ -505,6 +505,7 @@
             group(row('Liquid Glass', toggle('liquidGlass', render), ''),
               S().liquidGlass ? row(T('Glass style'), select('glassStyle', [['clear', T('Transparent')], ['tinted', T('Tinted (more contrast)')]]), '') : null,
               S().liquidGlass ? row(T('Lens edges'), toggle('glassRefraction'), PatOS.glassLens && PatOS.glassLens.supported() ? T('The edges of the Dock bend what is behind them') : T('Needs Chrome, Edge or a Chromebook')) : null,
+              S().liquidGlass && S().glassRefraction && PatOS.glassLens && PatOS.glassLens.supported() ? row(T('Rainbow edges'), toggle('glassDispersion'), T('Colors split a little at the very edge, like real glass')) : null,
               row('Reduce transparency', toggle('reduceTransparency'), matchMedia('(prefers-reduced-transparency: reduce)').matches ? T('Your device asks for less transparency, so PatOS uses less') : ''))];
         },
         wallpaper() {
