@@ -1169,6 +1169,7 @@
         { label: 'Paste', shortcut: 'Ctrl+V', disabled: !PatOS.fileClip.has(), action: () => PatOS.fileClip.paste('/Desktop') },
         { divider: true },
         { label: 'Clean Up Icons', action: () => PatOS.setSetting('desktopPositions', {}) },
+        { label: 'Edit Widgets…', action: () => PatOS.widgets && PatOS.widgets.edit(true) },
         { label: 'Change Wallpaper…', action: () => PatOS.launch('settings', { pane: 'wallpaper' }) },
         { label: 'Next Wallpaper', action: nextWallpaper },
         { divider: true },
@@ -1202,6 +1203,7 @@
 
   /* =========================== DESKTOP WIDGETS =========================== */
   function renderDeskWidgets() {
+    if (PatOS.widgets) return PatOS.widgets.renderDesk(); // (4.0: the widget platform, js/widgets.js)
     let wrap = $('#desk-widgets');
     if (!wrap) { wrap = h('div', { id: 'desk-widgets' }); $('#desktop').insertBefore(wrap, $('#desktop-icons')); }
     wrap.innerHTML = '';

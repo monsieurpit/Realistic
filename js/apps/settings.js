@@ -535,6 +535,18 @@
           }
           return [h('h3', {}, 'Dock'), group(row('Size', range('dockSize', 36, 84, 1, (v) => v + 'px')), row('Grow icons under the pointer', toggle('magnify')), row('How much icons grow', range('magnifyScale', 1.2, 2.2, 0.1, (v) => Math.round(v * 100) + '%')), row('Automatically hide the Dock', toggle('dockAutohide')), row('Show desktop widgets', toggle('showWidgets'))),
             h('h3', {}, 'Windows'), group(row('Magnetic edges', toggle('windowMagnets'), 'Windows click to the screen’s edges and to each other. Hold Shift to place one freely.')),
+            // (4.0) widgets: turn types on and off, what installed widgets may read, remove them
+            h('h3', {}, 'Widgets'), (() => {
+              const W = PatOS.widgets; if (!W) return null;
+              const off = PatOS.store.get('widgetsOff', []) || [];
+              const rows = W.types().filter((t) => t.source !== 'studio' || true).map((t) => {
+                const inst = W.installed().find((x) => x.id === t.id);
+                const sw = h('button', { class: 'switch' + (off.includes(t.id) ? '' : ' on'), role: 'switch', 'aria-checked': String(!off.includes(t.id)), 'aria-label': t.name, onclick: () => { W.setEnabled(t.id, off.includes(t.id)); renderMain(); } });
+                const extra = inst ? h('div', { class: 'st-inline' }, ...inst.permissions.map((p) => { const on = inst.granted.includes(p); return h('button', { class: 'btn' + (on ? ' primary' : ''), title: T(W.PERMS[p][1]), onclick: () => { W.setGrant(t.id, on ? inst.granted.filter((x) => x !== p) : inst.granted.concat(p)); renderMain(); } }, T(W.PERMS[p][0])); }), h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox(T('Remove') + ' ' + t.name + '?', T('It leaves your desktop and its permissions are taken back.'), { ok: T('Remove'), icon: 'settings' })) { W.uninstall(t.id); renderMain(); } } }, T('Remove'))) : null;
+                return row(t.name, h('div', { class: 'st-inline' }, extra, sw), t.source === 'thirdparty' ? T('Installed') + ' · ' + (t.version || '') : t.source === 'studio' ? 'Studio' : T('Built in'));
+              });
+              return group(row('Edit the widgets on the desktop', h('button', { class: 'btn', onclick: () => W.edit(true) }, T('Edit Widgets…'))), ...rows);
+            })(),
             h('h3', {}, 'PatOS Pill'), group(row('PatOS Pill', toggle('pillOn'), 'Timers, music, copies and the microphone, at the top of the screen. Alt+A opens the Activity Overview.'),
               S().pillOn !== false ? row('Messages and important notifications', toggle('pillNotifs'), 'They show in the Pill instead of a banner, and still go to Notification Center.') : null,
               S().pillOn !== false ? row('Open when the pointer rests on it', toggle('pillHover')) : null,

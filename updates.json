@@ -1,5 +1,22 @@
 [
   {
+    "version": "4.0.0",
+    "beta": 1,
+    "date": "2026-11-13",
+    "title": {
+      "en": "PatOS 4.0: Beyond the desktop",
+      "fr": "PatOS 4.0 : Au-delà du bureau"
+    },
+    "notes": {
+      "en": [
+        "The desktop becomes a dashboard: widgets you can place anywhere, resize, stack and configure (clock, calendar, up next, reminders you can check off, music controls, system, weather, notes, countdown, apps, photo, collections), widgets you make in PatOS Studio, and widgets from others that run sandboxed with only the permissions you give them"
+      ],
+      "fr": [
+        "Le bureau devient un tableau de bord : des widgets à placer n’importe où, redimensionner, empiler et configurer (horloge, calendrier, à venir, rappels à cocher, contrôle de la musique, système, météo, notes, compte à rebours, apps, photo, collections), des widgets créés dans PatOS Studio, et des widgets d’autres personnes qui tournent isolés avec seulement les permissions que vous leur donnez"
+      ]
+    }
+  },
+  {
     "version": "3.3.0",
     "date": "2026-11-13",
     "title": {

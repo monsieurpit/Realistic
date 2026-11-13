@@ -129,9 +129,11 @@
   if (window.Audio) { const A = window.Audio; const PA = function (...a) { const el = new A(...a); if (cur) cur.media.add(el); return el; }; PA.prototype = A.prototype; window.Audio = PA; }
 
   /* ---------- the life of a process ---------- */
-  function forApp(app) {
+  // opts.keep: a process with no window that lives until it is stopped (a widget on the desktop)
+  function forApp(app, opts) {
     let p = byApp.get(app.id);
     if (!p || p.dead) { p = mk({ app: app.id, name: app.name }); procs.set(p.pid, p); byApp.set(app.id, p); PatOS.emit('proc:start', { pid: p.pid, app: app.id }); }
+    if (opts && opts.keep) p.keep = true;
     return p;
   }
   const liveStreams = (p) => [...p.streams].filter((s) => s.getTracks().some((t) => t.readyState === 'live'));
@@ -166,13 +168,13 @@
     if (!p.windows.size) raw.setTimeout(() => check(p), 1500); // (its close handlers stop what they started first)
   }
   function check(p) {
-    if (p.dead || p.system || p.windows.size) return;
+    if (p.dead || p.system || p.windows.size || p.keep) return;
     p.rafs.forEach((id) => raw.cancelAnimationFrame(id)); p.rafs.clear(); // (drawing for a window that is gone)
     if (!busy(p)) end(p, false);
   }
 
   /* quit: its windows close the normal way (they may ask to save). force quit: everything it started stops */
-  function quit(pid) { const p = procs.get(pidOf(pid)); if (!p || p.system) return false; if (!p.windows.size) { end(p, true); return true; } [...p.windows].forEach((w) => w.close()); return true; }
+  function quit(pid) { const p = procs.get(pidOf(pid)); if (!p || p.system) return false; if (!p.windows.size) { p.keep = false; end(p, true); return true; } [...p.windows].forEach((w) => w.close()); return true; }
   function kill(pid) {
     const p = procs.get(pidOf(pid)); if (!p || p.system) return false;
     [...p.windows].forEach((w) => { w._force = true; try { w.close(); } catch (e) {} });
@@ -198,7 +200,7 @@
     if (p.dead) return p.forced ? 'force quit' : 'ended';
     const recentLong = p.longs.filter(([t]) => Date.now() - t < 6000);
     if (recentLong.some(([, d]) => d > 1500) || recentLong.length >= 3) return 'not responding';
-    if (!p.system && !p.windows.size) return 'background';
+    if (!p.system && !p.windows.size) return p.keep ? 'running' : 'background';
     return 'running';
   }
   function info(p) {
@@ -220,7 +222,7 @@
   raw.setInterval(() => {
     procs.forEach((p) => {
       if (p.system || p.dead) return;
-      if (!p.windows.size && !busy(p)) { check(p); return; }
+      if (!p.windows.size && !busy(p) && !p.keep) { check(p); return; }
       const st = stateOf(p), errs = p.errors.filter((e) => Date.now() - e.t < 20000).length, cpu = cpuPct(p);
       const key = 'proc-' + p.pid; const until = told.get(key) || 0; if (Date.now() < until) return;
       let warn = null;
