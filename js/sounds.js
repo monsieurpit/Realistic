@@ -100,7 +100,7 @@
   }
   PatOS.sound = Object.assign({}, old, {
     tone, play, names: () => Object.keys(SOUNDS),
-    click: () => play('click'), pop: () => play('pop'), trash: () => play('trash'), notify: (pr) => play(pr === 'urgent' ? 'urgent' : pr === 'high' ? 'important' : 'notify'),
+    click: () => play('click'), pop: () => play('pop'), trash: () => play('trash'), notify: (pr, app) => play(pr === 'urgent' ? 'urgent' : pr === 'high' ? 'important' : app === 'messages' ? 'received' : 'notify'),
     error: () => play('error'), success: () => play('success'),
     startup() { if (theme() === 'off') return; const a = PatOS.audio && PatOS.audio(); if (a && a.ctx.state !== 'running') { const go = () => { document.removeEventListener('pointerdown', go, true); document.removeEventListener('keydown', go, true); a.ctx.resume().then(() => play('startup')); }; document.addEventListener('pointerdown', go, true); document.addEventListener('keydown', go, true); return; } play('startup'); }
   });
@@ -110,5 +110,11 @@
   PatOS.on('wm:open', () => play('open')); PatOS.on('wm:close', () => play('close')); PatOS.on('wm:minimize', () => play('minimize'));
   const heard = new Set(); // (each activity's end is heard once)
   PatOS.on('live', () => { const r = PatOS.live && PatOS.live.recent()[0]; if (r && r.ended && Date.now() - r.ended < 1000 && !heard.has(r.id)) { heard.add(r.id); play(r.status === 'failed' ? 'error' : r.status === 'done' ? 'done' : 'close'); } });
+  // lock, unlock, empty the Trash (wrapped once everything is loaded)
+  const wrapAll = () => {
+    const wrap = (obj, key, name, after) => { if (!obj || typeof obj[key] !== 'function' || obj[key]._snd) return; const f = obj[key]; obj[key] = function () { const r = f.apply(this, arguments); if (!after || after()) play(name); return r; }; obj[key]._snd = 1; };
+    wrap(PatOS.power, 'lock', 'lock'); wrap(PatOS.boot, 'login', 'unlock'); wrap(PatOS.fs, 'emptyTrash', 'emptyTrash');
+  };
+  PatOS.on('wm:ready', wrapAll); setTimeout(wrapAll, 3000); // (PatOS.boot loads after this file)
   const menu0 = PatOS.menu; if (menu0) PatOS.menu = function () { const el = menu0.apply(this, arguments); play('pop'); return el; };
 })();

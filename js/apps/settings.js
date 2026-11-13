@@ -545,7 +545,13 @@
           return [h('h3', {}, 'Display'), group(row('Brightness', range('brightness', 0.2, 1, 0.01, (v) => Math.round(v * 100) + '%')), row('Full screen', h('button', { class: 'btn', onclick: PatOS.toggleFullscreen }, document.fullscreenElement ? 'Exit Full Screen' : 'Enter Full Screen'))),
             h('h3', {}, T('Speed')), group(row(T('Speed mode'), select('perfMode', [['auto', T('Automatic')], ['light', T('Lighter (faster on slow computers)')], ['full', T('Full looks')]]), '')), h('h3', {}, '3D Graphics'), group(row('3D quality', select('quality3d', [['low', T('Low (best for older Chromebooks)')], ['auto', 'Balanced'], ['high', 'High (sharpest)']])))];
         },
-        sound() { return [h('h3', {}, 'Sound'), group(row('Output volume', range('volume', 0, 1, 0.01, (v) => Math.round(v * 100) + '%')), row('Play user interface sounds', toggle('uiSounds')), row('Test', h('button', { class: 'btn', onclick: () => PatOS.sound.startup() }, 'Play Startup Chime')))]; },
+        sound() {
+          // (3.3) the sound family: a theme, a volume of its own, and each sound to try
+          const tries = [['notify', 'Notification'], ['important', 'Important'], ['success', 'Success'], ['error', 'Error'], ['open', 'Window'], ['trash', 'Trash'], ['sent', 'Message sent'], ['received', 'Message received'], ['unlock', 'Unlock'], ['startup', 'Startup']];
+          const grid = h('div', { class: 'st-sounds' }, ...tries.map(([k, l]) => h('button', { class: 'btn sm', onclick: () => PatOS.sound.play(k) }, T(l))));
+          return [h('h3', {}, T('Sound')), group(row(T('Output volume'), range('volume', 0, 1, 0.01, (v) => Math.round(v * 100) + '%')), row(T('Play user interface sounds'), toggle('uiSounds', renderMain))),
+            S().uiSounds ? h('div', {}, h('h3', {}, T('Interface sounds')), group(row(T('Sound theme'), select('soundTheme', [['glass', T('Glass')], ['soft', T('Soft')]])), row(T('Interface volume'), range('uiVolume', 0, 1, 0.01, (v) => Math.round(v * 100) + '%'))), h('h3', {}, T('Try them')), grid) : null];
+        },
         lock() {
           const pw = h('input', { class: 'field', type: 'password', placeholder: S().password ? '••••••' : 'No password', style: { width: '160px' } });
           return [h('h3', {}, 'Lock Screen'), group(row('Login password', h('div', { class: 'st-inline' }, pw, h('button', { class: 'btn', onclick: () => { PatOS.setSetting('password', pw.value); pw.value = ''; pw.placeholder = S().password ? '••••••' : 'No password'; PatOS.notify({ title: S().password ? 'Password set' : 'Password removed', body: 'Used on the PatOS lock screen.', icon: 'settings' }); } }, 'Set')), 'Leave empty for no password. This only protects PatOS, not your computer.'), row('Lock now', h('button', { class: 'btn', onclick: () => PatOS.power.lock() }, 'Lock Screen')))];

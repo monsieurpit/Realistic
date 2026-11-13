@@ -67,7 +67,7 @@
       for (const it of outbox()) {
         try {
           if (it.kind === 'request') { await withTimeout(F.requestChat(me, it.other, it.text, it.id, PatOS.account.isSystem())); }
-          else await withTimeout(F.sendMessage(it.cid, me, it.text, it.id, it.img));
+          else { await withTimeout(F.sendMessage(it.cid, me, it.text, it.id, it.img)); if (PatOS.sound && PatOS.sound.play) PatOS.sound.play('sent'); }
         } catch (e) {
           if (e && e.code === 'offline') break; // try again later
           let there = false; if (it.kind !== 'request') { try { there = await F.messageExists(it.cid, it.id); } catch (x) {} } // it may have gone through already

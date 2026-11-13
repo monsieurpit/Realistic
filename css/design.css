@@ -300,3 +300,4 @@ html:not(.reduce-motion) .dlg { animation: dlgIn var(--spring-dur-short) var(--s
 .sp-invite h4 { margin: 18px 0 4px; font-size: 12px; color: var(--text3); text-transform: uppercase; }
 .sp-muted { color: var(--text3); font-size: 13px; margin: 6px; } .sp-empty { margin: auto; text-align: center; max-width: 420px; } .sp-empty .sp-ic, .sp-empty .sp-ic .icon-tile { width: 72px; height: 72px; border-radius: 18px; margin: 0 auto 10px; } .sp-empty p { color: var(--text2); } .sp-fine { font-size: 12px; color: var(--text3) !important; }
 .mobile .sp-side { width: 100%; } .mobile .spc { flex-direction: column; } .mobile .sp-side { max-height: 40%; border-right: 0; border-bottom: 1px solid var(--border); } .mobile .sp-split { flex-direction: column; } .mobile .sp-files { width: auto; }
+.st-sounds { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: var(--sp-5); }
