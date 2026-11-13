@@ -25,6 +25,10 @@ test('widgets: the default dashboard, adding, resizing, removing, interactive, p
   assert.equal(await ev(() => PatOS.store.get('reminders').find((r) => r.id === 'r1').done), true, 'a reminder is checked off from its widget');
   await ev((i) => PatOS.widgets.resize(i, 'l'), rem);
   assert.equal(await ev((i) => document.querySelector('.wg[data-iid="' + i + '"]').offsetHeight, rem), 316, 'resized');
+  // edit mode: its Add Widget / Done bar goes away with Done (it used to stay)
+  await ev(() => PatOS.widgets.edit(true)); assert.equal(await ev(() => document.querySelectorAll('.wg-editbar').length), 1);
+  await ev(() => document.querySelector('.wg-editbar .btn.primary').click()); await page.waitForTimeout(100);
+  assert.equal(await ev(() => document.querySelectorAll('.wg-editbar').length), 0, 'Done closes edit mode and its bar');
   await ev((i) => PatOS.widgets.remove(i), sys); await page.waitForTimeout(300);
   assert.equal(await ev(() => PatOS.proc.list().filter((p) => p.app === 'widget:system').length), 0, 'removing the last one ends its process (its timer stops)');
   await ev(() => PatOS.flush && PatOS.flush()); await page.reload(); await page.waitForTimeout(2000); await ev(() => PatOS.boot.login()); await page.waitForTimeout(1200);

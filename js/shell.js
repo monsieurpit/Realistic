@@ -251,7 +251,7 @@
     function openFor(btn) {
       const key = btn.dataset.menu;
       const menus = appMenus(activeAppId());
-      const items = menus[key]; if (!items) return;
+      const items = menus[key] || (PatOS.desk && PatOS.desk.menuItems(key)); if (!items) return; // (4.0: menus from a desktop configuration, js/desk.js)
       const r = btn.getBoundingClientRect();
       PatOS.menu(items, r.left, r.bottom + 3, { onClose: () => { hoverMode = false; } });
       btn.classList.add('open'); hoverMode = true;
@@ -385,6 +385,7 @@
       tog('Mute', muted ? 'Sound off' : 'Sound on', muted, 'mute', () => { if (muted) { PatOS.setSetting('volume', preMute || 0.7); muted = false; } else { preMute = s.volume; PatOS.setSetting('volume', 0); muted = true; } }));
     const side = h('div', { class: 'cc-side' },
       h('div', { class: 'cc-tile' }, tog('Focus', PatOS.focusMode ? 'Do Not Disturb' : 'Off', PatOS.focusMode, 'moon', () => { PatOS.focusMode = !PatOS.focusMode; PatOS.emit('focus', PatOS.focusMode); })),
+      PatOS.profiles ? h('div', { class: 'cc-tile' }, tog('Profile', (PatOS.profiles.current() || {}).name || '', true, (PatOS.profiles.current() || {}).icon || 'person', () => setTimeout(() => PatOS.profiles.menu(innerWidth - 330, 120), 0))) : null, // (4.0: switch profiles)
       h('div', { class: 'cc-tile cc-row2' },
         tog(s.theme === 'dark' ? 'Dark' : 'Light', 'Appearance', s.theme === 'dark', 'contrast', () => PatOS.setSetting('theme', s.theme === 'dark' ? 'light' : 'dark')),
         tog('Full Screen', document.fullscreenElement ? 'On' : 'Off', !!document.fullscreenElement, 'fullscreen', toggleFullscreen)));
@@ -591,7 +592,7 @@
   }
   function dockClick(id) {
     const app = PatOS.apps[id];
-    const ws = PatOS.wm.windowsOf(id).filter((w) => !w.tabHidden); // (tabs that aren't shown come with their window)
+    const ws = PatOS.wm.windowsOf(id).filter((w) => !w.tabHidden && !w.profileHidden); // (tabs that aren't shown come with their window; windows kept in another profile stay there)
     if (!ws.length || app.action) return PatOS.launch(id);
     const visible = ws.filter((w) => !w.minimized);
     if (!visible.length) { ws.forEach((w) => PatOS.wm.restore(w)); return; }

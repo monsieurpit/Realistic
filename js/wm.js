@@ -418,6 +418,7 @@
   }
   function restoreWindow(win) {
     if (win.tabHidden && PatOS.wmPro) return PatOS.wmPro.showTab(win); // (a tab that isn't shown: show that tab)
+    if (win.profileHidden) { win.profileHidden = null; win.minimized = false; win.el.style.display = ''; return focusWindow(win); } // (4.0: a window kept in another profile, asked for here: it comes into this profile)
     setTimeout(updateFS, 0);
     if (PatOS.isMobile && PatOS.mobile) return PatOS.mobile.show(win);
     if (!win.minimized) return focusWindow(win);

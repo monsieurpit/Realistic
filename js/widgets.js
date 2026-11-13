@@ -123,6 +123,7 @@
     layout = layout || load();
     [...mounted.keys()].forEach(unmount);
     const w = host(); w.classList.toggle('editing', editing);
+    w.querySelectorAll('.wg-editbar').forEach((x) => x.remove()); // (the Add Widget / Done bar goes with edit mode)
     if (!PatOS.settings.showWidgets && !editing) return;
     layout.forEach(mount);
     if (editing) w.appendChild(editBar());

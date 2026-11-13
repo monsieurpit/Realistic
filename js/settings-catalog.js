@@ -6,7 +6,7 @@
 (function () {
   'use strict';
   const PANES = [
-    ['general', 'General', 'gear|#8e8e93'], ['account', 'Account', 'person|#0a84ff'], ['voice', 'Pat Voice', 'mic|#ff375f'], ['update', 'Software Update', 'download|#5e5ce6'], ['appearance', 'Appearance', 'contrast|#48484a'], ['accessibility', 'Accessibility', 'access|#0a84ff'], ['wallpaper', 'Wallpaper', 'image|#30b0c7'], ['dock', 'Home Screen & Dock', 'dock|#5e5ce6'],
+    ['general', 'General', 'gear|#8e8e93'], ['account', 'Account', 'person|#0a84ff'], ['voice', 'Pat Voice', 'mic|#ff375f'], ['update', 'Software Update', 'download|#5e5ce6'], ['appearance', 'Appearance', 'contrast|#48484a'], ['accessibility', 'Accessibility', 'access|#0a84ff'], ['wallpaper', 'Wallpaper', 'image|#30b0c7'], ['dock', 'Home Screen & Dock', 'dock|#5e5ce6'], ['profiles', 'Profiles', 'person|#30d158'],
     ['display', 'Displays & 3D', 'display|#0a84ff'], ['sound', 'Sound', 'speaker|#ff375f'], ['lock', 'Lock Screen', 'lock|#ff9f0a'], ['network', 'Network', 'wifi|#0a84ff'], ['startup', 'Install & Start Up', 'rocket|#ff6a3d'], ['permissions', 'Permissions', 'shield|#30d158'], ['system', 'This Device', 'laptop|#8e8e93'],
     ['legal', 'Privacy Policy & Terms', 'doc|#8e8e93'], ['keyboard', 'Keyboard', 'keyboard|#8e8e93'], ['storage', 'Storage', 'storage|#8e8e93'], ['backup', 'Backup & Restore', 'history|#30d158'], ['sync', 'Sync', 'cloud|#5ac8fa'], ['privacy', 'Privacy', 'hand|#0a84ff'], ['me', 'Account Info', 'person|#0a84ff']
   ];
@@ -14,7 +14,7 @@
   const CATS = [
     ['general', 'General', 'gear|#8e8e93', ['general', 'update', 'startup', 'keyboard', 'legal']],
     ['looks', 'Appearance', 'palette|#bf5af2', ['appearance', 'wallpaper']],
-    ['desk', 'Desktop & Multitasking', 'window|#5e5ce6', ['dock']],
+    ['desk', 'Desktop & Multitasking', 'window|#5e5ce6', ['dock', 'profiles']],
     ['apps', 'Applications', 'grid|#ff9f0a', ['apps']],
     ['notif', 'Notifications', 'bell|#ff453a', ['notifications']],
     ['sound', 'Sound', 'speaker|#ff375f', ['sound']],

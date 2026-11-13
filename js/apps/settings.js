@@ -527,6 +527,28 @@
             group(row(T('Animate 3D wallpaper'), toggle('live3d'), PatOS.webgl ? '' : T('WebGL is not available on this device'))),
             h('h3', {}, T('Pictures')), grid(pics)];
         },
+        // (4.0) PatOS Profiles: separate environments (js/profiles.js)
+        profiles() {
+          const P = PatOS.profiles; if (!P) return [];
+          const list = P.list();
+          const card = (p) => h('div', { class: 'st-prof' + (p.active ? ' on' : '') },
+            h('span', { class: 'st-prof-ic', style: { background: p.color }, html: PatOS.sym(p.icon) }),
+            h('div', { class: 'st-prof-t' }, h('b', {}, p.name), h('small', {}, p.active ? T('You’re in this profile') : p.windows ? p.windows + ' ' + T(p.windows === 1 ? 'window' : 'windows') : '')),
+            p.active ? null : h('button', { class: 'btn primary', onclick: async () => { await P.switchTo(p.id); renderMain(); } }, T('Switch')),
+            h('button', { class: 'btn', 'aria-label': T('More'), onclick: (e) => { const r = e.currentTarget.getBoundingClientRect(); PatOS.menu([
+              { label: T('Rename…'), action: async () => { const n = await PatOS.ask(T('Rename'), p.name, { icon: 'settings', ok: T('Save') }); if (n) { P.update(p.id, { name: n }); renderMain(); } } },
+              { label: T('Icon'), submenu: true, action: () => { PatOS.menu(P.ICONS.map((ic) => ({ label: ic, action: () => { P.update(p.id, { icon: ic }); renderMain(); } })), r.left, r.bottom + 4); } },
+              { label: T('Color'), action: () => { PatOS.menu(P.COLORS.map((c) => ({ label: c, action: () => { P.update(p.id, { color: c }); renderMain(); } })), r.left, r.bottom + 4); } },
+              { label: T('Export…'), action: () => { const txt = P.exportProfile(p.id); const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([txt], { type: 'application/json' })); a.download = p.name + '.patprofile'; a.click(); setTimeout(() => URL.revokeObjectURL(a.href), 4000); } },
+              { divider: true },
+              { label: T('Delete…'), disabled: p.active || list.length < 2, action: async () => { if (await PatOS.confirmBox(T('Delete the profile') + ' “' + p.name + '”?', T('Its look, Dock, widgets and windows go. Your files and apps stay: they belong to every profile.'), { ok: T('Delete'), icon: 'settings' })) { P.remove(p.id); renderMain(); } } }
+            ], r.left, r.bottom + 4); } }, '•••'));
+          return [h('h3', {}, 'Profiles'), h('p', { class: 'st-note' }, T('Each profile has its own look, Dock, widgets, panels, shortcuts, notification rules and open windows. Your files, notes, apps and account are the same in all of them.')),
+            h('div', { class: 'st-profs' }, ...list.map(card)),
+            group(row(T('New profile'), h('button', { class: 'btn', onclick: async () => { const n = await PatOS.ask(T('New profile'), T('School'), { icon: 'settings', ok: T('Create'), text: T('It starts as a copy of the profile you’re in.') }); if (!n) return; try { P.create({ name: n }); renderMain(); } catch (e) { PatOS.alertBox(T('That didn’t work'), e.message, { icon: 'settings' }); } } }, T('Create…'))),
+              row(T('Import a profile'), h('button', { class: 'btn', onclick: () => { const inp = h('input', { type: 'file', accept: '.patprofile,.json' }); inp.onchange = async () => { try { P.importProfile(await inp.files[0].text()); renderMain(); } catch (e) { PatOS.alertBox(T('That didn’t work'), e.message, { icon: 'settings' }); } }; inp.click(); } }, T('Import…')))),
+            h('p', { class: 'st-note' }, T('Profiles are about what you see, not a lock: anyone using this PatOS can switch.'))];
+        },
         dock() {
           if (PatOS.isMobile) {
             const ids = PatOS.appOrder.filter((id) => !PatOS.apps[id].hidden && id !== 'launchpad');
