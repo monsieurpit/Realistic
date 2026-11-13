@@ -24,6 +24,11 @@ What the rules allow, in plain words:
 | `spaces/{sid}/presence/{uid}` | PatOS Live, who is here: members see it; you only write your own. |
 | `spaces/{sid}/boards`, `notes`, `tasks` (and `items`, `blocks`) | PatOS Live: members read; editors and up write. Every write must be exactly the next revision, signed with your own account, with checked sizes, positions and colours. A task can only be given to a member. |
 | `spaces/{sid}/calls/{cid}`, `peers`, `signals` | PatOS Live voice: members who can comment start, join and end calls. A signal (how two browsers connect) is readable only by the two people it is between; the sound itself goes browser to browser. |
+| `communities/{cid}` | PatOS Commons: public ones are found and read by anyone signed in; private ones only by members. Made by you as its owner; changed by moderators; deleted by the owner (or the system account). |
+| `communities/{cid}/members/{uid}` | You join a public one yourself, or ask for a private one (`pending`); a moderator lets you in. Only the owner makes moderators; nobody becomes owner; a banned person can't join. |
+| `communities/{cid}/posts` (and `likes`) | Members post; announcements and challenges only moderators; an entry only while its challenge is open; shared things are only desktops, galleries or Studio widgets (data, not code), 150 KB at most. **One post every 20 seconds** per person per community (checked by the server). Authors and moderators delete. |
+| `communities/{cid}/bans`, `reports` | Moderators ban (never the owner). Anyone who can read a post can report it once; only moderators read reports. |
+| `profiles/{uid}`, `follows`, `blocks` | Anyone signed in reads profiles and follows; you write only your own. Nobody can follow someone who blocked them, and blocking removes the follows both ways. Your blocks are seen only by you. |
 | everything else | closed |
 
 If you ever change what PatOS stores, change the rules to match, then run `npm run test:cloud` (below) to check them.

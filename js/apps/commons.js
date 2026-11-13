@@ -32,8 +32,10 @@
       async function start() {
         if (!me()) return draw();
         try { F = F || await PatOS.account.cloud(); } catch (e) { F = null; return draw(); }
-        const [m, b] = await Promise.all([F.comMany(me(), joined()).catch(() => []), F.blocked(me()).catch(() => [])]);
-        mine = m.filter((c) => c.myRole); setJoined(mine.map((c) => c.id)); blocked = new Set(b);
+        const asked = joined();
+        const [m, b] = await Promise.all([F.comMany(me(), asked).catch(() => null), F.blocked(me()).catch(() => [])]);
+        if (m) { mine = m.filter((c) => c.myRole); setJoined(joined().filter((id) => !asked.includes(id) || mine.some((c) => c.id === id))); } // (forgets only the ones checked and no longer yours; one joined meanwhile stays)
+        blocked = new Set(b);
         draw(); if (args.cid) openCom(args.cid); else discover();
       }
       async function discover() { view = { kind: 'discover' }; draw(); found = await F.comPublic(100).catch(() => []); found.sort((a, b) => ms(b.at) - ms(a.at)); if (view.kind === 'discover') drawMain(); }
@@ -237,7 +239,7 @@
         }
       }
 
-      const onAcc = () => start(); PatOS.on('account', onAcc);
+      let who = me() && me().uid; const onAcc = () => { const now = me() && me().uid; if (now !== who) { who = now; stopCom(); mine = []; start(); } }; PatOS.on('account', onAcc); // (only when someone else signs in: the event also fires for sync news)
       win.on('closed', () => { stopCom(); PatOS.off('account', onAcc); });
       win._commons = { openCom, discover, openProfile, view: () => view, posts: () => posts.slice(), members: () => members.slice(), mine: () => mine.slice(), useAttachment, addToCalendar, composer };
       start();
