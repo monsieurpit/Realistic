@@ -179,6 +179,8 @@
     onTick: (fn) => { subs.add(fn); return () => subs.delete(fn); },
     schedule, cancel, stop, snooze, askPermission,
     get: (id) => queue().find((x) => x.id === id) || null,
-    ringing: () => [...ringing.keys()]
+    ringing: () => [...ringing.keys()],
+    ringingInfo: () => [...ringing.values()].map((r) => r.x), // (the Pill shows them, with Stop and Snooze)
+    upcoming: (kind) => queue().filter((x) => !kind || x.kind === kind)
   };
 })();

@@ -73,7 +73,22 @@
         dots.innerHTML = '';
         for (let i = 0; i < cfg.every; i++) dots.appendChild(h('i', { class: i < done % cfg.every || (done && done % cfg.every === 0 && mode === 'long') ? 'on' : '' }));
         win.setTitle(running ? fmt(Math.ceil(left)) + ' · ' + PatOS.t('Focus') : PatOS.t('Focus'));
+        toPill();
       }
+      // the session in the PatOS Pill (only when it changes: not on every tick)
+      let pillSig = '';
+      function toPill() {
+        if (!PatOS.pill || !PatOS.pill.create) return;
+        const sig = running + '|' + mode + '|' + Math.round(endAt / 1000) + '|' + (left < total);
+        if (sig === pillSig) return; pillSig = sig;
+        try {
+          const title = PatOS.t(mode === 'focus' ? 'Focus' : 'Break'), sub = mode === 'focus' ? task.value.trim() : PatOS.t('Take a breather');
+          if (running) PatOS.pill.create({ id: 'focus', app: 'focus', title, sub, icon: 'timer', endsAt: endAt, autoEnd: false, progress: null, status: 'running', priority: 72, actions: [{ id: 'pause', label: PatOS.t('Pause'), icon: 'pause', run: () => bStart.onclick() }, { id: 'skip', label: PatOS.t('Skip'), icon: 'next', run: () => bSkip.onclick() }] });
+          else if (left < total) PatOS.pill.create({ id: 'focus', app: 'focus', title, sub: PatOS.t('Paused'), icon: 'timer', endsAt: null, progress: 1 - left / total, status: 'paused', priority: 60, actions: [{ id: 'resume', label: PatOS.t('Resume'), icon: 'play', run: () => bStart.onclick() }] });
+          else PatOS.pill.dismiss('focus');
+        } catch (e) {}
+      }
+      win.on('closed', () => { try { PatOS.pill && PatOS.pill.dismiss('focus'); } catch (e) {} });
       function tick() {
         if (!running) return;
         left = Math.max(0, (endAt - Date.now()) / 1000);

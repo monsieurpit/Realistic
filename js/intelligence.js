@@ -184,7 +184,7 @@
   const remember = (a, r, source) => {
     history.push({ t: Date.now(), id: a.id, title: a.title, owner: a.owner, ok: r.ok, status: r.status, source: String(source || 'user').slice(0, 40), message: String(r.message || '').slice(0, 140) });
     if (history.length > 50) history.splice(0, history.length - 50);
-    PatOS.store.set(HISTORY_KEY, history.slice()); PatOS.emit('intel', { id: a.id, ok: r.ok });
+    PatOS.store.set(HISTORY_KEY, history.slice()); PatOS.emit('intel', { id: a.id, ok: r.ok, title: a.title, message: String(r.message || '').slice(0, 140), source: String(source || 'user') });
   };
   const result = (ok, message, extra) => Object.assign({ ok, status: ok ? 'done' : 'failed', message: String(message || '') }, extra || {});
   // what a run() gave back → a result
@@ -212,6 +212,7 @@
     if (ask && !opts.confirmed) return { ok: null, status: 'confirm', message: typeof ask === 'string' ? ask : L('Are you sure? ', 'Êtes-vous sûr? ') + a.title + '?', confirm: () => execute(id, params, Object.assign({}, opts, { confirmed: true })) };
     let r; try { r = a.run(Object.assign({}, params), { source, context }); }
     catch (e) { PatOS.errors && PatOS.errors.report(e, 'intelligence ' + a.id, { category: 'intelligence', severity: 'warning' }); return fail(a, L('That didn’t work: ', 'Ça n’a pas marché : ') + (e.message || e), source); }
+    if (r && typeof r.then === 'function') { PatOS.emit('intel:start', { id: a.id, title: a.title, source }); } // (the Pill shows it while it works)
     if (r && typeof r.then === 'function') return r.then((x) => finish(a, x, source, params), (e) => fail(a, L('That didn’t work: ', 'Ça n’a pas marché : ') + (e && e.message || e), source));
     return finish(a, r, source, params);
   }

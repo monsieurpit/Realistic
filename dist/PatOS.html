@@ -4948,7 +4948,6 @@ html:not(.reduce-motion) .dlg { animation: dlgIn var(--spring-dur-short) var(--s
 #pill-side .pl-app, #pill-side .pl-app .icon-tile, #pill-side .pl-app svg, #pill-side img, #pill-side .pl-art { width: 18px; height: 18px; border-radius: 5px; } #pill-side .pl-glyph .sym { width: 14px; height: 14px; }
 .pl-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 /* full screen apps: only flashes and an open card show */
-body.patos-fs #pill-wrap:not(.flashing) #pill:not(.expanded), body.patos-fs #pill-wrap:not(.flashing) #pill-side { opacity: 0; pointer-events: none; }
 html.pill-on #mb-live { display: none !important; }
 .mobile #pill-wrap { top: max(4px, calc(var(--mtop, 0px) - 6px)); } .mobile #pill { height: 26px; }
 @media (prefers-reduced-motion: reduce) { #pill, .pl-c, #pill-side { transition-duration: .01s !important; } .pl-digits i.roll { animation: none; } }
@@ -4958,6 +4957,40 @@ html.reduce-motion #pill, html.reduce-motion .pl-c { transition-duration: .01s !
 .pl-act .sym { filter: none !important; } .pl-act:is([data-i=play], [data-i=pause], [data-i=prev], [data-i=next], [data-i=stop]) .sym { fill: currentColor; stroke-width: 1.4; }
 .pl-act .sym * { fill-opacity: 1 !important; }
 .pl-digits { overflow: hidden; line-height: 1.2em; height: 1.2em; vertical-align: bottom; }
+/* Pill 2: the Activity Overview, states and animations */
+#pill.expanded .pl-list { max-height: 80vh; overflow-y: auto; scrollbar-width: none; }
+.pl-head .pl-lead.big { border: 0; padding: 0; background: none; cursor: pointer; border-radius: 12px; }
+.pl-sec { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+.pl-sec > small { display: flex; align-items: center; justify-content: space-between; padding: 4px 6px 2px; font-size: 11px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; color: rgba(255,255,255,.45); }
+.pl-clear { border: 0; background: none; color: rgba(255,255,255,.6); font: 600 11px/1 inherit; text-transform: none; letter-spacing: 0; cursor: pointer; padding: 2px 4px; border-radius: 6px; } .pl-clear:hover { color: #fff; background: rgba(255,255,255,.1); }
+.pl-arow { display: flex; align-items: center; gap: 9px; padding: 6px 6px; border-radius: 12px; cursor: pointer; font-size: 12.5px; }
+.pl-arow:hover, .pl-arow:focus-visible { background: rgba(255,255,255,.08); outline: none; }
+.pl-arow.done { cursor: default; opacity: .85; } .pl-arow.done:hover { background: rgba(255,255,255,.04); }
+.pl-arow .pl-t { flex: 1; } .pl-arow .pl-t b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-state { font-weight: 600; font-size: 12px; font-variant-numeric: tabular-nums; color: rgba(255,255,255,.75); white-space: nowrap; } .pl-state .pl-glyph .sym { width: 13px; height: 13px; }
+.pl-qa { width: 26px; height: 26px; flex: 0 0 26px; border: 0; border-radius: 50%; background: rgba(255,255,255,.1); color: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; }
+.pl-qa .sym { width: 13px; height: 13px; filter: none !important; } .pl-qa:hover { background: rgba(255,255,255,.22); }
+.pl-qa:is([data-i=play], [data-i=pause], [data-i=prev], [data-i=next], [data-i=stop]) .sym { fill: currentColor; } .pl-qa .sym * { fill-opacity: 1 !important; }
+.pl-none { padding: 14px 6px 4px; text-align: center; color: rgba(255,255,255,.6); font-size: 13px; }
+.pl-next { display: flex; gap: 8px; align-items: baseline; margin-top: 2px; font-size: 12px; color: rgba(255,255,255,.75); min-width: 0; } .pl-next small { color: rgba(255,255,255,.45); font-weight: 600; text-transform: uppercase; font-size: 10.5px; } .pl-next span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-lead { position: relative; } .pl-badge { position: absolute; right: -4px; bottom: -4px; width: 11px; height: 11px; border-radius: 50%; background: #fff; color: #000; display: grid; place-items: center; } .pl-badge .sym { width: 8px; height: 8px; stroke-width: 3; filter: none !important; }
+.pl-lead.big .pl-badge { width: 18px; height: 18px; right: -3px; bottom: -3px; } .pl-lead.big .pl-badge .sym { width: 12px; height: 12px; }
+/* something ringing: it breathes */
+#pill.ringing { animation: plRing 1.1s ease-in-out infinite; } @keyframes plRing { 50% { box-shadow: 0 0 26px 2px color-mix(in srgb, var(--pl-tone) 70%, transparent), 0 10px 30px -6px rgba(0,0,0,.5), inset 0 0 0 .5px var(--pl-tone); } }
+/* finished: a sweep of light; failed: a shake */
+#pill.pl-success::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(100deg, transparent 20%, color-mix(in srgb, var(--pl-tone, #34c759) 45%, transparent) 50%, transparent 80%); transform: translateX(-100%); animation: plSweep .9s ease-out .1s forwards; pointer-events: none; z-index: 2; }
+@keyframes plSweep { to { transform: translateX(100%); } }
+#pill.pl-shake { animation: plShake .45s cubic-bezier(.36,.07,.19,.97); } @keyframes plShake { 20%, 60% { translate: -5px 0; } 40%, 80% { translate: 5px 0; } }
+/* full screen: what may show (Settings › Desktop & Dock › PatOS Pill) */
+body.patos-fs #pill-wrap.fs-never { opacity: 0; pointer-events: none; }
+body.patos-fs #pill-wrap.fs-important:not(.urgent) #pill:not(.expanded), body.patos-fs #pill-wrap.fs-important:not(.urgent) #pill-side { opacity: 0; pointer-events: none; }
+body.patos-fs #pill-wrap.fs-always #pill, body.patos-fs #pill-wrap.fs-important.urgent #pill { opacity: 1 !important; pointer-events: auto !important; }
+@media (prefers-reduced-motion: reduce) { #pill.ringing, #pill.pl-shake, #pill.pl-success::before { animation: none; } }
+
+/* (no color of its own: the accent, and a white ring track) */
+.pl-ring { color: #fff; } #pill.toned .pl-ring { color: var(--pl-tone); }
+.pl-bar i { background: var(--accent); } #pill.toned .pl-bar i { background: var(--pl-tone); } .pl-bar.orange i { background: #ff9f0a; }
+#pill::after { background: var(--accent); box-shadow: 0 0 6px var(--accent); } #pill.toned::after { background: var(--pl-tone); box-shadow: 0 0 6px var(--pl-tone); }
 
 </style>
   <style>
@@ -6155,7 +6188,8 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
     notifSound: true, mutedApps: [],   // Settings › Notifications and › Applications
     quietOn: false, quietFrom: '22:00', quietTo: '07:00', notifKeepDays: 7, notifRules: {}, // (3.3) quiet hours, history, a rule per app
     windowMagnets: true,
-    pillOn: true,            // the PatOS Pill at the top of the screen (js/pill.js)     // windows click to edges and to each other (js/wm-pro.js)
+    pillOn: true,            // the PatOS Pill at the top of the screen (js/pill.js)
+    pillNotifs: true, pillHover: true, pillHistory: true, pillBubble: true, pillBars: true, pillFlash: 'normal', pillFs: 'important', pillAutoCollapse: true, audioOutput: 'default',     // windows click to edges and to each other (js/wm-pro.js)
     cmdHidden: [],           // Command Center sections you hid
     soundTheme: 'glass', uiVolume: 0.8, // (3.3) the interface sounds: js/sounds.js
     intelPerms: {},          // Settings › Pat & Intelligence: kinds of action turned off (js/intelligence.js)
@@ -6946,8 +6980,8 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
 /* generated by build.js from updates.json: do not edit */
 PatOS.version = "3.2.1";
 PatOS.releases = [{"version":"3.2.1","date":"2026-11-13","title":{"en":"PatOS 3.2.1","fr":"PatOS 3.2.1"},"notes":{"en":["Fixed: on some devices PatOS asked to be set up again (with its sign-in) after a restart: a sync bug deleted the note that setup was done. Devices with an account go straight back in, and sync never deletes device-only settings again"],"fr":["Corrigé : sur certains appareils, PatOS demandait d’être configuré à nouveau (avec sa connexion) après un redémarrage : un bug de synchro effaçait la note disant que la configuration était faite. Les appareils avec un compte reviennent directement, et la synchro n’efface plus jamais les réglages propres à l’appareil"]}},{"version":"3.2.0","date":"2026-11-12","title":{"en":"PatOS 3.2: Messages","fr":"PatOS 3.2 : Messages"},"more":true},{"version":"3.1.0","date":"2026-11-12","title":{"en":"PatOS 3.1: Handoff","fr":"PatOS 3.1 : Continuité"},"more":true},{"version":"3.0.0","date":"2026-11-10","title":{"en":"PatOS 3: Prism","fr":"PatOS 3 : Prisme"},"more":true},{"version":"2.3.1","date":"2026-11-09","title":{"en":"Drawn glass icons","fr":"Des icônes dessinées en verre"},"more":true},{"version":"2.3.0","date":"2026-11-09","title":{"en":"Liquid Glass, everywhere","fr":"Liquid Glass, partout"},"more":true},{"version":"2.2.2","date":"2026-11-09","title":{"en":"Liquid Glass without the light bar","fr":"Liquid Glass sans la barre de lumière"},"more":true},{"version":"2.2.1","date":"2026-11-09","title":{"en":"Thick, clear Liquid Glass","fr":"Liquid Glass épais et clair"},"more":true},{"version":"2.2.0","date":"2026-11-09","title":{"en":"Liquid Glass, rebuilt","fr":"Liquid Glass, refait"},"more":true},{"version":"2.1.3","date":"2026-11-06","title":{"en":"PitCode Studio on iPhone","fr":"PitCode Studio sur iPhone"},"more":true},{"version":"2.1.2","date":"2026-11-06","title":{"en":"Importing projects, made sturdier","fr":"Importer des projets, en plus solide"},"more":true},{"version":"2.1.1","date":"2026-11-06","title":{"en":"Importing files on phones","fr":"Importer des fichiers sur téléphone"},"more":true},{"version":"2.1.0","date":"2026-11-05","title":{"en":"PatOS 2.1: Slither and a better Studio","fr":"PatOS 2.1 : Slither et un meilleur Studio"},"more":true},{"version":"2.0.0","date":"2026-11-05","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"more":true},{"version":"1.7.0","date":"2026-11-04","title":{"en":"Better apps","fr":"De meilleures apps"},"more":true},{"version":"1.6.0","date":"2026-11-03","title":{"en":"Software Update","fr":"Mise à jour de logiciels"},"more":true},{"version":"1.5.0","date":"2026-11-03","title":{"en":"iPhone swipe up, Reminders in plain words","fr":"Balayage sur iPhone, Rappels en mots simples"},"more":true},{"version":"1.4.0","date":"2026-11-03","title":{"en":"Clock and Calculator","fr":"Horloge et Calculatrice"},"more":true},{"version":"1.3.0","date":"2026-11-03","title":{"en":"Finder and TextEdit","fr":"Finder et TextEdit"},"more":true},{"version":"1.2.0","date":"2026-11-03","title":{"en":"Faster start, smoother 3D","fr":"Démarrage plus rapide, 3D plus fluide"},"more":true},{"version":"1.1.0","date":"2026-11-03","title":{"en":"Security","fr":"Sécurité"},"more":true}];
-PatOS.beta = {"version":"3.3.0","beta":8,"date":"2026-11-13","title":{"en":"PatOS 3.3: Crystal","fr":"PatOS 3.3 : Cristal"},"notes":{"en":["The PatOS Pill: a capsule of dark glass at the top of the screen that shows what’s happening right now and changes shape with it. A timer counting down (with rolling digits), the song playing with bars that move with the music and a glow in the color of its cover, a copy or a backup with its progress, and any app using the microphone or the camera (so you always know, with a button to turn it off). Point at it or click it to open a card with controls: pause, +1 min, cancel, play, next. Two things at once: the second one waits in a bubble beside it. It also flashes the volume, the brightness, Do Not Disturb, charging, going offline and jobs that finished or failed. Settings › Desktop & Dock › PatOS Pill","Fixed: installing an update could loop (download, restart, still the old version, asked again). PatOS’s start-up safety counted panic screens, Recovery and a deleted /System as failed starts, and then threw away the version that was just installed. Now it only goes back when the new version itself fails to start, and those screens no longer count","Updates are sturdier: the server now remembers which version this device installed, so PatOS starts on it even when the page doesn’t come from the downloaded copy, and an update that was just installed is never offered (and downloaded) again in a loop","A real Liquid Glass renderer: the edges of the glass now bend what is behind them the way real glass does (a rounded rim, light refracted at index 1.5, worked out for every pixel), catch the light at the top left with a softer glint at the bottom right, and split colors a little right at the very edge (Settings › Appearance › Rainbow edges). Just as clear as before, and no slower","Windows 2.0: windows click magnetically to the screen’s edges and to each other, with thin guides (hold Shift to place one freely). Throw a window toward the left or right edge to fill that half. Drop a window on another window of the same app to make tabs; drag a tab down to make it a window again, Ctrl+Tab to switch. Keyboard tiling: Ctrl+Alt+arrows for halves (press again for thirds), Ctrl+Alt+U I J K for quarters, Ctrl+Alt+Enter to fill, Ctrl+Alt+C to center, Ctrl+Alt+T to tile every window","Sound design: every sound is now made live by PatOS (no recordings): soft glass bells, taps and air, in tune with each other. Windows opening, closing and minimizing, switches, notifications (calmer for the usual ones, clearer for important ones), messages sent and received, captures, finished tasks, locking, emptying the Trash. Settings › Sound: choose Glass or Soft, the volume of interface sounds, and try each one","Fixed: on some devices PatOS asked to be set up again (with its sign-in) after a restart: a sync bug deleted the note that setup was done. Devices with an account go straight back in, and sync never deletes device-only settings again. If signing in still says “No internet”, the message now shows the reason, and setup lets you continue without an account for now","A crystal Dock: thicker, brighter glass with a light rim, a soft rainbow at its ends, a reflection inside, a glow under it, and a glass bubble for app names"],"fr":["La pilule PatOS : une capsule de verre sombre en haut de l’écran qui montre ce qui se passe en ce moment et change de forme avec. Un minuteur qui défile (avec des chiffres qui roulent), la chanson en cours avec des barres qui bougent avec la musique et une lueur de la couleur de sa pochette, une copie ou une sauvegarde avec sa progression, et toute app qui utilise le micro ou la caméra (pour toujours le savoir, avec un bouton pour l’éteindre). Pointez-la ou cliquez dessus pour ouvrir une carte avec les commandes : pause, +1 min, annuler, lecture, suivant. Deux choses à la fois : la deuxième attend dans une bulle à côté. Elle montre aussi un instant le volume, la luminosité, Ne pas déranger, la recharge, la perte d’Internet et les tâches terminées ou ratées. Réglages › Bureau et Dock › Pilule PatOS","Corrigé : installer une mise à jour pouvait tourner en boucle (téléchargement, redémarrage, toujours l’ancienne version, et on redemande). La sécurité de démarrage de PatOS comptait les écrans de panique, la Récupération et un /System supprimé comme des démarrages ratés, puis abandonnait la version qui venait d’être installée. Maintenant, elle ne revient en arrière que si la nouvelle version elle-même ne démarre pas, et ces écrans ne comptent plus","Des mises à jour plus solides : le serveur se souvient maintenant de la version installée sur cet appareil, donc PatOS démarre dessus même quand la page ne vient pas de la copie téléchargée, et une mise à jour qui vient d’être installée n’est plus jamais proposée (et téléchargée) en boucle","Un vrai moteur Liquid Glass : les bords du verre plient maintenant ce qui est derrière comme du vrai verre (un bord arrondi, la lumière réfractée à l’indice 1,5, calculée pour chaque pixel), captent la lumière en haut à gauche avec un reflet plus doux en bas à droite, et séparent un peu les couleurs tout au bord (Réglages › Apparence › Bords irisés). Aussi transparent qu’avant, et pas plus lent","Fenêtres 2.0 : les fenêtres s’accrochent aux bords de l’écran et entre elles, avec de fins guides (maintenez Maj pour en placer une librement). Lancez une fenêtre vers le bord gauche ou droit pour remplir cette moitié. Déposez une fenêtre sur une autre fenêtre de la même app pour créer des onglets; tirez un onglet vers le bas pour en refaire une fenêtre, Ctrl+Tab pour changer. Disposition au clavier : Ctrl+Alt+flèches pour les moitiés (encore pour les tiers), Ctrl+Alt+U I J K pour les quarts, Ctrl+Alt+Entrée pour remplir, Ctrl+Alt+C pour centrer, Ctrl+Alt+T pour disposer toutes les fenêtres","Design sonore : chaque son est maintenant créé en direct par PatOS (aucun enregistrement) : de douces cloches de verre, des tapotements et des souffles, accordés entre eux. Ouverture, fermeture et réduction des fenêtres, interrupteurs, notifications (plus calmes pour les habituelles, plus claires pour les importantes), messages envoyés et reçus, captures, tâches terminées, verrouillage, vidage de la Corbeille. Réglages › Son : choisissez Verre ou Doux, le volume des sons de l’interface, et essayez chacun","Corrigé : sur certains appareils, PatOS demandait d’être configuré à nouveau (avec sa connexion) après un redémarrage : un bug de synchro effaçait la note disant que la configuration était faite. Les appareils avec un compte reviennent directement, et la synchro n’efface plus jamais les réglages propres à l’appareil. Si la connexion dit encore « Pas d’Internet », le message montre maintenant la raison, et la configuration permet de continuer sans compte pour l’instant","Un Dock en cristal : un verre plus épais et plus brillant avec un bord lumineux, un léger arc-en-ciel aux bouts, un reflet à l’intérieur, une lueur en dessous, et une bulle de verre pour le nom des apps"]}};
-PatOS.build = {"channel":"beta","version":"3.3.0","beta":8};
+PatOS.beta = {"version":"3.3.0","beta":9,"date":"2026-11-13","title":{"en":"PatOS 3.3: Crystal","fr":"PatOS 3.3 : Cristal"},"notes":{"en":["PatOS Pill 2: the Pill becomes the live centre of PatOS. The Activity Overview (click the Pill, or Alt+A at any time): the main activity with its controls, every other one with its state and quick buttons, and what finished recently (dismiss one, or clear them). Messages and important notifications come into the Pill instead of a banner (still in Notification Center; click to open). Every timer shows, also the ones from Pat and Spotlight, several at once, and a timer or alarm that rings shows with Stop and Snooze. Also: your next calendar event and reminder, Focus sessions, Shortcuts while they run, Pat’s slower actions, PatOS Sync when it stops, a low battery, being offline, Do Not Disturb, what plays next in Music and where the sound goes (Chrome). Several copies from Piles are grouped. A finished job gets a sweep of light, a failed one a shake, something ringing breathes. Apps can add their own activities (PatOS.pill.create: progress, countdowns, buttons, priorities, kept after a reload), checked so they can’t pass for PatOS. New settings in Desktop & Dock › PatOS Pill, with a Preview","The PatOS Pill: a capsule of dark glass at the top of the screen that shows what’s happening right now and changes shape with it. A timer counting down (with rolling digits), the song playing with bars that move with the music and a glow in the color of its cover, a copy or a backup with its progress, and any app using the microphone or the camera (so you always know, with a button to turn it off). Point at it or click it to open a card with controls: pause, +1 min, cancel, play, next. Two things at once: the second one waits in a bubble beside it. It also flashes the volume, the brightness, Do Not Disturb, charging, going offline and jobs that finished or failed. Settings › Desktop & Dock › PatOS Pill","Fixed: installing an update could loop (download, restart, still the old version, asked again). PatOS’s start-up safety counted panic screens, Recovery and a deleted /System as failed starts, and then threw away the version that was just installed. Now it only goes back when the new version itself fails to start, and those screens no longer count","Updates are sturdier: the server now remembers which version this device installed, so PatOS starts on it even when the page doesn’t come from the downloaded copy, and an update that was just installed is never offered (and downloaded) again in a loop","A real Liquid Glass renderer: the edges of the glass now bend what is behind them the way real glass does (a rounded rim, light refracted at index 1.5, worked out for every pixel), catch the light at the top left with a softer glint at the bottom right, and split colors a little right at the very edge (Settings › Appearance › Rainbow edges). Just as clear as before, and no slower","Windows 2.0: windows click magnetically to the screen’s edges and to each other, with thin guides (hold Shift to place one freely). Throw a window toward the left or right edge to fill that half. Drop a window on another window of the same app to make tabs; drag a tab down to make it a window again, Ctrl+Tab to switch. Keyboard tiling: Ctrl+Alt+arrows for halves (press again for thirds), Ctrl+Alt+U I J K for quarters, Ctrl+Alt+Enter to fill, Ctrl+Alt+C to center, Ctrl+Alt+T to tile every window","Sound design: every sound is now made live by PatOS (no recordings): soft glass bells, taps and air, in tune with each other. Windows opening, closing and minimizing, switches, notifications (calmer for the usual ones, clearer for important ones), messages sent and received, captures, finished tasks, locking, emptying the Trash. Settings › Sound: choose Glass or Soft, the volume of interface sounds, and try each one","Fixed: on some devices PatOS asked to be set up again (with its sign-in) after a restart: a sync bug deleted the note that setup was done. Devices with an account go straight back in, and sync never deletes device-only settings again. If signing in still says “No internet”, the message now shows the reason, and setup lets you continue without an account for now","A crystal Dock: thicker, brighter glass with a light rim, a soft rainbow at its ends, a reflection inside, a glow under it, and a glass bubble for app names"],"fr":["Pilule PatOS 2 : la pilule devient le centre en direct de PatOS. L’aperçu des activités (cliquez sur la pilule, ou Alt+A à tout moment) : l’activité principale avec ses commandes, toutes les autres avec leur état et des boutons rapides, et ce qui s’est terminé récemment (en retirer une, ou tout effacer). Les messages et les notifications importantes arrivent dans la pilule au lieu d’une bannière (toujours dans le centre de notifications; cliquez pour ouvrir). Tous les minuteurs s’affichent, aussi ceux de Pat et de Spotlight, plusieurs à la fois, et un minuteur ou une alarme qui sonne s’affiche avec Arrêter et Répéter. Aussi : votre prochain événement et rappel, les sessions de Focus, les raccourcis pendant qu’ils tournent, les actions plus lentes de Pat, la synchro quand elle s’arrête, une batterie faible, la perte d’Internet, Ne pas déranger, la prochaine chanson dans Musique et où va le son (Chrome). Plusieurs copies de Piles sont regroupées. Une tâche terminée reçoit un balayage de lumière, une tâche ratée une secousse, ce qui sonne respire. Les apps peuvent ajouter leurs propres activités (PatOS.pill.create : progression, comptes à rebours, boutons, priorités, gardées après un rechargement), vérifiées pour ne pas se faire passer pour PatOS. Nouveaux réglages dans Bureau et Dock › Pilule PatOS, avec un aperçu","La pilule PatOS : une capsule de verre sombre en haut de l’écran qui montre ce qui se passe en ce moment et change de forme avec. Un minuteur qui défile (avec des chiffres qui roulent), la chanson en cours avec des barres qui bougent avec la musique et une lueur de la couleur de sa pochette, une copie ou une sauvegarde avec sa progression, et toute app qui utilise le micro ou la caméra (pour toujours le savoir, avec un bouton pour l’éteindre). Pointez-la ou cliquez dessus pour ouvrir une carte avec les commandes : pause, +1 min, annuler, lecture, suivant. Deux choses à la fois : la deuxième attend dans une bulle à côté. Elle montre aussi un instant le volume, la luminosité, Ne pas déranger, la recharge, la perte d’Internet et les tâches terminées ou ratées. Réglages › Bureau et Dock › Pilule PatOS","Corrigé : installer une mise à jour pouvait tourner en boucle (téléchargement, redémarrage, toujours l’ancienne version, et on redemande). La sécurité de démarrage de PatOS comptait les écrans de panique, la Récupération et un /System supprimé comme des démarrages ratés, puis abandonnait la version qui venait d’être installée. Maintenant, elle ne revient en arrière que si la nouvelle version elle-même ne démarre pas, et ces écrans ne comptent plus","Des mises à jour plus solides : le serveur se souvient maintenant de la version installée sur cet appareil, donc PatOS démarre dessus même quand la page ne vient pas de la copie téléchargée, et une mise à jour qui vient d’être installée n’est plus jamais proposée (et téléchargée) en boucle","Un vrai moteur Liquid Glass : les bords du verre plient maintenant ce qui est derrière comme du vrai verre (un bord arrondi, la lumière réfractée à l’indice 1,5, calculée pour chaque pixel), captent la lumière en haut à gauche avec un reflet plus doux en bas à droite, et séparent un peu les couleurs tout au bord (Réglages › Apparence › Bords irisés). Aussi transparent qu’avant, et pas plus lent","Fenêtres 2.0 : les fenêtres s’accrochent aux bords de l’écran et entre elles, avec de fins guides (maintenez Maj pour en placer une librement). Lancez une fenêtre vers le bord gauche ou droit pour remplir cette moitié. Déposez une fenêtre sur une autre fenêtre de la même app pour créer des onglets; tirez un onglet vers le bas pour en refaire une fenêtre, Ctrl+Tab pour changer. Disposition au clavier : Ctrl+Alt+flèches pour les moitiés (encore pour les tiers), Ctrl+Alt+U I J K pour les quarts, Ctrl+Alt+Entrée pour remplir, Ctrl+Alt+C pour centrer, Ctrl+Alt+T pour disposer toutes les fenêtres","Design sonore : chaque son est maintenant créé en direct par PatOS (aucun enregistrement) : de douces cloches de verre, des tapotements et des souffles, accordés entre eux. Ouverture, fermeture et réduction des fenêtres, interrupteurs, notifications (plus calmes pour les habituelles, plus claires pour les importantes), messages envoyés et reçus, captures, tâches terminées, verrouillage, vidage de la Corbeille. Réglages › Son : choisissez Verre ou Doux, le volume des sons de l’interface, et essayez chacun","Corrigé : sur certains appareils, PatOS demandait d’être configuré à nouveau (avec sa connexion) après un redémarrage : un bug de synchro effaçait la note disant que la configuration était faite. Les appareils avec un compte reviennent directement, et la synchro n’efface plus jamais les réglages propres à l’appareil. Si la connexion dit encore « Pas d’Internet », le message montre maintenant la raison, et la configuration permet de continuer sans compte pour l’instant","Un Dock en cristal : un verre plus épais et plus brillant avec un bord lumineux, un léger arc-en-ciel aux bouts, un reflet à l’intérieur, une lueur en dessous, et une bulle de verre pour le nom des apps"]}};
+PatOS.build = {"channel":"beta","version":"3.3.0","beta":9};
 
 </script>
   <script type="patos/js">
@@ -8329,6 +8363,9 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":8};
     'The update is installed': 'La mise à jour est installée', 'Close PatOS’s tab and open it again to start the new version.': 'Fermez l’onglet de PatOS et rouvrez-le pour lancer la nouvelle version.',
     'Hide the PatOS Pill': 'Masquer la pilule PatOS', 'Next activity': 'Activité suivante', 'No news for a while': 'Aucune nouvelle depuis un moment', 'Working…': 'En cours…', 'about': 'environ', 'laps': 'tours', 'left': 'restant',
     'Camera and microphone on': 'Caméra et micro activés', 'Camera on': 'Caméra activée', 'Microphone on': 'Micro activé', 'Do Not Disturb off': 'Ne pas déranger désactivé', 'PatOS Pill': 'Pilule PatOS', 'Timers, music, copies and the microphone, at the top of the screen.': 'Minuteurs, musique, copies et micro, en haut de l’écran.',
+    'Activity Overview': 'Aperçu des activités', 'Nothing is happening right now.': 'Rien ne se passe en ce moment.', 'Output': 'Sortie', 'PatOS Pill Settings…': 'Réglages de la pilule PatOS…', 'PatOS keeps working; it catches up when you’re back': 'PatOS continue de fonctionner; il rattrape tout à votre retour', 'Play sound on': 'Jouer le son sur', 'Plug in your computer': 'Branchez votre ordinateur', 'Recently finished': 'Terminé récemment', 'Ringing': 'Sonne', 'Shortcut': 'Raccourci', 'Sound plays here': 'Le son joue ici', 'Speaker': 'Haut-parleur', 'Stopped when PatOS restarted': 'Arrêté au redémarrage de PatOS', 'Syncing': 'Synchronisation', 'This browser can’t choose where the sound goes.': 'Ce navigateur ne peut pas choisir où va le son.', 'This is how activities look': 'Voici à quoi ressemblent les activités', 'activities': 'activités', 'for': 'depuis',
+    'Battery very low': 'Batterie très faible', 'Battery low': 'Batterie faible', 'The sync code isn’t accepted': 'Le code de synchro n’est pas accepté', 'The sync server is full': 'Le serveur de synchro est plein', 'The sync server is busy': 'Le serveur de synchro est occupé', 'The sync server had a problem': 'Le serveur de synchro a eu un problème', 'It will try again': 'Il va réessayer', 'Playing': 'Lecture',
+    'Messages and important notifications': 'Messages et notifications importantes', 'They show in the Pill instead of a banner, and still go to Notification Center.': 'Ils s’affichent dans la pilule au lieu d’une bannière, et vont quand même au centre de notifications.', 'Open when the pointer rests on it': 'Ouvrir quand le pointeur reste dessus', 'Show what finished recently': 'Montrer ce qui s’est terminé récemment', 'Second activity bubble': 'Bulle de la deuxième activité', 'Music bars': 'Barres de musique', 'How long quick messages stay': 'Durée des messages rapides', 'In full-screen apps': 'Dans les apps en plein écran', 'Only important things': 'Seulement l’important', 'Short': 'Courte', 'Long': 'Longue', 'Always': 'Toujours', 'Timers, music, copies and the microphone, at the top of the screen. Alt+A opens the Activity Overview.': 'Minuteurs, musique, copies et micro, en haut de l’écran. Alt+A ouvre l’aperçu des activités.', 'Break': 'Pause',
     'Tile All Windows': 'Disposer toutes les fenêtres', 'Merge All Windows': 'Fusionner toutes les fenêtres', 'Move Tab to New Window': 'Placer l’onglet dans une nouvelle fenêtre', 'Magnetic edges': 'Bords magnétiques', 'Windows click to the screen’s edges and to each other. Hold Shift to place one freely.': 'Les fenêtres s’accrochent aux bords de l’écran et entre elles. Maintenez Maj pour en placer une librement.',
     'Stage Focus': 'Focus sur la scène', 'Save Window Group…': 'Enregistrer un groupe de fenêtres…', 'Save Window Group': 'Enregistrer un groupe de fenêtres', 'Delete a Window Group…': 'Supprimer un groupe de fenêtres…', 'window': 'fenêtre', 'windows': 'fenêtres', 'Window group saved': 'Groupe de fenêtres enregistré', 'Reopen them all from the Window menu.': 'Rouvrez-les toutes depuis le menu Fenêtre.',
     'Motion': 'Mouvement', 'Calm': 'Calme', 'Natural': 'Naturel', 'Playful': 'Enjoué', 'How windows, menus and panels move': 'La façon dont bougent les fenêtres, les menus et les panneaux',
@@ -12988,6 +13025,8 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":8};
     if (document.hidden && r.banner && PatOS.settings.systemNotifications !== false && window.Notification && Notification.permission === 'granted') { try { const sn = new Notification(n.title, { body: n.body, icon: 'assets/icon-180.png' }); sn.onclick = () => { window.focus(); PatOS.nc.open(r.id); }; } catch (e) {} }
     if (r.sound && PatOS.settings.notifSound !== false) PatOS.sound.notify(r.rec.priority, n.icon);
     if (!r.banner) return r.id;
+    // (3.3) messages and important notifications show in the PatOS Pill instead of a banner (they still go to Notification Center)
+    if (PatOS.pill && PatOS.pill.notify && PatOS.pill.notify(r.rec, n)) return r.id;
     const old = document.querySelector('#toasts .toast[data-nid="' + r.id + '"]'); if (old) old.remove(); // (the same one again: one banner, counted)
     const acts = (PatOS.nc.list().find((x) => x.id === r.id) || {}).actions || [];
     const t = h('div', { class: 'toast' + (r.rec.priority === 'urgent' ? ' urgent' : ''), 'data-nid': r.id },
@@ -13645,7 +13684,7 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":8};
     const len = mins >= 1 ? mins + ' min' : secs + ' s';
     if (PatOS.alarms) {
       PatOS.alarms.askPermission();
-      PatOS.alarms.schedule({ id: 'quick-' + PatOS.uid(), kind: 'timer', at: Date.now() + secs * 1000, title: label || PatOS.t('Timer done'), body: len + ' · ' + PatOS.t('Timer'), icon: 'clock', app: 'clock' });
+      PatOS.alarms.schedule({ id: 'quick-' + PatOS.uid(), kind: 'timer', start: Date.now(), at: Date.now() + secs * 1000, title: label || PatOS.t('Timer done'), body: len + ' · ' + PatOS.t('Timer'), icon: 'clock', app: 'clock' });
     }
     PatOS.notify({ title: PatOS.t('Timer started'), body: len, icon: 'clock' });
   };
@@ -14732,66 +14771,176 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":8};
 
 </script>
   <script type="patos/js">
-/* The PatOS Pill (3.3): a capsule of dark glass at the top centre of the screen that shows what is happening right now, and
-   changes shape with it.
-     - compact: the most important thing (a timer counting down, a copy's progress, the song playing with its live bars, an app
-       using the microphone). A second thing shows as a small bubble beside it.
-     - expanded (point at it, or click it): a card with what each thing is doing and its controls (pause, cancel, +1 min,
-       play/next, turn the microphone off...). Click outside or press Esc to close it.
-     - flashes: the volume, the brightness, Do Not Disturb, charging, going offline, a job that finished or failed: shown for a
-       moment, then it goes back to what it was showing.
-   What feeds it:
-     PatOS.live (copies, backups, downloads...), Music, the Clock's timer and stopwatch, the microphone and camera (any app that
-     uses them, so you always know), and anything else through PatOS.pill.set(id, item) / clear(id) / flash(item).
-     item = { pri, lead (html), title, sub, trail (html), tone (a color), progress (0..1), actions: [{ icon, label, run }],
-              big: () => element (the expanded view), open: () => {} }
-   Only what is real is shown: no item is invented, and a job's progress is only what that job reports. Settings › Desktop &
-   Dock › PatOS Pill turns it off (the small activity button in the menu bar comes back). */
+/* The PatOS Pill (3.3): the live centre of PatOS. A capsule of dark glass at the top of the screen that shows what is happening
+   right now and changes shape with it.
+
+   compact     the most important thing. A second one waits in a bubble beside it.
+   expanded    (point at it or click it) the Activity Overview: the main activity with its controls, every other activity with
+               its state and quick controls, and what finished recently. Click an activity to bring it to the top, its icon to
+               open its app. Esc or a click outside closes it.
+   flashes     the volume, the brightness, Do Not Disturb, charging, the network, finished or failed jobs, and messages and
+               important notifications (they go to Notification Center too).
+
+   What feeds it (only real things: nothing is invented, and progress is only what a job reports):
+     live activities (copies, backups, downloads, Shared Spaces), Music (with what's next and the output device), the Clock's
+     timer and stopwatch, every timer that rings (Pat, Spotlight: several at once), alarms and timers ringing now (Stop,
+     Snooze), Focus sessions, the next calendar event and reminder, Shortcuts that run, Pat's slower actions, PatOS Sync,
+     the battery, the network, Do Not Disturb, and the microphone and camera (whichever app uses them, with Turn off).
+
+   The SDK, for apps and Shortcuts:
+     const a = PatOS.pill.create({ id, app, title, sub, icon (a symbol name), progress (0..1, or 0..100), status, priority,
+                                   endsAt (a countdown), actions: [{ id, label, icon, run }], onAction(id), open: { app, args },
+                                   persist (comes back after a reload), doneMessage })
+     a.update({...})  a.setProgress(p)  a.setPriority('critical'|'important'|'normal'|'background')  a.complete(msg)
+     a.fail(msg)  a.dismiss()          (the same as PatOS.pill.update(id, ...), .complete(id, msg)...)
+     Checked: plain text only, a real app's icon is always shown (so an app can't pass for PatOS), and the microphone and
+     camera symbols and system ids are kept for PatOS itself.
+
+   The Pill never runs the jobs it shows: if it is off or fails, downloads, timers, backups and recordings go on the same. */
 (function () {
   'use strict';
   const { h } = PatOS; const T = (s) => PatOS.t(s);
   const sym = (n) => (PatOS.sym ? PatOS.sym(n) : '');
   const esc = (s) => PatOS.esc(String(s == null ? '' : s));
-  const on = () => PatOS.settings.pillOn !== false;
-  const custom = new Map();
-  let wrap = null, pill = null, side = null, live = null, measure = null;
-  let mode = 'hidden', pinned = false, focusId = null, shown = null, flashNow = null, flashT = 0, hoverT = 0, leaveT = 0, tickT = 0, barsRaf = 0;
+  const S = () => PatOS.settings;
+  const on = () => S().pillOn !== false;
+  const PRI = { critical: 100, important: 80, normal: 55, background: 25 };
+  const TONE = { warning: '#ff9f0a', critical: '#ff453a', failed: '#ff453a', done: '#34c759' };
+  let wrap = null, pill = null, side = null, srLive = null, measure = null;
+  let mode = 'hidden', pinned = false, focusId = null, shown = [], flashNow = null, flashT = 0, hoverT = 0, leaveT = 0, tickT = 0, barsRaf = 0;
   const flashQ = [];
 
   /* ---------- small helpers ---------- */
   const two = (n) => String(n).padStart(2, '0');
   const clock = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); const hh = Math.floor(s / 3600), m = Math.floor(s / 60) % 60; return (hh ? hh + ':' + two(m) : m) + ':' + two(s % 60); };
+  const ago = (t) => { const s = Math.round((Date.now() - t) / 1000); return s < 60 ? T('now') : s < 3600 ? Math.round(s / 60) + ' min' : Math.round(s / 3600) + ' h'; };
   const ring = (p, color) => { const c = 2 * Math.PI * 7.5, d = (c * Math.max(0, Math.min(1, p))).toFixed(1); return '<svg class="pl-ring" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="2.6"/><circle cx="10" cy="10" r="7.5" fill="none" stroke="' + (color || 'currentColor') + '" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="' + d + ' ' + c.toFixed(1) + '" transform="rotate(-90 10 10)"/></svg>'; };
   const spin = '<svg class="pl-ring pl-spin" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="2.6"/><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="12 36"/></svg>';
   const appIcon = (id) => '<span class="pl-app">' + (PatOS.iconHTML ? PatOS.iconHTML((PatOS.apps[id] && PatOS.apps[id].icon) || id) : '') + '</span>';
   const glyph = (n, color) => '<span class="pl-glyph" style="color:' + (color || '#fff') + '">' + sym(n) + '</span>';
-  // digits that roll when they change (the timer, the stopwatch)
   const digits = (txt) => '<span class="pl-digits">' + String(txt).split('').map((c) => '<i>' + esc(c) + '</i>').join('') + '</span>';
+  const appName = (id) => (PatOS.apps[id] && PatOS.apps[id].name) || 'PatOS';
+  const timeAt = (t) => new Date(t).toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' });
+  const flashMs = () => ({ short: 1200, long: 3200 })[S().pillFlash] || 1800;
+
+  /* ======================= history: what finished ======================= */
+  let hist = (PatOS.store.get('pillHistory', []) || []).filter((x) => x && x.title).slice(0, 15);
+  const saveHist = () => PatOS.store.set('pillHistory', hist);
+  function addHist(x) { hist.unshift(Object.assign({ t: Date.now() }, x)); hist = hist.slice(0, 15); saveHist(); }
+
+  /* ======================= the SDK ======================= */
+  const acts = new Map();
+  const SYSTEM_ONLY = new Set(['mic', 'camera']);
+  const plain = (s, n) => String(s == null ? '' : s).replace(/<[^>]*>/g, '').replace(/[\u0000-\u001f<>]/g, '').slice(0, n);
+  const priOf = (p) => (typeof p === 'number' ? Math.max(0, Math.min(99, p)) : PRI[p] || PRI.normal);
+  function clean(o, prev) {
+    const a = Object.assign({}, prev || {});
+    if (o.app != null) a.app = PatOS.apps[o.app] ? o.app : 'about';
+    if (o.title != null) a.title = plain(o.title, 80);
+    if (o.sub != null) a.sub = plain(o.sub, 120);
+    if (o.icon != null) a.icon = /^[a-z]{2,16}$/.test(o.icon) && (!SYSTEM_ONLY.has(o.icon) || a.system) ? o.icon : '';
+    if (o.progress !== undefined) { const p = o.progress == null ? null : +o.progress; a.progress = p == null || isNaN(p) ? null : Math.max(0, Math.min(1, p > 1 ? p / 100 : p)); }
+    if (o.status != null) a.status = /^(running|paused|warning|critical|done|failed)$/.test(o.status) ? o.status : 'running';
+    if (o.priority != null) a.priority = o.priority;
+    if (o.endsAt !== undefined) a.endsAt = +o.endsAt || null;
+    if (o.autoEnd != null) a.autoEnd = o.autoEnd !== false;
+    if (o.actions != null) a.actions = (Array.isArray(o.actions) ? o.actions : []).filter((x) => x && x.label).slice(0, 4).map((x) => ({ id: plain(x.id || x.label, 30), label: plain(x.label, 24), icon: /^[a-z]{2,16}$/.test(x.icon || '') ? x.icon : '', run: typeof x.run === 'function' ? x.run : null }));
+    if (o.onAction !== undefined) a.onAction = typeof o.onAction === 'function' ? o.onAction : null;
+    if (o.open !== undefined) a.open = o.open;
+    if (o.persist != null) a.persist = !!o.persist;
+    if (o.doneMessage != null) a.doneMessage = plain(o.doneMessage, 120);
+    a.updated = Date.now(); return a;
+  }
+  const savePersist = PatOS.debounce(() => PatOS.store.set('pillActs', [...acts.values()].filter((a) => a.persist).map((a) => ({ id: a.id, app: a.app, title: a.title, sub: a.sub, icon: a.icon, progress: a.progress, status: a.status, priority: a.priority, endsAt: a.endsAt, started: a.started, doneMessage: a.doneMessage, persist: true }))), 400);
+  function create(o, system) {
+    o = o || {}; const id = plain(o.id || ('a' + PatOS.uid()), 40);
+    if (!system && /^(media|live|sys|grp|alarm|ring|timer|music|stopwatch|cal|rem|x):/.test(id)) throw new Error('That id is kept for PatOS.');
+    const a = clean(o, Object.assign({ id, app: 'about', title: '', sub: '', icon: '', progress: null, status: 'running', priority: 'normal', actions: [], started: Date.now(), system: !!system }, acts.get(id) || {}));
+    if (!a.title) throw new Error('An activity needs a title.');
+    acts.set(id, a); if (a.persist) savePersist(); schedule(); return handle(id);
+  }
+  function handle(id) { return { id, update: (p) => update(id, p), setProgress: (p) => update(id, { progress: p }), setPriority: (p) => update(id, { priority: p }), complete: (m) => complete(id, m), fail: (m) => fail(id, m), dismiss: () => dismiss(id) }; }
+  function update(id, p) { const a = acts.get(id); if (!a) return false; acts.set(id, clean(p || {}, a)); if (a.persist) savePersist(); schedule(); return true; }
+  function end(id, status, msg) {
+    const a = acts.get(id); if (!a) return false; acts.delete(id); if (a.persist) savePersist();
+    const sub = plain(msg || (status === 'done' ? a.doneMessage || T('Done') : status === 'failed' ? T('didn’t finish') : ''), 120);
+    if (status !== 'dismissed') {
+      addHist({ title: a.title, sub, app: a.app, icon: a.icon, status });
+      flash({ lead: glyph(status === 'done' ? 'check' : 'warn', TONE[status]), title: a.title, sub, tone: TONE[status], status, ms: status === 'failed' ? 3200 : undefined });
+    }
+    schedule(); return true;
+  }
+  const complete = (id, m) => end(id, 'done', m), fail = (id, m) => end(id, 'failed', m), dismiss = (id) => end(id, 'dismissed');
+  // activities that asked to come back after a reload: a countdown goes on; anything else was stopped by the restart, and says so
+  // (once the apps are known, at the first start of the desktop)
+  let restored = false;
+  function restoreActs() {
+    if (restored) return; restored = true;
+    (PatOS.store.get('pillActs', []) || []).forEach((a) => {
+      if (!a || !a.id || !a.title || acts.has(a.id)) return;
+      if (a.endsAt && a.endsAt > Date.now()) { try { create(a, true); } catch (e) {} }
+      else addHist({ title: a.title, sub: a.endsAt ? T('Done') : T('Stopped when PatOS restarted'), app: a.app, icon: a.icon, status: a.endsAt ? 'done' : 'interrupted' });
+    });
+  }
+  PatOS.on('wm:ready', restoreActs);
+  function sdkItems() {
+    return [...acts.values()].map((a) => {
+      const left = a.endsAt ? a.endsAt - Date.now() : null;
+      if (left != null && left <= 0 && a.autoEnd !== false) { setTimeout(() => complete(a.id), 0); return null; }
+      const tone = TONE[a.status] || '';
+      const acts2 = (a.actions || []).map((x) => ({ icon: x.icon, label: x.label, run: () => { try { (x.run || (a.onAction && (() => a.onAction(x.id))) || (() => {}))(); } catch (e) {} } }));
+      return {
+        id: 'x:' + a.id, pri: priOf(a.priority) + (a.status === 'critical' ? 15 : a.status === 'warning' ? 5 : 0), app: a.app, title: a.title, sub: a.sub, tone,
+        lead: a.icon && a.system ? glyph(a.icon, tone || '#fff') : appIcon(a.app) + (a.icon ? '<span class="pl-badge">' + sym(a.icon) + '</span>' : ''),
+        trail: left != null ? '<b class="pl-num">' + digits(clock(left)) + '</b>' : a.progress != null ? ring(a.progress, tone || 'var(--pl-accent)') + '<b class="pl-num">' + Math.round(a.progress * 100) + '%</b>' : a.status === 'paused' ? glyph('pause') : spin,
+        state: left != null ? clock(left) : a.progress != null ? Math.round(a.progress * 100) + '%' : T(a.status === 'paused' ? 'Paused' : 'Working…'), progress: a.progress, ticks: left != null,
+        actions: acts2.concat([{ icon: 'close', label: T('Dismiss'), run: () => dismiss(a.id), quiet: true }]),
+        open: a.open ? () => (typeof a.open === 'function' ? a.open() : PatOS.launch(a.open.app || a.app, a.open.args || {})) : PatOS.apps[a.app] && a.app !== 'about' ? () => PatOS.launch(a.app) : null,
+        big: a.progress != null || left != null ? () => h('div', { class: 'pl-big' }, h('div', { class: 'pl-bar' }, h('i', { style: { width: Math.round((a.progress != null ? a.progress : 0) * 100) + '%' } }))) : null
+      };
+    }).filter(Boolean);
+  }
 
   /* ======================= what it shows ======================= */
-  /* 1. live activities */
-  const ended = new Set();
-  function liveItems() {
-    if (!PatOS.live) return [];
-    return PatOS.live.list().map((a) => ({
-      id: 'live:' + a.id, pri: a.status === 'stalled' ? 45 : 60, lead: appIcon(a.app), title: a.title, sub: a.detail || (a.status === 'paused' ? T('Paused') : a.status === 'stalled' ? T('No news for a while') : ''),
-      trail: a.progress != null ? ring(a.progress, 'var(--pl-accent)') + '<b class="pl-num">' + Math.round(a.progress * 100) + '%</b>' : spin, progress: a.progress,
+  /* live activities (copies, backups, downloads...): several from the same app are grouped */
+  const liveSeen = new Set();
+  function liveOne(a) {
+    return {
+      id: 'live:' + a.id, pri: a.status === 'stalled' ? 45 : 60, app: a.app, lead: appIcon(a.app), title: a.title, sub: a.detail || (a.status === 'paused' ? T('Paused') : a.status === 'stalled' ? T('No news for a while') : ''),
+      trail: a.progress != null ? ring(a.progress, 'var(--pl-accent)') + '<b class="pl-num">' + Math.round(a.progress * 100) + '%</b>' : spin, progress: a.progress, tone: a.status === 'stalled' ? TONE.warning : '',
+      state: a.status === 'paused' ? T('Paused') : a.progress != null ? Math.round(a.progress * 100) + '%' : T('Working…'),
       actions: [a.can.pause && { icon: 'pause', label: T('Pause'), run: () => PatOS.live.act(a.id, 'pause') }, a.can.resume && { icon: 'play', label: T('Resume'), run: () => PatOS.live.act(a.id, 'resume') },
-        a.can.cancel && { icon: 'close', label: T('Cancel'), run: () => PatOS.live.act(a.id, 'cancel') }, a.can.open && { icon: 'window', label: T('Open'), run: () => PatOS.live.act(a.id, 'open') }].filter(Boolean),
+        a.can.cancel && { icon: 'close', label: T('Cancel'), run: () => PatOS.live.act(a.id, 'cancel') }, a.can.open && { icon: 'folder', label: T('Show'), run: () => PatOS.live.act(a.id, 'open') }].filter(Boolean),
+      open: a.can.open ? () => PatOS.live.act(a.id, 'open') : () => PatOS.launch(a.app),
       big: () => h('div', { class: 'pl-big' }, h('div', { class: 'pl-bar' + (a.progress == null ? ' busy' : '') }, h('i', { style: { width: a.progress == null ? '' : Math.round(a.progress * 100) + '%' } })),
         h('div', { class: 'pl-meta' }, h('span', {}, a.progress != null ? Math.round(a.progress * 100) + '%' : T('Working…')), a.eta ? h('span', {}, T('about') + ' ' + clock(a.eta) + ' ' + T('left')) : null))
-    }));
+    };
+  }
+  function liveItems() {
+    if (!PatOS.live) return { compact: [], all: [] };
+    const all = PatOS.live.list().map(liveOne), by = new Map();
+    all.forEach((x) => { if (!by.has(x.app)) by.set(x.app, []); by.get(x.app).push(x); });
+    const compact = [];
+    by.forEach((l, app) => {
+      if (l.length < 2) { compact.push(l[0]); return; }
+      const ps = l.filter((x) => x.progress != null), p = ps.length ? ps.reduce((s, x) => s + x.progress, 0) / ps.length : null;
+      compact.push({ id: 'grp:' + app, pri: Math.max(...l.map((x) => x.pri)), app, lead: appIcon(app), title: l.length + ' ' + T('activities'), sub: appName(app), progress: p, group: l.map((x) => x.id),
+        trail: p != null ? ring(p, 'var(--pl-accent)') + '<b class="pl-num">' + Math.round(p * 100) + '%</b>' : spin, open: () => PatOS.launch(app) });
+    });
+    return { compact, all };
   }
   function liveEnded() {
     if (!PatOS.live) return;
     PatOS.live.recent().forEach((a) => {
-      if (ended.has(a.id) || Date.now() - a.ended > 4000) return; ended.add(a.id);
-      if (a.status === 'done') flash({ lead: glyph('check', '#34c759'), title: a.title, sub: a.message || T('Done'), tone: '#34c759' });
-      else if (a.status === 'failed') flash({ lead: glyph('warn', '#ff453a'), title: a.title, sub: T('didn’t finish'), tone: '#ff453a', ms: 3200 });
+      if (liveSeen.has(a.id) || Date.now() - a.ended > 4000) return; liveSeen.add(a.id);
+      if (a.status === 'cancelled') { addHist({ title: a.title, sub: T('Cancelled'), app: a.app, status: 'cancelled' }); return; }
+      const st = a.status === 'done' ? 'done' : 'failed', sub = a.message || (st === 'done' ? T('Done') : T('didn’t finish'));
+      addHist({ title: a.title, sub, app: a.app, status: st });
+      flash({ lead: glyph(st === 'done' ? 'check' : 'warn', TONE[st]), title: a.title, sub, tone: TONE[st], status: st, ms: st === 'failed' ? 3200 : undefined });
     });
   }
 
-  /* 2. music */
+  /* music */
   let lastPlaying = 0, artColor = { key: '', c: '' };
   function tintOf(np) {
     const key = np.path || ('g' + np.gen); if (artColor.key === key) return artColor.c;
@@ -14800,21 +14949,31 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":8};
     if (np.art) { const img = new Image(); img.onload = () => { try { const c = document.createElement('canvas'); c.width = c.height = 8; const x = c.getContext('2d'); x.drawImage(img, 0, 0, 8, 8); const d = x.getImageData(0, 0, 8, 8).data; let r = 0, g = 0, b = 0; for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; } artColor.c = 'rgb(' + [r, g, b].map((v) => Math.round(v / 16)).join(',') + ')'; schedule(); } catch (e) {} }; img.src = np.art; }
     return artColor.c;
   }
+  // the output device (Chrome): PatOS's sound and the music both move to it
+  async function outputMenu(x, y) {
+    let outs = []; try { outs = (await navigator.mediaDevices.enumerateDevices()).filter((d) => d.kind === 'audiooutput'); } catch (e) {}
+    const a = PatOS.audio && PatOS.audio();
+    if (!outs.length || !a || !a.ctx.setSinkId) { PatOS.notify({ title: T('Output'), body: T('This browser can’t choose where the sound goes.'), icon: 'music', priority: 'low' }); return; }
+    PatOS.menu([{ header: T('Play sound on') }, ...outs.map((d, i) => ({ label: d.label || (d.deviceId === 'default' ? T('Default') : T('Speaker') + ' ' + (i + 1)), checked: (S().audioOutput || 'default') === d.deviceId, action: async () => {
+      try { await a.ctx.setSinkId(d.deviceId === 'default' ? '' : d.deviceId); if (PatOS.music && PatOS.music.setOutput) await PatOS.music.setOutput(d.deviceId === 'default' ? '' : d.deviceId); PatOS.setSetting('audioOutput', d.deviceId); flash({ kind: 'output', lead: glyph('speaker'), title: d.label || T('Speaker'), sub: T('Sound plays here') }); }
+      catch (e) { PatOS.notify({ title: T('That didn’t work'), body: String(e.message || e), icon: 'music' }); }
+    } }))], x, y);
+  }
   function musicItems() {
     const M = PatOS.music; if (!M || !M.nowPlaying) return [];
     const np = M.nowPlaying(); if (!np) return [];
     if (np.playing) lastPlaying = Date.now(); else if (Date.now() - lastPlaying > 20000) return [];
     const art = np.art ? '<img class="pl-art" src="' + esc(np.art) + '" alt="">' : '<span class="pl-art" style="background:' + esc(np.color || '#444') + '">' + sym('music') + '</span>';
-    const tone = tintOf(np) || '#ff375f';
+    const tone = tintOf(np) || '#ff375f', next = M.upNext ? M.upNext() : null;
     return [{
-      id: 'music', pri: 50, lead: art, title: np.title, sub: np.artist, tone,
-      trail: '<span class="pl-eq' + (np.playing ? ' on' : '') + '"><i></i><i></i><i></i><i></i></span>',
-      actions: [{ icon: 'prev', label: T('Previous'), run: () => M.prev() }, { icon: np.playing ? 'pause' : 'play', label: T(np.playing ? 'Pause' : 'Play'), run: () => M.toggle(), main: true }, { icon: 'next', label: T('Next'), run: () => M.next() }],
+      id: 'music', pri: 50, app: 'music', lead: art, title: np.title, sub: np.artist, tone, state: T(np.playing ? 'Playing' : 'Paused'),
+      trail: S().pillBars === false ? glyph(np.playing ? 'play' : 'pause', tone) : '<span class="pl-eq' + (np.playing ? ' on' : '') + '"><i></i><i></i><i></i><i></i></span>',
+      actions: [{ icon: 'prev', label: T('Previous'), run: () => M.prev() }, { icon: np.playing ? 'pause' : 'play', label: T(np.playing ? 'Pause' : 'Play'), run: () => M.toggle(), main: true }, { icon: 'next', label: T('Next'), run: () => M.next() },
+        { icon: 'speaker', label: T('Output'), run: (e) => { const r = e && e.currentTarget ? e.currentTarget.getBoundingClientRect() : { left: innerWidth / 2, bottom: 120 }; outputMenu(r.left, r.bottom + 6); }, keep: true }],
       open: () => PatOS.launch('music'),
-      big: () => { const p = M.position ? M.position() : { t: 0, d: 0 }; return h('div', { class: 'pl-big' }, h('div', { class: 'pl-bar' }, h('i', { style: { width: p.d ? Math.min(100, p.t / p.d * 100) + '%' : '0' } })), h('div', { class: 'pl-meta' }, h('span', {}, clock(p.t * 1000)), h('span', {}, '−' + clock(Math.max(0, p.d - p.t) * 1000)))); }
+      big: () => { const p = M.position ? M.position() : { t: 0, d: 0 }; return h('div', { class: 'pl-big' }, h('div', { class: 'pl-bar' }, h('i', { style: { width: p.d ? Math.min(100, p.t / p.d * 100) + '%' : '0' } })), h('div', { class: 'pl-meta' }, h('span', {}, clock(p.t * 1000)), h('span', {}, '−' + clock(Math.max(0, p.d - p.t) * 1000))), next ? h('div', { class: 'pl-next' }, h('small', {}, T('Next')), h('span', {}, next.title + (next.artist ? ' · ' + next.artist : ''))) : null); }
     }];
   }
-  // the bars move with the music itself (read from the player a few times a second, only while they're on screen)
   function bars() {
     cancelAnimationFrame(barsRaf); barsRaf = 0;
     const eq = pill && pill.querySelector('.pl-eq.on'); if (!eq || document.hidden || !PatOS.music || !PatOS.music.levels) return;
@@ -14827,48 +14986,60 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":8};
     eq.classList.add('real'); barsRaf = requestAnimationFrame(step);
   }
 
-  /* 3. the Clock's timer and stopwatch (saved, so they run with the Clock closed) */
+  /* the Clock's timer, every other timer that will ring, what is ringing now, the stopwatch */
   const tm = () => Object.assign({ running: false, end: 0, left: 0, total: 0, label: '' }, PatOS.store.get('clockTimer', null) || {});
   function saveTm(x) { PatOS.store.set('clockTimer', x); PatOS.emit('clock:timer'); schedule(); }
+  const schedTm = (y) => PatOS.alarms.schedule({ id: 'clock-timer', kind: 'timer', at: y.end, title: y.label || T('Timer done'), body: T('Timer'), icon: 'clock', app: 'clock' });
   function timerItems() {
+    const out = [];
     const x = tm(); const left = x.running ? Math.max(0, x.end - Date.now()) : x.left;
-    if (!x.running && !(left > 0 && left < x.total)) return []; // (only one that runs, or is paused partway)
-    const p = x.total ? left / x.total : 0;
-    return [{
-      id: 'timer', pri: 70, lead: glyph('timer', '#ff9f0a'), title: x.label || T('Timer'), sub: x.running ? T('Ends at') + ' ' + new Date(x.end).toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' }) : T('Paused'), tone: '#ff9f0a',
-      trail: '<b class="pl-num pl-orange">' + digits(clock(left)) + '</b>', progress: 1 - p, open: () => PatOS.launch('clock', { tab: 3 }),
-      actions: [{ icon: x.running ? 'pause' : 'play', label: T(x.running ? 'Pause' : 'Resume'), main: true, run: () => {
-        const y = tm();
-        if (y.running) { y.left = Math.max(0, y.end - Date.now()); y.running = false; PatOS.alarms.cancel('clock-timer'); }
-        else { y.end = Date.now() + y.left; y.running = true; PatOS.alarms.schedule({ id: 'clock-timer', kind: 'timer', at: y.end, title: y.label || T('Timer done'), body: T('Timer'), icon: 'clock', app: 'clock' }); }
-        saveTm(y);
-      } }, { icon: 'timer', label: '+1 min', run: () => {
-        const y = tm(); y.total += 60000; if (y.running) { y.end += 60000; PatOS.alarms.schedule({ id: 'clock-timer', kind: 'timer', at: y.end, title: y.label || T('Timer done'), body: T('Timer'), icon: 'clock', app: 'clock' }); } else y.left += 60000; saveTm(y);
-      } }, { icon: 'close', label: T('Cancel'), run: () => { const y = tm(); y.running = false; y.left = y.total; PatOS.alarms.cancel('clock-timer'); saveTm(y); } }],
-      big: () => h('div', { class: 'pl-big pl-count' }, h('div', { class: 'pl-huge', html: digits(clock(left)) }), h('div', { class: 'pl-bar orange' }, h('i', { style: { width: (p * 100).toFixed(1) + '%' } })))
-    }];
-  }
-  const sw = () => Object.assign({ running: false, start: 0, acc: 0, laps: [] }, PatOS.store.get('clockStopwatch', null) || {});
-  function stopwatchItems() {
-    const s = sw(); if (!s.running) return [];
-    const t = s.acc + (Date.now() - s.start);
-    const fmt = (ms) => { const m = Math.floor(ms / 60000), sec = Math.floor(ms / 1000) % 60; return (m >= 60 ? Math.floor(m / 60) + ':' + two(m % 60) : m) + ':' + two(sec); };
-    return [{ id: 'stopwatch', pri: 40, lead: glyph('clock', '#ff9f0a'), title: T('Stopwatch'), sub: s.laps.length ? s.laps.length + ' ' + T('laps') : '', tone: '#ff9f0a', trail: '<b class="pl-num pl-orange">' + digits(fmt(t)) + '</b>', open: () => PatOS.launch('clock', { tab: 2 }),
-      actions: [{ icon: 'pause', label: T('Stop'), main: true, run: () => { const y = sw(); y.acc = y.acc + (Date.now() - y.start); y.running = false; PatOS.store.set('clockStopwatch', y); schedule(); } }],
-      big: () => h('div', { class: 'pl-big pl-count' }, h('div', { class: 'pl-huge', html: digits(fmt(t)) })) }];
+    if (x.running || (left > 0 && left < x.total)) {
+      const p = x.total ? left / x.total : 0;
+      out.push({
+        id: 'timer', pri: 75, app: 'clock', lead: glyph('timer', '#ff9f0a'), title: x.label || T('Timer'), sub: x.running ? T('Ends at') + ' ' + timeAt(x.end) : T('Paused'), tone: '#ff9f0a', ticks: true, state: clock(left),
+        trail: '<b class="pl-num pl-orange">' + digits(clock(left)) + '</b>', progress: 1 - p, open: () => PatOS.launch('clock', { tab: 3 }),
+        actions: [{ icon: x.running ? 'pause' : 'play', label: T(x.running ? 'Pause' : 'Resume'), main: true, run: () => {
+          const y = tm(); if (y.running) { y.left = Math.max(0, y.end - Date.now()); y.running = false; PatOS.alarms.cancel('clock-timer'); } else { y.end = Date.now() + y.left; y.running = true; schedTm(y); } saveTm(y);
+        } }, { label: '+1 min', run: () => { const y = tm(); y.total += 60000; if (y.running) { y.end += 60000; schedTm(y); } else y.left += 60000; saveTm(y); } },
+        { icon: 'rotate', label: T('Reset'), run: () => { const y = tm(); y.left = y.total; if (y.running) { y.end = Date.now() + y.total; schedTm(y); } saveTm(y); } },
+        { icon: 'close', label: T('Cancel'), run: () => { const y = tm(); y.running = false; y.left = y.total; PatOS.alarms.cancel('clock-timer'); saveTm(y); } }],
+        big: () => h('div', { class: 'pl-big pl-count' }, h('div', { class: 'pl-huge', html: digits(clock(left)) }), h('div', { class: 'pl-bar orange' }, h('i', { style: { width: (p * 100).toFixed(1) + '%' } })))
+      });
+    }
+    // timers from Pat, Spotlight or Shortcuts ("timer 10 min"): as many as there are
+    if (PatOS.alarms && PatOS.alarms.upcoming) PatOS.alarms.upcoming('timer').filter((q) => q.id !== 'clock-timer').forEach((q) => {
+      const l = Math.max(0, q.at - Date.now()), total = q.start ? q.at - q.start : 0;
+      out.push({ id: 'alarm:' + q.id, pri: 74, app: 'clock', lead: glyph('timer', '#ff9f0a'), title: q.title && q.title !== T('Timer done') ? q.title : T('Timer'), sub: T('Ends at') + ' ' + timeAt(q.at), tone: '#ff9f0a', ticks: true, state: clock(l),
+        trail: '<b class="pl-num pl-orange">' + digits(clock(l)) + '</b>', progress: total ? 1 - l / total : null,
+        actions: [{ label: '+1 min', run: () => { PatOS.alarms.schedule(Object.assign({}, q, { at: q.at + 60000 })); schedule(); } }, { icon: 'close', label: T('Cancel'), run: () => { PatOS.alarms.cancel(q.id); schedule(); } }],
+        big: () => h('div', { class: 'pl-big pl-count' }, h('div', { class: 'pl-huge', html: digits(clock(l)) }), total ? h('div', { class: 'pl-bar orange' }, h('i', { style: { width: (l / total * 100).toFixed(1) + '%' } })) : null) });
+    });
+    // ringing now: the most important thing there is
+    if (PatOS.alarms && PatOS.alarms.ringingInfo) PatOS.alarms.ringingInfo().forEach((r) => {
+      out.push({ id: 'ring:' + r.id, pri: 110, app: r.app || 'clock', lead: glyph(r.kind === 'timer' ? 'timer' : 'alarm', '#ff9f0a'), title: r.title, sub: T(r.kind === 'timer' ? 'Timer' : 'Alarm'), tone: '#ff9f0a', status: 'ringing', state: T('Ringing'),
+        trail: '<span class="pl-dot" style="--c:#ff9f0a"></span>',
+        actions: [r.snooze && { icon: 'moon', label: T('Snooze'), run: () => PatOS.alarms.snooze(r.id) }, { icon: 'stop', label: T('Stop'), main: true, run: () => PatOS.alarms.stop(r.id) }].filter(Boolean) });
+    });
+    const s = Object.assign({ running: false, start: 0, acc: 0, laps: [] }, PatOS.store.get('clockStopwatch', null) || {});
+    if (s.running) {
+      const t = s.acc + (Date.now() - s.start);
+      const fmt = (ms) => { const m = Math.floor(ms / 60000), sec = Math.floor(ms / 1000) % 60; return (m >= 60 ? Math.floor(m / 60) + ':' + two(m % 60) : m) + ':' + two(sec); };
+      out.push({ id: 'stopwatch', pri: 40, app: 'clock', lead: glyph('clock', '#ff9f0a'), title: T('Stopwatch'), sub: s.laps.length ? s.laps.length + ' ' + T('laps') : '', tone: '#ff9f0a', ticks: true, state: fmt(t),
+        trail: '<b class="pl-num pl-orange">' + digits(fmt(t)) + '</b>', open: () => PatOS.launch('clock', { tab: 2 }),
+        actions: [{ icon: 'flag', label: T('Lap'), run: () => { const y = Object.assign({}, s, { laps: s.laps.slice() }); const n = y.acc + (Date.now() - y.start); y.laps.push(n - y.laps.reduce((a, b) => a + b, 0)); PatOS.store.set('clockStopwatch', y); schedule(); } },
+          { icon: 'pause', label: T('Stop'), main: true, run: () => { const y = Object.assign({}, s); y.acc = y.acc + (Date.now() - y.start); y.running = false; PatOS.store.set('clockStopwatch', y); schedule(); } }],
+        big: () => h('div', { class: 'pl-big pl-count' }, h('div', { class: 'pl-huge', html: digits(fmt(t)) })) });
+    }
+    return out;
   }
 
-  /* 4. the microphone and the camera: whichever app uses them, it is shown (and they can be turned off from here) */
+  /* the microphone and the camera: whichever app uses them (only PatOS itself shows these, apps can't fake them) */
   const media = new Map(); let mediaN = 0;
   if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia && !navigator.mediaDevices.__pill) {
     const gum = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
     navigator.mediaDevices.getUserMedia = async (c) => {
       const stream = await gum(c);
-      try {
-        const id = 'media:' + (++mediaN), w = PatOS.wm && PatOS.wm.active;
-        media.set(id, { stream, app: w ? w.app.id : '', name: w ? w.app.name : 'PatOS', since: Date.now() });
-        stream.getTracks().forEach((t) => t.addEventListener('ended', schedule)); schedule();
-      } catch (e) {}
+      try { const id = 'media:' + (++mediaN), w = PatOS.wm && PatOS.wm.active; media.set(id, { stream, app: w ? w.app.id : '', name: w ? w.app.name : 'PatOS', since: Date.now() }); stream.getTracks().forEach((t) => t.addEventListener('ended', schedule)); schedule(); } catch (e) {}
       return stream;
     };
     navigator.mediaDevices.__pill = true;
@@ -14878,75 +15049,141 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":8};
     media.forEach((m, id) => {
       const tracks = m.stream.getTracks().filter((t) => t.readyState === 'live'); if (!tracks.length) { media.delete(id); return; }
       const cam = tracks.some((t) => t.kind === 'video'), mic = tracks.some((t) => t.kind === 'audio'), color = cam ? '#30d158' : '#ff9f0a';
-      out.push({ id, pri: 90, lead: m.app ? appIcon(m.app) : glyph(cam ? 'camera' : 'mic', color), title: m.name, sub: T(cam && mic ? 'Camera and microphone on' : cam ? 'Camera on' : 'Microphone on'), tone: color,
+      out.push({ id, pri: 95, app: m.app, lead: m.app ? appIcon(m.app) : glyph(cam ? 'camera' : 'mic', color), title: m.name, sub: T(cam && mic ? 'Camera and microphone on' : cam ? 'Camera on' : 'Microphone on'), tone: color, ticks: true, state: T(cam ? 'Camera on' : 'Microphone on'),
         trail: '<span class="pl-dot" style="--c:' + color + '"></span><b class="pl-num">' + digits(clock(Date.now() - m.since)) + '</b>',
-        actions: [{ icon: 'stop', label: T('Turn off'), run: () => { tracks.forEach((t) => t.stop()); media.delete(id); schedule(); } }, m.app && { icon: 'window', label: T('Show'), run: () => PatOS.launch(m.app) }].filter(Boolean) });
+        actions: [{ icon: 'stop', label: T('Turn off'), run: () => { tracks.forEach((t) => t.stop()); media.delete(id); schedule(); } }, m.app && { icon: 'window', label: T('Show'), run: () => PatOS.launch(m.app) }].filter(Boolean), open: m.app ? () => PatOS.launch(m.app) : null });
     });
     return out;
   }
 
-  /* everything, most important first */
-  function items() {
-    let l = [];
-    for (const f of [mediaItems, timerItems, liveItems, musicItems, stopwatchItems]) { try { l = l.concat(f()); } catch (e) {} }
-    custom.forEach((it, id) => l.push(Object.assign({ pri: 55 }, it, { id: 'x:' + id })));
-    l.sort((a, b) => b.pri - a.pri);
-    if (focusId) { const i = l.findIndex((x) => x.id === focusId); if (i > 0) l.unshift(l.splice(i, 1)[0]); }
-    return l;
+  /* the next calendar event and the next reminder */
+  function calendarItems() {
+    const out = [], now = new Date(), cal = PatOS.store.get('calendar', {}) || {};
+    const key = PatOS.dateKey ? PatOS.dateKey(now) : now.toISOString().slice(0, 10);
+    const evs = (PatOS.calendarOn ? PatOS.calendarOn(now) : cal[key] || []).filter((e) => e && e.time && /^\d{1,2}:\d{2}$/.test(e.time));
+    evs.forEach((e) => {
+      const [hh, mm] = e.time.split(':').map(Number); const at = new Date(now); at.setHours(hh, mm, 0, 0); const d = at - now;
+      if (d > 60 * 60000 || d < -10 * 60000) return;
+      const soon = d <= 10 * 60000;
+      out.push({ id: 'cal:' + (e.id || e.title + e.time), pri: soon ? 78 : 36, app: 'calendar', lead: appIcon('calendar'), title: e.title || T('Event'), sub: d > 0 ? T('in') + ' ' + Math.max(1, Math.round(d / 60000)) + ' min · ' + timeAt(at) : T('Now'), state: d > 0 ? Math.round(d / 60000) + ' min' : T('Now'),
+        tone: soon ? '#ff453a' : '', trail: '<b class="pl-num">' + (d > 0 ? Math.max(1, Math.round(d / 60000)) + ' min' : T('Now')) + '</b>', open: () => PatOS.launch('calendar') });
+    });
+    const rems = PatOS.store.get('reminders', null) || [];
+    rems.forEach((r) => {
+      if (!r || r.done || !r.due || !r.time || r.alerted) return;
+      const at = new Date(r.due + 'T' + r.time).getTime(), d = at - Date.now(); if (!(d > 0 && d <= 15 * 60000)) return;
+      out.push({ id: 'rem:' + r.id, pri: 68, app: 'reminders', lead: appIcon('reminders'), title: r.text, sub: T('in') + ' ' + Math.max(1, Math.round(d / 60000)) + ' min', state: Math.round(d / 60000) + ' min', trail: '<b class="pl-num">' + Math.max(1, Math.round(d / 60000)) + ' min</b>',
+        open: () => PatOS.launch('reminders'), actions: [{ icon: 'check', label: T('Done'), run: () => { const l = PatOS.store.get('reminders', []) || []; const x = l.find((y) => y.id === r.id); if (x) { x.done = true; PatOS.store.set('reminders', l); PatOS.emit('reminders'); } schedule(); } }] });
+    });
+    return out;
+  }
+
+  /* PatOS itself: the battery, sync, the network, Do Not Disturb */
+  let battery = null, dndSince = 0;
+  if (navigator.getBattery) navigator.getBattery().then((b) => { battery = b; b.addEventListener('levelchange', schedule); b.addEventListener('chargingchange', () => { flash({ kind: 'battery', lead: glyph('bolt', b.charging ? '#34c759' : '#fff'), title: T(b.charging ? 'Charging' : 'On battery'), trail: '<b class="pl-num">' + Math.round(b.level * 100) + '%</b>', tone: b.charging ? '#34c759' : '', status: b.charging ? 'charge' : '' }); schedule(); }); schedule(); }).catch(() => {});
+  function systemItems() {
+    const out = [];
+    if (battery && !battery.charging && battery.level < 0.2) {
+      const crit = battery.level < 0.08;
+      out.push({ id: 'sys:battery', pri: crit ? 90 : 46, app: 'settings', lead: glyph('bolt', crit ? TONE.critical : TONE.warning), title: T(crit ? 'Battery very low' : 'Battery low'), sub: T('Plug in your computer'), tone: crit ? TONE.critical : TONE.warning, state: Math.round(battery.level * 100) + '%', trail: '<b class="pl-num">' + Math.round(battery.level * 100) + '%</b>' });
+    }
+    const st = PatOS.sync && PatOS.sync.status ? PatOS.sync.status() : null;
+    if (st && st.on && st.state === 'error') out.push({ id: 'sys:sync', pri: 44, app: 'settings', lead: glyph('cloud', TONE.warning), title: T('Sync stopped'), sub: T({ key: 'The sync code isn’t accepted', full: 'The sync server is full', busy: 'The sync server is busy', server: 'The sync server had a problem' }[st.error] || 'It will try again'), tone: TONE.warning, state: T('Stopped'), actions: [{ icon: 'gear', label: T('Settings'), run: () => PatOS.launch('settings', { pane: 'sync' }) }], open: () => PatOS.launch('settings', { pane: 'sync' }) });
+    else if (st && st.on && st.state === 'syncing') out.push({ id: 'sys:syncing', pri: 20, app: 'settings', lead: glyph('cloud'), title: T('Syncing'), sub: '', state: T('Working…'), trail: spin });
+    if (navigator.onLine === false) out.push({ id: 'sys:offline', pri: 22, app: 'settings', lead: glyph('wifi', TONE.critical), title: T('Offline'), sub: T('PatOS keeps working; it catches up when you’re back'), state: T('Offline') });
+    if (PatOS.focusMode) { if (!dndSince) dndSince = Date.now(); out.push({ id: 'sys:dnd', pri: 21, app: 'settings', lead: glyph('moon', '#bf5af2'), title: T('Do Not Disturb'), sub: T('for') + ' ' + ago(dndSince).replace(T('now'), '1 min'), state: T('On'), actions: [{ icon: 'close', label: T('Turn off'), run: () => { PatOS.focusMode = false; PatOS.emit('focus', false); } }] }); } else dndSince = 0;
+    return out;
+  }
+
+  /* everything, most important first. compact = what may sit in the capsule (background things only show in the overview) */
+  function collect() {
+    let all = [], compact = [];
+    const add = (l, both) => { all = all.concat(l); if (both !== false) compact = compact.concat(l); };
+    const L = liveItems();
+    for (const f of [mediaItems, timerItems, musicItems, calendarItems, systemItems, sdkItems]) { try { add(f()); } catch (e) { console.error(e); } }
+    all = all.concat(L.all); compact = compact.concat(L.compact);
+    const by = (a, b) => b.pri - a.pri;
+    all.sort(by); compact = compact.filter((x) => x.pri >= 35).sort(by);
+    if (focusId) { const i = all.findIndex((x) => x.id === focusId); if (i > 0) all.unshift(all.splice(i, 1)[0]); }
+    return { all, compact };
   }
 
   /* ======================= drawing ======================= */
+  const actBtn = (a, cls) => h('button', { class: (cls || 'pl-act') + (a.main ? ' main' : ''), 'data-i': a.icon || '', 'aria-label': a.label, title: a.label,
+    onclick: (e) => { e.stopPropagation(); a.run(e); if (!a.keep) setTimeout(render, 80); }, html: a.icon ? sym(a.icon) : esc(a.label) });
   function compactEl(it) {
     return h('div', { class: 'pl-row' }, h('span', { class: 'pl-lead', html: it.lead || '' }),
       h('span', { class: 'pl-t' + (it.flash ? ' inline' : '') }, h('b', {}, it.title || ''), it.bar == null && it.sub && it.flash ? h('small', {}, it.sub) : null),
       it.bar != null ? h('span', { class: 'pl-level' }, h('i', { style: { width: Math.round(it.bar * 100) + '%' } })) : null,
       it.trail ? h('span', { class: 'pl-trail', html: it.trail }) : null);
   }
-  function card(it, first) {
-    const acts = (it.actions || []).map((a) => h('button', { class: 'pl-act' + (a.main ? ' main' : ''), 'data-i': a.icon, 'aria-label': a.label, title: a.label, onclick: (e) => { e.stopPropagation(); a.run(); setTimeout(render, 60); }, html: a.icon && !/^\+/.test(a.label) ? sym(a.icon) : esc(a.label) }));
-    if (!first) return h('button', { class: 'pl-mini', onclick: (e) => { e.stopPropagation(); focusId = it.id; render(); } }, h('span', { class: 'pl-lead', html: it.lead || '' }), h('span', { class: 'pl-t' }, h('b', {}, it.title || ''), it.sub ? h('small', {}, it.sub) : null), it.trail ? h('span', { class: 'pl-trail', html: it.trail }) : null);
+  function mainCard(it) {
+    const acts = (it.actions || []).filter((a) => !a.quiet || !(it.actions || []).some((b) => !b.quiet));
     return h('div', { class: 'pl-card' },
-      h('div', { class: 'pl-head' }, h('span', { class: 'pl-lead big', html: it.lead || '' }), h('span', { class: 'pl-t' }, h('b', {}, it.title || ''), it.sub ? h('small', {}, it.sub) : null),
-        it.open ? h('button', { class: 'pl-open', 'aria-label': T('Open'), title: T('Open'), onclick: (e) => { e.stopPropagation(); collapse(); it.open(); }, html: sym('up') }) : null),
-      it.big ? it.big() : null, acts.length ? h('div', { class: 'pl-acts' }, ...acts) : null);
+      h('div', { class: 'pl-head' }, h('button', { class: 'pl-lead big', html: it.lead || '', 'aria-label': T('Open'), onclick: (e) => { e.stopPropagation(); if (it.open) { collapse(); it.open(); } } }),
+        h('span', { class: 'pl-t' }, h('b', {}, it.title || ''), it.sub ? h('small', {}, it.sub) : null),
+        it.open ? h('button', { class: 'pl-open', 'aria-label': T('Open'), title: T('Open') + ' ' + appName(it.app), onclick: (e) => { e.stopPropagation(); collapse(); it.open(); }, html: sym('up') }) : null),
+      it.big ? it.big() : null, acts.length ? h('div', { class: 'pl-acts' }, ...acts.map((a) => actBtn(a))) : null);
   }
+  function row(it) {
+    const quick = (it.actions || []).filter((a) => a.icon && !a.main).slice(0, 2);
+    return h('div', { class: 'pl-arow', role: 'button', tabindex: '0', onclick: (e) => { e.stopPropagation(); focusId = it.id; render(); }, onkeydown: (e) => { if (e.key === 'Enter') { focusId = it.id; render(); } } },
+      h('span', { class: 'pl-lead', html: it.lead || '' }), h('span', { class: 'pl-t' }, h('b', {}, it.title || ''), it.sub ? h('small', {}, it.sub) : null),
+      h('span', { class: 'pl-state' + (it.tone ? ' toned' : ''), style: it.tone ? { color: it.tone } : null }, it.state || ''), ...quick.map((a) => actBtn(a, 'pl-qa')));
+  }
+  function histRow(x) {
+    const g = x.status === 'done' ? glyph('check', TONE.done) : x.status === 'failed' ? glyph('warn', TONE.failed) : glyph('close', 'rgba(255,255,255,.55)');
+    const hasApp = x.app && x.app !== 'about' && PatOS.apps[x.app];
+    return h('div', { class: 'pl-arow done' }, h('span', { class: 'pl-lead', html: hasApp ? appIcon(x.app) : g }),
+      h('span', { class: 'pl-t' }, h('b', {}, x.title), h('small', {}, (x.sub ? x.sub + ' · ' : '') + ago(x.t))),
+      hasApp ? h('span', { class: 'pl-state', html: g }) : null, h('button', { class: 'pl-qa', 'aria-label': T('Dismiss'), title: T('Dismiss'), html: sym('close'), onclick: (e) => { e.stopPropagation(); hist = hist.filter((y) => y !== x); saveHist(); render(); } }));
+  }
+  function overview(all) {
+    const main = all[0], rest = all.slice(1);
+    const showHist = S().pillHistory !== false && hist.length;
+    return h('div', { class: 'pl-list' }, main ? mainCard(main) : h('div', { class: 'pl-none' }, T('Nothing is happening right now.')),
+      rest.length ? h('div', { class: 'pl-sec' }, h('small', {}, T('Activities')), ...rest.slice(0, 8).map(row)) : null,
+      showHist ? h('div', { class: 'pl-sec' }, h('small', {}, T('Recently finished'), h('button', { class: 'pl-clear', onclick: (e) => { e.stopPropagation(); hist = []; saveHist(); render(); } }, T('Clear'))), ...hist.slice(0, 4).map(histRow)) : null);
+  }
+
   function build() {
-    wrap = h('div', { id: 'pill-wrap', 'aria-hidden': 'true' });
-    pill = h('div', { id: 'pill', role: 'button', tabindex: '0', 'aria-label': T('Activities') });
+    wrap = h('div', { id: 'pill-wrap' });
+    pill = h('div', { id: 'pill', role: 'button', tabindex: '0', 'aria-label': T('Activities'), 'aria-expanded': 'false' });
     side = h('button', { id: 'pill-side', 'aria-label': T('Next activity') });
-    live = h('div', { class: 'pl-sr', 'aria-live': 'polite' });
+    srLive = h('div', { class: 'pl-sr', 'aria-live': 'polite' });
     measure = h('div', { id: 'pill-measure', 'aria-hidden': 'true' });
-    wrap.append(pill, side, live, measure); document.body.appendChild(wrap);
-    pill.addEventListener('pointerenter', () => { clearTimeout(leaveT); if (mode === 'compact' && !PatOS.isMobile) hoverT = setTimeout(() => expand(false), 420); });
-    pill.addEventListener('pointerleave', () => { clearTimeout(hoverT); if (mode === 'expanded' && !pinned) leaveT = setTimeout(collapse, 380); });
-    pill.addEventListener('click', () => { if (mode === 'expanded') { if (!pinned) { pinned = true; return; } const it = shown && shown[0]; if (it && it.open && !flashNow) { collapse(); it.open(); } return; } expand(true); });
-    pill.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mode === 'expanded' ? collapse() : expand(true); } });
-    pill.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); const it = shown && shown[0]; PatOS.menu([it && it.open ? { label: T('Open'), action: it.open } : null, { label: T('Hide the PatOS Pill'), action: () => PatOS.setSetting('pillOn', false) }].filter(Boolean), e.clientX, e.clientY + 8); });
-    side.addEventListener('click', (e) => { e.stopPropagation(); const l = items(); if (l[1]) { focusId = l[1].id; expand(true); } });
+    wrap.append(pill, side, srLive, measure); document.body.appendChild(wrap);
+    pill.addEventListener('pointerenter', () => { clearTimeout(leaveT); if (flashNow) { clearTimeout(flashT); } else if (mode === 'compact' && !PatOS.isMobile && S().pillHover !== false) hoverT = setTimeout(() => expand(false), 420); });
+    pill.addEventListener('pointerleave', () => { clearTimeout(hoverT); if (flashNow) flashT = setTimeout(endFlash, 900); if (mode === 'expanded' && !pinned && S().pillAutoCollapse !== false) leaveT = setTimeout(collapse, 380); });
+    pill.addEventListener('click', () => {
+      if (flashNow) { const f = flashNow; endFlash(); if (f.onClick) f.onClick(); return; }
+      if (mode === 'expanded') { pinned = true; return; }
+      expand(true);
+    });
+    pill.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { if (e.target !== pill) return; e.preventDefault(); mode === 'expanded' ? collapse() : expand(true); } });
+    pill.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); const it = shown[0]; PatOS.menu([it && it.open ? { label: T('Open') + ' ' + appName(it.app), action: it.open } : null, { label: T('Activity Overview'), action: () => expand(true) }, { label: T('PatOS Pill Settings…'), action: () => PatOS.launch('settings', { pane: 'dock' }) }, { divider: true }, { label: T('Hide the PatOS Pill'), action: () => PatOS.setSetting('pillOn', false) }].filter(Boolean), e.clientX, e.clientY + 8); });
+    side.addEventListener('click', (e) => { e.stopPropagation(); const l = collect().compact; if (l[1]) { focusId = l[1].id; expand(true); } });
     document.addEventListener('pointerdown', (e) => { if (mode === 'expanded' && wrap && !wrap.contains(e.target) && !e.target.closest('.menu')) collapse(); }, true);
     document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && mode === 'expanded') collapse(); });
   }
-  function expand(pin) { if (!shown || !shown.length || flashNow) return; pinned = !!pin; mode = 'expanded'; render(); }
+  function expand(pin) { if (flashNow) endFlash(); pinned = !!pin; mode = 'expanded'; render(); }
   function collapse() { pinned = false; focusId = null; if (mode === 'expanded') { mode = 'compact'; render(); } }
 
-  /* sizes the capsule to its new content (measured first), then swaps the content with a short crossfade */
   let lastKey = '';
-  function morph(content, key, cls) {
-    const big = cls === 'expanded';
+  function morph(content, key, big) {
     measure.className = big ? 'big' : ''; measure.innerHTML = ''; measure.appendChild(content.cloneNode(true));
-    const w = Math.ceil(big ? measure.offsetWidth : Math.min(measure.scrollWidth, innerWidth - 40)), hh = Math.ceil(measure.offsetHeight);
+    const w = Math.ceil(big ? measure.offsetWidth : Math.min(measure.scrollWidth, innerWidth - 40)), hh = Math.ceil(Math.min(measure.offsetHeight, big ? innerHeight * 0.8 : 99));
     pill.style.width = w + 'px'; pill.style.height = hh + 'px';
-    pill.classList.toggle('expanded', big);
-    const old = pill.querySelector('.pl-c:not(.out)');
+    pill.classList.toggle('expanded', big); pill.setAttribute('aria-expanded', String(big));
+    const old = pill.querySelector('.pl-c:not(.out)'); const scroll = old && old.firstChild ? old.firstChild.scrollTop : 0;
     const box = h('div', { class: 'pl-c' }); box.appendChild(content);
-    if (old && key === lastKey) { old.replaceWith(box); } // (the same thing, new numbers: no crossfade)
+    if (old && key === lastKey) { old.replaceWith(box); if (scroll && box.firstChild) box.firstChild.scrollTop = scroll; }
     else {
       if (old) { old.classList.add('out'); setTimeout(() => old.remove(), 220); }
       box.classList.add('in'); pill.appendChild(box); requestAnimationFrame(() => box.classList.remove('in'));
       if (old && !PatOS.settings.reduceMotion && pill.animate) pill.animate([{ transform: big ? 'scale(.97,1.03)' : 'scale(1.05,.9)' }, { transform: 'none' }], { duration: 520, easing: PatOS.motion ? PatOS.motion.get().easing : 'ease-out' });
     }
     lastKey = key;
-    // rolling digits: the ones that changed slide in
     box.querySelectorAll('.pl-digits').forEach((d, di) => { const prev = (pill._digits || [])[di] || ''; [...d.children].forEach((c, i) => { if (prev[i] !== undefined && prev[i] !== c.textContent) c.classList.add('roll'); }); });
     pill._digits = [...box.querySelectorAll('.pl-digits')].map((d) => d.textContent);
   }
@@ -14954,68 +15191,103 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":8};
   function render() {
     if (!pill) return;
     const vis = on() && PatOS.loggedIn && !document.getElementById('setup');
-    if (!flashNow && flashQ.length && vis) { flashNow = flashQ.shift(); clearTimeout(flashT); flashT = setTimeout(() => { flashNow = null; render(); }, flashNow.ms || 1700); live.textContent = (flashNow.title || '') + ' ' + (flashNow.sub || ''); }
-    const l = vis ? items() : []; shown = l;
+    if (!flashNow && flashQ.length && vis) startFlash(flashQ.shift());
+    const c = vis ? collect() : { all: [], compact: [] }; shown = c.all;
     document.documentElement.classList.toggle('pill-on', on());
-    if (!vis || (!l.length && !flashNow)) { if (mode !== 'hidden') { mode = 'hidden'; wrap.classList.remove('show', 'flashing', 'two'); pill.classList.remove('expanded'); } cancelAnimationFrame(barsRaf); barsRaf = 0; tick(); return; }
+    if (!vis || (!c.compact.length && !flashNow && mode !== 'expanded')) {
+      if (mode !== 'hidden') { mode = 'hidden'; wrap.classList.remove('show', 'flashing', 'two', 'urgent'); pill.classList.remove('expanded'); }
+      cancelAnimationFrame(barsRaf); barsRaf = 0; tick(); return;
+    }
     if (mode === 'hidden') mode = 'compact';
     wrap.classList.add('show'); wrap.classList.toggle('flashing', !!flashNow);
-    const it = flashNow || l[0];
-    pill.style.setProperty('--pl-tone', it.tone || 'rgba(255,255,255,.0)');
-    pill.classList.toggle('toned', !!it.tone);
-    pill.style.setProperty('--pl-p', it.progress != null && mode !== 'expanded' ? String(it.progress) : '0');
+    wrap.className = wrap.className.replace(/\bfs-\w+/g, '').trim() + ' fs-' + (S().pillFs || 'important');
+    const it = flashNow || (mode === 'expanded' ? c.all[0] : c.compact[0]) || c.all[0] || {};
+    wrap.classList.toggle('urgent', !!flashNow || (it.pri || 0) >= 80);
+    pill.style.setProperty('--pl-tone', it.tone || 'transparent'); pill.classList.toggle('toned', !!it.tone);
+    pill.style.setProperty('--pl-p', it.progress != null ? String(it.progress) : '0');
     pill.classList.toggle('has-p', it.progress != null && mode !== 'expanded' && !flashNow);
-    if (mode === 'expanded' && !flashNow) morph(h('div', { class: 'pl-list' }, ...l.slice(0, 4).map((x, i) => card(x, i === 0))), 'x:' + l.map((x) => x.id).join(','), 'expanded');
-    else morph(compactEl(it), (flashNow ? 'f:' + (flashNow.kind || flashNow.title) : 'c:' + it.id), 'compact');
-    pill.setAttribute('aria-label', T('Activities') + ': ' + l.map((x) => x.title + (x.sub ? ', ' + x.sub : '')).join('; '));
-    // the second thing, as a bubble beside it
-    const two = mode === 'compact' && !flashNow && l.length > 1;
+    pill.classList.toggle('ringing', it.status === 'ringing' && !flashNow);
+    if (mode === 'expanded' && !flashNow) morph(overview(c.all), 'x:' + c.all.map((x) => x.id).join(',') + ':' + hist.length, true);
+    else morph(compactEl(it), flashNow ? 'f:' + (flashNow.kind || flashNow.title) : 'c:' + it.id, false);
+    pill.setAttribute('aria-label', T('Activities') + ': ' + c.all.map((x) => x.title + (x.state ? ', ' + x.state : '')).join('; '));
+    const two = mode === 'compact' && !flashNow && c.compact.length > 1 && S().pillBubble !== false;
     wrap.classList.toggle('two', two);
-    if (two) { side.innerHTML = l[1].lead || ''; side.title = l[1].title + (l.length > 2 ? ' (+' + (l.length - 2) + ')' : ''); side.style.setProperty('--pl-tone', l[1].tone || 'transparent'); }
-    bars(); tick();
+    if (two) { side.innerHTML = c.compact[1].lead || ''; side.title = c.compact[1].title + (c.compact.length > 2 ? ' (+' + (c.compact.length - 2) + ')' : ''); }
+    if (S().pillBars !== false) bars(); tick();
   }
   const schedule = PatOS.debounce ? PatOS.debounce(render, 40) : render;
-
-  /* a timer, a stopwatch, a recording or an expanded card change every second; nothing else needs a clock */
   function tick() {
-    clearTimeout(tickT);
-    const need = shown && shown.some((x) => x.id === 'timer' || x.id === 'stopwatch' || x.id.startsWith('media:') || (x.id === 'music' && mode === 'expanded'));
-    if (need && !document.hidden) tickT = setTimeout(render, 1000 - (Date.now() % 1000) + 20);
+    clearTimeout(tickT); if (document.hidden || !on()) return;
+    const need = shown.some((x) => x.ticks) || (mode === 'expanded' && shown.some((x) => x.id === 'music'));
+    tickT = setTimeout(render, need ? 1000 - (Date.now() % 1000) + 20 : 30000); // (calendar and reminders are looked at every 30 s)
   }
 
   /* ======================= flashes ======================= */
+  function startFlash(o) {
+    flashNow = o; clearTimeout(flashT); flashT = setTimeout(endFlash, o.ms || flashMs());
+    srLive.textContent = (o.title || '') + ' ' + (o.sub || '');
+    if (o.status && pill) { pill.classList.remove('pl-success', 'pl-shake'); void pill.offsetWidth; pill.classList.add(o.status === 'done' || o.status === 'charge' ? 'pl-success' : o.status === 'failed' ? 'pl-shake' : ''); }
+  }
+  function endFlash() { clearTimeout(flashT); flashNow = null; if (pill) pill.classList.remove('pl-success', 'pl-shake'); render(); }
   function flash(o) {
-    if (!on()) return;
+    if (!on() || !PatOS.loggedIn) return;
     o = Object.assign({ flash: true }, o);
-    // the same kind (volume, brightness) replaces the one on screen instead of waiting in line
-    if (o.kind && flashNow && flashNow.kind === o.kind) { flashNow = o; clearTimeout(flashT); flashT = setTimeout(() => { flashNow = null; render(); }, o.ms || 1700); render(); return; }
+    if (o.kind && flashNow && flashNow.kind === o.kind) { startFlash(o); render(); return; }
     if (o.kind) { const i = flashQ.findIndex((x) => x.kind === o.kind); if (i >= 0) flashQ.splice(i, 1); }
-    flashQ.push(o); if (flashQ.length > 4) flashQ.shift();
-    if (!flashNow) render();
+    flashQ.push(o); if (flashQ.length > 5) flashQ.shift();
+    if (!flashNow && mode !== 'expanded') render();
   }
   PatOS.on('setting:volume', (v) => flash({ kind: 'volume', lead: glyph(v > 0 ? 'speaker' : 'mute'), title: T('Volume'), bar: v }));
   PatOS.on('setting:brightness', (v) => flash({ kind: 'brightness', lead: glyph('sun', '#ffd60a'), title: T('Display'), bar: v }));
-  PatOS.on('focus', (v) => flash({ kind: 'focus', lead: glyph('moon', v ? '#bf5af2' : '#fff'), title: T(v ? 'Do Not Disturb' : 'Do Not Disturb off'), sub: v ? T('On') : '', tone: v ? '#bf5af2' : '' }));
-  addEventListener('offline', () => flash({ kind: 'net', lead: glyph('wifi', '#ff453a'), title: T('Offline'), tone: '#ff453a', ms: 2600 }));
-  addEventListener('online', () => flash({ kind: 'net', lead: glyph('wifi', '#34c759'), title: T('Back online'), tone: '#34c759' }));
-  if (navigator.getBattery) navigator.getBattery().then((b) => b.addEventListener('chargingchange', () => flash({ kind: 'battery', lead: glyph('bolt', b.charging ? '#34c759' : '#fff'), title: T(b.charging ? 'Charging' : 'On battery'), trail: '<b class="pl-num">' + Math.round(b.level * 100) + '%</b>', tone: b.charging ? '#34c759' : '' }))).catch(() => {});
-  PatOS.on('alarm:fire', (x) => { if (x && x.id === 'clock-timer') flash({ lead: glyph('timer', '#ff9f0a'), title: T('Timer done'), tone: '#ff9f0a', ms: 3000 }); });
+  PatOS.on('focus', (v) => { flash({ kind: 'focus', lead: glyph('moon', v ? '#bf5af2' : '#fff'), title: T(v ? 'Do Not Disturb' : 'Do Not Disturb off'), sub: v ? T('On') : '', tone: v ? '#bf5af2' : '' }); schedule(); });
+  addEventListener('offline', () => { flash({ kind: 'net', lead: glyph('wifi', TONE.critical), title: T('Offline'), tone: TONE.critical, ms: 2600 }); schedule(); });
+  addEventListener('online', () => { flash({ kind: 'net', lead: glyph('wifi', TONE.done), title: T('Back online'), tone: TONE.done }); schedule(); });
+  PatOS.on('alarm:fire', (x) => { if (x && (x.kind === 'timer' || x.kind === 'alarm')) addHist({ title: x.title, sub: T(x.kind === 'timer' ? 'Timer' : 'Alarm'), app: x.app || 'clock', status: 'done' }); schedule(); });
+  PatOS.on('alarm:stop', schedule);
+
+  /* notifications: messages and important ones come into the Pill (and still go to Notification Center) */
+  function takeNotification(rec, n) {
+    if (!on() || !PatOS.loggedIn || S().pillNotifs === false || document.hidden || !rec) return false;
+    if (rec.priority === 'urgent' || !(rec.app === 'messages' || rec.priority === 'high')) return false;
+    flash({ kind: 'notif:' + rec.key, notif: true, lead: appIcon(rec.app), title: rec.title + (rec.count > 1 ? ' ×' + rec.count : ''), sub: rec.body, ms: Math.max(4200, flashMs() * 2), tone: rec.priority === 'high' && rec.app !== 'messages' ? TONE.warning : '',
+      onClick: () => { PatOS.nc.open(rec.id); if (!(n && (n.onClick || n.open)) && PatOS.apps[rec.app]) PatOS.launch(rec.app); } });
+    return true;
+  }
+
+  /* Shortcuts, Pat, Focus and the PatOS Sync all report through the SDK */
+  PatOS.on('shortcut:run', (e) => {
+    if (!e) return; const id = 'sc-' + e.id; const sc = PatOS.shortcuts && PatOS.shortcuts.get ? PatOS.shortcuts.get(e.id) : null;
+    if (e.state === 'start') { try { create({ id, app: 'shortcuts', title: e.name || (sc && sc.name) || T('Shortcut'), sub: T('Running…'), priority: 'normal' }, true); } catch (er) {} }
+    else if (e.ok) complete(id, (e.log && e.log.length ? e.log[e.log.length - 1].out : '') || T('Done')); else fail(id, ((e.log || []).find((x) => !x.ok) || {}).error || '');
+  });
+  const patWait = new Map();
+  PatOS.on('intel:start', (e) => { if (!e) return; patWait.set(e.id, setTimeout(() => { patWait.set(e.id, 'shown'); try { create({ id: 'pat-' + e.id, app: 'pat', title: 'Pat', sub: T(e.title) + '…', priority: 'normal' }, true); } catch (er) {} }, 400)); });
+  PatOS.on('intel', (e) => { if (!e || !patWait.has(e.id)) return; const w = patWait.get(e.id); patWait.delete(e.id); if (w !== 'shown') { clearTimeout(w); return; } if (e.ok === false) fail('pat-' + e.id, e.message); else complete('pat-' + e.id, e.message || T('Done')); });
 
   PatOS.on('live', () => { liveEnded(); schedule(); });
-  ['music', 'clock:timer', 'wm:ready', 'setting:pillOn', 'setting:language'].forEach((ev) => PatOS.on(ev, schedule));
-  PatOS.on('setting', (s) => { if (s && (s.key === 'clockTimer' || s.key === 'clockStopwatch')) schedule(); });
+  ['music', 'clock:timer', 'wm:ready', 'setting:pillOn', 'setting:language', 'sync', 'calendar', 'reminders', 'notif'].forEach((ev) => PatOS.on(ev, schedule));
+  PatOS.on('setting', (s) => { if (s && /^pill/.test(s.key)) schedule(); });
   document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); else { cancelAnimationFrame(barsRaf); barsRaf = 0; } });
-  // the Clock saves its timer and stopwatch in the store: look again when it changes them
-  const st0 = PatOS.store.set; PatOS.store.set = function (k) { const r = st0.apply(this, arguments); if (k === 'clockTimer' || k === 'clockStopwatch') schedule(); return r; };
-  // logging in and out
-  setInterval(() => { const vis = on() && PatOS.loggedIn; if (vis !== !!(wrap && wrap.classList.contains('show')) && (vis ? items().length : true)) render(); }, 1500);
+  const st0 = PatOS.store.set; PatOS.store.set = function (k) { const r = st0.apply(this, arguments); if (k === 'clockTimer' || k === 'clockStopwatch' || k === 'alarmQueue') schedule(); return r; };
+  setInterval(() => { const vis = on() && PatOS.loggedIn; if (vis !== !!(wrap && wrap.classList.contains('show'))) render(); }, 1500);
+
+  /* a preview, from Settings: a pretend job that fills up and finishes, so you can see the Pill without starting anything */
+  function preview() {
+    const a = create({ id: 'preview', app: 'settings', title: T('Preview'), sub: T('This is how activities look'), progress: 0, priority: 'important' }, true);
+    let p = 0; const t = setInterval(() => { p += 0.1; if (p >= 1) { clearInterval(t); a.complete(T('Done')); } else a.setProgress(p); }, 450);
+  }
 
   PatOS.pill = {
-    set(id, item) { custom.set(String(id), item); schedule(); },
-    clear(id) { custom.delete(String(id)); schedule(); },
-    flash, expand: () => expand(true), collapse, render,
-    get state() { return { mode, items: (shown || []).map((x) => x.id), flash: flashNow ? flashNow.title : null }; }
+    create: (o) => create(o, false), update, complete, fail, dismiss,
+    setProgress: (id, p) => update(id, { progress: p }), setPriority: (id, p) => update(id, { priority: p }),
+    // (3.3 beta 8 names)
+    set: (id, item) => { try { create(Object.assign({ id: String(id) }, item)); } catch (e) {} }, clear: (id) => dismiss(String(id)),
+    flash, notify: takeNotification, expand: () => expand(true), collapse, render, preview,
+    history: () => hist.slice(), clearHistory: () => { hist = []; saveHist(); schedule(); },
+    get state() { return { mode, items: shown.map((x) => x.id), flash: flashNow ? flashNow.title : null }; }
   };
+  // Alt+A: the Activity Overview, any time (even when nothing is running: what finished recently)
+  document.addEventListener('keydown', (e) => { if (PatOS.loggedIn && on() && e.altKey && !e.ctrlKey && !e.metaKey && e.code === 'KeyA') { e.preventDefault(); mode === 'expanded' ? collapse() : expand(true); } });
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { build(); render(); }); else { build(); render(); }
 })();
 
@@ -15762,7 +16034,7 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":8};
   const remember = (a, r, source) => {
     history.push({ t: Date.now(), id: a.id, title: a.title, owner: a.owner, ok: r.ok, status: r.status, source: String(source || 'user').slice(0, 40), message: String(r.message || '').slice(0, 140) });
     if (history.length > 50) history.splice(0, history.length - 50);
-    PatOS.store.set(HISTORY_KEY, history.slice()); PatOS.emit('intel', { id: a.id, ok: r.ok });
+    PatOS.store.set(HISTORY_KEY, history.slice()); PatOS.emit('intel', { id: a.id, ok: r.ok, title: a.title, message: String(r.message || '').slice(0, 140), source: String(source || 'user') });
   };
   const result = (ok, message, extra) => Object.assign({ ok, status: ok ? 'done' : 'failed', message: String(message || '') }, extra || {});
   // what a run() gave back → a result
@@ -15790,6 +16062,7 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":8};
     if (ask && !opts.confirmed) return { ok: null, status: 'confirm', message: typeof ask === 'string' ? ask : L('Are you sure? ', 'Êtes-vous sûr? ') + a.title + '?', confirm: () => execute(id, params, Object.assign({}, opts, { confirmed: true })) };
     let r; try { r = a.run(Object.assign({}, params), { source, context }); }
     catch (e) { PatOS.errors && PatOS.errors.report(e, 'intelligence ' + a.id, { category: 'intelligence', severity: 'warning' }); return fail(a, L('That didn’t work: ', 'Ça n’a pas marché : ') + (e.message || e), source); }
+    if (r && typeof r.then === 'function') { PatOS.emit('intel:start', { id: a.id, title: a.title, source }); } // (the Pill shows it while it works)
     if (r && typeof r.then === 'function') return r.then((x) => finish(a, x, source, params), (e) => fail(a, L('That didn’t work: ', 'Ça n’a pas marché : ') + (e && e.message || e), source));
     return finish(a, r, source, params);
   }
@@ -17953,7 +18226,9 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":8};
     onTick: (fn) => { subs.add(fn); return () => subs.delete(fn); },
     schedule, cancel, stop, snooze, askPermission,
     get: (id) => queue().find((x) => x.id === id) || null,
-    ringing: () => [...ringing.keys()]
+    ringing: () => [...ringing.keys()],
+    ringingInfo: () => [...ringing.values()].map((r) => r.x), // (the Pill shows them, with Stop and Snooze)
+    upcoming: (kind) => queue().filter((x) => !kind || x.kind === kind)
   };
 })();
 
@@ -19030,7 +19305,7 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":8};
      is about this one device, a copy that is made again by itself, or a secret stays. With a sync code, only the list above. */
   let mode = 'code'; // 'code' (a sync code and the PatOS server) or 'account' (a PatOS account in the cloud)
   const DENY = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncKey', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'systemUid', 'verifiedUids', 'annSeen', 'fsDamaged', 'intelHistory', 'accountPrompt', 'accountSeen', 'msgRead', 'patAppGrants', 'privacyLog',
-    'setupStep', 'setupDone', 'setupBack', 'notifHistory', 'notifQueue', 'fileOps', 'fileVersions', 'installOffered', 'iosHint', 'notifAsked', 'appInstalled', 'alarmQueue',
+    'setupStep', 'setupDone', 'setupBack', 'pillHistory', 'pillActs', 'notifHistory', 'notifQueue', 'fileOps', 'fileVersions', 'installOffered', 'iosHint', 'notifAsked', 'appInstalled', 'alarmQueue',
     'timeline', 'timelineMoments', 'clipHistory', 'timelinePause', 'handoffDevice', 'handoffSeen',
     'wpCache', 'wpLockCache', 'wpThumbs', 'wxCache', 'dictCache', 'googleCx', 'patosServer', 'ytKey', 'pwVault', 'musicState', 'settings']);
   const DENY_PREFIX = ['newsCache:', 'ytHome:'];
@@ -25537,6 +25812,8 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
     nowPlaying: () => { const s = (E.playing || E.step > 0 || (E.el && E.el.currentTime > 0)) ? info() : null; return s ? Object.assign({ playing: E.playing }, s) : null; },
     playPath: (p) => setQueue([{ path: p }], 0, true),
     position: () => position(),
+    upNext: () => { const it = E.queue[E.qi + 1]; return it ? info(it) : null; },
+    setOutput: async (id) => { if (E.sink && E.sink.setSinkId) await E.sink.setSinkId(id); }, // (the Pill's output picker; PatOS's own sounds follow too)
     // how loud it is right now, in a few bands (0..1), for the Pill's bars
     levels(n) { n = n || 4; if (!E.analyser || !E.playing) return new Array(n).fill(0); const d = new Uint8Array(E.analyser.frequencyBinCount); E.analyser.getByteFrequencyData(d); const out = []; for (let i = 0; i < n; i++) { const a = Math.floor(Math.pow(i / n, 1.6) * d.length * .7), b = Math.max(a + 1, Math.floor(Math.pow((i + 1) / n, 1.6) * d.length * .7)); let m = 0; for (let j = a; j < b; j++) m = Math.max(m, d[j]); out.push(m / 255); } return out; }
   };
@@ -27236,7 +27513,16 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
             return [...sec('Dock (up to 4 apps)', 'mobileDock', 4), ...sec('Apps on the Home Screen', 'hiddenApps')];
           }
           return [h('h3', {}, 'Dock'), group(row('Size', range('dockSize', 36, 84, 1, (v) => v + 'px')), row('Grow icons under the pointer', toggle('magnify')), row('How much icons grow', range('magnifyScale', 1.2, 2.2, 0.1, (v) => Math.round(v * 100) + '%')), row('Automatically hide the Dock', toggle('dockAutohide')), row('Show desktop widgets', toggle('showWidgets'))),
-            h('h3', {}, 'Windows'), group(row('Magnetic edges', toggle('windowMagnets'), 'Windows click to the screen’s edges and to each other. Hold Shift to place one freely.'), row('PatOS Pill', toggle('pillOn'), 'Timers, music, copies and the microphone, at the top of the screen.')),
+            h('h3', {}, 'Windows'), group(row('Magnetic edges', toggle('windowMagnets'), 'Windows click to the screen’s edges and to each other. Hold Shift to place one freely.')),
+            h('h3', {}, 'PatOS Pill'), group(row('PatOS Pill', toggle('pillOn'), 'Timers, music, copies and the microphone, at the top of the screen. Alt+A opens the Activity Overview.'),
+              S().pillOn !== false ? row('Messages and important notifications', toggle('pillNotifs'), 'They show in the Pill instead of a banner, and still go to Notification Center.') : null,
+              S().pillOn !== false ? row('Open when the pointer rests on it', toggle('pillHover')) : null,
+              S().pillOn !== false ? row('Show what finished recently', toggle('pillHistory')) : null,
+              S().pillOn !== false ? row('Second activity bubble', toggle('pillBubble')) : null,
+              S().pillOn !== false ? row('Music bars', toggle('pillBars')) : null,
+              S().pillOn !== false ? row('How long quick messages stay', select('pillFlash', [['short', 'Short'], ['normal', 'Normal'], ['long', 'Long']])) : null,
+              S().pillOn !== false ? row('In full-screen apps', select('pillFs', [['never', 'Never'], ['important', 'Only important things'], ['always', 'Always']])) : null,
+              S().pillOn !== false ? row('Try it', h('button', { class: 'btn', onclick: () => PatOS.pill && PatOS.pill.preview() }, T('Preview'))) : null),
             h('h3', {}, 'Apps in the Dock'), h('div', { class: 'st-dockapps' }, ...PatOS.appOrder.filter((id) => !PatOS.apps[id].hidden || id === 'launchpad').map((id) => {
               const on = S().dockPinned.includes(id);
               const b = h('button', { class: 'st-da' + (on ? ' on' : '') }, h('div', { class: 'st-da-ic', html: PatOS.iconHTML(PatOS.apps[id].icon || id) }), h('span', {}, PatOS.apps[id].name));
@@ -33139,7 +33425,22 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         dots.innerHTML = '';
         for (let i = 0; i < cfg.every; i++) dots.appendChild(h('i', { class: i < done % cfg.every || (done && done % cfg.every === 0 && mode === 'long') ? 'on' : '' }));
         win.setTitle(running ? fmt(Math.ceil(left)) + ' · ' + PatOS.t('Focus') : PatOS.t('Focus'));
+        toPill();
       }
+      // the session in the PatOS Pill (only when it changes: not on every tick)
+      let pillSig = '';
+      function toPill() {
+        if (!PatOS.pill || !PatOS.pill.create) return;
+        const sig = running + '|' + mode + '|' + Math.round(endAt / 1000) + '|' + (left < total);
+        if (sig === pillSig) return; pillSig = sig;
+        try {
+          const title = PatOS.t(mode === 'focus' ? 'Focus' : 'Break'), sub = mode === 'focus' ? task.value.trim() : PatOS.t('Take a breather');
+          if (running) PatOS.pill.create({ id: 'focus', app: 'focus', title, sub, icon: 'timer', endsAt: endAt, autoEnd: false, progress: null, status: 'running', priority: 72, actions: [{ id: 'pause', label: PatOS.t('Pause'), icon: 'pause', run: () => bStart.onclick() }, { id: 'skip', label: PatOS.t('Skip'), icon: 'next', run: () => bSkip.onclick() }] });
+          else if (left < total) PatOS.pill.create({ id: 'focus', app: 'focus', title, sub: PatOS.t('Paused'), icon: 'timer', endsAt: null, progress: 1 - left / total, status: 'paused', priority: 60, actions: [{ id: 'resume', label: PatOS.t('Resume'), icon: 'play', run: () => bStart.onclick() }] });
+          else PatOS.pill.dismiss('focus');
+        } catch (e) {}
+      }
+      win.on('closed', () => { try { PatOS.pill && PatOS.pill.dismiss('focus'); } catch (e) {} });
       function tick() {
         if (!running) return;
         left = Math.max(0, (endAt - Date.now()) / 1000);
@@ -36399,7 +36700,7 @@ PatOS.sendWithPatDrop = async function (paths) {
   async function run(sc, opts) {
     opts = opts || {}; const ctx = { depth: opts.depth || 0 }; const log = [];
     if (running.has(sc.id) && ctx.depth === 0) return { ok: false, log: [{ ok: false, label: sc.name, error: T('It is already running.') }] };
-    running.add(sc.id); PatOS.emit('shortcut:run', { id: sc.id, state: 'start' });
+    running.add(sc.id); PatOS.emit('shortcut:run', { id: sc.id, name: sc.name, state: 'start' });
     try {
       for (const step of sc.steps || []) {
         const def = ACTIONS[step.type]; if (!def) { log.push({ ok: false, label: step.type, error: T('PatOS does not know this step.') }); break; }
@@ -36409,7 +36710,7 @@ PatOS.sendWithPatDrop = async function (paths) {
     } finally { running.delete(sc.id); }
     const ok = log.every((x) => x.ok);
     if (!ok && !opts.quiet) { try { PatOS.notify({ title: sc.name, body: log.filter((x) => !x.ok).map((x) => x.error).join(' '), icon: 'shortcuts' }); } catch (e) {} }
-    PatOS.emit('shortcut:run', { id: sc.id, state: 'done', ok, log });
+    PatOS.emit('shortcut:run', { id: sc.id, name: sc.name, state: 'done', ok, log });
     return { ok, log };
   }
 

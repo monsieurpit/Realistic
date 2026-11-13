@@ -46,7 +46,7 @@
   async function run(sc, opts) {
     opts = opts || {}; const ctx = { depth: opts.depth || 0 }; const log = [];
     if (running.has(sc.id) && ctx.depth === 0) return { ok: false, log: [{ ok: false, label: sc.name, error: T('It is already running.') }] };
-    running.add(sc.id); PatOS.emit('shortcut:run', { id: sc.id, state: 'start' });
+    running.add(sc.id); PatOS.emit('shortcut:run', { id: sc.id, name: sc.name, state: 'start' });
     try {
       for (const step of sc.steps || []) {
         const def = ACTIONS[step.type]; if (!def) { log.push({ ok: false, label: step.type, error: T('PatOS does not know this step.') }); break; }
@@ -56,7 +56,7 @@
     } finally { running.delete(sc.id); }
     const ok = log.every((x) => x.ok);
     if (!ok && !opts.quiet) { try { PatOS.notify({ title: sc.name, body: log.filter((x) => !x.ok).map((x) => x.error).join(' '), icon: 'shortcuts' }); } catch (e) {} }
-    PatOS.emit('shortcut:run', { id: sc.id, state: 'done', ok, log });
+    PatOS.emit('shortcut:run', { id: sc.id, name: sc.name, state: 'done', ok, log });
     return { ok, log };
   }
 

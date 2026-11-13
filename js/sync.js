@@ -94,7 +94,7 @@
      is about this one device, a copy that is made again by itself, or a secret stays. With a sync code, only the list above. */
   let mode = 'code'; // 'code' (a sync code and the PatOS server) or 'account' (a PatOS account in the cloud)
   const DENY = new Set(['fs', 'fsCleaned2', 'snapIndex', 'backupInfo', 'syncState', 'syncKey', 'syncServer', 'linkState', 'accountInfo', 'accountKey', 'systemUid', 'verifiedUids', 'annSeen', 'fsDamaged', 'intelHistory', 'accountPrompt', 'accountSeen', 'msgRead', 'patAppGrants', 'privacyLog',
-    'setupStep', 'setupDone', 'setupBack', 'notifHistory', 'notifQueue', 'fileOps', 'fileVersions', 'installOffered', 'iosHint', 'notifAsked', 'appInstalled', 'alarmQueue',
+    'setupStep', 'setupDone', 'setupBack', 'pillHistory', 'pillActs', 'notifHistory', 'notifQueue', 'fileOps', 'fileVersions', 'installOffered', 'iosHint', 'notifAsked', 'appInstalled', 'alarmQueue',
     'timeline', 'timelineMoments', 'clipHistory', 'timelinePause', 'handoffDevice', 'handoffSeen',
     'wpCache', 'wpLockCache', 'wpThumbs', 'wxCache', 'dictCache', 'googleCx', 'patosServer', 'ytKey', 'pwVault', 'musicState', 'settings']);
   const DENY_PREFIX = ['newsCache:', 'ytHome:'];

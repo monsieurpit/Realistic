@@ -534,7 +534,16 @@
             return [...sec('Dock (up to 4 apps)', 'mobileDock', 4), ...sec('Apps on the Home Screen', 'hiddenApps')];
           }
           return [h('h3', {}, 'Dock'), group(row('Size', range('dockSize', 36, 84, 1, (v) => v + 'px')), row('Grow icons under the pointer', toggle('magnify')), row('How much icons grow', range('magnifyScale', 1.2, 2.2, 0.1, (v) => Math.round(v * 100) + '%')), row('Automatically hide the Dock', toggle('dockAutohide')), row('Show desktop widgets', toggle('showWidgets'))),
-            h('h3', {}, 'Windows'), group(row('Magnetic edges', toggle('windowMagnets'), 'Windows click to the screen’s edges and to each other. Hold Shift to place one freely.'), row('PatOS Pill', toggle('pillOn'), 'Timers, music, copies and the microphone, at the top of the screen.')),
+            h('h3', {}, 'Windows'), group(row('Magnetic edges', toggle('windowMagnets'), 'Windows click to the screen’s edges and to each other. Hold Shift to place one freely.')),
+            h('h3', {}, 'PatOS Pill'), group(row('PatOS Pill', toggle('pillOn'), 'Timers, music, copies and the microphone, at the top of the screen. Alt+A opens the Activity Overview.'),
+              S().pillOn !== false ? row('Messages and important notifications', toggle('pillNotifs'), 'They show in the Pill instead of a banner, and still go to Notification Center.') : null,
+              S().pillOn !== false ? row('Open when the pointer rests on it', toggle('pillHover')) : null,
+              S().pillOn !== false ? row('Show what finished recently', toggle('pillHistory')) : null,
+              S().pillOn !== false ? row('Second activity bubble', toggle('pillBubble')) : null,
+              S().pillOn !== false ? row('Music bars', toggle('pillBars')) : null,
+              S().pillOn !== false ? row('How long quick messages stay', select('pillFlash', [['short', 'Short'], ['normal', 'Normal'], ['long', 'Long']])) : null,
+              S().pillOn !== false ? row('In full-screen apps', select('pillFs', [['never', 'Never'], ['important', 'Only important things'], ['always', 'Always']])) : null,
+              S().pillOn !== false ? row('Try it', h('button', { class: 'btn', onclick: () => PatOS.pill && PatOS.pill.preview() }, T('Preview'))) : null),
             h('h3', {}, 'Apps in the Dock'), h('div', { class: 'st-dockapps' }, ...PatOS.appOrder.filter((id) => !PatOS.apps[id].hidden || id === 'launchpad').map((id) => {
               const on = S().dockPinned.includes(id);
               const b = h('button', { class: 'st-da' + (on ? ' on' : '') }, h('div', { class: 'st-da-ic', html: PatOS.iconHTML(PatOS.apps[id].icon || id) }), h('span', {}, PatOS.apps[id].name));

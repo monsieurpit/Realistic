@@ -104,6 +104,8 @@
     if (document.hidden && r.banner && PatOS.settings.systemNotifications !== false && window.Notification && Notification.permission === 'granted') { try { const sn = new Notification(n.title, { body: n.body, icon: 'assets/icon-180.png' }); sn.onclick = () => { window.focus(); PatOS.nc.open(r.id); }; } catch (e) {} }
     if (r.sound && PatOS.settings.notifSound !== false) PatOS.sound.notify(r.rec.priority, n.icon);
     if (!r.banner) return r.id;
+    // (3.3) messages and important notifications show in the PatOS Pill instead of a banner (they still go to Notification Center)
+    if (PatOS.pill && PatOS.pill.notify && PatOS.pill.notify(r.rec, n)) return r.id;
     const old = document.querySelector('#toasts .toast[data-nid="' + r.id + '"]'); if (old) old.remove(); // (the same one again: one banner, counted)
     const acts = (PatOS.nc.list().find((x) => x.id === r.id) || {}).actions || [];
     const t = h('div', { class: 'toast' + (r.rec.priority === 'urgent' ? ' urgent' : ''), 'data-nid': r.id },
@@ -761,7 +763,7 @@
     const len = mins >= 1 ? mins + ' min' : secs + ' s';
     if (PatOS.alarms) {
       PatOS.alarms.askPermission();
-      PatOS.alarms.schedule({ id: 'quick-' + PatOS.uid(), kind: 'timer', at: Date.now() + secs * 1000, title: label || PatOS.t('Timer done'), body: len + ' · ' + PatOS.t('Timer'), icon: 'clock', app: 'clock' });
+      PatOS.alarms.schedule({ id: 'quick-' + PatOS.uid(), kind: 'timer', start: Date.now(), at: Date.now() + secs * 1000, title: label || PatOS.t('Timer done'), body: len + ' · ' + PatOS.t('Timer'), icon: 'clock', app: 'clock' });
     }
     PatOS.notify({ title: PatOS.t('Timer started'), body: len, icon: 'clock' });
   };

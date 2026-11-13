@@ -274,7 +274,8 @@
     notifSound: true, mutedApps: [],   // Settings › Notifications and › Applications
     quietOn: false, quietFrom: '22:00', quietTo: '07:00', notifKeepDays: 7, notifRules: {}, // (3.3) quiet hours, history, a rule per app
     windowMagnets: true,
-    pillOn: true,            // the PatOS Pill at the top of the screen (js/pill.js)     // windows click to edges and to each other (js/wm-pro.js)
+    pillOn: true,            // the PatOS Pill at the top of the screen (js/pill.js)
+    pillNotifs: true, pillHover: true, pillHistory: true, pillBubble: true, pillBars: true, pillFlash: 'normal', pillFs: 'important', pillAutoCollapse: true, audioOutput: 'default',     // windows click to edges and to each other (js/wm-pro.js)
     cmdHidden: [],           // Command Center sections you hid
     soundTheme: 'glass', uiVolume: 0.8, // (3.3) the interface sounds: js/sounds.js
     intelPerms: {},          // Settings › Pat & Intelligence: kinds of action turned off (js/intelligence.js)

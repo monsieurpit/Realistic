@@ -394,7 +394,6 @@ html:not(.reduce-motion) .dlg { animation: dlgIn var(--spring-dur-short) var(--s
 #pill-side .pl-app, #pill-side .pl-app .icon-tile, #pill-side .pl-app svg, #pill-side img, #pill-side .pl-art { width: 18px; height: 18px; border-radius: 5px; } #pill-side .pl-glyph .sym { width: 14px; height: 14px; }
 .pl-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
 /* full screen apps: only flashes and an open card show */
-body.patos-fs #pill-wrap:not(.flashing) #pill:not(.expanded), body.patos-fs #pill-wrap:not(.flashing) #pill-side { opacity: 0; pointer-events: none; }
 html.pill-on #mb-live { display: none !important; }
 .mobile #pill-wrap { top: max(4px, calc(var(--mtop, 0px) - 6px)); } .mobile #pill { height: 26px; }
 @media (prefers-reduced-motion: reduce) { #pill, .pl-c, #pill-side { transition-duration: .01s !important; } .pl-digits i.roll { animation: none; } }
@@ -404,3 +403,37 @@ html.reduce-motion #pill, html.reduce-motion .pl-c { transition-duration: .01s !
 .pl-act .sym { filter: none !important; } .pl-act:is([data-i=play], [data-i=pause], [data-i=prev], [data-i=next], [data-i=stop]) .sym { fill: currentColor; stroke-width: 1.4; }
 .pl-act .sym * { fill-opacity: 1 !important; }
 .pl-digits { overflow: hidden; line-height: 1.2em; height: 1.2em; vertical-align: bottom; }
+/* Pill 2: the Activity Overview, states and animations */
+#pill.expanded .pl-list { max-height: 80vh; overflow-y: auto; scrollbar-width: none; }
+.pl-head .pl-lead.big { border: 0; padding: 0; background: none; cursor: pointer; border-radius: 12px; }
+.pl-sec { display: flex; flex-direction: column; gap: 2px; margin-top: 6px; }
+.pl-sec > small { display: flex; align-items: center; justify-content: space-between; padding: 4px 6px 2px; font-size: 11px; font-weight: 600; letter-spacing: .3px; text-transform: uppercase; color: rgba(255,255,255,.45); }
+.pl-clear { border: 0; background: none; color: rgba(255,255,255,.6); font: 600 11px/1 inherit; text-transform: none; letter-spacing: 0; cursor: pointer; padding: 2px 4px; border-radius: 6px; } .pl-clear:hover { color: #fff; background: rgba(255,255,255,.1); }
+.pl-arow { display: flex; align-items: center; gap: 9px; padding: 6px 6px; border-radius: 12px; cursor: pointer; font-size: 12.5px; }
+.pl-arow:hover, .pl-arow:focus-visible { background: rgba(255,255,255,.08); outline: none; }
+.pl-arow.done { cursor: default; opacity: .85; } .pl-arow.done:hover { background: rgba(255,255,255,.04); }
+.pl-arow .pl-t { flex: 1; } .pl-arow .pl-t b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pl-state { font-weight: 600; font-size: 12px; font-variant-numeric: tabular-nums; color: rgba(255,255,255,.75); white-space: nowrap; } .pl-state .pl-glyph .sym { width: 13px; height: 13px; }
+.pl-qa { width: 26px; height: 26px; flex: 0 0 26px; border: 0; border-radius: 50%; background: rgba(255,255,255,.1); color: #fff; display: grid; place-items: center; cursor: pointer; padding: 0; }
+.pl-qa .sym { width: 13px; height: 13px; filter: none !important; } .pl-qa:hover { background: rgba(255,255,255,.22); }
+.pl-qa:is([data-i=play], [data-i=pause], [data-i=prev], [data-i=next], [data-i=stop]) .sym { fill: currentColor; } .pl-qa .sym * { fill-opacity: 1 !important; }
+.pl-none { padding: 14px 6px 4px; text-align: center; color: rgba(255,255,255,.6); font-size: 13px; }
+.pl-next { display: flex; gap: 8px; align-items: baseline; margin-top: 2px; font-size: 12px; color: rgba(255,255,255,.75); min-width: 0; } .pl-next small { color: rgba(255,255,255,.45); font-weight: 600; text-transform: uppercase; font-size: 10.5px; } .pl-next span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-lead { position: relative; } .pl-badge { position: absolute; right: -4px; bottom: -4px; width: 11px; height: 11px; border-radius: 50%; background: #fff; color: #000; display: grid; place-items: center; } .pl-badge .sym { width: 8px; height: 8px; stroke-width: 3; filter: none !important; }
+.pl-lead.big .pl-badge { width: 18px; height: 18px; right: -3px; bottom: -3px; } .pl-lead.big .pl-badge .sym { width: 12px; height: 12px; }
+/* something ringing: it breathes */
+#pill.ringing { animation: plRing 1.1s ease-in-out infinite; } @keyframes plRing { 50% { box-shadow: 0 0 26px 2px color-mix(in srgb, var(--pl-tone) 70%, transparent), 0 10px 30px -6px rgba(0,0,0,.5), inset 0 0 0 .5px var(--pl-tone); } }
+/* finished: a sweep of light; failed: a shake */
+#pill.pl-success::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: linear-gradient(100deg, transparent 20%, color-mix(in srgb, var(--pl-tone, #34c759) 45%, transparent) 50%, transparent 80%); transform: translateX(-100%); animation: plSweep .9s ease-out .1s forwards; pointer-events: none; z-index: 2; }
+@keyframes plSweep { to { transform: translateX(100%); } }
+#pill.pl-shake { animation: plShake .45s cubic-bezier(.36,.07,.19,.97); } @keyframes plShake { 20%, 60% { translate: -5px 0; } 40%, 80% { translate: 5px 0; } }
+/* full screen: what may show (Settings › Desktop & Dock › PatOS Pill) */
+body.patos-fs #pill-wrap.fs-never { opacity: 0; pointer-events: none; }
+body.patos-fs #pill-wrap.fs-important:not(.urgent) #pill:not(.expanded), body.patos-fs #pill-wrap.fs-important:not(.urgent) #pill-side { opacity: 0; pointer-events: none; }
+body.patos-fs #pill-wrap.fs-always #pill, body.patos-fs #pill-wrap.fs-important.urgent #pill { opacity: 1 !important; pointer-events: auto !important; }
+@media (prefers-reduced-motion: reduce) { #pill.ringing, #pill.pl-shake, #pill.pl-success::before { animation: none; } }
+
+/* (no color of its own: the accent, and a white ring track) */
+.pl-ring { color: #fff; } #pill.toned .pl-ring { color: var(--pl-tone); }
+.pl-bar i { background: var(--accent); } #pill.toned .pl-bar i { background: var(--pl-tone); } .pl-bar.orange i { background: #ff9f0a; }
+#pill::after { background: var(--accent); box-shadow: 0 0 6px var(--accent); } #pill.toned::after { background: var(--pl-tone); box-shadow: 0 0 6px var(--pl-tone); }

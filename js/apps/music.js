@@ -284,6 +284,8 @@
     nowPlaying: () => { const s = (E.playing || E.step > 0 || (E.el && E.el.currentTime > 0)) ? info() : null; return s ? Object.assign({ playing: E.playing }, s) : null; },
     playPath: (p) => setQueue([{ path: p }], 0, true),
     position: () => position(),
+    upNext: () => { const it = E.queue[E.qi + 1]; return it ? info(it) : null; },
+    setOutput: async (id) => { if (E.sink && E.sink.setSinkId) await E.sink.setSinkId(id); }, // (the Pill's output picker; PatOS's own sounds follow too)
     // how loud it is right now, in a few bands (0..1), for the Pill's bars
     levels(n) { n = n || 4; if (!E.analyser || !E.playing) return new Array(n).fill(0); const d = new Uint8Array(E.analyser.frequencyBinCount); E.analyser.getByteFrequencyData(d); const out = []; for (let i = 0; i < n; i++) { const a = Math.floor(Math.pow(i / n, 1.6) * d.length * .7), b = Math.max(a + 1, Math.floor(Math.pow((i + 1) / n, 1.6) * d.length * .7)); let m = 0; for (let j = a; j < b; j++) m = Math.max(m, d[j]); out.push(m / 255); } return out; }
   };
