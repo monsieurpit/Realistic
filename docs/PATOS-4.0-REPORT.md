@@ -1,6 +1,6 @@
 # PatOS 4.0 "Beyond the desktop": final report
 
-Status: **4.0.0 beta 14**, with the full test run done. It's a beta, and stays one until you decide to release it. The architecture is in
+Status: **PatOS 4.0.0, released** (frozen in `releases/4.0.0`). Before that it was a beta, and stays one until you decide to release it. The architecture is in
 [PATOS-4.0.md](PATOS-4.0.md).
 
 ## A. What was built
@@ -88,4 +88,8 @@ See [PATOS-4.0.md](PATOS-4.0.md) for how the parts fit together:
 
 ## G. Release status
 
-**4.0.0 beta 14**, on both branches. It becomes the finished 4.0.0 only when you say so.
+**4.0.0 is released.** After beta 14, a **Tips** app was added (55 tips in 8 collections, each with a working "Try it",
+in English and French, with tests), and 4.0.0 was released on your instruction.
+
+People with Beta updates off are offered 4.0.0 under Settings › Software Update. 3.3.0 stays frozen for anyone who
+doesn't update.

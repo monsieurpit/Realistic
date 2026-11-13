@@ -1,0 +1,4 @@
+# Cloud Chrome (cloud-browser.js) needs a Chrome on the server (and PulseAudio and ffmpeg for its sound). Railpack (Railway's current builder) reads railpack.json
+# instead; this file is for services still built with Nixpacks. "..." keeps the default packages (Node).
+[phases.setup]
+nixPkgs = ["...", "chromium", "pulseaudio", "ffmpeg"]

@@ -1,0 +1,420 @@
+/* ================= Liquid Glass =================
+   One material for the whole of PatOS, modeled on a thick gel slab lit from above (docs/LIQUID-GLASS.md). Every glass surface
+   uses one of three tiers, which differ only in blur and body:
+     clear     bars of icons (Dock, phone dock, app switcher, Launchpad search)
+     regular   tiles, widgets, notifications, segmented controls
+     elevated  surfaces full of text (menus, Spotlight, dialogs, Pat, the notification list)
+   The lens and the deeper colored rim live in an SVG filter made for each surface's size (js/shell.js, Chromium only); the
+   highlights, the milky body and the shadow are here. Window titlebars are glass and window contents are opaque. */
+/* how much light a touch is putting into the glass right now (0 to 1, animated by js/flow.js): it spreads from where you press,
+   like Apple's interactive glass, and only ever adds light, so the glass stays exactly as clear */
+/* the lens belongs to the one surface it was made for: inherited, it put the Dock's map on each of its 16 hidden labels */
+@property --lg-lens { syntax: '*'; inherits: false; }
+@property --g-touch { syntax: '<number>'; inherits: false; initial-value: 0; }
+/* ---------- tokens ---------- */
+:root {
+  /* blur per tier (CSS blur takes a standard deviation, so even 3px softens fine detail) and the body tint */
+  --g-blur-clear: .5px; --g-blur: .6px; --g-blur-elev: 6px; /* (a blur you can almost not see: it softens the picture just enough to feel like glass) */
+  --g-tint-clear: rgba(255,255,255,.025); --g-tint: rgba(255,255,255,.035); --g-tint-elev: rgba(26,26,32,.34);
+  --g-sat: 1.6; --g-bright: 1.04;
+  --g-text: #fff; --g-text-shadow: 0 1px 3px rgba(0,0,0,.45);
+  --g-pill: rgba(255,255,255,.14); --g-pill-on: rgba(255,255,255,.26); --g-rim-soft: rgba(255,255,255,.18);
+  --g-titlebar: 52%;
+  --mx: 30%; --my: 0%;
+  /* one light, fixed above the upper left: every highlight is drawn from it */
+  --g-angle: 150deg; --g-lx: 25%; --g-dx: 75%;
+  /* how wide the bevel is (each tier sets its own below; the lens in js/shell.js bends exactly this band) */
+  --g-rim-w: 12px;
+  /* how strong white highlights are: glass only bends light that is there, so over dark pictures they are faint */
+  --g-glint: .75;
+}
+/* (the glass follows what is behind it, not the light or dark setting: over a light wallpaper it takes dark words and a
+   light body, over a dark one white words; only when the wallpaper can't be read does the theme decide) */
+html[data-wp-tone="light"], :root[data-theme="light"]:not([data-wp-tone]) {
+  --g-tint-clear: rgba(255,255,255,.05); --g-tint: rgba(255,255,255,.1); --g-tint-elev: rgba(250,250,252,.42);
+  --g-text: #1d1d1f; --g-text-shadow: 0 0 4px rgba(255,255,255,.7);
+  --g-pill: rgba(255,255,255,.5); --g-pill-on: rgba(255,255,255,.8); --g-rim-soft: rgba(255,255,255,.55);
+  --g-glint: 1;
+}
+html[data-wp-top="dark"][data-wp-bottom="dark"] { --g-glint: .4; }
+html[data-wp-tone="light"][data-wp-top="dark"][data-wp-bottom="dark"] { --g-glint: .55; }
+/* Tinted: the same glass with more body, for more contrast */
+html.lg-tinted { --g-tint-clear: rgba(22,22,28,.32); --g-tint: rgba(22,22,28,.56); --g-tint-elev: rgba(26,26,32,.78); --g-titlebar: 86%; --g-blur-clear: 6px; --g-blur: 14px; --g-blur-elev: 20px; }
+html[data-wp-tone="light"].lg-tinted, :root[data-theme="light"]:not([data-wp-tone]).lg-tinted { --g-tint-clear: rgba(255,255,255,.44); --g-tint: rgba(255,255,255,.66); --g-tint-elev: rgba(250,250,252,.86); }
+/* a very busy wallpaper (js/wallpaper.js measures it once): glass that holds words frosts more; the Dock stays clear */
+html.lg-on[data-wp-busy] { --g-blur: 4px; --g-blur-elev: 8px; --g-tint: rgba(22,22,28,.16); --g-tint-elev: rgba(26,26,32,.4); --g-text-shadow: 0 0 1px rgba(0,0,0,.55), 0 1px 4px rgba(0,0,0,.55); }
+html[data-wp-tone="light"].lg-on[data-wp-busy], :root[data-theme="light"]:not([data-wp-tone]).lg-on[data-wp-busy] { --g-tint: rgba(255,255,255,.3); --g-tint-elev: rgba(250,250,252,.56); --g-text-shadow: 0 0 1px rgba(255,255,255,.8), 0 0 6px rgba(255,255,255,.85); }
+html.lg-on[data-wp-busy].lg-tinted { --g-tint: rgba(22,22,28,.62); --g-tint-elev: rgba(26,26,32,.8); }
+html[data-wp-tone="light"].lg-on[data-wp-busy].lg-tinted, :root[data-theme="light"]:not([data-wp-tone]).lg-on[data-wp-busy].lg-tinted { --g-tint: rgba(255,255,255,.7); --g-tint-elev: rgba(250,250,252,.86); }
+
+/* ---------- the three tiers: blur, body and how wide the bevel is ----------
+   Saturation stays close to 1 everywhere: glass shows the color of what is behind it, it does not invent a brighter one
+   (an earlier version saturated 1.6–3.2×, which turned a purple wallpaper into pink glass). */
+html.lg-on :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear) { --g-b: var(--g-blur-clear); --g-t: var(--g-tint-clear); --g-s: 1.06; --g-l: 1.05; --g-rim-w: 18px; }
+html.lg-on :is(.widget, .cc-tile, .toast:not(.static), .seg, .mw, .dock-label, #m-switcher .msw, .lg) { --g-b: var(--g-blur); --g-t: var(--g-tint); --g-s: 1.08; --g-l: 1.04; --g-rim-w: 16px; }
+html.lg-on :is(.menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated) { --g-b: var(--g-blur-elev); --g-t: var(--g-tint-elev); --g-s: 1.12; --g-l: 1.03; --g-rim-w: 10px; }
+/* What sits on the wallpaper (the Dock, widgets, the menu bar) takes its words from the wallpaper (tokens above). What floats
+   over windows (menus, Spotlight, dialogs, notifications, Control Center, Pat) usually has a window of the current theme
+   behind it, so it follows light or dark mode; in light mode it has more body, so dark words stay readable even where it
+   floats over a dark wallpaper. */
+:root[data-theme="light"].lg-on :is(.menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated, .toast:not(.static), .cc-tile, #control-center) {
+  --g-tint: rgba(255,255,255,.5); --g-tint-elev: rgba(250,250,252,.62); --g-text: #1d1d1f; --g-text-shadow: none;
+  --g-pill: rgba(255,255,255,.5); --g-pill-on: rgba(255,255,255,.85); --g-rim-soft: rgba(255,255,255,.55); --g-glint: 1;
+}
+:root:not([data-theme="light"]).lg-on :is(.menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated, .toast:not(.static), .cc-tile, #control-center) {
+  --g-tint: rgba(255,255,255,.035); --g-text: #fff; --g-text-shadow: 0 1px 3px rgba(0,0,0,.45);
+  --g-pill: rgba(255,255,255,.14); --g-pill-on: rgba(255,255,255,.26); --g-rim-soft: rgba(255,255,255,.18);
+}
+:root:not([data-theme="light"]).lg-on:not([data-wp-busy]) :is(.menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated, .toast:not(.static), .cc-tile, #control-center) { --g-tint-elev: rgba(26,26,32,.34); }
+/* inside a widget or the Dock's labels, the app's own grey words follow the glass's words too */
+html.lg-on :is(.widget, .mw, .dock-label) { --text: var(--g-text); --text2: color-mix(in srgb, var(--g-text) 66%, transparent); --text3: color-mix(in srgb, var(--g-text) 48%, transparent); }
+
+/* ---------- the material ----------
+   Every glass surface is a raised slab of clear glass, lit from above (docs/LIQUID-GLASS.md):
+   1. face     the backdrop, bent by the lens (js/shell.js, Chromium: the face magnifies a little, the bevel bends hardest),
+               barely blurred, its color kept, lifted a little toward white
+   2. bevel    clear glass --g-rim-w wide, where the lens bends hardest. Nothing is painted on it: the lens filter shows the
+               real background through it, a little lighter along the top and a little deeper along the bottom, so it stays
+               fully transparent and always the background's color
+   3. rim      ::before: a 1.25px specular line whose brightness follows the angle around the shape (brightest upper left,
+               a second highlight lower right, dim between), like light catching the edge of a clear pane. No wide bands
+   4. shadow   a contact shadow right under the slab (it is lifted) and a soft one further out. No outline anywhere. */
+html.lg-on :where(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear, .widget, .cc-tile, .toast:not(.static), .seg, .mw, .dock-label, #m-switcher .msw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated) {
+  background: radial-gradient(circle at var(--g-tx, 50%) var(--g-ty, 50%), rgba(255,255,255,calc(.34 * var(--g-touch))), rgba(255,255,255,calc(.1 * var(--g-touch))) 40%, transparent 75%),
+    linear-gradient(180deg, rgba(255,255,255,calc(.08 * var(--g-glint))), rgba(255,255,255,0) 50%), var(--g-t) !important;
+  -webkit-backdrop-filter: var(--lg-lens,) blur(var(--g-b)) saturate(var(--g-s)) brightness(var(--g-l)) !important;
+  backdrop-filter: var(--lg-lens,) blur(var(--g-b)) saturate(var(--g-s)) brightness(var(--g-l)) !important;
+  box-shadow: inset 0 0 10px rgba(255,255,255,calc(.06 * var(--g-glint))), 0 1px 2px rgba(0,0,0,.12), 0 10px 30px -10px rgba(0,0,0,.24) !important;
+  isolation: isolate;
+}
+/* (only surfaces that aren't already placed: menus, Spotlight and Pat are absolute/fixed, and must stay so, or a menu
+   stretches across the whole screen) */
+html.lg-on :is(#dock, .mh-dock, .asw-row, .dlg, .toast, .nc-list, .widget, .mw, .cc-tile) { position: relative; }
+/* the bevel is clear glass: nothing is painted on it. The lens filter (js/shell.js) shows the real background through it,
+   bent, a little lighter along the top and a little deeper along the bottom. All that is drawn here is light on the surface:
+   a hairline that follows the top curve, a small hot spot on the upper-left corner, and a faint line along the bottom curve. */
+html.lg-on :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear, .widget, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated)::before {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+  padding: 1.25px;
+  /* around the shape from the top (0deg), clockwise: the light comes from the upper left, so the rim is brightest there
+     (315deg), catches a second highlight on the opposite, lower-right curve (135deg), and is dim on the sides between */
+  background: conic-gradient(from 0deg,
+    rgba(255,255,255,.5) 0deg, rgba(255,255,255,.2) 50deg, rgba(255,255,255,.1) 95deg, rgba(255,255,255,.42) 140deg,
+    rgba(255,255,255,.16) 190deg, rgba(255,255,255,.08) 235deg, rgba(255,255,255,.3) 280deg, rgba(255,255,255,.9) 318deg, rgba(255,255,255,.5) 360deg);
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0); -webkit-mask-composite: xor;
+  mask: linear-gradient(#000 0 0) content-box exclude, linear-gradient(#000 0 0);
+}
+html[data-wp-tone="light"].lg-on :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear, .widget, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated)::before, :root[data-theme="light"]:not([data-wp-tone]).lg-on :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear, .widget, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated)::before { opacity: .95; filter: drop-shadow(0 0 .5px rgba(0,0,0,.18)); }
+/* without the lens (browsers other than Chromium, or the lens off): a faint shade low in the glass stands in for its depth */
+html.lg-on:not(.lg-refract) :is(#dock, .mh-dock, .asw-row, .lp-search, .lg-clear, .widget, .cc-tile, .toast:not(.static), .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated)::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1;
+  background: linear-gradient(180deg, transparent 60%, rgba(0,0,0,.08));
+}
+html.lg-on :is(.menu, .toast, .sp-box, .dlg, .nc-list, .widget, .mw, .cc-tile, .dock-label, #pat-panel) { color: var(--g-text); text-shadow: var(--g-text-shadow); }
+/* Control Center: the tiles float on their own, so the panel itself is not glass (no glass inside glass) */
+html.lg-on #control-center { background: transparent !important; box-shadow: none !important; -webkit-backdrop-filter: none !important; backdrop-filter: none !important; padding: 2px; overflow: visible; }
+
+/* ---------- shapes ---------- */
+html.lg-on #dock { border-radius: 999px; padding: 8px 14px; }
+html.lg-on .menu { border-radius: 22px; padding: 8px; }
+html.lg-on .menu-item { border-radius: 14px; } /* (concentric: the menu's 22px corner minus its 8px padding) */
+html.lg-on .sp-box { border-radius: 32px; }
+html.lg-on .dlg { border-radius: 34px; }
+html.lg-on .toast { border-radius: 30px; }
+html.lg-on .widget, html.lg-on .nc-list { border-radius: 34px; }
+html.lg-on .cc-tile { border-radius: 30px; }
+/* a tile that is one row high (the sliders) is a pill */
+html.lg-on .cc-tile.cc-slider { border-radius: 999px; padding-left: 18px; padding-right: 18px; }
+html.lg-on #pat-panel { border-radius: 32px; }
+html.lg-on .seg { border-radius: 999px; }
+html.lg-on .seg .tab { border-radius: 999px; }
+html.lg-on .seg .tab.on { background: var(--g-pill-on); box-shadow: inset 0 1px 0 rgba(255,255,255,.5), 0 2px 8px rgba(0,0,0,.15); color: var(--text); }
+html.lg-on .lp-search { border-radius: 999px; height: 36px; }
+html.lg-on .dock-label { border-radius: 999px; }
+html.lg-on .dock-label::after { display: none; }
+
+/* ---------- menu bar: clear, and its text follows the wallpaper under it (not the theme), so it is always readable ---------- */
+html.lg-on #menubar { background: linear-gradient(180deg, rgba(0,0,0,.26), rgba(0,0,0,.06)); -webkit-backdrop-filter: blur(8px) saturate(1.4); backdrop-filter: blur(8px) saturate(1.4); color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
+html.lg-on[data-wp-top="dark"] #menubar { background: linear-gradient(180deg, rgba(0,0,0,.26), rgba(0,0,0,.06)); color: #fff; text-shadow: 0 1px 3px rgba(0,0,0,.5); }
+html.lg-on[data-wp-top="light"] #menubar { background: linear-gradient(180deg, rgba(255,255,255,.42), rgba(255,255,255,.14)); color: #111; text-shadow: 0 0 6px rgba(255,255,255,.6); }
+html.lg-on[data-wp-top="light"] #menubar button:hover, html.lg-on[data-wp-top="light"] #menubar button.open { background: rgba(0,0,0,.1); }
+html.lg-on[data-wp-top="dark"] #menubar button:hover, html.lg-on[data-wp-top="dark"] #menubar button.open { background: rgba(255,255,255,.2); }
+/* (before the wallpaper has been looked at, the theme decides, as it did before) */
+:root[data-theme="light"].lg-on:not([data-wp-top]) #menubar { background: linear-gradient(180deg, rgba(255,255,255,.45), rgba(255,255,255,.18)); color: #000; text-shadow: 0 0 6px rgba(255,255,255,.7); }
+
+/* ---------- windows: glass titlebar over an opaque body ---------- */
+html.lg-on:not(.mobile) .window { border-radius: 18px; }
+html.lg-on:not(.mobile) .window.maximized { border-radius: 0; }
+html.lg-on:not(.mobile) .window:not(.tb-hidden) {
+  background: transparent; -webkit-backdrop-filter: none; backdrop-filter: none;
+}
+/* the window's own surface: a faint glow of the highlight color in its top left corner (seen wherever an app leaves its
+   background to the window), over the opaque window color */
+html.lg-on:not(.mobile) .window:not(.tb-hidden) > .win-body { background: radial-gradient(70% 38% at 0% 0%, color-mix(in srgb, var(--accent) 9%, transparent), transparent 70%), linear-gradient(var(--win), var(--win)), var(--win-solid); }
+html.lg-on:not(.mobile) .window:not(.tb-hidden) > .titlebar {
+  background: linear-gradient(180deg, rgba(255,255,255,.06), transparent), color-mix(in srgb, var(--toolbar) var(--g-titlebar), transparent);
+  -webkit-backdrop-filter: blur(20px) saturate(1.8); backdrop-filter: blur(20px) saturate(1.8); /* (window titles sit on it: always well frosted) */
+  box-shadow: inset 0 1px 0 var(--g-rim-soft);
+}
+/* windows without a titlebar draw their own top: they stay one solid piece (no blur behind something that is opaque) */
+html.lg-on:not(.mobile) .window.tb-hidden { background: linear-gradient(var(--win), var(--win)), var(--win-solid); -webkit-backdrop-filter: none; backdrop-filter: none; }
+html.lg-on:not(.mobile) :is(.fd-side, .st-side, .notes-side, .msg-side, .dv-side) {
+  margin: 8px 0 8px 8px; border: 0 !important; border-radius: 14px;
+  background: radial-gradient(120% 60% at 30% 0%, rgba(255,255,255,.1), transparent 60%), var(--sidebar);
+  box-shadow: inset 0 1px 1px var(--g-rim-soft), inset 0 0 0 .5px var(--border2), 0 4px 16px rgba(0,0,0,.12);
+}
+
+/* ---------- controls: every button and search bar is a small piece of the same glass ----------
+   Buttons, toolbar buttons, fields and search bars (and the apps' own buttons and search bars) get the material of the big
+   surfaces, made light enough for hundreds of controls: a near-clear tint, a 1px rim whose brightness follows the angle (the
+   border, painted with a conic gradient: brightest upper left, a second highlight lower right), a highlight on the top half
+   and a soft lifted shadow. Inside a window what is behind a control is the window itself, so there is no backdrop blur on
+   them (it would show nothing and cost a layer per button); controls that float over pictures (Photos' arrows, Weather)
+   do blur what is behind them. Buttons and search bars are capsules; fields (inputs, menus) are recessed: their rim catches
+   the light at the bottom right, and a little shade sits inside their top edge. */
+html.lg-on {
+  --gc-base: var(--win-solid); /* (the rim is painted under the whole control: an opaque base keeps it to the 1px border) */
+  --gc-tint: rgba(255,255,255,.07); --gc-tint-on: rgba(255,255,255,.14); --gc-hi: rgba(255,255,255,.1); --gc-field: rgba(0,0,0,.18);
+  --gc-rim: conic-gradient(from 0deg, rgba(255,255,255,.42), rgba(255,255,255,.16) 50deg, rgba(255,255,255,.08) 95deg, rgba(255,255,255,.3) 140deg, rgba(255,255,255,.12) 190deg, rgba(255,255,255,.06) 235deg, rgba(255,255,255,.22) 280deg, rgba(255,255,255,.7) 318deg, rgba(255,255,255,.42));
+  --gc-rim-in: conic-gradient(from 180deg, rgba(255,255,255,.3), rgba(255,255,255,.1) 50deg, rgba(255,255,255,.05) 95deg, rgba(255,255,255,.18) 140deg, rgba(255,255,255,.08) 190deg, rgba(255,255,255,.04) 235deg, rgba(255,255,255,.14) 280deg, rgba(255,255,255,.45) 318deg, rgba(255,255,255,.3));
+  --gc-shadow: 0 1px 2px rgba(0,0,0,.2), 0 3px 10px -3px rgba(0,0,0,.28);
+}
+:root[data-theme="light"].lg-on {
+  --gc-tint: rgba(255,255,255,.62); --gc-tint-on: rgba(255,255,255,.9); --gc-hi: rgba(255,255,255,.65); --gc-field: rgba(0,0,0,.035);
+  --gc-rim: conic-gradient(from 0deg, rgba(255,255,255,1), rgba(0,0,0,.08) 60deg, rgba(0,0,0,.13) 110deg, rgba(0,0,0,.19) 180deg, rgba(0,0,0,.13) 250deg, rgba(255,255,255,.9) 318deg, rgba(255,255,255,1));
+  --gc-rim-in: conic-gradient(from 180deg, rgba(255,255,255,1), rgba(0,0,0,.06) 60deg, rgba(0,0,0,.12) 110deg, rgba(0,0,0,.18) 180deg, rgba(0,0,0,.12) 250deg, rgba(255,255,255,.9) 318deg, rgba(255,255,255,1));
+  --gc-shadow: 0 1px 2px rgba(0,0,0,.1), 0 3px 10px -3px rgba(0,0,0,.16);
+}
+/* apps that are always dark (Music, Camera, the games...) use the dark glass for their controls in every theme */
+html.lg-on .force-dark {
+  --gc-base: #16171c; --gc-tint: rgba(255,255,255,.07); --gc-tint-on: rgba(255,255,255,.14); --gc-hi: rgba(255,255,255,.1); --gc-field: rgba(0,0,0,.18);
+  --gc-rim: conic-gradient(from 0deg, rgba(255,255,255,.42), rgba(255,255,255,.16) 50deg, rgba(255,255,255,.08) 95deg, rgba(255,255,255,.3) 140deg, rgba(255,255,255,.12) 190deg, rgba(255,255,255,.06) 235deg, rgba(255,255,255,.22) 280deg, rgba(255,255,255,.7) 318deg, rgba(255,255,255,.42));
+  --gc-rim-in: conic-gradient(from 180deg, rgba(255,255,255,.3), rgba(255,255,255,.1) 50deg, rgba(255,255,255,.05) 95deg, rgba(255,255,255,.18) 140deg, rgba(255,255,255,.08) 190deg, rgba(255,255,255,.04) 235deg, rgba(255,255,255,.14) 280deg, rgba(255,255,255,.45) 318deg, rgba(255,255,255,.3));
+  --gc-shadow: 0 1px 2px rgba(0,0,0,.2), 0 3px 10px -3px rgba(0,0,0,.28);
+}
+/* controls over a picture use the dark glass in every theme (their words are white), blur what is behind them, and have no
+   opaque base (the picture must show through) */
+html.lg-on :is(.ph-nav, .wx-unit, .wx-search, .rc-pb) {
+  --gc-tint: rgba(255,255,255,.14); --gc-tint-on: rgba(255,255,255,.24); --gc-hi: rgba(255,255,255,.14); --gc-field: rgba(255,255,255,.14);
+  --gc-rim: conic-gradient(from 0deg, rgba(255,255,255,.5), rgba(255,255,255,.18) 50deg, rgba(255,255,255,.1) 95deg, rgba(255,255,255,.36) 140deg, rgba(255,255,255,.14) 190deg, rgba(255,255,255,.08) 235deg, rgba(255,255,255,.26) 280deg, rgba(255,255,255,.85) 318deg, rgba(255,255,255,.5));
+  --gc-rim-in: var(--gc-rim); --gc-shadow: 0 1px 2px rgba(0,0,0,.2), 0 4px 14px -4px rgba(0,0,0,.35);
+  -webkit-backdrop-filter: blur(8px) saturate(1.1); backdrop-filter: blur(8px) saturate(1.1);
+}
+html.lg-on:not(#_) :is(.ph-nav, .wx-unit, .wx-search, .rc-pb) {
+  border-color: transparent !important;
+  background: linear-gradient(180deg, var(--gc-hi), transparent 62%), var(--gc-tint) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 0 0 1px rgba(255,255,255,.2), inset 0 -1px 0 rgba(255,255,255,.25), var(--gc-shadow) !important;
+}
+html.lg-on :is(.btn:not(.primary):not(.danger), .tbtn, .ytx-btn, .ytx-pill, .ytx-sbtn, .as-get, .of-share, .mu-b, .rc-pb, .ph-nav, .wx-unit, .su-opt) {
+  border: 1px solid transparent !important; border-radius: 999px;
+  background: linear-gradient(180deg, var(--gc-hi), transparent 62%) padding-box, linear-gradient(var(--gc-tint), var(--gc-tint)) padding-box, linear-gradient(var(--gc-base), var(--gc-base)) padding-box, var(--gc-rim) border-box !important;
+  box-shadow: var(--gc-shadow) !important;
+}
+html.lg-on :is(.btn:not(.primary):not(.danger), .tbtn, .ytx-btn, .ytx-pill, .ytx-sbtn, .as-get, .of-share, .mu-b, .rc-pb, .ph-nav, .wx-unit, .su-opt):is(:hover, .on) {
+  background: linear-gradient(180deg, var(--gc-hi), transparent 62%) padding-box, linear-gradient(var(--gc-tint-on), var(--gc-tint-on)) padding-box, linear-gradient(var(--gc-base), var(--gc-base)) padding-box, var(--gc-rim) border-box !important;
+  filter: none;
+}
+html.lg-on .tbtn { color: var(--text); }
+html.lg-on .tbtn:disabled { box-shadow: none !important; }
+/* the colored buttons: the same glass, filled with their color */
+html.lg-on :is(.btn.primary, .btn.danger) {
+  --gc-fill: var(--accent);
+  border: 1px solid transparent !important; border-radius: 999px;
+  background: linear-gradient(180deg, rgba(255,255,255,.3), rgba(255,255,255,0) 62%) padding-box, linear-gradient(var(--gc-fill), var(--gc-fill)) padding-box,
+    conic-gradient(from 0deg, rgba(255,255,255,.6), rgba(255,255,255,.2) 60deg, rgba(0,0,0,.12) 180deg, rgba(255,255,255,.2) 280deg, rgba(255,255,255,.85) 318deg, rgba(255,255,255,.6)) border-box !important;
+  box-shadow: 0 1px 2px rgba(0,0,0,.18), 0 4px 14px -4px color-mix(in srgb, var(--gc-fill) 70%, transparent) !important;
+}
+html.lg-on .btn.danger { --gc-fill: #ff453a; }
+/* fields and search bars: recessed glass */
+html.lg-on :is(.field, .fd-search, .st-search, .rm-search, .ph-search, .pb-hsearch, .m2-search, .cal-search, .nt-search, .of-ssearch, .wx-search, .pg-qwrap, .br-omniwrap, .ytx-q, input[type="search"]) {
+  border: 1px solid transparent !important; outline: 0;
+  background: linear-gradient(var(--gc-field), var(--gc-field)) padding-box, linear-gradient(var(--gc-base), var(--gc-base)) padding-box, var(--gc-rim-in) border-box !important;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.14) !important;
+}
+html.lg-on .field { border-radius: 12px; }
+html.lg-on :is(.fd-search, .st-search, .rm-search, .ph-search, .pb-hsearch, .m2-search, .cal-search, .nt-search, .of-ssearch, .wx-search, .pg-qwrap, .br-omniwrap, .ytx-q, input[type="search"]) { border-radius: 999px; padding-left: 14px; padding-right: 14px; }
+html.lg-on :is(.field, .fd-search, .st-search, .rm-search, .ph-search, .pb-hsearch, .m2-search, .cal-search, .nt-search, .of-ssearch, .wx-search, .pg-qwrap, .br-omniwrap, .ytx-q, input[type="search"]):focus-within { box-shadow: inset 0 1px 3px rgba(0,0,0,.14), 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent) !important; }
+/* controls in a window's titlebar sit on glass, so they stay see-through: no opaque base, the rim drawn as inset light */
+html.lg-on:not(.mobile):not(#_) .titlebar :is(.btn:not(.primary):not(.danger), .tbtn, .ytx-btn, .ytx-pill, .ytx-sbtn, .as-get, .of-share, .mu-b) {
+  border-color: transparent !important;
+  background: linear-gradient(180deg, var(--gc-hi), transparent 62%), var(--gc-tint) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 0 0 1px rgba(255,255,255,.14), inset 0 -1px 0 rgba(255,255,255,.18), var(--gc-shadow) !important;
+}
+html.lg-on:not(.mobile):not(#_) .titlebar :is(.btn:not(.primary):not(.danger), .tbtn, .ytx-btn, .ytx-pill, .ytx-sbtn, .as-get, .of-share, .mu-b):is(:hover, .on) { background: linear-gradient(180deg, var(--gc-hi), transparent 62%), var(--gc-tint-on) !important; }
+html.lg-on:not(.mobile):not(#_) .titlebar :is(.field, .fd-search, .st-search, .rm-search, .ph-search, .pb-hsearch, .m2-search, .cal-search, .nt-search, .of-ssearch, .pg-qwrap, .br-omniwrap, .ytx-q, input[type="search"]) {
+  border-color: transparent !important;
+  background: var(--gc-field) !important;
+  box-shadow: inset 0 1px 3px rgba(0,0,0,.16), inset 0 -1px 0 rgba(255,255,255,.3), inset 0 0 0 1px rgba(255,255,255,.1) !important;
+}
+:root[data-theme="light"].lg-on:not(.mobile):not(#_) .titlebar :is(.field, .fd-search, .st-search, .rm-search, .ph-search, .pb-hsearch, .m2-search, .cal-search, .nt-search, .of-ssearch, .pg-qwrap, .br-omniwrap, .ytx-q, input[type="search"]) { background: rgba(255,255,255,.35) !important; }
+:root[data-theme="light"].lg-on:not(.mobile):not(#_) .force-dark .titlebar :is(.field, .fd-search, .st-search, .rm-search, .ph-search, .pb-hsearch, .m2-search, .cal-search, .nt-search, .of-ssearch, .pg-qwrap, .br-omniwrap, .ytx-q, input[type="search"]) { background: rgba(255,255,255,.1) !important; }
+/* (a search bar that is a box around an input: the input inside is plain) */
+html.lg-on :is(.pg-qwrap, .br-omniwrap) input { background: transparent !important; border: 0 !important; box-shadow: none !important; }
+/* YouTube's search is one capsule in two parts: the field on the left, its button on the right */
+html.lg-on .ytx-q { border-radius: 999px 0 0 999px; border-right: 0 !important; }
+html.lg-on .ytx-sbtn { border-radius: 0 999px 999px 0; }
+html.lg-on .switch { box-shadow: inset 0 1px 2px rgba(0,0,0,.25), inset 0 0 0 .5px var(--border2); }
+html.lg-on .switch::after { width: 22px; border-radius: 11px; background: linear-gradient(180deg, #fff, #f1f1f4); box-shadow: 0 2px 6px rgba(0,0,0,.3), inset 0 -1px 1px rgba(0,0,0,.06); }
+html.lg-on .switch.on::after { transform: translateX(12px); }
+html.lg-on .cc-dot { box-shadow: inset 0 1px 1px rgba(255,255,255,.5), inset 0 0 0 .5px rgba(255,255,255,.25); }
+html.lg-on .cc-toggle.on .cc-dot { box-shadow: inset 0 1px 1px rgba(255,255,255,.6), 0 4px 12px color-mix(in srgb, var(--accent) 50%, transparent); }
+html.lg-on :is(.btn, .tbtn, .ob, .cc-toggle, .lp-item, .mh-app) { transition: transform .35s cubic-bezier(.3,1.5,.5,1), background .15s, box-shadow .2s; }
+html.lg-on :is(.btn, .tbtn, .ob):active { transform: scale(.95); }
+html.lg-on .menu { animation: lgIn .16s cubic-bezier(.2,.9,.3,1.15); transform-origin: top left; }
+@keyframes lgIn { from { opacity: 0; transform: scale(.96); } }
+
+/* ---------- system symbols (Piles's sidebar, the menu bar, toolbars, Settings): small glass ----------
+   Every closed shape of a symbol gets a translucent body of its own color (the line stays crisp), and the symbol a soft glow
+   of its color, so a 16px symbol reads as a little piece of glass. Not in Speed mode or with Reduce transparency. */
+html.lg-on svg.sym :is(rect, circle, ellipse, polygon, path[d$="z"], path[d$="Z"]) { fill: currentColor; fill-opacity: .2; }
+html.lg-on:not(.reduce-transparency):not(.perf-light) svg.sym { filter: drop-shadow(0 0 1.6px color-mix(in srgb, currentColor 55%, transparent)); }
+
+/* ---------- app icons: small 3D tiles ----------
+   Every icon is a little slab: a bright top lip and a shaded bottom edge (inset light), a glossy curved reflection across its
+   top (::after), and where icons live (Dock, Launchpad, the phone's home screen, the desktop, the app switcher) a two-layer
+   shadow, so they sit on what is under them. Pointing at one lifts it a little and sweeps a sheen of light across it once
+   (::before); pressing squishes it; Launchpad's icons pop in when it opens. Fewer animations turns the movement off. */
+html.lg-on .icon-tile:not(.flat) {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 -2px 3px rgba(0,0,0,.16), inset 0 0 0 .5px rgba(0,0,0,.14), 0 1px 2px rgba(0,0,0,.22);
+}
+html.lg-on .icon-tile.gi::after { opacity: .55; }
+html.lg-on .icon-tile::after {
+  background:
+    radial-gradient(130% 75% at 50% -22%, rgba(255,255,255,.4), rgba(255,255,255,.1) 56%, rgba(255,255,255,0) 58%),
+    radial-gradient(90% 45% at 50% 112%, rgba(255,255,255,.16), transparent 70%);
+}
+html.lg-on :is(.dock-icon .icon-tile, .lp-item .icon-tile, .mh-app .icon-tile, .desk-icon .icon-tile, .asw-ic .icon-tile) {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 -2px 3px rgba(0,0,0,.18), inset 0 0 0 .5px rgba(0,0,0,.14),
+    0 1px 1.5px rgba(0,0,0,.24), 0 6px 14px -4px rgba(0,0,0,.36);
+  transition: transform .35s cubic-bezier(.2,.9,.3,1.35), box-shadow .3s, filter .2s;
+}
+/* the glyph is raised and lit (js/icons.js: an embossing filter with a specular highlight from the upper left, and a soft
+   shadow under the glyph), only where icons are big; not with Reduce transparency or Speed mode */
+html.lg-on:not(.reduce-transparency) :is(.dock-icon .icon-tile, .lp-item .icon-tile, .mh-app .icon-tile, .desk-icon .icon-tile, .asw-ic .icon-tile) .pi-g { filter: url(#pi-gloss); }
+/* the sheen: a band of light parked off to the left, swept across once when the icon is pointed at */
+html.lg-on :is(.dock-icon .icon-tile, .lp-item .icon-tile, .mh-app .icon-tile, .desk-icon .icon-tile, .asw-ic .icon-tile)::before {
+  content: ""; position: absolute; top: 0; bottom: 0; left: 0; width: 70%; pointer-events: none; z-index: 2;
+  background: linear-gradient(115deg, transparent 18%, rgba(255,255,255,.5) 50%, transparent 82%);
+  transform: translateX(-110%); opacity: 0;
+}
+/* (the band moves with transform, which the graphics chip does without repainting the icon; it used to slide a background,
+   which repainted the icon on every frame of the sweep, for every icon the pointer crossed in the Dock) */
+html.lg-on:not(.reduce-motion) :is(.dock-item:hover .icon-tile, .lp-item:hover .icon-tile, .mh-app:hover .icon-tile, .desk-icon:hover .icon-tile, .asw-item.on .icon-tile)::before { animation: lgSheen .9s cubic-bezier(.3,.6,.3,1) 1; }
+@keyframes lgSheen { 0% { opacity: 1; transform: translateX(-110%); } 100% { opacity: 1; transform: translateX(160%); } }
+html.lg-on:not(.reduce-motion) :is(.lp-item, .mh-app, .desk-icon):hover .icon-tile {
+  transform: translateY(-3px) scale(1.04);
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.6), inset 0 -2px 3px rgba(0,0,0,.18), inset 0 0 0 .5px rgba(0,0,0,.14), 0 2px 3px rgba(0,0,0,.2), 0 12px 22px -6px rgba(0,0,0,.42);
+}
+html.lg-on .dock-item:hover .icon-tile { filter: brightness(1.06); }
+html.lg-on:not(.reduce-motion) :is(.lp-item, .mh-app, .desk-icon, .dock-item):active .icon-tile { transform: scale(.9); transition-duration: .12s; filter: brightness(.86); }
+/* Launchpad: the icons pop in with a little spring when it opens */
+html.lg-on:not(.reduce-motion) #launchpad:not(.hidden) .lp-item { animation: lgPop .42s cubic-bezier(.2,.9,.3,1.3) both; }
+html.lg-on:not(.reduce-motion) #launchpad:not(.hidden) .lp-item:nth-child(4n+2) { animation-delay: .03s; }
+html.lg-on:not(.reduce-motion) #launchpad:not(.hidden) .lp-item:nth-child(4n+3) { animation-delay: .06s; }
+html.lg-on:not(.reduce-motion) #launchpad:not(.hidden) .lp-item:nth-child(4n+4) { animation-delay: .09s; }
+@keyframes lgPop { from { opacity: 0; transform: scale(.82) translateY(10px); } }
+
+/* ---------- tilt: tiles and widgets lean a little toward the pointer, like picking up a piece of glass ---------- */
+html.lg-on:not(.reduce-motion) :is(.cc-tile, #desk-widgets .widget) {
+  transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) translateZ(0);
+  transition: transform .4s cubic-bezier(.2,.9,.3,1.2), box-shadow .3s;
+}
+/* pressed, a tile swells a little toward you, like Apple's interactive glass (the light from the touch is js/flow.js) */
+html.lg-on:not(.reduce-motion) :is(.cc-tile, #desk-widgets .widget):active { transform: perspective(700px) rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg)) scale(1.025); transition-duration: .22s; }
+html.lg-on:not(.reduce-motion) :is(.toast:not(.static), .cc-tile, #desk-widgets .widget):hover {
+  box-shadow: 0 2px 2px rgba(0,0,0,.1), 0 12px 24px -4px rgba(0,0,0,.2), 0 30px 56px -12px rgba(0,0,0,.28) !important;
+}
+
+/* 5. pressed in: what you click on glass sinks into it for a moment (the shade moves to the top lip, the light to the bottom) */
+html.lg-on :is(.btn, .tbtn, .seg .tab, .menu-item, .cc-toggle .cc-dot, .ytx-btn, .ytx-pill, .ytx-sbtn, .as-get, .of-share, .mu-b, .rc-pb, .ph-nav, .wx-unit, .su-opt):active {
+  box-shadow: inset 0 2px 5px rgba(0,0,0,.3), inset 0 -1px 0 rgba(255,255,255,.4) !important;
+  filter: brightness(.94);
+}
+html.lg-on :is(.btn, .tbtn, .seg .tab, .cc-dot):active { transform: scale(.95); }
+/* (:not(#_) only adds weight, so pressing wins over the hover shadow, which also applies while pressing) */
+/* (glass surfaces don't sink when pressed: they lift, with a slightly wider shadow, and their rim catches more light) */
+html.lg-on:not(#_) :is(.cc-tile, .toast:not(.static), #desk-widgets .widget, .lg):active {
+  box-shadow: 0 2px 3px rgba(0,0,0,.12), 0 14px 30px -6px rgba(0,0,0,.26) !important;
+}
+html.lg-on :is(.cc-tile, .toast:not(.static), #desk-widgets .widget, .lg):active::before { filter: brightness(1.25); }
+html.lg-on .menu-item:active { transition: none; }
+
+/* ---------- phone ---------- */
+html.lg-on .mh-dock { border-radius: 36px; }
+html.lg-on .mw { border-radius: 26px; }
+html.lg-on.mobile .panel { border-radius: 34px; }
+html.lg-on.mobile #notif-center { background: rgba(0,0,0,.2) !important; }
+/* phones: menus and sheets frost a little less (less graphics power), and nothing is refracted (see js/shell.js) */
+html.lg-on.mobile { --g-blur-elev: 16px; }
+
+/* ---------- when the glass must step back ---------- */
+/* Reduce transparency (the setting, the system preference, or Speed mode): solid surfaces, same shapes */
+html.reduce-transparency.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .lp-search, .lg-clear, .cc-tile, .toast, .seg, .mw, .dock-label, #m-switcher .msw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated) {
+  background: var(--win-solid) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+}
+html.reduce-transparency.lg-on { --g-text: var(--text); --g-text-shadow: none; }
+html.reduce-transparency.lg-on #menubar { background: var(--win-solid); color: var(--text); text-shadow: none; -webkit-backdrop-filter: none; backdrop-filter: none; }
+html.reduce-transparency.lg-on:not(.mobile) .window:not(.tb-hidden) > .titlebar { background: var(--win-solid); -webkit-backdrop-filter: none; backdrop-filter: none; }
+@media (prefers-reduced-transparency: reduce) {
+  html.lg-on { --g-text: var(--text); --g-text-shadow: none; }
+  html.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .lp-search, .lg-clear, .cc-tile, .toast, .seg, .mw, .dock-label, #m-switcher .msw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-elevated) {
+    background: var(--win-solid) !important; backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+  }
+}
+/* a browser with no backdrop blur at all: a thicker tint, so nothing reads as a see-through sheet with sharp text behind it */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  html.lg-on { --g-tint-clear: rgba(30,30,36,.82); --g-tint: rgba(30,30,36,.9); --g-tint-elev: rgba(34,34,40,.95); --g-titlebar: 100%; }
+  :root[data-theme="light"].lg-on { --g-tint-clear: rgba(250,250,252,.86); --g-tint: rgba(250,250,252,.92); --g-tint-elev: rgba(250,250,252,.96); }
+}
+html.reduce-transparency.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .cc-tile, .toast, .mw, .lg, .menu, .sp-box, .dlg, .nc-list, #pat-panel, .lg-clear, .lg-elevated)::after { display: none; }
+/* Windows High Contrast and other forced colors: plain system surfaces with real borders */
+@media (forced-colors: active) {
+  html.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .lp-search, .cc-tile, .toast, .seg, .mw, .dock-label, .menu, .sp-box, .dlg, .nc-list, #pat-panel, #menubar, .titlebar) {
+    background: Canvas !important; color: CanvasText !important; border: 1px solid CanvasText; box-shadow: none !important; text-shadow: none !important;
+    backdrop-filter: none !important; -webkit-backdrop-filter: none !important; forced-color-adjust: none;
+  }
+  html.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .cc-tile, .toast, .mw, .menu, .sp-box, .dlg, .nc-list, #pat-panel)::before, html.lg-on :is(#dock, .mh-dock, .asw-row, .widget, .cc-tile, .toast, .mw, .menu, .sp-box, .dlg, .nc-list, #pat-panel)::after { display: none; }
+  html.lg-on :is(.cc-tile, #desk-widgets .widget) { transform: none !important; }
+}
+
+/* ================= 3.3: crystal Dock =================
+   The Dock (and the phone's Dock) as a thick slab of clear crystal: a brighter, thicker rim that is hottest where light hits
+   the curves, a faint rainbow where the glass is thickest (the rounded ends: light splits there), a curved reflection inside
+   near the top, light gathering along the bottom edge, and a cool glow cast on what is under it. Only light is added on top:
+   the glass itself is as clear as before (clearer, if anything). */
+html.lg-on :is(#dock, .mh-dock) { --g-rim-w: 24px; --g-s: 1.14; --g-l: 1.08; }
+html.lg-on :is(#dock, .mh-dock)::before {
+  padding: 2.4px;
+  background:
+    linear-gradient(90deg, rgba(255,120,170,.55), rgba(255,200,120,.25) 4%, transparent 9%, transparent 91%, rgba(120,200,255,.3) 96%, rgba(150,140,255,.6)),
+    conic-gradient(from 0deg, rgba(255,255,255,.85) 0deg, rgba(255,255,255,.35) 50deg, rgba(255,255,255,.18) 95deg, rgba(255,255,255,.75) 140deg,
+      rgba(255,255,255,.3) 190deg, rgba(255,255,255,.15) 235deg, rgba(255,255,255,.5) 280deg, #fff 318deg, rgba(255,255,255,.85) 360deg) !important;
+  filter: drop-shadow(0 0 1.5px rgba(255,255,255,.55));
+}
+html.lg-on :is(#dock, .mh-dock)::after {
+  content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; z-index: -1; display: block !important;
+  background:
+    radial-gradient(60% 22% at 50% 7%, rgba(255,255,255,.34), rgba(255,255,255,0) 70%),
+    radial-gradient(70% 30% at 50% 104%, rgba(255,255,255,.26), rgba(255,255,255,0) 72%),
+    linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,0) 40%, rgba(255,255,255,0) 70%, rgba(170,200,255,.07)) !important;
+}
+html.lg-on #dock { padding: 10px 16px; }
+html.lg-on #dock {
+  /* the thickness: bright bands inside the top and bottom curves and a little at the ends, like light inside a glass tube */
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.45), inset 0 9px 12px -8px rgba(255,255,255,.4), inset 0 -1px 0 rgba(255,255,255,.3), inset 0 -10px 14px -9px rgba(255,255,255,.34),
+    inset 12px 0 16px -12px rgba(255,255,255,.22), inset -12px 0 16px -12px rgba(255,255,255,.22), inset 0 0 18px rgba(255,255,255,.06),
+    0 2px 3px rgba(0,0,0,.18), 0 24px 46px -18px rgba(120,170,255,.45), 0 30px 60px -24px rgba(0,0,0,.4) !important;
+}
+html.lg-on .mh-dock { box-shadow: inset 0 1px 0 rgba(255,255,255,.45), inset 0 9px 12px -8px rgba(255,255,255,.38), inset 0 -1px 0 rgba(255,255,255,.28), inset 0 -10px 14px -9px rgba(255,255,255,.3), 0 18px 36px -16px rgba(120,170,255,.4), 0 20px 44px -20px rgba(0,0,0,.4) !important; }
+/* icons in the Dock glow softly, as if lit from inside the glass */
+html.lg-on:not(.reduce-transparency) #dock .dock-icon .icon-tile { box-shadow: inset 0 1px 0 rgba(255,255,255,.55), inset 0 -2px 3px rgba(0,0,0,.18), 0 1px 1.5px rgba(0,0,0,.24), 0 8px 18px -6px rgba(0,0,0,.4), 0 0 16px -4px rgba(255,255,255,.28); }
+/* the app's name: a glass bubble with a pointer */
+html.lg-on .dock-label { padding: 6px 14px; font-weight: 600; box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 0 0 1px rgba(255,255,255,.22), 0 8px 20px -6px rgba(0,0,0,.35) !important; overflow: visible; }
+html.lg-on .dock-label::after { display: block !important; content: ""; position: absolute; left: 50%; bottom: -5px; width: 10px; height: 10px; transform: translateX(-50%) rotate(45deg); border-radius: 0 0 3px 0;
+  background: var(--g-t); box-shadow: inset -1px -1px 0 rgba(255,255,255,.22); -webkit-backdrop-filter: blur(var(--g-b)); backdrop-filter: blur(var(--g-b)); z-index: -1; }
+
+/* (4.0, slow computers) a Dock label is glass only while it shows. Hidden ones kept their blur: 30 extra layers for the
+   graphics chip (each label and its arrow), which also forced every icon around them onto its own layer (about 75 for the
+   Dock), all redrawn whenever anything moved. They fade in from invisible, so nothing changes to the eye. */
+html #dock .dock-item:not(:hover):not(:focus-visible) .dock-label,
+html #dock .dock-item:not(:hover):not(:focus-visible) .dock-label::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }

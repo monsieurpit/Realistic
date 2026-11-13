@@ -1198,3 +1198,24 @@ html[data-theme="dark"] .ytx { --yb: #0f0f0f; --yb2: #272727; --yb3: #3f3f3f; --
 .mobile .cm { flex-direction: column; } .mobile .cm-side { width: auto; flex: none; max-height: 34%; border-right: 0; border-bottom: 1px solid var(--border); }
 .mobile .cm-page { padding: 16px; } .mobile .cm-cols { grid-template-columns: 1fr; }
 .cm-mrow.link > span[aria-hidden], .cm-evrow > span[aria-hidden] { margin-left: auto; }
+
+/* Tips 4.0 (js/apps/tips.js): the design system's sidebar; a big first tip, then a grid of tips */
+.tips-app { display: flex; height: 100%; min-height: 0; background: var(--win-solid); color: var(--text); }
+.tp-side { width: 230px; flex: 0 0 230px; display: flex; flex-direction: column; overflow-y: auto; }
+.tp-side .ui-search { margin-bottom: 4px; }
+.tp-sl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tp-main { flex: 1; min-width: 0; overflow-y: auto; padding: 22px 26px 36px; }
+.tp-head { display: flex; align-items: center; gap: 14px; margin-bottom: 18px; } .tp-head h1 { margin: 0; font-size: 24px; font-weight: 650; letter-spacing: -.01em; } .tp-head p { margin: 2px 0 0; color: var(--text3); font-size: 13px; }
+.tp-hic { width: 44px; height: 44px; border-radius: 12px; display: grid; place-items: center; background: linear-gradient(160deg,#ffd60a,#ff9f0a); color: #fff; flex: none; } .tp-hic .sym { width: 24px; height: 24px; }
+.tp-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; }
+.tp-card { display: flex; gap: 14px; padding: 14px 16px; border-radius: 14px; border: 1px solid var(--border); background: var(--win-solid); position: relative; }
+.tp-card.unseen::after { content: ''; position: absolute; top: 12px; right: 12px; width: 8px; height: 8px; border-radius: 50%; background: var(--accent); }
+.tp-card.big { margin-bottom: 14px; padding: 22px 24px; gap: 20px; background: color-mix(in srgb, var(--accent) 6%, var(--win-solid)); }
+.tp-ic { width: 40px; height: 40px; flex: none; display: grid; place-items: center; color: var(--text2); } .tp-ic .sym { width: 26px; height: 26px; }
+.tp-card.big .tp-ic { width: 64px; height: 64px; }
+.tp-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.tp-body h3 { margin: 0; font-size: 15px; font-weight: 600; padding-right: 14px; } .tp-card.big h3 { font-size: 20px; }
+.tp-body p { margin: 0; font-size: 13px; line-height: 1.5; color: var(--text2); } .tp-card.big p { font-size: 15px; }
+.tp-foot { display: flex; align-items: center; gap: 8px; margin-top: auto; padding-top: 4px; } .tp-grow { flex: 1; }
+.tp-krow { display: inline-flex; align-items: center; gap: 10px; }
+.mobile .tips-app { flex-direction: column; } .mobile .tp-side { width: auto; flex: none; max-height: 36%; border-right: 0; border-bottom: 1px solid var(--border); } .mobile .tp-main { padding: 16px; }

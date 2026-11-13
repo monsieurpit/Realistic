@@ -709,6 +709,12 @@
 
   /* =========================== LAUNCHPAD =========================== */
   const CATS = ['Apps', 'Office', '3D & Games', 'Utilities'];
+  // (4.0) once, after updating: a nudge to see what's new, in Tips
+  PatOS.on('wm:ready', () => setTimeout(() => {
+    if (PatOS.store.get('tipsNudged40', false) || !PatOS.loggedIn || !PatOS.apps.tips) return;
+    PatOS.store.set('tipsNudged40', true);
+    PatOS.notify({ title: PatOS.t('See what’s new in PatOS 4.0'), body: PatOS.t('Widgets, Studio, profiles, World, search inside everything and more, in Tips.'), icon: 'tips', priority: 'low', open: { app: 'tips', args: { col: 'new' } } });
+  }, 6000));
   let lpDirty = 0; ['settings', 'apps', 'lang', 'theme'].forEach((ev) => PatOS.on(ev, () => { lpDirty++; }));
   PatOS.launchpad = {
     show() {
