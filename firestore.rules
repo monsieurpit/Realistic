@@ -512,6 +512,21 @@ service cloud.firestore {
       allow delete: if signedIn() && (resource.data.uid == request.auth.uid || resource.data.by == request.auth.uid || isSpaceAdmin(resource.data.sid));
     }
 
+    // (4.1) game leaderboards: scores/{board}/players/{uid}, one best score per person and board ("2048", "orbrunner",
+    // "2048-d20261114" for a daily challenge). Anyone signed in reads them; you only write your own, under your own
+    // username, and a score can only go up.
+    function goodScore() {
+      return request.resource.data.keys().hasOnly(['username', 'score', 'at'])
+        && request.resource.data.score is int && request.resource.data.score >= 0 && request.resource.data.score <= 100000000
+        && request.resource.data.username == myName() && request.resource.data.at == request.time;
+    }
+    match /scores/{board}/players/{uid} {
+      allow read: if signedIn();
+      allow create: if mine(uid) && !banned() && board.matches('^[a-z0-9-]{1,40}$') && goodScore();
+      allow update: if mine(uid) && !banned() && goodScore() && request.resource.data.score > resource.data.score;
+      allow delete: if mine(uid);
+    }
+
     // everything else stays closed
     match /{document=**} { allow read, write: if false; }
   }

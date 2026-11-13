@@ -1,20 +1,28 @@
 [
   {
     "version": "4.1.0",
-    "beta": 1,
+    "beta": 2,
     "date": "2026-11-13",
     "title": {
-      "en": "PatOS 4.1 beta: Orb Runner",
-      "fr": "PatOS 4.1 bêta : Orb Runner"
+      "en": "PatOS 4.1 beta: Games",
+      "fr": "PatOS 4.1 bêta : Jeux"
     },
     "notes": {
       "en": [
-        "Orb Runner: 8 worlds, a new one every 1,500 points, each with its own sky, weather and obstacles",
+        "The Games app, redesigned: every PatOS game in one place, with your best scores",
+        "Daily Challenge: the same 2048 for everyone each day, with its own leaderboard",
+        "25 achievements across every game",
+        "Leaderboards: your friends from Messages, or everyone",
+        "Orb Runner: 8 worlds, a new one every 1,500 points, each with its own sky, weather and scenery",
         "The Ball Shop: spend your gems on 11 balls, from Ruby and Sapphire to Galaxy, Royal Gold, Diamond and Prism",
         "Power-ups: Magnet, Shield and Double"
       ],
       "fr": [
-        "Orb Runner : 8 mondes, un nouveau tous les 1 500 points, chacun avec son ciel, sa météo et ses obstacles",
+        "L’app Jeux, refaite : tous les jeux de PatOS au même endroit, avec tes meilleurs scores",
+        "Défi du jour : le même 2048 pour tout le monde chaque jour, avec son propre classement",
+        "25 succès dans tous les jeux",
+        "Classements : tes amis de Messages, ou tout le monde",
+        "Orb Runner : 8 mondes, un nouveau tous les 1 500 points, chacun avec son ciel, sa météo et son décor",
         "La boutique de boules : dépense tes gemmes pour 11 boules, du Rubis et du Saphir à la Galaxie, l’Or royal, le Diamant et le Prisme",
         "Bonus : Aimant, Bouclier et Double"
       ]

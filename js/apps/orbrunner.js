@@ -319,6 +319,7 @@
         S.state = 'over'; S.shake = 1; holder.visible = false; PatOS.sound.tone(90, 0.7, { vol: 0.3, type: 'sawtooth', slide: 30 });
         partMats[0].color.setHex(ballDef.glow); burst(holder.position, 110, partMats);
         if (S.score > S.best) { S.best = S.score; S.newBest = true; store.set('orbBest', S.best); }
+        PatOS.gc && PatOS.gc.report('orbrunner', { score: S.score, world: S.world + 1, gems: S.gems });
         setTimeout(() => { if (S.state === 'over') showOverlay('over'); }, 700);
       }
       function hit(o, i) {
@@ -372,7 +373,7 @@
       function equip(id) { if (!owned().includes(id)) return false; store.set('orbBall', id); makeBall(ballOf(id)); PatOS.sound.tone(880, 0.08, { vol: 0.06 }); return true; }
       function buy(id) {
         const b = ballOf(id); if (b.id !== id || owned().includes(id) || wallet() < b.price) return false;
-        store.set('orbWallet', wallet() - b.price); store.set('orbOwned', owned().concat([id])); equip(id);
+        store.set('orbWallet', wallet() - b.price); store.set('orbOwned', owned().concat([id])); equip(id); PatOS.gc && PatOS.gc.event('orbrunner', 'buy');
         [880, 1175, 1568].forEach((f, i) => PatOS.sound.tone(f, 0.14, { vol: 0.07, delay: i * 0.07 })); return true;
       }
       function start() { overlay.classList.add('hidden'); reset(); S.state = 'play'; stage.focus(); }

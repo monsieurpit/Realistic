@@ -212,6 +212,18 @@ const api = {
     return u.getIdToken(true);
   }),
 
+  /* ---------- game leaderboards (4.1): scores/{board}/players/{uid}, a best score that only goes up ---------- */
+  scorePut: wrap(async (board, me, score) => {
+    init(); const r = doc(db, 'scores', board, 'players', me.uid);
+    return runTransaction(db, async (tx) => { const s = await tx.get(r); if (s.exists() && s.data().score >= score) return false; tx.set(r, { username: me.username, score: Math.floor(score), at: serverTimestamp() }); return true; });
+  }),
+  scoreTop: wrap(async (board, n) => { init(); const s = await getDocs(query(collection(db, 'scores', board, 'players'), orderBy('score', 'desc'), limit(n || 50))); return s.docs.map((d) => ({ uid: d.id, username: d.data().username, score: d.data().score })); }),
+  scoreOf: wrap(async (board, uids) => {
+    init(); const out = []; const l = [...new Set(uids)].filter(Boolean);
+    for (let i = 0; i < l.length; i += 10) { const s = await getDocs(query(collection(db, 'scores', board, 'players'), where(documentId(), 'in', l.slice(i, i + 10)))); s.docs.forEach((d) => out.push({ uid: d.id, username: d.data().username, score: d.data().score })); }
+    return out.sort((a, b) => b.score - a.score);
+  }),
+
   /* ---------- messages ---------- */
   convId: (a, b) => (a < b ? a + '_' + b : b + '_' + a),
   /* all of someone's conversations, live; call the returned function to stop */

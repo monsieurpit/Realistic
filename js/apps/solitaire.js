@@ -57,7 +57,7 @@
       function after() {
         sel = null;
         if (!g.won && g.found.every((f) => f.length === 13)) {
-          g.won = true; stats.won++; if (!stats.best || g.time < stats.best) stats.best = g.time; PatOS.store.set('solStats', stats);
+          g.won = true; PatOS.gc && PatOS.gc.report('solitaire', { win: true, time: g.time }); stats.won++; if (!stats.best || g.time < stats.best) stats.best = g.time; PatOS.store.set('solStats', stats);
           [523, 659, 784, 1046, 1318].forEach((f, i) => PatOS.sound.tone(f, 0.3, { delay: i * 0.1, vol: 0.14 }));
         }
         save(); render();

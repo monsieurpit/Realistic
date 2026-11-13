@@ -27,7 +27,7 @@
         if (over || board[i]) return;
         board[i] = turn; PatOS.sound.tone(turn === 'X' ? 600 : 800, 0.08, { vol: 0.08 });
         const w = winner(board);
-        if (w) { over = w; score[w.p === 'draw' ? 'D' : w.p]++; PatOS.store.set('tttScore', score); if (w.p !== 'draw') PatOS.sound.pop(); render(); return; }
+        if (w) { over = w; if (mode === 'cpu') PatOS.gc && PatOS.gc.report('tictactoe', { win: w.p === 'X' }); score[w.p === 'draw' ? 'D' : w.p]++; PatOS.store.set('tttScore', score); if (w.p !== 'draw') PatOS.sound.pop(); render(); return; }
         turn = turn === 'X' ? 'O' : 'X'; render();
         if (mode === 'cpu' && turn === 'O') setTimeout(() => {
           const empty = board.map((v, j) => (v ? -1 : j)).filter((j) => j >= 0);

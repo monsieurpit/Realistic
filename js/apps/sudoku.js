@@ -92,7 +92,7 @@
       }
       function check() {
         if (st.val.every((v, i) => v === st.sol[i])) {
-          st.done = true;
+          st.done = true; PatOS.gc && PatOS.gc.report('sudoku', { win: true, level: st.level, time: st.time });
           const b = best[st.level]; if (!b || st.time < b) { best[st.level] = st.time; PatOS.store.set('sudokuBest', best); }
           [523, 659, 784, 1046].forEach((f, i) => PatOS.sound.tone(f, 0.3, { delay: i * 0.12, vol: 0.15 }));
         }

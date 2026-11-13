@@ -265,7 +265,7 @@
         world = createWorld({ level: prefs.level }); world.spawnPlayer(prefs.name, prefs.skin); mode = 'play'; paused = false; menu.classList.add('hidden'); over.classList.add('hidden'); pointer = null; banner = null; stage.focus(); acc = 0; sync();
       }
       function gameOver(e) {
-        mode = 'over'; if (e.mass > prefs.best) { prefs.best = e.mass; store.set('slitherBest', e.mass); }
+        mode = 'over'; PatOS.gc && PatOS.gc.report('slither', { score: Math.floor(e.mass) }); if (e.mass > prefs.best) { prefs.best = e.mass; store.set('slitherBest', e.mass); }
         PatOS.sound && PatOS.sound.error && PatOS.sound.error();
         over.innerHTML = ''; over.classList.remove('hidden');
         const again = h('button', { class: 'btn primary' }, T('Play Again')); again.onclick = start;

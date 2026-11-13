@@ -5,6 +5,7 @@
   'use strict';
   const { h } = PatOS;
   const T = (s) => PatOS.t(s);
+  const play = () => h('span', { translate: 'no' }, PatOS.lang === 'fr' ? 'Jouer' : 'Play'); // ("Play" means something else elsewhere in PatOS)
   const tone = (f, d, o) => PatOS.sound.tone(f, d, Object.assign({ vol: 0.08 }, o || {}));
   const svg = (inner, bg) => `<svg viewBox="0 0 64 64" width="100%" height="100%"><rect width="64" height="64" rx="14" fill="${bg}"/>${inner}</svg>`;
 
@@ -20,11 +21,11 @@
 
   /* =================== 2048 =================== */
   function g2048(root, api) {
-    const N = 4; let grid, score, won, keepGoing, tiles, idc = 0;
+    const N = 4; let grid, score, won, keepGoing, tiles, idc = 0, R = Math.random;
     const board = h('div', { class: 'g2-board' }); const cells = h('div', { class: 'g2-cells' }); for (let i = 0; i < N * N; i++) cells.appendChild(h('div', { class: 'g2-cell' }));
     const layer = h('div', { class: 'g2-layer' }); board.append(cells, layer); root.appendChild(h('div', { class: 'g2-wrap' }, board, h('p', { class: 'gm-hint' }, T('Use the arrow keys or swipe. Tiles with the same number merge.'))));
-    function reset() { grid = Array.from({ length: N }, () => Array(N).fill(null)); score = 0; won = false; keepGoing = false; tiles = []; layer.innerHTML = ''; spawn(); spawn(); paint(); api.score(0); }
-    function spawn() { const free = []; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!grid[r][c]) free.push([r, c]); if (!free.length) return; const [r, c] = free[Math.floor(Math.random() * free.length)]; const t = { id: ++idc, v: Math.random() < 0.9 ? 2 : 4, r, c, isNew: true }; grid[r][c] = t; tiles.push(t); }
+    function reset() { R = api.rng ? api.rng() : Math.random; grid = Array.from({ length: N }, () => Array(N).fill(null)); score = 0; won = false; keepGoing = false; tiles = []; layer.innerHTML = ''; spawn(); spawn(); paint(); api.score(0); }
+    function spawn() { const free = []; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!grid[r][c]) free.push([r, c]); if (!free.length) return; const [r, c] = free[Math.floor(R() * free.length)]; const t = { id: ++idc, v: R() < 0.9 ? 2 : 4, r, c, isNew: true }; grid[r][c] = t; tiles.push(t); }
     function paint() {
       const live = new Set(tiles.map((t) => t.id));
       layer.querySelectorAll('.g2-tile').forEach((el) => { if (!live.has(+el.dataset.id)) el.remove(); });
@@ -47,7 +48,7 @@
         while (true) { const tr = nr + vec[0], tc = nc + vec[1]; if (tr < 0 || tc < 0 || tr >= N || tc >= N) break; const o = grid[tr][tc]; if (!o) { nr = tr; nc = tc; continue; } if (o.v === t.v && !merged.has(o.id)) { nr = tr; nc = tc; } break; }
         if (nr === r && nc === c) return;
         moved = true; grid[r][c] = null; const o = grid[nr][nc];
-        if (o) { o.v *= 2; o.merged = true; merged.add(o.id); score += o.v; t.r = nr; t.c = nc; gone.push(t); if (o.v === 2048 && !won) won = true; }
+        if (o) { o.v *= 2; o.merged = true; merged.add(o.id); score += o.v; if (api.tile) api.tile(o.v); t.r = nr; t.c = nc; gone.push(t); if (o.v === 2048 && !won) won = true; }
         else { grid[nr][nc] = t; t.r = nr; t.c = nc; }
       }));
       if (!moved) return;
@@ -301,13 +302,18 @@
     { id: 'connect4', name: 'Connect Four', play: connect4, best: 'wins', art: svg('<rect x="8" y="12" width="48" height="42" rx="6" fill="#0a60ff"/><g fill="#fff"><circle cx="18" cy="22" r="5"/><circle cx="32" cy="22" r="5"/><circle cx="46" cy="22" r="5"/><circle cx="18" cy="44" r="5" fill="#ff375f"/><circle cx="32" cy="44" r="5" fill="#ffd60a"/><circle cx="46" cy="44" r="5" fill="#ff375f"/><circle cx="18" cy="33" r="5"/><circle cx="32" cy="33" r="5" fill="#ff375f"/><circle cx="46" cy="33" r="5" fill="#ffd60a"/></g>', '#dbe8ff'), desc: 'Line up four discs before the computer does.' },
     { id: 'memory', name: 'Memory', play: memory, best: 'moves', art: svg('<rect x="10" y="12" width="20" height="26" rx="4" fill="#5e5ce6"/><rect x="34" y="12" width="20" height="26" rx="4" fill="#fff"/><path d="M44 18l3 6 6 .5-4.5 4 1.5 6-6-3.5-6 3.5 1.5-6-4.5-4 6-.5z" fill="#ff9f0a"/><rect x="22" y="30" width="20" height="26" rx="4" fill="#bf5af2"/>', '#2c2c54'), desc: 'Find all the pairs with as few moves as you can.' }
   ];
-  const OTHERS = ['chess', 'sudoku', 'solitaire', 'tictactoe', 'orbrunner'];
+  /* the other PatOS games (their own apps), with what they report to the Game Center */
+  const OTHERS = [['orbrunner', 'orbrunner'], ['slither', 'slither'], ['chess', 'chess'], ['sudoku', 'sudoku'], ['solitaire', 'solitaire'], ['tictactoe', 'tictactoe']];
+  const NEW = { orbrunner: 'Eight worlds and the Ball Shop.' }; // shown as new until opened from here
+  const BOARDS = [['2048', '2048'], ['snake', 'Snake'], ['breakout', 'Breakout'], ['orbrunner', 'Orb Runner'], ['slither', 'Slither']];
+  const fmtN = (n) => Number(n || 0).toLocaleString(PatOS.locale);
 
   PatOS.registerApp({
-    id: 'games', name: 'Games', icon: 'games', width: 900, height: 680, category: '3D & Games', keywords: 'game games play 2048 snake minesweeper breakout connect four memory arcade jeux jeu',
-    about: 'Offline games: 2048, Snake, Minesweeper, Breakout, Connect Four, Memory and more.',
+    id: 'games', name: 'Games', icon: 'games', width: 980, height: 700, minWidth: 560, minHeight: 460, category: '3D & Games', keywords: 'game games play 2048 snake minesweeper breakout connect four memory arcade achievements leaderboard daily challenge jeux jeu succès classement',
+    about: 'Every PatOS game, the daily challenge, achievements and leaderboards.',
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'gm-win');
+      const ui = PatOS.ui, gc = PatOS.gc;
       const bests = () => PatOS.store.get('gamesBest', {}) || {};
       const setBest = (k, v) => { const b = bests(); b[k] = v; PatOS.store.set('gamesBest', b); };
       const bBack = h('button', { class: 'tbtn', title: T('All Games'), 'aria-label': T('All Games') }, '‹');
@@ -315,62 +321,155 @@
       const scoreEl = h('span', { class: 'gm-score' }), bestEl = h('span', { class: 'gm-best' });
       const bNew = h('button', { class: 'btn' }, T('New Game'));
       win.toolbar.append(bBack, title, h('div', { style: { flex: 1 } }), scoreEl, bestEl, bNew);
-      const body = h('div', { class: 'gm-body', tabindex: '0' }); win.body.appendChild(body);
-      let cur = null, game = null, isOver = false;
+      const side = h('div', { class: 'gm-sidewrap' }), main = h('div', { class: 'gm-main' });
+      const body = h('div', { class: 'gm-body', tabindex: '0' });
+      const root = h('div', { class: 'gm-root' }, side, main, body); win.body.appendChild(root);
+      let page = (args && args.page) || 'home', cur = null, game = null, isOver = false, board = '2048', who = 'friends';
       const visible = () => !document.hidden && PatOS.wm.active === win;
+      const seenNew = () => PatOS.store.get('gcSeenNew', []) || [];
+      const markSeen = (id) => { if (NEW[id] && !seenNew().includes(id)) PatOS.store.set('gcSeenNew', seenNew().concat([id])); };
+
       function bestText(g, sub) {
         const b = bests(); const k = g.id + (sub ? ':' + sub : '');
         if (g.best === 'time') return b[k] ? T('Best') + ': ' + b[k] + ' s' : '';
         if (g.best === 'moves') return b[k] ? T('Best') + ': ' + b[k] + ' ' + T('moves') : '';
         if (g.best === 'wins') return b[k] ? T('Wins') + ': ' + b[k] : '';
-        return b[k] ? T('Best') + ': ' + b[k] : '';
+        return b[k] ? T('Best') + ': ' + fmtN(b[k]) : '';
+      }
+      /* what a game card says under its name */
+      function cardSub(id) {
+        const s = gc.stats(id); if (!s.plays) return T('Not played yet');
+        if (s.best) return T('Best') + ' ' + fmtN(s.best);
+        if (s.wins) return s.wins + ' ' + T(s.wins === 1 ? 'win' : 'wins');
+        return s.plays + ' ' + T(s.plays === 1 ? 'game' : 'games');
+      }
+
+      /* ---------- the sidebar ---------- */
+      function drawSide() {
+        side.innerHTML = '';
+        const got = Object.keys(gc.unlocked()).length;
+        side.appendChild(ui.sidebar([
+          ui.item({ icon: 'home', label: 'Home', on: page === 'home', onClick: () => go('home') }),
+          ui.item({ icon: 'trophy', label: 'Achievements', count: got || null, on: page === 'achievements', onClick: () => go('achievements') }),
+          ui.item({ icon: 'chart', label: 'Leaderboards', on: page === 'boards', onClick: () => go('boards') })
+        ], { label: T('Games') }));
+      }
+      function go(p) { page = p; drawSide(); draw(); main.scrollTop = 0; }
+      function draw() { main.innerHTML = ''; ({ home, achievements, boards: leaderboards })[page](); }
+
+      /* ---------- Home ---------- */
+      function header(text, extra) { return h('div', { class: 'gm-head' }, h('h1', {}, T(text)), extra || null); }
+      function player() {
+        const m = gc.me(); const got = Object.keys(gc.unlocked()).length;
+        return h('button', { class: 'gm-player', onclick: () => go('achievements') }, ui.avatar(m ? m.username : 'P'),
+          h('span', {}, h('b', { translate: 'no' }, m ? '@' + m.username : T('Player')), h('small', {}, got + ' / ' + gc.ACH.length + ' ' + T('achievements'))));
       }
       function home() {
-        if (game && game.destroy) game.destroy(); game = null; cur = null;
-        body.innerHTML = ''; win.setTitle(T('Games')); title.textContent = ''; scoreEl.textContent = ''; bestEl.textContent = ''; bNew.style.display = 'none'; bBack.style.display = 'none';
-        const grid = h('div', { class: 'gm-home' });
-        GAMES.forEach((g) => {
-          const card = h('button', { class: 'gm-card' }, h('div', { class: 'gm-art', html: g.art }), h('div', { class: 'gm-txt' }, h('b', {}, T(g.name)), h('small', {}, T(g.desc)), h('span', { class: 'gm-cbest' }, bestText(g, g.id === 'mines' ? PatOS.store.get('gmMinesLevel', 'easy') : g.id === 'memory' ? PatOS.store.get('gmMemSize', 4) : ''))));
-          card.onclick = () => start(g); grid.appendChild(card);
+        main.appendChild(header('Games', player()));
+        // the daily challenge
+        const d = gc.daily(); const date = new Date().toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' });
+        const top = h('div', { class: 'gm-dtop' });
+        main.appendChild(h('section', { class: 'gm-daily' },
+          h('div', { class: 'gm-dl' }, h('small', {}, T('Daily Challenge')), h('h2', {}, '2048'), h('p', {}, T('The same tiles for everyone today.')),
+            h('div', { class: 'gm-drow' }, h('button', { class: 'btn primary', onclick: () => start(GAMES[0], { daily: d.id }) }, d.played ? T('Play Again') : play()),
+              h('span', { class: 'gm-dmeta' }, date + (d.best ? ' · ' + T('Your best') + ' ' + fmtN(d.best) : '')))),
+          top));
+        // today's opening tiles (the same for everyone)
+        const r = d.rand; const cells = Array(16).fill(0); for (let k = 0; k < 2; k++) { const free = cells.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0); const at = free[Math.floor(r() * free.length)]; cells[at] = r() < 0.9 ? 2 : 4; }
+        if (!gc.signedIn()) top.replaceWith(h('div', { class: 'gm-dboard', 'aria-hidden': 'true' }, ...cells.map((v) => h('i', { class: v ? 't' + (v === 4 ? ' t4' : '') : '' }, v ? String(v) : ''))));
+        if (gc.signedIn()) gc.friends('2048-d' + d.id).then((l) => { if (!l || !l.length || !top.isConnected) return; top.append(h('small', {}, T('Friends today')), ...l.slice(0, 3).map((x, i) => h('div', { class: 'gm-drank' }, h('span', {}, String(i + 1)), h('b', { translate: 'no' }, '@' + x.username), h('span', {}, fmtN(x.score))))); }).catch(() => {});
+        // what's new
+        Object.keys(NEW).filter((id) => PatOS.apps[id] && !seenNew().includes(id)).forEach((id) => {
+          const a = PatOS.apps[id];
+          main.appendChild(h('button', { class: 'gm-feature gm-f-' + id, onclick: () => { markSeen(id); PatOS.launch(id); draw(); } },
+            h('div', { class: 'gm-fic', html: PatOS.iconHTML(a.icon || id) }),
+            h('div', { class: 'gm-ft' }, h('span', { class: 'gm-new' }, T('New')), h('b', {}, T(a.name)), h('small', {}, T(NEW[id]))),
+            h('span', { class: 'btn primary' }, play())));
         });
-        body.appendChild(h('h2', { class: 'gm-h' }, T('Arcade')));
-        body.appendChild(grid);
-        const more = OTHERS.filter((id) => PatOS.apps[id]);
-        if (more.length) {
-          body.appendChild(h('h2', { class: 'gm-h' }, T('More games')));
-          body.appendChild(h('div', { class: 'gm-more' }, ...more.map((id) => { const a = PatOS.apps[id]; const b = h('button', { class: 'gm-mini' }, h('div', { class: 'gm-mic', html: PatOS.iconHTML(a.icon || id) }), h('span', {}, T(a.name))); b.onclick = () => PatOS.launch(id); return b; })));
-        }
+        // every game
+        main.appendChild(ui.section('All Games'));
+        const grid = h('div', { class: 'gm-grid' });
+        GAMES.forEach((g) => grid.appendChild(card(h('div', { class: 'gm-art', html: g.art }), T(g.name), cardSub(g.id), () => start(g))));
+        OTHERS.filter(([app]) => PatOS.apps[app]).forEach(([app, id]) => { const a = PatOS.apps[app]; grid.appendChild(card(h('div', { class: 'gm-art', html: PatOS.iconHTML(a.icon || app) }), T(a.name), cardSub(id), () => { markSeen(app); PatOS.launch(app); }, NEW[app] && !seenNew().includes(app))); });
+        main.appendChild(grid);
       }
-      function start(g) {
-        if (game && game.destroy) game.destroy();
-        cur = g; isOver = false; body.innerHTML = ''; win.setTitle(T(g.name)); title.textContent = T(g.name); bNew.style.display = ''; bBack.style.display = '';
+      function card(art, name, sub, onClick, isNew) {
+        return h('button', { class: 'gm-card', onclick: onClick }, art, h('span', { class: 'gm-cn' }, name, isNew ? h('span', { class: 'gm-new' }, T('New')) : null), h('small', {}, sub));
+      }
+
+      /* ---------- Achievements ---------- */
+      function achievements() {
+        const got = gc.unlocked(); const n = Object.keys(got).length;
+        main.appendChild(header('Achievements', h('span', { class: 'gm-count' }, n + ' / ' + gc.ACH.length)));
+        main.appendChild(h('div', { class: 'gm-pbar' }, ui.progress(n / gc.ACH.length, 'Achievements')));
+        const groups = [['', T('General')]].concat(Object.keys(gc.GAMES).map((k) => [k, T(gc.GAMES[k].name)]));
+        groups.forEach(([k, name]) => {
+          const list = gc.ACH.filter((a) => a[1] === k); if (!list.length) return;
+          main.appendChild(ui.section(name));
+          main.appendChild(ui.group(list.map(([id, , nm, how]) => h('div', { class: 'gm-ach' + (got[id] ? ' got' : '') },
+            h('span', { class: 'gm-medal', html: PatOS.sym(got[id] ? 'trophy' : 'lock'), 'aria-hidden': 'true' }),
+            h('span', { class: 'gm-at' }, h('b', {}, T(nm)), h('small', {}, T(how))),
+            got[id] ? h('small', { class: 'gm-when' }, new Date(got[id]).toLocaleDateString(PatOS.locale, { month: 'short', day: 'numeric' })) : null))));
+        });
+      }
+
+      /* ---------- Leaderboards ---------- */
+      function leaderboards() {
+        main.appendChild(header('Leaderboards'));
+        const d = gc.daily(); const boardsList = BOARDS.concat([['2048-d' + d.id, 'Daily']]);
+        main.appendChild(h('div', { class: 'gm-bctl' }, ui.segmented(boardsList.map(([v, l]) => [v, T(l)]), board, (v) => { board = v; draw(); }), ui.segmented([['friends', T('Friends')], ['all', T('Everyone')]], who, (v) => { who = v; draw(); })));
+        const out = h('div', { class: 'gm-board' }); main.appendChild(out);
+        if (!gc.signedIn()) { out.appendChild(ui.empty({ icon: 'chart', title: 'Sign in to see leaderboards', text: 'Your friends are the people you talk to in Messages.', action: PatOS.accountUI ? ['Sign In', () => PatOS.accountUI.open()] : null })); return; }
+        out.appendChild(ui.progress(null, 'Loading'));
+        const want = board, w = who;
+        (w === 'friends' ? gc.friends(want) : gc.top(want, 50)).then((l) => {
+          if (want !== board || w !== who || !out.isConnected) return; out.innerHTML = '';
+          if (!l || !l.length) { out.appendChild(ui.empty({ icon: 'trophy', title: 'No scores yet', text: w === 'friends' ? 'Play, and your friends’ scores show up here.' : 'Be the first.' })); return; }
+          const m = gc.me();
+          out.appendChild(ui.group(l.map((x, i) => h('div', { class: 'gm-rank' + (m && x.uid === m.uid ? ' me' : '') }, h('span', { class: 'gm-rn' + (i < 3 ? ' top' + (i + 1) : '') }, String(i + 1)), ui.avatar(x.username), h('b', { translate: 'no' }, '@' + x.username), h('span', { class: 'gm-rs' }, fmtN(x.score))))));
+        }).catch(() => { if (!out.isConnected) return; out.innerHTML = ''; out.appendChild(ui.empty({ icon: 'chart', title: 'Leaderboards aren’t available right now', text: 'Check your connection and try again.', action: ['Try Again', draw] })); });
+      }
+
+      /* ---------- playing an arcade game ---------- */
+      function home0() { if (game && game.destroy) game.destroy(); game = null; cur = null; root.classList.remove('playing'); win.setTitle(T('Games')); title.textContent = ''; scoreEl.textContent = ''; bestEl.textContent = ''; bNew.style.display = 'none'; bBack.style.display = 'none'; body.innerHTML = ''; drawSide(); draw(); }
+      function start(g, opt) {
+        if (game && game.destroy) game.destroy(); opt = opt || {};
+        cur = g; isOver = false; body.innerHTML = ''; root.classList.add('playing');
+        const name = opt.daily ? T('Daily Challenge') + ' · ' + T(g.name) : T(g.name);
+        win.setTitle(name); title.textContent = name; bNew.style.display = ''; bBack.style.display = '';
         const stage = h('div', { class: 'gm-stage' }); body.appendChild(stage);
-        let sub = '';
+        let sub = '', last = 0, tile = 0;
         const api = {
-          score: (n, s) => { if (s !== undefined) sub = s; if (g.best === 'high') { scoreEl.textContent = T('Score') + ': ' + n; const b = bests()[g.id] || 0; if (n > b) setBest(g.id, n); } else scoreEl.textContent = ''; bestEl.textContent = bestText(g, sub || (g.id === 'memory' ? PatOS.store.get('gmMemSize', 4) : '')); },
-          time: (s, lvl) => { const k = g.id + ':' + lvl; const b = bests()[k]; if (!b || s < b) setBest(k, s); bestEl.textContent = bestText(g, lvl); },
-          moves: (m, size) => { const k = g.id + ':' + size; const b = bests()[k]; if (!b || m < b) setBest(k, m); bestEl.textContent = bestText(g, size); },
+          score: (n, s) => { last = n; if (s !== undefined) sub = s; if (g.best === 'high') { scoreEl.textContent = T('Score') + ': ' + fmtN(n); const b = bests()[g.id] || 0; if (n > b && !opt.daily) setBest(g.id, n); } else scoreEl.textContent = ''; bestEl.textContent = opt.daily ? (gc.daily().best ? T('Today') + ': ' + fmtN(Math.max(gc.daily().best, n)) : '') : bestText(g, sub || (g.id === 'memory' ? PatOS.store.get('gmMemSize', 4) : '')); },
+          time: (s, lvl) => { sub = lvl; const k = g.id + ':' + lvl; const b = bests()[k]; if (!b || s < b) setBest(k, s); bestEl.textContent = bestText(g, lvl); },
+          moves: (m, size) => { sub = size; const k = g.id + ':' + size; const b = bests()[k]; if (!b || m < b) setBest(k, m); bestEl.textContent = bestText(g, size); },
           win: () => { setBest(g.id, (bests()[g.id] || 0) + 1); bestEl.textContent = bestText(g); },
+          tile: (v) => { if (v > tile) tile = v; },
+          rng: opt.daily ? () => gc.daily().rand : null,
           isOver: () => isOver, visible,
-          over: (text, good) => { if (isOver) return; isOver = true; overlay(text, good); },
+          over: (text, good) => { if (isOver) return; isOver = true; gc.report(g.id, { score: last, win: !!good, level: sub, tile, daily: opt.daily }); overlay(text, good); },
           message: (text, btn) => overlay(text, true, btn, true)
         };
         function overlay(text, good, btnLabel, soft) {
           const o = h('div', { class: 'gm-over' + (good ? ' good' : '') }, h('div', { class: 'gm-ocard' }, h('b', {}, text),
-            h('div', { class: 'gm-row' }, soft ? h('button', { class: 'btn primary', onclick: () => o.remove() }, btnLabel || T('Continue')) : h('button', { class: 'btn primary', onclick: () => { o.remove(); restart(); } }, T('Play Again')), soft ? null : h('button', { class: 'btn', onclick: home }, T('All Games')))));
+            !soft && last && g.best === 'high' ? h('div', { class: 'gm-ofig' }, fmtN(last)) : null,
+            h('div', { class: 'gm-row' }, soft ? h('button', { class: 'btn primary', onclick: () => o.remove() }, btnLabel || T('Continue')) : h('button', { class: 'btn primary', onclick: () => { o.remove(); restart(); } }, T('Play Again')), soft ? null : h('button', { class: 'btn', onclick: home0 }, T('All Games')))));
           stage.appendChild(o); setTimeout(() => { const b = o.querySelector('.btn.primary'); if (b) b.focus(); }, 50);
         }
-        function restart() { stage.querySelectorAll('.gm-over').forEach((o) => o.remove()); isOver = false; game.restart(); body.focus(); }
+        function restart() { stage.querySelectorAll('.gm-over').forEach((o) => o.remove()); isOver = false; last = 0; tile = 0; game.restart(); body.focus(); }
         bNew.onclick = restart;
         game = g.play(stage, api); body.focus();
       }
       body.addEventListener('keydown', (e) => { if (game && game.key && !e.target.closest('select, input')) game.key(e); });
       body.addEventListener('keyup', (e) => { if (game && game.keyup && game.key) game.key(e); });
-      bBack.onclick = home;
+      bBack.onclick = home0;
       win.on('blur', () => { if (game && game.pause) game.pause(); });
-      win.on('closed', () => { if (game && game.destroy) game.destroy(); });
+      win.on('closed', () => { if (game && game.destroy) game.destroy(); PatOS.off && PatOS.off('gc', onGc); });
+      const onGc = () => { if (!cur) { drawSide(); if (page !== 'boards') draw(); } }; PatOS.on('gc', onGc);
+      win._games = { go, start: (id, o) => start(GAMES.find((g) => g.id === id), o), page: () => page, home: home0 };
       const pick = args && args.game && GAMES.find((g) => g.id === args.game);
-      if (pick) start(pick); else home();
-    }
+      if (pick) { drawSide(); start(pick, { daily: args.daily ? gc.daily().id : undefined }); } else home0();
+    },
+    onArgs(win, a) { if (!win._games || !a) return; if (a.page) { win._games.home(); win._games.go(a.page); } else if (a.game) win._games.start(a.game, { daily: a.daily ? PatOS.gc.daily().id : undefined }); }
   });
 })();

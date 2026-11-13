@@ -117,7 +117,7 @@
           board.appendChild(sq);
         }
         const who = st.turn === 'w' ? PatOS.t('White') : PatOS.t('Black');
-        if (!legalNow.length) { over = true; status.textContent = chk ? (PatOS.t('Checkmate!') + ' ' + (st.turn === 'w' ? PatOS.t('Black wins') : PatOS.t('White wins'))) : PatOS.t('Stalemate. It’s a draw.'); }
+        if (!legalNow.length) { over = true; if (!st._gc && mode === 'cpu') { st._gc = 1; PatOS.gc && PatOS.gc.report('chess', { win: !!chk && st.turn === 'b' }); } status.textContent = chk ? (PatOS.t('Checkmate!') + ' ' + (st.turn === 'w' ? PatOS.t('Black wins') : PatOS.t('White wins'))) : PatOS.t('Stalemate. It’s a draw.'); }
         else if (st.half >= 100) { over = true; status.textContent = PatOS.t('Draw (50-move rule)'); }
         else status.textContent = (mode === 'cpu' && st.turn === 'b' ? PatOS.t('Computer is thinking…') : who + ' ' + PatOS.t('to move')) + (chk ? ' · ' + PatOS.t('Check!') : '');
         const taken = { w: [], b: [] }; hist.forEach((x) => { if (x.cap) taken[x.cap[0]].push(GLYPH[x.cap]); });

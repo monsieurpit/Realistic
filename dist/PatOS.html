@@ -3831,22 +3831,63 @@ html.reduce-motion .gg-pop { transition: none; }
 .gr-side .gr-row.sel { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
 
 /* ===== Games ===== */
-.gm-body { height: 100%; overflow: auto; outline: none; }
+.gm-root { display: flex; height: 100%; min-height: 0; }
+.gm-sidewrap { display: flex; flex: none; } .gm-sidewrap > .ui-side { height: 100%; }
+.gm-main { flex: 1; min-width: 0; overflow-y: auto; padding: 6px 28px 28px; }
+.gm-body { display: none; flex: 1; min-width: 0; height: 100%; overflow: auto; outline: none; }
+.gm-root.playing .gm-sidewrap, .gm-root.playing .gm-main { display: none; } .gm-root.playing .gm-body { display: block; }
 .gm-title { font-size: 14px; margin-left: 6px; }
-.gm-score, .gm-best { font: 600 12.5px system-ui, sans-serif; color: var(--text2); margin-right: 12px; white-space: nowrap; }
+.gm-score, .gm-best { font: 600 12.5px var(--font); color: var(--text2); margin-right: 12px; white-space: nowrap; font-variant-numeric: tabular-nums; }
 .gm-score { color: var(--text); }
-.gm-h { font-size: 15px; margin: 18px 22px 10px; }
-.gm-home { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 14px; padding: 0 22px; }
-.gm-card { display: flex; gap: 14px; align-items: center; text-align: left; padding: 14px; border-radius: 18px; border: .5px solid var(--border); background: var(--card); color: var(--text); cursor: pointer; font: inherit; transition: transform .15s var(--ease), box-shadow .15s; }
-.gm-card:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,0,0,.18); }
-.gm-art { width: 64px; height: 64px; flex: none; }
-.gm-txt { display: flex; flex-direction: column; gap: 3px; min-width: 0; }
-.gm-txt b { font-size: 15px; } .gm-txt small { color: var(--text2); font-size: 12px; line-height: 1.35; }
-.gm-cbest { font-size: 11.5px; color: #ff9f0a; font-weight: 600; min-height: 14px; }
-.gm-more { display: flex; flex-wrap: wrap; gap: 14px; padding: 0 22px 24px; }
-.gm-mini { display: flex; flex-direction: column; align-items: center; gap: 6px; width: 86px; padding: 10px 4px; border-radius: 14px; border: 0; background: none; color: var(--text); font: inherit; font-size: 12px; cursor: pointer; }
-.gm-mini:hover { background: var(--hover); }
-.gm-mic { width: 54px; height: 54px; }
+.gm-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin: 18px 0 16px; }
+.gm-head h1 { margin: 0; font-size: 26px; font-weight: 750; letter-spacing: -.3px; }
+.gm-count { font: 600 13px var(--font); color: var(--text2); font-variant-numeric: tabular-nums; }
+.gm-player { display: flex; align-items: center; gap: 10px; padding: 6px 12px 6px 6px; border-radius: 999px; background: var(--card); box-shadow: inset 0 0 0 .5px var(--border2); color: var(--text); text-align: left; cursor: pointer; }
+.gm-player:hover { background: var(--hover); } .gm-player > span { display: flex; flex-direction: column; } .gm-player b { font-size: 13px; } .gm-player small { font-size: 11.5px; color: var(--text2); }
+.gm-daily { display: flex; gap: 20px; padding: 22px 24px; border-radius: 18px; color: #fff; background: linear-gradient(135deg, #f59563 0%, #ed6a5a 45%, #b0417a 100%); box-shadow: 0 10px 30px rgba(176,65,122,.25); }
+.gm-dl { flex: 1; min-width: 0; } .gm-dl small { font-size: 11.5px; font-weight: 700; letter-spacing: .8px; text-transform: uppercase; opacity: .85; }
+.gm-dl h2 { margin: 2px 0 4px; font-size: 34px; font-weight: 800; letter-spacing: -.5px; } .gm-dl p { margin: 0 0 14px; opacity: .9; font-size: 13.5px; }
+.gm-drow { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+.gm-daily .btn.primary, html.lg-on .gm-daily .btn.primary { --gc-fill: #fff; background: #fff; color: #9a2f5c; }
+.gm-dmeta { font-size: 12.5px; opacity: .85; }
+.gm-dboard { flex: none; align-self: center; display: grid; grid-template-columns: repeat(4, 26px); gap: 5px; padding: 7px; border-radius: 12px; background: rgba(255,255,255,.2); transform: rotate(-4deg); }
+.gm-dboard i { width: 26px; height: 26px; border-radius: 6px; background: rgba(255,255,255,.22); display: grid; place-items: center; font: 800 12px var(--font); font-style: normal; color: #9a2f5c; }
+.gm-dboard i.t { background: #fff; } .gm-dboard i.t4 { background: #ffe1c9; }
+.gm-dtop { width: 210px; flex: none; display: flex; flex-direction: column; gap: 4px; align-self: center; } .gm-dtop:empty { display: none; }
+.gm-dtop small { font-size: 11.5px; font-weight: 700; letter-spacing: .6px; text-transform: uppercase; opacity: .8; margin-bottom: 2px; }
+.gm-drank { display: flex; gap: 8px; align-items: center; padding: 6px 10px; border-radius: 10px; background: rgba(255,255,255,.16); font-size: 13px; }
+.gm-drank span:first-child { width: 14px; opacity: .8; font-weight: 700; } .gm-drank b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-weight: 600; } .gm-drank span:last-child { font-variant-numeric: tabular-nums; font-weight: 700; }
+.gm-feature { display: flex; align-items: center; gap: 16px; width: 100%; margin-top: 14px; padding: 14px 18px 14px 14px; border-radius: 18px; color: #fff; text-align: left; cursor: pointer; background: linear-gradient(120deg, #170640 0%, #4a1270 55%, #b1206e 100%); box-shadow: 0 8px 26px rgba(40,10,80,.3); }
+.gm-feature:hover .btn { filter: brightness(1.08); }
+.gm-fic { width: 56px; height: 56px; flex: none; } .gm-ft { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; } .gm-ft b { font-size: 17px; } .gm-ft small { opacity: .85; font-size: 13px; }
+.gm-feature .btn.primary, html.lg-on .gm-feature .btn.primary { --gc-fill: #fff; background: #fff; color: #3a0d63; }
+.gm-new { align-self: flex-start; display: inline-block; padding: 1px 7px; border-radius: 6px; font-size: 10.5px; font-weight: 800; letter-spacing: .5px; text-transform: uppercase; color: #fff; background: #ff375f; }
+.gm-main > .ui-section { margin-left: 0; }
+.gm-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+.gm-card { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 12px; border-radius: 16px; background: var(--card); box-shadow: inset 0 0 0 .5px var(--border2); color: var(--text); text-align: left; cursor: pointer; transition: transform var(--dur-fast) var(--ease-out), box-shadow var(--dur-fast); }
+.gm-card:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 .5px var(--border2), 0 8px 20px rgba(0,0,0,.14); }
+.gm-card:focus-visible, .gm-feature:focus-visible, .gm-player:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.gm-card .gm-art { width: 100%; height: auto; aspect-ratio: 1; margin-bottom: 6px; border-radius: 14px; overflow: hidden; }
+.gm-card .gm-art > * { width: 100%; height: 100%; } .gm-card .gm-art .app-icon, .gm-card .gm-art .icon { width: 100% !important; height: 100% !important; }
+.gm-cn { display: flex; align-items: center; gap: 6px; font-size: 14px; font-weight: 650; } .gm-cn .gm-new { align-self: auto; }
+.gm-card small { font-size: 12px; color: var(--text2); font-variant-numeric: tabular-nums; }
+.gm-pbar { margin-bottom: 4px; }
+.gm-ach { display: flex; align-items: center; gap: 12px; padding: 10px 14px; } .gm-ach + .gm-ach { box-shadow: inset 0 .5px 0 var(--border); }
+.gm-medal { width: 34px; height: 34px; flex: none; display: grid; place-items: center; border-radius: 50%; background: rgba(127,127,127,.16); color: var(--text3); }
+.gm-medal .sym { width: 18px; height: 18px; }
+.gm-ach.got .gm-medal { color: #7a4a00; background: linear-gradient(145deg, #ffe08a, #f5b52e); box-shadow: 0 2px 8px rgba(245,181,46,.35); }
+.gm-at { flex: 1; min-width: 0; display: flex; flex-direction: column; } .gm-at b { font-size: 13.5px; } .gm-at small { color: var(--text2); font-size: 12px; }
+.gm-ach:not(.got) .gm-at b { color: var(--text2); }
+.gm-when { color: var(--text3); font-size: 11.5px; white-space: nowrap; }
+.gm-bctl { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.gm-rank { display: flex; align-items: center; gap: 12px; padding: 9px 14px; } .gm-rank + .gm-rank { box-shadow: inset 0 .5px 0 var(--border); }
+.gm-rank.me { background: color-mix(in srgb, var(--accent) 12%, transparent); }
+.gm-rn { width: 22px; text-align: center; font-weight: 700; color: var(--text2); font-variant-numeric: tabular-nums; }
+.gm-rn.top1 { color: #d69a00; } .gm-rn.top2 { color: #8e9aa6; } .gm-rn.top3 { color: #b8743a; }
+.gm-rank b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; font-size: 13.5px; font-weight: 600; }
+.gm-rs { font-weight: 700; font-variant-numeric: tabular-nums; }
+.gm-ofig { font-size: 30px; font-weight: 800; font-variant-numeric: tabular-nums; }
+@media (max-width: 720px) { .gm-daily { flex-direction: column; } .gm-dtop { width: auto; } .gm-main { padding: 6px 16px 20px; } }
 .gm-stage { position: relative; min-height: 100%; display: flex; align-items: flex-start; justify-content: center; padding: 18px; box-sizing: border-box; }
 .gm-center { display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 100%; }
 .gm-row { display: flex; gap: 10px; align-items: center; justify-content: center; flex-wrap: wrap; }
@@ -7686,8 +7727,8 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
 /* generated by build.js from updates.json: do not edit */
 PatOS.version = "4.0.2";
 PatOS.releases = [{"version":"4.0.2","date":"2026-11-13","title":{"en":"PatOS 4.0.2","fr":"PatOS 4.0.2"},"notes":{"en":["New messages show as a notification on your device when PatOS isn’t in front, or is closed: Chromebook, Windows, Mac, Android, and iPhone or iPad with PatOS on the Home Screen","Clicking the notification opens the conversation"],"fr":["Les nouveaux messages s’affichent en notification sur ton appareil quand PatOS n’est pas au premier plan, ou est fermé : Chromebook, Windows, Mac, Android, et iPhone ou iPad avec PatOS sur l’écran d’accueil","Cliquer la notification ouvre la conversation"]}},{"version":"4.0.1","date":"2026-11-13","title":{"en":"PatOS 4.0.1","fr":"PatOS 4.0.1"},"more":true},{"version":"4.0.0","date":"2026-11-13","title":{"en":"PatOS 4.0: Beyond the desktop","fr":"PatOS 4.0 : Au-delà du bureau"},"more":true},{"version":"3.3.0","date":"2026-11-13","title":{"en":"PatOS 3.3: Crystal","fr":"PatOS 3.3 : Cristal"},"more":true},{"version":"3.2.1","date":"2026-11-13","title":{"en":"PatOS 3.2.1","fr":"PatOS 3.2.1"},"more":true},{"version":"3.2.0","date":"2026-11-12","title":{"en":"PatOS 3.2: Messages","fr":"PatOS 3.2 : Messages"},"more":true},{"version":"3.1.0","date":"2026-11-12","title":{"en":"PatOS 3.1: Handoff","fr":"PatOS 3.1 : Continuité"},"more":true},{"version":"3.0.0","date":"2026-11-10","title":{"en":"PatOS 3: Prism","fr":"PatOS 3 : Prisme"},"more":true},{"version":"2.3.1","date":"2026-11-09","title":{"en":"Drawn glass icons","fr":"Des icônes dessinées en verre"},"more":true},{"version":"2.3.0","date":"2026-11-09","title":{"en":"Liquid Glass, everywhere","fr":"Liquid Glass, partout"},"more":true},{"version":"2.2.2","date":"2026-11-09","title":{"en":"Liquid Glass without the light bar","fr":"Liquid Glass sans la barre de lumière"},"more":true},{"version":"2.2.1","date":"2026-11-09","title":{"en":"Thick, clear Liquid Glass","fr":"Liquid Glass épais et clair"},"more":true},{"version":"2.2.0","date":"2026-11-09","title":{"en":"Liquid Glass, rebuilt","fr":"Liquid Glass, refait"},"more":true},{"version":"2.1.3","date":"2026-11-06","title":{"en":"PitCode Studio on iPhone","fr":"PitCode Studio sur iPhone"},"more":true},{"version":"2.1.2","date":"2026-11-06","title":{"en":"Importing projects, made sturdier","fr":"Importer des projets, en plus solide"},"more":true},{"version":"2.1.1","date":"2026-11-06","title":{"en":"Importing files on phones","fr":"Importer des fichiers sur téléphone"},"more":true},{"version":"2.1.0","date":"2026-11-05","title":{"en":"PatOS 2.1: Slither and a better Studio","fr":"PatOS 2.1 : Slither et un meilleur Studio"},"more":true},{"version":"2.0.0","date":"2026-11-05","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"more":true},{"version":"1.7.0","date":"2026-11-04","title":{"en":"Better apps","fr":"De meilleures apps"},"more":true},{"version":"1.6.0","date":"2026-11-03","title":{"en":"Software Update","fr":"Mise à jour de logiciels"},"more":true},{"version":"1.5.0","date":"2026-11-03","title":{"en":"iPhone swipe up, Reminders in plain words","fr":"Balayage sur iPhone, Rappels en mots simples"},"more":true},{"version":"1.4.0","date":"2026-11-03","title":{"en":"Clock and Calculator","fr":"Horloge et Calculatrice"},"more":true},{"version":"1.3.0","date":"2026-11-03","title":{"en":"Finder and TextEdit","fr":"Finder et TextEdit"},"more":true},{"version":"1.2.0","date":"2026-11-03","title":{"en":"Faster start, smoother 3D","fr":"Démarrage plus rapide, 3D plus fluide"},"more":true},{"version":"1.1.0","date":"2026-11-03","title":{"en":"Security","fr":"Sécurité"},"more":true}];
-PatOS.beta = {"version":"4.1.0","beta":1,"date":"2026-11-13","title":{"en":"PatOS 4.1 beta: Orb Runner","fr":"PatOS 4.1 bêta : Orb Runner"},"notes":{"en":["Orb Runner: 8 worlds, a new one every 1,500 points, each with its own sky, weather and obstacles","The Ball Shop: spend your gems on 11 balls, from Ruby and Sapphire to Galaxy, Royal Gold, Diamond and Prism","Power-ups: Magnet, Shield and Double"],"fr":["Orb Runner : 8 mondes, un nouveau tous les 1 500 points, chacun avec son ciel, sa météo et ses obstacles","La boutique de boules : dépense tes gemmes pour 11 boules, du Rubis et du Saphir à la Galaxie, l’Or royal, le Diamant et le Prisme","Bonus : Aimant, Bouclier et Double"]}};
-PatOS.build = {"channel":"beta","version":"4.1.0","beta":1};
+PatOS.beta = {"version":"4.1.0","beta":2,"date":"2026-11-13","title":{"en":"PatOS 4.1 beta: Games","fr":"PatOS 4.1 bêta : Jeux"},"notes":{"en":["The Games app, redesigned: every PatOS game in one place, with your best scores","Daily Challenge: the same 2048 for everyone each day, with its own leaderboard","25 achievements across every game","Leaderboards: your friends from Messages, or everyone","Orb Runner: 8 worlds, a new one every 1,500 points, each with its own sky, weather and scenery","The Ball Shop: spend your gems on 11 balls, from Ruby and Sapphire to Galaxy, Royal Gold, Diamond and Prism","Power-ups: Magnet, Shield and Double"],"fr":["L’app Jeux, refaite : tous les jeux de PatOS au même endroit, avec tes meilleurs scores","Défi du jour : le même 2048 pour tout le monde chaque jour, avec son propre classement","25 succès dans tous les jeux","Classements : tes amis de Messages, ou tout le monde","Orb Runner : 8 mondes, un nouveau tous les 1 500 points, chacun avec son ciel, sa météo et son décor","La boutique de boules : dépense tes gemmes pour 11 boules, du Rubis et du Saphir à la Galaxie, l’Or royal, le Diamant et le Prisme","Bonus : Aimant, Bouclier et Double"]}};
+PatOS.build = {"channel":"beta","version":"4.1.0","beta":2};
 
 </script>
   <script type="patos/js">
@@ -9582,6 +9623,80 @@ PatOS.build = {"channel":"beta","version":"4.1.0","beta":1};
     'Game Over': 'Partie terminée',
     'Gems': 'Gemmes',
     'In use': 'Utilisée',
+    '2048!': '2048 !',
+    'Achievement unlocked': 'Succès débloqué',
+    'Achievements': 'Succès',
+    'Be the first.': 'Sois le premier.',
+    'Beat the computer.': 'Bats l’ordinateur.',
+    'Big Snake': 'Gros serpent',
+    'Bomb Squad': 'Démineur pro',
+    'Brick Breaker': 'Casse-briques',
+    'Buy a ball.': 'Achète une boule.',
+    'Check your connection and try again.': 'Vérifie ta connexion et réessaie.',
+    'Checkmate': 'Échec et mat',
+    'Clean Sweep': 'Terrain dégagé',
+    'Clear a board.': 'Termine une grille.',
+    'Clear a hard board.': 'Termine une grille difficile.',
+    'Collect 1,000 gems.': 'Ramasse 1 000 gemmes.',
+    'Daily': 'Du jour',
+    'Daily Challenge': 'Défi du jour',
+    'Daily Player': 'Joueur du jour',
+    'Eight worlds and the Ball Shop.': 'Huit mondes et la boutique de boules.',
+    'Every PatOS game, the daily challenge, achievements and leaderboards.': 'Tous les jeux de PatOS, le défi du jour, les succès et les classements.',
+    'Everyone': 'Tout le monde',
+    'Explorer': 'Explorateur',
+    'Finish the 6 × 6 board.': 'Termine la grille 6 × 6.',
+    'First Game': 'Première partie',
+    'Four in a Row': 'Quatre à la suite',
+    'Friends': 'Amis',
+    'Friends today': 'Amis aujourd’hui',
+    'Gem Hoarder': 'Collectionneur de gemmes',
+    'Halfway There': 'À mi-chemin',
+    'Leaderboards': 'Classements',
+    'Leaderboards aren’t available right now': 'Les classements ne sont pas disponibles pour l’instant',
+    'Loading': 'Chargement',
+    'Logician': 'Logicien',
+    'Long Snake': 'Long serpent',
+    'Make a 512 tile.': 'Fais une tuile 512.',
+    'Make the 2048 tile.': 'Fais la tuile 2048.',
+    'New Ball': 'Nouvelle boule',
+    'New World': 'Nouveau monde',
+    'No scores yet': 'Pas encore de scores',
+    'Not played yet': 'Pas encore joué',
+    'Patience': 'Patience',
+    'Play 5 different games.': 'Joue à 5 jeux différents.',
+    'Play 50 games.': 'Joue 50 parties.',
+    'Play 7 daily challenges.': 'Fais 7 défis du jour.',
+    'Play a daily challenge.': 'Fais un défi du jour.',
+    'Play any game.': 'Joue à n’importe quel jeu.',
+    'Play, and your friends’ scores show up here.': 'Joue, et les scores de tes amis s’affichent ici.',
+    'Player': 'Joueur',
+    'Reach length 150.': 'Atteins une longueur de 150.',
+    'Reach world 2.': 'Atteins le monde 2.',
+    'Reach world 5.': 'Atteins le monde 5.',
+    'Reach world 8.': 'Atteins le monde 8.',
+    'Regular': 'Habitué',
+    'Score 10,000.': 'Fais 10 000 points.',
+    'Score 25 in Snake.': 'Fais 25 à Snake.',
+    'Score 500 in Breakout.': 'Fais 500 à Breakout.',
+    'Seven Days': 'Sept jours',
+    'Sharp Memory': 'Mémoire d’éléphant',
+    'Sign in to see leaderboards': 'Connecte-toi pour voir les classements',
+    'Solve a hard puzzle.': 'Résous une grille difficile.',
+    'Solve a puzzle.': 'Résous une grille.',
+    'Solved': 'Résolu',
+    'Ten Thousand': 'Dix mille',
+    'The same tiles for everyone today.': 'Les mêmes tuiles pour tout le monde aujourd’hui.',
+    'Three in a Row': 'Trois à la suite',
+    'Win a game.': 'Gagne une partie.',
+    'Your best': 'Ton record',
+    'Your friends are the people you talk to in Messages.': 'Tes amis sont les gens avec qui tu parles dans Messages.',
+    'achievements': 'succès',
+    'win': 'victoire',
+    'wins': 'victoires',
+    'game': 'partie',
+    'games': 'parties',
+    'Achievements unlocked': 'Succès débloqués',
     'Tile All Windows': 'Disposer toutes les fenêtres', 'Merge All Windows': 'Fusionner toutes les fenêtres', 'Move Tab to New Window': 'Placer l’onglet dans une nouvelle fenêtre', 'Magnetic edges': 'Bords magnétiques', 'Windows snap to edges and each other. Hold Shift to move freely.': 'Les fenêtres s’aimantent aux bords. Maintiens Maj pour les placer librement.',
     'Stage Focus': 'Focus sur la scène', 'Save Window Group…': 'Enregistrer un groupe de fenêtres…', 'Save Window Group': 'Enregistrer un groupe de fenêtres', 'Delete a Window Group…': 'Supprimer un groupe de fenêtres…', 'window': 'fenêtre', 'windows': 'fenêtres', 'Window group saved': 'Groupe de fenêtres enregistré', 'Reopen them all from the Window menu.': 'Rouvrez-les toutes depuis le menu Fenêtre.',
     'Motion': 'Mouvement', 'Calm': 'Calme', 'Natural': 'Naturel', 'Playful': 'Enjoué', 'How windows, menus and panels move': 'La façon dont bougent les fenêtres, les menus et les panneaux',
@@ -12515,6 +12630,7 @@ PatOS.build = {"channel":"beta","version":"4.1.0","beta":1};
     warn: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
     check: '<path d="M4 12l5 5L20 6"/>',
     star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+    trophy: '<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M12 14v3M8.5 20h7M10 17h4"/>',
     flash: '<path d="M13.5 2.5 5.5 13h6l-1 8.5 8-10.5h-6z"/>',
     timer: '<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2M9.5 2.5h5M19 6l1.5-1.5"/>',
     grid: '<rect x="3.5" y="3.5" width="17" height="17" rx="3"/><path d="M9.2 3.5v17M14.8 3.5v17M3.5 9.2h17M3.5 14.8h17"/>',
@@ -22916,6 +23032,124 @@ PatOS.build = {"channel":"beta","version":"4.1.0","beta":1};
 
 </script>
   <script type="patos/js">
+/* Game Center (4.1): scores, achievements, leaderboards and the daily challenge, for every PatOS game.
+   Games call PatOS.gc.report(game, { score, win, level, time, tile, world, gems, daily }) when a round ends, and
+   PatOS.gc.event(game, name) for other moments (a ball bought). Loaded from the start (small), because any game can be
+   opened on its own; the Games app shows all of it.
+   - Stats and achievements are kept on this device (gcStats, gcAch) and synced like other settings.
+   - Leaderboards: Firestore scores/{board}/players/{uid}, one best score each, that only goes up (see firestore.rules).
+     Friends are the people you have a conversation with in Messages. Signed out, everything else still works.
+   - Daily challenge: the same 2048 for everyone each day (a seed from the date), with its own board. */
+(function () {
+  'use strict';
+  const T = (s) => PatOS.t(s);
+  const store = PatOS.store;
+
+  const GAMES = {
+    '2048': { name: '2048', app: 'games', board: true }, snake: { name: 'Snake', app: 'games', board: true }, breakout: { name: 'Breakout', app: 'games', board: true },
+    mines: { name: 'Minesweeper', app: 'games' }, connect4: { name: 'Connect Four', app: 'games' }, memory: { name: 'Memory', app: 'games' },
+    orbrunner: { name: 'Orb Runner', app: 'orbrunner', board: true }, slither: { name: 'Slither', app: 'slither', board: true },
+    chess: { name: 'Chess', app: 'chess' }, sudoku: { name: 'Sudoku', app: 'sudoku' }, solitaire: { name: 'Solitaire', app: 'solitaire' }, tictactoe: { name: 'Tic-Tac-Toe', app: 'tictactoe' }
+  };
+  const all = () => store.get('gcStats', {}) || {};
+  const of = (g) => all()[g] || { plays: 0, best: 0, wins: 0, max: {}, sum: {}, ev: {} };
+  const totalPlays = () => Object.values(all()).reduce((n, s) => n + (s.plays || 0), 0);
+
+  /* [id, game, name, how to get it, test(stats of that game)] */
+  const ACH = [
+    ['first', '', 'First Game', 'Play any game.', () => totalPlays() >= 1],
+    ['explorer', '', 'Explorer', 'Play 5 different games.', () => Object.values(all()).filter((s) => s.plays > 0).length >= 5],
+    ['regular', '', 'Regular', 'Play 50 games.', () => totalPlays() >= 50],
+    ['2048-512', '2048', 'Halfway There', 'Make a 512 tile.', (s) => (s.max.tile || 0) >= 512],
+    ['2048-2048', '2048', '2048!', 'Make the 2048 tile.', (s) => (s.max.tile || 0) >= 2048],
+    ['snake-25', 'snake', 'Long Snake', 'Score 25 in Snake.', (s) => s.best >= 25],
+    ['breakout-500', 'breakout', 'Brick Breaker', 'Score 500 in Breakout.', (s) => s.best >= 500],
+    ['mines-win', 'mines', 'Clean Sweep', 'Clear a board.', (s) => s.wins >= 1],
+    ['mines-hard', 'mines', 'Bomb Squad', 'Clear a hard board.', (s) => (s.ev.hard || 0) >= 1],
+    ['connect4-win', 'connect4', 'Four in a Row', 'Beat the computer.', (s) => s.wins >= 1],
+    ['memory-6', 'memory', 'Sharp Memory', 'Finish the 6 × 6 board.', (s) => (s.ev.big || 0) >= 1],
+    ['orb-w2', 'orbrunner', 'New World', 'Reach world 2.', (s) => (s.max.world || 0) >= 2],
+    ['orb-w5', 'orbrunner', 'Deep Space', 'Reach world 5.', (s) => (s.max.world || 0) >= 5],
+    ['orb-w8', 'orbrunner', 'Prism', 'Reach world 8.', (s) => (s.max.world || 0) >= 8],
+    ['orb-10k', 'orbrunner', 'Ten Thousand', 'Score 10,000.', (s) => s.best >= 10000],
+    ['orb-buy', 'orbrunner', 'New Ball', 'Buy a ball.', (s) => (s.ev.buy || 0) >= 1],
+    ['orb-gems', 'orbrunner', 'Gem Hoarder', 'Collect 1,000 gems.', (s) => (s.sum.gems || 0) >= 1000],
+    ['slither-150', 'slither', 'Big Snake', 'Reach length 150.', (s) => s.best >= 150],
+    ['chess-win', 'chess', 'Checkmate', 'Beat the computer.', (s) => s.wins >= 1],
+    ['sudoku-win', 'sudoku', 'Solved', 'Solve a puzzle.', (s) => s.wins >= 1],
+    ['sudoku-hard', 'sudoku', 'Logician', 'Solve a hard puzzle.', (s) => (s.ev.hard || 0) >= 1],
+    ['solitaire-win', 'solitaire', 'Patience', 'Win a game.', (s) => s.wins >= 1],
+    ['ttt-win', 'tictactoe', 'Three in a Row', 'Beat the computer.', (s) => s.wins >= 1],
+    ['daily-1', '', 'Daily Player', 'Play a daily challenge.', () => (store.get('gcDailyDays', []) || []).length >= 1],
+    ['daily-7', '', 'Seven Days', 'Play 7 daily challenges.', () => (store.get('gcDailyDays', []) || []).length >= 7]
+  ];
+  const unlocked = () => store.get('gcAch', {}) || {};
+  function checkAch(game) {
+    const got = unlocked(); const fresh = [];
+    ACH.forEach(([id, g, name, , test]) => { if (got[id] || (g && g !== game)) return; try { if (test(of(g || game))) { got[id] = Date.now(); fresh.push(name); } } catch (e) {} });
+    if (!fresh.length) return;
+    store.set('gcAch', got);
+    // one banner, even when a round unlocks several
+    PatOS.notify({ title: T(fresh.length > 1 ? 'Achievements unlocked' : 'Achievement unlocked'), body: fresh.map((n) => T(n)).join(' · '), icon: 'games', category: 'games', key: 'gc-ach', open: { app: 'games', args: { page: 'achievements' } } });
+    if (PatOS.sound && PatOS.sound.tone) [784, 1046, 1318].forEach((f, k) => PatOS.sound.tone(f, 0.16, { vol: 0.06, delay: k * 0.08 }));
+    PatOS.emit && PatOS.emit('gc');
+  }
+
+  /* ---------- the daily challenge ---------- */
+  const dayId = (d) => { d = d || new Date(); return '' + d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0'); };
+  function seeded(seed) { let a = seed >>> 0; return () => { a = (a + 0x6d2b79f5) >>> 0; let t = a; t = Math.imul(t ^ (t >>> 15), t | 1); t ^= t + Math.imul(t ^ (t >>> 7), t | 61); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
+  const seedOf = (id) => [...('patos-daily-' + id)].reduce((h, c) => Math.imul(h ^ c.charCodeAt(0), 16777619) >>> 0, 2166136261);
+
+  /* ---------- leaderboards ---------- */
+  const me = () => (PatOS.account && PatOS.account.signedIn && PatOS.account.signedIn() && PatOS.account.info()) || null;
+  async function cloud() { if (!me() || !PatOS.account.available || !PatOS.account.available()) return null; try { return await PatOS.account.cloud(); } catch (e) { return null; } }
+  const pending = () => store.get('gcPending', {}) || {};
+  async function flush() {
+    const p = pending(); const boards = Object.keys(p); if (!boards.length) return; const F = await cloud(); const m = me(); if (!F || !m) return;
+    for (const b of boards) { try { await F.scorePut(b, { uid: m.uid, username: m.username }, p[b]); const q = pending(); if (q[b] === p[b]) { delete q[b]; store.set('gcPending', q); } } catch (e) { if (!/offline|network|unavailable/i.test(String(e.code || e.message))) { const q = pending(); delete q[b]; store.set('gcPending', q); } } }
+  }
+  function post(board, score) { const p = pending(); if ((p[board] || 0) >= score) return; p[board] = score; store.set('gcPending', p); flush(); }
+  const friendIds = () => { try { return (PatOS.chat && PatOS.chat.conversations ? PatOS.chat.conversations() : []).filter((c) => c.status === 'accepted').map((c) => c.other.uid); } catch (e) { return []; } };
+
+  const gc = {
+    GAMES, ACH,
+    stats: of, allStats: all, totalPlays, unlocked,
+    /* a round ended */
+    report(game, r) {
+      if (!GAMES[game]) return; r = r || {};
+      const a = all(); const s = Object.assign({ plays: 0, best: 0, wins: 0, max: {}, sum: {}, ev: {} }, a[game]); s.max = Object.assign({}, s.max); s.sum = Object.assign({}, s.sum); s.ev = Object.assign({}, s.ev);
+      const score = Math.max(0, Math.floor(+r.score || 0)); const before = s.best;
+      s.plays++; s.last = Date.now(); if (score > s.best) s.best = score; if (r.win) s.wins++;
+      ['tile', 'world'].forEach((k) => { if (r[k] > (s.max[k] || 0)) s.max[k] = r[k]; });
+      ['gems'].forEach((k) => { if (r[k]) s.sum[k] = (s.sum[k] || 0) + r[k]; });
+      if (r.win && r.level === 'hard') s.ev.hard = (s.ev.hard || 0) + 1;
+      if (r.win && r.level === 6) s.ev.big = (s.ev.big || 0) + 1;
+      a[game] = s; store.set('gcStats', a);
+      if (GAMES[game].board && score > 0 && score > before) post(game, score);
+      if (r.daily) {
+        const days = store.get('gcDailyDays', []) || []; if (!days.includes(r.daily)) store.set('gcDailyDays', days.concat([r.daily]).slice(-400));
+        const db = store.get('gcDailyBest', {}) || {}; if (score > (db[r.daily] || 0)) { db[r.daily] = score; store.set('gcDailyBest', db); post(game + '-d' + r.daily, score); }
+      }
+      checkAch(game); PatOS.emit && PatOS.emit('gc', { game, score, best: s.best, newBest: score > before && before > 0 });
+      return { best: s.best, newBest: score > before && before > 0 };
+    },
+    /* another moment worth counting (a ball bought) */
+    event(game, name) { const a = all(); const s = Object.assign({ plays: 0, best: 0, wins: 0, max: {}, sum: {}, ev: {} }, a[game]); s.ev = Object.assign({}, s.ev); s.ev[name] = (s.ev[name] || 0) + 1; a[game] = s; store.set('gcStats', a); checkAch(game); },
+    daily: () => { const id = dayId(); return { id, game: '2048', rand: seeded(seedOf(id)), best: (store.get('gcDailyBest', {}) || {})[id] || 0, played: (store.get('gcDailyDays', []) || []).includes(id) }; },
+    dayId, seeded,
+    /* the boards: everyone's top scores, or you and your friends */
+    signedIn: () => !!me(),
+    async top(board, n) { const F = await cloud(); if (!F) return null; await flush(); return F.scoreTop(board, n || 50); },
+    async friends(board) { const F = await cloud(); const m = me(); if (!F || !m) return null; await flush(); return F.scoreOf(board, friendIds().concat([m.uid])); },
+    me, flush
+  };
+  PatOS.gc = gc;
+  addEventListener('online', () => flush());
+  PatOS.on && PatOS.on('chat:account', () => setTimeout(flush, 3000));
+})();
+
+</script>
+  <script type="patos/js">
 /* The screens for PatOS accounts: create one, sign in, and the big invitation everyone gets once this update arrives. */
 (function () {
   'use strict';
@@ -30967,6 +31201,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         S.state = 'over'; S.shake = 1; holder.visible = false; PatOS.sound.tone(90, 0.7, { vol: 0.3, type: 'sawtooth', slide: 30 });
         partMats[0].color.setHex(ballDef.glow); burst(holder.position, 110, partMats);
         if (S.score > S.best) { S.best = S.score; S.newBest = true; store.set('orbBest', S.best); }
+        PatOS.gc && PatOS.gc.report('orbrunner', { score: S.score, world: S.world + 1, gems: S.gems });
         setTimeout(() => { if (S.state === 'over') showOverlay('over'); }, 700);
       }
       function hit(o, i) {
@@ -31020,7 +31255,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       function equip(id) { if (!owned().includes(id)) return false; store.set('orbBall', id); makeBall(ballOf(id)); PatOS.sound.tone(880, 0.08, { vol: 0.06 }); return true; }
       function buy(id) {
         const b = ballOf(id); if (b.id !== id || owned().includes(id) || wallet() < b.price) return false;
-        store.set('orbWallet', wallet() - b.price); store.set('orbOwned', owned().concat([id])); equip(id);
+        store.set('orbWallet', wallet() - b.price); store.set('orbOwned', owned().concat([id])); equip(id); PatOS.gc && PatOS.gc.event('orbrunner', 'buy');
         [880, 1175, 1568].forEach((f, i) => PatOS.sound.tone(f, 0.14, { vol: 0.07, delay: i * 0.07 })); return true;
       }
       function start() { overlay.classList.add('hidden'); reset(); S.state = 'play'; stage.focus(); }
@@ -31258,7 +31493,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         if (over || board[i]) return;
         board[i] = turn; PatOS.sound.tone(turn === 'X' ? 600 : 800, 0.08, { vol: 0.08 });
         const w = winner(board);
-        if (w) { over = w; score[w.p === 'draw' ? 'D' : w.p]++; PatOS.store.set('tttScore', score); if (w.p !== 'draw') PatOS.sound.pop(); render(); return; }
+        if (w) { over = w; if (mode === 'cpu') PatOS.gc && PatOS.gc.report('tictactoe', { win: w.p === 'X' }); score[w.p === 'draw' ? 'D' : w.p]++; PatOS.store.set('tttScore', score); if (w.p !== 'draw') PatOS.sound.pop(); render(); return; }
         turn = turn === 'X' ? 'O' : 'X'; render();
         if (mode === 'cpu' && turn === 'O') setTimeout(() => {
           const empty = board.map((v, j) => (v ? -1 : j)).filter((j) => j >= 0);
@@ -35355,7 +35590,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           board.appendChild(sq);
         }
         const who = st.turn === 'w' ? PatOS.t('White') : PatOS.t('Black');
-        if (!legalNow.length) { over = true; status.textContent = chk ? (PatOS.t('Checkmate!') + ' ' + (st.turn === 'w' ? PatOS.t('Black wins') : PatOS.t('White wins'))) : PatOS.t('Stalemate. It’s a draw.'); }
+        if (!legalNow.length) { over = true; if (!st._gc && mode === 'cpu') { st._gc = 1; PatOS.gc && PatOS.gc.report('chess', { win: !!chk && st.turn === 'b' }); } status.textContent = chk ? (PatOS.t('Checkmate!') + ' ' + (st.turn === 'w' ? PatOS.t('Black wins') : PatOS.t('White wins'))) : PatOS.t('Stalemate. It’s a draw.'); }
         else if (st.half >= 100) { over = true; status.textContent = PatOS.t('Draw (50-move rule)'); }
         else status.textContent = (mode === 'cpu' && st.turn === 'b' ? PatOS.t('Computer is thinking…') : who + ' ' + PatOS.t('to move')) + (chk ? ' · ' + PatOS.t('Check!') : '');
         const taken = { w: [], b: [] }; hist.forEach((x) => { if (x.cap) taken[x.cap[0]].push(GLYPH[x.cap]); });
@@ -35651,7 +35886,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         world = createWorld({ level: prefs.level }); world.spawnPlayer(prefs.name, prefs.skin); mode = 'play'; paused = false; menu.classList.add('hidden'); over.classList.add('hidden'); pointer = null; banner = null; stage.focus(); acc = 0; sync();
       }
       function gameOver(e) {
-        mode = 'over'; if (e.mass > prefs.best) { prefs.best = e.mass; store.set('slitherBest', e.mass); }
+        mode = 'over'; PatOS.gc && PatOS.gc.report('slither', { score: Math.floor(e.mass) }); if (e.mass > prefs.best) { prefs.best = e.mass; store.set('slitherBest', e.mass); }
         PatOS.sound && PatOS.sound.error && PatOS.sound.error();
         over.innerHTML = ''; over.classList.remove('hidden');
         const again = h('button', { class: 'btn primary' }, T('Play Again')); again.onclick = start;
@@ -36916,7 +37151,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       }
       function check() {
         if (st.val.every((v, i) => v === st.sol[i])) {
-          st.done = true;
+          st.done = true; PatOS.gc && PatOS.gc.report('sudoku', { win: true, level: st.level, time: st.time });
           const b = best[st.level]; if (!b || st.time < b) { best[st.level] = st.time; PatOS.store.set('sudokuBest', best); }
           [523, 659, 784, 1046].forEach((f, i) => PatOS.sound.tone(f, 0.3, { delay: i * 0.12, vol: 0.15 }));
         }
@@ -37382,7 +37617,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       function after() {
         sel = null;
         if (!g.won && g.found.every((f) => f.length === 13)) {
-          g.won = true; stats.won++; if (!stats.best || g.time < stats.best) stats.best = g.time; PatOS.store.set('solStats', stats);
+          g.won = true; PatOS.gc && PatOS.gc.report('solitaire', { win: true, time: g.time }); stats.won++; if (!stats.best || g.time < stats.best) stats.best = g.time; PatOS.store.set('solStats', stats);
           [523, 659, 784, 1046, 1318].forEach((f, i) => PatOS.sound.tone(f, 0.3, { delay: i * 0.1, vol: 0.14 }));
         }
         save(); render();
@@ -37486,6 +37721,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
   'use strict';
   const { h } = PatOS;
   const T = (s) => PatOS.t(s);
+  const play = () => h('span', { translate: 'no' }, PatOS.lang === 'fr' ? 'Jouer' : 'Play'); // ("Play" means something else elsewhere in PatOS)
   const tone = (f, d, o) => PatOS.sound.tone(f, d, Object.assign({ vol: 0.08 }, o || {}));
   const svg = (inner, bg) => `<svg viewBox="0 0 64 64" width="100%" height="100%"><rect width="64" height="64" rx="14" fill="${bg}"/>${inner}</svg>`;
 
@@ -37501,11 +37737,11 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
 
   /* =================== 2048 =================== */
   function g2048(root, api) {
-    const N = 4; let grid, score, won, keepGoing, tiles, idc = 0;
+    const N = 4; let grid, score, won, keepGoing, tiles, idc = 0, R = Math.random;
     const board = h('div', { class: 'g2-board' }); const cells = h('div', { class: 'g2-cells' }); for (let i = 0; i < N * N; i++) cells.appendChild(h('div', { class: 'g2-cell' }));
     const layer = h('div', { class: 'g2-layer' }); board.append(cells, layer); root.appendChild(h('div', { class: 'g2-wrap' }, board, h('p', { class: 'gm-hint' }, T('Use the arrow keys or swipe. Tiles with the same number merge.'))));
-    function reset() { grid = Array.from({ length: N }, () => Array(N).fill(null)); score = 0; won = false; keepGoing = false; tiles = []; layer.innerHTML = ''; spawn(); spawn(); paint(); api.score(0); }
-    function spawn() { const free = []; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!grid[r][c]) free.push([r, c]); if (!free.length) return; const [r, c] = free[Math.floor(Math.random() * free.length)]; const t = { id: ++idc, v: Math.random() < 0.9 ? 2 : 4, r, c, isNew: true }; grid[r][c] = t; tiles.push(t); }
+    function reset() { R = api.rng ? api.rng() : Math.random; grid = Array.from({ length: N }, () => Array(N).fill(null)); score = 0; won = false; keepGoing = false; tiles = []; layer.innerHTML = ''; spawn(); spawn(); paint(); api.score(0); }
+    function spawn() { const free = []; for (let r = 0; r < N; r++) for (let c = 0; c < N; c++) if (!grid[r][c]) free.push([r, c]); if (!free.length) return; const [r, c] = free[Math.floor(R() * free.length)]; const t = { id: ++idc, v: R() < 0.9 ? 2 : 4, r, c, isNew: true }; grid[r][c] = t; tiles.push(t); }
     function paint() {
       const live = new Set(tiles.map((t) => t.id));
       layer.querySelectorAll('.g2-tile').forEach((el) => { if (!live.has(+el.dataset.id)) el.remove(); });
@@ -37528,7 +37764,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         while (true) { const tr = nr + vec[0], tc = nc + vec[1]; if (tr < 0 || tc < 0 || tr >= N || tc >= N) break; const o = grid[tr][tc]; if (!o) { nr = tr; nc = tc; continue; } if (o.v === t.v && !merged.has(o.id)) { nr = tr; nc = tc; } break; }
         if (nr === r && nc === c) return;
         moved = true; grid[r][c] = null; const o = grid[nr][nc];
-        if (o) { o.v *= 2; o.merged = true; merged.add(o.id); score += o.v; t.r = nr; t.c = nc; gone.push(t); if (o.v === 2048 && !won) won = true; }
+        if (o) { o.v *= 2; o.merged = true; merged.add(o.id); score += o.v; if (api.tile) api.tile(o.v); t.r = nr; t.c = nc; gone.push(t); if (o.v === 2048 && !won) won = true; }
         else { grid[nr][nc] = t; t.r = nr; t.c = nc; }
       }));
       if (!moved) return;
@@ -37782,13 +38018,18 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
     { id: 'connect4', name: 'Connect Four', play: connect4, best: 'wins', art: svg('<rect x="8" y="12" width="48" height="42" rx="6" fill="#0a60ff"/><g fill="#fff"><circle cx="18" cy="22" r="5"/><circle cx="32" cy="22" r="5"/><circle cx="46" cy="22" r="5"/><circle cx="18" cy="44" r="5" fill="#ff375f"/><circle cx="32" cy="44" r="5" fill="#ffd60a"/><circle cx="46" cy="44" r="5" fill="#ff375f"/><circle cx="18" cy="33" r="5"/><circle cx="32" cy="33" r="5" fill="#ff375f"/><circle cx="46" cy="33" r="5" fill="#ffd60a"/></g>', '#dbe8ff'), desc: 'Line up four discs before the computer does.' },
     { id: 'memory', name: 'Memory', play: memory, best: 'moves', art: svg('<rect x="10" y="12" width="20" height="26" rx="4" fill="#5e5ce6"/><rect x="34" y="12" width="20" height="26" rx="4" fill="#fff"/><path d="M44 18l3 6 6 .5-4.5 4 1.5 6-6-3.5-6 3.5 1.5-6-4.5-4 6-.5z" fill="#ff9f0a"/><rect x="22" y="30" width="20" height="26" rx="4" fill="#bf5af2"/>', '#2c2c54'), desc: 'Find all the pairs with as few moves as you can.' }
   ];
-  const OTHERS = ['chess', 'sudoku', 'solitaire', 'tictactoe', 'orbrunner'];
+  /* the other PatOS games (their own apps), with what they report to the Game Center */
+  const OTHERS = [['orbrunner', 'orbrunner'], ['slither', 'slither'], ['chess', 'chess'], ['sudoku', 'sudoku'], ['solitaire', 'solitaire'], ['tictactoe', 'tictactoe']];
+  const NEW = { orbrunner: 'Eight worlds and the Ball Shop.' }; // shown as new until opened from here
+  const BOARDS = [['2048', '2048'], ['snake', 'Snake'], ['breakout', 'Breakout'], ['orbrunner', 'Orb Runner'], ['slither', 'Slither']];
+  const fmtN = (n) => Number(n || 0).toLocaleString(PatOS.locale);
 
   PatOS.registerApp({
-    id: 'games', name: 'Games', icon: 'games', width: 900, height: 680, category: '3D & Games', keywords: 'game games play 2048 snake minesweeper breakout connect four memory arcade jeux jeu',
-    about: 'Offline games: 2048, Snake, Minesweeper, Breakout, Connect Four, Memory and more.',
+    id: 'games', name: 'Games', icon: 'games', width: 980, height: 700, minWidth: 560, minHeight: 460, category: '3D & Games', keywords: 'game games play 2048 snake minesweeper breakout connect four memory arcade achievements leaderboard daily challenge jeux jeu succès classement',
+    about: 'Every PatOS game, the daily challenge, achievements and leaderboards.',
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'gm-win');
+      const ui = PatOS.ui, gc = PatOS.gc;
       const bests = () => PatOS.store.get('gamesBest', {}) || {};
       const setBest = (k, v) => { const b = bests(); b[k] = v; PatOS.store.set('gamesBest', b); };
       const bBack = h('button', { class: 'tbtn', title: T('All Games'), 'aria-label': T('All Games') }, '‹');
@@ -37796,63 +38037,156 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       const scoreEl = h('span', { class: 'gm-score' }), bestEl = h('span', { class: 'gm-best' });
       const bNew = h('button', { class: 'btn' }, T('New Game'));
       win.toolbar.append(bBack, title, h('div', { style: { flex: 1 } }), scoreEl, bestEl, bNew);
-      const body = h('div', { class: 'gm-body', tabindex: '0' }); win.body.appendChild(body);
-      let cur = null, game = null, isOver = false;
+      const side = h('div', { class: 'gm-sidewrap' }), main = h('div', { class: 'gm-main' });
+      const body = h('div', { class: 'gm-body', tabindex: '0' });
+      const root = h('div', { class: 'gm-root' }, side, main, body); win.body.appendChild(root);
+      let page = (args && args.page) || 'home', cur = null, game = null, isOver = false, board = '2048', who = 'friends';
       const visible = () => !document.hidden && PatOS.wm.active === win;
+      const seenNew = () => PatOS.store.get('gcSeenNew', []) || [];
+      const markSeen = (id) => { if (NEW[id] && !seenNew().includes(id)) PatOS.store.set('gcSeenNew', seenNew().concat([id])); };
+
       function bestText(g, sub) {
         const b = bests(); const k = g.id + (sub ? ':' + sub : '');
         if (g.best === 'time') return b[k] ? T('Best') + ': ' + b[k] + ' s' : '';
         if (g.best === 'moves') return b[k] ? T('Best') + ': ' + b[k] + ' ' + T('moves') : '';
         if (g.best === 'wins') return b[k] ? T('Wins') + ': ' + b[k] : '';
-        return b[k] ? T('Best') + ': ' + b[k] : '';
+        return b[k] ? T('Best') + ': ' + fmtN(b[k]) : '';
+      }
+      /* what a game card says under its name */
+      function cardSub(id) {
+        const s = gc.stats(id); if (!s.plays) return T('Not played yet');
+        if (s.best) return T('Best') + ' ' + fmtN(s.best);
+        if (s.wins) return s.wins + ' ' + T(s.wins === 1 ? 'win' : 'wins');
+        return s.plays + ' ' + T(s.plays === 1 ? 'game' : 'games');
+      }
+
+      /* ---------- the sidebar ---------- */
+      function drawSide() {
+        side.innerHTML = '';
+        const got = Object.keys(gc.unlocked()).length;
+        side.appendChild(ui.sidebar([
+          ui.item({ icon: 'home', label: 'Home', on: page === 'home', onClick: () => go('home') }),
+          ui.item({ icon: 'trophy', label: 'Achievements', count: got || null, on: page === 'achievements', onClick: () => go('achievements') }),
+          ui.item({ icon: 'chart', label: 'Leaderboards', on: page === 'boards', onClick: () => go('boards') })
+        ], { label: T('Games') }));
+      }
+      function go(p) { page = p; drawSide(); draw(); main.scrollTop = 0; }
+      function draw() { main.innerHTML = ''; ({ home, achievements, boards: leaderboards })[page](); }
+
+      /* ---------- Home ---------- */
+      function header(text, extra) { return h('div', { class: 'gm-head' }, h('h1', {}, T(text)), extra || null); }
+      function player() {
+        const m = gc.me(); const got = Object.keys(gc.unlocked()).length;
+        return h('button', { class: 'gm-player', onclick: () => go('achievements') }, ui.avatar(m ? m.username : 'P'),
+          h('span', {}, h('b', { translate: 'no' }, m ? '@' + m.username : T('Player')), h('small', {}, got + ' / ' + gc.ACH.length + ' ' + T('achievements'))));
       }
       function home() {
-        if (game && game.destroy) game.destroy(); game = null; cur = null;
-        body.innerHTML = ''; win.setTitle(T('Games')); title.textContent = ''; scoreEl.textContent = ''; bestEl.textContent = ''; bNew.style.display = 'none'; bBack.style.display = 'none';
-        const grid = h('div', { class: 'gm-home' });
-        GAMES.forEach((g) => {
-          const card = h('button', { class: 'gm-card' }, h('div', { class: 'gm-art', html: g.art }), h('div', { class: 'gm-txt' }, h('b', {}, T(g.name)), h('small', {}, T(g.desc)), h('span', { class: 'gm-cbest' }, bestText(g, g.id === 'mines' ? PatOS.store.get('gmMinesLevel', 'easy') : g.id === 'memory' ? PatOS.store.get('gmMemSize', 4) : ''))));
-          card.onclick = () => start(g); grid.appendChild(card);
+        main.appendChild(header('Games', player()));
+        // the daily challenge
+        const d = gc.daily(); const date = new Date().toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' });
+        const top = h('div', { class: 'gm-dtop' });
+        main.appendChild(h('section', { class: 'gm-daily' },
+          h('div', { class: 'gm-dl' }, h('small', {}, T('Daily Challenge')), h('h2', {}, '2048'), h('p', {}, T('The same tiles for everyone today.')),
+            h('div', { class: 'gm-drow' }, h('button', { class: 'btn primary', onclick: () => start(GAMES[0], { daily: d.id }) }, d.played ? T('Play Again') : play()),
+              h('span', { class: 'gm-dmeta' }, date + (d.best ? ' · ' + T('Your best') + ' ' + fmtN(d.best) : '')))),
+          top));
+        // today's opening tiles (the same for everyone)
+        const r = d.rand; const cells = Array(16).fill(0); for (let k = 0; k < 2; k++) { const free = cells.map((v, i) => (v ? -1 : i)).filter((i) => i >= 0); const at = free[Math.floor(r() * free.length)]; cells[at] = r() < 0.9 ? 2 : 4; }
+        if (!gc.signedIn()) top.replaceWith(h('div', { class: 'gm-dboard', 'aria-hidden': 'true' }, ...cells.map((v) => h('i', { class: v ? 't' + (v === 4 ? ' t4' : '') : '' }, v ? String(v) : ''))));
+        if (gc.signedIn()) gc.friends('2048-d' + d.id).then((l) => { if (!l || !l.length || !top.isConnected) return; top.append(h('small', {}, T('Friends today')), ...l.slice(0, 3).map((x, i) => h('div', { class: 'gm-drank' }, h('span', {}, String(i + 1)), h('b', { translate: 'no' }, '@' + x.username), h('span', {}, fmtN(x.score))))); }).catch(() => {});
+        // what's new
+        Object.keys(NEW).filter((id) => PatOS.apps[id] && !seenNew().includes(id)).forEach((id) => {
+          const a = PatOS.apps[id];
+          main.appendChild(h('button', { class: 'gm-feature gm-f-' + id, onclick: () => { markSeen(id); PatOS.launch(id); draw(); } },
+            h('div', { class: 'gm-fic', html: PatOS.iconHTML(a.icon || id) }),
+            h('div', { class: 'gm-ft' }, h('span', { class: 'gm-new' }, T('New')), h('b', {}, T(a.name)), h('small', {}, T(NEW[id]))),
+            h('span', { class: 'btn primary' }, play())));
         });
-        body.appendChild(h('h2', { class: 'gm-h' }, T('Arcade')));
-        body.appendChild(grid);
-        const more = OTHERS.filter((id) => PatOS.apps[id]);
-        if (more.length) {
-          body.appendChild(h('h2', { class: 'gm-h' }, T('More games')));
-          body.appendChild(h('div', { class: 'gm-more' }, ...more.map((id) => { const a = PatOS.apps[id]; const b = h('button', { class: 'gm-mini' }, h('div', { class: 'gm-mic', html: PatOS.iconHTML(a.icon || id) }), h('span', {}, T(a.name))); b.onclick = () => PatOS.launch(id); return b; })));
-        }
+        // every game
+        main.appendChild(ui.section('All Games'));
+        const grid = h('div', { class: 'gm-grid' });
+        GAMES.forEach((g) => grid.appendChild(card(h('div', { class: 'gm-art', html: g.art }), T(g.name), cardSub(g.id), () => start(g))));
+        OTHERS.filter(([app]) => PatOS.apps[app]).forEach(([app, id]) => { const a = PatOS.apps[app]; grid.appendChild(card(h('div', { class: 'gm-art', html: PatOS.iconHTML(a.icon || app) }), T(a.name), cardSub(id), () => { markSeen(app); PatOS.launch(app); }, NEW[app] && !seenNew().includes(app))); });
+        main.appendChild(grid);
       }
-      function start(g) {
-        if (game && game.destroy) game.destroy();
-        cur = g; isOver = false; body.innerHTML = ''; win.setTitle(T(g.name)); title.textContent = T(g.name); bNew.style.display = ''; bBack.style.display = '';
+      function card(art, name, sub, onClick, isNew) {
+        return h('button', { class: 'gm-card', onclick: onClick }, art, h('span', { class: 'gm-cn' }, name, isNew ? h('span', { class: 'gm-new' }, T('New')) : null), h('small', {}, sub));
+      }
+
+      /* ---------- Achievements ---------- */
+      function achievements() {
+        const got = gc.unlocked(); const n = Object.keys(got).length;
+        main.appendChild(header('Achievements', h('span', { class: 'gm-count' }, n + ' / ' + gc.ACH.length)));
+        main.appendChild(h('div', { class: 'gm-pbar' }, ui.progress(n / gc.ACH.length, 'Achievements')));
+        const groups = [['', T('General')]].concat(Object.keys(gc.GAMES).map((k) => [k, T(gc.GAMES[k].name)]));
+        groups.forEach(([k, name]) => {
+          const list = gc.ACH.filter((a) => a[1] === k); if (!list.length) return;
+          main.appendChild(ui.section(name));
+          main.appendChild(ui.group(list.map(([id, , nm, how]) => h('div', { class: 'gm-ach' + (got[id] ? ' got' : '') },
+            h('span', { class: 'gm-medal', html: PatOS.sym(got[id] ? 'trophy' : 'lock'), 'aria-hidden': 'true' }),
+            h('span', { class: 'gm-at' }, h('b', {}, T(nm)), h('small', {}, T(how))),
+            got[id] ? h('small', { class: 'gm-when' }, new Date(got[id]).toLocaleDateString(PatOS.locale, { month: 'short', day: 'numeric' })) : null))));
+        });
+      }
+
+      /* ---------- Leaderboards ---------- */
+      function leaderboards() {
+        main.appendChild(header('Leaderboards'));
+        const d = gc.daily(); const boardsList = BOARDS.concat([['2048-d' + d.id, 'Daily']]);
+        main.appendChild(h('div', { class: 'gm-bctl' }, ui.segmented(boardsList.map(([v, l]) => [v, T(l)]), board, (v) => { board = v; draw(); }), ui.segmented([['friends', T('Friends')], ['all', T('Everyone')]], who, (v) => { who = v; draw(); })));
+        const out = h('div', { class: 'gm-board' }); main.appendChild(out);
+        if (!gc.signedIn()) { out.appendChild(ui.empty({ icon: 'chart', title: 'Sign in to see leaderboards', text: 'Your friends are the people you talk to in Messages.', action: PatOS.accountUI ? ['Sign In', () => PatOS.accountUI.open()] : null })); return; }
+        out.appendChild(ui.progress(null, 'Loading'));
+        const want = board, w = who;
+        (w === 'friends' ? gc.friends(want) : gc.top(want, 50)).then((l) => {
+          if (want !== board || w !== who || !out.isConnected) return; out.innerHTML = '';
+          if (!l || !l.length) { out.appendChild(ui.empty({ icon: 'trophy', title: 'No scores yet', text: w === 'friends' ? 'Play, and your friends’ scores show up here.' : 'Be the first.' })); return; }
+          const m = gc.me();
+          out.appendChild(ui.group(l.map((x, i) => h('div', { class: 'gm-rank' + (m && x.uid === m.uid ? ' me' : '') }, h('span', { class: 'gm-rn' + (i < 3 ? ' top' + (i + 1) : '') }, String(i + 1)), ui.avatar(x.username), h('b', { translate: 'no' }, '@' + x.username), h('span', { class: 'gm-rs' }, fmtN(x.score))))));
+        }).catch(() => { if (!out.isConnected) return; out.innerHTML = ''; out.appendChild(ui.empty({ icon: 'chart', title: 'Leaderboards aren’t available right now', text: 'Check your connection and try again.', action: ['Try Again', draw] })); });
+      }
+
+      /* ---------- playing an arcade game ---------- */
+      function home0() { if (game && game.destroy) game.destroy(); game = null; cur = null; root.classList.remove('playing'); win.setTitle(T('Games')); title.textContent = ''; scoreEl.textContent = ''; bestEl.textContent = ''; bNew.style.display = 'none'; bBack.style.display = 'none'; body.innerHTML = ''; drawSide(); draw(); }
+      function start(g, opt) {
+        if (game && game.destroy) game.destroy(); opt = opt || {};
+        cur = g; isOver = false; body.innerHTML = ''; root.classList.add('playing');
+        const name = opt.daily ? T('Daily Challenge') + ' · ' + T(g.name) : T(g.name);
+        win.setTitle(name); title.textContent = name; bNew.style.display = ''; bBack.style.display = '';
         const stage = h('div', { class: 'gm-stage' }); body.appendChild(stage);
-        let sub = '';
+        let sub = '', last = 0, tile = 0;
         const api = {
-          score: (n, s) => { if (s !== undefined) sub = s; if (g.best === 'high') { scoreEl.textContent = T('Score') + ': ' + n; const b = bests()[g.id] || 0; if (n > b) setBest(g.id, n); } else scoreEl.textContent = ''; bestEl.textContent = bestText(g, sub || (g.id === 'memory' ? PatOS.store.get('gmMemSize', 4) : '')); },
-          time: (s, lvl) => { const k = g.id + ':' + lvl; const b = bests()[k]; if (!b || s < b) setBest(k, s); bestEl.textContent = bestText(g, lvl); },
-          moves: (m, size) => { const k = g.id + ':' + size; const b = bests()[k]; if (!b || m < b) setBest(k, m); bestEl.textContent = bestText(g, size); },
+          score: (n, s) => { last = n; if (s !== undefined) sub = s; if (g.best === 'high') { scoreEl.textContent = T('Score') + ': ' + fmtN(n); const b = bests()[g.id] || 0; if (n > b && !opt.daily) setBest(g.id, n); } else scoreEl.textContent = ''; bestEl.textContent = opt.daily ? (gc.daily().best ? T('Today') + ': ' + fmtN(Math.max(gc.daily().best, n)) : '') : bestText(g, sub || (g.id === 'memory' ? PatOS.store.get('gmMemSize', 4) : '')); },
+          time: (s, lvl) => { sub = lvl; const k = g.id + ':' + lvl; const b = bests()[k]; if (!b || s < b) setBest(k, s); bestEl.textContent = bestText(g, lvl); },
+          moves: (m, size) => { sub = size; const k = g.id + ':' + size; const b = bests()[k]; if (!b || m < b) setBest(k, m); bestEl.textContent = bestText(g, size); },
           win: () => { setBest(g.id, (bests()[g.id] || 0) + 1); bestEl.textContent = bestText(g); },
+          tile: (v) => { if (v > tile) tile = v; },
+          rng: opt.daily ? () => gc.daily().rand : null,
           isOver: () => isOver, visible,
-          over: (text, good) => { if (isOver) return; isOver = true; overlay(text, good); },
+          over: (text, good) => { if (isOver) return; isOver = true; gc.report(g.id, { score: last, win: !!good, level: sub, tile, daily: opt.daily }); overlay(text, good); },
           message: (text, btn) => overlay(text, true, btn, true)
         };
         function overlay(text, good, btnLabel, soft) {
           const o = h('div', { class: 'gm-over' + (good ? ' good' : '') }, h('div', { class: 'gm-ocard' }, h('b', {}, text),
-            h('div', { class: 'gm-row' }, soft ? h('button', { class: 'btn primary', onclick: () => o.remove() }, btnLabel || T('Continue')) : h('button', { class: 'btn primary', onclick: () => { o.remove(); restart(); } }, T('Play Again')), soft ? null : h('button', { class: 'btn', onclick: home }, T('All Games')))));
+            !soft && last && g.best === 'high' ? h('div', { class: 'gm-ofig' }, fmtN(last)) : null,
+            h('div', { class: 'gm-row' }, soft ? h('button', { class: 'btn primary', onclick: () => o.remove() }, btnLabel || T('Continue')) : h('button', { class: 'btn primary', onclick: () => { o.remove(); restart(); } }, T('Play Again')), soft ? null : h('button', { class: 'btn', onclick: home0 }, T('All Games')))));
           stage.appendChild(o); setTimeout(() => { const b = o.querySelector('.btn.primary'); if (b) b.focus(); }, 50);
         }
-        function restart() { stage.querySelectorAll('.gm-over').forEach((o) => o.remove()); isOver = false; game.restart(); body.focus(); }
+        function restart() { stage.querySelectorAll('.gm-over').forEach((o) => o.remove()); isOver = false; last = 0; tile = 0; game.restart(); body.focus(); }
         bNew.onclick = restart;
         game = g.play(stage, api); body.focus();
       }
       body.addEventListener('keydown', (e) => { if (game && game.key && !e.target.closest('select, input')) game.key(e); });
       body.addEventListener('keyup', (e) => { if (game && game.keyup && game.key) game.key(e); });
-      bBack.onclick = home;
+      bBack.onclick = home0;
       win.on('blur', () => { if (game && game.pause) game.pause(); });
-      win.on('closed', () => { if (game && game.destroy) game.destroy(); });
+      win.on('closed', () => { if (game && game.destroy) game.destroy(); PatOS.off && PatOS.off('gc', onGc); });
+      const onGc = () => { if (!cur) { drawSide(); if (page !== 'boards') draw(); } }; PatOS.on('gc', onGc);
+      win._games = { go, start: (id, o) => start(GAMES.find((g) => g.id === id), o), page: () => page, home: home0 };
       const pick = args && args.game && GAMES.find((g) => g.id === args.game);
-      if (pick) start(pick); else home();
-    }
+      if (pick) { drawSide(); start(pick, { daily: args.daily ? gc.daily().id : undefined }); } else home0();
+    },
+    onArgs(win, a) { if (!win._games || !a) return; if (a.page) { win._games.home(); win._games.go(a.page); } else if (a.game) win._games.start(a.game, { daily: a.daily ? PatOS.gc.daily().id : undefined }); }
   });
 })();
 
