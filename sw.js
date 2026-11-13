@@ -184,9 +184,29 @@ self.addEventListener('activate', (e) => { e.waitUntil((async () => {
   if (state && state.legacy && state.pending) (await self.clients.matchAll()).forEach((c) => c.postMessage({ patosUpdate: true })); // an older copy of PatOS: tell it a newer one is ready
 })()); });
 
+// Web Push (push-server.js): a new message while PatOS is in the background or closed. When PatOS is open and in front, it
+// shows the message itself, so nothing is shown here.
+self.addEventListener('push', (e) => {
+  let d = null; try { d = e.data ? e.data.json() : null; } catch (er) { d = null; }
+  if (!d || typeof d.title !== 'string') return;
+  e.waitUntil((async () => {
+    const cs = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    if (cs.some((c) => c.focused && c.visibilityState === 'visible')) return;
+    await self.registration.showNotification(String(d.title).slice(0, 80), { body: String(d.body || '').slice(0, 200), icon: 'assets/icon-192.png', badge: 'assets/icon-192.png', tag: String(d.tag || 'patos').slice(0, 120), renotify: true, timestamp: +d.at || Date.now(), data: { push: true, cid: String(d.cid || '') } });
+  })());
+});
 // buttons on PatOS's Chrome notifications (Stop, Snooze): tell the open PatOS, or open it
 self.addEventListener('notificationclick', (e) => {
   const n = e.notification; const d = n.data || {}; const action = e.action || 'open'; n.close();
+  if (d.push || d.chat) { // a message: open it in Messages
+    const cid = String(d.cid || d.chat || '');
+    e.waitUntil((async () => {
+      const cs = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+      if (cs.length) { const c = cs.find((x) => x.focused) || cs[0]; c.postMessage({ patosOpen: { app: 'messages', chat: cid } }); try { await c.focus(); } catch (er) {} }
+      else if (self.clients.openWindow) await self.clients.openWindow('./?app=messages&chat=' + encodeURIComponent(cid));
+    })());
+    return;
+  }
   e.waitUntil((async () => {
     const cs = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
     if (cs.length) { cs.forEach((c) => c.postMessage({ patosNotif: true, id: d.id, action })); if (action === 'open') { try { await cs[0].focus(); } catch (er) {} } }

@@ -1,0 +1,51 @@
+/* PatOS firmware screens (js/firmware.js): no system, reinstall, Recovery, the startup disk picker, the boot log, a kernel
+   panic, restart and shut down. They sit above everything, like a computer's own screens. */
+.fw-screen { position: fixed; inset: 0; z-index: 2147483000; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 32px; text-align: center;
+  background: #0b0b0f; color: #e8e8ee; font: 15px/1.5 -apple-system, "SF Pro Text", "Inter", system-ui, sans-serif; opacity: 0; transition: opacity .35s ease; }
+.fw-screen.in { opacity: 1; }
+.fw-screen h1 { margin: 0; font-size: 24px; font-weight: 650; letter-spacing: -.01em; max-width: 620px; }
+.fw-screen h2 { margin: 0 0 6px; font-size: 19px; }
+.fw-screen p { margin: 0; color: #a7a7b2; max-width: 520px; }
+.fw-screen small { color: #7c7c88; max-width: 480px; font-size: 12.5px; }
+.fw-ic { color: #c9c9d4; opacity: .9; animation: fwBlink 1.6s ease-in-out infinite; }
+@keyframes fwBlink { 50% { opacity: .35; } }
+.fw-btns { display: flex; gap: 10px; flex-wrap: wrap; justify-content: center; margin-top: 8px; }
+.fw-btn { border: 0; border-radius: 999px; padding: 10px 20px; font: 600 14px/1 inherit; background: #26262e; color: #fff; cursor: pointer; }
+.fw-btn:hover { background: #31313b; } .fw-btn.primary { background: #0a84ff; } .fw-btn.primary:hover { background: #2a94ff; }
+.fw-logo { width: 72px; height: 72px; border-radius: 20px; display: grid; place-items: center; font: 800 40px/1 inherit; color: #fff; background: linear-gradient(140deg, #7d5cff, #ff4fa0); box-shadow: 0 10px 40px rgba(125,92,255,.35); }
+.fw-logo.sm { width: 28px; height: 28px; border-radius: 8px; font-size: 16px; box-shadow: none; }
+.fw-bar { width: min(320px, 70vw); height: 6px; border-radius: 3px; background: #26262e; overflow: hidden; }
+.fw-fill { height: 100%; width: 0; background: #e8e8ee; border-radius: 3px; transition: width .8s ease; }
+/* Recovery */
+.fw-recovery { justify-content: flex-start; padding: 0; gap: 0; }
+.fw-rhead { width: 100%; display: flex; align-items: center; gap: 10px; padding: 14px 20px; border-bottom: 1px solid #1e1e26; font-size: 15px; }
+.fw-rbody { flex: 1; width: min(560px, 100%); overflow-y: auto; display: flex; flex-direction: column; gap: 10px; padding: 28px 20px; text-align: left; }
+.fw-ropt { display: flex; align-items: center; gap: 14px; width: 100%; padding: 14px 16px; border: 0; border-radius: 16px; background: #17171d; color: inherit; text-align: left; font: inherit; cursor: pointer; }
+.fw-ropt:hover { background: #1f1f27; } .fw-ropt b { display: block; font-size: 15px; } .fw-ropt small { display: block; margin-top: 2px; }
+.fw-ropt.small { padding: 10px 14px; }
+.fw-ric { flex: none; width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; background: #26262e; font: 700 17px/1 ui-monospace, monospace; color: #9fc6ff; }
+.fw-log { margin: 0; padding: 14px; min-height: 140px; max-height: 50vh; overflow: auto; border-radius: 12px; background: #050507; color: #c8e6c9; font: 12.5px/1.55 ui-monospace, "SF Mono", Menlo, monospace; white-space: pre-wrap; }
+.fw-tin { padding: 10px 12px; border-radius: 10px; border: 1px solid #2a2a33; background: #050507; color: #fff; font: 13px ui-monospace, Menlo, monospace; outline: none; }
+.fw-rbody .fw-btn { align-self: flex-start; margin-top: 6px; }
+/* startup disk picker */
+.fw-disks { display: flex; gap: 40px; }
+.fw-disk { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 16px 20px; border: 0; border-radius: 18px; background: transparent; color: inherit; font: 600 14px/1 inherit; cursor: pointer; }
+.fw-disk .fw-ic { animation: none; } .fw-disk:hover, .fw-disk:focus-visible, .fw-disk.on { background: #1d1d25; outline: none; }
+/* the boot log */
+.fw-verbose { align-items: stretch; justify-content: flex-end; text-align: left; background: #000; padding: 16px; }
+.fw-verbose pre { margin: 0; color: #e6e6e6; font: 12px/1.45 ui-monospace, Menlo, monospace; white-space: pre-wrap; overflow: hidden; }
+/* kernel panic */
+.fw-panic { background: #101014; align-items: flex-start; text-align: left; justify-content: center; padding: 40px max(24px, 8vw); }
+.fw-panic pre { margin: 0; color: #c5c5cf; font: 12px/1.5 ui-monospace, Menlo, monospace; white-space: pre-wrap; }
+/* restart / shut down */
+.fw-power { background: rgba(0,0,0,.72); transition: background .7s ease, opacity .5s ease; }
+.fw-power.black { background: #000; } .fw-power.black > * { opacity: 0; transition: opacity .3s; }
+.fw-spin { width: 34px; height: 34px; border-radius: 50%; border: 3px solid rgba(255,255,255,.18); border-top-color: #fff; animation: fwSpin .9s linear infinite; }
+@keyframes fwSpin { to { transform: rotate(360deg); } }
+/* frozen: nothing moves or answers */
+.fw-freeze { position: fixed; inset: 0; z-index: 2147482999; cursor: wait; outline: none; }
+html.fw-frozen *, html.fw-frozen *::before, html.fw-frozen *::after { animation-play-state: paused !important; transition: none !important; }
+/* Safe Boot: no widgets, and it says so in the menu bar */
+html.safe-boot #desk-widgets { display: none !important; }
+html.safe-boot #menubar::after { content: "Safe Boot"; position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); font-weight: 700; font-size: 12.5px; color: #ff453a; pointer-events: none; }
+@media (prefers-reduced-motion: reduce) { .fw-ic, .fw-spin { animation: none; } .fw-screen { transition: none; } }

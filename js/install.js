@@ -43,8 +43,14 @@
     if (!app || !/^[\w-]{1,32}$/.test(app)) return;
     // the page address and Chrome's launch notice can both report the same launch
     if (url.href === lastURL && Date.now() - lastAt < 5000) return; lastURL = url.href; lastAt = Date.now();
-    whenReady(() => { if (PatOS.apps[app]) PatOS.launch(app); });
+    const chat = url.searchParams.get('chat'); const args = app === 'messages' && chat && /^[\w-]{1,200}$/.test(chat) ? { chat } : undefined; // (from a message notification)
+    whenReady(() => { if (PatOS.apps[app]) PatOS.launch(app, args); });
   }
+  // a message notification clicked while PatOS is open (sw.js)
+  if (navigator.serviceWorker) navigator.serviceWorker.addEventListener('message', (e) => {
+    const o = e.data && e.data.patosOpen; if (!o || o.app !== 'messages') return;
+    whenReady(() => { if (PatOS.apps.messages) PatOS.launch('messages', o.chat && /^[\w-]{1,200}$/.test(o.chat) ? { chat: o.chat } : undefined); });
+  });
   async function openHandles(handles) {
     if (!handles || !handles.length) return;
     if (!PatOS.device || !PatOS.device.importHandles) return;

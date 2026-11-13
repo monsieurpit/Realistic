@@ -46,7 +46,7 @@
     offMsg = F.listenMessages(cid, (l) => { msgs = l; emit('chat:messages'); api.markRead(cid); }, (e) => { if (offMsg) { offMsg(); offMsg = null; } lastError = String(e.message || e); emit(); });
   }
   function notify(c, body) {
-    try { PatOS.notify({ title: PatOS.account.isSystem(c.other.uid) ? 'PatOS' : c.other.username, body: String(body).slice(0, 120), icon: 'messages', onClick: () => PatOS.launch('messages', { chat: c.id }) }); if (PatOS.sound && PatOS.sound.pop) PatOS.sound.pop(); } catch (e) {}
+    try { PatOS.notify({ title: PatOS.account.isSystem(c.other.uid) ? 'PatOS' : c.other.username, body: String(body).slice(0, 120), icon: 'messages', tag: 'msg-' + c.id, chat: c.id, onClick: () => PatOS.launch('messages', { chat: c.id }) }); if (PatOS.sound && PatOS.sound.pop) PatOS.sound.pop(); } catch (e) {}
   }
 
   async function start() {
@@ -54,9 +54,9 @@
     try { F = await PatOS.account.cloud(); me = PatOS.account.info(); if (!me) return; } catch (e) { return; }
     loaded = false; prev.clear();
     offConv = F.listenConversations(me.uid, onConvs, (e) => { lastError = String(e.message || e); emit(); });
-    flush();
+    flush(); push.sync();
   }
-  function stop() { if (offConv) offConv(); if (offMsg) offMsg(); offConv = offMsg = null; convs = []; msgs = []; current = null; loaded = false; me = null; emit(); }
+  function stop() { push.drop(); if (offConv) offConv(); if (offMsg) offMsg(); offConv = offMsg = null; convs = []; msgs = []; current = null; loaded = false; me = null; emit(); }
 
   /* ---------- sending (through an outbox, so nothing is lost offline) ---------- */
   const withTimeout = (p, t) => Promise.race([p, new Promise((_, rej) => setTimeout(() => rej(Object.assign(new Error('timeout'), { code: 'offline' })), t || 20000))]);
@@ -67,7 +67,7 @@
       for (const it of outbox()) {
         try {
           if (it.kind === 'request') { await withTimeout(F.requestChat(me, it.other, it.text, it.id, PatOS.account.isSystem())); }
-          else { await withTimeout(F.sendMessage(it.cid, me, it.text, it.id, it.img)); if (PatOS.sound && PatOS.sound.play) PatOS.sound.play('sent'); }
+          else { await withTimeout(F.sendMessage(it.cid, me, it.text, it.id, it.img)); if (PatOS.sound && PatOS.sound.play) PatOS.sound.play('sent'); push.message(it.cid); }
         } catch (e) {
           if (e && e.code === 'offline') break; // try again later
           let there = false; if (it.kind !== 'request') { try { there = await F.messageExists(it.cid, it.id); } catch (x) {} } // it may have gone through already
@@ -77,6 +77,43 @@
       }
     } finally { flushing = false; }
   }
+
+  /* ---------- Web Push (push-server.js): new messages reach this device even when PatOS is in the background or closed ----------
+     Needs the Notifications permission, and on iPhone and iPad, PatOS added to the Home Screen (iOS 16.4 or later). */
+  const push = {
+    supported: () => /^https?:$/.test(location.protocol) && 'serviceWorker' in navigator && 'PushManager' in window && !!window.Notification,
+    wanted: () => PatOS.settings.systemNotifications !== false && window.Notification && Notification.permission === 'granted' && !(PatOS.settings.mutedApps || []).includes('messages') && ((PatOS.settings.notifRules || {}).messages || {}).allow !== false,
+    tok: null, tokAt: 0,
+    async token() { if (push.tok && Date.now() - push.tokAt < 30 * 60000) return push.tok; const F2 = await PatOS.loadFirebase(); push.tok = await F2.idToken(me.username, null); push.tokAt = Date.now(); return push.tok; },
+    async post(path, body) { const r = await fetch('/api/push/' + path, { method: 'POST', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (await push.token()) }, body: JSON.stringify(body) }); if (!r.ok) throw new Error('push ' + r.status); return r.json(); },
+    async reg() { const r = await Promise.race([navigator.serviceWorker.ready, new Promise((ok) => setTimeout(() => ok(null), 8000))]); return r && r.pushManager ? r : null; },
+    /* this device: subscribed when notifications are wanted, unsubscribed when not */
+    async sync() {
+      if (!push.supported() || !me) return;
+      try {
+        const reg = await push.reg(); if (!reg) return; let sub = await reg.pushManager.getSubscription();
+        if (!push.wanted()) { if (sub) { try { await push.post('unsubscribe', { endpoint: sub.endpoint }); } catch (e) {} await sub.unsubscribe(); } return; }
+        const key = (await (await fetch('/api/push/key')).json()).key; const raw = Uint8Array.from(atob(key.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((key.length + 3) % 4)), (c) => c.charCodeAt(0));
+        const cur = sub && sub.options && sub.options.applicationServerKey; if (sub && cur && new Uint8Array(cur).join() !== raw.join()) { await sub.unsubscribe(); sub = null; } // the server's key changed
+        if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: raw });
+        await push.post('subscribe', sub.toJSON()); push.on = true;
+      } catch (e) { push.error = String(e.message || e); }
+    },
+    /* signed out: this device stops getting this account's messages */
+    async drop() { push.tok = null; push.on = false; if (!push.supported()) return; try { const reg = await push.reg(); const sub = reg && await reg.pushManager.getSubscription(); if (sub) await sub.unsubscribe(); } catch (e) {} },
+    /* after sending: the server tells the other person's devices */
+    message(cid) { if (push.supported() && me) push.post('message', { cid }).catch(() => {}); },
+    on: false, error: ''
+  };
+  /* asks for the Notifications permission (needs a click), then turns pushes on */
+  async function enableNotifications() {
+    if (!window.Notification) return 'unsupported';
+    let p = Notification.permission; if (p === 'default') { try { p = await Notification.requestPermission(); } catch (e) { p = Notification.permission; } }
+    if (p === 'granted') { if (PatOS.settings.systemNotifications === false) PatOS.setSetting('systemNotifications', true); await push.sync(); }
+    return p;
+  }
+  PatOS.on('setting', (s) => { if (s && s.key === 'systemNotifications' && s.value !== false && window.Notification && Notification.permission === 'default') { try { Notification.requestPermission().then(() => push.sync()).catch(() => {}); } catch (e) {} } }); // (turned on in Settings: ask now, inside the click)
+  PatOS.on('setting', (s) => { if (me && s && /^(systemNotifications|mutedApps|notifRules)$/.test(s.key)) { clearTimeout(push.t); push.t = setTimeout(push.sync, 500); } });
 
   const api = {
     available: () => !!(PatOS.account && PatOS.account.signedIn()),
@@ -146,7 +183,19 @@
     /* a verified badge for an account (or removed) */
     async verify(other, on) { if (!F) await start(); if (!PatOS.account.isSystem()) throw new Error(T('Only the PatOS account can do this.')); await F.verify(me, other.uid, on); const l = PatOS.store.get('verifiedUids', []).filter((x) => x !== other.uid); if (on) l.push(other.uid); PatOS.store.set('verifiedUids', l); emit(); },
     async unban(other) { if (!F) await start(); if (!PatOS.account.isSystem()) throw new Error(T('Only the PatOS account can do this.')); await F.unban(other.uid); emit(); },
-    retry: flush
+    retry: flush,
+    /* notifications on this device: 'on', 'off' (allowed but turned off), 'ask', 'denied', 'homescreen' (iPhone: add to Home Screen first), 'unsupported' */
+    notifState() {
+      const ios = /iP(hone|ad|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+      const standalone = (window.matchMedia && matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+      if (!window.Notification) return ios && !standalone ? 'homescreen' : 'unsupported';
+      if (Notification.permission === 'denied') return 'denied';
+      if (Notification.permission === 'default') return 'ask';
+      return push.wanted() ? 'on' : 'off';
+    },
+    enableNotifications,
+    pushOn: () => push.on,
+    _push: push
   };
   PatOS.chat = api;
 

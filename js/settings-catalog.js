@@ -55,7 +55,7 @@
     { key: 'timeline', type: 'bool', pane: 'privacy', label: 'Timeline', words: 'timeline activity history memory historique activite' },
     { key: 'handoff', type: 'bool', pane: 'sync', label: 'Handoff', words: 'handoff continuity continue on other devices continuite' },
     { key: 'reopenWindows', type: 'bool', pane: 'general', label: 'Reopen windows', words: 'reopen windows restore windows rouvrir les fenetres' },
-    { key: 'systemNotifications', type: 'bool', pane: 'notifications', label: 'Notifications in other tabs', words: 'browser notifications system notifications notifications du navigateur' }
+    { key: 'systemNotifications', type: 'bool', pane: 'notifications', label: 'Device notifications', words: 'browser notifications system notifications notifications du navigateur' }
   ];
   PatOS.settingsCatalog = CATALOG;
 })();

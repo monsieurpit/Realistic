@@ -87,7 +87,7 @@
           const muted = (S().mutedApps || []).filter((k) => PatOS.apps[k]);
           out.append(group(row(T('Do Not Disturb'), dnd, T('No banners or sounds.')),
             row(T('Notification sounds'), toggle('notifSound'), T('A short sound with each banner.')),
-            row(T('Notifications in other tabs'), toggle('systemNotifications'), T('When PatOS is in a background tab, the browser shows the notification (if allowed).'))),
+            row(T('Device notifications'), toggle('systemNotifications'), T('When PatOS isn’t in front, your device shows them.'))),
             h('h3', {}, T('Quiet hours')), (() => {
               const tIn = (key, def) => { const i = h('input', { class: 'field', type: 'time', value: S()[key] || def, 'data-key': key, 'aria-label': T(key === 'quietFrom' ? 'From' : 'To'), style: { width: '110px' } }); i.onchange = () => PatOS.setSetting(key, i.value || def); return i; };
               return group(row(T('Quiet hours'), toggle('quietOn', renderMain), T('No banners or sounds, except urgent ones.')), S().quietOn ? row(T('From'), tIn('quietFrom', '22:00')) : null, S().quietOn ? row(T('To'), tIn('quietTo', '07:00')) : null,
@@ -684,7 +684,7 @@
             }
             box.append(group(...g));
             const sys = h('button', { class: 'switch' + (S().systemNotifications !== false ? ' on' : '') }); sys.onclick = () => { PatOS.setSetting('systemNotifications', S().systemNotifications === false); sys.classList.toggle('on'); };
-            box.append(group(row(T('Show PatOS notifications when this tab is in the background'), sys, T('Needs the Notifications permission above.'))));
+            box.append(group(row(T('Device notifications when PatOS isn’t in front'), sys, T('Needs the Notifications permission above.'))));
             const pers = h('span', { class: 'st-val' }, '…'); PatOS.storageInfo().then((i) => { pers.textContent = i.persisted ? T('Protected from clean-up') : T('Browser may clear it when space is low'); });
             box.append(group(row(T('Your saved data'), pers), row(T('Install as an app'), h('button', { class: 'btn', onclick: () => { pane = 'startup'; renderMain(); drawSide(); } }, T('Open Install & Start Up')))));
           };

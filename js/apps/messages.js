@@ -36,8 +36,19 @@
         if (!signedIn()) return;
         const search = h('input', { class: 'field m2-search', placeholder: T('Find a person'), spellcheck: 'false', autocapitalize: 'none', autocomplete: 'off', 'aria-label': T('Find a person by username') }); search.value = val;
         search.addEventListener('input', () => { query = search.value.trim(); clearTimeout(searchTimer); if (!query) { results = null; drawSide(); return; } searchTimer = setTimeout(async () => { const q = query; try { const r = await C.search(q); if (q === query) { results = r; drawList(); } } catch (e) { results = []; drawList(); } }, 250); });
-        side.appendChild(h('div', { class: 'm2-sh' }, search)); listEl = h('div', { class: 'm2-list' }); side.appendChild(listEl); drawList();
+        side.appendChild(h('div', { class: 'm2-sh' }, search)); const nb = notifBar(); if (nb) side.appendChild(nb); listEl = h('div', { class: 'm2-list' }); side.appendChild(listEl); drawList();
         if (had) { search.focus(); search.setSelectionRange(val.length, val.length); }
+      }
+      /* notifications on this device, so new messages arrive when PatOS isn't in front */
+      function notifBar() {
+        const st = C.notifState ? C.notifState() : 'on'; const hide = PatOS.store.get('msgNotifHide', '');
+        if (st === 'on' || st === 'unsupported' || hide === st) return null;
+        const close = h('button', { class: 'm2-nb-x', 'aria-label': T('Close'), onclick: () => { PatOS.store.set('msgNotifHide', st); drawSide(); } }, '×');
+        const text = { ask: T('Get notified of new messages.'), off: T('Message notifications are off.'), denied: T('Notifications are blocked in your browser’s settings.'), homescreen: T('To get notifications, add PatOS to your Home Screen.') }[st];
+        const btn = st === 'ask' || st === 'off' ? h('button', { class: 'btn small primary', onclick: async () => {
+          if (st === 'off') { PatOS.setSetting('mutedApps', (PatOS.settings.mutedApps || []).filter((x) => x !== 'messages')); const r = Object.assign({}, PatOS.settings.notifRules || {}); if (r.messages) { r.messages = Object.assign({}, r.messages, { allow: true }); PatOS.setSetting('notifRules', r); } }
+          await C.enableNotifications(); drawSide(); } }, T('Turn On')) : null;
+        return h('div', { class: 'm2-nb', role: 'status' }, h('span', { class: 'm2-nb-t' }, text), btn, close);
       }
       function drawList() {
         if (!listEl) return; listEl.innerHTML = '';

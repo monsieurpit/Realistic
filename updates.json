@@ -1,5 +1,23 @@
 [
   {
+    "version": "4.0.2",
+    "date": "2026-11-13",
+    "title": {
+      "en": "PatOS 4.0.2",
+      "fr": "PatOS 4.0.2"
+    },
+    "notes": {
+      "en": [
+        "New messages show as a notification on your device when PatOS isn’t in front, or is closed: Chromebook, Windows, Mac, Android, and iPhone or iPad with PatOS on the Home Screen",
+        "Clicking the notification opens the conversation"
+      ],
+      "fr": [
+        "Les nouveaux messages s’affichent en notification sur ton appareil quand PatOS n’est pas au premier plan, ou est fermé : Chromebook, Windows, Mac, Android, et iPhone ou iPad avec PatOS sur l’écran d’accueil",
+        "Cliquer la notification ouvre la conversation"
+      ]
+    }
+  },
+  {
     "version": "4.0.1",
     "date": "2026-11-13",
     "title": {

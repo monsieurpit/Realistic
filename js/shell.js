@@ -95,13 +95,23 @@
      PatOS.notify keeps its old shape (title, body, icon, onClick, duration) and gains priority, actions, open, key and at
      (js/services.js records it, applies the app's rules, quiet hours and Focus, and keeps the history). */
   PatOS.notifications = { list: () => PatOS.nc.list().map((n) => ({ title: n.title, icon: n.app, time: new Date(n.time) })), clear: () => PatOS.nc.clear() };
+  /* the device's own notification (ChromeOS, Windows, macOS, Android, iPhone with PatOS on the Home Screen), when PatOS isn't the
+     window in front. Through the service worker where there is one (Android and iPhone accept nothing else). A message uses the
+     same tag as its push (push-server.js), so the two never show twice. */
+  PatOS.systemNotify = async function (n, id) {
+    if (PatOS.settings.systemNotifications === false || !window.Notification || Notification.permission !== 'granted') return false;
+    const opts = { body: String(n.body || '').slice(0, 200), icon: 'assets/icon-192.png', badge: 'assets/icon-192.png', tag: n.tag || ('n-' + id), data: n.chat ? { chat: n.chat } : { id, nc: true } };
+    try { const reg = navigator.serviceWorker && await navigator.serviceWorker.getRegistration(); if (reg && reg.showNotification) { await reg.showNotification(n.title, opts); return true; } } catch (e) {}
+    try { const sn = new Notification(n.title, opts); sn.onclick = () => { window.focus(); sn.close(); if (n.chat) PatOS.launch('messages', { chat: n.chat }); else PatOS.nc.open(id); }; return true; } catch (e) { return false; }
+  };
+  if (navigator.serviceWorker) navigator.serviceWorker.addEventListener('message', (e) => { const d = e.data; if (d && d.patosNotif && d.action === 'open' && PatOS.nc.list().some((x) => x.id === d.id)) { try { PatOS.nc.open(d.id); } catch (er) {} } }); // (clicked on the device's notification)
   PatOS.notify = function (n) {
     n = Object.assign({ title: 'PatOS', body: '', icon: 'about' }, n);
     const r = PatOS.nc._add(n);
     if (r.scheduled || r.dropped) return r.scheduled || null;
     // screen readers: announce it; other tabs: show a real browser notification
     try { let lr = document.getElementById('sr-live'); if (!lr) { lr = document.createElement('div'); lr.id = 'sr-live'; lr.setAttribute('aria-live', 'polite'); lr.setAttribute('role', 'status'); lr.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)'; document.body.appendChild(lr); } lr.textContent = n.title + '. ' + (n.body || ''); } catch (e) {}
-    if (document.hidden && r.banner && PatOS.settings.systemNotifications !== false && window.Notification && Notification.permission === 'granted') { try { const sn = new Notification(n.title, { body: n.body, icon: 'assets/icon-180.png' }); sn.onclick = () => { window.focus(); PatOS.nc.open(r.id); }; } catch (e) {} }
+    if ((document.hidden || !document.hasFocus()) && r.banner) PatOS.systemNotify(n, r.id);
     if (r.sound && PatOS.settings.notifSound !== false) PatOS.sound.notify(r.rec.priority, n.icon);
     if (!r.banner) return r.id;
     // (3.3) messages and important notifications show in the PatOS Pill instead of a banner (they still go to Notification Center)
