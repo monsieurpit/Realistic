@@ -895,6 +895,11 @@
     const ext = PatOS.fs.ext(path);
     const byExt = { pdoc: 'docs', psheet: 'sheets', csv: 'sheets', pslides: 'slides', pform: 'forms', pdf: 'preview' };
     if (byExt[ext]) return PatOS.launch(byExt[ext], { path });
+    // (4.0) a gallery, a desktop configuration, a widget, a profile
+    if (ext === 'patgallery' && PatOS.apps.gallery) return PatOS.launch('gallery', { importPath: path });
+    if (ext === 'patdesk' && PatOS.apps.deskstudio && PatOS.desk) { try { const r = PatOS.desk.importText(PatOS.fs.read(path)); return PatOS.launch('deskstudio', { config: r.config }); } catch (e) { return PatOS.alertBox(PatOS.t('That didn’t work'), e.message, { icon: 'deskstudio' }); } }
+    if (ext === 'patwidget' && PatOS.widgets) { try { return PatOS.widgets.install(JSON.parse(PatOS.fs.read(path))).catch((e) => PatOS.alertBox(PatOS.t('That didn’t work'), e.message, { icon: 'settings' })); } catch (e) { return PatOS.alertBox(PatOS.t('That didn’t work'), PatOS.t('This isn’t a PatOS widget.'), { icon: 'settings' }); } }
+    if (ext === 'patprofile' && PatOS.profiles) { try { PatOS.profiles.importProfile(PatOS.fs.read(path)); return PatOS.launch('settings', { pane: 'profiles' }); } catch (e) { return PatOS.alertBox(PatOS.t('That didn’t work'), e.message, { icon: 'settings' }); } }
     if (/^(mp4|webm|mov|m4v|ogv)$/.test(ext) && PatOS.apps.videos) return PatOS.launch('videos', { path });
     if (/^(docx|xlsx|pptx)$/.test(ext) && PatOS.openOffice) return PatOS.openOffice(path);
     if (ext === 'zip' && PatOS.openZip) return PatOS.openZip(path);
