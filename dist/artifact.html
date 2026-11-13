@@ -4945,7 +4945,7 @@ html:not(.reduce-motion) .dlg { animation: dlgIn var(--spring-dur-short) var(--s
 /* full screen apps: only flashes and an open card show */
 body.patos-fs #pill-wrap:not(.flashing) #pill:not(.expanded), body.patos-fs #pill-wrap:not(.flashing) #pill-side { opacity: 0; pointer-events: none; }
 html.pill-on #mb-live { display: none !important; }
-.mobile #pill-wrap { top: calc(var(--mtop, 0px) - 8px + 2px); }
+.mobile #pill-wrap { top: max(4px, calc(var(--mtop, 0px) - 6px)); } .mobile #pill { height: 26px; }
 @media (prefers-reduced-motion: reduce) { #pill, .pl-c, #pill-side { transition-duration: .01s !important; } .pl-digits i.roll { animation: none; } }
 html.reduce-motion #pill, html.reduce-motion .pl-c { transition-duration: .01s !important; }
 
