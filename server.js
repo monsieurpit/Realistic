@@ -20,7 +20,8 @@ const TYPES = {
   '.json': 'application/json', '.webmanifest': 'application/manifest+json', '.svg': 'image/svg+xml',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8', '.md': 'text/plain; charset=utf-8', '.patapp': 'application/json'
 };
-const versions = updateManager.create({ root: ROOT }); // which files each version of PatOS is made of (see update-manager.js)
+const versions = updateManager.create({ root: ROOT });
+const updLog = []; // (see /api/updates/log) // which files each version of PatOS is made of (see update-manager.js)
 versions.problems().forEach((p) => console.error('PatOS update setup: ' + p));
 
 const server = http.createServer((req, res) => {
@@ -51,6 +52,16 @@ const server = http.createServer((req, res) => {
     const vfile = versions.fileOf(r, rel);
     if (!vfile) { res.writeHead(404, { 'Content-Type': 'text/plain' }); return res.end('Not found'); }
     return sendFile(req, res, vfile, TYPES[path.extname(vfile).toLowerCase()] || 'application/octet-stream').then((ok) => { if (!ok) { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('Not found'); } }).catch(() => { res.writeHead(500); res.end(); });
+  }
+  // the update log: what devices' service workers did while updating (anonymous: a random device number and version names only).
+  // Kept in memory (the last 600 steps), to find out why a device doesn't move to a version. GET reads it, POST adds a step.
+  if (p === '/api/updates/log') {
+    if (req.method === 'POST') {
+      let body = ''; req.on('data', (c) => { body += c; if (body.length > 4000) req.destroy(); });
+      return req.on('end', () => { try { const e = JSON.parse(body); if (e && typeof e.dev === 'string' && typeof e.ev === 'string') { updLog.push({ t: Date.now(), dev: e.dev.slice(0, 12), ev: e.ev.slice(0, 40), d: JSON.stringify(e.d || {}).slice(0, 900) }); if (updLog.length > 600) updLog.splice(0, updLog.length - 600); } } catch (er) {} res.writeHead(204, { 'Cache-Control': 'no-store' }); res.end(); });
+    }
+    const dev = new URL(req.url, 'http://x').searchParams.get('dev');
+    return sendJSON(req, res, 200, dev ? updLog.filter((x) => x.dev === dev) : updLog.slice(-200));
   }
   if (p === '/api/ping') { res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }); return res.end('{"patos":true}'); }
   // the plain address shows the newest finished version (or the beta, when the server is started with PATOS_ROOT=beta)

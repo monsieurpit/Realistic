@@ -31,6 +31,17 @@ let queue = Promise.resolve();
 function update(fn) { const run = queue.then(async () => { const next = fn(state); if (next) await saveState(next); return state; }); queue = run.catch(() => {}); return run; }
 let lastBetaCheck = 0;
 
+/* the update log (server: /api/updates/log): each step of an update, sent with a random number for this device and nothing
+   else (no account, no files), so a device that doesn't move to a new version can be understood. Never blocks anything. */
+let dev = null;
+async function devId() {
+  if (dev) return dev;
+  try { const c = await caches.open(STATE_CACHE); const r = await c.match('/__patos/dev'); dev = r ? await r.text() : ''; if (!dev) { dev = Math.random().toString(36).slice(2, 10); await c.put('/__patos/dev', new Response(dev)); } } catch (e) { dev = 'x'; }
+  return dev;
+}
+const snap = () => (state ? { ch: state.channel, inst: state.installed, prev: state.previous, pend: state.pending || null, old: !!state.useOld, starts: state.starts || 0, legacy: !!state.legacy } : null);
+function log(ev, d) { devId().then((id) => fetch('/api/updates/log', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ dev: id, ev, d: Object.assign({ st: snap() }, d || {}) }), keepalive: true })).catch(() => {}); }
+
 /* ---------- saving a whole version on the device ---------- */
 async function sha256(buf) { return Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', buf))).map((b) => b.toString(16).padStart(2, '0')).join(''); }
 async function fetchManifest(name) {
@@ -64,6 +75,7 @@ function download(m) {
 }
 async function doDownload(m) {
   if (await isComplete(m.id)) return;
+  log('download', { id: m.id, files: m.files.length });
   await caches.delete(cacheName(m.id));
   const c = await caches.open(cacheName(m.id));
   try {
@@ -74,7 +86,8 @@ async function doDownload(m) {
     const index = await c.match('/index.html'); if (!index) throw new Error('index.html is missing.');
     await c.put('/', index.clone()); // the page is asked for as "/" too
     await c.put(DONE, new Response('1'));
-  } catch (e) { await caches.delete(cacheName(m.id)); throw e; }
+    log('downloaded', { id: m.id });
+  } catch (e) { log('download failed', { id: m.id, err: String((e && e.message) || e) }); await caches.delete(cacheName(m.id)); throw e; }
 }
 
 /* ---------- which version runs ---------- */
@@ -126,14 +139,14 @@ async function cleanup() {
 }
 /* switch to a downloaded version; the one that was running stays as "previous" */
 async function promote(m) {
-  const id = m.id;
+  const id = m.id; log('promote', { id });
   await update((s) => Object.assign({}, s, { previous: s.installed && s.installed !== id ? s.installed : s.previous, installed: id, ver: verOf(m), pendingVer: null, pending: null, pendingMigrate: false, useOld: false, since: Date.now(), starts: 0, legacy: false }));
   await cleanup();
 }
 // at the start of PatOS: a beta that was downloaded earlier (Beta updates on), or an old copy's move, is used now
 async function promoteAtStart() {
   const id = state && state.pending; if (!id || !(state.channel === 'beta' || state.pendingMigrate)) return;
-  const ok = await isComplete(id);
+  const ok = await isComplete(id); log('promote at start', { id, ok });
   await update((s) => {
     if (s.pending !== id) return null; // changed meanwhile
     if (!ok) return Object.assign({}, s, { pending: null, pendingMigrate: false });
@@ -144,8 +157,9 @@ async function promoteAtStart() {
 // Beta updates on: download the newest beta quietly (it is used the next time PatOS starts)
 async function checkBeta() {
   await stateReady; if (!state || state.channel !== 'beta') return;
-  let m; try { m = await fetchBetaOrFinished(); } catch (e) { return; }
+  let m; try { m = await fetchBetaOrFinished(); } catch (e) { log('beta check failed', { err: String((e && e.message) || e) }); return; }
   if (m.id === state.installed || m.id === state.pending) return;
+  log('new beta', { id: m.id });
   // never go down: only a newer beta, a rebuilt copy of the same beta, or the finished version the beta led to
   const same = m.channel === 'beta' && state.ver && state.ver.version === m.version && (state.ver.beta || 0) === (m.beta || 0);
   if (state.ver && !newerVer(m, state.ver) && !same) return;
@@ -161,7 +175,7 @@ async function setChannel(ch) {
 const runningId = () => (state.useOld && state.previous ? state.previous : state.installed);
 const status = () => ({ ok: true, running: cacheName(runningId()), newest: cacheName(state.installed), current: cacheName(state.installed), previous: state.previous ? cacheName(state.previous) : null, useOld: !!state.useOld, since: state.since, channel: state.channel, installed: state.installed, pending: state.pending || null, ver: state.ver || null, legacy: !!state.legacy });
 
-self.addEventListener('install', (e) => { e.waitUntil((async () => { try { await prepare(); } catch (er) { /* the page still works from the network; this is tried again on the next start */ } await self.skipWaiting(); })()); });
+self.addEventListener('install', (e) => { log('worker installed', { ua: (/(Chrome|Edg|Firefox|Version)\/(\d+)/.exec(self.navigator.userAgent) || [])[0] || '' }); e.waitUntil((async () => { try { await prepare(); } catch (er) { /* the page still works from the network; this is tried again on the next start */ } await self.skipWaiting(); })()); });
 self.addEventListener('activate', (e) => { e.waitUntil((async () => {
   await stateReady; try { await prepare(); } catch (er) {}
   await cleanup(); await self.clients.claim();
@@ -188,9 +202,10 @@ self.addEventListener('message', (e) => {
     try {
       await stateReady; if (!(await hasVersion(state))) await prepare().catch(() => {});
       if (!state) return reply({ ok: false, reason: 'none' });
-      if (d.patosHello) { await setChannel(d.patosHello.betaOn ? 'beta' : 'stable'); await checkBeta().catch(() => {}); }
+      if (d.patosHello) { log('hello', { betaOn: !!d.patosHello.betaOn }); await setChannel(d.patosHello.betaOn ? 'beta' : 'stable'); await checkBeta().catch(() => {}); }
       if (d.patosCheck) { await checkBeta().catch(() => {}); if (state.legacy && !state.pending) await prepare().catch(() => {}); }
       if (d.patosInstall) {
+        log('install asked', { want: d.patosInstall });
         const want = d.patosInstall.beta ? 'beta' : String(d.patosInstall.id || '');
         if (want !== 'beta' && !STABLE_ID.test(want)) return reply({ ok: false, error: 'That is not a version.' });
         let m; try { m = await fetchManifest(want); await download(m); } catch (er) { return reply({ ok: false, error: String((er && er.message) || er) }); }
@@ -201,7 +216,8 @@ self.addEventListener('message', (e) => {
         // Going back by itself (PatOS's start-up safety, js/preload.js) only once the new version really failed: it counts failed
         // starts, and a count left from before the update (a panic screen, Recovery, a deleted /System: screens that never reach
         // the lock screen) must not throw away the version that was just installed. Twice started since it was installed, at least.
-        if ((state.starts || 0) < 2 && Date.now() - (state.since || 0) < 10 * 60000) return reply({ ok: false, reason: 'just installed' });
+        if ((state.starts || 0) < 2 && Date.now() - (state.since || 0) < 10 * 60000) { log('go back refused', {}); return reply({ ok: false, reason: 'just installed' }); }
+        log('go back', {});
         await update((s) => Object.assign({}, s, { useOld: true }));
       }
       if (d.patosUseNewest) await update((s) => Object.assign({}, s, { useOld: false }));
@@ -234,8 +250,9 @@ async function serve(request, url) {
     try { await promoteAtStart(); } catch (e) {}
     // how many times the version it runs was started since it was installed (see "patosRollback")
     try { await update((s) => (s && !s.useOld && (s.starts || 0) < 50 ? Object.assign({}, s, { starts: (s.starts || 0) + 1 }) : null)); } catch (e) {}
+    log('start', { run: state && runningId(), ready: await versionReady().catch(() => false), path: url.pathname });
   }
-  if (!(await versionReady())) { try { await prepare(); } catch (e) {} if (!(await versionReady())) return fetch(request); }
+  if (!(await versionReady())) { try { await prepare(); } catch (e) {} if (!(await versionReady())) { if (request.destination === 'document') log('served from the network', {}); return fetch(request); } }
   const id = runningId();
   const c = await caches.open(cacheName(id));
   const hit = await c.match(request, { ignoreSearch: true });
