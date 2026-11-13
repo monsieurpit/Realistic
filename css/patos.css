@@ -231,7 +231,11 @@ body.mission-on #windows { z-index: 11; }
 .dock-item:hover .dock-label { opacity: 1; }
 .dock-sep { width: 1px; align-self: stretch; margin: 6px 5px 8px; background: rgba(255,255,255,.3); }
 :root[data-theme="light"] .dock-sep { background: rgba(0,0,0,.18); }
-.dock-item.bounce .dock-icon { animation: dockBounce 1.2s ease; }
+.dock-item.bounce .dock-icon { animation: dockBounce 1.2s ease; animation-iteration-count: var(--bounces, 1); }
+.dock-badge { position: absolute; top: -3px; right: -3px; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px; display: grid; place-items: center;
+  font: 700 11px/1 var(--font); font-variant-numeric: tabular-nums; color: #fff; background: #ff3b30; box-shadow: 0 1px 3px rgba(0,0,0,.35), 0 0 0 1.5px rgba(255,255,255,.18); pointer-events: none; z-index: 2; }
+.dock-badge.pop { animation: dockBadgePop .35s cubic-bezier(.3,1.6,.5,1); }
+@keyframes dockBadgePop { from { transform: scale(.3); opacity: 0; } to { transform: none; opacity: 1; } }
 @keyframes dockBounce { 0%, 100% { transform: translateY(0); } 15% { transform: translateY(-26px); } 30% { transform: translateY(0); } 45% { transform: translateY(-14px); } 60% { transform: translateY(0); } }
 
 /* ---------- launchpad ---------- */
@@ -314,7 +318,9 @@ html:not(.mobile) #desktop:has(#notif-center:not(.hidden)) #toasts { right: 382p
 .toast-icon { width: 34px; height: 34px; flex: 0 0 auto; }
 .toast-text { flex: 1; min-width: 0; font-size: 12.5px; line-height: 1.35; }
 .toast-text b { display: block; }
-.toast-text > div:last-child { color: var(--text2); }
+.toast-text > div:last-child, .toast-body { color: var(--text2); }
+.toast.leaving { opacity: 0; pointer-events: none; }
+.toast-when { font-variant-numeric: tabular-nums; }
 .toast-app { display: flex; justify-content: space-between; font-size: 11px; color: var(--text2); text-transform: uppercase; letter-spacing: .3px; margin-bottom: 2px; }
 
 @media (max-width: 600px) {

@@ -388,17 +388,21 @@
     PatOS.emit('wm:close', win);
   }
 
+  /* the genie (4.1): the window's bottom pinches toward its Dock icon, then the whole window pours into it. Done with a
+     clip-path funnel (the part of the window left visible) plus a move down and a squash, all on the compositor. */
   function genieFrames(r, target, reverse) {
-    const dx = target.left + target.width / 2 - (r.left + r.width / 2);
-    const dy = target.top + target.height / 2 - (r.top + r.height / 2);
-    const s = Math.max(0.04, target.width / r.width);
+    const pct = (x) => Math.max(0, Math.min(100, ((x - r.left) / r.width) * 100));
+    let L = pct(target.left), R = pct(target.left + target.width); if (R - L < 3) { const m = (L + R) / 2; L = Math.max(0, m - 1.5); R = Math.min(100, m + 1.5); }
+    const dx = (target.left + target.width / 2) - (r.left + ((L + R) / 200) * r.width); // (only when the icon is beside the window)
+    const ty = (target.top + target.height) - (r.top + r.height), sy = Math.max(0.02, target.height / r.height);
+    const poly = (tl, tr, bl, br) => `polygon(${tl}% 0%, ${tr}% 0%, ${br}% 100%, ${bl}% 100%)`;
     const f = [
-      { transform: 'none', opacity: 1, offset: 0 },
-      { transform: `translate(${dx * 0.25}px, ${dy * 0.35}px) scale(${0.85}, ${0.7}) skewX(${dx > 0 ? -10 : 10}deg)`, opacity: 0.95, offset: 0.4 },
-      { transform: `translate(${dx * 0.8}px, ${dy * 0.85}px) scale(${s * 1.6}, ${s * 2.2}) skewX(${dx > 0 ? -4 : 4}deg)`, opacity: 0.6, offset: 0.8 },
-      { transform: `translate(${dx}px, ${dy}px) scale(${s})`, opacity: 0, offset: 1 }
+      { clipPath: poly(0, 100, 0, 100), transform: 'none', opacity: 1, offset: 0 },
+      { clipPath: poly(0, 100, L, R), transform: 'none', opacity: 1, offset: 0.35 },
+      { clipPath: poly(L * 0.7, 100 - (100 - R) * 0.7, L, R), transform: `translate(${dx * 0.5}px, ${ty * 0.5}px) scaleY(${(1 + sy) / 2})`, opacity: 0.9, offset: 0.7 },
+      { clipPath: poly(L, R, L, R), transform: `translate(${dx}px, ${ty}px) scaleY(${sy})`, opacity: 0, offset: 1 }
     ];
-    return reverse ? f.reverse().map((k, i, a) => Object.assign({}, k, { offset: 1 - k.offset })) : f;
+    return reverse ? f.slice().reverse().map((k) => Object.assign({}, k, { offset: 1 - k.offset })) : f;
   }
   function minimizeWindow(win) {
     setTimeout(updateFS, 0);
@@ -409,7 +413,7 @@
     win.minimized = true;
     if (target && motionOK()) {
       win.el.style.transformOrigin = 'center bottom';
-      win.el.animate(genieFrames(r, target), { duration: 560, easing: 'cubic-bezier(.55,.05,.4,1)' }).onfinish = () => { if (win.minimized) win.el.style.display = 'none'; win.el.style.transformOrigin = ''; };
+      win.el.animate(genieFrames(r, target), { duration: 520, easing: 'cubic-bezier(.5,0,.3,1)' }).onfinish = () => { if (win.minimized) win.el.style.display = 'none'; win.el.style.transformOrigin = ''; };
     } else win.el.style.display = 'none';
     win.emit('minimize');
     if (active === win) {
@@ -430,7 +434,7 @@
     const target = PatOS.dock && PatOS.dock.iconRect(win.app.id);
     if (target && motionOK()) {
       win.el.style.transformOrigin = 'center bottom';
-      win.el.animate(genieFrames(win.el.getBoundingClientRect(), target, true), { duration: PatOS.motion.get().dur, easing: PatOS.motion.get().easing }).onfinish = () => { win.el.style.transformOrigin = ''; };
+      win.el.animate(genieFrames(win.el.getBoundingClientRect(), target, true), { duration: 460, easing: 'cubic-bezier(.3,0,.2,1)' }).onfinish = () => { win.el.style.transformOrigin = ''; };
     }
     focusWindow(win);
     win.emit('restore');
@@ -541,7 +545,11 @@
       if (args && app.onArgs) { const pr = PatOS.proc && PatOS.proc.forApp(app); if (pr) PatOS.proc.run(pr, app.onArgs, app, [w, args]); else app.onArgs(w, args); }
       return w;
     }
-    if (!existing.length && PatOS.dock) PatOS.dock.bounce(appId);
+    if (!existing.length && PatOS.dock) {
+      PatOS.dock.bounce(appId);
+      // (4.1) opened from anywhere (Spotlight, a file, Pat): it still grows out of its Dock icon, when it has one
+      if (!(PatOS._launchRect && Date.now() - PatOS._launchRect.t < 900)) { const ir = PatOS.dock.iconRect(appId); if (ir && ir.width) PatOS._launchRect = { left: ir.left, top: ir.top, width: ir.width, height: ir.height, t: Date.now() }; }
+    }
     PatOS.emit('app:launch', appId);
     return createWindow(app, args);
   };

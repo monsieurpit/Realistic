@@ -105,6 +105,19 @@
     try { const sn = new Notification(n.title, opts); sn.onclick = () => { window.focus(); sn.close(); if (n.chat) PatOS.launch('messages', { chat: n.chat }); else PatOS.nc.open(id); }; return true; } catch (e) { return false; }
   };
   if (navigator.serviceWorker) navigator.serviceWorker.addEventListener('message', (e) => { const d = e.data; if (d && d.patosNotif && d.action === 'open' && PatOS.nc.list().some((x) => x.id === d.id)) { try { PatOS.nc.open(d.id); } catch (er) {} } }); // (clicked on the device's notification)
+  /* banners: the others glide to their new place when one comes or goes (instead of jumping) */
+  const motionOK = () => !PatOS.settings.reduceMotion && !document.documentElement.classList.contains('reduce-motion');
+  function toastFlip(change) {
+    const box = $('#toasts'); const before = new Map([...box.children].map((el) => [el, el.getBoundingClientRect().top]));
+    change();
+    if (!motionOK()) return;
+    before.forEach((y, el) => { if (!el.isConnected || el.classList.contains('leaving')) return; const d = y - el.getBoundingClientRect().top; if (Math.abs(d) > 1) el.animate([{ translate: '0 ' + d + 'px' }, { translate: '0 0' }], { duration: 320, easing: 'cubic-bezier(.2,.9,.25,1)' }); });
+  }
+  function toastOut(t) {
+    if (!t || t.classList.contains('leaving')) return; clearTimeout(t._timer); t.classList.add('leaving'); t.classList.remove('in');
+    setTimeout(() => toastFlip(() => t.remove()), motionOK() ? 300 : 0);
+  }
+  function toastTimer(t, ms) { clearTimeout(t._timer); t._timer = setTimeout(() => toastOut(t), ms); t.onmouseenter = () => clearTimeout(t._timer); t.onmouseleave = () => toastTimer(t, 2500); }
   PatOS.notify = function (n) {
     n = Object.assign({ title: 'PatOS', body: '', icon: 'about' }, n);
     const r = PatOS.nc._add(n);
@@ -114,18 +127,32 @@
     if ((document.hidden || !document.hasFocus()) && r.banner) PatOS.systemNotify(n, r.id);
     if (r.sound && PatOS.settings.notifSound !== false) PatOS.sound.notify(r.rec.priority, n.icon);
     if (!r.banner) return r.id;
+    if (PatOS.dock && PatOS.dock.attention) PatOS.dock.attention(r.rec.app || n.icon, r.rec.priority); // (4.1) its Dock icon hops
     // (3.3) messages and important notifications show in the PatOS Pill instead of a banner (they still go to Notification Center)
     if (PatOS.pill && PatOS.pill.notify && PatOS.pill.notify(r.rec, n)) return r.id;
-    const old = document.querySelector('#toasts .toast[data-nid="' + r.id + '"]'); if (old) old.remove(); // (the same one again: one banner, counted)
+    const box = $('#toasts'); const app = r.rec.app || n.icon;
     const acts = (PatOS.nc.list().find((x) => x.id === r.id) || {}).actions || [];
-    const t = h('div', { class: 'toast' + (r.rec.priority === 'urgent' ? ' urgent' : ''), 'data-nid': r.id },
+    // (4.1) the same app again while its banner shows: that banner takes the new one and counts the rest
+    const same = !acts.length && r.rec.priority !== 'urgent' && [...box.querySelectorAll('.toast:not(.leaving)')].find((x) => x.dataset.app === app && !x.classList.contains('urgent') && !x.querySelector('.toast-acts'));
+    if (same) {
+      const more = (+same.dataset.more || 0) + (same.dataset.nid === r.id ? 0 : 1); same.dataset.more = more; same.dataset.nid = r.id;
+      same.querySelector('.toast-title').textContent = n.title; const b = same.querySelector('.toast-body'); b.textContent = n.body || ''; b.hidden = !n.body;
+      same.querySelector('.toast-when').textContent = more ? '+' + more : (r.rec.count > 1 ? '×' + r.rec.count : PatOS.t('now'));
+      same.onclick = () => { toastOut(same); PatOS.nc.open(r.id); };
+      if (motionOK()) same.animate([{ transform: 'scale(1.03)' }, { transform: 'none' }], { duration: 260, easing: 'ease-out' });
+      toastTimer(same, n.duration || 4500);
+      return r.id;
+    }
+    const t = h('div', { class: 'toast' + (r.rec.priority === 'urgent' ? ' urgent' : ''), 'data-nid': r.id, 'data-app': app },
       h('div', { class: 'toast-icon', html: PatOS.iconHTML(n.icon) }),
-      h('div', { class: 'toast-text' }, h('div', { class: 'toast-app' }, r.rec.appName, h('span', {}, r.rec.count > 1 ? '×' + r.rec.count : PatOS.t('now'))), h('b', {}, n.title), n.body ? h('div', {}, n.body) : null,
-        acts.length ? h('div', { class: 'toast-acts' }, ...acts.map((a, i) => h('button', { class: 'toast-act', onclick: (e) => { e.stopPropagation(); PatOS.nc.act(r.id, i); t.remove(); } }, a.label))) : null));
-    t.addEventListener('click', () => { t.remove(); PatOS.nc.open(r.id); });
-    $('#toasts').appendChild(t);
+      h('div', { class: 'toast-text' }, h('div', { class: 'toast-app' }, r.rec.appName, h('span', { class: 'toast-when' }, r.rec.count > 1 ? '×' + r.rec.count : PatOS.t('now'))), h('b', { class: 'toast-title' }, n.title), h('div', { class: 'toast-body', hidden: !n.body }, n.body || ''),
+        acts.length ? h('div', { class: 'toast-acts' }, ...acts.map((a, i) => h('button', { class: 'toast-act', onclick: (e) => { e.stopPropagation(); PatOS.nc.act(r.id, i); toastOut(t); } }, a.label))) : null));
+    t.onclick = () => { toastOut(t); PatOS.nc.open(r.id); };
+    // at most three at a time: the oldest makes room (it stays in Notification Center)
+    const shown = [...box.querySelectorAll('.toast:not(.leaving)')]; if (shown.length >= 3) toastOut(shown[0]);
+    toastFlip(() => box.appendChild(t));
     requestAnimationFrame(() => t.classList.add('in'));
-    setTimeout(() => { t.classList.remove('in'); setTimeout(() => t.remove(), 400); }, n.duration || (r.rec.priority === 'urgent' ? 12000 : acts.length ? 8000 : 4500));
+    toastTimer(t, n.duration || (r.rec.priority === 'urgent' ? 12000 : acts.length ? 8000 : 4500));
     return r.id;
   };
 
@@ -532,6 +559,7 @@
     const running = [...new Set(PatOS.wm.windows.map((w) => w.app.id))].filter((id) => !pinned.includes(id));
     return { pinned, running };
   }
+  const dockBadges = {}; // app id -> a number shown on its Dock icon (PatOS.dock.badge)
   function renderDock() {
     const d = dockEl(); d.innerHTML = '';
     const { pinned, running } = dockItems();
@@ -540,6 +568,7 @@
       const item = h('div', { class: 'dock-item' + (PatOS.wm.isRunning(id) ? ' running' : ''), 'data-app': id, title: '', role: 'button', tabindex: '0', 'aria-label': app.name },
         h('div', { class: 'dock-label' }, app.name),
         h('div', { class: 'dock-icon', html: PatOS.iconHTML(app.icon || id) }),
+        dockBadges[id] ? h('span', { class: 'dock-badge', 'aria-label': dockBadges[id] + ' ' + PatOS.t('new') }, dockBadges[id] > 99 ? '99+' : String(dockBadges[id])) : null,
         h('div', { class: 'dock-dot' }));
       item.addEventListener('click', () => { if (dockDrag.justDropped) return; PatOS.setLaunchRect(item.querySelector('.dock-icon')); dockClick(id); });
       item.addEventListener('contextmenu', (e) => { e.preventDefault(); if (!dockDrag.active) dockMenu(id, item); });
@@ -709,11 +738,26 @@
   PatOS.dock = {
     render: renderDock,
     iconRect(id) { const el = $(`#dock .dock-item[data-app="${id}"] .dock-icon`); return el ? el.getBoundingClientRect() : null; },
-    bounce(id) {
+    /* a number on an app's icon (unread messages...); 0 or nothing removes it */
+    badge(id, n) {
+      n = Math.max(0, Math.floor(+n || 0)); if ((dockBadges[id] || 0) === n) return; if (n) dockBadges[id] = n; else delete dockBadges[id];
+      const el = $(`#dock .dock-item[data-app="${id}"]`); if (!el) return;
+      let b = el.querySelector('.dock-badge');
+      if (!n) { if (b) b.remove(); return; }
+      if (!b) { b = h('span', { class: 'dock-badge pop' }); el.insertBefore(b, el.querySelector('.dock-dot')); setTimeout(() => b.classList.remove('pop'), 400); }
+      b.textContent = n > 99 ? '99+' : String(n); b.setAttribute('aria-label', n + ' ' + PatOS.t('new'));
+    },
+    /* an app that isn't in front wants you: its icon hops (once; urgent: until you look, at most 3 times) */
+    attention(id, priority) {
+      if (!id || priority === 'low' || !$(`#dock .dock-item[data-app="${id}"]`)) return;
+      const a = PatOS.wm && PatOS.wm.active; if (a && a.app && a.app.id === id && !document.hidden) return;
+      this.bounce(id, priority === 'urgent' ? 3 : 1);
+    },
+    bounce(id, times) {
       const el = $(`#dock .dock-item[data-app="${id}"]`);
       if (!el || PatOS.settings.reduceMotion) return;
-      el.classList.remove('bounce'); void el.offsetWidth; el.classList.add('bounce');
-      setTimeout(() => el.classList.remove('bounce'), 1300);
+      el.classList.remove('bounce'); void el.offsetWidth; el.classList.add('bounce'); el.style.setProperty('--bounces', times || 1);
+      clearTimeout(el._bt); el._bt = setTimeout(() => el.classList.remove('bounce'), 1300 * (times || 1));
     }
   };
 
@@ -726,6 +770,8 @@
     PatOS.notify({ title: PatOS.t('See what’s new in PatOS 4.0'), body: PatOS.t('Widgets, Studio, profiles, World, search inside everything and more, in Tips.'), icon: 'tips', priority: 'low', open: { app: 'tips', args: { col: 'new' } } });
   }, 6000));
   // (4.0) the language changed without a restart (setup): what is drawn from PatOS's words is drawn again
+  // (4.1) unread messages on the Messages icon
+  PatOS.on('chat', (s) => { if (s && PatOS.dock) PatOS.dock.badge('messages', s.signedIn ? s.unread : 0); });
   PatOS.on('lang', () => { try { renderDock(); renderDesktop(); if (PatOS.widgets && PatOS.widgets.render) PatOS.widgets.render(); } catch (e) {} });
   let lpDirty = 0; ['settings', 'apps', 'lang', 'theme'].forEach((ev) => PatOS.on(ev, () => { lpDirty++; }));
   PatOS.launchpad = {

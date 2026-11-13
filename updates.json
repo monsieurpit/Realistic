@@ -1,14 +1,17 @@
 [
   {
     "version": "4.1.0",
-    "beta": 2,
+    "beta": 3,
     "date": "2026-11-13",
     "title": {
-      "en": "PatOS 4.1 beta: Games",
-      "fr": "PatOS 4.1 bêta : Jeux"
+      "en": "PatOS 4.1 beta: Games and a smoother desktop",
+      "fr": "PatOS 4.1 bêta : Jeux et un bureau plus fluide"
     },
     "notes": {
       "en": [
+        "Notifications: the same app shows one banner with a count, never more than three at a time, and they glide into place",
+        "The Dock: unread messages on the Messages icon, and an app that needs you hops once",
+        "Windows grow out of their Dock icon however you open them, and minimizing pours them into the Dock",
         "The Games app, redesigned: every PatOS game in one place, with your best scores",
         "Daily Challenge: the same 2048 for everyone each day, with its own leaderboard",
         "25 achievements across every game",
@@ -18,6 +21,9 @@
         "Power-ups: Magnet, Shield and Double"
       ],
       "fr": [
+        "Notifications : une seule bannière par app avec un compteur, jamais plus de trois à la fois, et elles glissent en place",
+        "Le Dock : les messages non lus sur l’icône de Messages, et une app qui a besoin de toi sautille une fois",
+        "Les fenêtres sortent de leur icône du Dock, peu importe comment tu les ouvres, et la réduction les verse dans le Dock",
         "L’app Jeux, refaite : tous les jeux de PatOS au même endroit, avec tes meilleurs scores",
         "Défi du jour : le même 2048 pour tout le monde chaque jour, avec son propre classement",
         "25 succès dans tous les jeux",
