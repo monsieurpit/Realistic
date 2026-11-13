@@ -531,3 +531,7 @@ body.patos-fs #pill-wrap.idle { opacity: 0; pointer-events: none; }
 #mb-profile.mb-profile { display: inline-flex; align-items: center; gap: 5px; width: auto; padding: 0 8px; max-width: 160px; }
 #mb-profile[hidden] { display: none; } #mb-profile svg { width: 15px; height: 15px; flex: none; }
 .mb-pname { font-size: 13px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* Spotlight (4.0): the passage where a result matches, with the words marked */
+.sp-res .sp-pass { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--text3); }
+.sp-res .sp-pass mark { background: color-mix(in srgb, var(--accent) 28%, transparent); color: inherit; border-radius: 3px; padding: 0 1px; }
+.sp-res.sel .sp-pass { color: rgba(255,255,255,.8); } .sp-res.sel .sp-pass mark { background: rgba(255,255,255,.28); }

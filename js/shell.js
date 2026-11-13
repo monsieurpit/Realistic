@@ -850,13 +850,8 @@
     PatOS.fs.walk('/', (p, n) => {
       if (p === '/' || /\/\./.test(p)) return; // skip Trash and hidden folders
       const name = PatOS.fs.basename(p);
-      let text = '';
-      if (n.type === 'file' && !n.blob && typeof n.content === 'string' && TEXTY.test(name) && !n.content.startsWith('data:')) {
-        text = n.content.length > 120000 ? n.content.slice(0, 120000) : n.content;
-        if (/\.(pdoc|psheet|pslides|pform|html?)$/i.test(name)) text = text.replace(/<[^>]+>/g, ' ').replace(/\\[nrt]|&nbsp;/g, ' ').replace(/["{}[\],:]+/g, ' ');
-        text = fold(text).replace(/\s+/g, ' ');
-      }
-      out.push({ p, name, dir: n.type === 'dir', text });
+      // (names only: the words inside files come from PatOS.fulltext, which reads only the file that changed)
+      out.push({ p, name, dir: n.type === 'dir', text: '' });
     });
     return out;
   }
@@ -932,13 +927,21 @@
       if (sc < 40 && q.length >= 3 && f.text) { inText = f.text.indexOf(q); if (inText >= 0) sc = Math.max(sc, 35); }
       if (sc > 0) files.push({ f, sc: sc + boost(u, 'file:' + f.p) + (f.dir ? -3 : 0), inText });
     }
-    files.sort((a, b) => b.sc - a.sc).slice(0, 10).forEach(({ f, sc, inText }) => out.push({ group: f.dir ? 'Folders' : 'Files', key: 'file:' + f.p, score: sc, filePath: f.p, inText, label: f.name, sub: PatOS.fs.dirname(f.p), iconHTML: PatOS.fileIconHTML(f.p, PatOS.fs.get(f.p)), run: () => PatOS.openFile(f.p) }));
+    // what is written inside: files, notes, reminders, events, contacts, captures (js/fulltext.js), with the passage
+    const inside = q.length >= 2 && PatOS.fulltext ? PatOS.fulltext.search(raw, { limit: 14 }) : [];
+    const insideKeys = new Map(inside.map((r) => [r.key, r]));
+    files.forEach((x) => { const r = insideKeys.get('file:' + x.f.p); if (r) { x.sc = Math.max(x.sc, 38 + Math.min(20, r.score)); x.passage = r.passage; insideKeys.delete('file:' + x.f.p); } });
+    insideKeys.forEach((r, k) => { if (r.kind === 'file' || r.kind === 'folder') { const n = PatOS.fs.get(r.path); if (n) files.push({ f: { p: r.path, name: r.title, dir: r.kind === 'folder' }, sc: 34 + Math.min(20, r.score) + boost(u, k), inText: 0, passage: r.passage }); insideKeys.delete(k); } });
+    files.sort((a, b) => b.sc - a.sc).slice(0, 10).forEach(({ f, sc, inText, passage }) => out.push({ passage, group: f.dir ? 'Folders' : 'Files', key: 'file:' + f.p, score: sc, filePath: f.p, inText, label: f.name, sub: PatOS.fs.dirname(f.p), iconHTML: PatOS.fileIconHTML(f.p, PatOS.fs.get(f.p)), run: () => PatOS.openFile(f.p) }));
     // notes, reminders, contacts
     const look = (k, d) => (PatOS.store.peek && PatOS.store.peek(k) !== undefined ? PatOS.store.peek(k) : PatOS.store.get(k, d)) || d; // (read only: no copy per keystroke)
     look('notes', []).filter((n) => !n.deletedAt).forEach((n) => {
-      const sc = Math.max(score(n.title, q), q.length >= 3 && fold(n.body).includes(q) ? 35 : 0);
-      add('Notes', 'note:' + n.id, sc, { label: n.title || T('Untitled'), icon: 'notes', snippet: n.body, run: () => PatOS.launch('notes', { id: n.id }) });
+      const r = insideKeys.get('note:' + n.id); insideKeys.delete('note:' + n.id);
+      const sc = Math.max(score(n.title, q), r ? 35 + Math.min(20, r.score) : 0);
+      add('Notes', 'note:' + n.id, sc, { label: n.title || T('Untitled'), icon: 'notes', snippet: n.body, passage: r && r.passage, run: () => PatOS.launch('notes', { id: n.id }) });
     });
+    const KG = { reminder: ['Reminders', 'reminders'], event: ['Calendar', 'calendar'], contact: ['Contacts', 'contacts'], capture: ['Captures', 'capture'] };
+    insideKeys.forEach((r, k) => { const g = KG[r.kind]; if (g) add(g[0], k, 33 + Math.min(20, r.score), { label: r.title, sub: r.sub, icon: g[1], passage: r.passage, run: () => PatOS.fulltext.open(r) }); });
     // what you copied (Timeline's clipboard history): Enter copies it again
     if (PatOS.timeline) PatOS.timeline.searchClips(raw.trim(), 3).forEach((c) => add('Clipboard', 'clip:' + c.id, 36, { label: c.text.replace(/\s+/g, ' ').slice(0, 90), sub: T('Copied'), icon: 'timeline', snippet: c.text, run: () => PatOS.timeline.copy(c.text).then(() => PatOS.notify({ title: T('Copied'), body: c.text.slice(0, 80), icon: 'timeline', duration: 2000 })) }));
     look('reminders', []).filter((r) => !r.done).forEach((r) => add('Reminders', 'rem:' + r.id, score(r.text, q), { label: r.text, sub: r.due ? r.due + (r.time ? ' ' + r.time : '') : '', icon: 'reminders', run: () => PatOS.launch('reminders') }));
@@ -957,7 +960,7 @@
     });
     // groups in order of their best match; instant answers first; a "top hit" when one result clearly wins
     const groups = {}; out.forEach((r) => (groups[r.group] = groups[r.group] || []).push(r));
-    const LIMIT = { 'PatOS Intelligence': 1, Clipboard: 3, Applications: 6, Settings: 5, Shortcuts: 3, Calendar: 3, Actions: 3, Files: 8, Folders: 4, Notes: 4, Reminders: 3, Contacts: 3, Passwords: 3, Websites: 4 };
+    const LIMIT = { 'PatOS Intelligence': 1, Captures: 3, Clipboard: 3, Applications: 6, Settings: 5, Shortcuts: 3, Calendar: 3, Actions: 3, Files: 8, Folders: 4, Notes: 4, Reminders: 3, Contacts: 3, Passwords: 3, Websites: 4 };
     const ordered = Object.entries(groups).map(([g, list]) => { list.sort((a, b) => b.score - a.score); return [g, list.slice(0, LIMIT[g] || 4)]; }).sort((a, b) => b[1][0].score - a[1][0].score);
     let res = [].concat(...ordered.map(([, l]) => l));
     // leave out weak guesses when there are good matches
@@ -994,7 +997,7 @@
     let lastG = '';
     spResults.forEach((r, i) => {
       if (r.group !== lastG) { box.appendChild(h('div', { class: 'sp-group', role: 'presentation' }, PatOS.t(r.group))); lastG = r.group; }
-      const row = h('div', { class: 'sp-res' + (i === 0 ? ' sel' : ''), role: 'option', id: 'sp-opt-' + i, 'aria-selected': String(i === 0) }, h('div', { class: 'sp-ri', html: r.iconHTML || PatOS.iconHTML(r.icon) }), markLabel(r.label, fq), r.sub ? h('small', {}, r.sub) : null);
+      const row = h('div', { class: 'sp-res' + (i === 0 ? ' sel' : ''), role: 'option', id: 'sp-opt-' + i, 'aria-selected': String(i === 0) }, h('div', { class: 'sp-ri', html: r.iconHTML || PatOS.iconHTML(r.icon) }), markLabel(r.label, fq), r.passage ? h('small', { class: 'sp-pass' }, r.passage.before, h('mark', {}, r.passage.match), r.passage.after) : r.sub ? h('small', {}, r.sub) : null);
       row.addEventListener('click', () => go(r));
       row.addEventListener('pointermove', () => { if (spSel !== i) setSel(i); });
       box.appendChild(row);
@@ -1223,7 +1226,7 @@
     });
     // catch-all to block the browser menu inside PatOS chrome
     document.addEventListener('contextmenu', (e) => { if (!e.target.closest('input, textarea, [contenteditable], iframe, .allow-ctx')) e.preventDefault(); });
-    PatOS.on('fs', (ev) => { if (ev.dir.startsWith('/Desktop') || ev.path.startsWith('/Desktop') || ev.dir === '/') renderDesktop(); if (ev.dir === '/.Trash' || ev.path.startsWith('/.Trash')) renderDock(); });
+    PatOS.on('fs', (ev) => { ev = ev || { dir: '/', path: '/' }; ev.dir = ev.dir || '/'; ev.path = ev.path || '/'; /* (a change without details: everything may have changed) */ if (ev.dir.startsWith('/Desktop') || ev.path.startsWith('/Desktop') || ev.dir === '/') renderDesktop(); if (ev.dir === '/.Trash' || ev.path.startsWith('/.Trash')) renderDock(); });
     // light or dark app icons: the Dock and the desktop are painted again (Launchpad and app windows paint theirs when they open or redraw)
     PatOS.on('icons:style', () => { renderDock(); renderDesktop(); if (!$('#launchpad').classList.contains('hidden')) PatOS.launchpad.render($('.lp-search').value || ''); });
     window.addEventListener('resize', PatOS.debounce(renderDesktop, 150));

@@ -5,10 +5,6 @@ Nothing on this list exists in PatOS yet.
 
 ## The main projects
 
-1. **Search inside everything**
-   A full-text index of the words inside your files, notes, messages and documents (not only their names), kept up to date
-   as you edit. Results in Spotlight, Piles and Pat, with the matching passage shown.
-
 2. **A real shell**
    The Terminal becomes a real command language:
    - pipes (`ls | grep`)

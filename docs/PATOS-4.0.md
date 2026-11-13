@@ -63,6 +63,35 @@ file the first time they are used.
   the file being copied and where it goes, through Live Activities (`stats`). The Pill shows them, with "Open the
   destination folder".
 
+## Search inside everything (moved from 4.1 to 4.0)
+
+`js/fulltext.js` (`PatOS.fulltext`) keeps one index of the words inside files (text, Markdown, code, CSV, PatOS documents,
+sheets and slides), notes, reminders, calendar events, contacts and captures.
+
+- **Matching:** every word must be there, in any order. While typing, the last word can be the start of a word. Accents and
+  capitals don't count. Results are ranked by words in the title, the exact phrase, how often the words appear (rarer
+  words weigh more), then a little by how recent the item is.
+- **Passages:** each result carries `{ before, match, after }` as plain text, which Spotlight, Piles and Pat show.
+- **Up to date:** a file change reads that file again, a folder change reads what is under it, and notes, reminders,
+  events, contacts and captures are read again when they change.
+- **Never a pause:** the index is built in idle slices, starting 8 s after PatOS opens or at the first search. The test
+  builds it over 400 files with no long task.
+- **Limits:** at most 100 KB of text per item and 6 MB in all (past that, items are still found by name). It lives in
+  memory on this device only, and leaves out the Trash, hidden folders and /System.
+- **Users:** Spotlight (with the passage under each result), Piles' search, Pat's "find files containing ..." (which
+  quotes the passage, and matches whole words only). Tests: `test/browser/search40.test.js`.
+
+## Speed on slow Chromebooks (4.0 beta 13)
+
+Measured on a processor slowed 6×:
+- **Idle:** 362 → 75 ms of main-thread work every 5 s. The menu bar clock is written only when it changes; before, it
+  restyled ~700 elements every second. The clock widget's face is drawn once.
+- **Layers:** 122 → 34 composited layers. The Dock's icons are promoted only while hovered, and hidden Dock labels carry
+  no blur.
+- **Dragging:** no `elementsFromPoint` on every move (the rectangles are measured once per drag).
+- **Launchpad:** no layout thrashing in its opening wave, and its grid is kept between openings.
+- **Spotlight:** on a slow computer it waits for a short pause in typing.
+
 ## Conflicts (Live)
 
 Every board item, note paragraph and task has a `rev`. A write (`livePut`) is a transaction that only succeeds on top of

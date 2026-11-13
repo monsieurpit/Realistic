@@ -261,13 +261,16 @@
   action({ id: 'files.latest', title: 'Open your latest document', permission: 'files', priority: 46, examples: ['open my latest document', 'open the last file'],
     match: W(/^(?:open|reopen|show|ouvre|rouvre)\s+(?:my\s+|the\s+|mon\s+|le\s+)?(?:latest|last|most recent|newest|recent|dernier|plus recent)\s+(?:document|doc|file|fichier)s?$/),
     run: () => { const p = recentFiles(1)[0]; if (!p) return { ok: false, message: L('You don’t have a recent document yet.', 'Tu n’as pas encore de document récent.') }; PatOS.openFile(p); return { message: L('Opened ', 'Ouvert : ') + PatOS.fs.basename(p) + '.', data: { path: p } }; } });
+  const passages = {}; // (path → where it matched, for Pat's answer)
   function searchFiles(q, inside) {
     const fq = fold(q), out = []; let n = 0;
     PatOS.fs.walk('/', (p, nd) => {
       if (out.length >= 50 || nd.type !== 'file' || /^\/(\.Trash|System)(\/|$)/.test(p)) return;
       if (fold(PatOS.fs.basename(p)).includes(fq)) { out.push(p); return; }
-      if (inside && typeof nd.content === 'string' && !nd.blob && n++ < 3000 && nd.content.length < 2e6 && fold(nd.content.replace(/<[^>]+>/g, ' ')).includes(fq)) out.push(p);
+      if (inside && !PatOS.fulltext && typeof nd.content === 'string' && !nd.blob && n++ < 3000 && nd.content.length < 2e6 && fold(nd.content.replace(/<[^>]+>/g, ' ')).includes(fq)) out.push(p);
     });
+    // what is written inside: PatOS's index (js/fulltext.js), words in any order, best matches first
+    if (inside && PatOS.fulltext) PatOS.fulltext.search(q, { kinds: ['file'], limit: 50, prefix: false }).forEach((r) => { if (!out.includes(r.path) && out.length < 50) { out.push(r.path); passages[r.path] = r.passage; } });
     return out;
   }
   action({ id: 'files.find', title: 'Find files', description: 'Finds files by name, or by what is in them.', permission: 'files', params: { q: { type: 'string', required: true, max: 100, ask: ['What should I look for?', 'Que dois-je chercher?'] }, inside: { type: 'boolean' } }, apps: false, priority: 38,
@@ -281,7 +284,7 @@
     run: ({ q, inside }) => {
       const f = searchFiles(q, inside); if (PatOS.pat && PatOS.pat.remember) PatOS.pat.remember('file', f);
       if (!f.length) return { ok: true, message: inside ? L(`No file contains “${q}”.`, `Aucun fichier ne contient « ${q} ».`) : L(`I couldn’t find a file with “${q}” in its name.`, `Je n’ai pas trouvé de fichier avec « ${q} » dans son nom.`), data: { files: [] } };
-      return { message: L(`Found ${f.length} file${f.length > 1 ? 's' : ''}:\n`, `${f.length} fichier${f.length > 1 ? 's' : ''} trouvé${f.length > 1 ? 's' : ''} :\n`) + f.slice(0, 6).map((p) => '• ' + p).join('\n') + (f.length > 6 ? '\n… +' + (f.length - 6) : '') + L('\nSay “open it” to open the first one.', '\nDis « ouvre-le » pour ouvrir le premier.'), data: { files: f } };
+      return { message: L(`Found ${f.length} file${f.length > 1 ? 's' : ''}:\n`, `${f.length} fichier${f.length > 1 ? 's' : ''} trouvé${f.length > 1 ? 's' : ''} :\n`) + f.slice(0, 6).map((p) => '• ' + p + (inside && passages[p] ? '\n   “' + (passages[p].before + passages[p].match + passages[p].after).replace(/\s+/g, ' ').trim().slice(0, 110) + '”' : '')).join('\n') + (f.length > 6 ? '\n… +' + (f.length - 6) : '') + L('\nSay “open it” to open the first one.', '\nDis « ouvre-le » pour ouvrir le premier.'), data: { files: f } };
     } });
   action({ id: 'folder.create', title: 'Create a folder', permission: 'files.write', params: { name: { type: 'string', required: true, max: 100, ask: ['What should I call the folder?', 'Comment dois-je appeler le dossier?'] }, dir: { type: 'path' } }, priority: 42,
     examples: ['create a folder called Projects', 'make a folder named Trips in Desktop', 'crée un dossier appelé Projets'],

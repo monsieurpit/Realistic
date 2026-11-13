@@ -245,15 +245,17 @@
           // names first, then what is written inside text files; folders under the place you are, or everywhere
           const root = filters.scope === 'all' ? '/' : filters.root && PatOS.fs.exists(filters.root) ? filters.root : special() ? '/' : cwd;
           out = [];
+          // what is written inside comes from PatOS's index (js/fulltext.js): words in any order, with the passage
+          const inside = q && PatOS.fulltext ? new Map(PatOS.fulltext.search(q, { kinds: ['file'], under: root === '/' ? null : root, limit: 300 }).map((r) => [r.path, r])) : null;
           PatOS.fs.walk(root, (p, n) => {
             const it = Object.assign({ name: PatOS.fs.basename(p), path: p }, n);
             if (/^kind:/.test(cwd) && groupOf(it) !== cwd.slice(5)) return;
             if (!passes(it)) return;
             if (!q) return out.push(it);
             if (fold(it.name).includes(q)) return out.push(it);
-            const txt = textOf(n); if (!txt) return;
-            const i = fold(txt).indexOf(q);
-            if (i >= 0) { const raw = txt.replace(/<[^>]+>/g, ' '); const j = Math.max(0, fold(raw).indexOf(q)); it.match = (j > 30 ? '…' : '') + raw.slice(Math.max(0, j - 30), j + q.length + 50).replace(/\s+/g, ' ').trim(); out.push(it); }
+            const r = inside && inside.get(p);
+            if (r) { it.match = r.passage ? (r.passage.before + r.passage.match + r.passage.after).replace(/\s+/g, ' ').trim() : ''; out.push(it); return; }
+            if (!inside) { const txt = textOf(n); if (txt && fold(txt).includes(q)) { it.match = ''; out.push(it); } } // (no index: the old way)
           });
         }
         else out = PatOS.fs.list(cwd);
