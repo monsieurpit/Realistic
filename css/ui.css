@@ -65,3 +65,4 @@
 .window :is(.win-body, .win-body *) { scrollbar-width: thin; scrollbar-color: rgba(127,127,127,.4) transparent; }
 .window .win-body ::-webkit-scrollbar { width: 10px; height: 10px; } .window .win-body ::-webkit-scrollbar-thumb { border-radius: 10px; border: 3px solid transparent; background: rgba(127,127,127,.4) padding-box; } .window .win-body ::-webkit-scrollbar-thumb:hover { background-color: rgba(127,127,127,.6); }
 @media (prefers-reduced-motion: reduce) { :is(.btn, .tbtn, .ui-si):active { transform: none !important; } }
+.mu-empty p, .force-dark .ui-empty p { color: rgba(235,235,245,.68) !important; } /* (Music is always dark: its words stay light in light mode too) */
