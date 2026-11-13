@@ -1,7 +1,7 @@
 [
   {
     "version": "3.3.0",
-    "beta": 3,
+    "beta": 4,
     "date": "2026-11-13",
     "title": {
       "en": "PatOS 3.3: Crystal",
@@ -9,11 +9,13 @@
     },
     "notes": {
       "en": [
+        "Windows 2.0: windows click magnetically to the screen’s edges and to each other, with thin guides (hold Shift to place one freely). Throw a window toward the left or right edge to fill that half. Drop a window on another window of the same app to make tabs; drag a tab down to make it a window again, Ctrl+Tab to switch. Keyboard tiling: Ctrl+Alt+arrows for halves (press again for thirds), Ctrl+Alt+U I J K for quarters, Ctrl+Alt+Enter to fill, Ctrl+Alt+C to center, Ctrl+Alt+T to tile every window",
         "Sound design: every sound is now made live by PatOS (no recordings): soft glass bells, taps and air, in tune with each other. Windows opening, closing and minimizing, switches, notifications (calmer for the usual ones, clearer for important ones), messages sent and received, captures, finished tasks, locking, emptying the Trash. Settings › Sound: choose Glass or Soft, the volume of interface sounds, and try each one",
         "Fixed: on some devices PatOS asked to be set up again (with its sign-in) after a restart: a sync bug deleted the note that setup was done. Devices with an account go straight back in, and sync never deletes device-only settings again. If signing in still says “No internet”, the message now shows the reason, and setup lets you continue without an account for now",
         "A crystal Dock: thicker, brighter glass with a light rim, a soft rainbow at its ends, a reflection inside, a glow under it, and a glass bubble for app names"
       ],
       "fr": [
+        "Fenêtres 2.0 : les fenêtres s’accrochent aux bords de l’écran et entre elles, avec de fins guides (maintenez Maj pour en placer une librement). Lancez une fenêtre vers le bord gauche ou droit pour remplir cette moitié. Déposez une fenêtre sur une autre fenêtre de la même app pour créer des onglets; tirez un onglet vers le bas pour en refaire une fenêtre, Ctrl+Tab pour changer. Disposition au clavier : Ctrl+Alt+flèches pour les moitiés (encore pour les tiers), Ctrl+Alt+U I J K pour les quarts, Ctrl+Alt+Entrée pour remplir, Ctrl+Alt+C pour centrer, Ctrl+Alt+T pour disposer toutes les fenêtres",
         "Design sonore : chaque son est maintenant créé en direct par PatOS (aucun enregistrement) : de douces cloches de verre, des tapotements et des souffles, accordés entre eux. Ouverture, fermeture et réduction des fenêtres, interrupteurs, notifications (plus calmes pour les habituelles, plus claires pour les importantes), messages envoyés et reçus, captures, tâches terminées, verrouillage, vidage de la Corbeille. Réglages › Son : choisissez Verre ou Doux, le volume des sons de l’interface, et essayez chacun",
         "Corrigé : sur certains appareils, PatOS demandait d’être configuré à nouveau (avec sa connexion) après un redémarrage : un bug de synchro effaçait la note disant que la configuration était faite. Les appareils avec un compte reviennent directement, et la synchro n’efface plus jamais les réglages propres à l’appareil. Si la connexion dit encore « Pas d’Internet », le message montre maintenant la raison, et la configuration permet de continuer sans compte pour l’instant",
         "Un Dock en cristal : un verre plus épais et plus brillant avec un bord lumineux, un léger arc-en-ciel aux bouts, un reflet à l’intérieur, une lueur en dessous, et une bulle de verre pour le nom des apps"

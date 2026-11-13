@@ -176,8 +176,13 @@
         { label: 'Minimize', shortcut: 'Alt+M', action: () => w && w.minimize(), disabled: !w },
         { label: 'Zoom', action: () => w && w.toggleMax(), disabled: !w },
         { label: w && w.fullscreen ? 'Exit Full Screen' : 'Enter Full Screen', shortcut: 'Alt+F', action: () => w && w.toggleFullscreen && w.toggleFullscreen(), disabled: !w || w.app.resizable === false },
-        { label: 'Tile Left', action: () => w && tile(w, 'left'), disabled: !w },
-        { label: 'Tile Right', action: () => w && tile(w, 'right'), disabled: !w },
+        { label: 'Tile Left', shortcut: 'Ctrl+Alt+←', action: () => w && PatOS.wmPro.tile(w, 'left'), disabled: !w },
+        { label: 'Tile Right', shortcut: 'Ctrl+Alt+→', action: () => w && PatOS.wmPro.tile(w, 'right'), disabled: !w },
+        { label: 'Center', shortcut: 'Ctrl+Alt+C', action: () => w && PatOS.wmPro.tile(w, 'center'), disabled: !w },
+        { label: 'Tile All Windows', shortcut: 'Ctrl+Alt+T', action: () => PatOS.wmPro.tileAll(), disabled: !PatOS.wm.windows.some((x) => !x.minimized) },
+        { divider: true },
+        { label: 'Merge All Windows', action: () => PatOS.wmPro.mergeAll(w), disabled: !w || w.app.single || PatOS.wm.windowsOf(w.app.id).length < 2 },
+        { label: 'Move Tab to New Window', action: () => { const r = w.rect(); PatOS.wmPro.detach(w, r.x + r.w / 2 + 40, r.y + 60); }, disabled: !w || !PatOS.wmPro.groupOf(w) },
         { divider: true },
         { label: 'Bring All to Front', action: () => PatOS.wm.windows.forEach((x) => PatOS.wm.restore(x)) },
         { label: 'Stage Focus', shortcut: 'Alt+S', checked: PatOS.wm.staged, action: () => PatOS.wm.stage() },
@@ -584,7 +589,7 @@
   }
   function dockClick(id) {
     const app = PatOS.apps[id];
-    const ws = PatOS.wm.windowsOf(id);
+    const ws = PatOS.wm.windowsOf(id).filter((w) => !w.tabHidden); // (tabs that aren't shown come with their window)
     if (!ws.length || app.action) return PatOS.launch(id);
     const visible = ws.filter((w) => !w.minimized);
     if (!visible.length) { ws.forEach((w) => PatOS.wm.restore(w)); return; }

@@ -533,6 +533,7 @@
             return [...sec('Dock (up to 4 apps)', 'mobileDock', 4), ...sec('Apps on the Home Screen', 'hiddenApps')];
           }
           return [h('h3', {}, 'Dock'), group(row('Size', range('dockSize', 36, 84, 1, (v) => v + 'px')), row('Grow icons under the pointer', toggle('magnify')), row('How much icons grow', range('magnifyScale', 1.2, 2.2, 0.1, (v) => Math.round(v * 100) + '%')), row('Automatically hide the Dock', toggle('dockAutohide')), row('Show desktop widgets', toggle('showWidgets'))),
+            h('h3', {}, 'Windows'), group(row('Magnetic edges', toggle('windowMagnets'), 'Windows click to the screen’s edges and to each other. Hold Shift to place one freely.')),
             h('h3', {}, 'Apps in the Dock'), h('div', { class: 'st-dockapps' }, ...PatOS.appOrder.filter((id) => !PatOS.apps[id].hidden || id === 'launchpad').map((id) => {
               const on = S().dockPinned.includes(id);
               const b = h('button', { class: 'st-da' + (on ? ' on' : '') }, h('div', { class: 'st-da-ic', html: PatOS.iconHTML(PatOS.apps[id].icon || id) }), h('span', {}, PatOS.apps[id].name));

@@ -301,3 +301,21 @@ html:not(.reduce-motion) .dlg { animation: dlgIn var(--spring-dur-short) var(--s
 .sp-muted { color: var(--text3); font-size: 13px; margin: 6px; } .sp-empty { margin: auto; text-align: center; max-width: 420px; } .sp-empty .sp-ic, .sp-empty .sp-ic .icon-tile { width: 72px; height: 72px; border-radius: 18px; margin: 0 auto 10px; } .sp-empty p { color: var(--text2); } .sp-fine { font-size: 12px; color: var(--text3) !important; }
 .mobile .sp-side { width: 100%; } .mobile .spc { flex-direction: column; } .mobile .sp-side { max-height: 40%; border-right: 0; border-bottom: 1px solid var(--border); } .mobile .sp-split { flex-direction: column; } .mobile .sp-files { width: auto; }
 .st-sounds { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: var(--sp-5); }
+
+/* Window manager 2.0 (js/wm-pro.js): magnetic guides, tabs */
+.wm-guide { position: absolute; z-index: 99990; pointer-events: none; background: var(--accent); box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 70%, transparent); border-radius: 2px; animation: wmg .12s ease-out; }
+.wm-guide.v { width: 2px; margin-left: -1px; } .wm-guide.h { height: 2px; margin-top: -1px; }
+@keyframes wmg { from { opacity: 0; } }
+.win-tabs { flex: 0 0 auto; display: flex; align-items: stretch; gap: 4px; padding: 5px 8px; background: var(--toolbar); border-bottom: 1px solid var(--border); overflow-x: auto; scrollbar-width: none; position: relative; z-index: 2; }
+.win-tab { flex: 1 1 0; min-width: 90px; max-width: 260px; display: flex; align-items: center; gap: 7px; height: 28px; padding: 0 6px 0 9px; border-radius: 9px; font-size: 12.5px; color: var(--text2); cursor: default; user-select: none; transition: background .15s, color .15s, transform .15s; }
+.win-tab:hover { background: rgba(127,127,127,.12); }
+.win-tab.on { background: var(--win); color: var(--text); box-shadow: 0 1px 2px rgba(0,0,0,.12), inset 0 0 0 .5px rgba(127,127,127,.25); font-weight: 600; }
+.win-tab.dragging { transform: translateY(3px) scale(.98); opacity: .8; }
+.win-tab:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.wt-ic, .wt-ic .icon-tile, .wt-ic svg { width: 16px; height: 16px; border-radius: 4px; flex: 0 0 16px; }
+.wt-l { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.wt-x { width: 18px; height: 18px; border: 0; border-radius: 5px; background: none; color: inherit; font-size: 14px; line-height: 1; opacity: 0; cursor: pointer; }
+.win-tab:hover .wt-x, .win-tab.on .wt-x { opacity: .6; } .wt-x:hover { opacity: 1 !important; background: rgba(127,127,127,.2); }
+.wt-new { flex: 0 0 28px; border: 0; border-radius: 9px; background: none; color: var(--text2); font-size: 17px; cursor: pointer; } .wt-new:hover { background: rgba(127,127,127,.14); }
+.window.tab-drop { box-shadow: 0 0 0 3px var(--accent), var(--shadow) !important; }
+.window.tab-drop .titlebar { background: color-mix(in srgb, var(--accent) 18%, var(--toolbar)); }

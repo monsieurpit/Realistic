@@ -216,13 +216,14 @@
   PatOS.snapLayouts = LAYOUTS;
 
   function setupDrag(win, handle, bodyMode) {
-    let sx, sy, ox, oy, dragging = false, snap = null, pid = null, zone = null, base = null, last = null, ghost = null;
+    let sx, sy, ox, oy, dragging = false, snap = null, pid = null, zone = null, base = null, last = null, ghost = null, samples = [], tabInto = null;
+    const P = () => PatOS.wmPro;
     const preview = () => $('#snap-preview') || layer().appendChild(h('div', { id: 'snap-preview' }));
     handle.addEventListener('pointerdown', (e) => {
       if (e.button !== 0 || PatOS.isMobile) return;
       if (bodyMode && e.target.closest('button, input, textarea, select, canvas, a, [contenteditable], .no-drag, .calc-keys, .scrub')) return;
       if (!bodyMode && e.target.closest('.win-toolbar button, .win-toolbar input, .win-toolbar select, .win-toolbar .tab, .win-toolbar .no-drag')) return;
-      sx = e.clientX; sy = e.clientY; ox = win.el.offsetLeft; oy = win.el.offsetTop; dragging = false; pid = e.pointerId;
+      sx = e.clientX; sy = e.clientY; ox = win.el.offsetLeft; oy = win.el.offsetTop; dragging = false; pid = e.pointerId; samples = []; tabInto = null;
       const move = (ev) => {
         const dx = ev.clientX - sx, dy = ev.clientY - sy;
         if (!dragging && Math.hypot(dx, dy) < 4) return;
@@ -238,6 +239,10 @@
         }
         let nx = ox + dx, ny = Math.max(MENUBAR, oy + dy);
         ny = Math.min(ny, window.innerHeight - 40);
+        samples.push({ x: ev.clientX, y: ev.clientY, t: performance.now() }); if (samples.length > 8) samples.shift();
+        // (2.0) magnetic edges: it clicks to the screen's edges and the windows around it (Shift: place it freely)
+        if (P() && ev.clientY >= MENUBAR + 110 && ev.clientX > 3 && ev.clientX < window.innerWidth - 3) { const m = P().magnet(win, { x: nx, y: ny, w: win.el.offsetWidth, h: win.el.offsetHeight }, 'move', ev); nx = m.x; ny = m.y; } else if (P()) P().clearGuides();
+        tabInto = P() ? P().tabTarget(win, ev) : null;
         // (moved with translate while dragging: the graphics chip slides the window as it is. Setting left and top on every
         //  move made the browser lay it out and redraw it each frame; they're set once when the drag ends.)
         if (base === null) {
@@ -275,6 +280,9 @@
         try { handle.releasePointerCapture(pid); } catch (er) {}
         layer().classList.remove('dragging'); win.el.classList.remove('moving');
         preview().classList.remove('show'); if (pickerEl) pickerEl.classList.remove('show');
+        if (P()) { P().clearGuides(); P().endTabTarget(); }
+        if (dragging && tabInto) { const into = tabInto; tabInto = null; dragging = false; snap = null; zone = null; P().merge(win, into); return; }
+        if (dragging && !snap && !zone && P() && win.app.resizable !== false) { const f = P().flick(samples); if (f) snap = f; }
         if (dragging && zone) { win.prevRect = { x: ox, y: oy, w: win.el.offsetWidth, h: win.el.offsetHeight }; animateTo(win, zoneRect(zone)); zone = null; dragging = false; snap = null; return; }
         if (dragging && snap && win.app.resizable !== false) {
           const area = workArea();
@@ -306,9 +314,10 @@
           if (dir.includes('s')) ht = Math.max(minH, r.h + dy);
           if (dir.includes('w')) { w = Math.max(minW, r.w - dx); x = r.x + r.w - w; }
           if (dir.includes('n')) { ht = Math.max(minH, r.h - dy); y = r.y + r.h - ht; if (y < MENUBAR) { ht -= MENUBAR - y; y = MENUBAR; } }
+          if (PatOS.wmPro) ({ x, y, w, h: ht } = PatOS.wmPro.magnet(win, { x, y, w, h: ht }, dir, ev));
           Object.assign(win.el.style, { left: x + 'px', top: y + 'px', width: w + 'px', height: ht + 'px' });
         };
-        const up = () => { hd.removeEventListener('pointermove', move); hd.removeEventListener('pointerup', up); layer().classList.remove('dragging'); };
+        const up = () => { hd.removeEventListener('pointermove', move); hd.removeEventListener('pointerup', up); layer().classList.remove('dragging'); if (PatOS.wmPro) PatOS.wmPro.clearGuides(); };
         hd.addEventListener('pointermove', move); hd.addEventListener('pointerup', up);
       });
     });
@@ -401,6 +410,7 @@
     PatOS.emit('wm:minimize', win);
   }
   function restoreWindow(win) {
+    if (win.tabHidden && PatOS.wmPro) return PatOS.wmPro.showTab(win); // (a tab that isn't shown: show that tab)
     setTimeout(updateFS, 0);
     if (PatOS.isMobile && PatOS.mobile) return PatOS.mobile.show(win);
     if (!win.minimized) return focusWindow(win);
