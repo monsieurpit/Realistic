@@ -2808,6 +2808,38 @@ html[data-theme="dark"] .ytx { --yb: #0f0f0f; --yb2: #272727; --yb3: #3f3f3f; --
 .wd-plane.far .wd-ib small, .wd-plane.far .wd-np { visibility: hidden; }
 .wd-item img, .wd-item svg { -webkit-user-drag: none; user-select: none; pointer-events: none; } .wd-item { user-select: none; }
 
+/* PatOS Data 4.0 (js/apps/data.js) */
+.dt-win .win-body { display: flex; flex-direction: column; background: var(--win-solid); }
+.dt-win .win-toolbar .ui-search { width: 280px; }
+.dt-wrap { flex: 1; display: flex; min-height: 0; }
+.dt-side { width: 210px; flex: 0 0 210px; border-right: 1px solid var(--border); padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+.dt-main { flex: 1; min-width: 0; overflow-y: auto; padding: 20px 24px; }
+.dt-insp { width: 320px; flex: 0 0 320px; border-left: 1px solid var(--border); padding: 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; } .dt-insp.hidden { display: none; }
+.dt-h { margin: 0 0 4px; font-size: 22px; } .dt-sub { margin: 0 0 16px; color: var(--text2); } .dt-fine { color: var(--text3); font-size: 12px; margin: 4px 6px; }
+.dt-head { display: flex; align-items: center; gap: 12px; } .dt-cnt { color: var(--text3); font-size: 13px; }
+.dt-kwl { display: flex; align-items: center; gap: 8px; margin: 8px 0 14px; } .dt-kwl small { color: var(--text2); } .dt-kw { flex: 1; max-width: 520px; }
+.dt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 8px; margin-bottom: 14px; }
+.dt-card { position: relative; display: flex; align-items: center; gap: 10px; padding: 10px; border-radius: 14px; border: 1px solid var(--border); background: rgba(127,127,127,.05); color: inherit; text-align: left; font: inherit; cursor: pointer; min-width: 0; }
+.dt-card:hover { background: rgba(127,127,127,.12); } .dt-card.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
+.dt-ci { width: 34px; height: 34px; flex: 0 0 34px; border-radius: 10px; display: grid; place-items: center; background: color-mix(in srgb, var(--kc) 20%, transparent); color: var(--kc); } .dt-ci .sym { width: 18px; height: 18px; }
+.dt-ci.big { width: 44px; height: 44px; flex-basis: 44px; } .dt-ci.big .sym { width: 24px; height: 24px; }
+.dt-ct { display: flex; flex-direction: column; min-width: 0; } .dt-ct b { font-size: 13.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .dt-ct small { font-size: 11.5px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dt-x { position: absolute; top: 4px; right: 6px; width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; color: var(--text3); opacity: 0; } .dt-card:hover .dt-x { opacity: 1; } .dt-x:hover { background: rgba(127,127,127,.2); color: var(--text); }
+.dt-sugs, .dt-cols { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; margin-bottom: 18px; }
+.dt-sug, .dt-colc { display: flex; flex-direction: column; align-items: flex-start; gap: 4px; padding: 14px; border-radius: 16px; border: 1px dashed var(--border); background: rgba(127,127,127,.04); color: inherit; font: inherit; cursor: pointer; text-align: left; }
+.dt-colc { border-style: solid; } .dt-sug:hover, .dt-colc:hover { background: rgba(127,127,127,.1); } .dt-sug small, .dt-colc small { color: var(--text3); font-size: 12px; } .dt-sugp { color: var(--accent); font-size: 12.5px; font-weight: 600; margin-top: 4px; }
+.dt-hist { display: flex; flex-direction: column; gap: 6px; max-width: 640px; } .dt-hd { margin: 12px 0 2px; font-size: 12px; font-weight: 600; color: var(--text2); text-transform: capitalize; }
+.dt-graph { position: relative; height: calc(100% - 140px); min-height: 360px; border-radius: 16px; background: rgba(127,127,127,.05); border: 1px solid var(--border); overflow: hidden; } .dt-graph canvas { display: block; cursor: grab; }
+.dt-tip { position: absolute; padding: 4px 8px; border-radius: 8px; background: rgba(0,0,0,.75); color: #fff; font-size: 12px; pointer-events: none; white-space: nowrap; } .dt-tip.hidden { display: none; }
+.dt-ih { display: flex; align-items: flex-start; gap: 10px; } .dt-ih > div { flex: 1; min-width: 0; display: flex; flex-direction: column; } .dt-ih b { font-size: 15px; } .dt-ih small { color: var(--text3); font-size: 12px; }
+.dt-ix { border: 0; background: none; color: var(--text2); font-size: 18px; cursor: pointer; }
+.dt-ib { display: flex; flex-wrap: wrap; gap: 6px; }
+.dt-rel { display: flex; flex-direction: column; gap: 10px; } .dt-ri { display: flex; flex-direction: column; gap: 3px; } .dt-why { color: var(--text2); font-size: 11.5px; padding-left: 4px; }
+.dt-unl { align-self: flex-start; border: 0; background: none; color: var(--text3); font: inherit; font-size: 11.5px; cursor: pointer; padding: 0 4px; } .dt-unl:hover { color: #ff453a; }
+.dt-pickw { display: flex; flex-direction: column; gap: 8px; min-width: 420px; } .dt-pick { display: flex; flex-direction: column; gap: 2px; max-height: 50vh; overflow-y: auto; }
+.dt-pi { display: flex; align-items: center; gap: 10px; padding: 6px 8px; border: 0; border-radius: 10px; background: none; color: inherit; font: inherit; text-align: left; cursor: pointer; } .dt-pi:hover { background: rgba(127,127,127,.12); } .dt-pi small { margin-left: auto; color: var(--text3); font-size: 11.5px; }
+.dt-explore { display: flex; flex-direction: column; gap: 12px; }
+
 </style>
   <style>
 /* ===== Shared office UI (Docs, Sheets, Slides, Forms) ===== */
@@ -5501,11 +5533,11 @@ html.reduce-motion :is(.pat-orb, .po-b) { animation: none !important; }
    panel .sd-side, YouTube's "up next" .yt-side/.ytx-side and Calendar's right panel .cal-side: they aren't navigation.) */
 
 /* ---------- sidebars ---------- */
-:is(.ui-side, .wd-side, .fd-side, .st-side, .dv-side, .mu-side, .pw-side, .nw-side, .rm-side, .notes-side, .msg-side, .ph-side, .ct-side, .nf-side, .gr-side, .pdv-side, .sc-side, .rd-side, .m2-side, .ps-side, .cap-side, .sp-side) {
+:is(.ui-side, .wd-side, .dt-side, .fd-side, .st-side, .dv-side, .mu-side, .pw-side, .nw-side, .rm-side, .notes-side, .msg-side, .ph-side, .ct-side, .nf-side, .gr-side, .pdv-side, .sc-side, .rd-side, .m2-side, .ps-side, .cap-side, .sp-side) {
   background: var(--sidebar); border-right: 1px solid var(--border); scrollbar-width: thin;
 }
 /* the section headings inside them */
-:is(.ui-side, .wd-side, .fd-side, .st-side, .dv-side, .mu-side, .pw-side, .nw-side, .rm-side, .notes-side, .msg-side, .ph-side, .ct-side, .nf-side, .gr-side, .pdv-side, .sc-side, .rd-side, .m2-side, .ps-side, .cap-side, .sp-side) :is(h4, .ui-sh) {
+:is(.ui-side, .wd-side, .dt-side, .fd-side, .st-side, .dv-side, .mu-side, .pw-side, .nw-side, .rm-side, .notes-side, .msg-side, .ph-side, .ct-side, .nf-side, .gr-side, .pdv-side, .sc-side, .rd-side, .m2-side, .ps-side, .cap-side, .sp-side) :is(h4, .ui-sh) {
   margin: var(--sp-4) 10px var(--sp-1); font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text3);
 }
 /* ---------- sidebar items: one height, one corner, one selected look ---------- */
@@ -7414,8 +7446,8 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
 /* generated by build.js from updates.json: do not edit */
 PatOS.version = "3.3.0";
 PatOS.releases = [{"version":"3.3.0","date":"2026-11-13","title":{"en":"PatOS 3.3: Crystal","fr":"PatOS 3.3 : Cristal"},"notes":{"en":["The PatOS Pill: a black capsule at the top of the screen, always there, like the island on a phone. Whatever is happening grows out of it: a timer counting down with rolling digits, the song playing with bars that move with the music, a copy or a backup with its progress, any app using the microphone or the camera (with a button to turn it off), a timer or alarm ringing (Stop, Snooze), your next event and reminder, Focus sessions, Shortcuts and Pat while they work. Click it, or press Alt+A, for the Activity Overview: every activity with its controls, and what finished recently. Messages and important notifications come into it instead of a banner, and it flashes the volume, the brightness, Do Not Disturb, charging and the network. Apps can add their own activities. Settings › Desktop & Dock › PatOS Pill","Real processes: every app that runs is a process with its own PID. PatOS measures the processor time its code really uses and keeps track of everything it starts (timers, animations, workers, network requests, the microphone and camera, sound). An app that’s still doing something after its window closed (music playing) keeps running in the background. Force Quit really stops everything it started, and never the copies or backups it began. The new Activity Monitor shows CPU, Memory and Energy, with Quit, Force Quit and a detail view; the Pill warns when an app slows PatOS down. In the Terminal, ps, top, kill, kill -9 and killall work on the real processes, PatOS’s own processes are protected, and only sudo kill 1 or 42 is the kernel panic","Command Center (Alt+K): what is happening in PatOS in one place: what needs you, activities running now with real Pause, Resume and Cancel, sync, backups, storage, your account and recent notifications","Notifications 2.0: a searchable history grouped by app, rules for each app (allow, banners, sounds), quiet hours, priorities (urgent ones always get through), the same notification counted instead of repeated, and notifications that arrive at a set time, even after a restart","Capture (Alt+C): save anything in one box, a thought, a link, a picture or files, and decide later. It recognizes links, contacts and dates (and shows why), and sends each item where it belongs: Notes, Reminders, Calendar, Piles. Deleted items stay 30 days","A better clipboard: passwords, card numbers and keys are never kept; clean up what you copied (plain text, case, spaces, duplicate lines, only the links), group it in collections, and pictures are kept too","Share anything with Universal Actions: send a file, a link or some text to the apps that can really use it","Piles Pro: copies, moves and the Trash run in a queue that never freezes PatOS, with Pause, Resume, Cancel and Retry, and come back after a restart. Find duplicate files, compare two text files line by line, look inside a .zip without extracting it, and go back to earlier versions of a text file","Shared Spaces: workspaces you share with other PatOS accounts, with roles (owner, admin, editor, commenter, viewer), invitations, comments and activity. Nothing is ever overwritten: if someone saved first, your version is kept next to theirs. Changes made offline go out when you’re back online","Windows 2.0: windows click magnetically to the screen’s edges and to each other (hold Shift to place one freely), throw a window to an edge to fill that half, drop a window on another of the same app to make tabs, and arrange them from the keyboard (Ctrl+Alt+arrows for halves and thirds, U I J K for quarters, Enter to fill, C to center, T to tile them all)","A real Liquid Glass renderer: the edges of the glass bend what is behind them the way real glass does, catch the light, and split colors a little right at the rim (Settings › Appearance › Rainbow edges). And a crystal Dock: thicker, brighter glass with a light rim and a reflection inside","Sound design: every sound is made live by PatOS, soft glass bells, taps and air, in tune with each other: windows, switches, notifications, messages, captures, finished tasks, locking. Choose Glass or Soft in Settings › Sound","One design system: sidebars, lists, empty pages, sheets and controls look and behave the same in every app, and selected items are easier to read","Sturdier updates: an update that was just installed is never offered again in a loop, PatOS starts on the version you installed even when the browser can’t keep an offline copy, and devices that sync no longer ask to be set up again after a restart"],"fr":["La pilule PatOS : une capsule noire en haut de l’écran, toujours là, comme l’îlot d’un téléphone. Ce qui se passe en sort : un minuteur avec des chiffres qui roulent, la chanson en cours avec des barres qui bougent avec la musique, une copie ou une sauvegarde avec sa progression, toute app qui utilise le micro ou la caméra (avec un bouton pour l’éteindre), un minuteur ou une alarme qui sonne (Arrêter, Répéter), votre prochain événement et rappel, les sessions de Focus, les raccourcis et Pat pendant qu’ils travaillent. Cliquez dessus, ou Alt+A, pour l’aperçu des activités : chaque activité avec ses commandes, et ce qui s’est terminé récemment. Les messages et les notifications importantes y arrivent au lieu d’une bannière, et elle montre un instant le volume, la luminosité, Ne pas déranger, la recharge et le réseau. Les apps peuvent y ajouter leurs activités. Réglages › Bureau et Dock › Pilule PatOS","De vrais processus : chaque app qui tourne est un processus avec son propre PID. PatOS mesure le temps de processeur que son code utilise vraiment et suit tout ce qu’elle lance (minuteurs, animations, tâches de fond, requêtes réseau, micro et caméra, son). Une app qui fait encore quelque chose après la fermeture de sa fenêtre (de la musique) continue en arrière-plan. Forcer à quitter arrête vraiment tout ce qu’elle a lancé, et jamais les copies ou sauvegardes qu’elle a commencées. Le nouveau Moniteur d’activité montre Processeur, Mémoire et Énergie, avec Quitter, Forcer à quitter et une vue détaillée; la pilule avertit quand une app ralentit PatOS. Dans le Terminal, ps, top, kill, kill -9 et killall agissent sur les vrais processus, ceux de PatOS sont protégés, et seuls sudo kill 1 ou 42 déclenchent la panique du noyau","Centre de commande (Alt+K) : ce qui se passe dans PatOS au même endroit : ce qui a besoin de vous, les activités en cours avec de vrais Pause, Reprendre et Annuler, la synchro, les sauvegardes, le stockage, votre compte et les notifications récentes","Notifications 2.0 : un historique consultable groupé par app, des règles pour chaque app (autoriser, bannières, sons), des heures de calme, des priorités (les urgentes passent toujours), la même notification comptée au lieu d’être répétée, et des notifications qui arrivent à une heure choisie, même après un redémarrage","Capture (Alt+C) : gardez n’importe quoi dans une seule boîte, une idée, un lien, une image ou des fichiers, et décidez plus tard. Elle reconnaît les liens, les contacts et les dates (et dit pourquoi), et envoie chaque élément au bon endroit : Notes, Rappels, Calendrier, Piles. Les éléments supprimés restent 30 jours","Un meilleur presse-papiers : les mots de passe, numéros de carte et clés ne sont jamais gardés; nettoyez ce que vous avez copié (texte brut, majuscules, espaces, lignes en double, seulement les liens), groupez-le en collections, et les images sont gardées aussi","Partagez n’importe quoi avec les actions universelles : envoyez un fichier, un lien ou du texte aux apps qui peuvent vraiment s’en servir","Piles Pro : les copies, déplacements et la Corbeille passent par une file qui ne fige jamais PatOS, avec Pause, Reprendre, Annuler et Réessayer, et reviennent après un redémarrage. Trouvez les fichiers en double, comparez deux fichiers texte ligne par ligne, regardez dans un .zip sans l’extraire, et revenez aux versions précédentes d’un fichier texte","Espaces partagés : des espaces de travail partagés avec d’autres comptes PatOS, avec des rôles (propriétaire, admin, éditeur, commentateur, lecteur), des invitations, des commentaires et l’activité. Rien n’est jamais écrasé : si quelqu’un a enregistré avant vous, votre version est gardée à côté de la sienne. Les changements faits hors ligne partent quand Internet revient","Fenêtres 2.0 : les fenêtres s’accrochent aux bords de l’écran et entre elles (Maj pour en placer une librement), lancez une fenêtre vers un bord pour remplir cette moitié, déposez une fenêtre sur une autre de la même app pour créer des onglets, et disposez-les au clavier (Ctrl+Alt+flèches pour les moitiés et les tiers, U I J K pour les quarts, Entrée pour remplir, C pour centrer, T pour toutes les disposer)","Un vrai moteur Liquid Glass : les bords du verre plient ce qui est derrière comme du vrai verre, captent la lumière, et séparent un peu les couleurs tout au bord (Réglages › Apparence › Bords irisés). Et un Dock en cristal : un verre plus épais et plus brillant avec un bord lumineux et un reflet à l’intérieur","Design sonore : chaque son est créé en direct par PatOS, de douces cloches de verre, des tapotements et des souffles, accordés entre eux : fenêtres, interrupteurs, notifications, messages, captures, tâches terminées, verrouillage. Choisissez Verre ou Doux dans Réglages › Son","Un seul système de design : les barres latérales, listes, pages vides, feuilles et commandes se ressemblent et se comportent pareil dans chaque app, et les éléments choisis sont plus lisibles","Des mises à jour plus solides : une mise à jour qui vient d’être installée n’est plus jamais proposée en boucle, PatOS démarre sur la version installée même quand le navigateur ne peut pas garder de copie hors ligne, et les appareils synchronisés ne demandent plus d’être configurés à nouveau après un redémarrage"]}},{"version":"3.2.1","date":"2026-11-13","title":{"en":"PatOS 3.2.1","fr":"PatOS 3.2.1"},"more":true},{"version":"3.2.0","date":"2026-11-12","title":{"en":"PatOS 3.2: Messages","fr":"PatOS 3.2 : Messages"},"more":true},{"version":"3.1.0","date":"2026-11-12","title":{"en":"PatOS 3.1: Handoff","fr":"PatOS 3.1 : Continuité"},"more":true},{"version":"3.0.0","date":"2026-11-10","title":{"en":"PatOS 3: Prism","fr":"PatOS 3 : Prisme"},"more":true},{"version":"2.3.1","date":"2026-11-09","title":{"en":"Drawn glass icons","fr":"Des icônes dessinées en verre"},"more":true},{"version":"2.3.0","date":"2026-11-09","title":{"en":"Liquid Glass, everywhere","fr":"Liquid Glass, partout"},"more":true},{"version":"2.2.2","date":"2026-11-09","title":{"en":"Liquid Glass without the light bar","fr":"Liquid Glass sans la barre de lumière"},"more":true},{"version":"2.2.1","date":"2026-11-09","title":{"en":"Thick, clear Liquid Glass","fr":"Liquid Glass épais et clair"},"more":true},{"version":"2.2.0","date":"2026-11-09","title":{"en":"Liquid Glass, rebuilt","fr":"Liquid Glass, refait"},"more":true},{"version":"2.1.3","date":"2026-11-06","title":{"en":"PitCode Studio on iPhone","fr":"PitCode Studio sur iPhone"},"more":true},{"version":"2.1.2","date":"2026-11-06","title":{"en":"Importing projects, made sturdier","fr":"Importer des projets, en plus solide"},"more":true},{"version":"2.1.1","date":"2026-11-06","title":{"en":"Importing files on phones","fr":"Importer des fichiers sur téléphone"},"more":true},{"version":"2.1.0","date":"2026-11-05","title":{"en":"PatOS 2.1: Slither and a better Studio","fr":"PatOS 2.1 : Slither et un meilleur Studio"},"more":true},{"version":"2.0.0","date":"2026-11-05","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"more":true},{"version":"1.7.0","date":"2026-11-04","title":{"en":"Better apps","fr":"De meilleures apps"},"more":true},{"version":"1.6.0","date":"2026-11-03","title":{"en":"Software Update","fr":"Mise à jour de logiciels"},"more":true},{"version":"1.5.0","date":"2026-11-03","title":{"en":"iPhone swipe up, Reminders in plain words","fr":"Balayage sur iPhone, Rappels en mots simples"},"more":true},{"version":"1.4.0","date":"2026-11-03","title":{"en":"Clock and Calculator","fr":"Horloge et Calculatrice"},"more":true},{"version":"1.3.0","date":"2026-11-03","title":{"en":"Finder and TextEdit","fr":"Finder et TextEdit"},"more":true},{"version":"1.2.0","date":"2026-11-03","title":{"en":"Faster start, smoother 3D","fr":"Démarrage plus rapide, 3D plus fluide"},"more":true},{"version":"1.1.0","date":"2026-11-03","title":{"en":"Security","fr":"Sécurité"},"more":true}];
-PatOS.beta = {"version":"4.0.0","beta":4,"date":"2026-11-13","title":{"en":"PatOS 4.0: Beyond the desktop","fr":"PatOS 4.0 : Au-delà du bureau"},"notes":{"en":["Fixed: panels made in PatOS Studio showed giant icons over the widgets on the desktop (they had no style). They’re small glass cards now; hold and drag to move one, right-click to remove it or edit it in Studio","PatOS World: infinite boards. Put sticky notes, files, pictures, links, notes, live widgets, app tiles and collections anywhere, pan and zoom freely, select several with Shift, group them, and undo with Ctrl+Z. Zones name areas of a board; link one to a folder and dropping a file in it moves the file there through Piles (after asking). Pin a real app window on a board, with everything it has open. An app group opens all its apps at once. Only what’s near the screen is drawn, so big boards stay fast","PatOS Studio: make your own desktop, visually. The stage is your screen, scaled: drag widgets and panels, pull a corner to resize, arrow keys to nudge. On the right: each widget’s settings, panel buttons, the look (appearance, accent, glass, wallpaper), the Dock, your own menus and keyboard shortcuts. A widget maker builds widgets from blocks (text, a live value, a button, a picture). Preview it on your real desktop (Keep or Revert), save it with its earlier versions, duplicate it, apply it to any profile, and share it as a .patdesk file","Fixed: in widget edit mode, the Add Widget / Done bar stayed on screen after pressing Done","PatOS Profiles: separate environments like School, Personal or Gaming. Each has its own look, Dock, widgets, panels, menus, keyboard shortcuts, notification rules and open windows; switching keeps the other profile’s windows exactly as they were. Your files, notes, apps and account are shared by all of them. Settings › Desktop & Multitasking › Profiles, or the Profile tile in Control Center. Desktop configurations: your whole desktop (look, Dock, widgets, panels, menus, shortcuts) as one file you can save with its versions, duplicate, export and import; an imported one is checked and can never run code","The desktop becomes a dashboard: widgets you can place anywhere, resize, stack and configure (clock, calendar, up next, reminders you can check off, music controls, system, weather, notes, countdown, apps, photo, collections), widgets you make in PatOS Studio, and widgets from others that run sandboxed with only the permissions you give them"],"fr":["Corrigé : les panneaux faits dans PatOS Studio montraient des icônes géantes par-dessus les widgets du bureau (ils n’avaient pas de style). Ce sont maintenant de petites cartes de verre; maintenez et glissez pour en déplacer un, clic droit pour le retirer ou le modifier dans Studio","PatOS World : des tableaux infinis. Placez notes autocollantes, fichiers, images, liens, notes, widgets en direct, tuiles d’apps et collections n’importe où, déplacez-vous et zoomez librement, sélectionnez-en plusieurs avec Maj, groupez-les, et annulez avec Ctrl+Z. Les zones nomment des parties d’un tableau; liez-en une à un dossier et y déposer un fichier le déplace là par Piles (après avoir demandé). Épinglez une vraie fenêtre d’app sur un tableau, avec tout ce qu’elle a d’ouvert. Un groupe d’apps les ouvre toutes d’un coup. Seul ce qui est près de l’écran est dessiné, pour que les grands tableaux restent rapides","PatOS Studio : créez votre propre bureau, visuellement. La scène est votre écran, à l’échelle : glissez les widgets et panneaux, tirez un coin pour redimensionner, les flèches pour ajuster. À droite : les réglages de chaque widget, les boutons des panneaux, l’apparence (thème, accent, verre, fond d’écran), le Dock, vos propres menus et raccourcis clavier. Un créateur de widgets en fait à partir de blocs (texte, valeur en direct, bouton, image). Essayez-le sur votre vrai bureau (Garder ou Revenir), enregistrez-le avec ses versions précédentes, dupliquez-le, appliquez-le à n’importe quel profil, et partagez-le en fichier .patdesk","Corrigé : en mode modification des widgets, la barre Ajouter un widget / Terminé restait à l’écran après avoir appuyé sur Terminé","Profils PatOS : des environnements séparés comme École, Personnel ou Jeux. Chacun a sa propre apparence, son Dock, ses widgets, panneaux, menus, raccourcis clavier, règles de notifications et fenêtres ouvertes; changer garde les fenêtres de l’autre profil exactement comme elles étaient. Vos fichiers, notes, apps et compte sont partagés par tous. Réglages › Bureau et multitâche › Profils, ou la tuile Profil dans le Centre de contrôle. Configurations de bureau : tout votre bureau (apparence, Dock, widgets, panneaux, menus, raccourcis) dans un seul fichier à enregistrer avec ses versions, dupliquer, exporter et importer; une configuration importée est vérifiée et ne peut jamais exécuter de code","Le bureau devient un tableau de bord : des widgets à placer n’importe où, redimensionner, empiler et configurer (horloge, calendrier, à venir, rappels à cocher, contrôle de la musique, système, météo, notes, compte à rebours, apps, photo, collections), des widgets créés dans PatOS Studio, et des widgets d’autres personnes qui tournent isolés avec seulement les permissions que vous leur donnez"]}};
-PatOS.build = {"channel":"beta","version":"4.0.0","beta":4};
+PatOS.beta = {"version":"4.0.0","beta":5,"date":"2026-11-13","title":{"en":"PatOS 4.0: Beyond the desktop","fr":"PatOS 4.0 : Au-delà du bureau"},"notes":{"en":["PatOS Data: what connects your files, notes, events, reminders, captures and boards. It finds what goes together with fixed rules (the same tag, the same distinctive words, a note that names a file, the same folder, the same day, links you make) and every link says why. Collections gather a project from a few words, with what you add or take out; Data suggests some. See a project’s history, explore its graph, and open what you find. You stay in control: remove a wrong link, mark something private, leave out kinds or folders, turn it off; it reads only when you use it. Collections also show in a widget and on World boards","Fixed: panels made in PatOS Studio showed giant icons over the widgets on the desktop (they had no style). They’re small glass cards now; hold and drag to move one, right-click to remove it or edit it in Studio","PatOS World: infinite boards. Put sticky notes, files, pictures, links, notes, live widgets, app tiles and collections anywhere, pan and zoom freely, select several with Shift, group them, and undo with Ctrl+Z. Zones name areas of a board; link one to a folder and dropping a file in it moves the file there through Piles (after asking). Pin a real app window on a board, with everything it has open. An app group opens all its apps at once. Only what’s near the screen is drawn, so big boards stay fast","PatOS Studio: make your own desktop, visually. The stage is your screen, scaled: drag widgets and panels, pull a corner to resize, arrow keys to nudge. On the right: each widget’s settings, panel buttons, the look (appearance, accent, glass, wallpaper), the Dock, your own menus and keyboard shortcuts. A widget maker builds widgets from blocks (text, a live value, a button, a picture). Preview it on your real desktop (Keep or Revert), save it with its earlier versions, duplicate it, apply it to any profile, and share it as a .patdesk file","Fixed: in widget edit mode, the Add Widget / Done bar stayed on screen after pressing Done","PatOS Profiles: separate environments like School, Personal or Gaming. Each has its own look, Dock, widgets, panels, menus, keyboard shortcuts, notification rules and open windows; switching keeps the other profile’s windows exactly as they were. Your files, notes, apps and account are shared by all of them. Settings › Desktop & Multitasking › Profiles, or the Profile tile in Control Center. Desktop configurations: your whole desktop (look, Dock, widgets, panels, menus, shortcuts) as one file you can save with its versions, duplicate, export and import; an imported one is checked and can never run code","The desktop becomes a dashboard: widgets you can place anywhere, resize, stack and configure (clock, calendar, up next, reminders you can check off, music controls, system, weather, notes, countdown, apps, photo, collections), widgets you make in PatOS Studio, and widgets from others that run sandboxed with only the permissions you give them"],"fr":["PatOS Data : ce qui lie vos fichiers, notes, événements, rappels, captures et tableaux. Il trouve ce qui va ensemble avec des règles fixes (la même étiquette, les mêmes mots distinctifs, une note qui nomme un fichier, le même dossier, le même jour, les liens que vous faites) et chaque lien dit pourquoi. Les collections rassemblent un projet à partir de quelques mots, avec ce que vous ajoutez ou retirez; Data en suggère. Voyez l’historique d’un projet, explorez son graphe, et ouvrez ce que vous trouvez. Vous gardez le contrôle : retirez un lien faux, rendez un élément privé, excluez des types ou des dossiers, désactivez-le; il ne lit que quand vous l’utilisez. Les collections s’affichent aussi dans un widget et sur les tableaux World","Corrigé : les panneaux faits dans PatOS Studio montraient des icônes géantes par-dessus les widgets du bureau (ils n’avaient pas de style). Ce sont maintenant de petites cartes de verre; maintenez et glissez pour en déplacer un, clic droit pour le retirer ou le modifier dans Studio","PatOS World : des tableaux infinis. Placez notes autocollantes, fichiers, images, liens, notes, widgets en direct, tuiles d’apps et collections n’importe où, déplacez-vous et zoomez librement, sélectionnez-en plusieurs avec Maj, groupez-les, et annulez avec Ctrl+Z. Les zones nomment des parties d’un tableau; liez-en une à un dossier et y déposer un fichier le déplace là par Piles (après avoir demandé). Épinglez une vraie fenêtre d’app sur un tableau, avec tout ce qu’elle a d’ouvert. Un groupe d’apps les ouvre toutes d’un coup. Seul ce qui est près de l’écran est dessiné, pour que les grands tableaux restent rapides","PatOS Studio : créez votre propre bureau, visuellement. La scène est votre écran, à l’échelle : glissez les widgets et panneaux, tirez un coin pour redimensionner, les flèches pour ajuster. À droite : les réglages de chaque widget, les boutons des panneaux, l’apparence (thème, accent, verre, fond d’écran), le Dock, vos propres menus et raccourcis clavier. Un créateur de widgets en fait à partir de blocs (texte, valeur en direct, bouton, image). Essayez-le sur votre vrai bureau (Garder ou Revenir), enregistrez-le avec ses versions précédentes, dupliquez-le, appliquez-le à n’importe quel profil, et partagez-le en fichier .patdesk","Corrigé : en mode modification des widgets, la barre Ajouter un widget / Terminé restait à l’écran après avoir appuyé sur Terminé","Profils PatOS : des environnements séparés comme École, Personnel ou Jeux. Chacun a sa propre apparence, son Dock, ses widgets, panneaux, menus, raccourcis clavier, règles de notifications et fenêtres ouvertes; changer garde les fenêtres de l’autre profil exactement comme elles étaient. Vos fichiers, notes, apps et compte sont partagés par tous. Réglages › Bureau et multitâche › Profils, ou la tuile Profil dans le Centre de contrôle. Configurations de bureau : tout votre bureau (apparence, Dock, widgets, panneaux, menus, raccourcis) dans un seul fichier à enregistrer avec ses versions, dupliquer, exporter et importer; une configuration importée est vérifiée et ne peut jamais exécuter de code","Le bureau devient un tableau de bord : des widgets à placer n’importe où, redimensionner, empiler et configurer (horloge, calendrier, à venir, rappels à cocher, contrôle de la musique, système, météo, notes, compte à rebours, apps, photo, collections), des widgets créés dans PatOS Studio, et des widgets d’autres personnes qui tournent isolés avec seulement les permissions que vous leur donnez"]}};
+PatOS.build = {"channel":"beta","version":"4.0.0","beta":5};
 
 </script>
   <script type="patos/js">
@@ -8950,6 +8982,67 @@ PatOS.build = {"channel":"beta","version":"4.0.0","beta":4};
     'The board goes. The files, notes and apps on it stay where they are.': 'Le tableau part. Les fichiers, notes et apps qui s’y trouvent restent où ils sont.',
     'My world': 'Mon monde',
     'Edit in Studio': 'Modifier dans Studio',
+    'Take out of the collection': 'Retirer de la collection',
+    'None yet.': 'Aucune pour l’instant.',
+    'What connects': 'Ce qui est lié',
+    'things read: files, notes, events, reminders, captures and boards. Every link says why.': 'éléments lus : fichiers, notes, événements, rappels, captures et tableaux. Chaque lien dit pourquoi.',
+    'Make a collection': 'Créer une collection',
+    'The words that gather this collection, separated by commas': 'Les mots qui forment cette collection, séparés par des virgules',
+    'Add something…': 'Ajouter quelque chose…',
+    'Put on a World board': 'Mettre sur un tableau World',
+    'Open in Gallery': 'Ouvrir dans Gallery',
+    'Delete Collection…': 'Supprimer la collection…',
+    'Only the collection goes. Nothing in it is deleted.': 'Seule la collection part. Rien de ce qu’elle contient n’est supprimé.',
+    'Privacy & indexing': 'Confidentialité et indexation',
+    'Data only reads when you use it, keeps its index in memory, and never reads what you leave out.': 'Data ne lit que quand vous l’utilisez, garde son index en mémoire, et ne lit jamais ce que vous excluez.',
+    'Leave out': 'Exclure',
+    'Read it again': 'Le relire',
+    'Mark a thing private from its details: Data stops reading it.': 'Marquez un élément comme privé depuis ses détails : Data arrête de le lire.',
+    'Reads everything again from the start.': 'Relit tout depuis le début.',
+    'Rebuilt': 'Reconstruit',
+    'Rebuild': 'Reconstruire',
+    'Keep in collection': 'Garder dans la collection',
+    'Data stops reading it': 'Data arrête de le lire',
+    'Make it private?': 'Le rendre privé?',
+    'Data stops reading it and it leaves every collection. The thing itself doesn’t change.': 'Data arrête de le lire et il quitte toutes les collections. L’élément lui-même ne change pas.',
+    'Make Private': 'Rendre privé',
+    'Not related': 'Pas lié',
+    'Nothing yet. Link something by hand:': 'Rien pour l’instant. Liez quelque chose à la main :',
+    'Link to…': 'Lier à…',
+    'Search everything': 'Tout rechercher',
+    'Add something': 'Ajouter quelque chose',
+    'New collection': 'Nouvelle collection',
+    'Biology project': 'Projet de biologie',
+    'Data gathers what matches its name; you can add more words after.': 'Data rassemble ce qui correspond à son nom; vous pourrez ajouter d’autres mots ensuite.',
+    'Graph of what connects': 'Graphe de ce qui est lié',
+    'linked by you': 'lié par vous',
+    'one names the other': 'l’un nomme l’autre',
+    'both mention': 'les deux mentionnent',
+    'same folder': 'même dossier',
+    'same day': 'même jour',
+    'A collection needs a name.': 'Une collection a besoin d’un nom.',
+    'Collections': 'Collections',
+    'Your control': 'Votre contrôle',
+    'Things': 'Éléments',
+    'Events': 'Événements',
+    'Captures': 'Captures',
+    'Suggested collections': 'Collections suggérées',
+    'Your collections': 'Vos collections',
+    'What it may read': 'Ce qu’il peut lire',
+    'Folders it never reads': 'Dossiers qu’il ne lit jamais',
+    'Private things': 'Éléments privés',
+    'Index': 'Index',
+    'Rebuild now': 'Reconstruire maintenant',
+    'Leave out a folder': 'Exclure un dossier',
+    'Goes with': 'Va avec',
+    'PatOS Data is off': 'PatOS Data est désactivé',
+    'Nothing is read or connected.': 'Rien n’est lu ni lié.',
+    'Turned off, nothing is read or connected.': 'Désactivé, rien n’est lu ni lié.',
+    'Nothing matches yet': 'Rien ne correspond encore',
+    'Add words above, or add things by hand.': 'Ajoutez des mots ci-dessus, ou ajoutez des éléments à la main.',
+    'No dates yet': 'Aucune date',
+    'Nothing to draw yet': 'Rien à dessiner pour l’instant',
+    'Make one for a project: give it a name and a few words, and Data gathers what goes with it.': 'Créez-en une pour un projet : donnez-lui un nom et quelques mots, et Data rassemble ce qui va avec.',
     'Tile All Windows': 'Disposer toutes les fenêtres', 'Merge All Windows': 'Fusionner toutes les fenêtres', 'Move Tab to New Window': 'Placer l’onglet dans une nouvelle fenêtre', 'Magnetic edges': 'Bords magnétiques', 'Windows click to the screen’s edges and to each other. Hold Shift to place one freely.': 'Les fenêtres s’accrochent aux bords de l’écran et entre elles. Maintenez Maj pour en placer une librement.',
     'Stage Focus': 'Focus sur la scène', 'Save Window Group…': 'Enregistrer un groupe de fenêtres…', 'Save Window Group': 'Enregistrer un groupe de fenêtres', 'Delete a Window Group…': 'Supprimer un groupe de fenêtres…', 'window': 'fenêtre', 'windows': 'fenêtres', 'Window group saved': 'Groupe de fenêtres enregistré', 'Reopen them all from the Window menu.': 'Rouvrez-les toutes depuis le menu Fenêtre.',
     'Motion': 'Mouvement', 'Calm': 'Calme', 'Natural': 'Naturel', 'Playful': 'Enjoué', 'How windows, menus and panels move': 'La façon dont bougent les fenêtres, les menus et les panneaux',
@@ -16581,6 +16674,146 @@ PatOS.build = {"channel":"beta","version":"4.0.0","beta":4};
   PatOS.on('wm:ready', () => { const p = data.list.find((x) => x.id === active()); if (p && !p.settings) { snapshot(p); save(); } });
   // other devices changed the profiles (sync): read them again
   PatOS.on('sync', () => { const d = PatOS.store.get(KEY, null); if (d && Array.isArray(d.list) && d.list.length && JSON.stringify(d) !== JSON.stringify(data)) { data = d; PatOS.emit('profiles'); } });
+})();
+
+</script>
+  <script type="patos/js">
+/* PatOS Data (4.0): how the things in PatOS connect. Search finds a thing; Data knows what goes with it.
+
+   What it reads (only these, only when it's asked, and never what you exclude):
+     files (their name, folder, date, and the first 2 KB of text files) · notes · calendar events · reminders · captures ·
+     World boards
+   How it connects them (fixed rules, no AI, and every link says why):
+     - the same tag (#biology) · the same distinctive words in their titles (a word that's everywhere counts for little,
+       a rare one for a lot) · a note or file that names another file · the same folder · the same day
+     - links you make yourself (strongest) · links you removed (never shown again)
+   Collections (projects): a name, some words, things you add by hand and things you take out. Everything that matches the
+   words, plus what you added, minus what you took out. Data also suggests collections for words that tie together several
+   kinds of things.
+   Your control (Settings live in the Data app): turn it off, leave out kinds or folders, mark a thing private (never read),
+   remove a wrong link, add a right one, rebuild. The index lives only in memory; what is saved is your choices
+   (collections, links, exclusions), and they sync like your other data. */
+(function () {
+  'use strict';
+  const T = (s) => PatOS.t(s);
+  const K = { cols: 'dataCollections', links: 'dataLinks', unlinks: 'dataUnlinks', prefs: 'dataPrefs' };
+  const prefs = () => Object.assign({ on: true, kinds: ['file', 'note', 'event', 'reminder', 'capture', 'world'], paths: [], private: [] }, PatOS.store.get(K.prefs, {}) || {});
+  const fold = (s) => String(s || '').toLowerCase().normalize('NFD').replace(/[̀-ͯ]/g, '');
+  const STOP = new Set(('the and for with that this from your you are was were have has had not but all any can our out who what when where why how into onto about over under then than them they their there here just also more most some such only very will would could should text file files note notes new untitled copy document documents image images photo photos download downloads desktop pictures music video videos ' +
+    'les des une pour avec dans sur par est sont pas plus que qui quoi mais ou donc car nous vous ils elles leur leurs ces cet cette son ses mes tes nos vos aux fichier fichiers nouveau nouvelle sans titre').split(' '));
+  const stem = (w) => (w.length > 5 ? w.replace(/(ations?|ements?|ings?|iques?|ies|es|s)$/, '') : w.length > 3 ? w.replace(/s$/, '') : w);
+  const words = (s) => (fold(s).match(/[a-z0-9][a-z0-9-]{2,}/g) || []).filter((w) => !STOP.has(w) && !/^\d+$/.test(w)).map(stem);
+  const tagsOf = (s) => (fold(s).match(/#[a-z0-9][a-z0-9_-]{1,30}/g) || []).map((t) => t.slice(1));
+  const dayOf = (t) => (t ? new Date(t).toISOString().slice(0, 10) : '');
+
+  /* ---------- the index (in memory, rebuilt when it's old and something changed) ---------- */
+  let idx = null, stale = true, built = 0;
+  ['fs', 'notes', 'calendar', 'reminders', 'capture', 'world', 'setting'].forEach((ev) => PatOS.on(ev, () => { stale = true; }));
+  const priv = () => new Set(prefs().private);
+  function collect() {
+    const p = prefs(), kinds = new Set(p.kinds), out = [], hidden = priv();
+    const add = (e) => { if (hidden.has(e.key)) return; e.tok = new Map(); const bump = (ws, w8) => ws.forEach((x) => e.tok.set(x, (e.tok.get(x) || 0) + w8)); bump(words(e.title), 3); bump(words(e.ctx || ''), 1); e.tags = [...new Set((e.tags || []).concat(tagsOf(e.title + ' ' + (e.ctx || ''))))]; e.tags.forEach((t) => e.tok.set(stem(t), (e.tok.get(stem(t)) || 0) + 3)); out.push(e); };
+    if (kinds.has('file')) PatOS.fs.walk('/', (path, n) => {
+      if (n.type !== 'file' || /(^|\/)\./.test(path) || path.startsWith('/System') || p.paths.some((x) => path === x || path.startsWith(x.replace(/\/$/, '') + '/'))) return;
+      const name = path.split('/').pop(), folder = path.slice(0, path.length - name.length - 1) || '/';
+      let ctx = folder.split('/').filter(Boolean).slice(-2).join(' ');
+      if (typeof n.content === 'string' && !n.content.startsWith('data:') && /\.(txt|md|csv|json|html?|js|py|pit)$/i.test(name)) ctx += ' ' + n.content.slice(0, 2048);
+      add({ key: 'file:' + path, kind: 'file', title: name.replace(/\.[a-z0-9]{1,5}$/i, ''), sub: folder, date: n.modified || n.mtime || n.created || 0, folder, path, ctx, text: typeof n.content === 'string' ? n.content.slice(0, 2048) : '' });
+    });
+    if (kinds.has('note')) (PatOS.store.get('notes', []) || []).forEach((n) => { if (!n || !n.id) return; const body = String(n.body || '').replace(/<[^>]*>/g, ' '); add({ key: 'note:' + n.id, kind: 'note', title: n.title || body.split('\n')[0].slice(0, 60) || T('New Note'), sub: T('Note'), date: n.updated || n.created || 0, ctx: body.slice(0, 3000), text: body.slice(0, 3000), tags: n.tags || [] }); });
+    if (kinds.has('event')) { const cal = PatOS.store.get('calendar', {}) || {}; Object.keys(cal).forEach((day) => (cal[day] || []).forEach((e) => { if (!e) return; add({ key: 'event:' + day + ':' + (e.id || e.title), kind: 'event', title: e.title || '', sub: day + (e.time ? ' ' + e.time : ''), date: new Date(day + 'T' + (e.time || '12:00')).getTime(), ctx: e.notes || '', day }); })); }
+    if (kinds.has('reminder')) (PatOS.store.get('reminders', []) || []).forEach((r) => { if (!r || !r.id) return; add({ key: 'reminder:' + r.id, kind: 'reminder', title: r.text || '', sub: r.due || T('Reminder'), date: r.due ? new Date(r.due + 'T' + (r.time || '12:00')).getTime() : r.created || 0, ctx: r.notes || '', done: !!r.done }); });
+    if (kinds.has('capture') && PatOS.capture) PatOS.capture.list({}).forEach((c) => add({ key: 'capture:' + c.id, kind: 'capture', title: c.title || '', sub: T('Capture'), date: c.t || 0, ctx: (c.obj && (c.obj.text || c.obj.url)) || '', tags: c.tags || [] }));
+    if (kinds.has('world') && PatOS.world) PatOS.world.list().forEach((w) => add({ key: 'world:' + w.id, kind: 'world', title: w.name, sub: 'World', date: w.updated || 0, ctx: '' }));
+    return out;
+  }
+  function build(force) {
+    if (!prefs().on) { idx = { list: [], by: new Map(), df: new Map(), n: 0 }; return idx; }
+    if (idx && !force && (!stale || Date.now() - built < 3000)) return idx;
+    const list = collect(), by = new Map(list.map((e) => [e.key, e])), df = new Map();
+    list.forEach((e) => e.tok.forEach((v, w) => df.set(w, (df.get(w) || 0) + 1)));
+    // references: a text that names a file (by its full name with extension)
+    const files = list.filter((e) => e.kind === 'file'); const nameMap = new Map(); files.forEach((f) => { const nm = fold(f.path.split('/').pop()); if (nm.length >= 5) nameMap.set(nm, f.key); });
+    list.forEach((e) => { e.refs = new Set(); const t = fold(e.text || ''); if (t) nameMap.forEach((k, nm) => { if (k !== e.key && t.includes(nm)) e.refs.add(k); }); });
+    idx = { list, by, df, n: list.length || 1 }; stale = false; built = Date.now(); return idx;
+  }
+  const idf = (w) => Math.log(1 + idx.n / (idx.df.get(w) || 1));
+  const pairKey = (a, b) => (a < b ? a + '|' + b : b + '|' + a);
+  const links = () => new Set(PatOS.store.get(K.links, []) || []), unlinks = () => new Set(PatOS.store.get(K.unlinks, []) || []);
+
+  /* how strongly two things go together, and why */
+  function score(a, b, L, U) {
+    if (a.key === b.key) return null; const pk = pairKey(a.key, b.key);
+    if (U.has(pk)) return null;
+    let s = 0; const why = [];
+    if (L.has(pk)) { s += 10; why.push(T('linked by you')); }
+    const shared = a.tags.filter((t) => b.tags.includes(t)); if (shared.length) { s += 5 * shared.length; why.push(shared.map((t) => '#' + t).join(' ')); }
+    if (a.refs.has(b.key) || b.refs.has(a.key)) { s += 6; why.push(T('one names the other')); }
+    let tw = 0; const common = []; a.tok.forEach((va, w) => { const vb = b.tok.get(w); if (vb) { const c = Math.min(va, vb) * idf(w); tw += c; if (c > 1.2) common.push(w); } });
+    if (tw > 2.2) { s += Math.min(8, tw / 2); why.push(T('both mention') + ' “' + common.slice(0, 3).join('”, “') + '”'); }
+    if (a.folder && a.folder === b.folder && a.folder !== '/' && a.folder !== '/Downloads' && a.folder !== '/Desktop') { s += 1.5; why.push(T('same folder')); }
+    if (s > 0 && a.date && b.date && dayOf(a.date) === dayOf(b.date)) { s += 1; why.push(T('same day')); }
+    return s >= 2.5 ? { s, why } : null;
+  }
+
+  /* ---------- the public side ---------- */
+  function related(key, n) {
+    build(); const a = idx.by.get(key); if (!a) return [];
+    const L = links(), U = unlinks(), out = [];
+    idx.list.forEach((b) => { const r = score(a, b, L, U); if (r) out.push({ key: b.key, kind: b.kind, title: b.title, sub: b.sub, score: Math.round(r.s * 10) / 10, why: r.why }); });
+    return out.sort((x, y) => y.score - x.score).slice(0, n || 12);
+  }
+  // everything about a few words: the things whose words match, best first (Pat, Spotlight, collections)
+  function search(q, n) {
+    build(); const ws = words(q), tg = tagsOf(q); if (!ws.length && !tg.length) return [];
+    const out = [];
+    idx.list.forEach((e) => { let s = 0; ws.forEach((w) => { const v = e.tok.get(w) || [...e.tok.keys()].some((x) => x.length > 4 && x.startsWith(w)) && 1; if (v) s += v * idf(w); }); tg.forEach((t) => { if (e.tags.includes(t)) s += 6; }); if (s > 0) out.push({ key: e.key, kind: e.kind, title: e.title, sub: e.sub, date: e.date, score: Math.round(s * 10) / 10 }); });
+    return out.sort((a, b) => b.score - a.score).slice(0, n || 40);
+  }
+  const cols = () => (PatOS.store.get(K.cols, []) || []).filter((c) => c && c.id);
+  const saveCols = (l) => { PatOS.store.set(K.cols, l); PatOS.emit('data'); };
+  function members(c) {
+    build(); const ex = new Set(c.excluded || []), seen = new Map();
+    (c.keywords || []).forEach((kw) => search(kw, 200).forEach((r) => { if (r.score >= 2 && !ex.has(r.key)) seen.set(r.key, Math.max(seen.get(r.key) || 0, r.score)); }));
+    (c.manual || []).forEach((k) => { if (!ex.has(k) && idx.by.has(k)) seen.set(k, 99); });
+    return [...seen.entries()].sort((a, b) => b[1] - a[1]).map(([k]) => { const e = idx.by.get(k); return { key: k, kind: e.kind, title: e.title, sub: e.sub, date: e.date, manual: (c.manual || []).includes(k) }; });
+  }
+  const api = {
+    build: () => { build(true); return idx.list.length; }, size: () => (build(), idx.list.length),
+    item: (key) => { build(); const e = idx.by.get(key); return e ? { key: e.key, kind: e.kind, title: e.title, sub: e.sub, date: e.date, tags: e.tags.slice() } : null; },
+    related, search,
+    explain(a, b) { build(); const x = idx.by.get(a), y = idx.by.get(b); if (!x || !y) return null; const r = score(x, y, links(), unlinks()); return r ? r.why : []; },
+    link(a, b) { const l = links(); l.add(pairKey(a, b)); PatOS.store.set(K.links, [...l]); const u = unlinks(); u.delete(pairKey(a, b)); PatOS.store.set(K.unlinks, [...u]); PatOS.emit('data'); },
+    unlink(a, b) { const u = unlinks(); u.add(pairKey(a, b)); PatOS.store.set(K.unlinks, [...u]); const l = links(); l.delete(pairKey(a, b)); PatOS.store.set(K.links, [...l]); PatOS.emit('data'); },
+    // collections
+    collections: () => cols().map((c) => ({ id: c.id, name: c.name, keywords: c.keywords || [], count: members(c).length })),
+    collection(id) { const c = cols().find((x) => x.id === id); return c ? { id: c.id, name: c.name, keywords: c.keywords || [], items: members(c) } : null; },
+    createCollection(name, keywords) { const n = String(name || '').replace(/[\u0000-\u001f<>]/g, '').trim().slice(0, 60); if (!n) throw new Error(T('A collection needs a name.')); const c = { id: 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 5), name: n, keywords: (keywords && keywords.length ? keywords : [n]).map((k) => String(k).trim().slice(0, 40)).filter(Boolean).slice(0, 10), manual: [], excluded: [], created: Date.now() }; saveCols(cols().concat(c)); return c.id; },
+    updateCollection(id, patch) { const l = cols(); const c = l.find((x) => x.id === id); if (!c) return false; if (patch.name) c.name = String(patch.name).slice(0, 60); if (Array.isArray(patch.keywords)) c.keywords = patch.keywords.map((k) => String(k).trim().slice(0, 40)).filter(Boolean).slice(0, 10); saveCols(l); return true; },
+    addTo(id, key) { const l = cols(); const c = l.find((x) => x.id === id); if (!c) return false; c.manual = [...new Set((c.manual || []).concat(key))]; c.excluded = (c.excluded || []).filter((k) => k !== key); saveCols(l); return true; },
+    removeFrom(id, key) { const l = cols(); const c = l.find((x) => x.id === id); if (!c) return false; c.manual = (c.manual || []).filter((k) => k !== key); c.excluded = [...new Set((c.excluded || []).concat(key))]; saveCols(l); return true; },
+    deleteCollection(id) { saveCols(cols().filter((c) => c.id !== id)); },
+    // words that tie several kinds of things together, not yet a collection
+    suggestions() {
+      build(); const have = new Set(cols().flatMap((c) => (c.keywords || []).map((k) => stem(fold(k))))); const byWord = new Map();
+      idx.list.forEach((e) => e.tok.forEach((v, w) => { if (v < 3 || w.length < 4) return; if (!byWord.has(w)) byWord.set(w, new Set()); byWord.get(w).add(e); }));
+      const out = []; byWord.forEach((set, w) => { const kinds = new Set([...set].map((e) => e.kind)); if (set.size >= 3 && kinds.size >= 2 && set.size <= idx.n * 0.4 && !have.has(w)) out.push({ word: w, count: set.size, kinds: [...kinds] }); });
+      return out.sort((a, b) => b.kinds.length - a.kinds.length || b.count - a.count).slice(0, 8);
+    },
+    // a project's history: its things by date (newest first)
+    history(id) { const c = api.collection(id); return c ? c.items.filter((i) => i.date).sort((a, b) => b.date - a.date).map((i) => ({ key: i.key, kind: i.kind, title: i.title, date: i.date })) : []; },
+    openItem(it) {
+      const key = typeof it === 'string' ? it : it.key; const [kind, ...rest] = key.split(':'); const id = rest.join(':');
+      if (kind === 'file') { if (PatOS.fs.exists(id)) PatOS.openFile(id); }
+      else if (kind === 'note') PatOS.launch('notes', { id }); else if (kind === 'event') PatOS.launch('calendar', { day: id.split(':')[0] }); else if (kind === 'reminder') PatOS.launch('reminders');
+      else if (kind === 'capture') PatOS.launch('capture'); else if (kind === 'world') PatOS.launch('world', { id });
+    },
+    // your control
+    prefs, setPrefs(p) { PatOS.store.set(K.prefs, Object.assign(prefs(), p)); stale = true; PatOS.emit('data'); },
+    setPrivate(key, on) { const p = prefs(); const s = new Set(p.private); if (on) s.add(key); else s.delete(key); api.setPrefs({ private: [...s] }); },
+    KINDS: ['file', 'note', 'event', 'reminder', 'capture', 'world'], words
+  };
+  PatOS.data = api;
 })();
 
 </script>
@@ -38566,6 +38799,157 @@ PatOS.sendWithPatDrop = async function (paths) {
       drawSide(); applyView(); if (!world.items.length) { view = { x: 60, y: 60, z: 1 }; applyView(); }
     },
     onArgs(win, args) { if (args && args.id && win._world) win._world.open(args.id); }
+  });
+})();
+
+</script>
+  <script type="patos/js">
+/* PatOS Data (4.0): the app. Collections (your projects), suggestions, a timeline, a graph of what connects, and your control.
+   The engine is js/data.js (PatOS.data). */
+(function () {
+  'use strict';
+  const { h } = PatOS; const T = (s) => PatOS.t(s);
+  PatOS.iconDefs.data = { bg: 'linear-gradient(160deg,#5e5ce6,#0a84ff)', svg: () => '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><path d="M20 22 32 34 46 20M32 34v14M20 22l-4 20M46 20l2 22" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".7"/><circle cx="20" cy="22" r="6" fill="#fff"/><circle cx="46" cy="20" r="6" fill="#fff"/><circle cx="32" cy="34" r="7" fill="#fff"/><circle cx="32" cy="48" r="5" fill="#fff" opacity=".85"/><circle cx="16" cy="42" r="4" fill="#fff" opacity=".8"/><circle cx="48" cy="42" r="4" fill="#fff" opacity=".8"/></svg>' };
+  const KIND = { file: ['doc', '#0a84ff', 'Files'], note: ['note', '#ffd60a', 'Notes'], event: ['calendar', '#ff453a', 'Events'], reminder: ['list', '#ff9f0a', 'Reminders'], capture: ['capture', '#30d158', 'Captures'], world: ['grid', '#64d2ff', 'Boards'] };
+  const ago = (t) => (t ? new Date(t).toLocaleDateString(PatOS.locale, { month: 'short', day: 'numeric', year: new Date(t).getFullYear() !== new Date().getFullYear() ? 'numeric' : undefined }) : '');
+
+  PatOS.registerApp({
+    id: 'data', name: 'Data', icon: 'data', width: 1100, height: 700, minWidth: 720, minHeight: 460, category: 'Productivity', keywords: 'data relationships projects collections graph knowledge related links connections donnees projets liens',
+    about: 'What connects your files, notes, events and more.',
+    launch(win, args) {
+      win.el.classList.add('has-toolbar', 'dt-win');
+      const D = PatOS.data;
+      let view = args && args.id ? { kind: 'col', id: args.id, tab: 'items' } : { kind: 'home' }, sel = null;
+      const side = h('div', { class: 'dt-side' }), main = h('div', { class: 'dt-main' }), insp = h('div', { class: 'dt-insp hidden' });
+      win.body.append(h('div', { class: 'dt-wrap' }, side, main, insp));
+      const search = PatOS.ui.search({ placeholder: 'Search everything', onInput: PatOS.debounce((v) => { view = v.trim() ? { kind: 'explore', q: v } : { kind: 'home' }; draw(); }, 200) });
+      win.toolbar.append(search, h('div', { style: { flex: 1 } }), h('button', { class: 'btn', onclick: () => newCollection() }, '+ ' + T('Collection')));
+
+      const card = (it, opts) => h('button', { class: 'dt-card' + (sel === it.key ? ' on' : ''), 'data-key': it.key, onclick: () => select(it.key), ondblclick: () => D.openItem(it), title: it.title },
+        h('span', { class: 'dt-ci', style: { '--kc': (KIND[it.kind] || KIND.file)[1] }, html: PatOS.sym((KIND[it.kind] || KIND.file)[0]) }),
+        h('span', { class: 'dt-ct' }, h('b', {}, it.title || T('Untitled')), h('small', {}, (it.sub || '') + (it.date ? ' · ' + ago(it.date) : ''))),
+        opts && opts.remove ? h('span', { class: 'dt-x', role: 'button', 'aria-label': T('Take out of the collection'), title: T('Take out of the collection'), onclick: (e) => { e.stopPropagation(); opts.remove(it); } }, '×') : null);
+      function drawSide() {
+        side.innerHTML = ''; const cs = D.collections();
+        side.append(PatOS.ui.item({ icon: 'sparkle', label: 'Overview', on: view.kind === 'home', onClick: () => { view = { kind: 'home' }; draw(); } }), PatOS.ui.heading('Collections'),
+          ...cs.map((c) => PatOS.ui.item({ icon: 'grid', label: c.name, count: c.count, on: view.kind === 'col' && view.id === c.id, onClick: () => { view = { kind: 'col', id: c.id, tab: 'items' }; draw(); } })),
+          cs.length ? null : h('p', { class: 'dt-fine' }, T('None yet.')),
+          PatOS.ui.heading('Your control'), PatOS.ui.item({ icon: 'shield', label: 'Privacy & indexing', on: view.kind === 'prefs', onClick: () => { view = { kind: 'prefs' }; draw(); } }));
+      }
+      function draw() { drawSide(); main.innerHTML = ''; ({ home, col, explore, prefs: prefsView })[view.kind](); if (sel) drawInsp(); }
+
+      function home() {
+        if (!D.prefs().on) { main.appendChild(PatOS.ui.empty({ icon: 'shield', title: 'PatOS Data is off', text: 'Nothing is read or connected.', action: ['Turn On', () => { D.setPrefs({ on: true }); draw(); }] })); return; }
+        const n = D.size(), sug = D.suggestions();
+        main.append(h('h2', { class: 'dt-h' }, T('What connects')), h('p', { class: 'dt-sub' }, n + ' ' + T('things read: files, notes, events, reminders, captures and boards. Every link says why.')));
+        if (sug.length) main.append(PatOS.ui.section('Suggested collections'), h('div', { class: 'dt-sugs' }, ...sug.map((s) => h('button', { class: 'dt-sug', onclick: () => { const id = D.createCollection(s.word.charAt(0).toUpperCase() + s.word.slice(1), [s.word]); view = { kind: 'col', id, tab: 'items' }; draw(); } },
+          h('b', {}, '“' + s.word + '”'), h('small', {}, s.count + ' ' + T('things') + ' · ' + s.kinds.map((k) => T((KIND[k] || KIND.file)[2])).join(', ')), h('span', { class: 'dt-sugp' }, '+ ' + T('Make a collection'))))));
+        const cs = D.collections();
+        if (cs.length) main.append(PatOS.ui.section('Your collections'), h('div', { class: 'dt-cols' }, ...cs.map((c) => h('button', { class: 'dt-colc', onclick: () => { view = { kind: 'col', id: c.id, tab: 'items' }; draw(); } }, h('b', {}, c.name), h('small', {}, c.count + ' ' + T('things') + ' · ' + c.keywords.join(', '))))));
+        if (!sug.length && !cs.length) main.appendChild(PatOS.ui.empty({ icon: 'grid', title: 'No collections yet', text: 'Make one for a project: give it a name and a few words, and Data gathers what goes with it.', action: ['New Collection', () => newCollection()] }));
+      }
+      function col() {
+        const c = D.collection(view.id); if (!c) { view = { kind: 'home' }; return home(); }
+        const kw = h('input', { class: 'field dt-kw', value: c.keywords.join(', '), 'aria-label': T('Words'), title: T('The words that gather this collection, separated by commas') });
+        kw.onchange = () => { D.updateCollection(c.id, { keywords: kw.value.split(',') }); draw(); };
+        const tabs = PatOS.ui.segmented([['items', 'Things'], ['history', 'History'], ['graph', 'Graph']], view.tab, (v) => { view.tab = v; draw(); });
+        main.append(h('div', { class: 'dt-head' }, h('h2', { class: 'dt-h', ondblclick: async () => { const n = await PatOS.ask(T('Rename'), c.name, { icon: 'data', ok: T('Save') }); if (n) { D.updateCollection(c.id, { name: n }); draw(); } } }, c.name), h('span', { class: 'dt-cnt' }, c.items.length + ' ' + T('things')), h('div', { style: { flex: 1 } }), tabs,
+          h('button', { class: 'btn', 'aria-label': T('More'), onclick: (e) => { const r = e.currentTarget.getBoundingClientRect(); PatOS.menu([
+            { label: T('Add something…'), action: () => addPicker(c.id) },
+            PatOS.world ? { label: T('Put on a World board'), action: () => { const id = PatOS.world.create(c.name); PatOS.world.addItems(id, c.items.slice(0, 80).map((it) => it.kind === 'file' ? { kind: 'file', path: it.key.slice(5), w: 220, h: 90 } : it.kind === 'note' ? { kind: 'note', noteId: it.key.slice(5), w: 220, h: 140 } : { kind: 'sticky', text: it.title, w: 200, h: 120 })); PatOS.launch('world', { id }); } } : null,
+            PatOS.apps.gallery ? { label: T('Open in Gallery'), action: () => PatOS.launch('gallery', { collection: c.id }) } : null,
+            { divider: true }, { label: T('Rename…'), action: async () => { const n = await PatOS.ask(T('Rename'), c.name, { icon: 'data', ok: T('Save') }); if (n) { D.updateCollection(c.id, { name: n }); draw(); } } },
+            { label: T('Delete Collection…'), action: async () => { if (await PatOS.confirmBox(T('Delete') + ' “' + c.name + '”?', T('Only the collection goes. Nothing in it is deleted.'), { ok: T('Delete'), icon: 'data' })) { D.deleteCollection(c.id); view = { kind: 'home' }; draw(); } } }].filter(Boolean), r.left, r.bottom + 4); } }, '•••')),
+          h('label', { class: 'dt-kwl' }, h('small', {}, T('Words')), kw));
+        if (view.tab === 'items') {
+          if (!c.items.length) { main.appendChild(PatOS.ui.empty({ icon: 'search', title: 'Nothing matches yet', text: 'Add words above, or add things by hand.', action: ['Add something…', () => addPicker(c.id)] })); return; }
+          const groups = {}; c.items.forEach((it) => { (groups[it.kind] = groups[it.kind] || []).push(it); });
+          Object.keys(KIND).filter((k) => groups[k]).forEach((k) => main.append(PatOS.ui.section(KIND[k][2]), h('div', { class: 'dt-grid' }, ...groups[k].map((it) => card(it, { remove: (x) => { D.removeFrom(c.id, x.key); draw(); } })))));
+        } else if (view.tab === 'history') {
+          const hst = D.history(c.id); if (!hst.length) { main.appendChild(PatOS.ui.empty({ icon: 'history', title: 'No dates yet' })); return; }
+          let last = ''; const list = h('div', { class: 'dt-hist' });
+          hst.forEach((it) => { const d = new Date(it.date).toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' }); if (d !== last) { list.appendChild(h('div', { class: 'dt-hd' }, d)); last = d; } list.appendChild(card(it)); });
+          main.appendChild(list);
+        } else graph(c.items.slice(0, 60));
+      }
+      function explore() {
+        const res = D.search(view.q, 60);
+        main.append(h('h2', { class: 'dt-h' }, '“' + view.q + '”'), h('p', { class: 'dt-sub' }, res.length + ' ' + T('things')),
+          res.length ? h('div', { class: 'dt-explore' }, h('div', { class: 'dt-grid' }, ...res.map((it) => card(it))), h('div', {}, h('button', { class: 'btn', onclick: () => { const id = D.createCollection(view.q, [view.q]); view = { kind: 'col', id, tab: 'items' }; draw(); } }, '+ ' + T('Make a collection')))) : PatOS.ui.empty({ icon: 'search', title: 'Nothing found' }));
+      }
+      function prefsView() {
+        const p = D.prefs();
+        const sw = (on, fn, label) => { const b = h('button', { class: 'switch' + (on ? ' on' : ''), role: 'switch', 'aria-checked': String(on), 'aria-label': T(label) }); b.onclick = () => { fn(!on); draw(); }; return b; };
+        main.append(h('h2', { class: 'dt-h' }, T('Privacy & indexing')), h('p', { class: 'dt-sub' }, T('Data only reads when you use it, keeps its index in memory, and never reads what you leave out.')),
+          PatOS.ui.group([PatOS.ui.row({ label: 'PatOS Data', sub: 'Turned off, nothing is read or connected.', control: sw(p.on, (v) => D.setPrefs({ on: v }), 'PatOS Data') })]),
+          PatOS.ui.section('What it may read'), PatOS.ui.group(D.KINDS.map((k) => PatOS.ui.row({ label: KIND[k][2], control: sw(p.kinds.includes(k), (v) => D.setPrefs({ kinds: v ? p.kinds.concat(k) : p.kinds.filter((x) => x !== k) }), KIND[k][2]) }))),
+          PatOS.ui.section('Folders it never reads'), PatOS.ui.group([...p.paths.map((f) => PatOS.ui.row({ label: f, control: h('button', { class: 'btn', onclick: () => { D.setPrefs({ paths: p.paths.filter((x) => x !== f) }); draw(); } }, T('Remove')) })),
+            PatOS.ui.row({ label: 'Leave out a folder', control: h('button', { class: 'btn', onclick: async () => { const f = await PatOS.ask(T('A folder'), '/Documents/Private', { icon: 'data', ok: T('Leave out') }); if (f && PatOS.fs.isDir(f)) { D.setPrefs({ paths: [...new Set(p.paths.concat(f))] }); draw(); } else if (f) PatOS.alertBox(T('That didn’t work'), T('There’s no folder there.'), { icon: 'data' }); } }, T('Add…')) })]),
+          PatOS.ui.section('Private things'), p.private.length ? PatOS.ui.group(p.private.map((k) => PatOS.ui.row({ label: k.replace(/^[a-z]+:/, ''), sub: k.split(':')[0], control: h('button', { class: 'btn', onclick: () => { D.setPrivate(k, false); draw(); } }, T('Read it again')) }))) : h('p', { class: 'dt-fine' }, T('Mark a thing private from its details: Data stops reading it.')),
+          PatOS.ui.section('Index'), PatOS.ui.group([PatOS.ui.row({ label: 'Rebuild now', sub: T('Reads everything again from the start.'), control: h('button', { class: 'btn', onclick: () => { const n = D.build(); PatOS.notify({ title: T('Rebuilt'), body: n + ' ' + T('things'), icon: 'data', priority: 'low' }); draw(); } }, T('Rebuild')) })]));
+      }
+      // the details of one thing: what goes with it, and why
+      function select(key) { sel = key; [...main.querySelectorAll('.dt-card')].forEach((c) => c.classList.toggle('on', c.dataset.key === key)); drawInsp(); }
+      function drawInsp() {
+        const it = D.item(sel); if (!it) { insp.classList.add('hidden'); return; } insp.classList.remove('hidden'); insp.innerHTML = '';
+        const rel = D.related(sel, 12);
+        insp.append(h('div', { class: 'dt-ih' }, h('span', { class: 'dt-ci big', style: { '--kc': (KIND[it.kind] || KIND.file)[1] }, html: PatOS.sym((KIND[it.kind] || KIND.file)[0]) }), h('div', {}, h('b', {}, it.title), h('small', {}, it.sub + (it.tags.length ? ' · ' + it.tags.map((t) => '#' + t).join(' ') : ''))), h('button', { class: 'dt-ix', 'aria-label': T('Close'), onclick: () => { sel = null; insp.classList.add('hidden'); } }, '×')),
+          h('div', { class: 'dt-ib' }, h('button', { class: 'btn primary', onclick: () => D.openItem(it) }, T('Open')), view.kind === 'col' ? h('button', { class: 'btn', onclick: () => { D.addTo(view.id, it.key); draw(); } }, T('Keep in collection')) : null,
+            h('button', { class: 'btn', title: T('Data stops reading it'), onclick: async () => { if (await PatOS.confirmBox(T('Make it private?'), T('Data stops reading it and it leaves every collection. The thing itself doesn’t change.'), { ok: T('Make Private'), icon: 'data' })) { D.setPrivate(it.key, true); sel = null; insp.classList.add('hidden'); draw(); } } }, T('Private'))),
+          PatOS.ui.section('Goes with'), rel.length ? h('div', { class: 'dt-rel' }, ...rel.map((r) => h('div', { class: 'dt-ri' }, card(r), h('small', { class: 'dt-why' }, r.why.join(' · ')), h('button', { class: 'dt-unl', title: T('Not related'), onclick: () => { D.unlink(sel, r.key); drawInsp(); } }, T('Not related'))))) : h('p', { class: 'dt-fine' }, T('Nothing yet. Link something by hand:')),
+          h('button', { class: 'btn', onclick: () => linkPicker(sel) }, '+ ' + T('Link to…')));
+      }
+      // finding any thing (to add to a collection, or to link)
+      function picker(title, onPick) {
+        const list = h('div', { class: 'dt-pick' }); const inp = h('input', { class: 'field', type: 'search', placeholder: T('Search everything'), 'aria-label': T('Search everything') });
+        const fill = () => { list.innerHTML = ''; (inp.value.trim() ? D.search(inp.value, 30) : []).forEach((r) => list.appendChild(h('button', { class: 'dt-pi', onclick: () => { onPick(r.key); s.close(); } }, h('span', { class: 'dt-ci', style: { '--kc': (KIND[r.kind] || KIND.file)[1] }, html: PatOS.sym((KIND[r.kind] || KIND.file)[0]) }), h('span', {}, r.title), h('small', {}, r.sub)))); };
+        inp.oninput = PatOS.debounce(fill, 150);
+        const s = PatOS.ui.sheet(win, { title, body: h('div', { class: 'dt-pickw' }, inp, list), actions: (close) => [h('button', { class: 'btn', onclick: close }, T('Close'))] });
+      }
+      const addPicker = (id) => picker(T('Add something'), (key) => { D.addTo(id, key); draw(); });
+      const linkPicker = (a) => picker(T('Link to…'), (b) => { if (b !== a) { D.link(a, b); drawInsp(); } });
+      async function newCollection() { const n = await PatOS.ask(T('New collection'), T('Biology project'), { icon: 'data', ok: T('Create'), text: T('Data gathers what matches its name; you can add more words after.') }); if (!n) return; try { const id = D.createCollection(n); view = { kind: 'col', id, tab: 'items' }; draw(); } catch (e) { PatOS.alertBox(T('That didn’t work'), e.message, { icon: 'data' }); } }
+
+      // ---------- the graph: drawn on a canvas, settles, then stops ----------
+      function graph(items) {
+        const wrap = h('div', { class: 'dt-graph' }); const cv = h('canvas', { 'aria-label': T('Graph of what connects') }); const tip = h('div', { class: 'dt-tip hidden' }); wrap.append(cv, tip); main.appendChild(wrap);
+        const nodes = items.map((it, i) => ({ it, x: Math.cos(i * 2.4) * 120 * Math.sqrt(i + 1), y: Math.sin(i * 2.4) * 120 * Math.sqrt(i + 1), vx: 0, vy: 0 }));
+        const pos = new Map(nodes.map((n) => [n.it.key, n])), edges = [];
+        nodes.forEach((n) => D.related(n.it.key, 8).forEach((r) => { const m = pos.get(r.key); if (m && n.it.key < r.key) edges.push({ a: n, b: m, s: r.score, why: r.why }); }));
+        let raf = 0, steps = 0, drag = null, hover = null; const dpr = devicePixelRatio || 1;
+        const size = () => { const r = wrap.getBoundingClientRect(); cv.width = r.width * dpr; cv.height = Math.max(300, r.height) * dpr; cv.style.width = r.width + 'px'; cv.style.height = Math.max(300, r.height) + 'px'; };
+        const tick = () => {
+          for (let k = 0; k < 2; k++) {
+            nodes.forEach((a) => { nodes.forEach((b) => { if (a === b) return; const dx = a.x - b.x, dy = a.y - b.y, d2 = dx * dx + dy * dy + 0.01; const f = 2400 / d2; a.vx += dx * f / Math.sqrt(d2); a.vy += dy * f / Math.sqrt(d2); }); a.vx -= a.x * 0.002; a.vy -= a.y * 0.002; });
+            edges.forEach((e) => { const dx = e.b.x - e.a.x, dy = e.b.y - e.a.y, d = Math.sqrt(dx * dx + dy * dy) || 1; const f = (d - 110) * 0.01 * Math.min(2, e.s / 5); e.a.vx += dx / d * f; e.a.vy += dy / d * f; e.b.vx -= dx / d * f; e.b.vy -= dy / d * f; });
+            nodes.forEach((n) => { if (n === drag) return; n.vx *= 0.82; n.vy *= 0.82; n.x += n.vx; n.y += n.vy; });
+          }
+          paint(); steps++;
+          const energy = nodes.reduce((s, n) => s + Math.abs(n.vx) + Math.abs(n.vy), 0);
+          raf = (steps < 400 && energy > 0.05 * nodes.length) || drag ? requestAnimationFrame(tick) : 0; // (settled: it stops)
+        };
+        const toScreen = (n) => [cv.width / 2 + n.x * dpr, cv.height / 2 + n.y * dpr];
+        const paint = () => {
+          const x = cv.getContext('2d'); x.clearRect(0, 0, cv.width, cv.height); const dark = document.documentElement.classList.contains('dark') || PatOS.settings.theme !== 'light';
+          edges.forEach((e) => { const [x1, y1] = toScreen(e.a), [x2, y2] = toScreen(e.b); x.strokeStyle = dark ? 'rgba(255,255,255,' + Math.min(0.5, 0.1 + e.s / 30) + ')' : 'rgba(0,0,0,' + Math.min(0.4, 0.08 + e.s / 30) + ')'; x.lineWidth = Math.min(4, 0.6 + e.s / 6) * dpr; x.beginPath(); x.moveTo(x1, y1); x.lineTo(x2, y2); x.stroke(); });
+          nodes.forEach((n) => { const [sx, sy] = toScreen(n); const k = KIND[n.it.kind] || KIND.file; const r = (n === hover || sel === n.it.key ? 11 : 8) * dpr; x.fillStyle = k[1]; x.beginPath(); x.arc(sx, sy, r, 0, Math.PI * 2); x.fill(); if (sel === n.it.key) { x.strokeStyle = '#fff'; x.lineWidth = 2 * dpr; x.stroke(); }
+            x.fillStyle = dark ? 'rgba(255,255,255,.85)' : 'rgba(0,0,0,.8)'; x.font = (11 * dpr) + 'px system-ui'; x.textAlign = 'center'; x.fillText(n.it.title.slice(0, 22), sx, sy + r + 13 * dpr); });
+        };
+        const at = (e) => { const r = cv.getBoundingClientRect(); const px = (e.clientX - r.left) * dpr, py = (e.clientY - r.top) * dpr; return nodes.find((n) => { const [sx, sy] = toScreen(n); return Math.hypot(sx - px, sy - py) < 14 * dpr; }); };
+        cv.onpointermove = (e) => { if (drag) { const r = cv.getBoundingClientRect(); drag.x = (e.clientX - r.left - r.width / 2); drag.y = (e.clientY - r.top - r.height / 2); paint(); return; } const n = at(e); if (n !== hover) { hover = n; paint(); } if (n) { tip.classList.remove('hidden'); tip.textContent = n.it.title + ' · ' + T((KIND[n.it.kind] || KIND.file)[2]); tip.style.left = (e.offsetX + 14) + 'px'; tip.style.top = (e.offsetY + 10) + 'px'; } else tip.classList.add('hidden'); };
+        cv.onpointerdown = (e) => { const n = at(e); if (!n) return; drag = n; cv.setPointerCapture(e.pointerId); select(n.it.key); if (!raf) raf = requestAnimationFrame(tick); };
+        cv.onpointerup = () => { drag = null; };
+        cv.ondblclick = (e) => { const n = at(e); if (n) D.openItem(n.it); };
+        size(); if (!nodes.length) { main.removeChild(wrap); main.appendChild(PatOS.ui.empty({ icon: 'grid', title: 'Nothing to draw yet' })); return; }
+        raf = requestAnimationFrame(tick);
+        const ro = new ResizeObserver(() => { size(); paint(); }); ro.observe(wrap);
+        const off = () => { cancelAnimationFrame(raf); ro.disconnect(); }; win.on('closed', off); wrap._off = off;
+      }
+      PatOS.on('data', PatOS.debounce(() => { if (win.closed) return; draw(); }, 200));
+      win._data = { open: (v) => { view = v; draw(); }, select, get view() { return view; } };
+      draw();
+    },
+    onArgs(win, args) { if (args && args.id && win._data) win._data.open({ kind: 'col', id: args.id, tab: 'items' }); }
   });
 })();
 

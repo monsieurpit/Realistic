@@ -1,7 +1,7 @@
 [
   {
     "version": "4.0.0",
-    "beta": 4,
+    "beta": 5,
     "date": "2026-11-13",
     "title": {
       "en": "PatOS 4.0: Beyond the desktop",
@@ -9,6 +9,7 @@
     },
     "notes": {
       "en": [
+        "PatOS Data: what connects your files, notes, events, reminders, captures and boards. It finds what goes together with fixed rules (the same tag, the same distinctive words, a note that names a file, the same folder, the same day, links you make) and every link says why. Collections gather a project from a few words, with what you add or take out; Data suggests some. See a project’s history, explore its graph, and open what you find. You stay in control: remove a wrong link, mark something private, leave out kinds or folders, turn it off; it reads only when you use it. Collections also show in a widget and on World boards",
         "Fixed: panels made in PatOS Studio showed giant icons over the widgets on the desktop (they had no style). They’re small glass cards now; hold and drag to move one, right-click to remove it or edit it in Studio",
         "PatOS World: infinite boards. Put sticky notes, files, pictures, links, notes, live widgets, app tiles and collections anywhere, pan and zoom freely, select several with Shift, group them, and undo with Ctrl+Z. Zones name areas of a board; link one to a folder and dropping a file in it moves the file there through Piles (after asking). Pin a real app window on a board, with everything it has open. An app group opens all its apps at once. Only what’s near the screen is drawn, so big boards stay fast",
         "PatOS Studio: make your own desktop, visually. The stage is your screen, scaled: drag widgets and panels, pull a corner to resize, arrow keys to nudge. On the right: each widget’s settings, panel buttons, the look (appearance, accent, glass, wallpaper), the Dock, your own menus and keyboard shortcuts. A widget maker builds widgets from blocks (text, a live value, a button, a picture). Preview it on your real desktop (Keep or Revert), save it with its earlier versions, duplicate it, apply it to any profile, and share it as a .patdesk file",
@@ -17,6 +18,7 @@
         "The desktop becomes a dashboard: widgets you can place anywhere, resize, stack and configure (clock, calendar, up next, reminders you can check off, music controls, system, weather, notes, countdown, apps, photo, collections), widgets you make in PatOS Studio, and widgets from others that run sandboxed with only the permissions you give them"
       ],
       "fr": [
+        "PatOS Data : ce qui lie vos fichiers, notes, événements, rappels, captures et tableaux. Il trouve ce qui va ensemble avec des règles fixes (la même étiquette, les mêmes mots distinctifs, une note qui nomme un fichier, le même dossier, le même jour, les liens que vous faites) et chaque lien dit pourquoi. Les collections rassemblent un projet à partir de quelques mots, avec ce que vous ajoutez ou retirez; Data en suggère. Voyez l’historique d’un projet, explorez son graphe, et ouvrez ce que vous trouvez. Vous gardez le contrôle : retirez un lien faux, rendez un élément privé, excluez des types ou des dossiers, désactivez-le; il ne lit que quand vous l’utilisez. Les collections s’affichent aussi dans un widget et sur les tableaux World",
         "Corrigé : les panneaux faits dans PatOS Studio montraient des icônes géantes par-dessus les widgets du bureau (ils n’avaient pas de style). Ce sont maintenant de petites cartes de verre; maintenez et glissez pour en déplacer un, clic droit pour le retirer ou le modifier dans Studio",
         "PatOS World : des tableaux infinis. Placez notes autocollantes, fichiers, images, liens, notes, widgets en direct, tuiles d’apps et collections n’importe où, déplacez-vous et zoomez librement, sélectionnez-en plusieurs avec Maj, groupez-les, et annulez avec Ctrl+Z. Les zones nomment des parties d’un tableau; liez-en une à un dossier et y déposer un fichier le déplace là par Piles (après avoir demandé). Épinglez une vraie fenêtre d’app sur un tableau, avec tout ce qu’elle a d’ouvert. Un groupe d’apps les ouvre toutes d’un coup. Seul ce qui est près de l’écran est dessiné, pour que les grands tableaux restent rapides",
         "PatOS Studio : créez votre propre bureau, visuellement. La scène est votre écran, à l’échelle : glissez les widgets et panneaux, tirez un coin pour redimensionner, les flèches pour ajuster. À droite : les réglages de chaque widget, les boutons des panneaux, l’apparence (thème, accent, verre, fond d’écran), le Dock, vos propres menus et raccourcis clavier. Un créateur de widgets en fait à partir de blocs (texte, valeur en direct, bouton, image). Essayez-le sur votre vrai bureau (Garder ou Revenir), enregistrez-le avec ses versions précédentes, dupliquez-le, appliquez-le à n’importe quel profil, et partagez-le en fichier .patdesk",
