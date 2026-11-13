@@ -89,7 +89,8 @@
       function closeView() { viewOffs.forEach((o) => o && o()); viewOffs = []; }
       function open(v) { closeView(); view = v; heartbeat(); draw(); }
       function drawMain() {
-        if (view.kind === 'board' || view.kind === 'note') { if (!main.querySelector('.lv-board, .lv-note')) { main.innerHTML = ''; view.kind === 'board' ? boardView() : noteView(); } return; }
+        if (view.kind === 'board' || view.kind === 'note') { const key = view.kind + ':' + view.id; if (main.dataset.view !== key) { main.innerHTML = ''; main.dataset.view = key; view.kind === 'board' ? boardView() : noteView(); } return; }
+        main.dataset.view = '';
         main.innerHTML = '';
         if (!S.ready() || !sp()) return main.appendChild(h('div', { class: 'lv-empty' }, h('span', { class: 'lv-ic', html: PatOS.iconHTML('livespace') }), h('h2', {}, T('PatOS Live')), h('p', {}, S.ready() ? T('Pick a space to work in it with the others, at the same time.') : T('Sign in to your PatOS account to work with others.'))));
         if (view.kind === 'tasks') return tasksView();
@@ -122,10 +123,11 @@
           const r = await guard(() => F.livePut(me(), P('boards', bid, 'items'), null, it, 0)); if (r && r.id) setTimeout(() => { const el = els.get(r.id); if (el) el.querySelector('textarea').focus(); }, 300);
         }
         // a change, on top of the revision it was made from; if someone was first, theirs stays and yours is kept beside it
-        async function put(id, patch) {
+        // base: the revision the change was started from (when you began typing or dragging), not the one at the end
+        async function put(id, patch, base) {
           const cur = items.get(id); if (!cur) return;
           const data = { kind: cur.kind, x: cur.x, y: cur.y, w: cur.w, h: cur.h, text: cur.text, color: cur.color }; Object.assign(data, patch);
-          const r = await guard(() => F.livePut(me(), P('boards', bid, 'items'), id, data, cur.rev)); if (!r) return;
+          const r = await guard(() => F.livePut(me(), P('boards', bid, 'items'), id, data, base == null ? cur.rev : base)); if (!r) return;
           if (r.conflict && r.theirs) {
             const textClash = patch.text != null && patch.text !== r.theirs.text;
             if (textClash) { await guard(() => F.livePut(me(), P('boards', bid, 'items'), null, Object.assign({}, data, { x: Math.min(r.theirs.x + 30, 99000), y: Math.min(r.theirs.y + 30, 99000), text: (T('Your version') + ': ' + patch.text).slice(0, 2000) }), 0)); toast(T('Someone changed it first'), '@' + (r.theirs.byName || '?') + ' · ' + T('Your version was kept next to theirs.')); }
@@ -140,13 +142,13 @@
             const ta = h('textarea', { 'aria-label': T('Text'), placeholder: canEdit() ? T('Write…') : '', readonly: !canEdit() || undefined });
             el = h('div', { class: 'lv-it' }, h('div', { class: 'lv-grip', title: T('Drag to move') }), ta, h('small', { class: 'lv-by' }));
             if (canEdit()) {
-              ta.addEventListener('focus', () => busy.add(id)); ta.addEventListener('blur', () => { busy.delete(id); const cur = items.get(id); if (cur && ta.value !== cur.text) put(id, { text: ta.value.slice(0, 2000) }); });
+              let base = null; ta.addEventListener('focus', () => { busy.add(id); base = (items.get(id) || {}).rev; }); ta.addEventListener('blur', () => { busy.delete(id); const cur = items.get(id); if (cur && ta.value !== cur.text) put(id, { text: ta.value.slice(0, 2000) }, base); });
               el.addEventListener('contextmenu', (e) => { e.preventDefault(); PatOS.menu([...COLORS.map((c) => ({ label: '● ' + c, action: () => put(id, { color: c }) })), { divider: true }, { label: T('Delete'), action: () => guard(() => F.liveDelete(P('boards', bid, 'items'), id)) }], e.clientX, e.clientY); });
               const grip = el.querySelector('.lv-grip');
               grip.addEventListener('pointerdown', (e) => {
-                e.preventDefault(); grip.setPointerCapture(e.pointerId); busy.add(id); const cur = items.get(id); const sx = e.clientX, sy = e.clientY, ox = cur.x, oy = cur.y; let nx = ox, ny = oy;
+                e.preventDefault(); grip.setPointerCapture(e.pointerId); busy.add(id); const cur = items.get(id); const base = cur.rev; const sx = e.clientX, sy = e.clientY, ox = cur.x, oy = cur.y; let nx = ox, ny = oy;
                 const mv = (ev) => { nx = Math.max(0, Math.round(ox + ev.clientX - sx)); ny = Math.max(0, Math.round(oy + ev.clientY - sy)); el.style.transform = `translate(${nx}px,${ny}px)`; };
-                const up = () => { grip.removeEventListener('pointermove', mv); grip.removeEventListener('pointerup', up); busy.delete(id); if (nx !== ox || ny !== oy) put(id, { x: nx, y: ny }); };
+                const up = () => { grip.removeEventListener('pointermove', mv); grip.removeEventListener('pointerup', up); busy.delete(id); if (nx !== ox || ny !== oy) put(id, { x: nx, y: ny }, base); };
                 grip.addEventListener('pointermove', mv); grip.addEventListener('pointerup', up);
               });
             }
@@ -165,7 +167,7 @@
       /* ---------- a live note: one block per paragraph ---------- */
       function noteView() {
         const nid = view.id; const n = notes.find((x) => x.id === nid);
-        let blocks = []; const els = new Map(); const editing = new Set(); const timers = new Map();
+        let blocks = []; const els = new Map(); const editing = new Set(); const timers = new Map(); const bases = new Map(); // (block → the revision your typing started from)
         const list = h('div', { class: 'lv-blocks' });
         const root = h('div', { class: 'lv-note' }, h('div', { class: 'lv-bar' }, h('b', {}, n ? n.title : T('Note')), h('span', { class: 'lv-muted' }, canEdit() ? T('Two people can write different paragraphs at the same time.') : T('You can read, not change.')),
           canEdit() ? h('button', { class: 'btn', onclick: async () => { if (await PatOS.confirmBox(T('Delete this note?'), T('It is deleted for everyone in the space.'), { danger: true })) { await guard(() => F.liveHeadDelete(sid, 'notes', nid)); open({ kind: 'home' }); } } }, T('Delete')) : null), list,
@@ -174,9 +176,12 @@
         async function addBlock(order, text, focus) { const r = await guard(() => F.livePut(me(), P('notes', nid, 'blocks'), null, { order, text }, 0)); if (r && r.id && focus !== false) setTimeout(() => { const el = els.get(r.id); if (el) el.querySelector('textarea').focus(); }, 300); return r; }
         async function save(id, text) {
           const cur = blocks.find((x) => x.id === id); if (!cur || cur.text === text) return;
-          const r = await guard(() => F.livePut(me(), P('notes', nid, 'blocks'), id, { order: cur.order, text }, cur.rev)); if (!r) return;
+          const base = bases.has(id) ? bases.get(id) : cur.rev;
+          const r = await guard(() => F.livePut(me(), P('notes', nid, 'blocks'), id, { order: cur.order, text }, base)); if (!r) return;
+          if (r.ok) { if (editing.has(id)) bases.set(id, r.rev); else bases.delete(id); }
           if (r.conflict && r.theirs) { // both kept: theirs where it was, yours right after
             const i = blocks.indexOf(cur); const next = blocks[i + 1]; await addBlock(next ? MID(cur.order, next.order) : cur.order + 1, text, false);
+            bases.delete(id); if (els.get(id)) { const t2 = els.get(id).querySelector('textarea'); if (t2) { clearTimeout(timers.get(id)); t2.dataset.skip = '1'; t2.value = r.theirs.text; t2.blur(); delete t2.dataset.skip; } } // (yours is in the new paragraph; this one shows theirs again)
             toast(T('Someone changed this paragraph first'), '@' + (r.theirs.byName || '?') + ' · ' + T('Your version was kept just after theirs.'));
           }
         }
@@ -188,7 +193,7 @@
               const ta = h('textarea', { rows: 1, 'aria-label': T('Paragraph'), readonly: !canEdit() || undefined });
               const fit = () => { ta.style.height = 'auto'; ta.style.height = ta.scrollHeight + 'px'; };
               ta.addEventListener('input', () => { fit(); clearTimeout(timers.get(bk.id)); timers.set(bk.id, setTimeout(() => save(bk.id, ta.value.slice(0, 5000)), 900)); });
-              ta.addEventListener('focus', () => editing.add(bk.id)); ta.addEventListener('blur', () => { editing.delete(bk.id); clearTimeout(timers.get(bk.id)); save(bk.id, ta.value.slice(0, 5000)); });
+              ta.addEventListener('focus', () => { editing.add(bk.id); const c = blocks.find((x) => x.id === bk.id); if (c) bases.set(bk.id, c.rev); }); ta.addEventListener('blur', () => { editing.delete(bk.id); clearTimeout(timers.get(bk.id)); if (!ta.dataset.skip) save(bk.id, ta.value.slice(0, 5000)); });
               ta.addEventListener('keydown', (e) => {
                 const cur = blocks.find((x) => x.id === bk.id); const k = blocks.indexOf(cur);
                 if (e.key === 'Enter' && !e.shiftKey && canEdit()) { e.preventDefault(); const next = blocks[k + 1]; save(bk.id, ta.value); addBlock(next ? MID(cur.order, next.order) : cur.order + 1, ''); }
@@ -281,8 +286,8 @@
         c.stream.getTracks().forEach((t) => t.stop()); // (the microphone is off from here)
         await F.callLeave(me(), sid, c.cid).catch(() => {});
         // the last one out ends the call
-        const left = await new Promise((res) => { const off = F.liveListen(P('calls', c.cid, 'peers'), (l) => { off(); res(l.length); }, () => res(1)); });
-        if (!left) await F.callEnd(sid, c.cid).catch(() => {});
+        const left = await F.callPeerCount(sid, c.cid).catch(() => 1);
+        if (!left) await F.callEnd(sid, c.cid).catch((e) => { PatOS.errors && PatOS.errors.report(e, 'live call end', { category: 'cloud', severity: 'warning' }); });
         try { c.activity && c.activity.end('done', ''); } catch (e) {}
         if (view.kind === 'call') drawMain(); drawSide();
       }

@@ -324,7 +324,8 @@ service cloud.firestore {
         allow create: if canComment(sid) && !banned() && request.resource.data.keys().hasOnly(['by', 'byName', 'at'])
           && request.resource.data.by == request.auth.uid && request.resource.data.byName == myName() && request.resource.data.at == request.time;
         allow update: if false;
-        allow delete: if signedIn() && (resource.data.by == request.auth.uid || isSpaceAdmin(sid));
+        // (the last one out ends it, whoever started it; the sound itself is browser to browser and isn't cut by this)
+        allow delete: if canComment(sid);
         // peers/{uid}: who is in the call, only yourself
         match /peers/{uid} {
           allow read: if isMember(sid);
@@ -346,6 +347,131 @@ service cloud.firestore {
           allow delete: if signedIn() && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
         }
       }
+    }
+
+    // ================= Commons (4.0): communities, profiles, follows =================
+    // communities/{cid}: { name, about, visibility, owner, tags, by, byName, at }
+    //   public: anyone signed in reads it and its posts and may join; private: only its members (joining needs a moderator's yes)
+    // communities/{cid}/members/{uid}: { name, role, at, lastPost }  role: owner > mod > member; 'pending' = asked to join
+    // communities/{cid}/bans/{uid}: written by moderators; a banned person can't join, post, like or report there
+    // communities/{cid}/posts/{pid}: { kind, title, text, by, byName, at, eventAt, place, endsAt, challenge, attach, attachKind }
+    // communities/{cid}/posts/{pid}/likes/{uid}, communities/{cid}/reports/{pid_uid}
+    // Rate limit: a post must also move your lastPost to now, and the one before must be at least 20 s old.
+    function comPath(cid) { return /databases/$(database)/documents/communities/$(cid); }
+    function memPath(cid, uid) { return /databases/$(database)/documents/communities/$(cid)/members/$(uid); }
+    function comRole(cid) { return signedIn() && exists(memPath(cid, request.auth.uid)) ? get(memPath(cid, request.auth.uid)).data.role : ''; }
+    function comMember(cid) { return comRole(cid) in ['owner', 'mod', 'member']; }
+    function comMod(cid) { return comRole(cid) in ['owner', 'mod'] || isSys(); }
+    function comBanned(cid) { return signedIn() && exists(/databases/$(database)/documents/communities/$(cid)/bans/$(request.auth.uid)); }
+    function comPublic(cid) { return exists(comPath(cid)) && get(comPath(cid)).data.visibility == 'public'; }
+    function comCanRead(cid) { return signedIn() && (comPublic(cid) || comMember(cid) || isSys()); }
+    function goodText(t, max) { return t is string && t.size() <= max; }
+
+    match /communities/{cid} {
+      allow get: if signedIn() && (resource.data.visibility == 'public' || comMember(cid) || comRole(cid) == 'pending' || isSys());
+      allow list: if signedIn() && resource.data.visibility == 'public';
+      // made by you, and you are its owner in the same write
+      allow create: if signedIn() && !banned() && request.resource.data.keys().hasOnly(['name', 'about', 'visibility', 'owner', 'tags', 'by', 'byName', 'at'])
+        && request.resource.data.owner == request.auth.uid && stamped(request.resource.data) && goodTitle(request.resource.data.name)
+        && goodText(request.resource.data.about, 500) && request.resource.data.visibility in ['public', 'private']
+        && request.resource.data.tags is list && request.resource.data.tags.size() <= 5
+        && getAfter(memPath(cid, request.auth.uid)).data.role == 'owner';
+      allow update: if comMod(cid) && !banned() && onlyChanges(['name', 'about', 'visibility', 'tags'])
+        && goodTitle(request.resource.data.name) && goodText(request.resource.data.about, 500) && request.resource.data.visibility in ['public', 'private']
+        && request.resource.data.tags is list && request.resource.data.tags.size() <= 5;
+      allow delete: if (signedIn() && resource.data.owner == request.auth.uid) || isSys();
+
+      match /members/{uid} {
+        allow read: if comCanRead(cid) || (signedIn() && uid == request.auth.uid);
+        allow create: if signedIn() && !banned() && !comBanned(cid) && uid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['name', 'role', 'at', 'lastPost']) && request.resource.data.name == myName()
+          && request.resource.data.at == request.time && request.resource.data.lastPost == timestamp.value(0)
+          && (
+            // the owner, while making the community
+            (request.resource.data.role == 'owner' && !exists(comPath(cid)) && getAfter(comPath(cid)).data.owner == request.auth.uid)
+            // anyone joins a public one; a private one is asked for
+            || (request.resource.data.role == 'member' && comPublic(cid))
+            || (request.resource.data.role == 'pending' && exists(comPath(cid)) && !comPublic(cid))
+          );
+        allow update: if signedIn() && !banned() && (
+          // your own last post time (the rate limit), nothing else
+          (uid == request.auth.uid && onlyChanges(['lastPost']) && request.resource.data.lastPost == request.time)
+          // a moderator lets someone in, or makes / unmakes a moderator (only the owner does that); nobody becomes owner
+          || (comMod(cid) && onlyChanges(['role']) && resource.data.role != 'owner' && request.resource.data.role in ['member', 'mod']
+              && (request.resource.data.role != 'mod' && resource.data.role != 'mod' || comRole(cid) == 'owner'))
+        );
+        // leave (not the owner), or a moderator removes someone (not the owner, and only the owner removes moderators)
+        allow delete: if signedIn() && resource.data.role != 'owner' && (uid == request.auth.uid || (comMod(cid) && (resource.data.role != 'mod' || comRole(cid) == 'owner')));
+      }
+      match /bans/{uid} {
+        allow read: if comMod(cid) || (signedIn() && uid == request.auth.uid);
+        allow create: if comMod(cid) && !banned() && uid != get(comPath(cid)).data.owner && request.resource.data.keys().hasOnly(['reason', 'by', 'at'])
+          && goodText(request.resource.data.reason, 300) && request.resource.data.by == request.auth.uid && request.resource.data.at == request.time;
+        allow update: if false;
+        allow delete: if comMod(cid);
+      }
+      match /posts/{pid} {
+        allow read: if comCanRead(cid);
+        allow create: if comMember(cid) && !banned() && !comBanned(cid)
+          && request.resource.data.keys().hasOnly(['kind', 'title', 'text', 'by', 'byName', 'at', 'eventAt', 'place', 'endsAt', 'challenge', 'attach', 'attachKind'])
+          && stamped(request.resource.data) && goodText(request.resource.data.title, 120) && goodText(request.resource.data.text, 4000)
+          && request.resource.data.kind in ['post', 'announcement', 'event', 'showcase', 'challenge', 'entry']
+          // announcements and challenges come from moderators
+          && (!(request.resource.data.kind in ['announcement', 'challenge']) || comMod(cid))
+          && (request.resource.data.kind != 'event' || request.resource.data.eventAt is timestamp)
+          && (request.resource.data.kind != 'challenge' || request.resource.data.endsAt is timestamp)
+          // an entry answers a challenge of this community that is still open
+          && (request.resource.data.kind != 'entry' || (request.resource.data.challenge is string
+              && get(/databases/$(database)/documents/communities/$(cid)/posts/$(request.resource.data.challenge)).data.kind == 'challenge'
+              && get(/databases/$(database)/documents/communities/$(cid)/posts/$(request.resource.data.challenge)).data.endsAt > request.time))
+          // something shared: a desktop, a gallery or a widget made in Studio (data only, never code), 150 KB at most
+          && (!('attach' in request.resource.data) || (request.resource.data.attachKind in ['desk', 'gallery', 'widget'] && goodText(request.resource.data.attach, 150000)))
+          && goodText(request.resource.data.get('place', ''), 120)
+          // the rate limit
+          && get(memPath(cid, request.auth.uid)).data.lastPost < request.time - duration.value(20, 's')
+          && getAfter(memPath(cid, request.auth.uid)).data.lastPost == request.time;
+        allow update: if false;
+        allow delete: if signedIn() && (resource.data.by == request.auth.uid || comMod(cid));
+        match /likes/{uid} {
+          allow read: if comCanRead(cid);
+          allow create: if comMember(cid) && !banned() && !comBanned(cid) && uid == request.auth.uid && request.resource.data.keys().hasOnly(['at']) && request.resource.data.at == request.time;
+          allow update: if false;
+          allow delete: if signedIn() && uid == request.auth.uid;
+        }
+      }
+      // one report per person per post; only moderators read them
+      match /reports/{rid} {
+        allow read: if comMod(cid);
+        allow create: if comCanRead(cid) && !banned() && !comBanned(cid) && request.resource.data.keys().hasOnly(['pid', 'reason', 'by', 'at'])
+          && rid == request.resource.data.pid + '_' + request.auth.uid && goodText(request.resource.data.reason, 300)
+          && request.resource.data.by == request.auth.uid && request.resource.data.at == request.time;
+        allow update: if false;
+        allow delete: if comMod(cid);
+      }
+    }
+    // profiles/{uid}: { name, bio, updated }: anyone signed in reads; only you write yours
+    match /profiles/{uid} {
+      allow read: if signedIn();
+      allow create, update: if signedIn() && !banned() && uid == request.auth.uid && request.resource.data.keys().hasOnly(['name', 'bio', 'updated'])
+        && request.resource.data.name == myName() && goodText(request.resource.data.bio, 300) && request.resource.data.updated == request.time;
+      allow delete: if signedIn() && uid == request.auth.uid;
+    }
+    // follows/{from_to} and blocks/{from_to}: { from, to, at }, made by "from". You can't follow someone who blocked you.
+    match /follows/{id} {
+      allow read: if signedIn();
+      allow create: if signedIn() && !banned() && request.resource.data.keys().hasOnly(['from', 'to', 'at']) && request.resource.data.from == request.auth.uid
+        && request.resource.data.to is string && request.resource.data.to != request.auth.uid && id == request.auth.uid + '_' + request.resource.data.to
+        && !exists(/databases/$(database)/documents/blocks/$(request.resource.data.to + '_' + request.auth.uid)) && request.resource.data.at == request.time;
+      allow update: if false;
+      // (you stop following; or the person followed removes you, which is what blocking does)
+      allow delete: if signedIn() && (resource.data.from == request.auth.uid || resource.data.to == request.auth.uid);
+    }
+    match /blocks/{id} {
+      allow read: if signedIn() && resource.data.from == request.auth.uid;
+      allow create: if signedIn() && request.resource.data.keys().hasOnly(['from', 'to', 'at']) && request.resource.data.from == request.auth.uid
+        && request.resource.data.to is string && request.resource.data.to != request.auth.uid && id == request.auth.uid + '_' + request.resource.data.to && request.resource.data.at == request.time;
+      allow update: if false;
+      allow delete: if signedIn() && resource.data.from == request.auth.uid;
     }
 
     // ---- Live helpers ----

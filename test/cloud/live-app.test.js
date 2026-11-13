@@ -46,7 +46,7 @@ test('PatOS Live: here now, a board, a live note, tasks and a voice call between
   // both change the sticky's text from the same revision: one wins, the other's text is kept as a second sticky
   await until(A, () => PatOS.wm.windowsOf('livespace')[0]._live.board.items().length === 1);
   const id = await A.ev(() => PatOS.wm.windowsOf('livespace')[0]._live.board.items()[0].id);
-  await Promise.all([A.ev((id) => PatOS.wm.windowsOf('livespace')[0]._live.board.put(id, { text: 'Volcano model' }), id), B.ev((id) => PatOS.wm.windowsOf('livespace')[0]._live.board.put(id, { text: 'Solar system' }), id)]);
+  await Promise.all([A.ev((id) => PatOS.wm.windowsOf('livespace')[0]._live.board.put(id, { text: 'Volcano model' }, 1), id), B.ev((id) => PatOS.wm.windowsOf('livespace')[0]._live.board.put(id, { text: 'Solar system' }, 1), id)]);
   await until(A, () => PatOS.wm.windowsOf('livespace')[0]._live.board.items().length === 2);
   const texts = await A.ev(() => PatOS.wm.windowsOf('livespace')[0]._live.board.items().map((i) => i.text).sort());
   assert.equal(texts.length, 2); assert.ok(texts.some((t) => /^Your version: /.test(t)), 'the loser’s text is kept: ' + JSON.stringify(texts));
@@ -83,7 +83,7 @@ test('PatOS Live: here now, a board, a live note, tasks and a voice call between
   assert.equal(await A.ev(() => PatOS.wm.windowsOf('livespace')[0]._live.call()), null);
   await until(A, () => PatOS.wm.windowsOf('livespace')[0]._live && !document.body.textContent.includes('A call is on'));
   // closing the window clears the presence
-  await B.ev(() => PatOS.wm.close(PatOS.wm.windowsOf('livespace')[0]));
+  await B.ev(() => PatOS.wm.windowsOf('livespace')[0].close());
   await A.ev((l) => eval(l).open({ kind: 'home' }), L);
   await until(A, (n) => !PatOS.wm.windowsOf('livespace')[0]._live.people().some((p) => p.name === n), B.name);
   assert.deepEqual(A.errors, []); assert.deepEqual(B.errors, []);

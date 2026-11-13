@@ -36,7 +36,7 @@
         const role = S.roleOf(sp);
         if (addPath) { const p = addPath; addPath = null; if (S.can(sp, 'edit')) guard(async () => { await S.addFromPiles(sp, p); PatOS.notify({ title: T('Added to') + ' ' + sp.name, body: PatOS.fs.basename(p), icon: 'spaces', priority: 'low' }); }); }
         const tabs = h('div', { class: 'sp-tabs', role: 'tablist' }, ...[['files', 'Files'], ['activity', 'Activity'], ['members', 'Members']].map(([k, l]) => h('button', { class: 'sp-tab' + (tab === k ? ' on' : ''), role: 'tab', 'aria-selected': String(tab === k), onclick: () => { tab = k; drawMain(); } }, T(l))));
-        main.append(h('div', { class: 'sp-head' }, h('h2', {}, sp.name), h('span', { class: 'sp-role r-' + role }, T(role)), h('div', { class: 'sp-avs' }, ...Object.keys(sp.members).slice(0, 6).map((u) => h('span', { class: 'sp-av', title: '@' + ((sp.names || {})[u] || '?') + ' · ' + T(sp.members[u]) }, ((sp.names || {})[u] || '?').charAt(0).toUpperCase())))), tabs);
+        main.append(h('div', { class: 'sp-head' }, h('h2', {}, sp.name), h('span', { class: 'sp-role r-' + role }, T(role)), h('button', { class: 'btn', title: T('Boards, live notes, tasks and voice with the members'), onclick: () => PatOS.launch('livespace', { sid: sp.id }) }, T('Open in Live')), h('div', { class: 'sp-avs' }, ...Object.keys(sp.members).slice(0, 6).map((u) => h('span', { class: 'sp-av', title: '@' + ((sp.names || {})[u] || '?') + ' · ' + T(sp.members[u]) }, ((sp.names || {})[u] || '?').charAt(0).toUpperCase())))), tabs);
         if (tab === 'files') drawFiles(sp); else if (tab === 'activity') drawActivity(); else drawMembers(sp);
       }
       function drawFiles(sp) {

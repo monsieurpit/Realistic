@@ -28,7 +28,7 @@
    only ever given to Firebase Authentication, which keeps a salted hash, never the password itself. */
 import { initializeApp } from 'firebase/app';
 import { getAuth, connectAuthEmulator, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut as fbSignOut, onAuthStateChanged, deleteUser, EmailAuthProvider, reauthenticateWithCredential, updatePassword } from 'firebase/auth';
-import { initializeFirestore, connectFirestoreEmulator, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where, orderBy, limit, documentId, serverTimestamp, writeBatch, onSnapshot, runTransaction, deleteField } from 'firebase/firestore';
+import { initializeFirestore, connectFirestoreEmulator, doc, getDoc, setDoc, updateDoc, deleteDoc, collection, getDocs, query, where, orderBy, limit, documentId, serverTimestamp, writeBatch, onSnapshot, runTransaction, deleteField, getDocsFromServer, Timestamp } from 'firebase/firestore';
 
 const config = {
   apiKey: 'AIzaSyCBQGN0bxf1aHI0QMkiIm_x-K99Lg5VJGM',
@@ -325,6 +325,56 @@ const api = {
   commentsListen(sid, cb, onError) { init(); return onSnapshot(query(collection(db, 'spaces', sid, 'comments'), orderBy('at', 'desc'), limit(200)), (s) => cb(s.docs.map((d) => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' })))), (e) => { if (onError) onError(friendly(e)); }); },
   commentAdd: wrap(async (me, sid, fid, text) => { init(); await setDoc(doc(collection(db, 'spaces', sid, 'comments')), { fid: fid || '', text: String(text).slice(0, 2000), by: me.uid, byName: me.username, at: serverTimestamp() }); }),
   commentDelete: wrap(async (sid, cid) => { init(); await deleteDoc(doc(db, 'spaces', sid, 'comments', cid)); }),
+  /* ================= Commons (4.0): communities, posts, profiles, follows, blocks, reports ================= */
+  comCreate: wrap(async (me, name, about, visibility, tags) => {
+    init(); const ref = doc(collection(db, 'communities')); const b = writeBatch(db); const now = serverTimestamp();
+    b.set(ref, { name: String(name).slice(0, 60), about: String(about || '').slice(0, 500), visibility: visibility === 'private' ? 'private' : 'public', owner: me.uid, tags: (tags || []).slice(0, 5).map((t) => String(t).slice(0, 30)), by: me.uid, byName: me.username, at: now });
+    b.set(doc(db, 'communities', ref.id, 'members', me.uid), { name: me.username, role: 'owner', at: now, lastPost: Timestamp.fromMillis(0) });
+    await b.commit(); return ref.id;
+  }),
+  comGet: wrap(async (cid) => { init(); const s = await getDoc(doc(db, 'communities', cid)); return s.exists() ? Object.assign({ id: s.id }, s.data({ serverTimestamps: 'estimate' })) : null; }),
+  comUpdate: wrap(async (cid, patch) => { init(); const p = {}; ['name', 'about', 'visibility', 'tags'].forEach((k) => { if (patch[k] != null) p[k] = patch[k]; }); await updateDoc(doc(db, 'communities', cid), p); }),
+  comDelete: wrap(async (cid) => {
+    init(); for (const sub of ['posts', 'members', 'bans', 'reports']) { try { const s = await getDocs(collection(db, 'communities', cid, sub)); for (const d of s.docs) { if (sub === 'posts') { try { const l = await getDocs(collection(db, 'communities', cid, 'posts', d.id, 'likes')); for (const x of l.docs) { try { await deleteDoc(x.ref); } catch (e) {} } } catch (e) {} } if (sub === 'members' && d.data().role === 'owner') continue; try { await deleteDoc(d.ref); } catch (e) {} } } catch (e) {} }
+    await deleteDoc(doc(db, 'communities', cid));
+  }),
+  /* public communities, newest first (discovery) */
+  comPublic: wrap(async (n) => { init(); const s = await getDocs(query(collection(db, 'communities'), where('visibility', '==', 'public'), limit(n || 100))); return s.docs.map((d) => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' }))); }),
+  /* the communities you are in (a member document of yours in each) */
+  /* communities by id (PatOS remembers the ones you joined), with your role in each; ones that are gone or closed to you are left out */
+  comMany: wrap(async (me, ids) => { init(); const out = []; for (const cid of (ids || []).slice(0, 50)) { try { const m = await getDoc(doc(db, 'communities', cid, 'members', me.uid)); const c = await getDoc(doc(db, 'communities', cid)); if (c.exists()) out.push(Object.assign({ id: cid, myRole: m.exists() ? m.data().role : '' }, c.data({ serverTimestamps: 'estimate' }))); } catch (e) {} } return out; }),
+  comJoin: wrap(async (me, cid, isPublic) => { init(); await setDoc(doc(db, 'communities', cid, 'members', me.uid), { name: me.username, role: isPublic ? 'member' : 'pending', at: serverTimestamp(), lastPost: Timestamp.fromMillis(0) }); }),
+  comLeave: wrap(async (me, cid) => { init(); await deleteDoc(doc(db, 'communities', cid, 'members', me.uid)); }),
+  comSetRole: wrap(async (cid, uid, role) => { init(); await updateDoc(doc(db, 'communities', cid, 'members', uid), { role }); }),
+  comRemove: wrap(async (cid, uid) => { init(); await deleteDoc(doc(db, 'communities', cid, 'members', uid)); }),
+  comBan: wrap(async (me, cid, uid, reason) => { init(); await setDoc(doc(db, 'communities', cid, 'bans', uid), { reason: String(reason || '').slice(0, 300), by: me.uid, at: serverTimestamp() }); try { await deleteDoc(doc(db, 'communities', cid, 'members', uid)); } catch (e) {} }),
+  comUnban: wrap(async (cid, uid) => { init(); await deleteDoc(doc(db, 'communities', cid, 'bans', uid)); }),
+  comBans: wrap(async (cid) => { init(); const s = await getDocs(collection(db, 'communities', cid, 'bans')); return s.docs.map((d) => Object.assign({ uid: d.id }, d.data())); }),
+  comMembersListen(cid, cb, onError) { return listenAll(['communities', cid, 'members'], cb, onError); },
+  comPostsListen(cid, cb, onError) { init(); return onSnapshot(query(collection(db, 'communities', cid, 'posts'), orderBy('at', 'desc'), limit(100)), (s) => cb(s.docs.map((d) => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' })))), (e) => { if (onError) onError(e); }); },
+  /* a post, with the rate limit written in the same batch (the rules check both) */
+  comPost: wrap(async (me, cid, post) => {
+    init(); const ref = doc(collection(db, 'communities', cid, 'posts')); const now = serverTimestamp(); const p = { kind: post.kind || 'post', title: String(post.title || '').slice(0, 120), text: String(post.text || '').slice(0, 4000), by: me.uid, byName: me.username, at: now };
+    if (post.eventAt) p.eventAt = Timestamp.fromMillis(+post.eventAt); if (post.place) p.place = String(post.place).slice(0, 120); if (post.endsAt) p.endsAt = Timestamp.fromMillis(+post.endsAt);
+    if (post.challenge) p.challenge = String(post.challenge); if (post.attach) { p.attach = String(post.attach); p.attachKind = post.attachKind; }
+    const b = writeBatch(db); b.set(ref, p); b.update(doc(db, 'communities', cid, 'members', me.uid), { lastPost: now }); await b.commit(); return ref.id;
+  }),
+  comDeletePost: wrap(async (cid, pid) => { init(); try { const l = await getDocs(collection(db, 'communities', cid, 'posts', pid, 'likes')); for (const x of l.docs) { try { await deleteDoc(x.ref); } catch (e) {} } } catch (e) {} await deleteDoc(doc(db, 'communities', cid, 'posts', pid)); }),
+  comLike: wrap(async (me, cid, pid, on) => { init(); const r = doc(db, 'communities', cid, 'posts', pid, 'likes', me.uid); if (on) await setDoc(r, { at: serverTimestamp() }); else await deleteDoc(r); }),
+  comLikes: wrap(async (cid, pid) => { init(); const s = await getDocs(collection(db, 'communities', cid, 'posts', pid, 'likes')); return s.docs.map((d) => d.id); }),
+  comReport: wrap(async (me, cid, pid, reason) => { init(); await setDoc(doc(db, 'communities', cid, 'reports', pid + '_' + me.uid), { pid, reason: String(reason || '').slice(0, 300), by: me.uid, at: serverTimestamp() }); }),
+  comReports: wrap(async (cid) => { init(); const s = await getDocs(collection(db, 'communities', cid, 'reports')); return s.docs.map((d) => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' }))); }),
+  comReportDone: wrap(async (cid, rid) => { init(); await deleteDoc(doc(db, 'communities', cid, 'reports', rid)); }),
+  profileGet: wrap(async (uid) => { init(); const s = await getDoc(doc(db, 'profiles', uid)); return s.exists() ? s.data({ serverTimestamps: 'estimate' }) : null; }),
+  profileSet: wrap(async (me, bio) => { init(); await setDoc(doc(db, 'profiles', me.uid), { name: me.username, bio: String(bio || '').slice(0, 300), updated: serverTimestamp() }); }),
+  follow: wrap(async (me, uid, on) => { init(); const r = doc(db, 'follows', me.uid + '_' + uid); if (on) await setDoc(r, { from: me.uid, to: uid, at: serverTimestamp() }); else await deleteDoc(r); }),
+  follows: wrap(async (uid) => { init(); const [a, b] = await Promise.all([getDocs(query(collection(db, 'follows'), where('from', '==', uid))), getDocs(query(collection(db, 'follows'), where('to', '==', uid)))]); return { following: a.docs.map((d) => d.data().to), followers: b.docs.map((d) => d.data().from) }; }),
+  /* blocking: they can't follow you anymore, and you stop seeing what they post (PatOS hides it) */
+  block: wrap(async (me, uid, on) => {
+    init(); const r = doc(db, 'blocks', me.uid + '_' + uid);
+    if (on) { await setDoc(r, { from: me.uid, to: uid, at: serverTimestamp() }); for (const id of [uid + '_' + me.uid, me.uid + '_' + uid]) { try { await deleteDoc(doc(db, 'follows', id)); } catch (e) {} } } else await deleteDoc(r);
+  }),
+  blocked: wrap(async (me) => { init(); const s = await getDocs(query(collection(db, 'blocks'), where('from', '==', me.uid))); return s.docs.map((d) => d.data().to); }),
   activityListen(sid, cb, onError) { init(); return onSnapshot(query(collection(db, 'spaces', sid, 'activity'), orderBy('at', 'desc'), limit(50)), (s) => cb(s.docs.map((d) => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' })))), (e) => { if (onError) onError(friendly(e)); }); },
   /* ================= Live (4.0): presence, boards, live notes, tasks, voice signaling (inside a space) ================= */
   presenceSet: wrap(async (me, sid, app, state) => { init(); await setDoc(doc(db, 'spaces', sid, 'presence', me.uid), { name: me.username, app: String(app || '').slice(0, 40), state: state === 'away' ? 'away' : 'active', at: serverTimestamp() }); }),
@@ -345,21 +395,33 @@ const api = {
      between, nothing is written and { conflict, theirs } comes back, so the app can keep both. */
   livePut: wrap(async (me, path, id, data, baseRev) => {
     init(); const ref = id ? doc(db, ...path, id) : doc(collection(db, ...path));
-    return runTransaction(db, async (tx) => {
-      const cur = await tx.get(ref); const rev = cur.exists() ? cur.data().rev : 0;
-      if (rev !== (baseRev || 0)) return { conflict: true, rev, theirs: cur.exists() ? cur.data() : null, id: ref.id };
-      const next = Object.assign({}, data, { rev: rev + 1, by: me.uid, byName: me.username, at: serverTimestamp() });
-      tx.set(ref, next); return { ok: true, rev: rev + 1, id: ref.id };
-    });
+    try {
+      return await runTransaction(db, async (tx) => {
+        const cur = await tx.get(ref); const rev = cur.exists() ? cur.data().rev : 0;
+        if (rev !== (baseRev || 0)) return { conflict: true, rev, theirs: cur.exists() ? cur.data() : null, id: ref.id };
+        const next = Object.assign({}, data, { rev: rev + 1, by: me.uid, byName: me.username, at: serverTimestamp() });
+        tx.set(ref, next); return { ok: true, rev: rev + 1, id: ref.id };
+      });
+    } catch (e) {
+      // someone wrote between our read and our write: the rules refuse "the next revision" that no longer is. That is a
+      // clash, not a fault: say so with their version (anything else is a real refusal)
+      if (e && e.code === 'permission-denied' && id) { try { const now = await getDoc(ref); const rev = now.exists() ? now.data().rev : 0; if (rev !== (baseRev || 0)) return { conflict: true, rev, theirs: now.exists() ? now.data() : null, id: ref.id }; } catch (x) {} }
+      throw e;
+    }
   }),
   liveDelete: wrap(async (path, id) => { init(); await deleteDoc(doc(db, ...path, id)); }),
   /* voice: a call, who is in it, and the messages two browsers need to connect (only readable by those two) */
   callStart: wrap(async (me, sid) => { init(); const ref = doc(collection(db, 'spaces', sid, 'calls')); await setDoc(ref, { by: me.uid, byName: me.username, at: serverTimestamp() }); return ref.id; }),
   callEnd: wrap(async (sid, cid) => {
-    init(); for (const sub of ['peers', 'signals']) { try { const s = await getDocs(collection(db, 'spaces', sid, 'calls', cid, sub)); for (const d of s.docs) { try { await deleteDoc(d.ref); } catch (e) {} } } catch (e) {} }
+    init(); const subs = [collection(db, 'spaces', sid, 'calls', cid, 'peers')];
+    for (const q of subs) { try { const s = await getDocs(q); for (const d of s.docs) { try { await deleteDoc(d.ref); } catch (e) {} } } catch (e) {} }
+    // (signals: only the ones you may read, the ones to or from you)
+    try { const uid = auth.currentUser && auth.currentUser.uid; if (uid) for (const f of ['to', 'from']) { const s = await getDocs(query(collection(db, 'spaces', sid, 'calls', cid, 'signals'), where(f, '==', uid))); for (const d of s.docs) { try { await deleteDoc(d.ref); } catch (e) {} } } } catch (e) {}
     await deleteDoc(doc(db, 'spaces', sid, 'calls', cid));
   }),
   callJoin: wrap(async (me, sid, cid) => { init(); await setDoc(doc(db, 'spaces', sid, 'calls', cid, 'peers', me.uid), { name: me.username, at: serverTimestamp() }); }),
+  /* how many are still in the call, asked of the server (not this device's copy, which can lag behind) */
+  callPeerCount: wrap(async (sid, cid) => { init(); return (await getDocsFromServer(collection(db, 'spaces', sid, 'calls', cid, 'peers'))).size; }),
   callLeave: wrap(async (me, sid, cid) => { init(); await deleteDoc(doc(db, 'spaces', sid, 'calls', cid, 'peers', me.uid)); }),
   signalSend: wrap(async (me, sid, cid, to, type, data) => { init(); await setDoc(doc(collection(db, 'spaces', sid, 'calls', cid, 'signals')), { from: me.uid, to, type, data: String(data || '').slice(0, 20000), at: serverTimestamp() }); }),
   signalsListen(me, sid, cid, cb, onError) { init(); return onSnapshot(query(collection(db, 'spaces', sid, 'calls', cid, 'signals'), where('to', '==', me.uid)), (s) => cb(s.docChanges().filter((c) => c.type === 'added').map((c) => Object.assign({ id: c.doc.id }, c.doc.data({ serverTimestamps: 'estimate' })))), (e) => { if (onError) onError(e); }); },

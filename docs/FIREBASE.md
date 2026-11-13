@@ -20,6 +20,10 @@ What the rules allow, in plain words:
 | `accounts/{uid}` and everything under it (`records`, `chunks`) | Only that person, and only well-formed items. This is where everything you save goes. |
 | `conversations/{id}` | Only the two people in it. A first message makes a **request**; only the person asked can accept or decline it. |
 | `conversations/{id}/messages` | Only the two people can read; a message can only be written by its sender, 2000 characters at most, with the server's time. Messages are never edited or deleted. Before a request is accepted, the person who asked can send only that one first message. |
+| `spaces/{sid}` and `files`, `comments`, `activity` | Shared Spaces: only members, by role (owner > admin > editor > commenter > viewer). Saves need the next revision. |
+| `spaces/{sid}/presence/{uid}` | PatOS Live, who is here: members see it; you only write your own. |
+| `spaces/{sid}/boards`, `notes`, `tasks` (and `items`, `blocks`) | PatOS Live: members read; editors and up write. Every write must be exactly the next revision, signed with your own account, with checked sizes, positions and colours. A task can only be given to a member. |
+| `spaces/{sid}/calls/{cid}`, `peers`, `signals` | PatOS Live voice: members who can comment start, join and end calls. A signal (how two browsers connect) is readable only by the two people it is between; the sound itself goes browser to browser. |
 | everything else | closed |
 
 If you ever change what PatOS stores, change the rules to match, then run `npm run test:cloud` (below) to check them.
