@@ -39,6 +39,7 @@
 
   /* ---------- small helpers ---------- */
   const two = (n) => String(n).padStart(2, '0');
+  const rate = (b) => (b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB/s' : b >= 1024 ? Math.round(b / 1024) + ' KB/s' : b + ' B/s');
   const clock = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); const hh = Math.floor(s / 3600), m = Math.floor(s / 60) % 60; return (hh ? hh + ':' + two(m) : m) + ':' + two(s % 60); };
   const ago = (t) => { const s = Math.round((Date.now() - t) / 1000); return s < 60 ? T('now') : s < 3600 ? Math.round(s / 60) + ' min' : Math.round(s / 3600) + ' h'; };
   const ring = (p, color) => { const c = 2 * Math.PI * 7.5, d = (c * Math.max(0, Math.min(1, p))).toFixed(1); return '<svg class="pl-ring" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="2.6"/><circle cx="10" cy="10" r="7.5" fill="none" stroke="' + (color || 'currentColor') + '" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="' + d + ' ' + c.toFixed(1) + '" transform="rotate(-90 10 10)"/></svg>'; };
@@ -137,10 +138,11 @@
       trail: a.progress != null ? ring(a.progress, 'var(--pl-accent)') + '<b class="pl-num">' + Math.round(a.progress * 100) + '%</b>' : spin, progress: a.progress, tone: a.status === 'stalled' ? TONE.warning : '',
       state: a.status === 'paused' ? T('Paused') : a.progress != null ? Math.round(a.progress * 100) + '%' : T('Working…'),
       actions: [a.can.pause && { icon: 'pause', label: T('Pause'), run: () => PatOS.live.act(a.id, 'pause') }, a.can.resume && { icon: 'play', label: T('Resume'), run: () => PatOS.live.act(a.id, 'resume') },
-        a.can.cancel && { icon: 'close', label: T('Cancel'), run: () => PatOS.live.act(a.id, 'cancel') }, a.can.open && { icon: 'folder', label: T('Show'), run: () => PatOS.live.act(a.id, 'open') }].filter(Boolean),
+        a.can.cancel && { icon: 'close', label: T('Cancel'), run: () => PatOS.live.act(a.id, 'cancel') }, a.can.open && { icon: 'folder', label: a.stats && a.stats.dest ? T('Open the destination folder') : T('Show'), run: () => PatOS.live.act(a.id, 'open') }].filter(Boolean),
       open: a.can.open ? () => PatOS.live.act(a.id, 'open') : () => PatOS.launch(a.app),
       big: () => h('div', { class: 'pl-big' }, h('div', { class: 'pl-bar' + (a.progress == null ? ' busy' : '') }, h('i', { style: { width: a.progress == null ? '' : Math.round(a.progress * 100) + '%' } })),
-        h('div', { class: 'pl-meta' }, h('span', {}, a.progress != null ? Math.round(a.progress * 100) + '%' : T('Working…')), a.eta ? h('span', {}, T('about') + ' ' + clock(a.eta) + ' ' + T('left')) : null))
+        h('div', { class: 'pl-meta' }, h('span', {}, a.progress != null ? Math.round(a.progress * 100) + '%' : T('Working…')), a.eta ? h('span', {}, T('about') + ' ' + clock(a.eta) + ' ' + T('left')) : null),
+        a.stats && (a.stats.file || a.stats.speed) ? h('div', { class: 'pl-stats' }, h('span', {}, a.stats.file ? T('Now') + ': ' + a.stats.file : ''), a.stats.speed ? h('span', {}, rate(a.stats.speed)) : null) : null)
     };
   }
   function liveItems() {
@@ -195,10 +197,11 @@
     return [{
       id: 'music', pri: 50, app: 'music', lead: art, title: np.title, sub: np.artist, tone, state: T(np.playing ? 'Playing' : 'Paused'),
       trail: S().pillBars === false ? glyph(np.playing ? 'play' : 'pause', tone) : '<span class="pl-eq' + (np.playing ? ' on' : '') + '"><i></i><i></i><i></i><i></i></span>',
-      actions: [{ icon: 'prev', label: T('Previous'), run: () => M.prev() }, { icon: np.playing ? 'pause' : 'play', label: T(np.playing ? 'Pause' : 'Play'), run: () => M.toggle(), main: true }, { icon: 'next', label: T('Next'), run: () => M.next() },
-        { icon: 'speaker', label: T('Output'), run: (e) => { const r = e && e.currentTarget ? e.currentTarget.getBoundingClientRect() : { left: innerWidth / 2, bottom: 120 }; outputMenu(r.left, r.bottom + 6); }, keep: true }],
+      actions: [M.toggleFavourite && { icon: 'star', label: T(M.isFavourite() ? 'Remove from Favourites' : 'Add to Favourites'), on: M.isFavourite(), run: () => { const on = M.toggleFavourite(); flash({ kind: 'fav', lead: glyph('star', on ? '#ffd60a' : '#fff'), title: np.title, sub: T(on ? 'Added to Favourites' : 'Removed from Favourites') }); } },
+        { icon: 'prev', label: T('Previous'), run: () => M.prev() }, { icon: np.playing ? 'pause' : 'play', label: T(np.playing ? 'Pause' : 'Play'), run: () => M.toggle(), main: true }, { icon: 'next', label: T('Next'), run: () => M.next() },
+        { icon: 'speaker', label: T('Output'), run: (e) => { const r = e && e.currentTarget ? e.currentTarget.getBoundingClientRect() : { left: innerWidth / 2, bottom: 120 }; outputMenu(r.left, r.bottom + 6); }, keep: true }].filter(Boolean),
       open: () => PatOS.launch('music'),
-      big: () => { const p = M.position ? M.position() : { t: 0, d: 0 }; return h('div', { class: 'pl-big' }, h('div', { class: 'pl-bar' }, h('i', { style: { width: p.d ? Math.min(100, p.t / p.d * 100) + '%' : '0' } })), h('div', { class: 'pl-meta' }, h('span', {}, clock(p.t * 1000)), h('span', {}, '−' + clock(Math.max(0, p.d - p.t) * 1000))), next ? h('div', { class: 'pl-next' }, h('small', {}, T('Next')), h('span', {}, next.title + (next.artist ? ' · ' + next.artist : ''))) : null); }
+      big: () => { const p = M.position ? M.position() : { t: 0, d: 0 }; return h('div', { class: 'pl-big' }, h('div', { class: 'pl-bar' }, h('i', { style: { width: p.d ? Math.min(100, p.t / p.d * 100) + '%' : '0' } })), h('div', { class: 'pl-meta' }, h('span', {}, clock(p.t * 1000)), h('span', {}, '−' + clock(Math.max(0, p.d - p.t) * 1000))), (() => { const up = M.upcoming ? M.upcoming(3) : (next ? [next] : []); return up.length ? h('div', { class: 'pl-next' }, h('small', {}, T('Up next')), ...up.map((x, i) => h('span', { class: 'pl-upn' }, h('i', {}, String(i + 1)), x.title + (x.artist ? ' · ' + x.artist : '')))) : null; })()); }
     }];
   }
   function bars() {
@@ -305,6 +308,27 @@
     return out;
   }
 
+  /* the weather (4.0): the temperature now in the overview; rain or snow coming in the next hour, and storms, ice, heavy
+     rain or snow, or strong wind in the next 6 hours, in the capsule. From the forecast (open-meteo): not official alerts. */
+  const SEVERE = { storm: ['Thunderstorms', '#ff9f0a'], ice: ['Freezing rain', '#ff453a'], heavyRain: ['Heavy rain', '#ff9f0a'], heavySnow: ['Heavy snow', '#ff9f0a'], wind: ['Strong wind', '#ff9f0a'] };
+  const WXW = (c) => (c === 0 ? ['Clear', 'sunny'] : c <= 3 ? ['Partly cloudy', 'partly'] : c <= 48 ? ['Fog', 'fog'] : c <= 67 ? ['Rain', 'rain'] : c <= 77 ? ['Snow', 'snow'] : c <= 82 ? ['Showers', 'rain'] : ['Storm', 'storm']);
+  function weatherItems() {
+    if (S().pillWeather === false || !PatOS.weatherNow) return [];
+    const w = PatOS.weatherNow(); if (!w) return [];
+    const [word, ic] = WXW(w.code); const open = () => PatOS.launch('weather');
+    const base = { app: 'weather', open, actions: [{ icon: 'window', label: T('Open Weather'), run: open }] };
+    if (w.severe && SEVERE[w.severe.kind]) {
+      const [what, color] = SEVERE[w.severe.kind]; const soon = w.severe.at - Date.now() < 3600000;
+      return [Object.assign({ id: 'wx:severe', pri: 70, lead: glyph('warn', color), title: T(what) + ' ' + (soon ? T('now') : T('around') + ' ' + timeAt(w.severe.at)), sub: T('From the forecast') + ' · ' + w.place, tone: color, state: T(what), trail: '<b class="pl-num pl-temp">' + w.temp + '°</b>' }, base)];
+    }
+    if (w.rainIn != null && w.rainIn <= 60) {
+      const what = w.rainKind === 'snow' ? 'Snow' : 'Rain';
+      return [Object.assign({ id: 'wx:rain', pri: 40, lead: glyph(w.rainKind === 'snow' ? 'snow' : 'rain'), title: w.rainIn <= 5 ? T(what + ' starting') : T(what + ' in') + ' ' + w.rainIn + ' min', sub: w.temp + '° · ' + w.place, state: w.rainIn + ' min', trail: '<b class="pl-num">' + w.rainIn + ' min</b>' }, base)];
+    }
+    return [Object.assign({ id: 'wx:now', pri: 12, lead: glyph(ic), title: w.temp + '° · ' + T(word), sub: w.place + ' · ' + T('H') + ' ' + w.hi + '° ' + T('L') + ' ' + w.lo + '°', state: w.temp + '°', trail: '<b class="pl-num pl-temp">' + w.temp + '°</b>' }, base)];
+  }
+  PatOS.on('widgets:weather', () => schedule());
+
   /* PatOS itself: the battery, sync, the network, Do Not Disturb */
   let battery = null, dndSince = 0;
   if (navigator.getBattery) navigator.getBattery().then((b) => { battery = b; b.addEventListener('levelchange', schedule); b.addEventListener('chargingchange', () => { flash({ kind: 'battery', lead: glyph('bolt', b.charging ? '#34c759' : '#fff'), title: T(b.charging ? 'Charging' : 'On battery'), trail: '<b class="pl-num">' + Math.round(b.level * 100) + '%</b>', tone: b.charging ? '#34c759' : '', status: b.charging ? 'charge' : '' }); schedule(); }); schedule(); }).catch(() => {});
@@ -327,7 +351,7 @@
     let all = [], compact = [];
     const add = (l, both) => { all = all.concat(l); if (both !== false) compact = compact.concat(l); };
     const L = liveItems();
-    for (const f of [mediaItems, timerItems, musicItems, calendarItems, systemItems, sdkItems]) { try { add(f()); } catch (e) { console.error(e); } }
+    for (const f of [mediaItems, timerItems, musicItems, calendarItems, systemItems, weatherItems, sdkItems]) { try { add(f()); } catch (e) { console.error(e); } }
     all = all.concat(L.all); compact = compact.concat(L.compact);
     const by = (a, b) => b.pri - a.pri;
     all.sort(by); compact = compact.filter((x) => x.pri >= 35).sort(by);
@@ -336,7 +360,7 @@
   }
 
   /* ======================= drawing ======================= */
-  const actBtn = (a, cls) => h('button', { class: (cls || 'pl-act') + (a.main ? ' main' : ''), 'data-i': a.icon || '', 'aria-label': a.label, title: a.label,
+  const actBtn = (a, cls) => h('button', { class: (cls || 'pl-act') + (a.main ? ' main' : '') + (a.on ? ' on' : ''), 'aria-pressed': a.on != null ? String(!!a.on) : null, 'data-i': a.icon || '', 'aria-label': a.label, title: a.label,
     onclick: (e) => { e.stopPropagation(); a.run(e); if (!a.keep) setTimeout(render, 80); }, html: a.icon ? sym(a.icon) : esc(a.label) });
   function compactEl(it) {
     return h('div', { class: 'pl-row' }, h('span', { class: 'pl-lead', html: it.lead || '' }),
@@ -524,7 +548,9 @@
     dismissApp: (app) => { [...acts.values()].filter((a) => a.app === app && !a.system).forEach((a) => dismiss(a.id)); }, // (its app was force-quit)
     flash, notify: takeNotification, expand: () => expand(true), collapse, render, preview,
     history: () => hist.slice(), clearHistory: () => { hist = []; saveHist(); schedule(); },
-    get state() { return { mode, items: shown.map((x) => x.id), flash: flashNow ? flashNow.title : null }; }
+    get state() { return { mode, items: shown.map((x) => x.id), flash: flashNow ? flashNow.title : null }; },
+    // everything the Pill would show now, most important first, and what fits in the capsule (tests, Settings)
+    list: () => { const c = collect(); return { all: c.all.map((x) => ({ id: x.id, title: x.title, sub: x.sub, pri: x.pri })), compact: c.compact.map((x) => x.id) }; }
   };
   // Alt+A: the Activity Overview, any time (even when nothing is running: what finished recently)
   document.addEventListener('keydown', (e) => { if (PatOS.loggedIn && on() && e.altKey && !e.ctrlKey && !e.metaKey && e.code === 'KeyA') { e.preventDefault(); mode === 'expanded' ? collapse() : expand(true); } });

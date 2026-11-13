@@ -50,9 +50,24 @@
   // the weather: one request for every widget, at most every 20 minutes (open-meteo, no key needed)
   const weather = { v: null, t: 0, p: null,
     get() { const pl = PatOS.store.get('weatherPlace', null) || { name: 'Montréal', lat: 45.5019, lon: -73.5674 }; if (Date.now() - this.t > 20 * 60000 && !this.p && navigator.onLine !== false) this.fetch(pl); return this.v; },
-    fetch(pl) { this.p = fetch('https://api.open-meteo.com/v1/forecast?latitude=' + pl.lat + '&longitude=' + pl.lon + '&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&forecast_days=1&timezone=auto')
-      .then((r) => r.json()).then((j) => { this.v = { place: pl.name, temp: Math.round(j.current.temperature_2m), code: j.current.weather_code, hi: Math.round(j.daily.temperature_2m_max[0]), lo: Math.round(j.daily.temperature_2m_min[0]) }; this.t = Date.now(); PatOS.emit('widgets:weather'); })
+    // (4.0) also the next 2 hours of rain in 15-minute steps and the next 6 hours of storms and wind, for the PatOS Pill
+    fetch(pl) { this.p = fetch('https://api.open-meteo.com/v1/forecast?latitude=' + pl.lat + '&longitude=' + pl.lon + '&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&minutely_15=precipitation,temperature_2m&forecast_minutely_15=8&hourly=weather_code,wind_gusts_10m&forecast_hours=6&forecast_days=1&timezone=auto&timeformat=unixtime')
+      .then((r) => r.json()).then((j) => { this.v = Object.assign({ place: pl.name, temp: Math.round(j.current.temperature_2m), code: j.current.weather_code, hi: Math.round(j.daily.temperature_2m_max[0]), lo: Math.round(j.daily.temperature_2m_min[0]) }, ahead(j)); this.t = Date.now(); PatOS.emit('widgets:weather'); })
       .catch(() => { this.t = Date.now() - 15 * 60000; }).finally(() => { this.p = null; }); } };
+  /* what is coming, from the forecast itself (open-meteo gives no official alerts, so PatOS says "from the forecast"):
+     rain or snow in the next 2 hours, and storms, freezing rain, heavy rain or snow, or strong wind in the next 6 */
+  function ahead(j) {
+    const out = { rainIn: null, rainKind: '', severe: null };
+    try {
+      const m = j.minutely_15 || {}, now = Date.now() / 1000;
+      for (let i = 0; i < (m.time || []).length; i++) { if (m.time[i] + 900 < now) continue; if ((m.precipitation[i] || 0) >= 0.2) { out.rainIn = Math.max(0, Math.round((m.time[i] - now) / 60)); out.rainKind = (m.temperature_2m && m.temperature_2m[i] <= 0) ? 'snow' : 'rain'; break; } }
+      const hh = j.hourly || {}; const SEV = { 95: 'storm', 96: 'storm', 99: 'storm', 66: 'ice', 67: 'ice', 65: 'heavyRain', 82: 'heavyRain', 75: 'heavySnow', 86: 'heavySnow' };
+      for (let i = 0; i < (hh.time || []).length; i++) { const k = SEV[hh.weather_code[i]] || ((hh.wind_gusts_10m || [])[i] >= 70 ? 'wind' : ''); if (k && hh.time[i] + 3600 > now) { out.severe = { kind: k, at: hh.time[i] * 1000 }; break; } }
+    } catch (e) {}
+    return out;
+  }
+  PatOS.weatherNow = () => weather.get(); // (the Pill and the Weather widget share one request)
+  PatOS.weatherRefresh = () => { weather.t = 0; weather.p = null; return weather.get(); }; // (the Weather app's refresh, and tests)
   const wxWord = (c) => (c === 0 ? ['Clear', 'sunny'] : c <= 3 ? ['Partly cloudy', 'partly'] : c <= 48 ? ['Fog', 'fog'] : c <= 67 ? ['Rain', 'rain'] : c <= 77 ? ['Snow', 'snow'] : c <= 82 ? ['Showers', 'rain'] : ['Storm', 'storm']);
 
   /* ---------- the context a widget renders with: everything it starts is cleaned up when it goes ---------- */

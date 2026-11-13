@@ -279,12 +279,19 @@
     } catch (e) {}
   }
   function emit() { mediaSession(); E.listeners.forEach((f) => { try { f(); } catch (e) {} }); PatOS.emit('music'); } // (the Pill follows it: js/pill.js)
+  /* favourites (4.0): your favourite songs, a list of keys (a file's path, or 'gen:<n>' for a PatOS Original), synced like playlists */
+  const favKey = (it) => (it ? (it.path || (it.gen != null ? 'gen:' + it.gen : '')) : '');
+  const favs = () => PatOS.store.get('musicFavs', []) || [];
+  const isFav = (it) => { const k = favKey(it); return !!k && favs().includes(k); };
+  function toggleFav(it) { it = it || cur(); const k = favKey(it); if (!k) return false; const l = favs(); const on = !l.includes(k); PatOS.store.set('musicFavs', on ? l.concat([k]) : l.filter((x) => x !== k)); emit(); PatOS.emit('music:favs'); return on; }
   PatOS.music = {
     toggle: () => (E.playing ? pause() : play()), next: () => next(), prev,
     nowPlaying: () => { const s = (E.playing || E.step > 0 || (E.el && E.el.currentTime > 0)) ? info() : null; return s ? Object.assign({ playing: E.playing }, s) : null; },
     playPath: (p) => setQueue([{ path: p }], 0, true),
     position: () => position(),
     upNext: () => { const it = E.queue[E.qi + 1]; return it ? info(it) : null; },
+    upcoming: (n) => E.queue.slice(E.qi + 1, E.qi + 1 + (n || 3)).map((it) => info(it)).filter(Boolean),
+    isFavourite: (it) => isFav(it || cur()), toggleFavourite: (it) => toggleFav(it), favourites: () => favs().slice(),
     setOutput: async (id) => { if (E.sink && E.sink.setSinkId) await E.sink.setSinkId(id); }, // (the Pill's output picker; PatOS's own sounds follow too)
     // how loud it is right now, in a few bands (0..1), for the Pill's bars
     levels(n) { n = n || 4; if (!E.analyser || !E.playing) return new Array(n).fill(0); const d = new Uint8Array(E.analyser.frequencyBinCount); E.analyser.getByteFrequencyData(d); const out = []; for (let i = 0; i < n; i++) { const a = Math.floor(Math.pow(i / n, 1.6) * d.length * .7), b = Math.max(a + 1, Math.floor(Math.pow((i + 1) / n, 1.6) * d.length * .7)); let m = 0; for (let j = a; j < b; j++) m = Math.max(m, d[j]); out.push(m / 255); } return out; }
@@ -328,6 +335,7 @@
           item('albums', T('Albums'), '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="4"/>'),
           item('artists', T('Artists'), '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>'),
           item('recent', T('Recently Added'), '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+          item('favs', T('Favourites'), '<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>'),
           item('originals', T('PatOS Originals'), '<path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/>'),
           h('div', { class: 'mu-sh' }, T('Playlists')));
         playlists().forEach((pl) => side.appendChild(item('pl:' + pl.id, pl.name, '<path d="M4 6h12M4 12h12M4 18h8M18 13v8"/>', (el) => {
@@ -349,6 +357,7 @@
         const all = libraryPaths();
         let list;
         if (view === 'recent') list = all.slice().sort((a, b) => (metas()[b] ? metas()[b].added || 0 : Date.now()) - (metas()[a] ? metas()[a].added || 0 : Date.now()) || ((PatOS.fs.get(b) || {}).mtime || 0) - ((PatOS.fs.get(a) || {}).mtime || 0)).slice(0, 50);
+        else if (view === 'favs') { const f = favs(); list = all.filter((p) => f.includes(p)).sort((a, b) => f.indexOf(b) - f.indexOf(a)); }
         else if (view.startsWith('pl:')) { const pl = playlists().find((x) => 'pl:' + x.id === view); list = pl ? pl.tracks.filter((p) => PatOS.fs.get(p)) : []; }
         else list = all.slice().sort((a, b) => { const A = metaOf(a), B = metaOf(b); return (!A.artist - !B.artist) || (A.artist || '').localeCompare(B.artist || '') || (A.album || '').localeCompare(B.album || '') || (A.track || 0) - (B.track || 0) || A.title.localeCompare(B.title); });
         if (sub) list = list.filter((p) => (sub.kind === 'album' ? (metaOf(p).album || T('Unknown Album')) === sub.name && (metaOf(p).artist || '') === sub.artist : (metaOf(p).artist || T('Unknown Artist')) === sub.name));
@@ -381,6 +390,7 @@
       function songMenu(p, x, y) {
         const pls = playlists(); const inPl = view.startsWith('pl:') ? view.slice(3) : null;
         PatOS.menu([
+          { label: T(isFav({ path: p }) ? 'Remove from Favourites' : 'Add to Favourites'), action: () => { toggleFav({ path: p }); if (view === 'favs') renderMain(); } },
           { label: T('Play Next'), action: () => playNext({ path: p }) },
           { label: T('Add to Up Next'), action: () => addToQueue({ path: p }) },
           { divider: true },

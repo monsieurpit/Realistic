@@ -576,6 +576,7 @@
               S().pillOn !== false ? row('Show what finished recently', toggle('pillHistory')) : null,
               S().pillOn !== false ? row('Second activity bubble', toggle('pillBubble')) : null,
               S().pillOn !== false ? row('Music bars', toggle('pillBars')) : null,
+              S().pillOn !== false ? row('Weather in the Pill', toggle('pillWeather'), 'The temperature, rain or snow coming within the hour, and storms or strong wind from the forecast.') : null,
               S().pillOn !== false ? row('How long quick messages stay', select('pillFlash', [['short', 'Short'], ['normal', 'Normal'], ['long', 'Long']])) : null,
               S().pillOn !== false ? row('In full-screen apps', select('pillFs', [['never', 'Never'], ['important', 'Only important things'], ['always', 'Always']])) : null,
               S().pillOn !== false ? row('Try it', h('button', { class: 'btn', onclick: () => PatOS.pill && PatOS.pill.preview() }, T('Preview'))) : null),

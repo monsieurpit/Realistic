@@ -29,6 +29,8 @@
     if (j.kind === 'move') { if (fs().dirname(p) !== j.dest) it.out = fs().move(p, j.dest); else it.out = p; }
     else it.out = fs().copy(p, j.dest);
   }
+  // how big an item is (a file's content, a picture's data, everything in a folder), to tell how fast a copy goes
+  function sizeOf(p) { let n = 0; const one = (nd) => { n += nd.blob ? +nd.size || 0 : typeof nd.content === 'string' ? nd.content.length : 0; }; const nd = fs().get(p); if (!nd) return 0; if (nd.type === 'dir') fs().walk(p, (q, x) => { if (x.type === 'file') one(x); }); else one(nd); return n; }
   function show(j) {
     let a = live.get(j.id);
     const done = j.items.filter((x) => x.done).length;
@@ -38,16 +40,20 @@
       live.set(j.id, a);
     }
     const cur = j.items.find((x) => !x.done);
-    a.update({ progress: done / j.items.length, detail: done + ' ' + T('of') + ' ' + j.items.length + (cur ? ' · ' + fs().basename(cur.src) : ''), status: j.status === 'paused' ? 'paused' : 'running' });
+    const sp = j.meter && j.meter.bytes ? Math.round(j.meter.bytes / (Math.max(16, performance.now() - j.meter.t0) / 1000)) : 0; // (bytes a second: what was really copied, over the time it has taken)
+    a.update({ progress: done / j.items.length, detail: done + ' ' + T('of') + ' ' + j.items.length + (cur ? ' · ' + fs().basename(cur.src) : ''), status: j.status === 'paused' ? 'paused' : 'running',
+      stats: { speed: sp, file: cur ? fs().basename(cur.src) : '', dest: j.kind === 'trash' ? '' : j.dest } });
     return a;
   }
   async function run(id) {
     const j = jobs.find((x) => x.id === id); if (!j || j.status === 'running') return;
-    j.status = 'running'; save(); show(j);
+    j.status = 'running'; j.meter = null; save(); show(j); // (the speed counts from now: a pause isn't slowness)
     for (const it of j.items) {
       if (it.done) continue;
       if (j.status !== 'running') { save(); show(j); return; } // (paused or cancelled between items)
+      const size = j.kind === 'trash' ? 0 : sizeOf(it.src), t0 = performance.now();
       try { step(j, it); it.error = ''; } catch (e) { it.error = (e && e.message) || T('That didn’t work.'); }
+      if (!it.error) { j.meter = j.meter || { bytes: 0, t0 }; j.meter.bytes += size; }
       it.done = true; save(); show(j);
       await new Promise((r) => setTimeout(r, j.items.length > 40 ? 0 : 16)); // (the screen gets its turn)
     }

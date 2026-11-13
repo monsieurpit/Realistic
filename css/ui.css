@@ -29,7 +29,7 @@
 :is(.ui-si, .fd-si, .st-si, .dv-si, .mu-si, .nw-si, .pb-si, .pw-si, .rd-si, .cap-si, .sp-si, .lv-si, .cm-si, .ytx-sitem):is(.on, .sel, .active, [aria-selected="true"]) small { color: rgba(255,255,255,.92); }
 
 /* ---------- empty pages: the same quiet look everywhere ---------- */
-:is(.ui-empty, .bk-empty, .cap-empty, .cmd-empty, .cp-empty, .ct-empty, .fc-empty, .fd-empty, .fx-empty, .jn-empty, .m2-empty, .msw-empty, .mu-empty, .nl-empty, .notes-empty, .nt-empty, .nw-empty, .of-empty, .pd-empty, .ph-empty, .pv-empty, .pw-empty, .rm-empty, .sc-empty, .sp-empty, .lv-empty, .cm-empty, .tl-empty, .vd-empty, .vm-empty) {
+:is(.ui-empty, .bk-empty, .cap-empty, .cmd-empty, .cp-empty, .ct-empty, .fc-empty, .fd-empty, .fx-empty, .jn-empty, .m2-empty, .msw-empty, .mu-empty, .nl-empty, .notes-empty, .nt-empty, .nw-empty, .of-empty, .pd-empty, .ph-empty, .pv-empty, .pw-empty, .rm-empty, .sc-empty, .sp-empty, .lv-empty, .tl-empty, .vd-empty, .vm-empty) {
   color: var(--text3); font-size: 13.5px; line-height: 1.45; text-align: center;
 }
 :is(.ui-empty, .bk-empty, .cap-empty, .ct-empty, .fd-empty, .jn-empty, .m2-empty, .mu-empty, .notes-empty, .nw-empty, .ph-empty, .pw-empty, .rm-empty, .sc-empty, .tl-empty, .vd-empty) :is(h2, h3, b, strong) { color: var(--text); font-size: 15px; font-weight: 650; }

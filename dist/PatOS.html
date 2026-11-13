@@ -2911,36 +2911,85 @@ html[data-theme="dark"] .ytx { --yb: #0f0f0f; --yb2: #272727; --yb3: #3f3f3f; --
 .lv-call { padding: 18px; border-radius: 16px; background: rgba(127,127,127,.07); max-width: 560px; } .lv-cbtn { display: flex; gap: 8px; }
 .mobile .lv { flex-direction: column; } .mobile .lv-side { width: auto; flex: none; max-height: 40%; border-right: 0; border-bottom: 1px solid var(--border); }
 
-/* PatOS Commons 4.0 (js/apps/commons.js) */
+/* PatOS Commons 4.0 (js/apps/commons.js): built from the design system (ui-side, ui-row, ui-group, ui-seg, ui-section,
+   ui-empty, ui-badge); only the feed and the community header are its own. No gradients, glows or lifts: plain surfaces. */
 .cm { display: flex; height: 100%; min-height: 0; background: var(--win-solid); }
-.cm-side { width: 220px; flex: 0 0 220px; border-right: 1px solid var(--border); padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
-.cm-sh { display: flex; align-items: center; justify-content: space-between; font-size: 11px; font-weight: 600; text-transform: uppercase; letter-spacing: .04em; color: var(--text3); margin: 14px 6px 4px; }
-.cm-add { border: 0; background: rgba(127,127,127,.12); color: inherit; width: 22px; height: 22px; border-radius: 7px; cursor: pointer; font-size: 15px; line-height: 1; }
-.cm-si > span { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.cm-main { flex: 1; min-width: 0; overflow-y: auto; padding: 18px 22px; display: flex; flex-direction: column; gap: 10px; }
-.cm-head { display: flex; align-items: center; gap: 10px; } .cm-head h2 { margin: 0; font-size: 22px; flex: none; } .cm-head > .btn:last-child { margin-left: auto; }
-.cm-badge { font-size: 12px; padding: 2px 8px; border-radius: 99px; background: rgba(127,127,127,.14); }
-.cm-about { margin: 0; color: var(--text2); }
-.cm-muted { color: var(--text3); font-size: 13px; margin: 4px 0; } .cm-fine { color: var(--text3); font-size: 12px; max-width: 560px; }
-.cm-ic { display: inline-block; width: 64px; height: 64px; }
-.cm-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 12px; }
-.cm-card { text-align: left; padding: 14px; border-radius: 14px; background: rgba(127,127,127,.08); border: 1px solid var(--border); color: inherit; font: inherit; cursor: pointer; display: flex; flex-direction: column; gap: 4px; }
-.cm-card:hover { border-color: color-mix(in srgb, var(--accent) 40%, var(--border)); } .cm-card p { margin: 0; color: var(--text2); font-size: 13px; } .cm-card small { color: var(--text3); }
-.cm-body { display: flex; flex-direction: column; gap: 10px; }
-.cm-compose, .cm-post { padding: 12px 14px; border-radius: 14px; background: rgba(127,127,127,.07); border: 1px solid var(--border); display: flex; flex-direction: column; gap: 8px; }
-.cm-post.ann { border-color: color-mix(in srgb, var(--accent) 50%, var(--border)); background: color-mix(in srgb, var(--accent) 8%, transparent); }
-.cm-row, .cm-extra { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; } .cm-row .ui-input { flex: 1; min-width: 140px; }
-.cm-form { display: flex; flex-direction: column; gap: 8px; min-width: 320px; }
-.cm-ph { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
-.cm-kind { font-size: 11px; font-weight: 600; padding: 2px 7px; border-radius: 6px; background: rgba(127,127,127,.16); }
-.cm-kind.k-announcement { background: var(--accent); color: #fff; } .cm-kind.k-event { background: #ff9f0a; color: #1c1c1e; } .cm-kind.k-showcase, .cm-kind.k-entry { background: #bf5af2; color: #fff; } .cm-kind.k-challenge { background: #30d158; color: #1c1c1e; }
-.cm-by { border: 0; background: none; color: var(--accent); font: inherit; cursor: pointer; padding: 0; }
-.cm-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
-.cm-event, .cm-att { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; padding: 8px 10px; border-radius: 10px; background: rgba(127,127,127,.08); }
-.cm-acts { display: flex; gap: 6px; }
-.cm-mem { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-radius: 10px; background: rgba(127,127,127,.06); }
-.cm-avatar { width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: linear-gradient(160deg,#34c759,#0a84ff); color: #fff; font-weight: 700; font-size: 20px; }
-.mobile .cm { flex-direction: column; } .mobile .cm-side { width: auto; flex: none; max-height: 40%; border-right: 0; border-bottom: 1px solid var(--border); }
+.cm-i { display: inline-flex; width: 15px; height: 15px; flex: none; } .cm-i.big { width: 22px; height: 22px; }
+.cm-i svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+.cm-faint { color: var(--text3); } .cm-grow { flex: 1; }
+/* avatars: a letter on a flat, muted colour of its own */
+.cm-av { --h: 210; width: 32px; height: 32px; flex: none; border-radius: 50%; display: grid; place-items: center; font-weight: 600; font-size: 14px; color: #fff; background: hsl(var(--h) 38% 48%); }
+.cm-av.av-xs { width: 20px; height: 20px; font-size: 10px; } .cm-av.av-sm { width: 26px; height: 26px; font-size: 12px; } .cm-av.av-md { width: 34px; height: 34px; font-size: 14px; } .cm-av.av-lg { width: 56px; height: 56px; font-size: 24px; }
+.cm-av.sq { border-radius: 24%; }
+/* sidebar */
+.cm-side { width: 220px; flex: 0 0 220px; display: flex; flex-direction: column; overflow-y: auto; }
+.cm-sl { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cm-shead { display: flex; align-items: center; justify-content: space-between; }
+.cm-sadd { width: 20px; height: 20px; border: 0; border-radius: 6px; background: none; color: var(--text3); cursor: pointer; padding: 3px; } .cm-sadd:hover { background: var(--hover); color: var(--text); }
+.cm-sadd svg { width: 100%; height: 100%; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; }
+.cm-sidehint { font-size: 12px; color: var(--text3); margin: 4px 10px; line-height: 1.4; } .cm-sfill { flex: 1; min-height: 10px; }
+/* pages */
+.cm-main { flex: 1; min-width: 0; overflow-y: auto; container-type: inline-size; }
+.cm-page { max-width: 720px; margin: 0 auto; padding: 22px 26px 36px; display: flex; flex-direction: column; } .cm-page.wide { max-width: 1000px; }
+.cm-page > .ui-group, .cm-page > .cm-feed { margin-bottom: 6px; }
+.cm-head { display: flex; align-items: center; gap: 14px; margin-bottom: 14px; }
+.cm-htxt { flex: 1; min-width: 0; } .cm-htxt h1 { margin: 0; font-size: 22px; font-weight: 650; letter-spacing: -.01em; } .cm-htxt p { margin: 3px 0 0; color: var(--text2); font-size: 13px; }
+.cm-hbtns { display: flex; gap: 8px; }
+.cm-loading { padding: 30px 0; text-align: center; }
+.cm-tools { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-bottom: 14px; } .cm-tools .ui-search { align-self: stretch; }
+.cm-tabsrow { margin: 2px 0 16px; overflow-x: auto; }
+.cm-cols { display: grid; grid-template-columns: minmax(0, 1fr) 240px; gap: 28px; align-items: start; }
+.cm-col { min-width: 0; display: flex; flex-direction: column; }
+@container (max-width: 760px) { .cm-cols { grid-template-columns: 1fr; } .cm-rail { order: -1; } }
+/* the right column: plain text, no boxes */
+.cm-rail { position: sticky; top: 0; display: flex; flex-direction: column; font-size: 13px; }
+.cm-rail .ui-section:first-child { margin-top: 0; }
+.cm-about { margin: 0; color: var(--text2); line-height: 1.5; } .cm-tags { margin: 6px 0 0; color: var(--text3); font-size: 12px; }
+.cm-faces { display: flex; flex-wrap: wrap; gap: 4px; } .cm-face { border: 0; padding: 0; background: none; cursor: pointer; border-radius: 50%; }
+.cm-railrow { display: flex; align-items: center; gap: 10px; padding: 4px 0; } .cm-railrow > span:last-child { display: flex; flex-direction: column; min-width: 0; } .cm-railrow b { font-weight: 600; font-size: 13px; } .cm-railrow small { color: var(--text3); font-size: 12px; }
+.cm-date { width: 34px; flex: none; display: flex; flex-direction: column; align-items: center; line-height: 1.1; }
+.cm-date small { font-size: 10px; font-weight: 600; text-transform: uppercase; color: #ff453a; } .cm-date b { font-size: 17px; font-weight: 500; }
+/* Discover: one list */
+.cm-crow { cursor: pointer; gap: 12px; align-items: center; } .cm-crow .ui-row-l small { display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+.cm-cname { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; } .cm-crow .cm-tags { margin: 2px 0 0; }
+.cm-crow:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.cm-evrow, .cm-mrow { text-align: left; } .cm-evrow .ui-row-l, .cm-mrow .ui-row-l, .cm-crow .ui-row-l { flex: 1; min-width: 0; align-items: flex-start; }
+.cm-evrow { gap: 12px; } .cm-mrow { gap: 10px; flex-wrap: wrap; } .cm-mrow .btn { flex: none; }
+/* writing a post */
+.cm-compose { margin-bottom: 8px; }
+.cm-opener { width: 100%; height: 36px; text-align: left; color: var(--text3); cursor: text; } .cm-compose.open .cm-opener { display: none; }
+.cm-cform { display: none; flex-direction: column; gap: 8px; padding: 12px; border: 1px solid var(--border); border-radius: 12px; } .cm-compose.open .cm-cform { display: flex; }
+.cm-kinds { align-self: flex-start; max-width: 100%; overflow-x: auto; }
+.cm-ctitle { font-weight: 600; }
+.cm-ta { height: auto; min-height: 70px; padding: 8px 10px; line-height: 1.5; resize: vertical; font: inherit; font-size: 14px; }
+.cm-extra { display: flex; gap: 8px; flex-wrap: wrap; } .cm-extra:empty { display: none; } .cm-extra > .field { flex: 1; min-width: 160px; }
+.cm-lab { display: flex; align-items: center; gap: 8px; flex: 1; font-size: 13px; color: var(--text2); } .cm-lab .field { flex: 1; }
+.cm-attpick:empty { display: none; }
+.cm-attchip { display: inline-flex; align-items: center; gap: 8px; padding: 4px 6px 4px 10px; border-radius: 8px; background: var(--hover); font-size: 13px; }
+.cm-x { border: 0; background: none; color: var(--text3); width: 20px; height: 20px; border-radius: 50%; cursor: pointer; font-size: 15px; line-height: 1; } .cm-x:hover { background: var(--hover); color: var(--text); }
+.cm-cfoot { display: flex; align-items: center; gap: 8px; margin-top: 2px; } .cm-cfoot small { line-height: 1.4; }
+.cm-form { display: flex; flex-direction: column; gap: 10px; min-width: min(400px, 78vw); } .cm-form .ui-seg { align-self: flex-start; }
+/* the feed: rows separated by a hairline, like Mail or Messages */
+.cm-feed { display: flex; flex-direction: column; }
+.cm-post { display: flex; gap: 12px; padding: 14px 0; border-bottom: 1px solid var(--border); } .cm-post:last-child { border-bottom: 0; }
+.cm-pav { border: 0; padding: 0; background: none; cursor: pointer; border-radius: 50%; align-self: flex-start; }
+.cm-pbody { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 6px; }
+.cm-pmeta { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; font-size: 13px; }
+.cm-name { border: 0; padding: 0; background: none; color: var(--text); font: inherit; font-weight: 600; cursor: pointer; } .cm-name:hover { text-decoration: underline; } .cm-name.com { font-weight: 500; }
+.cm-pinned { display: inline-flex; align-items: center; gap: 3px; color: var(--text3); font-size: 12px; margin-left: auto; } .cm-pmeta .ui-badge { margin-left: auto; }
+.cm-ptitle { margin: 0; font-size: 15px; font-weight: 600; }
+.cm-text { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; line-height: 1.5; font-size: 14px; }
+.cm-inset { display: flex; align-items: center; gap: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; flex-wrap: wrap; margin-top: 2px; }
+.cm-insett { flex: 1; min-width: 140px; display: flex; flex-direction: column; } .cm-insett b { font-size: 13px; font-weight: 600; } .cm-insett small { font-size: 12px; color: var(--text3); }
+.cm-pacts { display: flex; align-items: center; justify-content: space-between; margin: 0 -6px -4px; }
+.cm-act { display: inline-flex; align-items: center; gap: 5px; border: 0; background: none; color: var(--text3); font: inherit; font-size: 12px; padding: 4px 6px; border-radius: 6px; cursor: pointer; min-height: 26px; }
+.cm-act:hover:not(:disabled) { background: var(--hover); color: var(--text); } .cm-act:disabled { opacity: .45; cursor: default; }
+.cm-act > svg { width: 17px; height: 17px; fill: currentColor; } .cm-act .cm-i { width: 16px; height: 16px; }
+.cm-act.like.on { color: var(--accent); } .cm-act.like.on svg { fill: currentColor; }
+.cm-note { margin: 0 0 12px; padding: 8px 12px; border-radius: 8px; background: var(--hover); font-size: 13px; color: var(--text2); }
+.mobile .cm { flex-direction: column; } .mobile .cm-side { width: auto; flex: none; max-height: 34%; border-right: 0; border-bottom: 1px solid var(--border); }
+.mobile .cm-page { padding: 16px; } .mobile .cm-cols { grid-template-columns: 1fr; }
+.cm-mrow.link > span[aria-hidden], .cm-evrow > span[aria-hidden] { margin-left: auto; }
 
 </style>
   <style>
@@ -5309,6 +5358,11 @@ body.patos-fs #pill-wrap.idle { opacity: 0; pointer-events: none; }
 
 /* Pat history lines in Settings keep their line breaks */
 .st-rl small { white-space: pre-line; }
+/* the Pill (4.0): a favourite marked, the songs coming up, weather, copies */
+.pl-act.on { color: #ffd60a; } .pl-act.on .sym { fill: currentColor; }
+.pl-next { flex-direction: column; align-items: stretch; gap: 3px; } .pl-upn { display: flex; gap: 8px; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .pl-upn i { font-style: normal; width: 12px; color: rgba(255,255,255,.45); flex: none; font-variant-numeric: tabular-nums; }
+.pl-temp { font-weight: 600; font-variant-numeric: tabular-nums; }
+.pl-stats { display: flex; justify-content: space-between; gap: 10px; font-size: 12px; color: rgba(255,255,255,.75); margin-top: 4px; min-width: 0; } .pl-stats span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
 </style>
   <style>
@@ -5659,7 +5713,7 @@ html.reduce-motion :is(.pat-orb, .po-b) { animation: none !important; }
 :is(.ui-si, .fd-si, .st-si, .dv-si, .mu-si, .nw-si, .pb-si, .pw-si, .rd-si, .cap-si, .sp-si, .lv-si, .cm-si, .ytx-sitem):is(.on, .sel, .active, [aria-selected="true"]) small { color: rgba(255,255,255,.92); }
 
 /* ---------- empty pages: the same quiet look everywhere ---------- */
-:is(.ui-empty, .bk-empty, .cap-empty, .cmd-empty, .cp-empty, .ct-empty, .fc-empty, .fd-empty, .fx-empty, .jn-empty, .m2-empty, .msw-empty, .mu-empty, .nl-empty, .notes-empty, .nt-empty, .nw-empty, .of-empty, .pd-empty, .ph-empty, .pv-empty, .pw-empty, .rm-empty, .sc-empty, .sp-empty, .lv-empty, .cm-empty, .tl-empty, .vd-empty, .vm-empty) {
+:is(.ui-empty, .bk-empty, .cap-empty, .cmd-empty, .cp-empty, .ct-empty, .fc-empty, .fd-empty, .fx-empty, .jn-empty, .m2-empty, .msw-empty, .mu-empty, .nl-empty, .notes-empty, .nt-empty, .nw-empty, .of-empty, .pd-empty, .ph-empty, .pv-empty, .pw-empty, .rm-empty, .sc-empty, .sp-empty, .lv-empty, .tl-empty, .vd-empty, .vm-empty) {
   color: var(--text3); font-size: 13.5px; line-height: 1.45; text-align: center;
 }
 :is(.ui-empty, .bk-empty, .cap-empty, .ct-empty, .fd-empty, .jn-empty, .m2-empty, .mu-empty, .notes-empty, .nw-empty, .ph-empty, .pw-empty, .rm-empty, .sc-empty, .tl-empty, .vd-empty) :is(h2, h3, b, strong) { color: var(--text); font-size: 15px; font-weight: 650; }
@@ -6508,7 +6562,7 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
     quietOn: false, quietFrom: '22:00', quietTo: '07:00', notifKeepDays: 7, notifRules: {}, // (3.3) quiet hours, history, a rule per app
     windowMagnets: true,
     pillOn: true,            // the PatOS Pill at the top of the screen (js/pill.js)
-    pillNotifs: true, pillHover: true, pillHistory: true, pillBubble: true, pillBars: true, pillFlash: 'normal', pillFs: 'important', pillAutoCollapse: true, audioOutput: 'default',     // windows click to edges and to each other (js/wm-pro.js)
+    pillNotifs: true, pillHover: true, pillHistory: true, pillBubble: true, pillBars: true, pillFlash: 'normal', pillFs: 'important', pillAutoCollapse: true, pillWeather: true, audioOutput: 'default',     // windows click to edges and to each other (js/wm-pro.js)
     cmdHidden: [],           // Command Center sections you hid
     soundTheme: 'glass', uiVolume: 0.8, // (3.3) the interface sounds: js/sounds.js
     intelPerms: {},          // Settings › Pat & Intelligence: kinds of action turned off (js/intelligence.js)
@@ -7556,8 +7610,8 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
 /* generated by build.js from updates.json: do not edit */
 PatOS.version = "3.3.0";
 PatOS.releases = [{"version":"3.3.0","date":"2026-11-13","title":{"en":"PatOS 3.3: Crystal","fr":"PatOS 3.3 : Cristal"},"notes":{"en":["The PatOS Pill: a black capsule at the top of the screen, always there, like the island on a phone. Whatever is happening grows out of it: a timer counting down with rolling digits, the song playing with bars that move with the music, a copy or a backup with its progress, any app using the microphone or the camera (with a button to turn it off), a timer or alarm ringing (Stop, Snooze), your next event and reminder, Focus sessions, Shortcuts and Pat while they work. Click it, or press Alt+A, for the Activity Overview: every activity with its controls, and what finished recently. Messages and important notifications come into it instead of a banner, and it flashes the volume, the brightness, Do Not Disturb, charging and the network. Apps can add their own activities. Settings › Desktop & Dock › PatOS Pill","Real processes: every app that runs is a process with its own PID. PatOS measures the processor time its code really uses and keeps track of everything it starts (timers, animations, workers, network requests, the microphone and camera, sound). An app that’s still doing something after its window closed (music playing) keeps running in the background. Force Quit really stops everything it started, and never the copies or backups it began. The new Activity Monitor shows CPU, Memory and Energy, with Quit, Force Quit and a detail view; the Pill warns when an app slows PatOS down. In the Terminal, ps, top, kill, kill -9 and killall work on the real processes, PatOS’s own processes are protected, and only sudo kill 1 or 42 is the kernel panic","Command Center (Alt+K): what is happening in PatOS in one place: what needs you, activities running now with real Pause, Resume and Cancel, sync, backups, storage, your account and recent notifications","Notifications 2.0: a searchable history grouped by app, rules for each app (allow, banners, sounds), quiet hours, priorities (urgent ones always get through), the same notification counted instead of repeated, and notifications that arrive at a set time, even after a restart","Capture (Alt+C): save anything in one box, a thought, a link, a picture or files, and decide later. It recognizes links, contacts and dates (and shows why), and sends each item where it belongs: Notes, Reminders, Calendar, Piles. Deleted items stay 30 days","A better clipboard: passwords, card numbers and keys are never kept; clean up what you copied (plain text, case, spaces, duplicate lines, only the links), group it in collections, and pictures are kept too","Share anything with Universal Actions: send a file, a link or some text to the apps that can really use it","Piles Pro: copies, moves and the Trash run in a queue that never freezes PatOS, with Pause, Resume, Cancel and Retry, and come back after a restart. Find duplicate files, compare two text files line by line, look inside a .zip without extracting it, and go back to earlier versions of a text file","Shared Spaces: workspaces you share with other PatOS accounts, with roles (owner, admin, editor, commenter, viewer), invitations, comments and activity. Nothing is ever overwritten: if someone saved first, your version is kept next to theirs. Changes made offline go out when you’re back online","Windows 2.0: windows click magnetically to the screen’s edges and to each other (hold Shift to place one freely), throw a window to an edge to fill that half, drop a window on another of the same app to make tabs, and arrange them from the keyboard (Ctrl+Alt+arrows for halves and thirds, U I J K for quarters, Enter to fill, C to center, T to tile them all)","A real Liquid Glass renderer: the edges of the glass bend what is behind them the way real glass does, catch the light, and split colors a little right at the rim (Settings › Appearance › Rainbow edges). And a crystal Dock: thicker, brighter glass with a light rim and a reflection inside","Sound design: every sound is made live by PatOS, soft glass bells, taps and air, in tune with each other: windows, switches, notifications, messages, captures, finished tasks, locking. Choose Glass or Soft in Settings › Sound","One design system: sidebars, lists, empty pages, sheets and controls look and behave the same in every app, and selected items are easier to read","Sturdier updates: an update that was just installed is never offered again in a loop, PatOS starts on the version you installed even when the browser can’t keep an offline copy, and devices that sync no longer ask to be set up again after a restart"],"fr":["La pilule PatOS : une capsule noire en haut de l’écran, toujours là, comme l’îlot d’un téléphone. Ce qui se passe en sort : un minuteur avec des chiffres qui roulent, la chanson en cours avec des barres qui bougent avec la musique, une copie ou une sauvegarde avec sa progression, toute app qui utilise le micro ou la caméra (avec un bouton pour l’éteindre), un minuteur ou une alarme qui sonne (Arrêter, Répéter), votre prochain événement et rappel, les sessions de Focus, les raccourcis et Pat pendant qu’ils travaillent. Cliquez dessus, ou Alt+A, pour l’aperçu des activités : chaque activité avec ses commandes, et ce qui s’est terminé récemment. Les messages et les notifications importantes y arrivent au lieu d’une bannière, et elle montre un instant le volume, la luminosité, Ne pas déranger, la recharge et le réseau. Les apps peuvent y ajouter leurs activités. Réglages › Bureau et Dock › Pilule PatOS","De vrais processus : chaque app qui tourne est un processus avec son propre PID. PatOS mesure le temps de processeur que son code utilise vraiment et suit tout ce qu’elle lance (minuteurs, animations, tâches de fond, requêtes réseau, micro et caméra, son). Une app qui fait encore quelque chose après la fermeture de sa fenêtre (de la musique) continue en arrière-plan. Forcer à quitter arrête vraiment tout ce qu’elle a lancé, et jamais les copies ou sauvegardes qu’elle a commencées. Le nouveau Moniteur d’activité montre Processeur, Mémoire et Énergie, avec Quitter, Forcer à quitter et une vue détaillée; la pilule avertit quand une app ralentit PatOS. Dans le Terminal, ps, top, kill, kill -9 et killall agissent sur les vrais processus, ceux de PatOS sont protégés, et seuls sudo kill 1 ou 42 déclenchent la panique du noyau","Centre de commande (Alt+K) : ce qui se passe dans PatOS au même endroit : ce qui a besoin de vous, les activités en cours avec de vrais Pause, Reprendre et Annuler, la synchro, les sauvegardes, le stockage, votre compte et les notifications récentes","Notifications 2.0 : un historique consultable groupé par app, des règles pour chaque app (autoriser, bannières, sons), des heures de calme, des priorités (les urgentes passent toujours), la même notification comptée au lieu d’être répétée, et des notifications qui arrivent à une heure choisie, même après un redémarrage","Capture (Alt+C) : gardez n’importe quoi dans une seule boîte, une idée, un lien, une image ou des fichiers, et décidez plus tard. Elle reconnaît les liens, les contacts et les dates (et dit pourquoi), et envoie chaque élément au bon endroit : Notes, Rappels, Calendrier, Piles. Les éléments supprimés restent 30 jours","Un meilleur presse-papiers : les mots de passe, numéros de carte et clés ne sont jamais gardés; nettoyez ce que vous avez copié (texte brut, majuscules, espaces, lignes en double, seulement les liens), groupez-le en collections, et les images sont gardées aussi","Partagez n’importe quoi avec les actions universelles : envoyez un fichier, un lien ou du texte aux apps qui peuvent vraiment s’en servir","Piles Pro : les copies, déplacements et la Corbeille passent par une file qui ne fige jamais PatOS, avec Pause, Reprendre, Annuler et Réessayer, et reviennent après un redémarrage. Trouvez les fichiers en double, comparez deux fichiers texte ligne par ligne, regardez dans un .zip sans l’extraire, et revenez aux versions précédentes d’un fichier texte","Espaces partagés : des espaces de travail partagés avec d’autres comptes PatOS, avec des rôles (propriétaire, admin, éditeur, commentateur, lecteur), des invitations, des commentaires et l’activité. Rien n’est jamais écrasé : si quelqu’un a enregistré avant vous, votre version est gardée à côté de la sienne. Les changements faits hors ligne partent quand Internet revient","Fenêtres 2.0 : les fenêtres s’accrochent aux bords de l’écran et entre elles (Maj pour en placer une librement), lancez une fenêtre vers un bord pour remplir cette moitié, déposez une fenêtre sur une autre de la même app pour créer des onglets, et disposez-les au clavier (Ctrl+Alt+flèches pour les moitiés et les tiers, U I J K pour les quarts, Entrée pour remplir, C pour centrer, T pour toutes les disposer)","Un vrai moteur Liquid Glass : les bords du verre plient ce qui est derrière comme du vrai verre, captent la lumière, et séparent un peu les couleurs tout au bord (Réglages › Apparence › Bords irisés). Et un Dock en cristal : un verre plus épais et plus brillant avec un bord lumineux et un reflet à l’intérieur","Design sonore : chaque son est créé en direct par PatOS, de douces cloches de verre, des tapotements et des souffles, accordés entre eux : fenêtres, interrupteurs, notifications, messages, captures, tâches terminées, verrouillage. Choisissez Verre ou Doux dans Réglages › Son","Un seul système de design : les barres latérales, listes, pages vides, feuilles et commandes se ressemblent et se comportent pareil dans chaque app, et les éléments choisis sont plus lisibles","Des mises à jour plus solides : une mise à jour qui vient d’être installée n’est plus jamais proposée en boucle, PatOS démarre sur la version installée même quand le navigateur ne peut pas garder de copie hors ligne, et les appareils synchronisés ne demandent plus d’être configurés à nouveau après un redémarrage"]}},{"version":"3.2.1","date":"2026-11-13","title":{"en":"PatOS 3.2.1","fr":"PatOS 3.2.1"},"more":true},{"version":"3.2.0","date":"2026-11-12","title":{"en":"PatOS 3.2: Messages","fr":"PatOS 3.2 : Messages"},"more":true},{"version":"3.1.0","date":"2026-11-12","title":{"en":"PatOS 3.1: Handoff","fr":"PatOS 3.1 : Continuité"},"more":true},{"version":"3.0.0","date":"2026-11-10","title":{"en":"PatOS 3: Prism","fr":"PatOS 3 : Prisme"},"more":true},{"version":"2.3.1","date":"2026-11-09","title":{"en":"Drawn glass icons","fr":"Des icônes dessinées en verre"},"more":true},{"version":"2.3.0","date":"2026-11-09","title":{"en":"Liquid Glass, everywhere","fr":"Liquid Glass, partout"},"more":true},{"version":"2.2.2","date":"2026-11-09","title":{"en":"Liquid Glass without the light bar","fr":"Liquid Glass sans la barre de lumière"},"more":true},{"version":"2.2.1","date":"2026-11-09","title":{"en":"Thick, clear Liquid Glass","fr":"Liquid Glass épais et clair"},"more":true},{"version":"2.2.0","date":"2026-11-09","title":{"en":"Liquid Glass, rebuilt","fr":"Liquid Glass, refait"},"more":true},{"version":"2.1.3","date":"2026-11-06","title":{"en":"PitCode Studio on iPhone","fr":"PitCode Studio sur iPhone"},"more":true},{"version":"2.1.2","date":"2026-11-06","title":{"en":"Importing projects, made sturdier","fr":"Importer des projets, en plus solide"},"more":true},{"version":"2.1.1","date":"2026-11-06","title":{"en":"Importing files on phones","fr":"Importer des fichiers sur téléphone"},"more":true},{"version":"2.1.0","date":"2026-11-05","title":{"en":"PatOS 2.1: Slither and a better Studio","fr":"PatOS 2.1 : Slither et un meilleur Studio"},"more":true},{"version":"2.0.0","date":"2026-11-05","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"more":true},{"version":"1.7.0","date":"2026-11-04","title":{"en":"Better apps","fr":"De meilleures apps"},"more":true},{"version":"1.6.0","date":"2026-11-03","title":{"en":"Software Update","fr":"Mise à jour de logiciels"},"more":true},{"version":"1.5.0","date":"2026-11-03","title":{"en":"iPhone swipe up, Reminders in plain words","fr":"Balayage sur iPhone, Rappels en mots simples"},"more":true},{"version":"1.4.0","date":"2026-11-03","title":{"en":"Clock and Calculator","fr":"Horloge et Calculatrice"},"more":true},{"version":"1.3.0","date":"2026-11-03","title":{"en":"Finder and TextEdit","fr":"Finder et TextEdit"},"more":true},{"version":"1.2.0","date":"2026-11-03","title":{"en":"Faster start, smoother 3D","fr":"Démarrage plus rapide, 3D plus fluide"},"more":true},{"version":"1.1.0","date":"2026-11-03","title":{"en":"Security","fr":"Sécurité"},"more":true}];
-PatOS.beta = {"version":"4.0.0","beta":10,"date":"2026-11-13","title":{"en":"PatOS 4.0: Beyond the desktop","fr":"PatOS 4.0 : Au-delà du bureau"},"notes":{"en":["Much less lag, with or without apps open (games like 2048 included). The cause: the rainbow edge of Liquid Glass on desktop widgets. That edge is three bends (one per color) that the processor draws again on every frame where anything on screen moves. Desktop widgets keep the same bend, bevel and clear glass; only the rainbow is left out on them. The Dock, menus and notifications keep it","PatOS Commons: communities of PatOS people. Find public communities in Discover and join them, or make your own, public or private (people ask, a moderator lets them in). Post, announce (moderators), plan events you add to your Calendar in one click, run challenges and enter them, and showcase what you made: share your desktop, a gallery or a widget made in Studio, which others can try (and put theirs back) or import. Profiles, follows, likes. Safe by design, enforced by PatOS’s server and not just the app: one post every 20 seconds, reports only moderators see, bans, and blocking someone hides their posts and stops them from following you. Only data is ever shared, never code","Launchpad shows every app again: World, Data, Gallery, PatOS Live, Shared Spaces, Capture, PatDrop and PitCode Studio were missing because Launchpad only showed four categories. PatOS Live: work together in real time inside a Shared Space. See who is here and where, share boards everyone moves at once, write live notes where two people type different paragraphs at the same time, keep a shared task list with who does what, and talk in a voice call (straight between browsers; the microphone is asked for only when you join). Nothing is ever overwritten without you knowing: if two people change the same thing, both versions are kept. Open it from Launchpad or with “Open in Live” in Shared Spaces","PatOS AI, still without any AI model: Pat understands more, with fixed rules you can check. Find files by when you used them (“the document I edited last Tuesday”, “pictures from yesterday”). Gather everything about a subject with PatOS Data (“everything related to biology”) and make it a collection. “Prepare my desktop for school tomorrow” switches to your School profile, runs your Study workspace, shows tomorrow’s calendar and arranges the windows, reporting each step. Find duplicate files: the extra copies go to the Trash only after you say yes, and you can put them back. Sum up your notifications. Turn words into an automation (“every weekday at 8am open calendar and notes”): each step is checked, you see it before it’s saved. World and Gallery offer their own actions. Settings › Pat & Intelligence now shows what Pat understood, each step’s result, and when you said yes or no","PatOS Gallery: collections you arrange, present and share. Add pictures, videos, documents, notes and links, or let a gallery follow a folder or a PatOS Data collection. Five layouts for the same gallery: Grid, Masonry, Photo wall, Free (place and size things yourself) and List. Present full screen with the arrow keys or a slideshow. Drag to reorder or to add files; taking something out never deletes the file. See what Data relates to what you select. Share a gallery to a Shared Space or export it (.patgallery files open in Gallery); a shared copy carries small previews and titles, never where your files are. Big galleries load pictures only as they come into view","PatOS Data: what connects your files, notes, events, reminders, captures and boards. It finds what goes together with fixed rules (the same tag, the same distinctive words, a note that names a file, the same folder, the same day, links you make) and every link says why. Collections gather a project from a few words, with what you add or take out; Data suggests some. See a project’s history, explore its graph, and open what you find. You stay in control: remove a wrong link, mark something private, leave out kinds or folders, turn it off; it reads only when you use it. Collections also show in a widget and on World boards","Fixed: panels made in PatOS Studio showed giant icons over the widgets on the desktop (they had no style). They’re small glass cards now; hold and drag to move one, right-click to remove it or edit it in Studio","PatOS World: infinite boards. Put sticky notes, files, pictures, links, notes, live widgets, app tiles and collections anywhere, pan and zoom freely, select several with Shift, group them, and undo with Ctrl+Z. Zones name areas of a board; link one to a folder and dropping a file in it moves the file there through Piles (after asking). Pin a real app window on a board, with everything it has open. An app group opens all its apps at once. Only what’s near the screen is drawn, so big boards stay fast","PatOS Studio: make your own desktop, visually. The stage is your screen, scaled: drag widgets and panels, pull a corner to resize, arrow keys to nudge. On the right: each widget’s settings, panel buttons, the look (appearance, accent, glass, wallpaper), the Dock, your own menus and keyboard shortcuts. A widget maker builds widgets from blocks (text, a live value, a button, a picture). Preview it on your real desktop (Keep or Revert), save it with its earlier versions, duplicate it, apply it to any profile, and share it as a .patdesk file","Fixed: in widget edit mode, the Add Widget / Done bar stayed on screen after pressing Done","PatOS Profiles: separate environments like School, Personal or Gaming. Each has its own look, Dock, widgets, panels, menus, keyboard shortcuts, notification rules and open windows; switching keeps the other profile’s windows exactly as they were. Your files, notes, apps and account are shared by all of them. Settings › Desktop & Multitasking › Profiles, or the Profile tile in Control Center. Desktop configurations: your whole desktop (look, Dock, widgets, panels, menus, shortcuts) as one file you can save with its versions, duplicate, export and import; an imported one is checked and can never run code","The desktop becomes a dashboard: widgets you can place anywhere, resize, stack and configure (clock, calendar, up next, reminders you can check off, music controls, system, weather, notes, countdown, apps, photo, collections), widgets you make in PatOS Studio, and widgets from others that run sandboxed with only the permissions you give them"],"fr":["Beaucoup moins de lenteur, avec ou sans apps ouvertes (y compris dans les jeux comme 2048). La cause : le bord arc-en-ciel du Liquid Glass sur les widgets du bureau. Ce bord, c’est trois courbures (une par couleur) que le processeur redessine à chaque image où quelque chose bouge à l’écran. Les widgets du bureau gardent la même courbure, le même biseau et le même verre clair; seul l’arc-en-ciel n’y est plus. Le Dock, les menus et les notifications le gardent","PatOS Commons : des communautés de gens de PatOS. Trouve des communautés publiques dans Découvrir et rejoins-les, ou crée la tienne, publique ou privée (les gens demandent, un modérateur les fait entrer). Publie, fais des annonces (modérateurs), planifie des événements que tu ajoutes à ton calendrier en un clic, lance des défis et participes-y, et montre ce que tu as fait : partage ton bureau, une galerie ou un widget fait dans Studio, que les autres peuvent essayer (et remettre le leur) ou importer. Profils, abonnements, j’aime. Sûr dès le départ, et c’est le serveur de PatOS qui l’impose, pas seulement l’app : une publication toutes les 20 secondes, des signalements que seuls les modérateurs voient, des bannissements, et bloquer quelqu’un cache ses publications et l’empêche de te suivre. Seules des données sont partagées, jamais du code","Launchpad montre de nouveau toutes les apps : Monde, Data, Galerie, PatOS Live, Espaces partagés, Capture, PatDrop et PitCode Studio manquaient parce que Launchpad ne montrait que quatre catégories. PatOS Live : travaillez ensemble en temps réel dans un espace partagé. Voyez qui est là et où, partagez des tableaux que tout le monde déplace en même temps, écrivez des notes en direct où deux personnes tapent des paragraphes différents en même temps, gardez une liste de tâches commune avec qui fait quoi, et parlez dans un appel vocal (directement entre les navigateurs; le micro est demandé seulement quand tu rejoins). Rien n’est jamais écrasé sans que tu le saches : si deux personnes modifient la même chose, les deux versions sont gardées. Ouvre-le depuis Launchpad ou avec « Ouvrir dans Live » dans Espaces partagés","PatOS AI, toujours sans aucun modèle d’IA : Pat comprend plus de choses, avec des règles fixes que tu peux vérifier. Trouve des fichiers selon le moment où tu les as utilisés (« le document que j’ai modifié mardi dernier », « les images d’hier »). Rassemble tout ce qui concerne un sujet avec PatOS Data (« tout ce qui concerne la biologie ») et fais-en une collection. « Prépare mon bureau pour l’école demain » passe à ton profil École, lance ton espace Étude, montre le calendrier de demain et range les fenêtres, en disant le résultat de chaque étape. Trouve les fichiers en double : les copies en trop vont à la Corbeille seulement après ton oui, et tu peux les remettre. Résume tes notifications. Transforme des mots en automatisation (« chaque jour de semaine à 8 h ouvre calendrier et notes ») : chaque étape est vérifiée, et tu la vois avant qu’elle soit enregistrée. Monde et Galerie offrent leurs propres actions. Réglages › Pat et Intelligence montre maintenant ce que Pat a compris, le résultat de chaque étape, et quand tu as dit oui ou non","PatOS Gallery : des collections à arranger, présenter et partager. Ajoutez images, vidéos, documents, notes et liens, ou laissez une galerie suivre un dossier ou une collection PatOS Data. Cinq dispositions pour une même galerie : Grille, Mosaïque, Mur de photos, Libre (placez et dimensionnez vous-même) et Liste. Présentez en plein écran avec les flèches ou en diaporama. Glissez pour réordonner ou ajouter des fichiers; retirer un élément ne supprime jamais le fichier. Voyez ce que Data relie à l’élément choisi. Partagez une galerie dans un espace partagé ou exportez-la (les fichiers .patgallery s’ouvrent dans Gallery); une copie partagée contient de petits aperçus et des titres, jamais l’emplacement de vos fichiers. Les grandes galeries ne chargent les images qu’en les affichant","PatOS Data : ce qui lie vos fichiers, notes, événements, rappels, captures et tableaux. Il trouve ce qui va ensemble avec des règles fixes (la même étiquette, les mêmes mots distinctifs, une note qui nomme un fichier, le même dossier, le même jour, les liens que vous faites) et chaque lien dit pourquoi. Les collections rassemblent un projet à partir de quelques mots, avec ce que vous ajoutez ou retirez; Data en suggère. Voyez l’historique d’un projet, explorez son graphe, et ouvrez ce que vous trouvez. Vous gardez le contrôle : retirez un lien faux, rendez un élément privé, excluez des types ou des dossiers, désactivez-le; il ne lit que quand vous l’utilisez. Les collections s’affichent aussi dans un widget et sur les tableaux World","Corrigé : les panneaux faits dans PatOS Studio montraient des icônes géantes par-dessus les widgets du bureau (ils n’avaient pas de style). Ce sont maintenant de petites cartes de verre; maintenez et glissez pour en déplacer un, clic droit pour le retirer ou le modifier dans Studio","PatOS World : des tableaux infinis. Placez notes autocollantes, fichiers, images, liens, notes, widgets en direct, tuiles d’apps et collections n’importe où, déplacez-vous et zoomez librement, sélectionnez-en plusieurs avec Maj, groupez-les, et annulez avec Ctrl+Z. Les zones nomment des parties d’un tableau; liez-en une à un dossier et y déposer un fichier le déplace là par Piles (après avoir demandé). Épinglez une vraie fenêtre d’app sur un tableau, avec tout ce qu’elle a d’ouvert. Un groupe d’apps les ouvre toutes d’un coup. Seul ce qui est près de l’écran est dessiné, pour que les grands tableaux restent rapides","PatOS Studio : créez votre propre bureau, visuellement. La scène est votre écran, à l’échelle : glissez les widgets et panneaux, tirez un coin pour redimensionner, les flèches pour ajuster. À droite : les réglages de chaque widget, les boutons des panneaux, l’apparence (thème, accent, verre, fond d’écran), le Dock, vos propres menus et raccourcis clavier. Un créateur de widgets en fait à partir de blocs (texte, valeur en direct, bouton, image). Essayez-le sur votre vrai bureau (Garder ou Revenir), enregistrez-le avec ses versions précédentes, dupliquez-le, appliquez-le à n’importe quel profil, et partagez-le en fichier .patdesk","Corrigé : en mode modification des widgets, la barre Ajouter un widget / Terminé restait à l’écran après avoir appuyé sur Terminé","Profils PatOS : des environnements séparés comme École, Personnel ou Jeux. Chacun a sa propre apparence, son Dock, ses widgets, panneaux, menus, raccourcis clavier, règles de notifications et fenêtres ouvertes; changer garde les fenêtres de l’autre profil exactement comme elles étaient. Vos fichiers, notes, apps et compte sont partagés par tous. Réglages › Bureau et multitâche › Profils, ou la tuile Profil dans le Centre de contrôle. Configurations de bureau : tout votre bureau (apparence, Dock, widgets, panneaux, menus, raccourcis) dans un seul fichier à enregistrer avec ses versions, dupliquer, exporter et importer; une configuration importée est vérifiée et ne peut jamais exécuter de code","Le bureau devient un tableau de bord : des widgets à placer n’importe où, redimensionner, empiler et configurer (horloge, calendrier, à venir, rappels à cocher, contrôle de la musique, système, météo, notes, compte à rebours, apps, photo, collections), des widgets créés dans PatOS Studio, et des widgets d’autres personnes qui tournent isolés avec seulement les permissions que vous leur donnez"]}};
-PatOS.build = {"channel":"beta","version":"4.0.0","beta":10};
+PatOS.beta = {"version":"4.0.0","beta":11,"date":"2026-11-13","title":{"en":"PatOS 4.0: Beyond the desktop","fr":"PatOS 4.0 : Au-delà du bureau"},"notes":{"en":["PatOS Commons, redesigned: it now looks and works like the rest of PatOS, with the same sidebar, tabs, lists and buttons, a plain feed of posts, and a Home with what's new in all your communities. What you are writing is never lost when new posts come in. The PatOS Pill, completed: the weather (the temperature, rain or snow coming within the hour, and storms or strong wind from the forecast; you can turn it off in Settings), a Favourite button and the next songs for Music (with a new Favourites list in Music), and copies with their speed, the file being copied and Open the destination folder","Much less lag, with or without apps open (games like 2048 included). The cause: the rainbow edge of Liquid Glass on desktop widgets. That edge is three bends (one per color) that the processor draws again on every frame where anything on screen moves. Desktop widgets keep the same bend, bevel and clear glass; only the rainbow is left out on them. The Dock, menus and notifications keep it","PatOS Commons: communities of PatOS people. Find public communities in Discover and join them, or make your own, public or private (people ask, a moderator lets them in). Post, announce (moderators), plan events you add to your Calendar in one click, run challenges and enter them, and showcase what you made: share your desktop, a gallery or a widget made in Studio, which others can try (and put theirs back) or import. Profiles, follows, likes. Safe by design, enforced by PatOS’s server and not just the app: one post every 20 seconds, reports only moderators see, bans, and blocking someone hides their posts and stops them from following you. Only data is ever shared, never code","Launchpad shows every app again: World, Data, Gallery, PatOS Live, Shared Spaces, Capture, PatDrop and PitCode Studio were missing because Launchpad only showed four categories. PatOS Live: work together in real time inside a Shared Space. See who is here and where, share boards everyone moves at once, write live notes where two people type different paragraphs at the same time, keep a shared task list with who does what, and talk in a voice call (straight between browsers; the microphone is asked for only when you join). Nothing is ever overwritten without you knowing: if two people change the same thing, both versions are kept. Open it from Launchpad or with “Open in Live” in Shared Spaces","PatOS AI, still without any AI model: Pat understands more, with fixed rules you can check. Find files by when you used them (“the document I edited last Tuesday”, “pictures from yesterday”). Gather everything about a subject with PatOS Data (“everything related to biology”) and make it a collection. “Prepare my desktop for school tomorrow” switches to your School profile, runs your Study workspace, shows tomorrow’s calendar and arranges the windows, reporting each step. Find duplicate files: the extra copies go to the Trash only after you say yes, and you can put them back. Sum up your notifications. Turn words into an automation (“every weekday at 8am open calendar and notes”): each step is checked, you see it before it’s saved. World and Gallery offer their own actions. Settings › Pat & Intelligence now shows what Pat understood, each step’s result, and when you said yes or no","PatOS Gallery: collections you arrange, present and share. Add pictures, videos, documents, notes and links, or let a gallery follow a folder or a PatOS Data collection. Five layouts for the same gallery: Grid, Masonry, Photo wall, Free (place and size things yourself) and List. Present full screen with the arrow keys or a slideshow. Drag to reorder or to add files; taking something out never deletes the file. See what Data relates to what you select. Share a gallery to a Shared Space or export it (.patgallery files open in Gallery); a shared copy carries small previews and titles, never where your files are. Big galleries load pictures only as they come into view","PatOS Data: what connects your files, notes, events, reminders, captures and boards. It finds what goes together with fixed rules (the same tag, the same distinctive words, a note that names a file, the same folder, the same day, links you make) and every link says why. Collections gather a project from a few words, with what you add or take out; Data suggests some. See a project’s history, explore its graph, and open what you find. You stay in control: remove a wrong link, mark something private, leave out kinds or folders, turn it off; it reads only when you use it. Collections also show in a widget and on World boards","Fixed: panels made in PatOS Studio showed giant icons over the widgets on the desktop (they had no style). They’re small glass cards now; hold and drag to move one, right-click to remove it or edit it in Studio","PatOS World: infinite boards. Put sticky notes, files, pictures, links, notes, live widgets, app tiles and collections anywhere, pan and zoom freely, select several with Shift, group them, and undo with Ctrl+Z. Zones name areas of a board; link one to a folder and dropping a file in it moves the file there through Piles (after asking). Pin a real app window on a board, with everything it has open. An app group opens all its apps at once. Only what’s near the screen is drawn, so big boards stay fast","PatOS Studio: make your own desktop, visually. The stage is your screen, scaled: drag widgets and panels, pull a corner to resize, arrow keys to nudge. On the right: each widget’s settings, panel buttons, the look (appearance, accent, glass, wallpaper), the Dock, your own menus and keyboard shortcuts. A widget maker builds widgets from blocks (text, a live value, a button, a picture). Preview it on your real desktop (Keep or Revert), save it with its earlier versions, duplicate it, apply it to any profile, and share it as a .patdesk file","Fixed: in widget edit mode, the Add Widget / Done bar stayed on screen after pressing Done","PatOS Profiles: separate environments like School, Personal or Gaming. Each has its own look, Dock, widgets, panels, menus, keyboard shortcuts, notification rules and open windows; switching keeps the other profile’s windows exactly as they were. Your files, notes, apps and account are shared by all of them. Settings › Desktop & Multitasking › Profiles, or the Profile tile in Control Center. Desktop configurations: your whole desktop (look, Dock, widgets, panels, menus, shortcuts) as one file you can save with its versions, duplicate, export and import; an imported one is checked and can never run code","The desktop becomes a dashboard: widgets you can place anywhere, resize, stack and configure (clock, calendar, up next, reminders you can check off, music controls, system, weather, notes, countdown, apps, photo, collections), widgets you make in PatOS Studio, and widgets from others that run sandboxed with only the permissions you give them"],"fr":["PatOS Commons, redessiné : il ressemble maintenant au reste de PatOS et fonctionne pareil, avec la même barre latérale, les mêmes onglets, listes et boutons, un fil de publications simple, et un Accueil avec les nouveautés de toutes tes communautés. Ce que tu écris n’est jamais perdu quand de nouvelles publications arrivent. La PatOS Pill, complétée : la météo (la température, la pluie ou la neige qui arrive dans l’heure, et les orages ou vents forts selon les prévisions; tu peux la désactiver dans Réglages), un bouton Favori et les prochaines chansons pour Musique (avec une nouvelle liste Favoris dans Musique), et les copies avec leur vitesse, le fichier en cours et Ouvrir le dossier de destination","Beaucoup moins de lenteur, avec ou sans apps ouvertes (y compris dans les jeux comme 2048). La cause : le bord arc-en-ciel du Liquid Glass sur les widgets du bureau. Ce bord, c’est trois courbures (une par couleur) que le processeur redessine à chaque image où quelque chose bouge à l’écran. Les widgets du bureau gardent la même courbure, le même biseau et le même verre clair; seul l’arc-en-ciel n’y est plus. Le Dock, les menus et les notifications le gardent","PatOS Commons : des communautés de gens de PatOS. Trouve des communautés publiques dans Découvrir et rejoins-les, ou crée la tienne, publique ou privée (les gens demandent, un modérateur les fait entrer). Publie, fais des annonces (modérateurs), planifie des événements que tu ajoutes à ton calendrier en un clic, lance des défis et participes-y, et montre ce que tu as fait : partage ton bureau, une galerie ou un widget fait dans Studio, que les autres peuvent essayer (et remettre le leur) ou importer. Profils, abonnements, j’aime. Sûr dès le départ, et c’est le serveur de PatOS qui l’impose, pas seulement l’app : une publication toutes les 20 secondes, des signalements que seuls les modérateurs voient, des bannissements, et bloquer quelqu’un cache ses publications et l’empêche de te suivre. Seules des données sont partagées, jamais du code","Launchpad montre de nouveau toutes les apps : Monde, Data, Galerie, PatOS Live, Espaces partagés, Capture, PatDrop et PitCode Studio manquaient parce que Launchpad ne montrait que quatre catégories. PatOS Live : travaillez ensemble en temps réel dans un espace partagé. Voyez qui est là et où, partagez des tableaux que tout le monde déplace en même temps, écrivez des notes en direct où deux personnes tapent des paragraphes différents en même temps, gardez une liste de tâches commune avec qui fait quoi, et parlez dans un appel vocal (directement entre les navigateurs; le micro est demandé seulement quand tu rejoins). Rien n’est jamais écrasé sans que tu le saches : si deux personnes modifient la même chose, les deux versions sont gardées. Ouvre-le depuis Launchpad ou avec « Ouvrir dans Live » dans Espaces partagés","PatOS AI, toujours sans aucun modèle d’IA : Pat comprend plus de choses, avec des règles fixes que tu peux vérifier. Trouve des fichiers selon le moment où tu les as utilisés (« le document que j’ai modifié mardi dernier », « les images d’hier »). Rassemble tout ce qui concerne un sujet avec PatOS Data (« tout ce qui concerne la biologie ») et fais-en une collection. « Prépare mon bureau pour l’école demain » passe à ton profil École, lance ton espace Étude, montre le calendrier de demain et range les fenêtres, en disant le résultat de chaque étape. Trouve les fichiers en double : les copies en trop vont à la Corbeille seulement après ton oui, et tu peux les remettre. Résume tes notifications. Transforme des mots en automatisation (« chaque jour de semaine à 8 h ouvre calendrier et notes ») : chaque étape est vérifiée, et tu la vois avant qu’elle soit enregistrée. Monde et Galerie offrent leurs propres actions. Réglages › Pat et Intelligence montre maintenant ce que Pat a compris, le résultat de chaque étape, et quand tu as dit oui ou non","PatOS Gallery : des collections à arranger, présenter et partager. Ajoutez images, vidéos, documents, notes et liens, ou laissez une galerie suivre un dossier ou une collection PatOS Data. Cinq dispositions pour une même galerie : Grille, Mosaïque, Mur de photos, Libre (placez et dimensionnez vous-même) et Liste. Présentez en plein écran avec les flèches ou en diaporama. Glissez pour réordonner ou ajouter des fichiers; retirer un élément ne supprime jamais le fichier. Voyez ce que Data relie à l’élément choisi. Partagez une galerie dans un espace partagé ou exportez-la (les fichiers .patgallery s’ouvrent dans Gallery); une copie partagée contient de petits aperçus et des titres, jamais l’emplacement de vos fichiers. Les grandes galeries ne chargent les images qu’en les affichant","PatOS Data : ce qui lie vos fichiers, notes, événements, rappels, captures et tableaux. Il trouve ce qui va ensemble avec des règles fixes (la même étiquette, les mêmes mots distinctifs, une note qui nomme un fichier, le même dossier, le même jour, les liens que vous faites) et chaque lien dit pourquoi. Les collections rassemblent un projet à partir de quelques mots, avec ce que vous ajoutez ou retirez; Data en suggère. Voyez l’historique d’un projet, explorez son graphe, et ouvrez ce que vous trouvez. Vous gardez le contrôle : retirez un lien faux, rendez un élément privé, excluez des types ou des dossiers, désactivez-le; il ne lit que quand vous l’utilisez. Les collections s’affichent aussi dans un widget et sur les tableaux World","Corrigé : les panneaux faits dans PatOS Studio montraient des icônes géantes par-dessus les widgets du bureau (ils n’avaient pas de style). Ce sont maintenant de petites cartes de verre; maintenez et glissez pour en déplacer un, clic droit pour le retirer ou le modifier dans Studio","PatOS World : des tableaux infinis. Placez notes autocollantes, fichiers, images, liens, notes, widgets en direct, tuiles d’apps et collections n’importe où, déplacez-vous et zoomez librement, sélectionnez-en plusieurs avec Maj, groupez-les, et annulez avec Ctrl+Z. Les zones nomment des parties d’un tableau; liez-en une à un dossier et y déposer un fichier le déplace là par Piles (après avoir demandé). Épinglez une vraie fenêtre d’app sur un tableau, avec tout ce qu’elle a d’ouvert. Un groupe d’apps les ouvre toutes d’un coup. Seul ce qui est près de l’écran est dessiné, pour que les grands tableaux restent rapides","PatOS Studio : créez votre propre bureau, visuellement. La scène est votre écran, à l’échelle : glissez les widgets et panneaux, tirez un coin pour redimensionner, les flèches pour ajuster. À droite : les réglages de chaque widget, les boutons des panneaux, l’apparence (thème, accent, verre, fond d’écran), le Dock, vos propres menus et raccourcis clavier. Un créateur de widgets en fait à partir de blocs (texte, valeur en direct, bouton, image). Essayez-le sur votre vrai bureau (Garder ou Revenir), enregistrez-le avec ses versions précédentes, dupliquez-le, appliquez-le à n’importe quel profil, et partagez-le en fichier .patdesk","Corrigé : en mode modification des widgets, la barre Ajouter un widget / Terminé restait à l’écran après avoir appuyé sur Terminé","Profils PatOS : des environnements séparés comme École, Personnel ou Jeux. Chacun a sa propre apparence, son Dock, ses widgets, panneaux, menus, raccourcis clavier, règles de notifications et fenêtres ouvertes; changer garde les fenêtres de l’autre profil exactement comme elles étaient. Vos fichiers, notes, apps et compte sont partagés par tous. Réglages › Bureau et multitâche › Profils, ou la tuile Profil dans le Centre de contrôle. Configurations de bureau : tout votre bureau (apparence, Dock, widgets, panneaux, menus, raccourcis) dans un seul fichier à enregistrer avec ses versions, dupliquer, exporter et importer; une configuration importée est vérifiée et ne peut jamais exécuter de code","Le bureau devient un tableau de bord : des widgets à placer n’importe où, redimensionner, empiler et configurer (horloge, calendrier, à venir, rappels à cocher, contrôle de la musique, système, météo, notes, compte à rebours, apps, photo, collections), des widgets créés dans PatOS Studio, et des widgets d’autres personnes qui tournent isolés avec seulement les permissions que vous leur donnez"]}};
+PatOS.build = {"channel":"beta","version":"4.0.0","beta":11};
 
 </script>
   <script type="patos/js">
@@ -9353,6 +9407,64 @@ PatOS.build = {"channel":"beta","version":"4.0.0","beta":10};
     'Import the gallery': 'Importer la galerie',
     'Add the widget': 'Ajouter le widget',
     'Public': 'Publique',
+    'Commons': 'Commons',
+    'Communities': 'Communautés',
+    'What’s new in your communities.': 'Les nouveautés de tes communautés.',
+    'Find communities of PatOS people, or start your own.': 'Trouve des communautés de gens de PatOS, ou crée la tienne.',
+    'No description yet.': 'Pas encore de description.',
+    'Asked': 'Demandé',
+    'Joined': 'Rejoint',
+    'Anyone can find it and join.': 'Tout le monde peut la trouver et la rejoindre.',
+    'People ask, a moderator lets them in.': 'Les gens demandent, un modérateur les fait entrer.',
+    'About': 'À propos',
+    'Open challenges': 'Défis en cours',
+    'Title (optional)': 'Titre (facultatif)',
+    'Write a post…': 'Écris une publication…',
+    'Waiting to join': 'En attente',
+    'Bio': 'Bio',
+    'Pinned post': 'Publication épinglée',
+    'Nothing here yet': 'Rien ici pour l’instant',
+    'Join communities to see their posts here.': 'Rejoins des communautés pour voir leurs publications ici.',
+    'Discover communities': 'Découvrir des communautés',
+    'All quiet': 'Tout est calme',
+    'No posts in your communities yet. Say hello!': 'Aucune publication dans tes communautés pour l’instant. Dis bonjour!',
+    'No public communities yet': 'Aucune communauté publique pour l’instant',
+    'Make the first one!': 'Crée la première!',
+    'Be the first to post.': 'Sois le premier à publier.',
+    'Join to post.': 'Rejoins-la pour publier.',
+    'Moderator': 'Modérateur',
+    'Member': 'Membre',
+    'Owner': 'Propriétaire',
+    'Asked to join': 'A demandé à rejoindre',
+    'A whole desktop: look, Dock and widgets': 'Un bureau complet : apparence, Dock et widgets',
+    'Pictures and notes, arranged': 'Des images et des notes, arrangées',
+    'A widget made in Studio': 'Un widget fait dans Studio',
+    'member': 'membre',
+    'members': 'membres',
+    'entry': 'participation',
+    'Favourites': 'Favoris',
+    'Open the destination folder': 'Ouvrir le dossier de destination',
+    'Up next': 'À suivre',
+    'Open Weather': 'Ouvrir Météo',
+    'around': 'vers',
+    'From the forecast': 'Selon les prévisions',
+    'Rain in': 'Pluie dans',
+    'Snow in': 'Neige dans',
+    'Rain starting': 'La pluie commence',
+    'Snow starting': 'La neige commence',
+    'Thunderstorms': 'Orages',
+    'Freezing rain': 'Pluie verglaçante',
+    'Heavy rain': 'Fortes pluies',
+    'Heavy snow': 'Fortes chutes de neige',
+    'Strong wind': 'Vents forts',
+    'Added to Favourites': 'Ajouté aux favoris',
+    'Removed from Favourites': 'Retiré des favoris',
+    'Add to Favourites': 'Ajouter aux favoris',
+    'Remove from Favourites': 'Retirer des favoris',
+    'Partly cloudy': 'Partiellement nuageux',
+    'Storm': 'Orage',
+    'Weather in the Pill': 'La météo dans la Pill',
+    'The temperature, rain or snow coming within the hour, and storms or strong wind from the forecast.': 'La température, la pluie ou la neige qui arrive dans l’heure, et les orages ou vents forts selon les prévisions.',
     'Tile All Windows': 'Disposer toutes les fenêtres', 'Merge All Windows': 'Fusionner toutes les fenêtres', 'Move Tab to New Window': 'Placer l’onglet dans une nouvelle fenêtre', 'Magnetic edges': 'Bords magnétiques', 'Windows click to the screen’s edges and to each other. Hold Shift to place one freely.': 'Les fenêtres s’accrochent aux bords de l’écran et entre elles. Maintenez Maj pour en placer une librement.',
     'Stage Focus': 'Focus sur la scène', 'Save Window Group…': 'Enregistrer un groupe de fenêtres…', 'Save Window Group': 'Enregistrer un groupe de fenêtres', 'Delete a Window Group…': 'Supprimer un groupe de fenêtres…', 'window': 'fenêtre', 'windows': 'fenêtres', 'Window group saved': 'Groupe de fenêtres enregistré', 'Reopen them all from the Window menu.': 'Rouvrez-les toutes depuis le menu Fenêtre.',
     'Motion': 'Mouvement', 'Calm': 'Calme', 'Natural': 'Naturel', 'Playful': 'Enjoué', 'How windows, menus and panels move': 'La façon dont bougent les fenêtres, les menus et les panneaux',
@@ -13799,14 +13911,14 @@ PatOS.build = {"channel":"beta","version":"4.0.0","beta":10};
      not as still running. Ended ones stay listed for a while, and a failure (or a long job that finished) also notifies. */
   const L = new Map(); let ended = [];
   const changed = () => PatOS.emit('live');
-  function pub(a) { return { id: a.id, app: a.app, title: a.title, detail: a.detail, progress: a.progress, status: a.status, started: a.started, updated: a.updated, ended: a.endedAt || 0, message: a.message || '', can: { pause: !!a.pause && a.status === 'running', resume: !!a.resume && a.status === 'paused', cancel: !!a.cancel && /running|paused/.test(a.status), retry: !!a.retry && a.status === 'failed', open: !!a.open }, eta: a.eta || 0 }; }
+  function pub(a) { return { id: a.id, app: a.app, title: a.title, detail: a.detail, stats: a.stats || null, eta: a.eta, progress: a.progress, status: a.status, started: a.started, updated: a.updated, ended: a.endedAt || 0, message: a.message || '', can: { pause: !!a.pause && a.status === 'running', resume: !!a.resume && a.status === 'paused', cancel: !!a.cancel && /running|paused/.test(a.status), retry: !!a.retry && a.status === 'failed', open: !!a.open }, eta: a.eta || 0 }; }
   const live = {
     start(o) {
       const a = { id: o.id || uid(), app: o.app || 'settings', title: String(o.title || ''), detail: String(o.detail || ''), progress: o.progress == null ? null : Math.max(0, Math.min(1, +o.progress)), status: 'running', started: Date.now(), updated: Date.now(), open: o.open || null, pause: o.pause, resume: o.resume, cancel: o.cancel, retry: o.retry, rate: [] };
       L.set(a.id, a); changed();
       const h = {
         id: a.id,
-        update(u) { if (!L.has(a.id)) return h; u = u || {}; if (u.progress != null) { const p = Math.max(0, Math.min(1, +u.progress)); a.rate.push([Date.now(), p]); if (a.rate.length > 8) a.rate.shift(); a.progress = p; a.eta = etaOf(a); } if (u.detail != null) a.detail = String(u.detail); if (u.title != null) a.title = String(u.title); if (u.status === 'paused' || u.status === 'running') a.status = u.status; a.updated = Date.now(); changed(); return h; },
+        update(u) { if (!L.has(a.id)) return h; u = u || {}; if (u.stats && typeof u.stats === 'object') a.stats = { speed: +u.stats.speed || 0, file: String(u.stats.file || '').slice(0, 120), dest: String(u.stats.dest || '').slice(0, 300) }; if (u.progress != null) { const p = Math.max(0, Math.min(1, +u.progress)); a.rate.push([Date.now(), p]); if (a.rate.length > 8) a.rate.shift(); a.progress = p; a.eta = etaOf(a); } if (u.detail != null) a.detail = String(u.detail); if (u.title != null) a.title = String(u.title); if (u.status === 'paused' || u.status === 'running') a.status = u.status; a.updated = Date.now(); changed(); return h; },
         end(status, message) { return live.end(a.id, status, message); }
       };
       return h;
@@ -15814,6 +15926,7 @@ PatOS.build = {"channel":"beta","version":"4.0.0","beta":10};
 
   /* ---------- small helpers ---------- */
   const two = (n) => String(n).padStart(2, '0');
+  const rate = (b) => (b >= 1048576 ? (b / 1048576).toFixed(1) + ' MB/s' : b >= 1024 ? Math.round(b / 1024) + ' KB/s' : b + ' B/s');
   const clock = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); const hh = Math.floor(s / 3600), m = Math.floor(s / 60) % 60; return (hh ? hh + ':' + two(m) : m) + ':' + two(s % 60); };
   const ago = (t) => { const s = Math.round((Date.now() - t) / 1000); return s < 60 ? T('now') : s < 3600 ? Math.round(s / 60) + ' min' : Math.round(s / 3600) + ' h'; };
   const ring = (p, color) => { const c = 2 * Math.PI * 7.5, d = (c * Math.max(0, Math.min(1, p))).toFixed(1); return '<svg class="pl-ring" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="2.6"/><circle cx="10" cy="10" r="7.5" fill="none" stroke="' + (color || 'currentColor') + '" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="' + d + ' ' + c.toFixed(1) + '" transform="rotate(-90 10 10)"/></svg>'; };
@@ -15912,10 +16025,11 @@ PatOS.build = {"channel":"beta","version":"4.0.0","beta":10};
       trail: a.progress != null ? ring(a.progress, 'var(--pl-accent)') + '<b class="pl-num">' + Math.round(a.progress * 100) + '%</b>' : spin, progress: a.progress, tone: a.status === 'stalled' ? TONE.warning : '',
       state: a.status === 'paused' ? T('Paused') : a.progress != null ? Math.round(a.progress * 100) + '%' : T('Working…'),
       actions: [a.can.pause && { icon: 'pause', label: T('Pause'), run: () => PatOS.live.act(a.id, 'pause') }, a.can.resume && { icon: 'play', label: T('Resume'), run: () => PatOS.live.act(a.id, 'resume') },
-        a.can.cancel && { icon: 'close', label: T('Cancel'), run: () => PatOS.live.act(a.id, 'cancel') }, a.can.open && { icon: 'folder', label: T('Show'), run: () => PatOS.live.act(a.id, 'open') }].filter(Boolean),
+        a.can.cancel && { icon: 'close', label: T('Cancel'), run: () => PatOS.live.act(a.id, 'cancel') }, a.can.open && { icon: 'folder', label: a.stats && a.stats.dest ? T('Open the destination folder') : T('Show'), run: () => PatOS.live.act(a.id, 'open') }].filter(Boolean),
       open: a.can.open ? () => PatOS.live.act(a.id, 'open') : () => PatOS.launch(a.app),
       big: () => h('div', { class: 'pl-big' }, h('div', { class: 'pl-bar' + (a.progress == null ? ' busy' : '') }, h('i', { style: { width: a.progress == null ? '' : Math.round(a.progress * 100) + '%' } })),
-        h('div', { class: 'pl-meta' }, h('span', {}, a.progress != null ? Math.round(a.progress * 100) + '%' : T('Working…')), a.eta ? h('span', {}, T('about') + ' ' + clock(a.eta) + ' ' + T('left')) : null))
+        h('div', { class: 'pl-meta' }, h('span', {}, a.progress != null ? Math.round(a.progress * 100) + '%' : T('Working…')), a.eta ? h('span', {}, T('about') + ' ' + clock(a.eta) + ' ' + T('left')) : null),
+        a.stats && (a.stats.file || a.stats.speed) ? h('div', { class: 'pl-stats' }, h('span', {}, a.stats.file ? T('Now') + ': ' + a.stats.file : ''), a.stats.speed ? h('span', {}, rate(a.stats.speed)) : null) : null)
     };
   }
   function liveItems() {
@@ -15970,10 +16084,11 @@ PatOS.build = {"channel":"beta","version":"4.0.0","beta":10};
     return [{
       id: 'music', pri: 50, app: 'music', lead: art, title: np.title, sub: np.artist, tone, state: T(np.playing ? 'Playing' : 'Paused'),
       trail: S().pillBars === false ? glyph(np.playing ? 'play' : 'pause', tone) : '<span class="pl-eq' + (np.playing ? ' on' : '') + '"><i></i><i></i><i></i><i></i></span>',
-      actions: [{ icon: 'prev', label: T('Previous'), run: () => M.prev() }, { icon: np.playing ? 'pause' : 'play', label: T(np.playing ? 'Pause' : 'Play'), run: () => M.toggle(), main: true }, { icon: 'next', label: T('Next'), run: () => M.next() },
-        { icon: 'speaker', label: T('Output'), run: (e) => { const r = e && e.currentTarget ? e.currentTarget.getBoundingClientRect() : { left: innerWidth / 2, bottom: 120 }; outputMenu(r.left, r.bottom + 6); }, keep: true }],
+      actions: [M.toggleFavourite && { icon: 'star', label: T(M.isFavourite() ? 'Remove from Favourites' : 'Add to Favourites'), on: M.isFavourite(), run: () => { const on = M.toggleFavourite(); flash({ kind: 'fav', lead: glyph('star', on ? '#ffd60a' : '#fff'), title: np.title, sub: T(on ? 'Added to Favourites' : 'Removed from Favourites') }); } },
+        { icon: 'prev', label: T('Previous'), run: () => M.prev() }, { icon: np.playing ? 'pause' : 'play', label: T(np.playing ? 'Pause' : 'Play'), run: () => M.toggle(), main: true }, { icon: 'next', label: T('Next'), run: () => M.next() },
+        { icon: 'speaker', label: T('Output'), run: (e) => { const r = e && e.currentTarget ? e.currentTarget.getBoundingClientRect() : { left: innerWidth / 2, bottom: 120 }; outputMenu(r.left, r.bottom + 6); }, keep: true }].filter(Boolean),
       open: () => PatOS.launch('music'),
-      big: () => { const p = M.position ? M.position() : { t: 0, d: 0 }; return h('div', { class: 'pl-big' }, h('div', { class: 'pl-bar' }, h('i', { style: { width: p.d ? Math.min(100, p.t / p.d * 100) + '%' : '0' } })), h('div', { class: 'pl-meta' }, h('span', {}, clock(p.t * 1000)), h('span', {}, '−' + clock(Math.max(0, p.d - p.t) * 1000))), next ? h('div', { class: 'pl-next' }, h('small', {}, T('Next')), h('span', {}, next.title + (next.artist ? ' · ' + next.artist : ''))) : null); }
+      big: () => { const p = M.position ? M.position() : { t: 0, d: 0 }; return h('div', { class: 'pl-big' }, h('div', { class: 'pl-bar' }, h('i', { style: { width: p.d ? Math.min(100, p.t / p.d * 100) + '%' : '0' } })), h('div', { class: 'pl-meta' }, h('span', {}, clock(p.t * 1000)), h('span', {}, '−' + clock(Math.max(0, p.d - p.t) * 1000))), (() => { const up = M.upcoming ? M.upcoming(3) : (next ? [next] : []); return up.length ? h('div', { class: 'pl-next' }, h('small', {}, T('Up next')), ...up.map((x, i) => h('span', { class: 'pl-upn' }, h('i', {}, String(i + 1)), x.title + (x.artist ? ' · ' + x.artist : '')))) : null; })()); }
     }];
   }
   function bars() {
@@ -16080,6 +16195,27 @@ PatOS.build = {"channel":"beta","version":"4.0.0","beta":10};
     return out;
   }
 
+  /* the weather (4.0): the temperature now in the overview; rain or snow coming in the next hour, and storms, ice, heavy
+     rain or snow, or strong wind in the next 6 hours, in the capsule. From the forecast (open-meteo): not official alerts. */
+  const SEVERE = { storm: ['Thunderstorms', '#ff9f0a'], ice: ['Freezing rain', '#ff453a'], heavyRain: ['Heavy rain', '#ff9f0a'], heavySnow: ['Heavy snow', '#ff9f0a'], wind: ['Strong wind', '#ff9f0a'] };
+  const WXW = (c) => (c === 0 ? ['Clear', 'sunny'] : c <= 3 ? ['Partly cloudy', 'partly'] : c <= 48 ? ['Fog', 'fog'] : c <= 67 ? ['Rain', 'rain'] : c <= 77 ? ['Snow', 'snow'] : c <= 82 ? ['Showers', 'rain'] : ['Storm', 'storm']);
+  function weatherItems() {
+    if (S().pillWeather === false || !PatOS.weatherNow) return [];
+    const w = PatOS.weatherNow(); if (!w) return [];
+    const [word, ic] = WXW(w.code); const open = () => PatOS.launch('weather');
+    const base = { app: 'weather', open, actions: [{ icon: 'window', label: T('Open Weather'), run: open }] };
+    if (w.severe && SEVERE[w.severe.kind]) {
+      const [what, color] = SEVERE[w.severe.kind]; const soon = w.severe.at - Date.now() < 3600000;
+      return [Object.assign({ id: 'wx:severe', pri: 70, lead: glyph('warn', color), title: T(what) + ' ' + (soon ? T('now') : T('around') + ' ' + timeAt(w.severe.at)), sub: T('From the forecast') + ' · ' + w.place, tone: color, state: T(what), trail: '<b class="pl-num pl-temp">' + w.temp + '°</b>' }, base)];
+    }
+    if (w.rainIn != null && w.rainIn <= 60) {
+      const what = w.rainKind === 'snow' ? 'Snow' : 'Rain';
+      return [Object.assign({ id: 'wx:rain', pri: 40, lead: glyph(w.rainKind === 'snow' ? 'snow' : 'rain'), title: w.rainIn <= 5 ? T(what + ' starting') : T(what + ' in') + ' ' + w.rainIn + ' min', sub: w.temp + '° · ' + w.place, state: w.rainIn + ' min', trail: '<b class="pl-num">' + w.rainIn + ' min</b>' }, base)];
+    }
+    return [Object.assign({ id: 'wx:now', pri: 12, lead: glyph(ic), title: w.temp + '° · ' + T(word), sub: w.place + ' · ' + T('H') + ' ' + w.hi + '° ' + T('L') + ' ' + w.lo + '°', state: w.temp + '°', trail: '<b class="pl-num pl-temp">' + w.temp + '°</b>' }, base)];
+  }
+  PatOS.on('widgets:weather', () => schedule());
+
   /* PatOS itself: the battery, sync, the network, Do Not Disturb */
   let battery = null, dndSince = 0;
   if (navigator.getBattery) navigator.getBattery().then((b) => { battery = b; b.addEventListener('levelchange', schedule); b.addEventListener('chargingchange', () => { flash({ kind: 'battery', lead: glyph('bolt', b.charging ? '#34c759' : '#fff'), title: T(b.charging ? 'Charging' : 'On battery'), trail: '<b class="pl-num">' + Math.round(b.level * 100) + '%</b>', tone: b.charging ? '#34c759' : '', status: b.charging ? 'charge' : '' }); schedule(); }); schedule(); }).catch(() => {});
@@ -16102,7 +16238,7 @@ PatOS.build = {"channel":"beta","version":"4.0.0","beta":10};
     let all = [], compact = [];
     const add = (l, both) => { all = all.concat(l); if (both !== false) compact = compact.concat(l); };
     const L = liveItems();
-    for (const f of [mediaItems, timerItems, musicItems, calendarItems, systemItems, sdkItems]) { try { add(f()); } catch (e) { console.error(e); } }
+    for (const f of [mediaItems, timerItems, musicItems, calendarItems, systemItems, weatherItems, sdkItems]) { try { add(f()); } catch (e) { console.error(e); } }
     all = all.concat(L.all); compact = compact.concat(L.compact);
     const by = (a, b) => b.pri - a.pri;
     all.sort(by); compact = compact.filter((x) => x.pri >= 35).sort(by);
@@ -16111,7 +16247,7 @@ PatOS.build = {"channel":"beta","version":"4.0.0","beta":10};
   }
 
   /* ======================= drawing ======================= */
-  const actBtn = (a, cls) => h('button', { class: (cls || 'pl-act') + (a.main ? ' main' : ''), 'data-i': a.icon || '', 'aria-label': a.label, title: a.label,
+  const actBtn = (a, cls) => h('button', { class: (cls || 'pl-act') + (a.main ? ' main' : '') + (a.on ? ' on' : ''), 'aria-pressed': a.on != null ? String(!!a.on) : null, 'data-i': a.icon || '', 'aria-label': a.label, title: a.label,
     onclick: (e) => { e.stopPropagation(); a.run(e); if (!a.keep) setTimeout(render, 80); }, html: a.icon ? sym(a.icon) : esc(a.label) });
   function compactEl(it) {
     return h('div', { class: 'pl-row' }, h('span', { class: 'pl-lead', html: it.lead || '' }),
@@ -16299,7 +16435,9 @@ PatOS.build = {"channel":"beta","version":"4.0.0","beta":10};
     dismissApp: (app) => { [...acts.values()].filter((a) => a.app === app && !a.system).forEach((a) => dismiss(a.id)); }, // (its app was force-quit)
     flash, notify: takeNotification, expand: () => expand(true), collapse, render, preview,
     history: () => hist.slice(), clearHistory: () => { hist = []; saveHist(); schedule(); },
-    get state() { return { mode, items: shown.map((x) => x.id), flash: flashNow ? flashNow.title : null }; }
+    get state() { return { mode, items: shown.map((x) => x.id), flash: flashNow ? flashNow.title : null }; },
+    // everything the Pill would show now, most important first, and what fits in the capsule (tests, Settings)
+    list: () => { const c = collect(); return { all: c.all.map((x) => ({ id: x.id, title: x.title, sub: x.sub, pri: x.pri })), compact: c.compact.map((x) => x.id) }; }
   };
   // Alt+A: the Activity Overview, any time (even when nothing is running: what finished recently)
   document.addEventListener('keydown', (e) => { if (PatOS.loggedIn && on() && e.altKey && !e.ctrlKey && !e.metaKey && e.code === 'KeyA') { e.preventDefault(); mode === 'expanded' ? collapse() : expand(true); } });
@@ -16360,9 +16498,24 @@ PatOS.build = {"channel":"beta","version":"4.0.0","beta":10};
   // the weather: one request for every widget, at most every 20 minutes (open-meteo, no key needed)
   const weather = { v: null, t: 0, p: null,
     get() { const pl = PatOS.store.get('weatherPlace', null) || { name: 'Montréal', lat: 45.5019, lon: -73.5674 }; if (Date.now() - this.t > 20 * 60000 && !this.p && navigator.onLine !== false) this.fetch(pl); return this.v; },
-    fetch(pl) { this.p = fetch('https://api.open-meteo.com/v1/forecast?latitude=' + pl.lat + '&longitude=' + pl.lon + '&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&forecast_days=1&timezone=auto')
-      .then((r) => r.json()).then((j) => { this.v = { place: pl.name, temp: Math.round(j.current.temperature_2m), code: j.current.weather_code, hi: Math.round(j.daily.temperature_2m_max[0]), lo: Math.round(j.daily.temperature_2m_min[0]) }; this.t = Date.now(); PatOS.emit('widgets:weather'); })
+    // (4.0) also the next 2 hours of rain in 15-minute steps and the next 6 hours of storms and wind, for the PatOS Pill
+    fetch(pl) { this.p = fetch('https://api.open-meteo.com/v1/forecast?latitude=' + pl.lat + '&longitude=' + pl.lon + '&current=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&minutely_15=precipitation,temperature_2m&forecast_minutely_15=8&hourly=weather_code,wind_gusts_10m&forecast_hours=6&forecast_days=1&timezone=auto&timeformat=unixtime')
+      .then((r) => r.json()).then((j) => { this.v = Object.assign({ place: pl.name, temp: Math.round(j.current.temperature_2m), code: j.current.weather_code, hi: Math.round(j.daily.temperature_2m_max[0]), lo: Math.round(j.daily.temperature_2m_min[0]) }, ahead(j)); this.t = Date.now(); PatOS.emit('widgets:weather'); })
       .catch(() => { this.t = Date.now() - 15 * 60000; }).finally(() => { this.p = null; }); } };
+  /* what is coming, from the forecast itself (open-meteo gives no official alerts, so PatOS says "from the forecast"):
+     rain or snow in the next 2 hours, and storms, freezing rain, heavy rain or snow, or strong wind in the next 6 */
+  function ahead(j) {
+    const out = { rainIn: null, rainKind: '', severe: null };
+    try {
+      const m = j.minutely_15 || {}, now = Date.now() / 1000;
+      for (let i = 0; i < (m.time || []).length; i++) { if (m.time[i] + 900 < now) continue; if ((m.precipitation[i] || 0) >= 0.2) { out.rainIn = Math.max(0, Math.round((m.time[i] - now) / 60)); out.rainKind = (m.temperature_2m && m.temperature_2m[i] <= 0) ? 'snow' : 'rain'; break; } }
+      const hh = j.hourly || {}; const SEV = { 95: 'storm', 96: 'storm', 99: 'storm', 66: 'ice', 67: 'ice', 65: 'heavyRain', 82: 'heavyRain', 75: 'heavySnow', 86: 'heavySnow' };
+      for (let i = 0; i < (hh.time || []).length; i++) { const k = SEV[hh.weather_code[i]] || ((hh.wind_gusts_10m || [])[i] >= 70 ? 'wind' : ''); if (k && hh.time[i] + 3600 > now) { out.severe = { kind: k, at: hh.time[i] * 1000 }; break; } }
+    } catch (e) {}
+    return out;
+  }
+  PatOS.weatherNow = () => weather.get(); // (the Pill and the Weather widget share one request)
+  PatOS.weatherRefresh = () => { weather.t = 0; weather.p = null; return weather.get(); }; // (the Weather app's refresh, and tests)
   const wxWord = (c) => (c === 0 ? ['Clear', 'sunny'] : c <= 3 ? ['Partly cloudy', 'partly'] : c <= 48 ? ['Fog', 'fog'] : c <= 67 ? ['Rain', 'rain'] : c <= 77 ? ['Snow', 'snow'] : c <= 82 ? ['Showers', 'rain'] : ['Storm', 'storm']);
 
   /* ---------- the context a widget renders with: everything it starts is cleaned up when it goes ---------- */
@@ -17275,6 +17428,8 @@ PatOS.build = {"channel":"beta","version":"4.0.0","beta":10};
     if (j.kind === 'move') { if (fs().dirname(p) !== j.dest) it.out = fs().move(p, j.dest); else it.out = p; }
     else it.out = fs().copy(p, j.dest);
   }
+  // how big an item is (a file's content, a picture's data, everything in a folder), to tell how fast a copy goes
+  function sizeOf(p) { let n = 0; const one = (nd) => { n += nd.blob ? +nd.size || 0 : typeof nd.content === 'string' ? nd.content.length : 0; }; const nd = fs().get(p); if (!nd) return 0; if (nd.type === 'dir') fs().walk(p, (q, x) => { if (x.type === 'file') one(x); }); else one(nd); return n; }
   function show(j) {
     let a = live.get(j.id);
     const done = j.items.filter((x) => x.done).length;
@@ -17284,16 +17439,20 @@ PatOS.build = {"channel":"beta","version":"4.0.0","beta":10};
       live.set(j.id, a);
     }
     const cur = j.items.find((x) => !x.done);
-    a.update({ progress: done / j.items.length, detail: done + ' ' + T('of') + ' ' + j.items.length + (cur ? ' · ' + fs().basename(cur.src) : ''), status: j.status === 'paused' ? 'paused' : 'running' });
+    const sp = j.meter && j.meter.bytes ? Math.round(j.meter.bytes / (Math.max(16, performance.now() - j.meter.t0) / 1000)) : 0; // (bytes a second: what was really copied, over the time it has taken)
+    a.update({ progress: done / j.items.length, detail: done + ' ' + T('of') + ' ' + j.items.length + (cur ? ' · ' + fs().basename(cur.src) : ''), status: j.status === 'paused' ? 'paused' : 'running',
+      stats: { speed: sp, file: cur ? fs().basename(cur.src) : '', dest: j.kind === 'trash' ? '' : j.dest } });
     return a;
   }
   async function run(id) {
     const j = jobs.find((x) => x.id === id); if (!j || j.status === 'running') return;
-    j.status = 'running'; save(); show(j);
+    j.status = 'running'; j.meter = null; save(); show(j); // (the speed counts from now: a pause isn't slowness)
     for (const it of j.items) {
       if (it.done) continue;
       if (j.status !== 'running') { save(); show(j); return; } // (paused or cancelled between items)
+      const size = j.kind === 'trash' ? 0 : sizeOf(it.src), t0 = performance.now();
       try { step(j, it); it.error = ''; } catch (e) { it.error = (e && e.message) || T('That didn’t work.'); }
+      if (!it.error) { j.meter = j.meter || { bytes: 0, t0 }; j.meter.bytes += size; }
       it.done = true; save(); show(j);
       await new Promise((r) => setTimeout(r, j.items.length > 40 ? 0 : 16)); // (the screen gets its turn)
     }
@@ -27960,12 +28119,19 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
     } catch (e) {}
   }
   function emit() { mediaSession(); E.listeners.forEach((f) => { try { f(); } catch (e) {} }); PatOS.emit('music'); } // (the Pill follows it: js/pill.js)
+  /* favourites (4.0): your favourite songs, a list of keys (a file's path, or 'gen:<n>' for a PatOS Original), synced like playlists */
+  const favKey = (it) => (it ? (it.path || (it.gen != null ? 'gen:' + it.gen : '')) : '');
+  const favs = () => PatOS.store.get('musicFavs', []) || [];
+  const isFav = (it) => { const k = favKey(it); return !!k && favs().includes(k); };
+  function toggleFav(it) { it = it || cur(); const k = favKey(it); if (!k) return false; const l = favs(); const on = !l.includes(k); PatOS.store.set('musicFavs', on ? l.concat([k]) : l.filter((x) => x !== k)); emit(); PatOS.emit('music:favs'); return on; }
   PatOS.music = {
     toggle: () => (E.playing ? pause() : play()), next: () => next(), prev,
     nowPlaying: () => { const s = (E.playing || E.step > 0 || (E.el && E.el.currentTime > 0)) ? info() : null; return s ? Object.assign({ playing: E.playing }, s) : null; },
     playPath: (p) => setQueue([{ path: p }], 0, true),
     position: () => position(),
     upNext: () => { const it = E.queue[E.qi + 1]; return it ? info(it) : null; },
+    upcoming: (n) => E.queue.slice(E.qi + 1, E.qi + 1 + (n || 3)).map((it) => info(it)).filter(Boolean),
+    isFavourite: (it) => isFav(it || cur()), toggleFavourite: (it) => toggleFav(it), favourites: () => favs().slice(),
     setOutput: async (id) => { if (E.sink && E.sink.setSinkId) await E.sink.setSinkId(id); }, // (the Pill's output picker; PatOS's own sounds follow too)
     // how loud it is right now, in a few bands (0..1), for the Pill's bars
     levels(n) { n = n || 4; if (!E.analyser || !E.playing) return new Array(n).fill(0); const d = new Uint8Array(E.analyser.frequencyBinCount); E.analyser.getByteFrequencyData(d); const out = []; for (let i = 0; i < n; i++) { const a = Math.floor(Math.pow(i / n, 1.6) * d.length * .7), b = Math.max(a + 1, Math.floor(Math.pow((i + 1) / n, 1.6) * d.length * .7)); let m = 0; for (let j = a; j < b; j++) m = Math.max(m, d[j]); out.push(m / 255); } return out; }
@@ -28009,6 +28175,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           item('albums', T('Albums'), '<rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="12" cy="12" r="4"/>'),
           item('artists', T('Artists'), '<circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/>'),
           item('recent', T('Recently Added'), '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
+          item('favs', T('Favourites'), '<path d="M12 3l2.6 5.6 6.1.7-4.5 4.2 1.2 6L12 16.6 6.6 19.5l1.2-6L3.3 9.3l6.1-.7z"/>'),
           item('originals', T('PatOS Originals'), '<path d="M12 3l2.5 5.5L20 9l-4 4 1 6-5-3-5 3 1-6-4-4 5.5-.5z"/>'),
           h('div', { class: 'mu-sh' }, T('Playlists')));
         playlists().forEach((pl) => side.appendChild(item('pl:' + pl.id, pl.name, '<path d="M4 6h12M4 12h12M4 18h8M18 13v8"/>', (el) => {
@@ -28030,6 +28197,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         const all = libraryPaths();
         let list;
         if (view === 'recent') list = all.slice().sort((a, b) => (metas()[b] ? metas()[b].added || 0 : Date.now()) - (metas()[a] ? metas()[a].added || 0 : Date.now()) || ((PatOS.fs.get(b) || {}).mtime || 0) - ((PatOS.fs.get(a) || {}).mtime || 0)).slice(0, 50);
+        else if (view === 'favs') { const f = favs(); list = all.filter((p) => f.includes(p)).sort((a, b) => f.indexOf(b) - f.indexOf(a)); }
         else if (view.startsWith('pl:')) { const pl = playlists().find((x) => 'pl:' + x.id === view); list = pl ? pl.tracks.filter((p) => PatOS.fs.get(p)) : []; }
         else list = all.slice().sort((a, b) => { const A = metaOf(a), B = metaOf(b); return (!A.artist - !B.artist) || (A.artist || '').localeCompare(B.artist || '') || (A.album || '').localeCompare(B.album || '') || (A.track || 0) - (B.track || 0) || A.title.localeCompare(B.title); });
         if (sub) list = list.filter((p) => (sub.kind === 'album' ? (metaOf(p).album || T('Unknown Album')) === sub.name && (metaOf(p).artist || '') === sub.artist : (metaOf(p).artist || T('Unknown Artist')) === sub.name));
@@ -28062,6 +28230,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       function songMenu(p, x, y) {
         const pls = playlists(); const inPl = view.startsWith('pl:') ? view.slice(3) : null;
         PatOS.menu([
+          { label: T(isFav({ path: p }) ? 'Remove from Favourites' : 'Add to Favourites'), action: () => { toggleFav({ path: p }); if (view === 'favs') renderMain(); } },
           { label: T('Play Next'), action: () => playNext({ path: p }) },
           { label: T('Add to Up Next'), action: () => addToQueue({ path: p }) },
           { divider: true },
@@ -29708,6 +29877,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
               S().pillOn !== false ? row('Show what finished recently', toggle('pillHistory')) : null,
               S().pillOn !== false ? row('Second activity bubble', toggle('pillBubble')) : null,
               S().pillOn !== false ? row('Music bars', toggle('pillBars')) : null,
+              S().pillOn !== false ? row('Weather in the Pill', toggle('pillWeather'), 'The temperature, rain or snow coming within the hour, and storms or strong wind from the forecast.') : null,
               S().pillOn !== false ? row('How long quick messages stay', select('pillFlash', [['short', 'Short'], ['normal', 'Normal'], ['long', 'Long']])) : null,
               S().pillOn !== false ? row('In full-screen apps', select('pillFs', [['never', 'Never'], ['important', 'Only important things'], ['always', 'Always']])) : null,
               S().pillOn !== false ? row('Try it', h('button', { class: 'btn', onclick: () => PatOS.pill && PatOS.pill.preview() }, T('Preview'))) : null),
@@ -40076,6 +40246,8 @@ PatOS.sendWithPatDrop = async function (paths) {
 </script>
   <script type="patos/js">
 /* PatOS Commons (4.0): communities of PatOS people. Public ones anyone can find and join; private ones need a moderator's yes.
+   Home (what's new in your communities), Discover, a page for each community (posts, events, showcases, challenges,
+   members, moderation) and profiles.
    Posts, announcements (moderators), events (add them to your Calendar), showcases (share a desktop, a gallery or a widget
    made in Studio: data only, never code, and checked again by PatOS before anything is used), challenges (moderators) and
    their entries. Profiles, follows, blocks, likes, reports.
@@ -40085,162 +40257,299 @@ PatOS.sendWithPatDrop = async function (paths) {
   'use strict';
   const { h } = PatOS; const T = (s) => PatOS.t(s);
   PatOS.iconDefs.commons = { bg: 'linear-gradient(160deg,#34c759,#0a84ff)', svg: () => '<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg"><circle cx="32" cy="20" r="8" fill="#fff"/><circle cx="16" cy="30" r="6" fill="#fff" opacity=".8"/><circle cx="48" cy="30" r="6" fill="#fff" opacity=".8"/><path d="M18 52c1-9 7-14 14-14s13 5 14 14z" fill="#fff"/><path d="M4 50c1-6 5-10 12-10 3 0 5 1 7 2-3 2-5 5-6 8z M60 50c-1-6-5-10-12-10-3 0-5 1-7 2 3 2 5 5 6 8z" fill="#fff" opacity=".8"/></svg>' };
+  const I = {
+    home: '<svg viewBox="0 0 24 24"><path d="M4 11l8-7 8 7v8a1 1 0 0 1-1 1h-4v-6H9v6H5a1 1 0 0 1-1-1z"/></svg>',
+    compass: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/></svg>',
+    plus: '<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>',
+    heart: '<svg viewBox="0 0 24 24"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>',
+    more: '<svg viewBox="0 0 24 24"><circle cx="5" cy="12" r="1.6"/><circle cx="12" cy="12" r="1.6"/><circle cx="19" cy="12" r="1.6"/></svg>',
+    clip: '<svg viewBox="0 0 24 24"><path d="M20 11l-8 8a5 5 0 0 1-7-7l8-8a3.5 3.5 0 0 1 5 5l-8 8a2 2 0 0 1-3-3l7-7"/></svg>',
+    lock: '<svg viewBox="0 0 24 24"><rect x="5" y="11" width="14" height="9" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+    globe: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3c3 3 3 15 0 18M12 3c-3 3-3 15 0 18"/></svg>',
+    pin: '<svg viewBox="0 0 24 24"><path d="M12 21s-6-5.3-6-11a6 6 0 0 1 12 0c0 5.7-6 11-6 11z"/><circle cx="12" cy="10" r="2"/></svg>',
+    trophy: '<svg viewBox="0 0 24 24"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8 20h8"/></svg>',
+    desk: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="13" rx="2"/><path d="M8 21h8M12 17v4"/></svg>',
+    gallery: '<svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-8 9"/></svg>',
+    widget: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="18" height="8" rx="2"/></svg>',
+    flag: '<svg viewBox="0 0 24 24"><path d="M5 21V4h11l-1.5 4L16 12H5"/></svg>'
+  };
+  const ic = (k, cls) => h('span', { class: 'cm-i' + (cls ? ' ' + cls : ''), html: I[k] });
   const ms = (t) => (!t ? 0 : t.toMillis ? t.toMillis() : t.seconds ? t.seconds * 1000 : +t);
-  const when = (t) => new Date(ms(t)).toLocaleString(PatOS.locale, { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  const when = (t) => new Date(ms(t)).toLocaleString(PatOS.locale, { weekday: 'short', month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' });
+  // "3 min ago", "yesterday", "Nov 3"
+  function ago(t) {
+    const s = (Date.now() - ms(t)) / 1000; const fr = PatOS.lang === 'fr';
+    if (s < 60) return fr ? 'à l’instant' : 'just now';
+    if (s < 3600) return (fr ? 'il y a ' : '') + Math.floor(s / 60) + (fr ? ' min' : ' min ago');
+    if (s < 86400) return (fr ? 'il y a ' : '') + Math.floor(s / 3600) + (fr ? ' h' : ' h ago');
+    if (s < 172800) return fr ? 'hier' : 'yesterday';
+    return new Date(ms(t)).toLocaleDateString(PatOS.locale, { month: 'short', day: 'numeric' });
+  }
+  function until(t) { const d = (ms(t) - Date.now()) / 864e5; const fr = PatOS.lang === 'fr'; if (d < 0) return T('Ended'); if (d < 1) { const hh = Math.max(1, Math.round(d * 24)); return fr ? 'encore ' + hh + ' h' : hh + ' h left'; } const n = Math.round(d); return fr ? 'encore ' + n + ' jour' + (n > 1 ? 's' : '') : n + ' day' + (n > 1 ? 's' : '') + ' left'; }
+  // a colour that belongs to a name (communities and people keep theirs)
+  const hue = (s) => { let x = 0; for (const c of String(s || '')) x = (x * 31 + c.charCodeAt(0)) % 360; return x; };
+  const avatar = (name, cls) => h('span', { class: 'cm-av' + (cls ? ' ' + cls : ''), style: { '--h': hue(name) }, 'aria-hidden': 'true' }, String(name || '?').replace(/^@/, '').charAt(0).toUpperCase()); // (a flat, muted colour that belongs to the name)
   const KINDS = { post: 'Post', announcement: 'Announcement', event: 'Event', showcase: 'Showcase', challenge: 'Challenge', entry: 'Entry' };
-  const ATTACH = { desk: 'Desktop', gallery: 'Gallery', widget: 'Widget' };
+  const ROLE = { owner: 'Owner', mod: 'Moderator', member: 'Member', pending: 'Asked to join' };
+  const ATTACH = { desk: ['Desktop', 'desk', 'A whole desktop: look, Dock and widgets', 'Try this desktop'], gallery: ['Gallery', 'gallery', 'Pictures and notes, arranged', 'Import the gallery'], widget: ['Widget', 'widget', 'A widget made in Studio', 'Add the widget'] };
   const JOINED = 'commonsJoined';
   const joined = () => PatOS.store.get(JOINED, []) || [];
   const setJoined = (l) => PatOS.store.set(JOINED, [...new Set(l)].slice(0, 50));
 
   PatOS.registerApp({
-    id: 'commons', name: 'PatOS Commons', icon: 'commons', width: 1040, height: 680, minWidth: 420, minHeight: 380, category: 'Apps', keywords: 'commons community communities social posts events showcase challenge follow communauté',
+    id: 'commons', name: 'PatOS Commons', icon: 'commons', width: 1120, height: 720, minWidth: 420, minHeight: 400, category: 'Apps', keywords: 'commons community communities social posts events showcase challenge follow communauté',
     about: 'Communities of PatOS people: posts, events, showcases and challenges.',
     launch(win, args) {
       let F = null; const me = () => (PatOS.account && PatOS.account.signedIn() ? (() => { const i = PatOS.account.info(); return { uid: i.uid, username: i.username }; })() : null);
-      let view = { kind: 'discover' }, mine = [], found = [], blocked = new Set(), off = null, offM = null, posts = [], members = [], com = null, filter = 'all';
-      const side = h('div', { class: 'cm-side' }), main = h('div', { class: 'cm-main' });
+      let view = { kind: 'home' }, mine = [], found = [], blocked = new Set(), offs = [], posts = [], members = [], com = null, tagFilter = '';
+      const homePosts = new Map(); // community id → its posts (Home)
+      const keep = { composer: null, key: '', entries: new Map() };
+      const side = h('nav', { class: 'cm-side ui-side', 'aria-label': T('Commons') }), main = h('div', { class: 'cm-main' });
       win.body.appendChild(h('div', { class: 'cm' }, side, main));
-      const guard = async (fn) => { try { return await fn(); } catch (e) { PatOS.alertBox(T('That didn’t work'), (e && e.code === 'permission-denied') ? T('PatOS’s server didn’t allow that.') : (e.message || String(e)), { icon: 'commons' }); return null; } };
+      const msg = (e) => (e && e.code === 'permission-denied') ? T('PatOS’s server didn’t allow that.') : (e && e.message) || String(e);
+      const guard = async (fn) => { try { return await fn(); } catch (e) { PatOS.alertBox(T('That didn’t work'), msg(e), { icon: 'commons' }); return null; } };
       const myRole = () => { const m = me() && members.find((x) => x.id === me().uid); return m ? m.role : ''; };
       const isMod = () => ['owner', 'mod'].includes(myRole());
       const isMember = () => ['owner', 'mod', 'member'].includes(myRole());
+      const stop = () => { offs.forEach((o) => o && o()); offs = []; };
 
       async function start() {
         if (!me()) return draw();
         try { F = F || await PatOS.account.cloud(); } catch (e) { F = null; return draw(); }
         const asked = joined();
         const [m, b] = await Promise.all([F.comMany(me(), asked).catch(() => null), F.blocked(me()).catch(() => [])]);
-        if (m) { mine = m.filter((c) => c.myRole); setJoined(joined().filter((id) => !asked.includes(id) || mine.some((c) => c.id === id))); } // (forgets only the ones checked and no longer yours; one joined meanwhile stays)
+        if (m) { const meanwhile = mine.filter((c) => !m.some((x) => x.id === c.id)); mine = m.filter((c) => c.myRole).concat(meanwhile); setJoined(joined().filter((id) => !asked.includes(id) || mine.some((c) => c.id === id))); } // (forgets only the ones checked and no longer yours; one joined meanwhile stays)
         blocked = new Set(b);
-        draw(); if (args.cid) openCom(args.cid); else discover();
-      }
-      async function discover() { view = { kind: 'discover' }; draw(); found = await F.comPublic(100).catch(() => []); found.sort((a, b) => ms(b.at) - ms(a.at)); if (view.kind === 'discover') drawMain(); }
-      function stopCom() { if (off) off(); if (offM) offM(); off = offM = null; posts = []; members = []; com = null; }
-      async function openCom(cid) {
-        stopCom(); view = { kind: 'com', cid, tab: 'posts' }; filter = 'all'; draw();
-        com = await F.comGet(cid).catch(() => null);
-        if (!com) { main.innerHTML = ''; main.appendChild(h('div', { class: 'cm-empty' }, h('h2', {}, T('This community isn’t open to you')), h('p', {}, T('It is private, or it no longer exists.')))); return; }
-        offM = F.comMembersListen(cid, (l) => { members = l; drawMain(); }, () => { members = []; drawMain(); });
-        off = F.comPostsListen(cid, (l) => { posts = l; drawMain(); }, () => { posts = []; drawMain(); });
-        drawMain();
+        if (args.cid) openCom(args.cid); else if (mine.length) home(); else discover();
       }
 
-      function draw() { drawSide(); drawMain(); }
+      /* ---------- the sidebar (PatOS.ui: the same as every other app) ---------- */
       function drawSide() {
         side.innerHTML = '';
-        if (!me()) { side.appendChild(h('p', { class: 'cm-muted' }, T('Sign in to your PatOS account to join communities.'))); return; }
-        const si = (label, on, fn, sub) => h('button', { class: 'cm-si' + (on ? ' on' : ''), onclick: fn }, h('span', {}, label), sub ? h('small', {}, sub) : null);
-        side.append(si(T('Discover'), view.kind === 'discover', discover), si(T('My profile'), view.kind === 'profile' && view.uid === me().uid, () => openProfile(me().uid, me().username)),
-          h('div', { class: 'cm-sh' }, T('My communities'), h('button', { class: 'cm-add', title: T('New Community'), 'aria-label': T('New Community'), onclick: newCom }, '+')));
-        mine.forEach((c) => side.appendChild(si(c.name, view.kind === 'com' && view.cid === c.id, () => openCom(c.id), c.myRole === 'pending' ? T('asked') : c.visibility === 'private' ? T('private') : '')));
-        if (!mine.length) side.appendChild(h('p', { class: 'cm-muted' }, T('Join one from Discover, or make your own.')));
+        if (!me()) return;
+        const item = (label, on, fn, lead, tail) => h('button', { class: 'cm-si' + (on ? ' on' : ''), 'aria-current': on ? 'page' : null, onclick: fn }, lead, h('span', { class: 'cm-sl' }, label), tail || null);
+        side.append(
+          item(T('Home'), view.kind === 'home', home, ic('home')),
+          item(T('Discover'), view.kind === 'discover', discover, ic('compass')),
+          h('h4', { class: 'ui-sh cm-shead' }, h('span', {}, T('Communities')), h('button', { class: 'cm-sadd', title: T('New Community'), 'aria-label': T('New Community'), onclick: newCom, html: I.plus })));
+        mine.forEach((c) => side.appendChild(item(c.name, view.kind === 'com' && view.cid === c.id, () => openCom(c.id), avatar(c.name, 'av-xs sq'),
+          c.myRole === 'pending' ? h('small', {}, T('asked')) : c.visibility === 'private' ? ic('lock', 'cm-faint') : null)));
+        if (!mine.length) side.appendChild(h('p', { class: 'cm-sidehint' }, T('Join one from Discover, or make your own.')));
+        side.appendChild(h('div', { class: 'cm-sfill' }));
+        side.appendChild(item('@' + me().username, view.kind === 'profile' && view.uid === me().uid, () => openProfile(me().uid, me().username), avatar(me().username, 'av-xs')));
       }
+      function draw() { drawSide(); drawMain(); }
       function drawMain() {
-        main.innerHTML = '';
-        if (!me()) return main.appendChild(h('div', { class: 'cm-empty' }, h('span', { class: 'cm-ic', html: PatOS.iconHTML('commons') }), h('h2', {}, T('PatOS Commons')), h('p', {}, T('Sign in to your PatOS account to join communities.'))));
-        if (view.kind === 'discover') return discoverView();
-        if (view.kind === 'profile') return profileView();
-        if (view.kind === 'com' && com) return comView();
+        const top = main.scrollTop; main.innerHTML = '';
+        if (!me()) return main.appendChild(PatOS.ui.empty({ title: 'PatOS Commons', text: 'Sign in to your PatOS account to join communities.' }));
+        ({ home: homeView, discover: discoverView, com: comView, profile: profileView })[view.kind]();
+        main.scrollTop = top; // (a new post or like doesn't jump you back to the top)
+      }
+      const page = (...kids) => { const p = h('div', { class: 'cm-page' }, ...kids); main.appendChild(p); return p; };
+      const empty = (title, text, action) => PatOS.ui.empty({ title, text, action });
+      const head = (title, sub, ...right) => h('header', { class: 'cm-head' }, h('div', { class: 'cm-htxt' }, h('h1', {}, title), sub ? h('p', {}, sub) : null), ...right.filter(Boolean));
+      const dateTile = (t) => { const d = new Date(ms(t)); return h('span', { class: 'cm-date', 'aria-hidden': 'true' }, h('small', {}, d.toLocaleDateString(PatOS.locale, { month: 'short' }).replace('.', '')), h('b', {}, String(d.getDate()))); };
+
+      /* ---------- Home: what's new in your communities ---------- */
+      function home() {
+        stop(); view = { kind: 'home' }; homePosts.clear(); main.scrollTop = 0; draw();
+        mine.filter((c) => c.myRole && c.myRole !== 'pending').slice(0, 8).forEach((c) => offs.push(F.comPostsListen(c.id, (l) => { homePosts.set(c.id, l.map((p) => Object.assign({ cid: c.id, cname: c.name }, p))); if (view.kind === 'home') drawMain(); }, () => {})));
+      }
+      function homeView() {
+        const all = [...homePosts.values()].flat().filter((p) => !blocked.has(p.by)).sort((a, b) => ms(b.at) - ms(a.at)).slice(0, 60);
+        const p = page(head(T('Home'), T('What’s new in your communities.')));
+        if (!mine.some((c) => c.myRole && c.myRole !== 'pending')) { p.appendChild(empty('Nothing here yet', 'Join communities to see their posts here.', ['Discover communities', discover])); return; }
+        const upcoming = all.filter((x) => x.kind === 'event' && ms(x.eventAt) > Date.now()).sort((a, b) => ms(a.eventAt) - ms(b.eventAt)).slice(0, 3);
+        if (upcoming.length) p.append(h('h3', { class: 'ui-section' }, T('Coming up')), PatOS.ui.group(upcoming.map((e) => h('button', { class: 'ui-row link cm-evrow', onclick: () => openCom(e.cid, 'events') }, dateTile(e.eventAt), h('span', { class: 'ui-row-l' }, h('span', {}, e.title), h('small', {}, e.cname + ' · ' + when(e.eventAt))), h('span', { 'aria-hidden': 'true' }, '›')))));
+        if (!all.length) { p.appendChild(empty('All quiet', 'No posts in your communities yet. Say hello!')); return; }
+        p.appendChild(h('h3', { class: 'ui-section' }, T('Latest')));
+        p.appendChild(h('div', { class: 'cm-feed' }, ...all.map((x) => postRow(x, { showCom: true }))));
       }
 
-      /* ---------- discover ---------- */
+      /* ---------- Discover ---------- */
+      async function discover() { stop(); view = { kind: 'discover' }; main.scrollTop = 0; draw(); found = await F.comPublic(100).catch(() => []); found.sort((a, b) => ms(b.at) - ms(a.at)); if (view.kind === 'discover') drawMain(); }
       function discoverView() {
-        const q = h('input', { class: 'ui-input', placeholder: T('Search communities'), 'aria-label': T('Search communities'), oninput: () => paint() });
-        const list = h('div', { class: 'cm-cards' });
-        const paint = () => { list.innerHTML = ''; const w = q.value.trim().toLowerCase(); const l = found.filter((c) => !w || (c.name + ' ' + c.about + ' ' + (c.tags || []).join(' ')).toLowerCase().includes(w));
-          l.forEach((c) => list.appendChild(h('button', { class: 'cm-card', onclick: () => openCom(c.id) }, h('b', {}, c.name), h('p', {}, c.about || ''), h('small', {}, (c.tags || []).map((t) => '#' + t).join(' ') + (mine.some((m) => m.id === c.id) ? '  ·  ' + T('joined') : '')))));
-          if (!l.length) list.appendChild(h('p', { class: 'cm-muted' }, found.length ? T('Nothing matches.') : T('No public communities yet. Make the first one!'))); };
-        main.append(h('div', { class: 'cm-head' }, h('h2', {}, T('Discover')), h('button', { class: 'btn primary', onclick: newCom }, T('New Community'))), q, list); paint();
+        const list = h('div', { class: 'ui-group cm-dlist' });
+        const search = PatOS.ui.search({ placeholder: 'Search communities', onInput: (v) => paint(v) });
+        const tags = [...new Set(found.flatMap((c) => c.tags || []))].slice(0, 6);
+        const seg = tags.length ? PatOS.ui.segmented([['', T('All')], ...tags.map((t) => [t, '#' + t])], tagFilter, (v) => { tagFilter = v; paint(search.querySelector('input').value); }) : null;
+        const paint = (q) => {
+          list.innerHTML = ''; const w = String(q || '').trim().toLowerCase();
+          const l = found.filter((c) => (!tagFilter || (c.tags || []).includes(tagFilter)) && (!w || (c.name + ' ' + c.about + ' ' + (c.tags || []).join(' ')).toLowerCase().includes(w)));
+          l.forEach((c) => list.appendChild(comRow(c)));
+          list.hidden = !l.length; emptyBox.innerHTML = ''; if (!l.length) emptyBox.appendChild(found.length ? empty('Nothing matches.', '') : empty('No public communities yet', 'Make the first one!', ['New Community', newCom]));
+        };
+        const emptyBox = h('div', {});
+        page(head(T('Discover'), T('Find communities of PatOS people, or start your own.'), h('button', { class: 'btn primary', onclick: newCom }, T('New Community'))),
+          h('div', { class: 'cm-tools' }, search, seg), list, emptyBox);
+        paint('');
+      }
+      function comRow(c) {
+        const mineC = mine.find((m) => m.id === c.id);
+        return h('div', { class: 'ui-row cm-crow', role: 'button', tabindex: 0, 'data-cid': c.id, onclick: () => openCom(c.id), onkeydown: (e) => { if (e.key === 'Enter') openCom(c.id); } },
+          avatar(c.name, 'av-md sq'),
+          h('span', { class: 'ui-row-l' }, h('span', { class: 'cm-cname' }, c.name, c.visibility === 'private' ? ic('lock', 'cm-faint') : null), h('small', {}, c.about || T('No description yet.')),
+            (c.tags || []).length ? h('small', { class: 'cm-tags' }, (c.tags || []).slice(0, 3).map((t) => '#' + t).join('  ')) : null),
+          mineC ? h('small', { class: 'cm-faint' }, mineC.myRole === 'pending' ? T('Asked') : T('Joined'))
+            : h('button', { class: 'btn', onclick: (e) => { e.stopPropagation(); joinCom(c); } }, c.visibility === 'public' ? T('Join') : T('Ask to join')));
+      }
+      async function joinCom(c) {
+        if (await guard(() => F.comJoin(me(), c.id, c.visibility === 'public')) === null) return;
+        setJoined(joined().concat([c.id])); mine.push({ id: c.id, name: c.name, visibility: c.visibility, myRole: c.visibility === 'public' ? 'member' : 'pending' });
+        drawSide(); drawMain();
       }
       async function newCom() {
-        const name = h('input', { class: 'ui-input', placeholder: T('Name'), maxlength: 60 }), about = h('textarea', { class: 'ui-input', placeholder: T('What is it about?'), maxlength: 500, rows: 3 }), tags = h('input', { class: 'ui-input', placeholder: T('Tags, separated by commas') });
-        const vis = h('select', { class: 'ui-select' }, h('option', { value: 'public' }, T('Public: anyone can find it and join')), h('option', { value: 'private' }, T('Private: people ask, a moderator lets them in')));
-        PatOS.ui.sheet(win, { title: T('New Community'), body: h('div', { class: 'cm-form' }, name, about, tags, vis), actions: (close) => [h('button', { class: 'btn', onclick: close }, T('Cancel')), h('button', { class: 'btn primary', onclick: async () => {
+        const name = h('input', { class: 'field', placeholder: T('Name'), maxlength: 60, 'aria-label': T('Name') }), about = h('textarea', { class: 'field cm-ta', placeholder: T('What is it about?'), maxlength: 500, rows: 3, 'aria-label': T('What is it about?') }), tags = h('input', { class: 'field', placeholder: T('Tags, separated by commas'), 'aria-label': T('Tags') });
+        let vis = 'public'; const hint = h('small', { class: 'cm-faint' }, T('Anyone can find it and join.'));
+        const seg = PatOS.ui.segmented([['public', T('Public')], ['private', T('Private')]], vis, (v) => { vis = v; hint.textContent = T(v === 'public' ? 'Anyone can find it and join.' : 'People ask, a moderator lets them in.'); });
+        PatOS.ui.sheet(win, { title: T('New Community'), body: h('div', { class: 'cm-form' }, name, about, tags, seg, hint), actions: (close) => [h('button', { class: 'btn', onclick: close }, T('Cancel')), h('button', { class: 'btn primary', onclick: async () => {
           if (!name.value.trim()) return name.focus();
-          const id = await guard(() => F.comCreate(me(), name.value.trim(), about.value.trim(), vis.value, tags.value.split(',').map((t) => t.trim().replace(/^#/, '')).filter(Boolean)));
-          if (id) { close(); setJoined(joined().concat([id])); mine.push({ id, name: name.value.trim(), visibility: vis.value, myRole: 'owner' }); openCom(id); }
+          const id = await guard(() => F.comCreate(me(), name.value.trim(), about.value.trim(), vis, tags.value.split(',').map((t) => t.trim().replace(/^#/, '')).filter(Boolean)));
+          if (id) { close(); setJoined(joined().concat([id])); mine.push({ id, name: name.value.trim(), visibility: vis, myRole: 'owner' }); openCom(id); }
         } }, T('Create'))] });
         setTimeout(() => name.focus(), 50);
       }
 
       /* ---------- a community ---------- */
-      function comView() {
-        const role = myRole(); const cid = com.id;
-        const join = role ? (role === 'owner' ? null : h('button', { class: 'btn', onclick: async () => { if (await guard(() => F.comLeave(me(), cid)) !== null) { setJoined(joined().filter((x) => x !== cid)); mine = mine.filter((m) => m.id !== cid); drawSide(); } } }, role === 'pending' ? T('Cancel request') : T('Leave')))
-          : h('button', { class: 'btn primary', onclick: async () => { if (await guard(() => F.comJoin(me(), cid, com.visibility === 'public')) !== null) { setJoined(joined().concat([cid])); mine.push({ id: cid, name: com.name, visibility: com.visibility, myRole: com.visibility === 'public' ? 'member' : 'pending' }); drawSide(); } } }, com.visibility === 'public' ? T('Join') : T('Ask to join'));
-        const tabs = [['posts', 'Posts'], ['events', 'Events'], ['showcases', 'Showcases'], ['challenges', 'Challenges'], ['members', 'Members']].concat(isMod() ? [['mod', 'Moderation']] : []);
-        main.append(h('div', { class: 'cm-head' }, h('h2', {}, com.name), h('span', { class: 'cm-badge' }, T(com.visibility === 'public' ? 'Public' : 'Private')), role ? h('span', { class: 'cm-badge' }, T(role)) : null, join),
-          com.about ? h('p', { class: 'cm-about' }, com.about) : null,
-          PatOS.ui.segmented(tabs.map(([k, l]) => [k, T(l)]), view.tab, (k) => { view.tab = k; drawMain(); }));
-        const body = h('div', { class: 'cm-body' }); main.appendChild(body);
-        if (role === 'pending') body.appendChild(h('p', { class: 'cm-muted' }, T('You asked to join. A moderator will let you in.')));
-        if (view.tab === 'members') return membersView(body);
-        if (view.tab === 'mod') return modView(body);
-        const want = { posts: null, events: ['event'], showcases: ['showcase', 'entry'], challenges: ['challenge'] }[view.tab];
-        if (isMember()) body.appendChild(composer(want));
-        const list = posts.filter((p) => !blocked.has(p.by) && (!want || want.includes(p.kind))).sort((a, b) => (b.kind === 'announcement') - (a.kind === 'announcement') || ms(b.at) - ms(a.at));
-        if (view.tab === 'events') list.sort((a, b) => ms(a.eventAt) - ms(b.eventAt));
-        list.forEach((p) => body.appendChild(postCard(p)));
-        if (!list.length) body.appendChild(h('p', { class: 'cm-muted' }, T('Nothing here yet.')));
+      async function openCom(cid, tab) {
+        stop(); view = { kind: 'com', cid, tab: tab || 'posts' }; posts = []; members = []; com = null; keep.composer = null; keep.entries.clear(); main.scrollTop = 0; draw();
+        com = await F.comGet(cid).catch(() => null);
+        if (view.cid !== cid) return;
+        if (!com) { main.innerHTML = ''; page(empty('This community isn’t open to you', 'It is private, or it no longer exists.', ['Discover', discover])); return; }
+        offs.push(F.comMembersListen(cid, (l) => {
+          members = l;
+          // the server's member list is the truth: if you are in it, PatOS remembers the community (joined here, or on another device)
+          const meIn = me() && l.find((m) => m.id === me().uid);
+          if (meIn && com && !mine.some((c) => c.id === cid)) { mine.push({ id: cid, name: com.name, visibility: com.visibility, myRole: meIn.role }); drawSide(); }
+          if (meIn && !joined().includes(cid)) setJoined(joined().concat([cid]));
+          const mc = mine.find((c) => c.id === cid); if (mc && meIn && mc.myRole !== meIn.role) { mc.myRole = meIn.role; drawSide(); }
+          drawMain();
+        }, () => { members = []; drawMain(); }));
+        offs.push(F.comPostsListen(cid, (l) => { posts = l; drawMain(); }, () => { posts = []; drawMain(); }));
+        drawMain();
       }
-      function composer(want, challenge) {
-        const kinds = ['post', 'event', 'showcase'].concat(isMod() ? ['announcement', 'challenge'] : []).concat(challenge ? ['entry'] : []);
-        const kind = h('select', { class: 'ui-select', 'aria-label': T('Kind') }, ...kinds.map((k) => h('option', { value: k, selected: (challenge ? k === 'entry' : want && want[0] === k) || undefined }, T(KINDS[k]))));
-        const title = h('input', { class: 'ui-input', placeholder: T('Title'), maxlength: 120 }), text = h('textarea', { class: 'ui-input', placeholder: T('Write something…'), maxlength: 4000, rows: 3 });
-        const date = h('input', { class: 'ui-input', type: 'datetime-local', 'aria-label': T('When') }), place = h('input', { class: 'ui-input', placeholder: T('Where'), maxlength: 120 });
-        let attach = null; const attLabel = h('small', { class: 'cm-muted' });
-        const share = h('button', { class: 'btn', onclick: (e) => PatOS.menu([
-          { label: T('My desktop (look, Dock, widgets)'), action: () => { attach = { kind: 'desk', data: PatOS.desk.exportText(PatOS.desk.capture()) }; attLabel.textContent = T('Desktop') + ' ✓'; } },
-          ...(PatOS.gallery ? PatOS.gallery.list().slice(0, 12).map((g) => ({ label: T('Gallery') + ': ' + g.name, action: async () => { const t = await packGallery(g.id); if (t) { attach = { kind: 'gallery', data: t }; attLabel.textContent = T('Gallery') + ' ✓ ' + g.name; } } })) : []),
-          ...(PatOS.widgets ? (PatOS.store.get('studioWidgets', []) || []).slice(0, 12).map((w) => ({ label: T('Widget') + ': ' + (w.name || w.id), action: () => { attach = { kind: 'widget', data: JSON.stringify(w) }; attLabel.textContent = T('Widget') + ' ✓ ' + (w.name || ''); } })) : []),
-          attach ? { label: T('Share nothing'), action: () => { attach = null; attLabel.textContent = ''; } } : null].filter(Boolean), e.clientX, e.clientY) }, T('Share…'));
-        const extra = h('div', { class: 'cm-extra' });
-        const showExtra = () => { extra.innerHTML = ''; if (kind.value === 'event') extra.append(date, place); if (kind.value === 'challenge') extra.append(h('label', {}, T('Ends'), ' ', date)); };
-        kind.onchange = showExtra; showExtra();
-        const send = h('button', { class: 'btn primary', onclick: async () => {
-          if (!title.value.trim() && !text.value.trim()) return title.focus();
-          const k = kind.value; const at = date.value ? new Date(date.value).getTime() : 0;
-          if ((k === 'event' || k === 'challenge') && !at) return date.focus();
+      function comView() {
+        if (!com) return page(h('p', { class: 'cm-faint cm-loading' }, T('Loading…')));
+        const role = myRole(); const cid = com.id; const count = members.filter((m) => m.role !== 'pending').length;
+        const action = !role ? h('button', { class: 'btn primary', onclick: () => joinCom(com) }, com.visibility === 'public' ? T('Join') : T('Ask to join'))
+          : role === 'owner' ? null
+          : h('button', { class: 'btn', onclick: async () => { if (role !== 'pending' && !await PatOS.confirmBox(T('Leave') + ' ' + com.name + '?', '', { ok: T('Leave') })) return; if (await guard(() => F.comLeave(me(), cid)) !== null) { setJoined(joined().filter((x) => x !== cid)); mine = mine.filter((m) => m.id !== cid); drawSide(); } } }, role === 'pending' ? T('Cancel request') : T('Leave'));
+        const meta = [T(com.visibility === 'private' ? 'Private' : 'Public'), count + ' ' + T(count === 1 ? 'member' : 'members')].concat(role && role !== 'pending' ? [T(ROLE[role])] : []).join(' · ');
+        const tabs = [['posts', 'Posts'], ['events', 'Events'], ['showcases', 'Showcases'], ['challenges', 'Challenges'], ['members', 'Members']].concat(isMod() ? [['mod', 'Moderation']] : []);
+        const p = h('div', { class: 'cm-page wide' }); main.appendChild(p);
+        p.appendChild(h('header', { class: 'cm-head com' }, avatar(com.name, 'av-lg sq'), h('div', { class: 'cm-htxt' }, h('h1', {}, com.name), h('p', {}, meta)), action));
+        p.appendChild(h('div', { class: 'cm-tabsrow' }, PatOS.ui.segmented(tabs.map(([k, l]) => [k, T(l) + (k === 'members' && isMod() && members.some((m) => m.role === 'pending') ? ' •' : '')]), view.tab, (k) => { view.tab = k; drawMain(); })));
+        const cols = h('div', { class: 'cm-cols' }); const feed = h('div', { class: 'cm-col' }); cols.append(feed, rail()); p.appendChild(cols);
+        if (role === 'pending') feed.appendChild(h('p', { class: 'cm-note' }, T('You asked to join. A moderator will let you in.')));
+        if (view.tab === 'members') return membersView(feed);
+        if (view.tab === 'mod') return modView(feed);
+        const want = { posts: null, events: ['event'], showcases: ['showcase', 'entry'], challenges: ['challenge'] }[view.tab];
+        // the same composer is kept while you stay on this tab: new posts and likes coming in redraw the page, never what you are writing
+        if (isMember()) { const key = cid + ':' + view.tab + ':' + isMod(); if (!keep.composer || keep.key !== key) { keep.composer = composer(want && want[0]); keep.key = key; } feed.appendChild(keep.composer); }
+        let list = posts.filter((x) => !blocked.has(x.by) && (!want || want.includes(x.kind)));
+        list = view.tab === 'events' ? list.sort((a, b) => ms(a.eventAt) - ms(b.eventAt)) : list.sort((a, b) => (b.kind === 'announcement') - (a.kind === 'announcement') || ms(b.at) - ms(a.at));
+        if (list.length) feed.appendChild(h('div', { class: 'cm-feed' }, ...list.map((x) => postRow(x))));
+        else feed.appendChild(empty('Nothing here yet.', isMember() ? 'Be the first to post.' : !role ? 'Join to post.' : ''));
+      }
+      // the column on the right: about, who's in it, what's coming
+      function rail() {
+        const up = posts.filter((x) => x.kind === 'event' && ms(x.eventAt) > Date.now()).sort((a, b) => ms(a.eventAt) - ms(b.eventAt)).slice(0, 3);
+        const open = posts.filter((x) => x.kind === 'challenge' && ms(x.endsAt) > Date.now()).slice(0, 2);
+        const people = members.filter((m) => m.role !== 'pending');
+        return h('aside', { class: 'cm-rail' },
+          h('h3', { class: 'ui-section' }, T('About')), h('p', { class: 'cm-about' }, com.about || T('No description yet.')),
+          (com.tags || []).length ? h('p', { class: 'cm-tags' }, com.tags.map((t) => '#' + t).join('  ')) : null,
+          people.length ? h('h3', { class: 'ui-section' }, T('Members') + ' · ' + people.length) : null,
+          people.length ? h('div', { class: 'cm-faces' }, ...people.slice(0, 16).map((m) => h('button', { class: 'cm-face', title: '@' + m.name, 'aria-label': '@' + m.name, onclick: () => openProfile(m.id, m.name) }, avatar(m.name, 'av-xs')))) : null,
+          up.length ? h('h3', { class: 'ui-section' }, T('Coming up')) : null,
+          ...up.map((e) => h('div', { class: 'cm-railrow' }, dateTile(e.eventAt), h('span', {}, h('b', {}, e.title), h('small', {}, when(e.eventAt))))),
+          open.length ? h('h3', { class: 'ui-section' }, T('Open challenges')) : null,
+          ...open.map((c) => h('div', { class: 'cm-railrow' }, ic('trophy', 'cm-faint'), h('span', {}, h('b', {}, c.title), h('small', {}, until(c.endsAt))))));
+      }
+
+      /* ---------- writing a post ---------- */
+      function composer(kind0, challenge) {
+        let kind = challenge ? 'entry' : kind0 || 'post', attach = null;
+        const kinds = challenge ? ['entry'] : ['post', 'event', 'showcase'].concat(isMod() ? ['announcement', 'challenge'] : []);
+        const box = h('div', { class: 'cm-compose' + (challenge || kind0 ? ' open' : '') });
+        const title = h('input', { class: 'field cm-ctitle', maxlength: 120, 'aria-label': T('Title') });
+        const text = h('textarea', { class: 'field cm-ta', placeholder: T('Write something…'), maxlength: 4000, rows: 3, 'aria-label': T('Write something…') });
+        const date = h('input', { class: 'field', type: 'datetime-local', 'aria-label': T('When') }), place = h('input', { class: 'field', placeholder: T('Where'), maxlength: 120, 'aria-label': T('Where') });
+        const extra = h('div', { class: 'cm-extra' }); const attEl = h('div', { class: 'cm-attpick' });
+        const seg = kinds.length > 1 ? PatOS.ui.segmented(kinds.map((k) => [k, T(KINDS[k])]), kind, (k) => { kind = k; paintExtra(); }) : null;
+        if (seg) seg.classList.add('cm-kinds');
+        const paintExtra = () => { extra.innerHTML = ''; if (kind === 'event') extra.append(date, place); if (kind === 'challenge') extra.append(h('label', { class: 'cm-lab' }, T('Ends'), date)); title.placeholder = kind === 'post' ? T('Title (optional)') : T('Title'); send.textContent = T(kind === 'entry' ? 'Enter' : 'Post'); };
+        const paintAtt = () => { attEl.innerHTML = ''; if (!attach) return; const a = ATTACH[attach.kind]; attEl.appendChild(h('div', { class: 'cm-attchip' }, ic(a[1]), h('span', {}, T(a[0]) + (attach.label ? ': ' + attach.label : '')), h('button', { class: 'cm-x', 'aria-label': T('Share nothing'), onclick: () => { attach = null; paintAtt(); } }, '×'))); };
+        const pick = (e) => PatOS.menu([
+          { label: T('My desktop (look, Dock, widgets)'), action: () => { attach = { kind: 'desk', data: PatOS.desk.exportText(PatOS.desk.capture()) }; paintAtt(); } },
+          ...(PatOS.gallery ? PatOS.gallery.list().slice(0, 12).map((g) => ({ label: T('Gallery') + ': ' + g.name, action: async () => { const t = await packGallery(g.id); if (t) { attach = { kind: 'gallery', data: t, label: g.name }; paintAtt(); } } })) : []),
+          ...((PatOS.store.get('studioWidgets', []) || []).slice(0, 12).map((w) => ({ label: T('Widget') + ': ' + (w.name || w.id), action: () => { attach = { kind: 'widget', data: JSON.stringify(w), label: w.name || '' }; paintAtt(); } })))], e.clientX, e.clientY);
+        const send = h('button', { class: 'btn primary cm-send', onclick: async () => {
+          if (!title.value.trim() && !text.value.trim()) return text.focus();
+          const at = date.value ? new Date(date.value).getTime() : 0;
+          if ((kind === 'event' || kind === 'challenge') && !at) return date.focus();
           if (attach && attach.data.length > 150000) return PatOS.alertBox(T('Too big to share'), T('Shared things must be under 150 KB.'), { icon: 'commons' });
           send.disabled = true; let id = null;
-          try { id = await F.comPost(me(), com.id, { kind: k, title: title.value.trim(), text: text.value.trim(), eventAt: k === 'event' ? at : 0, place: k === 'event' ? place.value.trim() : '', endsAt: k === 'challenge' ? at : 0, challenge: challenge || '', attach: attach && attach.data, attachKind: attach && attach.kind }); }
+          try { id = await F.comPost(me(), com.id, { kind, title: title.value.trim(), text: text.value.trim(), eventAt: kind === 'event' ? at : 0, place: kind === 'event' ? place.value.trim() : '', endsAt: kind === 'challenge' ? at : 0, challenge: challenge || '', attach: attach && attach.data, attachKind: attach && attach.kind }); }
           catch (e) { // (the server refuses a post that comes too soon after your last one, or one you may no longer make)
             const last = Math.max(0, ...posts.filter((x) => x.by === me().uid).map((x) => ms(x.at)));
-            PatOS.alertBox(Date.now() - last < 21000 ? T('Slow down a little') : T('That didn’t work'), Date.now() - last < 21000 ? T('One post every 20 seconds in each community.') : (e.code === 'permission-denied' ? T('PatOS’s server didn’t allow that.') : e.message), { icon: 'commons' }); }
+            const fast = Date.now() - last < 21000;
+            PatOS.alertBox(fast ? T('Slow down a little') : T('That didn’t work'), fast ? T('One post every 20 seconds in each community.') : msg(e), { icon: 'commons' }); }
           send.disabled = false;
-          if (id) { title.value = text.value = ''; attach = null; attLabel.textContent = ''; }
-        } }, T('Post'));
-        return h('div', { class: 'cm-compose' }, h('div', { class: 'cm-row' }, kind, title), text, extra, h('div', { class: 'cm-row' }, share, attLabel, h('span', { style: { flex: 1 } }), send));
+          if (id) { title.value = text.value = ''; attach = null; paintAtt(); if (!challenge) box.classList.remove('open'); else { keep.entries.delete(challenge); box.remove(); } }
+        } });
+        const opener = h('button', { class: 'cm-opener field', onclick: () => { box.classList.add('open'); setTimeout(() => text.focus(), 30); } }, T('Write a post…'));
+        box.append(opener, h('div', { class: 'cm-cform' }, seg, title, text, extra, attEl,
+          h('div', { class: 'cm-cfoot' }, h('button', { class: 'btn cm-share', onclick: pick }, T('Share…')), h('span', { class: 'cm-grow' }),
+            challenge ? null : h('button', { class: 'btn', onclick: () => box.classList.remove('open') }, T('Cancel')), send)));
+        paintExtra();
+        return box;
       }
       async function packGallery(id) {
         PatOS.launch('gallery', { id }); for (let i = 0; i < 40 && !(PatOS.wm.windowsOf('gallery')[0] || {})._gallery; i++) await new Promise((r) => setTimeout(r, 100));
         const g = (PatOS.wm.windowsOf('gallery')[0] || {})._gallery; if (!g) return null; g.open(id); return guard(() => g.packed());
       }
-      function postCard(p) {
-        const mine2 = me() && p.by === me().uid; const likes = h('small', { class: 'cm-likes' });
+
+      /* ---------- a post ---------- */
+      function postRow(p, opts) {
+        opts = opts || {};
+        const cid = p.cid || (com && com.id); const mineP = me() && p.by === me().uid; const canMod = !opts.showCom && isMod();
         let liked = false, n = 0;
-        const likeBtn = h('button', { class: 'btn', disabled: !isMember() || undefined, onclick: async () => { const on = !liked; if (await guard(() => F.comLike(me(), com.id, p.id, on)) !== null) { liked = on; n += on ? 1 : -1; paintLikes(); } } });
-        const paintLikes = () => { likeBtn.textContent = (liked ? '♥ ' : '♡ ') + n; };
-        F.comLikes(com.id, p.id).then((l) => { n = l.length; liked = l.includes(me().uid); paintLikes(); }).catch(() => paintLikes()); paintLikes();
-        const parts = [h('div', { class: 'cm-ph' }, h('span', { class: 'cm-kind k-' + p.kind }, T(KINDS[p.kind] || p.kind)), h('b', {}, p.title || ''), h('span', { style: { flex: 1 } }),
-          h('button', { class: 'cm-by', onclick: () => openProfile(p.by, p.byName) }, '@' + p.byName), h('small', { class: 'cm-muted' }, when(p.at)))];
-        if (p.text) parts.push(h('p', { class: 'cm-text' }, p.text));
-        if (p.kind === 'event' && p.eventAt) parts.push(h('div', { class: 'cm-event' }, '📅 ' + when(p.eventAt) + (p.place ? '  ·  ' + p.place : ''), h('button', { class: 'btn', onclick: () => addToCalendar(p) }, T('Add to Calendar'))));
-        if (p.kind === 'challenge' && p.endsAt) { const open = ms(p.endsAt) > Date.now(); parts.push(h('div', { class: 'cm-event' }, (open ? T('Open until') + ' ' : T('Ended') + ' ') + when(p.endsAt), h('small', { class: 'cm-muted' }, posts.filter((x) => x.challenge === p.id).length + ' ' + T('entries')), open && isMember() ? h('button', { class: 'btn', onclick: (e) => { e.currentTarget.replaceWith(composer(null, p.id)); } }, T('Enter')) : null)); }
-        if (p.kind === 'entry' && p.challenge) { const c = posts.find((x) => x.id === p.challenge); if (c) parts.push(h('small', { class: 'cm-muted' }, T('For the challenge') + ' “' + c.title + '”')); }
-        if (p.attach && ATTACH[p.attachKind]) parts.push(h('div', { class: 'cm-att' }, h('span', {}, '📎 ' + T(ATTACH[p.attachKind])), h('button', { class: 'btn', onclick: () => useAttachment(p) }, T(p.attachKind === 'desk' ? 'Try this desktop' : p.attachKind === 'gallery' ? 'Import the gallery' : 'Add the widget'))));
-        parts.push(h('div', { class: 'cm-acts' }, likeBtn, likes,
-          h('button', { class: 'btn', 'aria-label': T('More'), onclick: (e) => PatOS.menu([
-            !mine2 ? { label: T('Report…'), action: async () => { const r = await PatOS.ask(T('Report this post'), '', { ok: T('Report'), icon: 'commons', placeholder: T('What is wrong with it?') }); if (r != null && await guard(() => F.comReport(me(), com.id, p.id, r || T('No reason given'))) !== null) PatOS.notify({ title: T('Reported'), body: T('The moderators will see it.'), icon: 'commons', priority: 'low' }); } } : null,
-            !mine2 ? { label: T('Block @') + p.byName, action: () => blockUser(p.by, p.byName) } : null,
-            mine2 || isMod() ? { label: T('Delete'), action: async () => { if (await PatOS.confirmBox(T('Delete this post?'), '', { danger: true })) guard(() => F.comDeletePost(com.id, p.id)); } } : null,
-            isMod() && !mine2 ? { label: T('Ban @') + p.byName, action: () => banUser(p.by, p.byName) } : null].filter(Boolean), e.clientX, e.clientY) }, '···')));
-        return h('div', { class: 'cm-post' + (p.kind === 'announcement' ? ' ann' : '') }, ...parts);
+        const likeBtn = h('button', { class: 'cm-act like', 'aria-label': T('Like'), 'aria-pressed': 'false', disabled: (!opts.showCom && !isMember()) || undefined, onclick: async () => { const on = !liked; if (await guard(() => F.comLike(me(), cid, p.id, on)) !== null) { liked = on; n += on ? 1 : -1; paintLikes(); } } }, ic('heart'), h('span', {}));
+        const paintLikes = () => { likeBtn.classList.toggle('on', liked); likeBtn.setAttribute('aria-pressed', String(liked)); likeBtn.lastChild.textContent = n ? String(n) : ''; };
+        F.comLikes(cid, p.id).then((l) => { n = l.length; liked = l.includes(me().uid); paintLikes(); }).catch(() => paintLikes()); paintLikes();
+        const body = h('div', { class: 'cm-pbody' });
+        body.appendChild(h('div', { class: 'cm-pmeta' }, h('button', { class: 'cm-name', onclick: () => openProfile(p.by, p.byName) }, '@' + p.byName),
+          opts.showCom ? h('span', { class: 'cm-faint' }, T('in')) : null, opts.showCom ? h('button', { class: 'cm-name com', onclick: () => openCom(p.cid) }, p.cname) : null,
+          h('span', { class: 'cm-faint', title: when(p.at) }, '· ' + ago(p.at)),
+          p.kind === 'announcement' ? h('span', { class: 'cm-pinned' }, ic('pin'), T('Pinned post')) : p.kind !== 'post' ? PatOS.ui.badge(T(KINDS[p.kind] || p.kind)) : null));
+        if (p.title) body.appendChild(h('h3', { class: 'cm-ptitle' }, p.title));
+        if (p.text) body.appendChild(h('p', { class: 'cm-text' }, p.text));
+        if (p.kind === 'event' && p.eventAt) body.appendChild(h('div', { class: 'cm-inset' }, dateTile(p.eventAt), h('span', { class: 'cm-insett' }, h('b', {}, when(p.eventAt)), p.place ? h('small', {}, p.place) : null), h('button', { class: 'btn', onclick: () => addToCalendar(p) }, T('Add to Calendar'))));
+        if (p.kind === 'challenge' && p.endsAt) { const open = ms(p.endsAt) > Date.now(); const entries = posts.filter((x) => x.challenge === p.id).length; const holder = h('div', {});
+          body.appendChild(h('div', { class: 'cm-inset' }, ic('trophy', 'cm-faint big'), h('span', { class: 'cm-insett' }, h('b', {}, open ? until(p.endsAt) : T('Ended')), h('small', {}, entries + ' ' + T(entries === 1 ? 'entry' : 'entries'))),
+            open && isMember() && !opts.showCom && !keep.entries.has(p.id) ? h('button', { class: 'btn', onclick: (e) => { e.currentTarget.remove(); const c = composer(null, p.id); keep.entries.set(p.id, c); holder.appendChild(c); } }, T('Enter')) : null));
+          if (keep.entries.has(p.id)) holder.appendChild(keep.entries.get(p.id)); // (an entry being written survives the page being redrawn)
+          body.appendChild(holder); }
+        if (p.kind === 'entry' && p.challenge) { const c = posts.find((x) => x.id === p.challenge); if (c) body.appendChild(h('small', { class: 'cm-faint' }, T('For the challenge') + ' “' + c.title + '”')); }
+        if (p.attach && ATTACH[p.attachKind]) { const a = ATTACH[p.attachKind];
+          body.appendChild(h('div', { class: 'cm-inset' }, ic(a[1], 'cm-faint big'), h('span', { class: 'cm-insett' }, h('b', {}, T(a[0])), h('small', {}, T(a[2]))), h('button', { class: 'btn', onclick: () => useAttachment(p) }, T(a[3])))); }
+        body.appendChild(h('div', { class: 'cm-pacts' }, likeBtn,
+          h('button', { class: 'cm-act', 'aria-label': T('More'), title: T('More'), onclick: (e) => PatOS.menu([
+            !mineP ? { label: T('Report…'), action: () => report(cid, p) } : null,
+            !mineP ? { label: T('Block @') + p.byName, action: () => blockUser(p.by, p.byName) } : null,
+            mineP || canMod ? { label: T('Delete'), action: async () => { if (await PatOS.confirmBox(T('Delete this post?'), '', { danger: true })) guard(() => F.comDeletePost(cid, p.id)); } } : null,
+            canMod && !mineP ? { divider: true } : null,
+            canMod && !mineP ? { label: T('Ban @') + p.byName, action: () => banUser(p.by, p.byName) } : null].filter(Boolean), e.clientX, e.clientY), html: I.more })));
+        return h('article', { class: 'cm-post', 'data-id': p.id, 'data-kind': p.kind }, h('button', { class: 'cm-pav', onclick: () => openProfile(p.by, p.byName), 'aria-label': '@' + p.byName }, avatar(p.byName, 'av-md')), body);
+      }
+      async function report(cid, p) {
+        const r = await PatOS.ask(T('Report this post'), '', { ok: T('Report'), icon: 'commons', placeholder: T('What is wrong with it?') });
+        if (r != null && await guard(() => F.comReport(me(), cid, p.id, r || T('No reason given'))) !== null) PatOS.notify({ title: T('Reported'), body: T('The moderators will see it.'), icon: 'commons', priority: 'low' });
       }
       function addToCalendar(p) {
         const d = new Date(ms(p.eventAt)); const key = PatOS.dateKey(d); const cal = PatOS.store.get('calendar', {}) || {};
-        const ev = { id: 'cm' + p.id, title: p.title || T('Event'), time: String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'), notes: (p.place ? p.place + '\n' : '') + com.name };
+        const ev = { id: 'cm' + p.id, title: p.title || T('Event'), time: String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0'), notes: (p.place ? p.place + '\n' : '') + (p.cname || (com && com.name) || '') };
         cal[key] = (cal[key] || []).filter((x) => x.id !== ev.id).concat([ev]); PatOS.store.set('calendar', cal); PatOS.emit('calendar');
         PatOS.notify({ title: T('Added to Calendar'), body: ev.title + ' · ' + when(p.eventAt), icon: 'calendar', priority: 'low', open: { app: 'calendar', args: { day: key } } });
       }
@@ -40267,59 +40576,64 @@ PatOS.sendWithPatDrop = async function (paths) {
         const why = await PatOS.ask(T('Ban @') + name, '', { ok: T('Ban'), icon: 'commons', placeholder: T('Why?') }); if (why == null) return;
         guard(() => F.comBan(me(), com.id, uid, why));
       }
-      function membersView(body) {
+
+      /* ---------- members and moderation ---------- */
+      function membersView(feed) {
         const order = { owner: 0, mod: 1, member: 2, pending: 3 };
-        members.slice().sort((a, b) => order[a.role] - order[b.role] || a.name.localeCompare(b.name)).forEach((m) => {
+        const pend = members.filter((m) => m.role === 'pending');
+        const row = (m) => {
           const canManage = isMod() && m.role !== 'owner' && m.id !== me().uid && (m.role !== 'mod' || myRole() === 'owner');
-          body.appendChild(h('div', { class: 'cm-mem' }, h('button', { class: 'cm-by', onclick: () => openProfile(m.id, m.name) }, '@' + m.name), h('span', { class: 'cm-badge' }, T(m.role)), h('span', { style: { flex: 1 } }),
+          return h('div', { class: 'ui-row cm-mrow' }, h('button', { class: 'cm-pav', onclick: () => openProfile(m.id, m.name), 'aria-label': '@' + m.name }, avatar(m.name, 'av-sm')),
+            h('span', { class: 'ui-row-l' }, h('span', {}, '@' + m.name), h('small', {}, T(ROLE[m.role]))),
             canManage && m.role === 'pending' ? h('button', { class: 'btn primary', onclick: () => guard(() => F.comSetRole(com.id, m.id, 'member')) }, T('Let in')) : null,
             canManage && myRole() === 'owner' && m.role === 'member' ? h('button', { class: 'btn', onclick: () => guard(() => F.comSetRole(com.id, m.id, 'mod')) }, T('Make moderator')) : null,
             canManage && myRole() === 'owner' && m.role === 'mod' ? h('button', { class: 'btn', onclick: () => guard(() => F.comSetRole(com.id, m.id, 'member')) }, T('Remove moderator')) : null,
-            canManage ? h('button', { class: 'btn', onclick: () => guard(() => F.comRemove(com.id, m.id)) }, m.role === 'pending' ? T('Decline') : T('Remove')) : null));
-        });
-        if (!members.length) body.appendChild(h('p', { class: 'cm-muted' }, T('Only members see who is in a private community.')));
+            canManage ? h('button', { class: 'btn', onclick: () => guard(() => F.comRemove(com.id, m.id)) }, m.role === 'pending' ? T('Decline') : T('Remove')) : null);
+        };
+        if (pend.length && isMod()) feed.append(h('h3', { class: 'ui-section' }, T('Waiting to join') + ' · ' + pend.length), PatOS.ui.group(pend.map(row)));
+        const rest = members.filter((m) => m.role !== 'pending').sort((a, b) => order[a.role] - order[b.role] || a.name.localeCompare(b.name));
+        if (rest.length) feed.append(h('h3', { class: 'ui-section' }, T('Members') + ' · ' + rest.length), PatOS.ui.group(rest.map(row)));
+        else feed.appendChild(empty('Members', 'Only members see who is in a private community.'));
       }
-      async function modView(body) {
-        body.appendChild(h('h3', {}, T('Reports')));
-        const reps = await F.comReports(com.id).catch(() => []); const bans = await F.comBans(com.id).catch(() => []);
-        reps.forEach((r) => { const p = posts.find((x) => x.id === r.pid);
-          body.appendChild(h('div', { class: 'cm-mem' }, h('span', {}, (p ? '“' + (p.title || p.text.slice(0, 40)) + '” @' + p.byName : T('A removed post')) + ' — ' + r.reason), h('span', { style: { flex: 1 } }),
+      async function modView(feed) {
+        const box = h('div', {}, h('p', { class: 'cm-faint cm-loading' }, T('Loading…'))); feed.appendChild(box);
+        const [reps, bans] = await Promise.all([F.comReports(com.id).catch(() => []), F.comBans(com.id).catch(() => [])]);
+        box.innerHTML = '';
+        box.append(h('h3', { class: 'ui-section' }, T('Reports') + ' · ' + reps.length));
+        box.appendChild(reps.length ? PatOS.ui.group(reps.map((r) => { const p = posts.find((x) => x.id === r.pid);
+          return h('div', { class: 'ui-row cm-mrow' }, h('span', { class: 'ui-row-l' }, h('span', {}, p ? (p.title || p.text.slice(0, 60)) : T('A removed post')), h('small', {}, (p ? '@' + p.byName + ' · ' : '') + '“' + r.reason + '”')),
             p ? h('button', { class: 'btn', onclick: async () => { await guard(() => F.comDeletePost(com.id, p.id)); await guard(() => F.comReportDone(com.id, r.id)); drawMain(); } }, T('Delete the post')) : null,
-            h('button', { class: 'btn', onclick: async () => { await guard(() => F.comReportDone(com.id, r.id)); drawMain(); } }, T('Dismiss')))); });
-        if (!reps.length) body.appendChild(h('p', { class: 'cm-muted' }, T('No reports.')));
-        body.appendChild(h('h3', {}, T('Banned')));
-        bans.forEach((x) => body.appendChild(h('div', { class: 'cm-mem' }, h('span', {}, x.uid.slice(0, 8) + '… — ' + (x.reason || '')), h('span', { style: { flex: 1 } }), h('button', { class: 'btn', onclick: async () => { await guard(() => F.comUnban(com.id, x.uid)); drawMain(); } }, T('Unban')))));
-        if (!bans.length) body.appendChild(h('p', { class: 'cm-muted' }, T('Nobody is banned.')));
-        if (myRole() === 'owner') body.appendChild(h('div', { class: 'cm-row' }, h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox(T('Delete this community?'), T('Every post in it is deleted for everyone.'), { danger: true })) { await guard(() => F.comDelete(com.id)); setJoined(joined().filter((x) => x !== com.id)); mine = mine.filter((m) => m.id !== com.id); stopCom(); discover(); } } }, T('Delete the community'))));
+            h('button', { class: 'btn', onclick: async () => { await guard(() => F.comReportDone(com.id, r.id)); drawMain(); } }, T('Dismiss'))); })) : h('p', { class: 'cm-faint' }, T('No reports.')));
+        box.append(h('h3', { class: 'ui-section' }, T('Banned') + ' · ' + bans.length));
+        box.appendChild(bans.length ? PatOS.ui.group(bans.map((x) => h('div', { class: 'ui-row cm-mrow' }, h('span', { class: 'ui-row-l' }, h('span', {}, x.uid.slice(0, 10) + '…'), h('small', {}, x.reason || '')), h('button', { class: 'btn', onclick: async () => { await guard(() => F.comUnban(com.id, x.uid)); drawMain(); } }, T('Unban'))))) : h('p', { class: 'cm-faint' }, T('Nobody is banned.')));
+        if (myRole() === 'owner') box.append(h('h3', { class: 'ui-section' }, T('Community')), PatOS.ui.group([h('div', { class: 'ui-row cm-mrow' }, h('span', { class: 'ui-row-l' }, h('span', {}, T('Delete the community')), h('small', {}, T('Every post in it is deleted for everyone.'))),
+          h('button', { class: 'btn danger', onclick: async () => { if (await PatOS.confirmBox(T('Delete this community?'), T('Every post in it is deleted for everyone.'), { danger: true })) { await guard(() => F.comDelete(com.id)); setJoined(joined().filter((x) => x !== com.id)); mine = mine.filter((m) => m.id !== com.id); stop(); discover(); } } }, T('Delete')))]));
       }
 
       /* ---------- profiles ---------- */
       async function openProfile(uid, name) {
-        stopCom(); view = { kind: 'profile', uid, name, data: null, follows: null }; draw();
+        stop(); view = { kind: 'profile', uid, name, data: null, follows: null }; main.scrollTop = 0; draw();
         const [p, f] = await Promise.all([F.profileGet(uid).catch(() => null), F.follows(uid).catch(() => ({ following: [], followers: [] }))]);
         if (view.kind === 'profile' && view.uid === uid) { view.data = p; view.follows = f; drawMain(); }
       }
       function profileView() {
-        const own = view.uid === me().uid; const f = view.follows || { following: [], followers: [] };
-        main.append(h('div', { class: 'cm-head' }, h('span', { class: 'cm-avatar' }, (view.name || '?').charAt(0).toUpperCase()), h('h2', {}, '@' + view.name)),
-          h('p', { class: 'cm-muted' }, f.followers.length + ' ' + T('followers') + '  ·  ' + f.following.length + ' ' + T('following')));
+        const own = view.uid === me().uid; const f = view.follows || { following: [], followers: [] }; const follows = f.followers.includes(me().uid);
+        const btns = own ? null : h('div', { class: 'cm-hbtns' }, blocked.has(view.uid) ? h('button', { class: 'btn', onclick: async () => { if (await guard(() => F.block(me(), view.uid, false)) !== null) { blocked.delete(view.uid); openProfile(view.uid, view.name); } } }, T('Unblock'))
+          : h('button', { class: 'btn' + (follows ? '' : ' primary'), onclick: async () => { if (await guard(() => F.follow(me(), view.uid, !follows)) !== null) openProfile(view.uid, view.name); } }, follows ? T('Unfollow') : T('Follow')),
+          !blocked.has(view.uid) ? h('button', { class: 'btn', onclick: () => blockUser(view.uid, view.name).then(() => openProfile(view.uid, view.name)) }, T('Block')) : null);
+        const p = page(h('header', { class: 'cm-head com' }, avatar(view.name, 'av-lg'), h('div', { class: 'cm-htxt' }, h('h1', {}, '@' + view.name), h('p', {}, f.followers.length + ' ' + T('followers') + ' · ' + f.following.length + ' ' + T('following'))), btns));
         if (own) {
-          const bio = h('textarea', { class: 'ui-input', rows: 3, maxlength: 300, placeholder: T('A few words about you') }); bio.value = (view.data && view.data.bio) || '';
-          main.append(bio, h('div', { class: 'cm-row' }, h('button', { class: 'btn primary', onclick: async () => { if (await guard(() => F.profileSet(me(), bio.value.trim())) !== null) PatOS.notify({ title: T('Profile saved'), icon: 'commons', priority: 'low' }); } }, T('Save'))),
-            h('p', { class: 'cm-fine' }, T('Your profile, posts and the communities you join are seen by other PatOS people. Your files, notes and everything else stay private.')));
-        } else {
-          const following = f.followers.includes(me().uid);
-          main.append(h('p', { class: 'cm-text' }, (view.data && view.data.bio) || T('No bio yet.')),
-            h('div', { class: 'cm-row' }, blocked.has(view.uid) ? h('button', { class: 'btn', onclick: async () => { if (await guard(() => F.block(me(), view.uid, false)) !== null) { blocked.delete(view.uid); openProfile(view.uid, view.name); } } }, T('Unblock'))
-              : h('button', { class: 'btn primary', onclick: async () => { if (await guard(() => F.follow(me(), view.uid, !following)) !== null) openProfile(view.uid, view.name); } }, following ? T('Unfollow') : T('Follow')),
-              !blocked.has(view.uid) ? h('button', { class: 'btn', onclick: () => blockUser(view.uid, view.name).then(() => openProfile(view.uid, view.name)) }, T('Block')) : null));
-        }
+          const bio = h('textarea', { class: 'field cm-ta', rows: 3, maxlength: 300, placeholder: T('A few words about you'), 'aria-label': T('Bio') }); bio.value = (view.data && view.data.bio) || '';
+          p.append(h('h3', { class: 'ui-section' }, T('Bio')), bio, h('div', { class: 'cm-cfoot' }, h('small', { class: 'cm-faint' }, T('Your profile, posts and the communities you join are seen by other PatOS people. Your files, notes and everything else stay private.')), h('span', { class: 'cm-grow' }),
+            h('button', { class: 'btn primary', onclick: async () => { if (await guard(() => F.profileSet(me(), bio.value.trim())) !== null) PatOS.notify({ title: T('Profile saved'), icon: 'commons', priority: 'low' }); } }, T('Save'))));
+          p.append(h('h3', { class: 'ui-section' }, T('Communities')), mine.length ? PatOS.ui.group(mine.map((c) => h('button', { class: 'ui-row link cm-mrow', onclick: () => openCom(c.id) }, avatar(c.name, 'av-sm sq'), h('span', { class: 'ui-row-l' }, h('span', {}, c.name), h('small', {}, T(ROLE[c.myRole] || ''))), h('span', { 'aria-hidden': 'true' }, '›')))) : h('p', { class: 'cm-faint' }, T('Join one from Discover, or make your own.')));
+        } else p.append(h('h3', { class: 'ui-section' }, T('Bio')), h('p', { class: 'cm-text' }, (view.data && view.data.bio) || T('No bio yet.')));
       }
 
-      let who = me() && me().uid; const onAcc = () => { const now = me() && me().uid; if (now !== who) { who = now; stopCom(); mine = []; start(); } }; PatOS.on('account', onAcc); // (only when someone else signs in: the event also fires for sync news)
-      win.on('closed', () => { stopCom(); PatOS.off('account', onAcc); });
-      win._commons = { openCom, discover, openProfile, view: () => view, posts: () => posts.slice(), members: () => members.slice(), mine: () => mine.slice(), useAttachment, addToCalendar, composer };
-      start();
+      let who = me() && me().uid; const onAcc = () => { const now = me() && me().uid; if (now !== who) { who = now; stop(); mine = []; start(); } }; PatOS.on('account', onAcc); // (only when someone else signs in: the event also fires for sync news)
+      win.on('closed', () => { stop(); PatOS.off('account', onAcc); });
+      win._commons = { openCom, discover, home, openProfile, view: () => view, posts: () => posts.slice(), members: () => members.slice(), mine: () => mine.slice(), useAttachment, addToCalendar };
+      draw(); start();
     },
     onArgs(win, args) { if (args && args.cid && win._commons) win._commons.openCom(args.cid); }
   });

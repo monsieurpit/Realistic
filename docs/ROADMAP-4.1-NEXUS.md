@@ -30,13 +30,6 @@ Nothing on this list exists in PatOS yet.
    - continue what you were doing on another device
    - your other devices, shown live
 
-## Left over from the PatOS Pill
-
-5. **Weather in the Pill:** the temperature now, rain or snow coming, severe weather alerts, tap to open Weather.
-6. **Music in the Pill:** a favourite button and a look at what's queued (Music needs favourites first).
-7. **Copies in the Pill:** the transfer speed, the file being copied now, and "Open the destination folder"
-   (Piles' file queue needs to report them first).
-
 ## Kept apart on purpose
 
 - **Linux:** to be done as its own project, with full attention, when it starts.

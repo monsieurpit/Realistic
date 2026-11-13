@@ -76,14 +76,14 @@
      not as still running. Ended ones stay listed for a while, and a failure (or a long job that finished) also notifies. */
   const L = new Map(); let ended = [];
   const changed = () => PatOS.emit('live');
-  function pub(a) { return { id: a.id, app: a.app, title: a.title, detail: a.detail, progress: a.progress, status: a.status, started: a.started, updated: a.updated, ended: a.endedAt || 0, message: a.message || '', can: { pause: !!a.pause && a.status === 'running', resume: !!a.resume && a.status === 'paused', cancel: !!a.cancel && /running|paused/.test(a.status), retry: !!a.retry && a.status === 'failed', open: !!a.open }, eta: a.eta || 0 }; }
+  function pub(a) { return { id: a.id, app: a.app, title: a.title, detail: a.detail, stats: a.stats || null, eta: a.eta, progress: a.progress, status: a.status, started: a.started, updated: a.updated, ended: a.endedAt || 0, message: a.message || '', can: { pause: !!a.pause && a.status === 'running', resume: !!a.resume && a.status === 'paused', cancel: !!a.cancel && /running|paused/.test(a.status), retry: !!a.retry && a.status === 'failed', open: !!a.open }, eta: a.eta || 0 }; }
   const live = {
     start(o) {
       const a = { id: o.id || uid(), app: o.app || 'settings', title: String(o.title || ''), detail: String(o.detail || ''), progress: o.progress == null ? null : Math.max(0, Math.min(1, +o.progress)), status: 'running', started: Date.now(), updated: Date.now(), open: o.open || null, pause: o.pause, resume: o.resume, cancel: o.cancel, retry: o.retry, rate: [] };
       L.set(a.id, a); changed();
       const h = {
         id: a.id,
-        update(u) { if (!L.has(a.id)) return h; u = u || {}; if (u.progress != null) { const p = Math.max(0, Math.min(1, +u.progress)); a.rate.push([Date.now(), p]); if (a.rate.length > 8) a.rate.shift(); a.progress = p; a.eta = etaOf(a); } if (u.detail != null) a.detail = String(u.detail); if (u.title != null) a.title = String(u.title); if (u.status === 'paused' || u.status === 'running') a.status = u.status; a.updated = Date.now(); changed(); return h; },
+        update(u) { if (!L.has(a.id)) return h; u = u || {}; if (u.stats && typeof u.stats === 'object') a.stats = { speed: +u.stats.speed || 0, file: String(u.stats.file || '').slice(0, 120), dest: String(u.stats.dest || '').slice(0, 300) }; if (u.progress != null) { const p = Math.max(0, Math.min(1, +u.progress)); a.rate.push([Date.now(), p]); if (a.rate.length > 8) a.rate.shift(); a.progress = p; a.eta = etaOf(a); } if (u.detail != null) a.detail = String(u.detail); if (u.title != null) a.title = String(u.title); if (u.status === 'paused' || u.status === 'running') a.status = u.status; a.updated = Date.now(); changed(); return h; },
         end(status, message) { return live.end(a.id, status, message); }
       };
       return h;

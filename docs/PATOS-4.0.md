@@ -51,6 +51,18 @@ file the first time they are used.
 | Live | `js/apps/livespace.js`, cloud layer | Inside a Shared Space: who is here, boards, live notes (one block per paragraph), tasks, voice (WebRTC, up to 4 people). |
 | Commons | `js/apps/commons.js`, cloud layer | Communities, public or private: posts, announcements, events (to Calendar), challenges and entries, showcases (desktops, galleries, Studio widgets), profiles, follows, likes, reports, bans, blocks. |
 
+## The PatOS Pill, completed (moved from 4.1 to 4.0)
+
+- **Weather** (`js/widgets.js` shares one open-meteo request every 20 minutes with the Weather widget): the temperature in
+  the Pill's overview. In the capsule: rain or snow coming within the hour (15-minute steps), and thunderstorms, freezing
+  rain, heavy rain or snow, or strong wind (gusts of 70 km/h or more) in the next 6 hours. These come from the forecast,
+  and the Pill says so: open-meteo gives no official alerts. Settings › Pill › Weather in the Pill turns it off.
+- **Music**: a Favourite button (a star) and the next 3 songs. Favourites are a new Music list (`musicFavs`, synced like
+  playlists) with its own place in the sidebar and in each song's menu.
+- **Copies**: the file queue (`js/fileops.js`) measures what it really copied over the time it took and reports the speed,
+  the file being copied and where it goes, through Live Activities (`stats`). The Pill shows them, with "Open the
+  destination folder".
+
 ## Conflicts (Live)
 
 Every board item, note paragraph and task has a `rev`. A write (`livePut`) is a transaction that only succeeds on top of
