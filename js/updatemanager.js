@@ -35,6 +35,14 @@
     });
   }
 
+  /* the version this device installed, told to the server (a cookie), so a page the service worker doesn't serve still gets it */
+  function remember(st) {
+    if (!st || !st.installed) return; const id = String(st.installed);
+    const ch = /-beta\./.test(id) ? 'beta' : /^\d+\.\d+\.\d+$/.test(id) ? id : ''; if (!ch) return;
+    try { document.cookie = 'patos_ch=' + ch + '; path=/; max-age=31536000; SameSite=Lax' + (location.protocol === 'https:' ? '; Secure' : ''); } catch (e) {}
+  }
+  const INSTALLING = 'patos-installing';
+
   /* starts watching for updates. opts.soft is set when PatOS was just restarted on purpose (to show "PatOS was updated") */
   function setup(opts) {
     opts = opts || {};
@@ -63,6 +71,8 @@
           const t = U.target; set('downloading');
           const r = await ask(t.beta ? { patosInstall: { beta: true } } : { patosInstall: { id: t.version } }, 180000);
           if (!r || !r.ok) { set('ready'); PatOS.alertBox(T('That didn’t work'), (r && r.error) || T('You’re offline. PatOS checks again when the internet is back.'), { icon: 'about' }); return false; }
+          remember(r);
+          try { sessionStorage.setItem(INSTALLING, JSON.stringify({ want: idOf(t), from: idOf(U.current), t: Date.now(), tries: 0 })); } catch (e) {}
         }
         return PatOS.restartPatOS ? PatOS.restartPatOS(o) : location.reload();
       }
@@ -81,11 +91,25 @@
       if (reg) { try { await reg.update(); } catch (e) {} } // (looks for a new service worker; this is rare, it is the same file for every version)
       await ask({ patosCheck: true }, 20000); // a device with Beta updates on downloads the newest beta quietly
       await U.fetchReleases();
+      if (U.newer && stuck()) { set('uptodate'); return U.state; } // (installed, but this page didn't start with it: see stuck())
       if (U.newer) { const first = U.state !== 'ready'; set('ready'); if (first && !told) tellReady(); } else set('uptodate');
       return U.state;
     }
+    /* Just installed a version, and PatOS started again still on the old one: the page didn't come from the downloaded copy.
+       Load it once more from the server (which now knows the installed version), instead of offering the same download again. */
+    let inst = null; try { inst = JSON.parse(sessionStorage.getItem(INSTALLING) || 'null'); } catch (e) {}
+    if (inst && Date.now() - inst.t > 10 * 60000) inst = null;
+    if (inst && idOf(runningRel()) === inst.want) { inst = null; try { sessionStorage.removeItem(INSTALLING); } catch (e) {} }
+    if (inst && inst.tries < 1) { inst.tries++; try { sessionStorage.setItem(INSTALLING, JSON.stringify(inst)); } catch (e) {} PatOS._leaving = true; location.replace(location.pathname + '?updated=' + Date.now()); return; }
+    function stuck() { return !!(inst && U.target && idOf(U.target) === inst.want); }
+    if (inst) { // (still not on it after reloading: say so once, never loop)
+      try { sessionStorage.removeItem(INSTALLING); } catch (e) {}
+      setTimeout(() => PatOS.notify({ title: T('The update is installed'), body: T('Close PatOS’s tab and open it again to start the new version.'), icon: 'about', duration: 15000 }), 2500);
+      if (PatOS.errors) PatOS.errors.report(new Error('update: still on ' + idOf(runningRel()) + ' after installing ' + inst.want + ' (controller: ' + !!navigator.serviceWorker.controller + ')'), 'update');
+    }
+    if (/[?&]updated=/.test(location.search)) try { history.replaceState(null, '', location.pathname + location.hash); } catch (e) {}
     navigator.serviceWorker.register('sw.js', { updateViaCache: 'none' }).then((r) => {
-      reg = r; ask({ patosHello: { betaOn: betaOn() } }).then(() => check(true));
+      reg = r; ask({ patosHello: { betaOn: betaOn() } }).then((st) => { remember(st); check(true); });
     }).catch(() => {});
     setInterval(() => { if (!document.hidden) check(true); }, 3 * 60000);
     document.addEventListener('visibilitychange', () => { if (!document.hidden) check(false); });

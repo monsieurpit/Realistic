@@ -1,7 +1,7 @@
 [
   {
     "version": "3.3.0",
-    "beta": 5,
+    "beta": 6,
     "date": "2026-11-13",
     "title": {
       "en": "PatOS 3.3: Crystal",
@@ -9,6 +9,7 @@
     },
     "notes": {
       "en": [
+        "Updates are sturdier: the server now remembers which version this device installed, so PatOS starts on it even when the page doesn’t come from the downloaded copy, and an update that was just installed is never offered (and downloaded) again in a loop",
         "A real Liquid Glass renderer: the edges of the glass now bend what is behind them the way real glass does (a rounded rim, light refracted at index 1.5, worked out for every pixel), catch the light at the top left with a softer glint at the bottom right, and split colors a little right at the very edge (Settings › Appearance › Rainbow edges). Just as clear as before, and no slower",
         "Windows 2.0: windows click magnetically to the screen’s edges and to each other, with thin guides (hold Shift to place one freely). Throw a window toward the left or right edge to fill that half. Drop a window on another window of the same app to make tabs; drag a tab down to make it a window again, Ctrl+Tab to switch. Keyboard tiling: Ctrl+Alt+arrows for halves (press again for thirds), Ctrl+Alt+U I J K for quarters, Ctrl+Alt+Enter to fill, Ctrl+Alt+C to center, Ctrl+Alt+T to tile every window",
         "Sound design: every sound is now made live by PatOS (no recordings): soft glass bells, taps and air, in tune with each other. Windows opening, closing and minimizing, switches, notifications (calmer for the usual ones, clearer for important ones), messages sent and received, captures, finished tasks, locking, emptying the Trash. Settings › Sound: choose Glass or Soft, the volume of interface sounds, and try each one",
@@ -16,6 +17,7 @@
         "A crystal Dock: thicker, brighter glass with a light rim, a soft rainbow at its ends, a reflection inside, a glow under it, and a glass bubble for app names"
       ],
       "fr": [
+        "Des mises à jour plus solides : le serveur se souvient maintenant de la version installée sur cet appareil, donc PatOS démarre dessus même quand la page ne vient pas de la copie téléchargée, et une mise à jour qui vient d’être installée n’est plus jamais proposée (et téléchargée) en boucle",
         "Un vrai moteur Liquid Glass : les bords du verre plient maintenant ce qui est derrière comme du vrai verre (un bord arrondi, la lumière réfractée à l’indice 1,5, calculée pour chaque pixel), captent la lumière en haut à gauche avec un reflet plus doux en bas à droite, et séparent un peu les couleurs tout au bord (Réglages › Apparence › Bords irisés). Aussi transparent qu’avant, et pas plus lent",
         "Fenêtres 2.0 : les fenêtres s’accrochent aux bords de l’écran et entre elles, avec de fins guides (maintenez Maj pour en placer une librement). Lancez une fenêtre vers le bord gauche ou droit pour remplir cette moitié. Déposez une fenêtre sur une autre fenêtre de la même app pour créer des onglets; tirez un onglet vers le bas pour en refaire une fenêtre, Ctrl+Tab pour changer. Disposition au clavier : Ctrl+Alt+flèches pour les moitiés (encore pour les tiers), Ctrl+Alt+U I J K pour les quarts, Ctrl+Alt+Entrée pour remplir, Ctrl+Alt+C pour centrer, Ctrl+Alt+T pour disposer toutes les fenêtres",
         "Design sonore : chaque son est maintenant créé en direct par PatOS (aucun enregistrement) : de douces cloches de verre, des tapotements et des souffles, accordés entre eux. Ouverture, fermeture et réduction des fenêtres, interrupteurs, notifications (plus calmes pour les habituelles, plus claires pour les importantes), messages envoyés et reçus, captures, tâches terminées, verrouillage, vidage de la Corbeille. Réglages › Son : choisissez Verre ou Doux, le volume des sons de l’interface, et essayez chacun",

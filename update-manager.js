@@ -118,10 +118,14 @@ function create(options) {
   }
 
   /* where a plain address (/css/x.css) comes from: the version the plain address shows, except for files that are the same for all */
-  function rootFile(p) {
+  // chosen: the version this device installed ('beta' or a finished version like 3.2.1, from its patos_ch cookie, set by
+  // js/updatemanager.js). A page that the service worker does not serve (it can happen: a hard refresh, a browser that
+  // skips service workers) still gets the version the person installed, not the one the plain address shows.
+  function rootFile(p, chosen) {
     const rel = p.endsWith('/') ? p.slice(1) + 'index.html' : p.slice(1);
     const shared = SHARED(path.normalize(rel));
-    const r = shared ? { dir: root } : resolve('root');
+    const pick = chosen && (chosen === 'beta' || STABLE_ID.test(chosen)) ? resolve(chosen) : null;
+    const r = shared ? { dir: root } : pick || resolve('root');
     if (!r) return null;
     const file = path.normalize(path.join(r.dir, rel));
     const within = path.relative(r.dir, file);

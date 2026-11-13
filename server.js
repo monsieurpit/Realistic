@@ -54,9 +54,10 @@ const server = http.createServer((req, res) => {
   }
   if (p === '/api/ping') { res.writeHead(200, { 'Content-Type': 'application/json', 'Access-Control-Allow-Origin': '*' }); return res.end('{"patos":true}'); }
   // the plain address shows the newest finished version (or the beta, when the server is started with PATOS_ROOT=beta)
-  const file = versions.rootFile(p);
+  const ch = (/(?:^|;\s*)patos_ch=([0-9a-z.]{1,20})/.exec(req.headers.cookie || '') || [])[1] || ''; // (the version this device installed)
+  const file = versions.rootFile(p, ch);
   if (!file) { res.writeHead(404); return res.end('Not found'); }
-  sendFile(req, res, file, TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream').then((ok) => { if (!ok) { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('Not found'); } }).catch(() => { res.writeHead(500); res.end('Server error'); });
+  sendFile(req, res, file, TYPES[path.extname(file).toLowerCase()] || 'application/octet-stream', { Vary: 'Accept-Encoding, Cookie' }).then((ok) => { if (!ok) { res.writeHead(404, { 'Content-Type': 'text/plain' }); res.end('Not found'); } }).catch(() => { res.writeHead(500); res.end('Server error'); });
 });
 // Cloud Chrome's live connection (WebSocket): pictures out, clicks and keys in
 server.on('upgrade', (req, sock) => { if (String(req.url).startsWith('/api/cloud/ws')) cloudBrowser.upgrade(req, sock); else sock.destroy(); });
