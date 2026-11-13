@@ -79,13 +79,17 @@ test('every glass surface is a thick pane: Control Center tiles and menus get a 
   const page = await b.newPage({ viewport: { width: 1280, height: 800 } }); const errors = await boot(page, srv.base, { fresh: true });
   await page.click('#mb-cc'); await page.waitForSelector('#control-center:not(.hidden) .cc-tile'); await page.waitForTimeout(400);
   const tile = await page.evaluate(() => { const t = document.querySelector('#control-center .cc-tile'); const id = t.style.getPropertyValue('--lg-lens').replace(/^url\(#|\)$/g, ''); const f = document.getElementById(id);
-    return { lens: t.style.getPropertyValue('--lg-lens'), bf: getComputedStyle(t).backdropFilter, boost: f ? f.querySelectorAll('feColorMatrix').length : -1, shadeStep: f ? Array.from(f.querySelectorAll('feComposite[operator="arithmetic"]')).map((e) => [e.getAttribute('k1'), e.getAttribute('k2')].join('/')) : [],
+    return { lens: t.style.getPropertyValue('--lg-lens'), bf: getComputedStyle(t).backdropFilter, boost: f ? Array.from(f.querySelectorAll('feColorMatrix')).filter((m) => !['1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0', '0 0 0 0 0  0 1 0 0 0  0 0 0 0 0  0 0 0 1 0', '0 0 0 0 0  0 0 0 0 0  0 0 1 0 0  0 0 0 1 0'].includes(m.getAttribute('values'))).length : -1, split: f ? f.querySelectorAll('feColorMatrix').length : 0, shadeStep: f ? Array.from(f.querySelectorAll('feComposite[operator="arithmetic"]')).map((e) => [e.getAttribute('k1'), e.getAttribute('k2')].join('/')) : [],
       masks: f ? f.querySelectorAll('feImage').length : 0, flood: f && f.querySelector('feFlood').getAttribute('flood-color'), after: getComputedStyle(t, '::after').content }; });
   assert.match(tile.lens, /^url\(#lg-lens-\d+\)$/, 'a tile has its own lens');
   assert.match(tile.bf, /url\(/, 'and uses it: ' + tile.bf);
+  // (3.3 renderer) color matrices may only take red, green or blue apart (the rainbow edge bends each by its own amount) and
+  // those three add back up to the picture as it was: no color is boosted or added
   assert.equal(tile.boost, 0, 'no color is boosted or added: the glass is the color of what is behind');
-  assert.deepEqual(tile.shadeStep, ['.3/.85'], 'the bevel is shaded in one cheap step (bent × (.85 + .3 × shade)): ' + tile.shadeStep);
-  assert.equal(tile.masks, 2, 'one picture bends, one shades the bevel (deeper at the bottom, lighter at the top)');
+  assert.ok(tile.split === 0 || tile.split === 3, 'red, green and blue, each once: ' + tile.split);
+  assert.equal(tile.shadeStep.filter((x) => x === '.3/.85').length, 1, 'the bevel is shaded in one cheap step (bent × (.85 + .3 × shade)): ' + tile.shadeStep);
+  assert.ok(tile.shadeStep.filter((x) => x !== '.3/.85').every((x) => /^\/1$/.test(x)), 'every other step only adds (the light on the rim, the colors put back together): ' + tile.shadeStep);
+  assert.ok(tile.masks >= 3 && tile.masks <= 4, 'one picture bends, one shades the bevel, one is the light on the rim (and its band, for the rainbow edge): ' + tile.masks);
   assert.equal(tile.flood, 'rgb(128,128,128)', 'where the map is missing nothing moves (no flashing bar)');
   assert.equal(tile.after, 'none', 'with the lens, nothing is painted on the bevel (it stays clear glass)');
   assert.equal(await page.evaluate(() => getComputedStyle(document.querySelector('#control-center .cc-tile.cc-slider')).borderTopLeftRadius), '999px', 'a slider tile is a pill');

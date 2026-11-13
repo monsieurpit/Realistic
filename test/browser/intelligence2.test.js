@@ -56,7 +56,7 @@ test('phrases you teach, synonyms and nicknames', { skip: skipNoBrowser }, async
 test('questions about this PatOS', { skip: skipNoBrowser }, async () => {
   await page.evaluate(() => { PatOS.store.set('notes', [{ id: 'a', title: 'x', body: '' }, { id: 'b', title: 'y', body: '' }]); const d = new Date(); d.setDate(d.getDate() + 2); const c = {}; c[PatOS.dateKey(d)] = [{ id: 'e', title: 'Science fair', time: '09:00' }]; PatOS.store.set('calendar', c); });
   assert.match((await R('how many notes do I have')).message, /You have 2 notes/);
-  assert.match((await R('what version am I on')).message, /PatOS 3\.2\.0/);
+  assert.match((await R('what version am I on')).message, /PatOS \d+\.\d+\.\d+/);
   assert.match((await R('when is my next event')).message, /Science fair/);
   assert.match((await R('how many days until christmas')).message, /days? until christmas|That’s today/);
   assert.match((await R('what day is christmas')).message, /December 25/);
