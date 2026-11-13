@@ -72,6 +72,7 @@
           const r = await ask(t.beta ? { patosInstall: { beta: true } } : { patosInstall: { id: t.version } }, 180000);
           if (!r || !r.ok) { set('ready'); PatOS.alertBox(T('That didn’t work'), (r && r.error) || T('You’re offline. PatOS checks again when the internet is back.'), { icon: 'about' }); return false; }
           remember(r);
+          try { localStorage.setItem('patos-boot', JSON.stringify({ pending: false, fails: 0 })); } catch (e) {} // (a fresh start for the new version)
           try { sessionStorage.setItem(INSTALLING, JSON.stringify({ want: idOf(t), from: idOf(U.current), t: Date.now(), tries: 0 })); } catch (e) {}
         }
         return PatOS.restartPatOS ? PatOS.restartPatOS(o) : location.reload();

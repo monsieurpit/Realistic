@@ -127,7 +127,7 @@ async function cleanup() {
 /* switch to a downloaded version; the one that was running stays as "previous" */
 async function promote(m) {
   const id = m.id;
-  await update((s) => Object.assign({}, s, { previous: s.installed && s.installed !== id ? s.installed : s.previous, installed: id, ver: verOf(m), pendingVer: null, pending: null, pendingMigrate: false, useOld: false, since: Date.now(), legacy: false }));
+  await update((s) => Object.assign({}, s, { previous: s.installed && s.installed !== id ? s.installed : s.previous, installed: id, ver: verOf(m), pendingVer: null, pending: null, pendingMigrate: false, useOld: false, since: Date.now(), starts: 0, legacy: false }));
   await cleanup();
 }
 // at the start of PatOS: a beta that was downloaded earlier (Beta updates on), or an old copy's move, is used now
@@ -137,7 +137,7 @@ async function promoteAtStart() {
   await update((s) => {
     if (s.pending !== id) return null; // changed meanwhile
     if (!ok) return Object.assign({}, s, { pending: null, pendingMigrate: false });
-    return Object.assign({}, s, { previous: s.installed && s.installed !== id ? s.installed : s.previous, installed: id, ver: s.pendingVer || null, pending: null, pendingVer: null, pendingMigrate: false, useOld: false, since: Date.now(), legacy: false });
+    return Object.assign({}, s, { previous: s.installed && s.installed !== id ? s.installed : s.previous, installed: id, ver: s.pendingVer || null, pending: null, pendingVer: null, pendingMigrate: false, useOld: false, since: Date.now(), starts: 0, legacy: false });
   });
   await cleanup();
 }
@@ -196,7 +196,14 @@ self.addEventListener('message', (e) => {
         let m; try { m = await fetchManifest(want); await download(m); } catch (er) { return reply({ ok: false, error: String((er && er.message) || er) }); }
         await promote(m);
       }
-      if (d.patosRollback) { if (!state.previous || !(await caches.has(cacheName(state.previous)))) return reply({ ok: false, reason: 'none' }); await update((s) => Object.assign({}, s, { useOld: true })); }
+      if (d.patosRollback) {
+        if (!state.previous || !(await caches.has(cacheName(state.previous)))) return reply({ ok: false, reason: 'none' });
+        // Going back by itself (PatOS's start-up safety, js/preload.js) only once the new version really failed: it counts failed
+        // starts, and a count left from before the update (a panic screen, Recovery, a deleted /System: screens that never reach
+        // the lock screen) must not throw away the version that was just installed. Twice started since it was installed, at least.
+        if ((state.starts || 0) < 2 && Date.now() - (state.since || 0) < 10 * 60000) return reply({ ok: false, reason: 'just installed' });
+        await update((s) => Object.assign({}, s, { useOld: true }));
+      }
       if (d.patosUseNewest) await update((s) => Object.assign({}, s, { useOld: false }));
       reply(status());
     } catch (er) { reply({ ok: false, error: String((er && er.message) || er) }); }
@@ -223,7 +230,11 @@ self.addEventListener('fetch', (e) => {
 // Files come from one version only (the one this device runs, or the previous one after going back), never a mix.
 async function serve(request, url) {
   await stateReady;
-  if (request.destination === 'document') { try { await promoteAtStart(); } catch (e) {} } // the start of PatOS (not a frame inside it)
+  if (request.destination === 'document') { // the start of PatOS (not a frame inside it)
+    try { await promoteAtStart(); } catch (e) {}
+    // how many times the version it runs was started since it was installed (see "patosRollback")
+    try { await update((s) => (s && !s.useOld && (s.starts || 0) < 50 ? Object.assign({}, s, { starts: (s.starts || 0) + 1 }) : null)); } catch (e) {}
+  }
   if (!(await versionReady())) { try { await prepare(); } catch (e) {} if (!(await versionReady())) return fetch(request); }
   const id = runningId();
   const c = await caches.open(cacheName(id));

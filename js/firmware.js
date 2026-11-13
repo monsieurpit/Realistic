@@ -55,7 +55,8 @@
   }
 
   /* ---------- screens ---------- */
-  function screen(cls, ...kids) { const s = h('div', { class: 'fw-screen ' + cls }, ...kids); document.body.appendChild(s); requestAnimationFrame(() => s.classList.add('in')); return s; }
+  function screen(cls, ...kids) { if (window.__patosBootOK) window.__patosBootOK(); // (PatOS started fine: a firmware screen is not a failed start, js/preload.js)
+    const s = h('div', { class: 'fw-screen ' + cls }, ...kids); document.body.appendChild(s); requestAnimationFrame(() => s.classList.add('in')); return s; }
   const hideBoot = () => { const b = document.getElementById('boot'); if (b) b.classList.add('hidden'); };
   function bootBar(msg) {
     const b = document.getElementById('boot'); if (!b) return { set() {} };
