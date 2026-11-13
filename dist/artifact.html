@@ -14425,6 +14425,9 @@ PatOS.build = {"channel":"beta","version":"4.1.0","beta":3};
     if (PatOS.pill && PatOS.pill.notify && PatOS.pill.notify(r.rec, n)) return r.id;
     const box = $('#toasts'); const app = r.rec.app || n.icon;
     const acts = (PatOS.nc.list().find((x) => x.id === r.id) || {}).actions || [];
+    // the same notification again (counted ×2 in Notification Center): its banner says so, nothing new piles up
+    const again = box.querySelector('.toast[data-nid="' + r.id + '"]:not(.leaving)');
+    if (again) { again.querySelector('.toast-when').textContent = +again.dataset.more ? '+' + again.dataset.more : (r.rec.count > 1 ? '×' + r.rec.count : PatOS.t('now')); toastTimer(again, n.duration || 4500); return r.id; }
     // (4.1) the same app again while its banner shows: that banner takes the new one and counts the rest
     const same = !acts.length && r.rec.priority !== 'urgent' && [...box.querySelectorAll('.toast:not(.leaving)')].find((x) => x.dataset.app === app && !x.classList.contains('urgent') && !x.querySelector('.toast-acts'));
     if (same) {
