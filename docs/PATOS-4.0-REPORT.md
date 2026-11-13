@@ -1,6 +1,6 @@
 # PatOS 4.0 "Beyond the desktop": final report
 
-Status: **4.0.0 beta 14**. It's a beta, and stays one until you decide to release it. The architecture is in
+Status: **4.0.0 beta 14**, with the full test run done. It's a beta, and stays one until you decide to release it. The architecture is in
 [PATOS-4.0.md](PATOS-4.0.md).
 
 ## A. What was built
@@ -44,7 +44,10 @@ See [PATOS-4.0.md](PATOS-4.0.md) for how the parts fit together:
 ## D. Testing (honest)
 
 - **Unit:** 44 tests, all passing.
-- **Browser (full suite):** see the result filled in below.
+- **Full unit + browser run on beta 14:** 326 tests: 323 passed, 1 skipped (a check that only runs in CI), 2 failed.
+  - The 2 failures are the Cloud Chrome video-speed test and Control Center's small-drag spring-back. Both are timing
+    flakes that pass when run on their own: the Cloud Chrome file passed 19/19 alone, and the Control Center test 6
+    times out of 6.
 - **Cloud (Firebase emulator, with the real rules):** Spaces, accounts, rules and Live/Commons, all passing at their last
   run.
   - The Live app test uses two people and a real WebRTC call with Chromium's pretend microphone.
