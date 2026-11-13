@@ -42,7 +42,7 @@
       const u = understand(obj);
       const it = { id: uid(), t: Date.now(), obj: u.obj, why: u.why, title: titleOf(u.obj), tags: [], from: opts.from || '', done: false };
       items.unshift(it); if (items.length > MAX) items = items.slice(0, MAX);
-      save(); return it;
+      save(); if (PatOS.sound && PatOS.sound.play) PatOS.sound.play('capture'); return it;
     },
     list(opts) {
       opts = opts || {}; const q = String(opts.q || '').toLowerCase();

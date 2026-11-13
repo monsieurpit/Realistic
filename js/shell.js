@@ -102,7 +102,7 @@
     // screen readers: announce it; other tabs: show a real browser notification
     try { let lr = document.getElementById('sr-live'); if (!lr) { lr = document.createElement('div'); lr.id = 'sr-live'; lr.setAttribute('aria-live', 'polite'); lr.setAttribute('role', 'status'); lr.style.cssText = 'position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)'; document.body.appendChild(lr); } lr.textContent = n.title + '. ' + (n.body || ''); } catch (e) {}
     if (document.hidden && r.banner && PatOS.settings.systemNotifications !== false && window.Notification && Notification.permission === 'granted') { try { const sn = new Notification(n.title, { body: n.body, icon: 'assets/icon-180.png' }); sn.onclick = () => { window.focus(); PatOS.nc.open(r.id); }; } catch (e) {} }
-    if (r.sound && PatOS.settings.notifSound !== false) PatOS.sound.notify();
+    if (r.sound && PatOS.settings.notifSound !== false) PatOS.sound.notify(r.rec.priority);
     if (!r.banner) return r.id;
     const old = document.querySelector('#toasts .toast[data-nid="' + r.id + '"]'); if (old) old.remove(); // (the same one again: one banner, counted)
     const acts = (PatOS.nc.list().find((x) => x.id === r.id) || {}).actions || [];

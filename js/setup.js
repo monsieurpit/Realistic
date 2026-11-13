@@ -117,6 +117,8 @@
       } catch (e) {
         busy = false; [user, pass, again, btn].forEach((x) => x && (x.disabled = false));
         note.className = 'su-note err'; note.textContent = (e && e.message) || T('That didn’t work. Try again.');
+        // the device is online but the account service can't be reached: never lock anyone out of their own computer
+        if (e && e.code === 'offline' && navigator.onLine !== false && !c.querySelector('.su-skip')) c.insertBefore(h('button', { class: 'su-link su-skip', onclick: () => go('name') }, T('Continue without an account for now')), btn.nextSibling);
       }
     };
     [user, pass, again].forEach((i) => i && i.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); }));
@@ -143,6 +145,9 @@
   PatOS.setup = {
     maybeShow() {
       if (PatOS.store.get('setupDone', false)) return false;
+      // (3.3 fix) "setup is done" was deleted on devices that sync (a sync bug). A device signed in to an account, or joined
+      // with a sync code, has been set up already: mark it done instead of asking to set it up again.
+      if (!PatOS.store.get('setupStep', null) && (PatOS.store.get('accountInfo', null) || PatOS.store.get('syncKey', null))) { PatOS.store.set('setupDone', true); return false; }
       const s = PatOS.store.get('setupStep', 'hello');
       show(typeof s === 'number' ? ['hello', 'lang', 'name', 'look', 'wallpaper', 'done'][s] || 'hello' : s); return true; // (a number: a setup started before 3.2)
     },

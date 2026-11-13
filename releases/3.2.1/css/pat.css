@@ -1,0 +1,109 @@
+/* Pat's conversation (3.2): a premium panel on Liquid Glass. Pieces: the orb (what Pat is doing), the welcome, messages,
+   answer cards, buttons in answers, suggestions and the composer. Motion is short and calm; with Reduce motion it stops. */
+#pat-panel { width: 420px; height: min(660px, calc(100vh - 120px)); transform-origin: top right; }
+#pat-panel:not(.hidden) { animation: pat3In var(--dur-med, .28s) var(--ease-out, cubic-bezier(.2,.9,.3,1)); }
+@keyframes pat3In { from { opacity: 0; transform: translateY(-8px) scale(.96); } }
+.pat3 { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+/* the orb: a soft sphere of PatOS colors; it turns while Pat thinks and breathes while it listens */
+@keyframes pat3Spin { to { transform: rotate(360deg); } } @keyframes pat3Breathe { 50% { transform: scale(1.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.35), 0 0 22px rgba(255,79,160,.6); } }
+/* header */
+.pat3-head { display: flex; align-items: center; gap: 10px; padding: 12px 10px 10px 14px; }
+.pat3-title { display: flex; flex-direction: column; line-height: 1.15; } .pat3-title b { font-size: 16px; font-weight: 700; } .pat3-title small { font-size: 11.5px; opacity: .65; letter-spacing: .1px; }
+.pat3-hb { width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; color: inherit; opacity: .8; transition: background var(--dur-fast, .15s), opacity var(--dur-fast, .15s); }
+.pat3-hb:hover { background: rgba(127,127,127,.18); opacity: 1; }
+/* the conversation */
+.pat3-list { flex: 1; min-height: 0; overflow-y: auto; padding: 6px 16px 14px; display: flex; flex-direction: column; gap: 14px; scroll-behavior: smooth; overscroll-behavior: contain; }
+.pat3-me { align-self: flex-end; max-width: 82%; } .pat3-mb { padding: 9px 14px; border-radius: 20px 20px 6px 20px; background: linear-gradient(180deg, #2f9bff, #0a7cff); color: #fff; font-size: 14.5px; line-height: 1.38; white-space: pre-wrap; word-wrap: break-word; box-shadow: 0 4px 14px rgba(10,124,255,.25); }
+.pat3-pat { display: flex; gap: 10px; align-items: flex-start; max-width: 100%; }
+.pat3-pc { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+.pat3-text { font-size: 14.5px; line-height: 1.5; } .pat3-text p { margin: 0 0 4px; } .pat3-text p:last-child { margin-bottom: 0; }
+.pat3-ul { list-style: none; margin: 2px 0; padding: 0; display: flex; flex-direction: column; gap: 4px; }
+.pat3-ul li { display: flex; gap: 8px; padding: 6px 10px; border-radius: 12px; background: rgba(127,127,127,.1); }
+.pat3-ul li.ok .pat3-mark { color: var(--ok, #30d158); font-weight: 700; } .pat3-ul li.bad .pat3-mark { color: var(--bad, #ff453a); font-weight: 700; } .pat3-ul li.wait .pat3-mark { opacity: .6; }
+.pat3-in-anim, .pat3-me.in, .pat3-pat.in { animation: pat3Msg var(--dur-med, .28s) var(--ease-out, cubic-bezier(.2,.9,.3,1)); }
+@keyframes pat3Msg { from { opacity: 0; transform: translateY(6px); } }
+/* answer cards */
+.pat3-ans { display: flex; gap: 12px; padding: 12px 14px; border-radius: 18px; background: rgba(127,127,127,.12); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08); }
+.pat3-ans img { width: 64px; height: 64px; object-fit: cover; border-radius: 12px; flex: none; }
+.pat3-ans-t { display: block; font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: .4px; opacity: .65; }
+.pat3-ans-v { font-size: 26px; font-weight: 750; letter-spacing: -.4px; line-height: 1.2; margin: 2px 0; word-break: break-word; }
+.pat3-ans p { margin: 4px 0 0; font-size: 13.5px; line-height: 1.45; opacity: .9; } .pat3-ans-s { display: block; opacity: .7; margin-top: 2px; }
+.pat3-src { display: inline-block; margin-top: 6px; font-size: 12px; opacity: .75; color: inherit; } a.pat3-src:hover { opacity: 1; text-decoration: underline; }
+.pat3-acts { display: flex; flex-wrap: wrap; gap: 6px; }
+.pat3-act { min-height: 30px; padding: 0 13px; border-radius: 999px; font-size: 13px; font-weight: 600; background: rgba(10,132,255,.16); color: var(--accent, #0a84ff); }
+.pat3-act:hover { background: rgba(10,132,255,.26); }
+/* thinking */
+.pat3-dots { display: flex; gap: 5px; padding: 12px 4px; } .pat3-dots i { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: .45; animation: tdot 1s infinite; } .pat3-dots i:nth-child(2) { animation-delay: .15s; } .pat3-dots i:nth-child(3) { animation-delay: .3s; }
+/* the welcome */
+.pat3-welcome { margin: auto 0; display: flex; flex-direction: column; align-items: center; text-align: center; gap: 8px; padding: 10px 4px; }
+.pat3-welcome h2 { margin: 0; font-size: 22px; font-weight: 750; letter-spacing: -.3px; } .pat3-welcome p { margin: 0 0 8px; font-size: 13.5px; opacity: .75; max-width: 320px; line-height: 1.45; }
+.pat3-try { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; width: 100%; }
+.pat3-card-try { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; padding: 11px 12px; border-radius: 16px; text-align: left; background: rgba(127,127,127,.12); transition: background var(--dur-fast, .15s), transform var(--dur-fast, .15s); }
+.pat3-card-try:hover { background: rgba(127,127,127,.2); transform: translateY(-1px); } .pat3-ti { font-size: 18px; } .pat3-card-try b { font-size: 13.5px; } .pat3-card-try small { font-size: 11.5px; opacity: .7; line-height: 1.3; }
+/* suggestions and the composer */
+.pat3-chips { display: flex; gap: 6px; overflow-x: auto; padding: 0 14px 8px; scrollbar-width: none; } .pat3-chips::-webkit-scrollbar { display: none; }
+.pat3-chip { flex: none; min-height: 30px; padding: 0 12px; border-radius: 999px; font-size: 12.5px; font-weight: 600; background: rgba(127,127,127,.15); white-space: nowrap; }
+.pat3-chip:hover { background: rgba(127,127,127,.25); }
+.pat3-bar { display: flex; align-items: flex-end; gap: 8px; margin: 0 12px 12px; padding: 6px 6px 6px 8px; border-radius: 22px; background: rgba(127,127,127,.14); box-shadow: inset 0 0 0 1px rgba(255,255,255,.1); }
+.pat3-in { flex: 1; min-height: 32px; max-height: 120px; resize: none; border: 0; outline: 0; background: transparent; color: inherit; font: inherit; font-size: 14.5px; line-height: 1.4; padding: 6px 4px; }
+.pat3-send, .pat3-mic { flex: none; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; }
+.pat3-send { background: var(--accent, #0a84ff); color: #fff; transition: transform var(--dur-fast, .15s), opacity var(--dur-fast, .15s); } .pat3-send:disabled { opacity: .35; transform: scale(.92); }
+.pat3-mic { color: inherit; opacity: .8; } .pat3-mic.on { background: #ff375f; color: #fff; opacity: 1; animation: pat3Breathe 1.2s ease-in-out infinite; }
+.mobile #pat-panel { width: auto; height: auto; }
+.mobile .pat3-bar { margin-bottom: calc(12px + env(safe-area-inset-bottom, 0px)); }
+@media (prefers-reduced-motion: reduce) { .pat3-mic.on, #pat-panel:not(.hidden), .pat3-me.in, .pat3-pat.in { animation: none !important; } }
+html.reduce-motion :is(.pat3-mic.on, #pat-panel, .pat3-me, .pat3-pat) { animation: none !important; }
+.pat3-look { align-self: center; font-size: 12.5px; opacity: .7; }
+
+/* ================= 3.2 beta 6: the orb, drawn icons, status, tools ================= */
+/* the orb: a dark glass sphere with liquid light inside: three soft color fields that drift, a glossy highlight and a rim.
+   Gradients only (no blur filters), so it stays cheap; it moves only while the panel is open. */
+.pat-orb { --sz: 32px; position: relative; flex: none; width: var(--sz); height: var(--sz); border-radius: 50%; overflow: hidden; isolation: isolate;
+  background: radial-gradient(circle at 50% 62%, #241447 0%, #0b0716 72%); box-shadow: inset 0 0 0 1px rgba(255,255,255,.28), inset 0 -.18em .5em rgba(255,79,160,.35), 0 .25em .9em rgba(125,92,255,.42); font-size: var(--sz); }
+.pat-orb.po-av { --sz: 26px; margin-top: 1px; } .pat-orb.po-big { --sz: 88px; margin-bottom: 8px; box-shadow: inset 0 0 0 1px rgba(255,255,255,.3), inset 0 -.18em .5em rgba(255,79,160,.35), 0 .3em 1.2em rgba(125,92,255,.45), 0 0 0 .1em rgba(125,92,255,.12); }
+.po-b { position: absolute; width: 78%; height: 78%; border-radius: 50%; mix-blend-mode: screen; will-change: transform; }
+.po-1 { left: -14%; top: 18%; background: radial-gradient(circle at 50% 50%, rgba(255,79,160,.95), rgba(255,79,160,0) 66%); animation: poA 7s ease-in-out infinite; }
+.po-2 { right: -16%; top: -10%; background: radial-gradient(circle at 50% 50%, rgba(125,92,255,1), rgba(125,92,255,0) 66%); animation: poB 9s ease-in-out infinite; }
+.po-3 { left: 14%; bottom: -26%; background: radial-gradient(circle at 50% 50%, rgba(50,215,196,.9), rgba(10,132,255,.4) 40%, rgba(10,132,255,0) 68%); animation: poC 8s ease-in-out infinite; }
+.po-gloss { position: absolute; left: 20%; right: 20%; top: 7%; height: 38%; border-radius: 50%; background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.06)); }
+.pat-orb::after { content: ''; position: absolute; inset: 0; border-radius: 50%; box-shadow: inset 0 0 .12em .06em rgba(255,255,255,.35); pointer-events: none; }
+@keyframes poA { 50% { transform: translate(28%, -18%) scale(1.15); } } @keyframes poB { 50% { transform: translate(-30%, 26%) scale(.9); } } @keyframes poC { 50% { transform: translate(18%, -30%) scale(1.2); } }
+@keyframes poSpin { to { transform: rotate(360deg); } }
+@keyframes poPulse { 0%, 100% { box-shadow: inset 0 0 0 1px rgba(255,255,255,.28), 0 0 0 0 rgba(255,79,160,.45); } 50% { box-shadow: inset 0 0 0 1px rgba(255,255,255,.28), 0 0 0 .22em rgba(255,79,160,0), 0 0 1em rgba(255,79,160,.55); } }
+/* what Pat is doing: thinking makes the colors swirl, listening makes the orb breathe */
+.pat3[data-state="think"] .po-head, .pat3[data-state="look"] .po-head, .pat3-thinking .pat-orb { animation: poSpin 1.4s linear infinite; }
+.pat3[data-state="think"] .po-head .po-b, .pat3[data-state="look"] .po-head .po-b, .pat3-thinking .po-b { animation-duration: 1.6s; }
+.pat3[data-state="listen"] .po-head { animation: poPulse 1.1s ease-in-out infinite; }
+/* the header's status line */
+.pat3-status { font-size: 11.5px; opacity: .7; transition: opacity var(--dur-fast, .15s); }
+.pat3[data-state="think"] .pat3-status, .pat3[data-state="look"] .pat3-status, .pat3[data-state="listen"] .pat3-status { opacity: 1; background: linear-gradient(90deg, #ff4fa0, #7d5cff, #32d7c4); -webkit-background-clip: text; background-clip: text; color: transparent; font-weight: 600; }
+/* the suggestion cards: a colored glass tile with a drawn icon */
+.pat3-ti { width: 34px; height: 34px; border-radius: 10px; display: grid; place-items: center; margin-bottom: 6px; color: #fff; background: linear-gradient(160deg, color-mix(in srgb, var(--c) 82%, #fff), var(--c)); box-shadow: inset 0 0 0 1px rgba(255,255,255,.22), 0 3px 10px color-mix(in srgb, var(--c) 45%, transparent); font-size: 0; }
+.pat3-card-try { padding: 12px; }
+/* list marks */
+.pat3-dot { width: 6px; height: 6px; margin-top: .55em; border-radius: 50%; background: currentColor; opacity: .55; flex: none; }
+.pat3-mark { display: grid; place-items: center; flex: none; width: 18px; height: 18px; margin-top: 1px; border-radius: 50%; }
+.pat3-ul li.ok .pat3-mark { background: color-mix(in srgb, var(--ok, #30d158) 22%, transparent); color: var(--ok, #30d158); }
+.pat3-ul li.bad .pat3-mark { background: color-mix(in srgb, var(--bad, #ff453a) 22%, transparent); color: var(--bad, #ff453a); }
+.pat3 .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+/* buttons in answers, the source link */
+.pat3-act { display: inline-flex; align-items: center; gap: 6px; } .pat3-src { display: inline-flex; align-items: center; gap: 4px; }
+/* under each answer: copy and read aloud (on hover or focus with a mouse; always on a touch screen) */
+.pat3-tools { display: flex; gap: 2px; margin-top: -2px; opacity: 0; transition: opacity var(--dur-fast, .15s); }
+.pat3-pat:hover .pat3-tools, .pat3-pat:focus-within .pat3-tools, .mobile .pat3-tools { opacity: 1; }
+@media (hover: none) { .pat3-tools { opacity: .8; } }
+.pat3-tool { width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center; color: inherit; opacity: .6; }
+.pat3-tool:hover { opacity: 1; background: rgba(127,127,127,.16); } .pat3-tool.done { color: var(--ok, #30d158); opacity: 1; }
+/* back to the latest message */
+.pat3-mid { position: relative; flex: 1; min-height: 0; display: flex; flex-direction: column; } .pat3-mid .pat3-list { flex: 1; }
+.pat3-end { position: absolute; left: 50%; bottom: 10px; width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; transform: translate(-50%, 12px) scale(.9); opacity: 0; pointer-events: none;
+  background: rgba(30,30,40,.7); color: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.3), inset 0 0 0 1px rgba(255,255,255,.18); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); transition: opacity var(--dur-fast, .15s), transform var(--dur-med, .28s) var(--ease-out, ease); }
+.pat3-end.on { opacity: 1; transform: translate(-50%, 0) scale(1); pointer-events: auto; }
+:root[data-theme="light"] .pat3-end { background: rgba(255,255,255,.85); color: #1d1d1f; }
+@media (prefers-reduced-motion: reduce) { .pat-orb, .po-b { animation: none !important; } }
+html.reduce-motion :is(.pat-orb, .po-b) { animation: none !important; }
+/* (beta 8) only the orbs that say something move: the one in the header, the big welcome one and the thinking bubble. The
+   small one next to every answer stays still (with many answers, dozens of blended layers moved all the time), and nothing
+   moves while the panel is closed. */
+.pat-orb.po-av .po-b { animation: none; } .pat3-thinking .pat-orb.po-av .po-b { animation: poA 1.6s ease-in-out infinite; }
+#pat-panel.hidden .pat-orb, #pat-panel.hidden .po-b { animation-play-state: paused !important; }

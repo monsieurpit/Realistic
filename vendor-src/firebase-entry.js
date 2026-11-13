@@ -55,7 +55,7 @@ function friendly(e) {
   if (/weak-password/.test(c)) return fail('weak', 'Choose a longer password.');
   if (/invalid-credential|wrong-password|user-not-found|invalid-email/.test(c)) return fail('wrong', 'Wrong username or password.');
   if (/too-many-requests/.test(c)) return fail('busy', 'Too many tries. Wait a few minutes.');
-  if (/network|unavailable|deadline|timeout/.test(c) || /network/i.test((e && e.message) || '')) return fail('offline', 'No internet right now.');
+  if (/network|unavailable|deadline|timeout/.test(c) || /network/i.test((e && e.message) || '')) return fail('offline', 'No internet right now.' + (c ? ' (' + c + ')' : ''));
   if (/operation-not-allowed|configuration-not-found/.test(c)) return fail('setup', 'Accounts are not switched on yet. In the Firebase console, open Authentication and turn on Email/Password.');
   if (/permission-denied|insufficient/.test(c)) return fail('rules', 'The database rules do not allow this yet. Paste the rules from firestore.rules into the Firebase console.');
   return e;

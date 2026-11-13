@@ -1,0 +1,671 @@
+{
+ "version": "3.2.1",
+ "frozen": "2026-11-13",
+ "files": [
+  {
+   "p": "index.html",
+   "h": "7d4fd3f08ad699112023f67dbe3f13a98df1c593d15d8b085fa481ec1990c0da",
+   "s": 12230
+  },
+  {
+   "p": "manifest.webmanifest",
+   "h": "158828abfb49362b0f54670b6b925383d8ab489b2081e3e444d29505c782e747",
+   "s": 2036
+  },
+  {
+   "p": "assets/icon.svg",
+   "h": "60c55398e2c003376621bc62694c4ce75150b2ab9a76568e3a0e2a169cd9c3cd",
+   "s": 416
+  },
+  {
+   "p": "assets/icon-180.png",
+   "h": "6cb6f5fcd2fefd8055f815fa57108783d363f3f1aef715caad24a8f67e9df8c3",
+   "s": 6655
+  },
+  {
+   "p": "assets/icon-192.png",
+   "h": "e235fd4343db94751bc4e76b164264761fb4ffbdd9037829ab0b633c716982ce",
+   "s": 12439
+  },
+  {
+   "p": "assets/icon-512.png",
+   "h": "d73cb332e143cb08f816711f584637bd55f10dc615bda872f829c4b460f7cc07",
+   "s": 123497
+  },
+  {
+   "p": "assets/icon-maskable-512.png",
+   "h": "236aa94832b6b49741851b61e530bfd3964f8708cb9a26de39cef1080c3dec04",
+   "s": 84498
+  },
+  {
+   "p": "css/patos.css",
+   "h": "42676b4a6c6e3dd65d68eaca4497c615990555bbf9a7e92d198c62ec4502d714",
+   "s": 41773
+  },
+  {
+   "p": "css/apps.css",
+   "h": "2dc2f06b268d77cc064d66882ece4ae785e7a767ed588645c0ac193a40f6ead0",
+   "s": 49610
+  },
+  {
+   "p": "css/apps2.css",
+   "h": "958816a5002b07726de275db1322f0a0a10259d9665d5855da186bc84ef243f9",
+   "s": 64249
+  },
+  {
+   "p": "css/mobile.css",
+   "h": "bbf22a4a2118f7f124df1077e1528e3e07a21be2062a73d892e27c78d276cdc1",
+   "s": 33587
+  },
+  {
+   "p": "css/apps3.css",
+   "h": "f13483afdf68ff2864ad2a14ac1b6b8f3cec245bc50c582d2b7b4869c1e8c97d",
+   "s": 92049
+  },
+  {
+   "p": "css/office.css",
+   "h": "81b33a0894cf2a399bbf89dc8efadd4c0a3cf1bec7a8354125f07e1eba81ea16",
+   "s": 122520
+  },
+  {
+   "p": "css/timeline.css",
+   "h": "09380ab4465aec88654765c49b7e69d7c9df6db585f8dd690273e61f86b69809",
+   "s": 14519
+  },
+  {
+   "p": "css/piles.css",
+   "h": "69d7a5417c817de5223d93bb97f827c945bb34c551291c04803d710c61f3234f",
+   "s": 9096
+  },
+  {
+   "p": "css/glass.css",
+   "h": "f93cae589a6c065f8b69f14ad15560c768c53bbccefede29f11a33799404afaf",
+   "s": 37213
+  },
+  {
+   "p": "css/design.css",
+   "h": "bf1218513f61aa94cfe2e4a70927e9ac19eb63d6c46112ddb4ef9bdbe076f356",
+   "s": 17243
+  },
+  {
+   "p": "css/signature.css",
+   "h": "f5bc4c29fada6223a5777ea750c03b88a458f9bba48f1c84746e3ad2f40ca15e",
+   "s": 15947
+  },
+  {
+   "p": "css/firmware.css",
+   "h": "885dfa5e177eef683a645235901ff3ccea4117e6eff153e54ed488f9140fca27",
+   "s": 5474
+  },
+  {
+   "p": "css/pat.css",
+   "h": "c99147bab01b90b47008422bf1d222248dd9a6fc28691512d6dde80213836e47",
+   "s": 13815
+  },
+  {
+   "p": "js/preload.js",
+   "h": "f88c2f132353812bcc70442bde921b13d71937837217ff72da3a1f1665ac3c67",
+   "s": 5512
+  },
+  {
+   "p": "vendor/three.min.js",
+   "h": "170c6789f43217c96b3170f4b42fafe135de7f7cd48497a4218f9757ee1d49fa",
+   "s": 669884
+  },
+  {
+   "p": "vendor/pitcode.js",
+   "h": "9e16904c3305b45b0525f09b37fd51e32ae0a1924441ea01257217ae4231c167",
+   "s": 482723
+  },
+  {
+   "p": "vendor/firebase.js",
+   "h": "abd4dd5d48dc9fc9f0987f5f062a47cacd190f3e687b42e7809da65ce7b95fd3",
+   "s": 604671
+  },
+  {
+   "p": "js/core.js",
+   "h": "aacf25dcb1e15946257cc03a24c87a4b5a70e7cd1dbe6065509d3668d5445f11",
+   "s": 69772
+  },
+  {
+   "p": "js/version.js",
+   "h": "a07fe9afc695b57912af99f65e65b9ebb6840069f796f5ee6b34c28be2aad6d3",
+   "s": 3413
+  },
+  {
+   "p": "js/release-notes.js",
+   "h": "957b3b0498b1db5eca0f8e99b0468656d9b3fc123ed31aa2a0780fea260717c6",
+   "s": 99136
+  },
+  {
+   "p": "js/updatemanager.js",
+   "h": "78451934ab08910acd2e958e9f47156a056621cd19b7234388bb219e4009cb12",
+   "s": 8026
+  },
+  {
+   "p": "js/device.js",
+   "h": "f3838b540f39628dbd13952c30a3c63162495d8b9814a5c6708a4e2522ac629b",
+   "s": 10997
+  },
+  {
+   "p": "js/install.js",
+   "h": "030edcfd4e9d04b67a7adc8c7cac9d1134e7da682b6317c60627f3cb446d1908",
+   "s": 4865
+  },
+  {
+   "p": "js/zip.js",
+   "h": "4bfb6c44ddc0b08c2b93714acd9a5dadc7bd4604ad1225b53e15b78332fc6b9e",
+   "s": 7493
+  },
+  {
+   "p": "js/fmt-docx.js",
+   "h": "3ac1d82da86a2056c95cb84c317a2e9663f0bdc27c489559a75c04f734e9af04",
+   "s": 26485
+  },
+  {
+   "p": "js/fmt-xlsx.js",
+   "h": "6db7a1f39acf977ad46837c2aade7e83356745e2d8c3f3e198e426196e53c59a",
+   "s": 14047
+  },
+  {
+   "p": "js/fmt-pptx.js",
+   "h": "55405d3107b5f70af944f18028acd43fd90667c4dc53c1c09439367e9fd057e2",
+   "s": 27737
+  },
+  {
+   "p": "js/formats.js",
+   "h": "bb79832204ed083c0dccdbe08d689935133e6e5471c0e7ba7814ec1f7067fba9",
+   "s": 3569
+  },
+  {
+   "p": "js/pyrun.js",
+   "h": "b259be0524d789be441f443f66939bf5169c8b1078290575ed5417dc61277113",
+   "s": 10348
+  },
+  {
+   "p": "js/i18n.js",
+   "h": "458de3f061d0ea4cc2b960e9efe9c045d908e23a7a864017f143fc67b1b821d1",
+   "s": 227584
+  },
+  {
+   "p": "js/icons.js",
+   "h": "114a81adaf5b5a2d7b140ed801ff835a242396a7a970ffe23629289b1f77ce05",
+   "s": 76568
+  },
+  {
+   "p": "js/wm.js",
+   "h": "6334937f6c9fd1ebe0a98fda9f99191409a10d662955e92873f341aee03d9099",
+   "s": 32130
+  },
+  {
+   "p": "js/wallpaper.js",
+   "h": "5e45dd06555b6c635360b3266f114da896bd9fd4306ae8dc315ba005a307e2d9",
+   "s": 43068
+  },
+  {
+   "p": "js/shell.js",
+   "h": "2fc6541b5c64c3e5f93a889fc6087904d72d51b9c310e611d162a1e5fb4a2e52",
+   "s": 110362
+  },
+  {
+   "p": "js/dates.js",
+   "h": "6343ec539ed4c9b1cc38b4f6480cd44da6c844925aefdf5c9f69340f72c5075f",
+   "s": 5471
+  },
+  {
+   "p": "js/settings-catalog.js",
+   "h": "fab011f04f8ab147d1a9aae45e776d4f5e89648c76f3bf54b654c5b27b4298a7",
+   "s": 9354
+  },
+  {
+   "p": "js/intelligence.js",
+   "h": "e0ea5541abe768fe02ee8ded0cb250761e4c40b08e9a6017c325b5b7126a08d1",
+   "s": 61889
+  },
+  {
+   "p": "js/places.js",
+   "h": "2aecfa4bad59b831bd2dfa354fc22f373aa010f35b3cc873bf5bb38278c76358",
+   "s": 5087
+  },
+  {
+   "p": "js/intel-mind.js",
+   "h": "c2ba27881643530a466a158235c31df209bb4e89f99219eaa2d850b2910fcf5e",
+   "s": 37982
+  },
+  {
+   "p": "js/intel-know.js",
+   "h": "5058d9051cd6cddd66b39170307181bda0f8f826420baaf14eb788c2a55da9c2",
+   "s": 36827
+  },
+  {
+   "p": "js/knowledge-data.js",
+   "h": "e5bb5079c63d51ac5fec6768dea01f25a561db87aef108bac7201926dc00a576",
+   "s": 20689
+  },
+  {
+   "p": "js/diagnostics.js",
+   "h": "96c0c4a7d584f7d0531a0973190b704bd3f7136d37835acad196048b87907dde",
+   "s": 5347
+  },
+  {
+   "p": "js/pat.js",
+   "h": "3a260ac84cdce5bb6c4072c30fd44c9b68cfccdaae86a0f550f14d002390ccb0",
+   "s": 67816
+  },
+  {
+   "p": "js/appmeta.js",
+   "h": "ba14d5abd846fc052febf71a2f8aed5046860f0bc9d672950e5450314699b525",
+   "s": 16404
+  },
+  {
+   "p": "js/mobile.js",
+   "h": "209204db98326a2a3ac649b7330ecc9fb97dd4edcf5fc2d8b9a75068d0785f4a",
+   "s": 34651
+  },
+  {
+   "p": "js/alarms.js",
+   "h": "a65971b4003c7a232198422979b0b357b14c2c93ba3248c26107cd22a3e00698",
+   "s": 11218
+  },
+  {
+   "p": "js/session.js",
+   "h": "61acec9390aaa54e3e7d80d581cd2efa65dd82d84bd00c3716a88a6d86ea83f5",
+   "s": 4752
+  },
+  {
+   "p": "js/timeline.js",
+   "h": "9e4b75aeace2cf6c03dbc6bcea1c72bdbfff511751112f41b6ac7d26a5bfc8d4",
+   "s": 17722
+  },
+  {
+   "p": "js/handoff.js",
+   "h": "c6bc916c62ca83f5075835eaa28e5696ad539346e4a7677fcb3e19b3cc93920e",
+   "s": 7363
+  },
+  {
+   "p": "js/flow.js",
+   "h": "4275159e9a77f9d18f7783f5bd225ccecb5db6c8327c8339e97e30357568ed28",
+   "s": 9874
+  },
+  {
+   "p": "js/backup.js",
+   "h": "eb73bb91a8e4b2f00d3e6d56e36ed80ad8470a08e4c9756a708beb2a1c93982f",
+   "s": 24581
+  },
+  {
+   "p": "js/sync.js",
+   "h": "86c870a36bd1990bc65299146a9185e2a2d427dabd833466315fd7c88349b5da",
+   "s": 28304
+  },
+  {
+   "p": "js/link.js",
+   "h": "3a59059620e5cd24b889ec9e6f9cd52a873338acdb727a817326b741e0abc8a9",
+   "s": 17457
+  },
+  {
+   "p": "js/account.js",
+   "h": "a9144a0822aa122b3c06610da2dc5ecef870b84d931e7a45817447f771426371",
+   "s": 13883
+  },
+  {
+   "p": "js/chat.js",
+   "h": "a7e9b1642271b20141116caf3cd0e1fcc923df56e66ec07c5958bbfae5d644bc",
+   "s": 13188
+  },
+  {
+   "p": "js/account-ui.js",
+   "h": "b5827317d42d69c83eba2528077d4d72af37336d96da70a5af65537a2f2c1f78",
+   "s": 7924
+  },
+  {
+   "p": "js/setup.js",
+   "h": "d9cd97f42b953c614c27f46a4984766d919e0adb4f0080bae2afc4904f4bf6c5",
+   "s": 11020
+  },
+  {
+   "p": "js/legal.js",
+   "h": "3034bc86759335aca752a55f546a27238b684c2eb11e802dfc7e26866fa43ef0",
+   "s": 23570
+  },
+  {
+   "p": "js/apps/finder.js",
+   "h": "572e9fd2bdde144ebdd79df1078820fa64e13aa474d597031e49cdf6564d987e",
+   "s": 61202
+  },
+  {
+   "p": "js/apps/office.js",
+   "h": "aa40e47aa471dc20279994e14319945f4135044b1b74e3ce6e94e2dc10336847",
+   "s": 15412
+  },
+  {
+   "p": "js/apps/passwords.js",
+   "h": "c057f73337694ee05f6388200d5e2b36922368d1e6318ba9482a24ae9d629ae1",
+   "s": 30271
+  },
+  {
+   "p": "js/apps/browser.js",
+   "h": "70407794684ee05ab6e36c6e6cceef9dc96099ef40f9d86a43bfdfe6fcfbf113",
+   "s": 108721
+  },
+  {
+   "p": "js/apps/webapps.js",
+   "h": "624fe19c6082f3af9594ef6fc7ba80edf8878632b5b04c7335a1ae788509f533",
+   "s": 4160
+  },
+  {
+   "p": "js/apps/youtube.js",
+   "h": "651cf28e9b422430b225eff31ddf3eddabc913eee89d3d909570d8c87ec84ae3",
+   "s": 51115
+  },
+  {
+   "p": "js/apps/notes.js",
+   "h": "7f38e050c9d11056885bdcc58b4a1eaa4cf0e4a43d6a5c2893334c88a9f4fe55",
+   "s": 31469
+  },
+  {
+   "p": "js/apps/textedit.js",
+   "h": "a65f8f4cd7a06f325f2f01be282e6db968546c4adad4e59e88821804b163abcc",
+   "s": 21811
+  },
+  {
+   "p": "js/apps/calculator.js",
+   "h": "580fb5a0f820ddccd09919f563b4b5cef3b88e120c33e9158e3f631d65c5634b",
+   "s": 13023
+  },
+  {
+   "p": "js/apps/terminal.js",
+   "h": "ffa9ad950a2fb6a83c7ea2f7e4c639691bdd7c860a9297eeba2da17ccbd20fe5",
+   "s": 39673
+  },
+  {
+   "p": "js/apps/calendar.js",
+   "h": "422e09e0698e5a2348a5e3882260909c47facda08f4032a67d8753edc35a3ee4",
+   "s": 35618
+  },
+  {
+   "p": "js/apps/clock.js",
+   "h": "b5019e99cabbf3cd8d2aaaa2df037da8c5925d590544073c247b6059018294de",
+   "s": 21066
+  },
+  {
+   "p": "js/apps/weather.js",
+   "h": "9d083ffbeeee7b7c5a2519f321382c9d882aedf2ff2b9fcd46763102bf54ebdc",
+   "s": 27325
+  },
+  {
+   "p": "js/apps/music.js",
+   "h": "f23f6c2b89b4c14b503b07b0ba41c474b2b25d97873e7ed0f9001afd60e7db5a",
+   "s": 46154
+  },
+  {
+   "p": "js/apps/photos.js",
+   "h": "b203a63e5ffd25b05d47b51e3d907fbfc62316fe293ac0f041588ecb735f2bba",
+   "s": 33645
+  },
+  {
+   "p": "js/apps/paint.js",
+   "h": "e66b94b434df4f1a4e0aea482c7e56949832cd77fa6c6741c42e80147af489ad",
+   "s": 23783
+  },
+  {
+   "p": "js/apps/photobooth.js",
+   "h": "6fdcfcebdeb6d96eab7faf36b822fc54421e7d592b4d9f85b9dd34414fd32fae",
+   "s": 13006
+  },
+  {
+   "p": "js/apps/reminders.js",
+   "h": "acf53001d12f106c26dab7a221256f5264c836d30c3279cfa324729dd2de5e8f",
+   "s": 16069
+  },
+  {
+   "p": "js/apps/settings.js",
+   "h": "556d64d9c75eaefe210f8ff50b267f6d9ffcc82e7b398341920c8f5651fea939",
+   "s": 97328
+  },
+  {
+   "p": "js/apps/activity.js",
+   "h": "7b25c2d670017ba36b1f58c37e13de55a5531bc27a75df1c60372a1b0a7347cb",
+   "s": 3067
+  },
+  {
+   "p": "js/apps/orbrunner.js",
+   "h": "f9aca8c4f53d7386cc69f426ce6b19339d0cf2088b1675ec43bb5132f7d7a9c8",
+   "s": 12228
+  },
+  {
+   "p": "js/apps/studio.js",
+   "h": "8ca92d0c845cb241585e2a38b2f8330567d558d8893b3b97d468d87d02253617",
+   "s": 7662
+  },
+  {
+   "p": "js/apps/tictactoe.js",
+   "h": "b8da43c683f35de35c2d387f0814ce53c0e644167d3083b2451d72b723965e70",
+   "s": 3504
+  },
+  {
+   "p": "js/apps/messages.js",
+   "h": "9bf57513f33731574b9f97ecc704cd722be67d0232ec89a26a88a108d45961b3",
+   "s": 22222
+  },
+  {
+   "p": "js/apps/appstore.js",
+   "h": "aaaa231afbd9525158809063c145571a2cecb8661e2c299bb8626eab8c9bdaa2",
+   "s": 15546
+  },
+  {
+   "p": "js/apps/developer.js",
+   "h": "fca0d3c550b8f42a673b95c894902926666cf89b23e53d437584dcaf5dda9469",
+   "s": 11678
+  },
+  {
+   "p": "js/apps/codestudio.js",
+   "h": "db0714e247542dd8273e11526fec609fc7e1e08f71092ebef5081302663f7094",
+   "s": 13263
+  },
+  {
+   "p": "js/apps/piano.js",
+   "h": "4394bef947108f201809efa2b65cf7408e164f8652390674af55af9ad78cb4ae",
+   "s": 4805
+  },
+  {
+   "p": "js/apps/flashcards.js",
+   "h": "03fc073805ffa32c00af725f182c001e798b3929dfdd439343b22e8d1d8f39c7",
+   "s": 24924
+  },
+  {
+   "p": "js/apps/voicememos.js",
+   "h": "ee9c9338b42d28ae91c6baf604794e5e1de09d0f16c164e7f0fc6447e9311fb6",
+   "s": 5043
+  },
+  {
+   "p": "js/apps/stickies.js",
+   "h": "73102ceedce8f0308365fd902f46b4db3eaa3ef22933c2497fcaba5f154fa8c3",
+   "s": 2264
+  },
+  {
+   "p": "js/apps/dictionary.js",
+   "h": "d4a09082305e0213388ddf4b2ee727312e7935a14e1636c195cad8c4130df0b1",
+   "s": 4409
+  },
+  {
+   "p": "js/apps/docs.js",
+   "h": "bc0059c8f3a8bfa49750543cc3ef93c4123afdc572b11d17abdf66e852022248",
+   "s": 41936
+  },
+  {
+   "p": "js/apps/sheets.js",
+   "h": "cb08c863cd87abf75895672b036f74cb5d5e812a6ffbc15b0551f69cf8d1e7ff",
+   "s": 57081
+  },
+  {
+   "p": "js/apps/slides.js",
+   "h": "59a439dd9f6e7d825d56902e95a4e36e170008b4f28164ca6ba967237b37b5e7",
+   "s": 35681
+  },
+  {
+   "p": "js/apps/drive.js",
+   "h": "e35c4bc4a3064cc3739636bd7b7174a9fc2466fe7a2480c3fb736e2e6b2ad13b",
+   "s": 5575
+  },
+  {
+   "p": "js/apps/forms.js",
+   "h": "2e3ef115767563c5731715627579e3f6a9d9fd091ffccb03877e56536fa91cdb",
+   "s": 35028
+  },
+  {
+   "p": "js/apps/translate.js",
+   "h": "a249be11e42cea8565057540b4c1088f1924ecfbf3c3cf8d9e70e44899185a4b",
+   "s": 5630
+  },
+  {
+   "p": "js/apps/contacts.js",
+   "h": "e1f648d244035f35d3fa3cd4657d00cc020fedff352a76e2a12ac7aaef6d4be5",
+   "s": 23151
+  },
+  {
+   "p": "js/apps/freeform.js",
+   "h": "62d85d6ed04b1f822832ed2f35b531822373921024d604f21693f5548626f925",
+   "s": 11429
+  },
+  {
+   "p": "js/apps/pdfview.js",
+   "h": "caf777aa704de5fe4b385d098071909a37921c68ebcf6243eafe5b03ee528f8f",
+   "s": 27972
+  },
+  {
+   "p": "js/apps/preview.js",
+   "h": "23c14be86c1fe24c51d2663502f054246549563b014083fbccf853e410a4bb13",
+   "s": 5139
+  },
+  {
+   "p": "js/apps/scanner.js",
+   "h": "8cfd2d66128d564ad970d4dba9b61ec45226f9caa074b77ae081a10bde517328",
+   "s": 25979
+  },
+  {
+   "p": "js/apps/chess.js",
+   "h": "9c9ab65d5d72ea7ae786b3529e43648ebdefe0cb82ee10113341cc1b3158d479",
+   "s": 11312
+  },
+  {
+   "p": "js/apps/slither.js",
+   "h": "5b95a923933d677cf1c9af57ae86db0e61e16bc41c6e992dd682edb9513fd3b1",
+   "s": 33452
+  },
+  {
+   "p": "js/apps/screenshot.js",
+   "h": "7766630e3b0ce6537110f422d71de5527f3184483366ff3ab8e9b3a2be874fe5",
+   "s": 23900
+  },
+  {
+   "p": "js/apps/grapher.js",
+   "h": "d082b4378423cd792620a9fcf6c35611f84f18c7e83c462ac83ea4e2071f63f5",
+   "s": 45501
+  },
+  {
+   "p": "js/apps/focus.js",
+   "h": "2c575c9b9c66e9be460f5fc392f4380d1b7fd82e05b846f21ef1bd41b4928369",
+   "s": 11827
+  },
+  {
+   "p": "js/apps/journal.js",
+   "h": "40b50e0d6eca0d8e95ffebf2f78e69bd9887370e9cb69359e9d8cb1364aba473",
+   "s": 8012
+  },
+  {
+   "p": "js/apps/sudoku.js",
+   "h": "fb346f2a95113322f249a1ec945325c23c3cb32c24620b7384320d5e300f0f0b",
+   "s": 10492
+  },
+  {
+   "p": "js/apps/news.js",
+   "h": "1fe8c20a9397f90e4d876827d497786721aab74949c74d2c2e2cf50b3451830b",
+   "s": 7575
+  },
+  {
+   "p": "js/apps/books.js",
+   "h": "2bab6bfcbe442a9d02cba704ff0411bfa42efabf0ee53e57061b761a1ac7d23e",
+   "s": 10716
+  },
+  {
+   "p": "js/apps/radio.js",
+   "h": "f0fd72a7cc62da694788c936f0f4be010c68475c85d78b321c31677d52dc46a9",
+   "s": 7760
+  },
+  {
+   "p": "js/apps/videos.js",
+   "h": "869cc265db2f2f0afff1877ed98880fca55d51e5ab7013dd8d032a8be337e352",
+   "s": 4267
+  },
+  {
+   "p": "js/apps/solitaire.js",
+   "h": "bd12f45aa4142963169372ad2380e9cd081e72597532ad50647f3d1b87700b8b",
+   "s": 10750
+  },
+  {
+   "p": "js/apps/games.js",
+   "h": "e2480969d084b17a081d3d21022ee1348aaee00d57b311662522a306c2f63186",
+   "s": 37785
+  },
+  {
+   "p": "js/apps/getapps.js",
+   "h": "7626247256ec482f4c8a511581e473ebc572cc16869be83192d99d905e9fcca9",
+   "s": 25031
+  },
+  {
+   "p": "js/apps/about.js",
+   "h": "a3062f65a04aa72179ed6c21ba4ee86651364866b9c84b58bb175c6b43a9aaa5",
+   "s": 3168
+  },
+  {
+   "p": "js/patapp-format.js",
+   "h": "e13a1228921d3f10d053e4204cd3d3d6e6ca6a5441efb8cc1d53f9c1f515f6ae",
+   "s": 5146
+  },
+  {
+   "p": "js/patapps.js",
+   "h": "858e4f183d3f81ee45e6c89d460556c795ca890813b343bf6413c8516f3ea860",
+   "s": 28672
+  },
+  {
+   "p": "js/apps/patapps-ui.js",
+   "h": "a753cc290db2fe3c39f4a82ed855bcc23634a14a78372f8367dafe54d55d2c36",
+   "s": 13781
+  },
+  {
+   "p": "js/apps/pitstudio.js",
+   "h": "346530b46b378ac9d0ab6a240df979f6491339c17566e22acc4a5733dbc9516d",
+   "s": 69046
+  },
+  {
+   "p": "js/apps/patdrop.js",
+   "h": "f04bf2b11471e6b9bdca21767f4eb8165bcaa2c2397d99150d80091315e80124",
+   "s": 14700
+  },
+  {
+   "p": "js/apps/shortcuts.js",
+   "h": "ef7c9dec2b2f28eb3ab8513fd5b565ffe362565be7fc8bb7842894a925b9d96b",
+   "s": 11666
+  },
+  {
+   "p": "js/apps/timeline.js",
+   "h": "cdc7ddac259aacf7ceb32e2d656949dccb8941db055339b458ef9c7df4f83e99",
+   "s": 22073
+  },
+  {
+   "p": "js/shortcuts.js",
+   "h": "e0279bd9e44c5d469e2de34eaaeee0091dc40de4300c010363b440d0091901e3",
+   "s": 17380
+  },
+  {
+   "p": "js/firmware.js",
+   "h": "347dcb5d913b59e0cc37f5441da643c4eca379ce90d11abf9a1dfffc752fa281",
+   "s": 21163
+  },
+  {
+   "p": "js/boot.js",
+   "h": "9dc72d9e3925b10a53f02140e4f1590c2947dd9e4b6fcfb339b880d63df34049",
+   "s": 12549
+  }
+ ]
+}

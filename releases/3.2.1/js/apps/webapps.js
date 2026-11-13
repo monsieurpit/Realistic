@@ -1,0 +1,54 @@
+/* Maps (OpenStreetMap) and YouTube (official player + YouTube Data API) */
+(function () {
+  'use strict';
+  const { h } = PatOS;
+  /* Maps: embeddable OpenStreetMap with place search */
+  PatOS.registerApp({
+    onArgs(win, a) { if (win._place) win._place(a); },
+    id: 'maps', name: 'Maps', icon: 'maps', category: 'Apps', width: 900, height: 600, keywords: 'map location directions',
+    launch(win, args) {
+      args = args || {};
+      win.el.classList.add('has-toolbar');
+      const q = h('input', { class: 'field', placeholder: 'Search for a place', 'aria-label': 'Search for a place', style: { width: '260px' }, spellcheck: 'false' });
+      const bLoc = h('button', { class: 'tbtn', title: 'My location' }, '➤');
+      const bG = h('button', { class: 'tbtn', title: 'Open in Google Maps' }, '↗');
+      win.toolbar.append(bLoc, q, bG);
+      const frame = h('iframe', { class: 'map-frame', allow: 'geolocation' });
+      const info = h('div', { class: 'map-info hidden' });
+      win.body.append(frame, info);
+      let lat = 45.5019, lon = -73.5674, label = 'Montréal';
+      if (PatOS.sandboxed) {
+        frame.replaceWith(h('div', { class: 'br-blocked' }, h('div', { class: 'bb-ic', html: PatOS.iconHTML('maps') }), h('h2', {}, 'Maps opens in a new tab here'), h('p', {}, 'Claude Artifacts can’t show maps inside the page. Search for a place and PatOS opens it in a real tab.')));
+        q.addEventListener('keydown', (e) => { if (e.key === 'Enter' && q.value.trim()) PatOS.openExternal('https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(q.value)); });
+        bG.onclick = () => PatOS.openExternal('https://www.google.com/maps'); bLoc.style.display = 'none';
+        return;
+      }
+      let show = function (z) {
+        const d = z || 0.06;
+        frame.src = `https://www.openstreetmap.org/export/embed.html?bbox=${lon - d * 1.6}%2C${lat - d}%2C${lon + d * 1.6}%2C${lat + d}&layer=mapnik&marker=${lat}%2C${lon}`;
+        info.textContent = label; info.classList.remove('hidden');
+      };
+      q.addEventListener('keydown', async (e) => {
+        if (e.key !== 'Enter' || !q.value.trim()) return;
+        try {
+          const j = await PatOS.places.search(q.value, null, 1); // (js/places.js: the same search PatOS Intelligence uses)
+          if (!j.length) { info.textContent = 'No place found for “' + q.value + '”'; info.classList.remove('hidden'); return; }
+          lat = j[0].lat; lon = j[0].lon; label = j[0].name + (j[0].address ? ', ' + j[0].address : ''); show(0.03);
+        } catch (er) { if (PatOS.isOffline()) return start(); info.textContent = PatOS.t('Search needs an internet connection.'); info.classList.remove('hidden'); }
+      });
+      bLoc.onclick = () => navigator.geolocation && navigator.geolocation.getCurrentPosition((p) => { lat = p.coords.latitude; lon = p.coords.longitude; label = 'Your location'; show(0.01); }, () => PatOS.notify({ title: 'Location unavailable', body: 'PatOS could not get your location.', icon: 'maps' }));
+      bG.onclick = () => PatOS.openExternal(`https://www.google.com/maps/search/?api=1&query=${lat},${lon}`);
+      // maps come from the internet: offline, say so instead of showing an empty frame, and load when back
+      let offCard = null;
+      const start = (z) => {
+        if (offCard) { offCard.remove(); offCard = null; }
+        if (PatOS.isOffline()) { frame.style.display = 'none'; info.classList.add('hidden'); offCard = PatOS.offlineCard(() => start(z), { body: 'Maps need the internet. The map will load by itself when you’re back online.' }); win.body.appendChild(offCard); return; }
+        frame.style.display = ''; show(z);
+      };
+      const _show = show; show = (z) => { if (PatOS.isOffline()) return start(z); _show(z); };
+      // opened on a place (by PatOS Intelligence: "nearest gym", "show Paris on the map")
+      win._place = (a) => { if (a && Number.isFinite(+a.lat) && Number.isFinite(+a.lon)) { lat = +a.lat; lon = +a.lon; label = String(a.label || '').slice(0, 200); q.value = a.query || ''; start(a.zoom || 0.01); return true; } return false; };
+      if (!win._place(args)) start();
+    }
+  });
+})();

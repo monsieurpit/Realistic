@@ -178,7 +178,7 @@
   }
   function dropItem(id) {
     const kind = id[0], rest = id.slice(2);
-    if (kind === 'k') PatOS.store.remove(rest);
+    if (kind === 'k') { if (denied(rest)) return null; PatOS.store.remove(rest); } // (a device-only key is never deleted by another device: 3.3 lost setupDone that way)
     else if (kind === 'f') { if (PatOS.fs.isSystem && PatOS.fs.isSystem(rest)) return null; const n = PatOS.fs.get(rest); if (n && n.type === 'file') PatOS.fs.remove(rest, true); }
     else if (kind === 'd') return 'dir';
     return null;
@@ -273,7 +273,8 @@
       else if (!r.pushed) out.push({ rid, id: it.id, h: it.h, t: r.t });
     });
     const dels = [];
-    Object.keys(state.recs).forEach((rid) => { const r = state.recs[rid]; if (!r.del && !local.items.has(rid) && !local.big.has(rid)) dels.push({ rid, id: r.id, h: null, del: true, t: Math.max(Date.now(), r.t + 1) }); });
+    Object.keys(state.recs).forEach((rid) => { const r = state.recs[rid]; if (r.id && r.id[0] === 'k' && denied(r.id.slice(2))) return; // (a key that became device-only is just forgotten, not deleted everywhere)
+      if (!r.del && !local.items.has(rid) && !local.big.has(rid)) dels.push({ rid, id: r.id, h: null, del: true, t: Math.max(Date.now(), r.t + 1) }); });
     const live = Object.values(state.recs).filter((r) => !r.del).length;
     state.hold = 0;
     if (dels.length > 20 && dels.length > live / 2 && !force) { state.hold = dels.length; dels.length = 0; } // most things vanished at once: ask first
