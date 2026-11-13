@@ -120,14 +120,26 @@
           text('  PID  %CPU  THREADS  ENERGY  MEMORY      COMMAND');
           l.slice(0, 12).forEach((p) => text(String(p.pid).padStart(5) + '  ' + p.cpu.toFixed(1).padStart(4) + '  ' + String(p.threads).padStart(7) + '  ' + String(p.energy).padStart(6) + '  ' + (p.memory ? PatOS.fmtBytes(p.memory) : '-').padEnd(10) + '  ' + p.name));
         },
+        /* kill [-9] <pid>...: exactly that PID (digits only, no leading zero: "0400", "4e2" or "400x" are not PIDs).
+           kill = quit (its windows may ask to save), kill -9 = force quit. PatOS's own processes are protected. Only an exact
+           "1" or "42", with sudo, is the kernel panic (on purpose); anything invalid is an error, never a panic. */
         kill(a) {
-          const force = a.includes('-9') || a.includes('-KILL'); const pid = a.filter((x) => !x.startsWith('-'))[0];
-          if (!pid) return text('usage: kill [-9] <pid>', 'err');
-          if (pid === '1' || pid === '42') { if (!PatOS.fs.isRoot()) return text('kill: ' + pid + ': Operation not permitted', 'err'); PatOS.firmware.panic(pid === '1' ? 'Attempted to kill init!' : 'Attempted to kill the kernel'); return; }
-          const p = PatOS.proc && PatOS.proc.get(pid);
-          if (!p) return text('kill: ' + pid + ': No such process', 'err');
-          if (p.system) return text('kill: ' + pid + ': ' + (PatOS.fs.isRoot() ? p.name + ' is part of PatOS and can’t be stopped' : 'Operation not permitted'), 'err');
-          if (force) PatOS.proc.kill(p.pid); else PatOS.proc.quit(p.pid);
+          const flags = a.filter((x) => /^-/.test(x)), args = a.filter((x) => !/^-/.test(x));
+          const bad = flags.find((f) => !/^-(9|15|KILL|TERM|SIGKILL|SIGTERM)$/.test(f));
+          if (bad) return text('kill: ' + bad.slice(1) + ': invalid signal specification', 'err');
+          if (!args.length) return text('usage: kill [-9] <pid> ...', 'err');
+          const force = flags.some((f) => /9|KILL/.test(f));
+          for (const s of args) {
+            if (!/^[1-9]\d{0,6}$/.test(s)) { text('kill: ' + s + ': arguments must be process IDs', 'err'); continue; }
+            if (s === '1' || s === '42') {
+              if (!PatOS.fs.isRoot()) { text('kill: ' + s + ': Operation not permitted', 'err'); continue; }
+              PatOS.firmware.panic(s === '1' ? 'Attempted to kill init!' : 'Attempted to kill the kernel'); return;
+            }
+            const p = PatOS.proc && PatOS.proc.get(+s);
+            if (!p) { text('kill: ' + s + ': No such process', 'err'); continue; }
+            if (p.system) { text('kill: ' + s + ': ' + (PatOS.fs.isRoot() ? p.name + ' is part of PatOS and can’t be stopped' : 'Operation not permitted'), 'err'); continue; }
+            if (force) PatOS.proc.kill(p.pid); else PatOS.proc.quit(p.pid);
+          }
         },
         killall(a) {
           const name = a.filter((x) => !x.startsWith('-')).join(' ').toLowerCase(); if (!name) return text('usage: killall [-9] <name>', 'err');

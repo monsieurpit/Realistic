@@ -172,9 +172,9 @@
   }
 
   /* quit: its windows close the normal way (they may ask to save). force quit: everything it started stops */
-  function quit(pid) { const p = procs.get(+pid); if (!p || p.system) return false; if (!p.windows.size) { end(p, true); return true; } [...p.windows].forEach((w) => w.close()); return true; }
+  function quit(pid) { const p = procs.get(pidOf(pid)); if (!p || p.system) return false; if (!p.windows.size) { end(p, true); return true; } [...p.windows].forEach((w) => w.close()); return true; }
   function kill(pid) {
-    const p = procs.get(+pid); if (!p || p.system) return false;
+    const p = procs.get(pidOf(pid)); if (!p || p.system) return false;
     [...p.windows].forEach((w) => { w._force = true; try { w.close(); } catch (e) {} });
     end(p, true);
     if (PatOS.pill && PatOS.pill.flash) PatOS.pill.flash({ lead: '<span class="pl-app">' + PatOS.iconHTML((PatOS.apps[p.app] && PatOS.apps[p.app].icon) || p.app) + '</span>', title: p.name, sub: PatOS.t('was force quit'), status: 'failed', tone: '#ff453a' });
@@ -215,6 +215,7 @@
   }
 
   /* ---------- watching: an app that blocks PatOS, keeps failing, or uses a lot in the background (the Pill says so) ---------- */
+  const pidOf = (x) => (typeof x === 'number' && Number.isInteger(x) ? x : /^[1-9]\d{0,6}$/.test(String(x)) ? +x : -1); // (exactly a PID, or nothing)
   const told = new Map();
   raw.setInterval(() => {
     procs.forEach((p) => {
@@ -235,10 +236,10 @@
   PatOS.on('proc:exit', (e) => { if (PatOS.pill && PatOS.pill.has && PatOS.pill.has('proc-' + e.pid)) PatOS.pill.dismiss('proc-' + e.pid); });
 
   PatOS.proc = {
-    forApp, run, quit, kill, windowClosed, _raw: (pid) => procs.get(+pid) || null,
+    forApp, run, quit, kill, windowClosed, _raw: (pid) => procs.get(pidOf(pid)) || null,
     sys: (name, fn, self, args) => run(SYS[name], fn, self, args), // (runs PatOS's own work as that part of the system, measured)
     list: () => [...procs.values()].map(info).sort((a, b) => a.pid - b.pid),
-    get: (pid) => { const p = procs.get(+pid); return p ? info(p) : null; },
+    get: (pid) => { const p = procs.get(pidOf(pid)); return p ? info(p) : null; },
     ofApp: (id) => { const p = byApp.get(id); return p && !p.dead ? info(p) : null; },
     recent: () => recent.slice(),
     current: () => (cur ? cur.pid : 0)
