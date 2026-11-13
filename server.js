@@ -21,7 +21,15 @@ const TYPES = {
   '.png': 'image/png', '.jpg': 'image/jpeg', '.ico': 'image/x-icon', '.txt': 'text/plain; charset=utf-8', '.md': 'text/plain; charset=utf-8', '.patapp': 'application/json'
 };
 const versions = updateManager.create({ root: ROOT });
-const updLog = []; // (see /api/updates/log) // which files each version of PatOS is made of (see update-manager.js)
+const updLog = []; // (see /api/updates/log)
+// one step of the update log: kept in memory (GET /api/updates/log) and written to the server's log (Railway › Deploy Logs)
+function updNote(dev, ev, d) {
+  const e = { t: Date.now(), dev: String(dev || '?').slice(0, 24), ev: String(ev).slice(0, 40), d: JSON.stringify(d || {}).slice(0, 900) };
+  updLog.push(e); if (updLog.length > 600) updLog.splice(0, updLog.length - 600);
+  console.log('[update] ' + e.dev + ' ' + e.ev + ' ' + e.d);
+}
+// the browser asking for update files, seen from the server (works even with an old service worker on the device)
+const browserOf = (req) => { const ua = String(req.headers['user-agent'] || ''); return ((/(Edg|OPR|Firefox|Chrome|Version)\/(\d+)/.exec(ua) || [])[0] || 'browser') + (/Mobile/.test(ua) ? ' mobile' : '') + (/Windows/.test(ua) ? ' Windows' : /Mac OS/.test(ua) ? ' Mac' : /CrOS/.test(ua) ? ' ChromeOS' : /Android/.test(ua) ? ' Android' : /Linux/.test(ua) ? ' Linux' : ''); }; // which files each version of PatOS is made of (see update-manager.js)
 versions.problems().forEach((p) => console.error('PatOS update setup: ' + p));
 
 const server = http.createServer((req, res) => {
@@ -39,6 +47,11 @@ const server = http.createServer((req, res) => {
   if (p.startsWith('/pyodide/')) return sendPyodide(req, res, p).then((ok) => { if (!ok) { res.writeHead(404); res.end('Not found'); } });
   if (p === '/api/config') return sendJSON(req, res, 200, { googleCx: (process.env.GOOGLE_CX || '').trim() });
   // the list of PatOS versions and what changed in each (read fresh, so a running PatOS can see the newest one)
+  // (update log, from the server's side: what this browser asks for while updating)
+  if (p === '/sw.js' || p === '/' || p === '/index.html' || p === '/api/updates/beta' || (p.startsWith('/_v/') && p.endsWith('/patos-release.json'))) {
+    const ck = (/(?:^|;\s*)patos_ch=([0-9a-z.]{1,20})/.exec(req.headers.cookie || '') || [])[1] || '';
+    updNote('srv:' + browserOf(req), 'GET ' + p, { sw: req.headers['service-worker'] === 'script' || undefined, cookie: ck || undefined, cache: req.headers['cache-control'] || undefined });
+  }
   if (p === '/api/updates' || p === '/api/updates/beta') {
     let all = []; try { all = JSON.parse(fs.readFileSync(path.join(ROOT, 'updates.json'), 'utf8')); } catch (e) {}
     return sendJSON(req, res, 200, p === '/api/updates' ? all.filter((r) => !r.beta) : all.find((r) => r.beta) || null); // releases, or the beta being built
@@ -58,7 +71,7 @@ const server = http.createServer((req, res) => {
   if (p === '/api/updates/log') {
     if (req.method === 'POST') {
       let body = ''; req.on('data', (c) => { body += c; if (body.length > 4000) req.destroy(); });
-      return req.on('end', () => { try { const e = JSON.parse(body); if (e && typeof e.dev === 'string' && typeof e.ev === 'string') { updLog.push({ t: Date.now(), dev: e.dev.slice(0, 12), ev: e.ev.slice(0, 40), d: JSON.stringify(e.d || {}).slice(0, 900) }); if (updLog.length > 600) updLog.splice(0, updLog.length - 600); } } catch (er) {} res.writeHead(204, { 'Cache-Control': 'no-store' }); res.end(); });
+      return req.on('end', () => { try { const e = JSON.parse(body); if (e && typeof e.dev === 'string' && typeof e.ev === 'string') updNote(e.dev.slice(0, 12), e.ev, e.d); } catch (er) {} res.writeHead(204, { 'Cache-Control': 'no-store' }); res.end(); });
     }
     const dev = new URL(req.url, 'http://x').searchParams.get('dev');
     return sendJSON(req, res, 200, dev ? updLog.filter((x) => x.dev === dev) : updLog.slice(-200));
