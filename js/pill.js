@@ -421,11 +421,21 @@
     if (!flashNow && flashQ.length && vis) startFlash(flashQ.shift());
     const c = vis ? collect() : { all: [], compact: [] }; shown = c.all;
     document.documentElement.classList.toggle('pill-on', on());
-    if (!vis || (!c.compact.length && !flashNow && mode !== 'expanded')) {
-      if (mode !== 'hidden') { mode = 'hidden'; wrap.classList.remove('show', 'flashing', 'two', 'urgent'); pill.classList.remove('expanded'); }
+    if (!vis) {
+      if (mode !== 'hidden') { mode = 'hidden'; wrap.classList.remove('show', 'flashing', 'two', 'urgent', 'idle'); pill.classList.remove('expanded'); }
       cancelAnimationFrame(barsRaf); barsRaf = 0; tick(); return;
     }
-    if (mode === 'hidden') mode = 'compact';
+    // nothing happening: the Pill rests as a small black capsule (click it for the Activity Overview); things grow out of it
+    if (!c.compact.length && !flashNow && mode !== 'expanded') {
+      mode = 'idle'; wrap.classList.add('show', 'idle'); wrap.classList.remove('flashing', 'two', 'urgent');
+      wrap.className = wrap.className.replace(/\bfs-\w+/g, '').trim() + ' fs-' + (S().pillFs || 'important');
+      pill.classList.remove('toned', 'has-p', 'ringing'); pill.style.setProperty('--pl-p', '0');
+      morph(h('div', { class: 'pl-idle' }), 'idle', false);
+      pill.setAttribute('aria-label', T('Activity Overview') + (hist.length ? ' · ' + hist.length + ' ' + T('finished recently') : ''));
+      cancelAnimationFrame(barsRaf); barsRaf = 0; tick(); return;
+    }
+    wrap.classList.remove('idle');
+    if (mode === 'hidden' || mode === 'idle') mode = 'compact';
     wrap.classList.add('show'); wrap.classList.toggle('flashing', !!flashNow);
     wrap.className = wrap.className.replace(/\bfs-\w+/g, '').trim() + ' fs-' + (S().pillFs || 'important');
     const it = flashNow || (mode === 'expanded' ? c.all[0] : c.compact[0]) || c.all[0] || {};

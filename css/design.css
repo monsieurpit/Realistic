@@ -437,3 +437,13 @@ body.patos-fs #pill-wrap.fs-always #pill, body.patos-fs #pill-wrap.fs-important.
 .pl-ring { color: #fff; } #pill.toned .pl-ring { color: var(--pl-tone); }
 .pl-bar i { background: var(--accent); } #pill.toned .pl-bar i { background: var(--pl-tone); } .pl-bar.orange i { background: #ff9f0a; }
 #pill::after { background: var(--accent); box-shadow: 0 0 6px var(--accent); } #pill.toned::after { background: var(--pl-tone); box-shadow: 0 0 6px var(--pl-tone); }
+
+/* the Pill is black, like the island on a phone: at rest a small empty capsule, and everything grows out of it */
+#pill { background: #000 !important; -webkit-backdrop-filter: none; backdrop-filter: none; box-shadow: 0 8px 24px -8px rgba(0,0,0,.55), inset 0 0 0 .5px rgba(255,255,255,.09); }
+#pill.expanded { box-shadow: 0 24px 60px -10px rgba(0,0,0,.65), 0 4px 14px rgba(0,0,0,.3), inset 0 0 0 .5px rgba(255,255,255,.1); }
+#pill-side { background: #000 !important; -webkit-backdrop-filter: none; backdrop-filter: none; }
+.pl-idle { width: 118px; height: 24px; }
+.mobile .pl-idle { width: 110px; height: 26px; }
+#pill-wrap.idle #pill { cursor: pointer; }
+#pill-wrap.idle #pill:hover { transform: scale(1.04); }
+body.patos-fs #pill-wrap.idle { opacity: 0; pointer-events: none; }
