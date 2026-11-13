@@ -1,7 +1,7 @@
 [
   {
     "version": "4.0.0",
-    "beta": 12,
+    "beta": 13,
     "date": "2026-11-13",
     "title": {
       "en": "PatOS 4.0: Beyond the desktop",
@@ -9,6 +9,7 @@
     },
     "notes": {
       "en": [
+        "Faster on slow Chromebooks, measured on a processor slowed 6 times: with nothing happening, PatOS now uses about 80% less of the processor (the clock no longer makes the browser recheck the whole menu bar every second, and the clock widget draws its face once); the graphics chip handles 34 layers instead of 122 (the Dock is one picture at rest, its hidden labels have no glass until they show); dragging a window no longer asks the browser what's under the pointer on every move; Launchpad opens faster and keeps its icons between openings; Spotlight waits for a short pause in your typing on a slow computer instead of searching again for every letter. Liquid Glass looks exactly the same",
         "The menu bar shows the profile you are in, next to Pat and Spotlight. Click it to switch to another profile, make a new one or manage them",
         "PatOS Commons, redesigned: it now looks and works like the rest of PatOS, with the same sidebar, tabs, lists and buttons, a plain feed of posts, and a Home with what's new in all your communities. What you are writing is never lost when new posts come in. The PatOS Pill, completed: the weather (the temperature, rain or snow coming within the hour, and storms or strong wind from the forecast; you can turn it off in Settings), a Favourite button and the next songs for Music (with a new Favourites list in Music), and copies with their speed, the file being copied and Open the destination folder",
         "Much less lag, with or without apps open (games like 2048 included). The cause: the rainbow edge of Liquid Glass on desktop widgets. That edge is three bends (one per color) that the processor draws again on every frame where anything on screen moves. Desktop widgets keep the same bend, bevel and clear glass; only the rainbow is left out on them. The Dock, menus and notifications keep it",
@@ -25,6 +26,7 @@
         "The desktop becomes a dashboard: widgets you can place anywhere, resize, stack and configure (clock, calendar, up next, reminders you can check off, music controls, system, weather, notes, countdown, apps, photo, collections), widgets you make in PatOS Studio, and widgets from others that run sandboxed with only the permissions you give them"
       ],
       "fr": [
+        "Plus rapide sur les Chromebooks lents, mesuré avec un processeur ralenti 6 fois : quand rien ne se passe, PatOS utilise maintenant environ 80 % moins de processeur (l’horloge ne fait plus revérifier toute la barre des menus chaque seconde, et le widget Horloge dessine son cadran une seule fois); la puce graphique gère 34 couches au lieu de 122 (le Dock est une seule image au repos, ses étiquettes cachées n’ont pas de verre tant qu’elles ne s’affichent pas); déplacer une fenêtre ne demande plus au navigateur ce qui est sous le pointeur à chaque mouvement; Launchpad s’ouvre plus vite et garde ses icônes entre deux ouvertures; sur un ordinateur lent, Spotlight attend une courte pause dans ta frappe au lieu de chercher à chaque lettre. Le Liquid Glass reste exactement pareil",
         "La barre des menus montre le profil où tu es, à côté de Pat et de Spotlight. Clique dessus pour passer à un autre profil, en créer un ou les gérer",
         "PatOS Commons, redessiné : il ressemble maintenant au reste de PatOS et fonctionne pareil, avec la même barre latérale, les mêmes onglets, listes et boutons, un fil de publications simple, et un Accueil avec les nouveautés de toutes tes communautés. Ce que tu écris n’est jamais perdu quand de nouvelles publications arrivent. La PatOS Pill, complétée : la météo (la température, la pluie ou la neige qui arrive dans l’heure, et les orages ou vents forts selon les prévisions; tu peux la désactiver dans Réglages), un bouton Favori et les prochaines chansons pour Musique (avec une nouvelle liste Favoris dans Musique), et les copies avec leur vitesse, le fichier en cours et Ouvrir le dossier de destination",
         "Beaucoup moins de lenteur, avec ou sans apps ouvertes (y compris dans les jeux comme 2048). La cause : le bord arc-en-ciel du Liquid Glass sur les widgets du bureau. Ce bord, c’est trois courbures (une par couleur) que le processeur redessine à chaque image où quelque chose bouge à l’écran. Les widgets du bureau gardent la même courbure, le même biseau et le même verre clair; seul l’arc-en-ciel n’y est plus. Le Dock, les menus et les notifications le gardent",

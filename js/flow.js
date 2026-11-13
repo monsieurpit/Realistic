@@ -121,7 +121,10 @@
       const lp = document.getElementById('launchpad'); if (!lp) return;
       const items = [...lp.querySelectorAll('.lp-item')].slice(0, 80);
       const cx = innerWidth / 2, cy = innerHeight / 2.4;
-      items.forEach((it) => { const r = it.getBoundingClientRect(); it.style.setProperty('--w', Math.round(Math.hypot(r.left + r.width / 2 - cx, r.top + r.height / 2 - cy) * .45)); });
+      // (every place read first, then every delay written: reading after each write made the browser lay out Launchpad again
+      //  for each icon, most of the time it took to open on a slow computer)
+      const rs = items.map((it) => it.getBoundingClientRect());
+      items.forEach((it, i) => { const r = rs[i]; it.style.setProperty('--w', Math.round(Math.hypot(r.left + r.width / 2 - cx, r.top + r.height / 2 - cy) * .45)); });
       lp.classList.remove('lp-enter'); void lp.offsetWidth; lp.classList.add('lp-enter');
       clearTimeout(lp._wave); lp._wave = setTimeout(() => lp.classList.remove('lp-enter'), 1200);
     };

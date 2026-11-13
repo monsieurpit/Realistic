@@ -229,7 +229,7 @@
       if (e.button !== 0 || PatOS.isMobile) return;
       if (bodyMode && e.target.closest('button, input, textarea, select, canvas, a, [contenteditable], .no-drag, .calc-keys, .scrub')) return;
       if (!bodyMode && e.target.closest('.win-toolbar button, .win-toolbar input, .win-toolbar select, .win-toolbar .tab, .win-toolbar .no-drag')) return;
-      sx = e.clientX; sy = e.clientY; ox = win.el.offsetLeft; oy = win.el.offsetTop; dragging = false; pid = e.pointerId; samples = []; tabInto = null;
+      sx = e.clientX; sy = e.clientY; ox = win.el.offsetLeft; oy = win.el.offsetTop; dragging = false; pid = e.pointerId; samples = []; tabInto = null; let cellRects = null;
       const move = (ev) => {
         const dx = ev.clientX - sx, dy = ev.clientY - sy;
         if (!dragging && Math.hypot(dx, dy) < 4) return;
@@ -265,11 +265,14 @@
         // near the top, the layout picker opens; pointing at one of its zones previews exactly where the window will go
         zone = null;
         if (win.app.resizable !== false && ev.clientY < MENUBAR + 110) {
-          const pk = picker(); pk.classList.add('show');
-          const hit = document.elementsFromPoint(ev.clientX, ev.clientY).find((n) => n.classList && n.classList.contains('sl-cell'));
+          const pk = picker(); if (!pk.classList.contains('show')) { pk.classList.add('show'); cellRects = null; }
+          // (the zones' places are measured once when the picker opens: asking the browser "what is under the pointer" on every
+          //  move cost most of a drag on a slow computer)
+          if (!cellRects || !cellRects.length) cellRects = [...pk.querySelectorAll('.sl-cell')].map((c) => [c, c.getBoundingClientRect()]).filter(([, r]) => r.width);
+          const hitR = cellRects.find(([, r]) => ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom); const hit = hitR ? hitR[0] : null;
           pk.querySelectorAll('.sl-cell.on').forEach((c) => c !== hit && c.classList.remove('on'));
           if (hit) { hit.classList.add('on'); zone = JSON.parse(hit.dataset.r); snap = null; }
-        } else if (pickerEl) pickerEl.classList.remove('show');
+        } else if (pickerEl) { pickerEl.classList.remove('show'); cellRects = null; }
         if (zone) {
           const r = zoneRect(zone);
           Object.assign(p.style, { left: r.x + 6 + 'px', top: r.y + 6 + 'px', width: r.w - 12 + 'px', height: r.h - 12 + 'px' }); p.classList.add('show');

@@ -457,3 +457,7 @@ body.patos-fs #desktop-widgets, body.patos-fs .desk-widgets { transition: opacit
 /* (3.2) a window's shadow while it is dragged: on its own layer, so moving it redraws nothing under it (js/wm.js) */
 .win-ghost-shadow { position: absolute; pointer-events: none; will-change: translate; background: transparent; }
 .window.shadow-out { box-shadow: none !important; transition: none !important; }
+/* (4.0, slow computers) each icon gets its own layer only while the pointer is over the Dock, where the magnification needs
+   it. At rest the Dock is one picture: 15 fewer layers handed to the graphics chip on every frame of anything else. */
+.dock-icon > .icon-tile { will-change: auto; }
+#dock:hover .dock-icon > .icon-tile, #dock.rearranging .dock-icon > .icon-tile { will-change: scale; }

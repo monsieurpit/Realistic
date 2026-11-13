@@ -306,8 +306,11 @@
       const d = new Date();
       const opts = { hour: 'numeric', minute: '2-digit', hour12: !PatOS.settings.clock24 };
       if (PatOS.settings.showSeconds) opts.second = '2-digit';
-      $('#mb-clock').textContent = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) + '  ' + d.toLocaleTimeString(undefined, opts);
-      $('#mb-wifi').classList.toggle('off', !navigator.onLine);
+      // (written only when it changes: rewriting the same text every second made the browser re-check the styles of the
+      //  whole menu bar, and more, every second even with nothing happening)
+      const txt = d.toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' }) + '  ' + d.toLocaleTimeString(undefined, opts);
+      const mc = $('#mb-clock'); if (mc.textContent !== txt) mc.textContent = txt;
+      const off = !navigator.onLine, wf = $('#mb-wifi'); if (wf.classList.contains('off') !== off) wf.classList.toggle('off', off);
     }
     tick(); setInterval(tick, 1000);
 
@@ -491,12 +494,19 @@
     if (hadFocus) { const nq = nc.querySelector('.nc-search'); if (nq) { nq.focus(); nq.setSelectionRange(nq.value.length, nq.value.length); } }
     PatOS.nc.markRead();
   }
-  function drawAnalog(cv, d) {
-    const x = cv.getContext('2d'); const W = cv.width, R = W / 2 - 4;
-    x.clearRect(0, 0, W, W); x.save(); x.translate(W / 2, W / 2);
+  // the face (the disc and its 12 numbers) never changes: drawn once per size and kept; each second only the hands are drawn
+  const faces = new Map();
+  function clockFace(W, R) {
+    if (faces.has(W)) return faces.get(W);
+    const c = document.createElement('canvas'); c.width = c.height = W; const x = c.getContext('2d'); x.translate(W / 2, W / 2);
     x.fillStyle = '#fff'; x.beginPath(); x.arc(0, 0, R, 0, Math.PI * 2); x.fill();
     x.fillStyle = '#1c1c1e'; x.font = '600 11px system-ui'; x.textAlign = 'center'; x.textBaseline = 'middle';
     for (let i = 1; i <= 12; i++) { const a = (i / 12) * Math.PI * 2; x.fillText(i, Math.sin(a) * (R - 12), -Math.cos(a) * (R - 12)); }
+    faces.set(W, c); return c;
+  }
+  function drawAnalog(cv, d) {
+    const x = cv.getContext('2d'); const W = cv.width, R = W / 2 - 4;
+    x.clearRect(0, 0, W, W); x.drawImage(clockFace(W, R), 0, 0); x.save(); x.translate(W / 2, W / 2);
     const hand = (a, len, w, c) => { x.save(); x.rotate(a); x.strokeStyle = c; x.lineWidth = w; x.lineCap = 'round'; x.beginPath(); x.moveTo(0, 6); x.lineTo(0, -len); x.stroke(); x.restore(); };
     hand(((d.getHours() % 12) + d.getMinutes() / 60) / 12 * Math.PI * 2, R * 0.5, 4, '#1c1c1e');
     hand((d.getMinutes() + d.getSeconds() / 60) / 60 * Math.PI * 2, R * 0.75, 3, '#1c1c1e');
@@ -699,6 +709,7 @@
 
   /* =========================== LAUNCHPAD =========================== */
   const CATS = ['Apps', 'Office', '3D & Games', 'Utilities'];
+  let lpDirty = 0; ['settings', 'apps', 'lang', 'theme'].forEach((ev) => PatOS.on(ev, () => { lpDirty++; }));
   PatOS.launchpad = {
     show() {
       const lp = $('#launchpad'); const input = $('.lp-search', lp);
@@ -709,8 +720,13 @@
     hide() { const lp = $('#launchpad'); lp.classList.remove('in'); setTimeout(() => lp.classList.add('hidden'), 220); },
     toggle() { if (PatOS.isMobile && PatOS.mobile) return PatOS.mobile.goHome(); $('#launchpad').classList.contains('hidden') ? this.show() : this.hide(); },
     render(q) {
-      const grid = $('.lp-grid'); grid.innerHTML = '';
+      const grid = $('.lp-grid');
       q = q.trim().toLowerCase();
+      // (the full grid is kept between openings and only made again when what it shows changed: building its ~70 icons each
+      //  time was most of what opening Launchpad cost on a slow computer)
+      const sig = !q && [PatOS.appOrder.length, (PatOS.settings.hiddenApps || []).join(), PatOS.lang, lpDirty].join('|');
+      if (sig && grid.dataset.sig === sig && grid.children.length) return;
+      grid.innerHTML = ''; grid.dataset.sig = sig || '';
       const ids = PatOS.appOrder.filter((id) => !PatOS.apps[id].hidden && id !== 'launchpad' && !(PatOS.settings.hiddenApps || []).includes(id));
       let n = 0;
       CATS.forEach((cat) => {
@@ -1030,7 +1046,10 @@
     const input = $('.sp-input');
     input.setAttribute('role', 'combobox'); input.setAttribute('aria-label', PatOS.t('Spotlight Search'));
     let timer = null;
-    input.addEventListener('input', () => { clearTimeout(timer); const big = fileIndex && fileIndex.length > 400; if (big) timer = setTimeout(() => render(input.value), 60); else render(input.value); });
+    // (a search that took long on this computer, or a big index: wait for a short pause in the typing instead of searching
+    //  again for every letter; on a fast computer results stay instant)
+    let lastCost = 0; const timed = (q) => { const t0 = performance.now(); render(q); lastCost = performance.now() - t0; timer = null; };
+    input.addEventListener('input', () => { clearTimeout(timer); const big = fileIndex && fileIndex.length > 400; if (big || lastCost > 25) timer = setTimeout(() => timed(input.value), big ? 60 : 90); else timed(input.value); });
     input.addEventListener('keydown', (e) => {
       if (e.key === 'ArrowDown') { e.preventDefault(); setSel(spSel + 1); }
       else if (e.key === 'ArrowUp') { e.preventDefault(); setSel(spSel - 1); }

@@ -146,14 +146,18 @@
   }
   /* during a window drag: the title bar of another window of the same app under the pointer (dropping there makes tabs) */
   let hoverBar = null;
+  // (the other windows of the same app and where their title bars are, measured once per drag: asking the browser what is
+  //  under the pointer on every move cost most of a drag on a slow computer, even with no other window to drop on)
+  let bars = null, barsFor = null;
   function tabTarget(win, ev) {
-    const hit = document.elementsFromPoint(ev.clientX, ev.clientY).find((n) => n.classList && (n.classList.contains('titlebar') || n.classList.contains('win-tabs')) && !win.el.contains(n));
-    const tw = hit && wm().windows.find((w) => w !== win && w.el.contains(hit) && w.app.id === win.app.id && !w.minimized && !(w.tabGroup && w.tabGroup === win.tabGroup));
+    if (barsFor !== win) { barsFor = win; bars = wm().windows.filter((w) => w !== win && w.app.id === win.app.id && !w.minimized && !(w.tabGroup && w.tabGroup === win.tabGroup)).map((w) => { const t = w.el.querySelector('.win-tabs:not([hidden])') || w.el.querySelector('.titlebar'); return t ? [w, t.getBoundingClientRect(), +getComputedStyle(w.el).zIndex || 0] : null; }).filter(Boolean); }
+    const under = bars.filter(([, r]) => ev.clientX >= r.left && ev.clientX <= r.right && ev.clientY >= r.top && ev.clientY <= r.bottom).sort((a, b) => b[2] - a[2])[0];
+    const tw = under ? under[0] : null;
     const bar = tw ? tw.el : null;
     if (bar !== hoverBar) { if (hoverBar) hoverBar.classList.remove('tab-drop'); hoverBar = bar; if (bar) bar.classList.add('tab-drop'); }
     return tw && !tw.app.single ? tw : null;
   }
-  function endTabTarget() { if (hoverBar) hoverBar.classList.remove('tab-drop'); hoverBar = null; }
+  function endTabTarget() { if (hoverBar) hoverBar.classList.remove('tab-drop'); hoverBar = null; bars = barsFor = null; }
   function mergeAll(win) {
     if (!win) return 0; let n = 0;
     wm().windowsOf(win.app.id).filter((w) => w !== win && groupOf(w) !== groupOf(win) || (w !== win && !groupOf(w))).forEach((w) => { if (merge(w, win)) n++; });

@@ -412,3 +412,9 @@ html.lg-on:not(.reduce-transparency) #dock .dock-icon .icon-tile { box-shadow: i
 html.lg-on .dock-label { padding: 6px 14px; font-weight: 600; box-shadow: inset 0 1px 0 rgba(255,255,255,.5), inset 0 0 0 1px rgba(255,255,255,.22), 0 8px 20px -6px rgba(0,0,0,.35) !important; overflow: visible; }
 html.lg-on .dock-label::after { display: block !important; content: ""; position: absolute; left: 50%; bottom: -5px; width: 10px; height: 10px; transform: translateX(-50%) rotate(45deg); border-radius: 0 0 3px 0;
   background: var(--g-t); box-shadow: inset -1px -1px 0 rgba(255,255,255,.22); -webkit-backdrop-filter: blur(var(--g-b)); backdrop-filter: blur(var(--g-b)); z-index: -1; }
+
+/* (4.0, slow computers) a Dock label is glass only while it shows. Hidden ones kept their blur: 30 extra layers for the
+   graphics chip (each label and its arrow), which also forced every icon around them onto its own layer (about 75 for the
+   Dock), all redrawn whenever anything moved. They fade in from invisible, so nothing changes to the eye. */
+html #dock .dock-item:not(:hover):not(:focus-visible) .dock-label,
+html #dock .dock-item:not(:hover):not(:focus-visible) .dock-label::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
