@@ -1,0 +1,14 @@
+{
+  "$schema": "https://schema.railpack.com",
+  "deploy": {
+    "aptPackages": [
+      "...",
+      "chromium",
+      "fonts-liberation",
+      "fonts-noto-color-emoji",
+      "pulseaudio",
+      "pulseaudio-utils",
+      "ffmpeg"
+    ]
+  }
+}

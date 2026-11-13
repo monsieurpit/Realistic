@@ -1,0 +1,17 @@
+{
+  "format": "patapp",
+  "formatVersion": 1,
+  "id": "com.patos.hello",
+  "name": "Hello",
+  "version": "1.0.0",
+  "author": "PatOS",
+  "description": "The smallest PatOS app: counts how many times you open it.",
+  "icon": "👋",
+  "color": "#34c759",
+  "permissions": [
+    "notifications"
+  ],
+  "width": 380,
+  "height": 300,
+  "html": "<h2>Hello!</h2>\n<p>You opened this app <b id=\"n\">0</b> times.</p>\n<button id=\"b\">Say hi</button>\n<script>\n  patos.storage.get(\"opens\").then(function (n) {\n    n = (n || 0) + 1; document.getElementById(\"n\").textContent = n; patos.storage.set(\"opens\", n);\n  });\n  document.getElementById(\"b\").onclick = function () {\n    patos.notify({ title: \"Hello\", body: \"Made with the PatOS App SDK\" }).catch(function (e) { alert(e.message); });\n  };\n</script>\n<style>button{background:var(--patos-accent);color:#fff;border:0;border-radius:8px;padding:8px 14px;font:inherit}</style>\n"
+}
