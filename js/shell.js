@@ -1357,8 +1357,9 @@
       x.putImageData(d, 0, 0); x2.putImageData(d2, 0, 0); x3.putImageData(d3, 0, 0);
       return { url: c.toDataURL(), rim: c2.toDataURL(), spec: c3.toDataURL(), scale: Math.round(scale) };
     }
-    function filterFor(w, hh, r, rimW) {
-      const key = w + 'x' + hh + 'x' + r + 'x' + rimW + (PatOS.settings.glassDispersion !== false ? 'd' : ''); if (maps.has(key)) return maps.get(key);
+    function filterFor(w, hh, r, rimW, plain) {
+      const disp0 = PatOS.settings.glassDispersion !== false && !plain;
+      const key = w + 'x' + hh + 'x' + r + 'x' + rimW + (disp0 ? 'd' : ''); if (maps.has(key)) return maps.get(key);
       if (!svg) { svg = document.createElementNS('http://www.w3.org/2000/svg', 'svg'); svg.setAttribute('width', '0'); svg.setAttribute('height', '0'); svg.setAttribute('aria-hidden', 'true'); svg.style.position = 'absolute'; document.body.appendChild(svg); }
       if (maps.size > 40) prune(); // (never removes a filter a surface still uses: that made the glass draw black)
       const id = 'lg-lens-' + (++n), bezel = Math.round(Math.min(rimW, Math.min(w, hh) * 0.3)); // the same band as the CSS bevel ring (--g-rim-w, at most 30%)
@@ -1366,7 +1367,7 @@
       const img = (href, res) => '<feImage href="' + href + '" x="0" y="0" width="' + w + '" height="' + hh + '" preserveAspectRatio="none" result="' + res + '"/>';
       // the bend: one displacement, or (rainbow edges) one per color, each by its own index of refraction (red bends least)
       const disp = (sc, res) => '<feDisplacementMap in="SourceGraphic" in2="map" scale="' + Math.round(sc) + '" xChannelSelector="R" yChannelSelector="G" result="' + res + '"/>';
-      const rainbow = PatOS.settings.glassDispersion !== false && !PatOS.perf.slow() && w * hh <= DISP_MAX;
+      const rainbow = disp0 && !PatOS.perf.slow() && w * hh <= DISP_MAX;
       const bend = rainbow
         ? disp(m.scale * 0.95, 'bR') + disp(m.scale, 'bG') + disp(m.scale * 1.06, 'bB') +
           '<feColorMatrix in="bR" type="matrix" values="1 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 1 0" result="cR"/>' +
@@ -1407,7 +1408,10 @@
       if (w * hh > LENS_MAX) { el.style.removeProperty('--lg-lens'); return; }
       const cs = getComputedStyle(el), r = Math.round(parseFloat(cs.borderTopLeftRadius) || 0);
       const rimW = Math.round(parseFloat(cs.getPropertyValue('--g-rim-w')) || 12);
-      el.style.setProperty('--lg-lens', 'url(#' + filterFor(w, hh, r, rimW) + ')');
+      // desktop widgets and panels: the same bend and bevel, without the rainbow edge. The rainbow is three bends (one per color),
+      // drawn by the processor on every frame where anything on screen changes; on four or more widgets that made all of PatOS
+      // lag (4.0 beta 9), even with no app open. The Dock, menus and notifications keep it.
+      el.style.setProperty('--lg-lens', 'url(#' + filterFor(w, hh, r, rimW, !!el.closest('#desk-widgets, #desk-panels')) + ')');
     }
     const pending = new Set(); const flush = PatOS.debounce(() => { pending.forEach((el) => el.isConnected && fit(el)); pending.clear(); }, 160);
     const settle = (els) => { els.forEach((el) => { if (!el.style.getPropertyValue('--lg-lens')) fit(el); else pending.add(el); }); flush(); };

@@ -70,3 +70,17 @@ test('Studio widgets are blocks: text stays text, unknown blocks are dropped, no
   assert.equal(await ev(() => window._alerted), 0);
   assert.deepEqual(errors, []); await page.close();
 });
+
+
+test('desktop widgets keep the Liquid Glass bend and bevel, without the rainbow edge that made PatOS lag; the Dock keeps it all', { skip: skipNoBrowser }, async () => {
+  const page = await b.newPage({ viewport: { width: 1440, height: 900 } }); const errors = await boot(page, srv.base, { fresh: true });
+  await page.waitForSelector('#desk-widgets .widget'); await page.waitForTimeout(1000);
+  const r = await page.evaluate(() => {
+    const filt = (el) => { const m = /url\("?#([\w-]+)/.exec(getComputedStyle(el).backdropFilter); const f = m && document.getElementById(m[1]); return f ? { bend: !!f.querySelector('feDisplacementMap'), rainbow: f.querySelectorAll('feDisplacementMap').length > 1 } : null; };
+    return { refract: document.documentElement.classList.contains('lg-refract'), widgets: [...document.querySelectorAll('#desk-widgets .widget')].map(filt), dock: filt(document.getElementById('dock')) };
+  });
+  if (!r.refract) return page.close();
+  assert.ok(r.widgets.length && r.widgets.every((w) => w && w.bend && !w.rainbow), 'every widget is bent, none has the rainbow: ' + JSON.stringify(r.widgets));
+  assert.ok(r.dock && r.dock.bend, 'the Dock keeps its bend');
+  assert.deepEqual(errors, []); await page.close();
+});
