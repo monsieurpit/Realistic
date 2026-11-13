@@ -8,28 +8,28 @@
    panel .sd-side, YouTube's "up next" .yt-side/.ytx-side and Calendar's right panel .cal-side: they aren't navigation.) */
 
 /* ---------- sidebars ---------- */
-:is(.ui-side, .wd-side, .dt-side, .gl-side, .fd-side, .st-side, .dv-side, .mu-side, .pw-side, .nw-side, .rm-side, .notes-side, .msg-side, .ph-side, .ct-side, .nf-side, .gr-side, .pdv-side, .sc-side, .rd-side, .m2-side, .ps-side, .cap-side, .sp-side) {
+:is(.ui-side, .wd-side, .dt-side, .gl-side, .lv-side, .fd-side, .st-side, .dv-side, .mu-side, .pw-side, .nw-side, .rm-side, .notes-side, .msg-side, .ph-side, .ct-side, .nf-side, .gr-side, .pdv-side, .sc-side, .rd-side, .m2-side, .ps-side, .cap-side, .sp-side) {
   background: var(--sidebar); border-right: 1px solid var(--border); scrollbar-width: thin;
 }
 /* the section headings inside them */
-:is(.ui-side, .wd-side, .dt-side, .gl-side, .fd-side, .st-side, .dv-side, .mu-side, .pw-side, .nw-side, .rm-side, .notes-side, .msg-side, .ph-side, .ct-side, .nf-side, .gr-side, .pdv-side, .sc-side, .rd-side, .m2-side, .ps-side, .cap-side, .sp-side) :is(h4, .ui-sh) {
+:is(.ui-side, .wd-side, .dt-side, .gl-side, .lv-side, .fd-side, .st-side, .dv-side, .mu-side, .pw-side, .nw-side, .rm-side, .notes-side, .msg-side, .ph-side, .ct-side, .nf-side, .gr-side, .pdv-side, .sc-side, .rd-side, .m2-side, .ps-side, .cap-side, .sp-side) :is(h4, .ui-sh) {
   margin: var(--sp-4) 10px var(--sp-1); font-size: 11.5px; font-weight: 700; letter-spacing: .04em; text-transform: uppercase; color: var(--text3);
 }
 /* ---------- sidebar items: one height, one corner, one selected look ---------- */
-:is(.ui-si, .fd-si, .st-si, .dv-si, .mu-si, .nw-si, .pb-si, .pw-si, .rd-si, .cap-si, .sp-si, .ytx-sitem) {
+:is(.ui-si, .fd-si, .st-si, .dv-si, .mu-si, .nw-si, .pb-si, .pw-si, .rd-si, .cap-si, .sp-si, .lv-si, .ytx-sitem) {
   display: flex; align-items: center; gap: 10px; width: 100%; min-height: var(--h-side); padding: 0 10px; border-radius: 10px; border: 0;
   font: inherit; font-size: 14px; font-weight: 500; color: inherit; text-align: left; background: transparent; cursor: default;
   transition: background var(--dur-fast), color var(--dur-fast), transform var(--dur-fast);
 }
-:is(.ui-si, .fd-si, .st-si, .dv-si, .mu-si, .nw-si, .pb-si, .pw-si, .rd-si, .cap-si, .sp-si, .ytx-sitem):hover { background: var(--hover); }
-:is(.ui-si, .fd-si, .st-si, .dv-si, .mu-si, .nw-si, .pb-si, .pw-si, .rd-si, .cap-si, .sp-si, .ytx-sitem):active { transform: scale(.985); }
-:is(.ui-si, .fd-si, .st-si, .dv-si, .mu-si, .nw-si, .pb-si, .pw-si, .rd-si, .cap-si, .sp-si, .ytx-sitem):is(.on, .sel, .active, [aria-selected="true"]) { background: color-mix(in srgb, var(--accent) 78%, #000); color: #fff; } /* (a bit deeper than the accent: white words on it stay readable, 4.5:1) */
-:is(.ui-si, .fd-si, .st-si, .dv-si, .mu-si, .nw-si, .pb-si, .pw-si, .rd-si, .cap-si, .sp-si, .ytx-sitem) :is(.sym, svg) { width: 18px; height: 18px; flex: none; }
-:is(.ui-si, .fd-si, .st-si, .dv-si, .mu-si, .nw-si, .pb-si, .pw-si, .rd-si, .cap-si, .sp-si, .ytx-sitem) small { margin-left: auto; font-size: 12px; color: var(--text3); font-variant-numeric: tabular-nums; }
-:is(.ui-si, .fd-si, .st-si, .dv-si, .mu-si, .nw-si, .pb-si, .pw-si, .rd-si, .cap-si, .sp-si, .ytx-sitem):is(.on, .sel, .active, [aria-selected="true"]) small { color: rgba(255,255,255,.92); }
+:is(.ui-si, .fd-si, .st-si, .dv-si, .mu-si, .nw-si, .pb-si, .pw-si, .rd-si, .cap-si, .sp-si, .lv-si, .ytx-sitem):hover { background: var(--hover); }
+:is(.ui-si, .fd-si, .st-si, .dv-si, .mu-si, .nw-si, .pb-si, .pw-si, .rd-si, .cap-si, .sp-si, .lv-si, .ytx-sitem):active { transform: scale(.985); }
+:is(.ui-si, .fd-si, .st-si, .dv-si, .mu-si, .nw-si, .pb-si, .pw-si, .rd-si, .cap-si, .sp-si, .lv-si, .ytx-sitem):is(.on, .sel, .active, [aria-selected="true"]) { background: color-mix(in srgb, var(--accent) 78%, #000); color: #fff; } /* (a bit deeper than the accent: white words on it stay readable, 4.5:1) */
+:is(.ui-si, .fd-si, .st-si, .dv-si, .mu-si, .nw-si, .pb-si, .pw-si, .rd-si, .cap-si, .sp-si, .lv-si, .ytx-sitem) :is(.sym, svg) { width: 18px; height: 18px; flex: none; }
+:is(.ui-si, .fd-si, .st-si, .dv-si, .mu-si, .nw-si, .pb-si, .pw-si, .rd-si, .cap-si, .sp-si, .lv-si, .ytx-sitem) small { margin-left: auto; font-size: 12px; color: var(--text3); font-variant-numeric: tabular-nums; }
+:is(.ui-si, .fd-si, .st-si, .dv-si, .mu-si, .nw-si, .pb-si, .pw-si, .rd-si, .cap-si, .sp-si, .lv-si, .ytx-sitem):is(.on, .sel, .active, [aria-selected="true"]) small { color: rgba(255,255,255,.92); }
 
 /* ---------- empty pages: the same quiet look everywhere ---------- */
-:is(.ui-empty, .bk-empty, .cap-empty, .cmd-empty, .cp-empty, .ct-empty, .fc-empty, .fd-empty, .fx-empty, .jn-empty, .m2-empty, .msw-empty, .mu-empty, .nl-empty, .notes-empty, .nt-empty, .nw-empty, .of-empty, .pd-empty, .ph-empty, .pv-empty, .pw-empty, .rm-empty, .sc-empty, .sp-empty, .tl-empty, .vd-empty, .vm-empty) {
+:is(.ui-empty, .bk-empty, .cap-empty, .cmd-empty, .cp-empty, .ct-empty, .fc-empty, .fd-empty, .fx-empty, .jn-empty, .m2-empty, .msw-empty, .mu-empty, .nl-empty, .notes-empty, .nt-empty, .nw-empty, .of-empty, .pd-empty, .ph-empty, .pv-empty, .pw-empty, .rm-empty, .sc-empty, .sp-empty, .lv-empty, .tl-empty, .vd-empty, .vm-empty) {
   color: var(--text3); font-size: 13.5px; line-height: 1.45; text-align: center;
 }
 :is(.ui-empty, .bk-empty, .cap-empty, .ct-empty, .fd-empty, .jn-empty, .m2-empty, .mu-empty, .notes-empty, .nw-empty, .ph-empty, .pw-empty, .rm-empty, .sc-empty, .tl-empty, .vd-empty) :is(h2, h3, b, strong) { color: var(--text); font-size: 15px; font-weight: 650; }

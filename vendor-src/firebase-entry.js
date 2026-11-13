@@ -15,6 +15,11 @@
      spaces/{sid}/files/{fid}/revs/{rev}    { content, by, at }          each saved revision (never changed afterwards)
      spaces/{sid}/comments/{cid}            { fid, text, by, byName, at }
      spaces/{sid}/activity/{aid}            { what, name, by, byName, at }
+     spaces/{sid}/presence/{uid}           { name, app, state, at }      Live: who is here (only your own)
+     spaces/{sid}/boards/{bid}/items/{iid} { kind, x, y, w, h, text, color, rev, by, at }   Live boards
+     spaces/{sid}/notes/{nid}/blocks/{b}   { order, text, rev, by, at }  Live notes, one paragraph each
+     spaces/{sid}/tasks/{tid}              { text, done, assignee, rev, by, at }
+     spaces/{sid}/calls/{cid}/peers|signals  voice: who is in the call; WebRTC messages readable only by the two ends
      spaceInvites/{sid_uid}                 { sid, uid, role, spaceName, by, byName, at }   an invitation, until it is answered
    Roles (firestore.rules checks every one): owner > admin > editor > commenter > viewer.
 
@@ -62,6 +67,8 @@ function friendly(e) {
 }
 const wrap = (fn) => async (...a) => { try { return await fn(...a); } catch (e) { throw friendly(e); } };
 
+/* every document of a collection, as a list, live (path: ['spaces', sid, 'presence']) */
+function listenAll(path, cb, onError) { init(); return onSnapshot(collection(db, ...path), (s) => cb(s.docs.map((d) => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' })))), (e) => { if (onError) onError(e); }); }
 const api = {
   available: true,
   USERNAME,
@@ -283,7 +290,8 @@ const api = {
   }),
   spaceRename: wrap(async (sid, name) => { init(); await updateDoc(doc(db, 'spaces', sid), { name: String(name).slice(0, 60), updated: serverTimestamp() }); }),
   spaceDelete: wrap(async (sid) => {
-    init(); for (const sub of ['files', 'comments', 'activity']) { const s = await getDocs(collection(db, 'spaces', sid, sub)); for (const d of s.docs) { if (sub === 'files') { const r = await getDocs(collection(db, 'spaces', sid, 'files', d.id, 'revs')); for (const x of r.docs) await deleteDoc(x.ref); } await deleteDoc(d.ref); } }
+    init(); for (const [k, subs] of [['boards', ['items']], ['notes', ['blocks']], ['calls', ['peers', 'signals']], ['tasks', []], ['presence', []]]) { try { const s = await getDocs(collection(db, 'spaces', sid, k)); for (const d of s.docs) { for (const sub of subs) { try { const x = await getDocs(collection(db, 'spaces', sid, k, d.id, sub)); for (const y of x.docs) { try { await deleteDoc(y.ref); } catch (e) {} } } catch (e) {} } await deleteDoc(d.ref); } } catch (e) {} }
+    for (const sub of ['files', 'comments', 'activity']) { const s = await getDocs(collection(db, 'spaces', sid, sub)); for (const d of s.docs) { if (sub === 'files') { const r = await getDocs(collection(db, 'spaces', sid, 'files', d.id, 'revs')); for (const x of r.docs) await deleteDoc(x.ref); } await deleteDoc(d.ref); } }
     await deleteDoc(doc(db, 'spaces', sid));
   }),
   filesListen(sid, cb, onError) { init(); return onSnapshot(collection(db, 'spaces', sid, 'files'), (s) => cb(s.docs.map((d) => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' })))), (e) => { if (onError) onError(friendly(e)); }); },
@@ -318,5 +326,43 @@ const api = {
   commentAdd: wrap(async (me, sid, fid, text) => { init(); await setDoc(doc(collection(db, 'spaces', sid, 'comments')), { fid: fid || '', text: String(text).slice(0, 2000), by: me.uid, byName: me.username, at: serverTimestamp() }); }),
   commentDelete: wrap(async (sid, cid) => { init(); await deleteDoc(doc(db, 'spaces', sid, 'comments', cid)); }),
   activityListen(sid, cb, onError) { init(); return onSnapshot(query(collection(db, 'spaces', sid, 'activity'), orderBy('at', 'desc'), limit(50)), (s) => cb(s.docs.map((d) => Object.assign({ id: d.id }, d.data({ serverTimestamps: 'estimate' })))), (e) => { if (onError) onError(friendly(e)); }); },
+  /* ================= Live (4.0): presence, boards, live notes, tasks, voice signaling (inside a space) ================= */
+  presenceSet: wrap(async (me, sid, app, state) => { init(); await setDoc(doc(db, 'spaces', sid, 'presence', me.uid), { name: me.username, app: String(app || '').slice(0, 40), state: state === 'away' ? 'away' : 'active', at: serverTimestamp() }); }),
+  presenceClear: wrap(async (me, sid) => { init(); await deleteDoc(doc(db, 'spaces', sid, 'presence', me.uid)); }),
+  presenceListen(sid, cb, onError) { return listenAll(['spaces', sid, 'presence'], cb, onError); },
+  liveListen(path, cb, onError) { return listenAll(path, cb, onError); },
+  /* a board or a note: { name } / { title } */
+  liveHeadCreate: wrap(async (me, sid, kind, title) => {
+    init(); const field = kind === 'boards' ? 'name' : 'title'; const ref = doc(collection(db, 'spaces', sid, kind));
+    await setDoc(ref, { [field]: String(title).slice(0, 60), by: me.uid, byName: me.username, at: serverTimestamp() }); return ref.id;
+  }),
+  liveHeadRename: wrap(async (sid, kind, id, title) => { init(); await updateDoc(doc(db, 'spaces', sid, kind, id), { [kind === 'boards' ? 'name' : 'title']: String(title).slice(0, 60) }); }),
+  liveHeadDelete: wrap(async (sid, kind, id) => {
+    init(); const sub = kind === 'boards' ? 'items' : 'blocks'; const s = await getDocs(collection(db, 'spaces', sid, kind, id, sub));
+    for (const d of s.docs) await deleteDoc(d.ref); await deleteDoc(doc(db, 'spaces', sid, kind, id));
+  }),
+  /* writes one revisioned thing (a board item, a note paragraph, a task) on top of baseRev (0 = new). If someone changed it in
+     between, nothing is written and { conflict, theirs } comes back, so the app can keep both. */
+  livePut: wrap(async (me, path, id, data, baseRev) => {
+    init(); const ref = id ? doc(db, ...path, id) : doc(collection(db, ...path));
+    return runTransaction(db, async (tx) => {
+      const cur = await tx.get(ref); const rev = cur.exists() ? cur.data().rev : 0;
+      if (rev !== (baseRev || 0)) return { conflict: true, rev, theirs: cur.exists() ? cur.data() : null, id: ref.id };
+      const next = Object.assign({}, data, { rev: rev + 1, by: me.uid, byName: me.username, at: serverTimestamp() });
+      tx.set(ref, next); return { ok: true, rev: rev + 1, id: ref.id };
+    });
+  }),
+  liveDelete: wrap(async (path, id) => { init(); await deleteDoc(doc(db, ...path, id)); }),
+  /* voice: a call, who is in it, and the messages two browsers need to connect (only readable by those two) */
+  callStart: wrap(async (me, sid) => { init(); const ref = doc(collection(db, 'spaces', sid, 'calls')); await setDoc(ref, { by: me.uid, byName: me.username, at: serverTimestamp() }); return ref.id; }),
+  callEnd: wrap(async (sid, cid) => {
+    init(); for (const sub of ['peers', 'signals']) { try { const s = await getDocs(collection(db, 'spaces', sid, 'calls', cid, sub)); for (const d of s.docs) { try { await deleteDoc(d.ref); } catch (e) {} } } catch (e) {} }
+    await deleteDoc(doc(db, 'spaces', sid, 'calls', cid));
+  }),
+  callJoin: wrap(async (me, sid, cid) => { init(); await setDoc(doc(db, 'spaces', sid, 'calls', cid, 'peers', me.uid), { name: me.username, at: serverTimestamp() }); }),
+  callLeave: wrap(async (me, sid, cid) => { init(); await deleteDoc(doc(db, 'spaces', sid, 'calls', cid, 'peers', me.uid)); }),
+  signalSend: wrap(async (me, sid, cid, to, type, data) => { init(); await setDoc(doc(collection(db, 'spaces', sid, 'calls', cid, 'signals')), { from: me.uid, to, type, data: String(data || '').slice(0, 20000), at: serverTimestamp() }); }),
+  signalsListen(me, sid, cid, cb, onError) { init(); return onSnapshot(query(collection(db, 'spaces', sid, 'calls', cid, 'signals'), where('to', '==', me.uid)), (s) => cb(s.docChanges().filter((c) => c.type === 'added').map((c) => Object.assign({ id: c.doc.id }, c.doc.data({ serverTimestamps: 'estimate' })))), (e) => { if (onError) onError(e); }); },
+  signalDelete: wrap(async (sid, cid, id) => { init(); await deleteDoc(doc(db, 'spaces', sid, 'calls', cid, 'signals', id)); }),
 };
 export default api;

@@ -268,6 +268,106 @@ service cloud.firestore {
         allow update: if false;
         allow delete: if roleIn(sid) == 'owner';
       }
+
+      // ================= Live (4.0): working together, in real time, inside a space =================
+      // Same roles as the rest of the space. Things that several people edit (board items, note blocks, tasks) carry a
+      // revision: a write must be exactly the next one, so two people can never overwrite each other without knowing.
+      // presence/{uid}: { name, app, state, at }: only your own, seen by the members
+      match /presence/{uid} {
+        allow read: if isMember(sid);
+        allow create, update: if isMember(sid) && !banned() && uid == request.auth.uid
+          && request.resource.data.keys().hasOnly(['name', 'app', 'state', 'at'])
+          && request.resource.data.name == myName()
+          && request.resource.data.app is string && request.resource.data.app.size() <= 40
+          && request.resource.data.state in ['active', 'away']
+          && request.resource.data.at == request.time;
+        allow delete: if signedIn() && (uid == request.auth.uid || isSpaceAdmin(sid));
+      }
+      // boards/{bid}: { name, by, byName, at }   and   notes/{nid}: { title, by, byName, at }
+      match /boards/{bid} {
+        allow read: if isMember(sid);
+        allow create: if canEdit(sid) && !banned() && liveHead(request.resource.data, 'name');
+        allow update: if canEdit(sid) && !banned() && onlyChanges(['name']) && goodTitle(request.resource.data.name);
+        allow delete: if canEdit(sid);
+        // items/{iid}: { kind, x, y, w, h, text, color, rev, by, byName, at }
+        match /items/{iid} {
+          allow read: if isMember(sid);
+          allow create: if canEdit(sid) && !banned() && boardItem(request.resource.data) && request.resource.data.rev == 1;
+          allow update: if canEdit(sid) && !banned() && boardItem(request.resource.data) && nextRev() && request.resource.data.kind == resource.data.kind;
+          allow delete: if canEdit(sid);
+        }
+      }
+      match /notes/{nid} {
+        allow read: if isMember(sid);
+        allow create: if canEdit(sid) && !banned() && liveHead(request.resource.data, 'title');
+        allow update: if canEdit(sid) && !banned() && onlyChanges(['title']) && goodTitle(request.resource.data.title);
+        allow delete: if canEdit(sid);
+        // blocks/{blk}: one paragraph each { order, text, rev, by, byName, at }: two people can write different paragraphs
+        // at the same time; the same paragraph needs the next revision
+        match /blocks/{blk} {
+          allow read: if isMember(sid);
+          allow create: if canEdit(sid) && !banned() && noteBlock(request.resource.data) && request.resource.data.rev == 1;
+          allow update: if canEdit(sid) && !banned() && noteBlock(request.resource.data) && nextRev();
+          allow delete: if canEdit(sid);
+        }
+      }
+      // tasks/{tid}: { text, done, assignee, rev, by, byName, at }: the assignee is nobody ('') or a member
+      match /tasks/{tid} {
+        allow read: if isMember(sid);
+        allow create: if canEdit(sid) && !banned() && liveTask(sid, request.resource.data) && request.resource.data.rev == 1;
+        allow update: if canEdit(sid) && !banned() && liveTask(sid, request.resource.data) && nextRev();
+        allow delete: if canEdit(sid);
+      }
+      // calls/{cid}: { by, byName, at }   voice: members who can comment can talk
+      match /calls/{cid} {
+        allow read: if isMember(sid);
+        allow create: if canComment(sid) && !banned() && request.resource.data.keys().hasOnly(['by', 'byName', 'at'])
+          && request.resource.data.by == request.auth.uid && request.resource.data.byName == myName() && request.resource.data.at == request.time;
+        allow update: if false;
+        allow delete: if signedIn() && (resource.data.by == request.auth.uid || isSpaceAdmin(sid));
+        // peers/{uid}: who is in the call, only yourself
+        match /peers/{uid} {
+          allow read: if isMember(sid);
+          allow create, update: if canComment(sid) && !banned() && uid == request.auth.uid && request.resource.data.keys().hasOnly(['name', 'at'])
+            && request.resource.data.name == myName() && request.resource.data.at == request.time;
+          allow delete: if signedIn() && (uid == request.auth.uid || isSpaceAdmin(sid));
+        }
+        // signals/{id}: { from, to, type, data, at }: how two browsers find each other (WebRTC). Only the two people it
+        // is between can read it; the sound itself goes browser to browser and never through the database.
+        match /signals/{id} {
+          allow read: if signedIn() && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
+          allow create: if canComment(sid) && !banned() && request.resource.data.keys().hasOnly(['from', 'to', 'type', 'data', 'at'])
+            && request.resource.data.from == request.auth.uid && request.resource.data.to is string && request.resource.data.to != request.auth.uid
+            && get(spacePath(sid)).data.members.get(request.resource.data.to, '') != ''
+            && request.resource.data.type in ['offer', 'answer', 'ice', 'bye']
+            && request.resource.data.data is string && request.resource.data.data.size() <= 20000
+            && request.resource.data.at == request.time;
+          allow update: if false;
+          allow delete: if signedIn() && (resource.data.to == request.auth.uid || resource.data.from == request.auth.uid);
+        }
+      }
+    }
+
+    // ---- Live helpers ----
+    function goodTitle(t) { return t is string && t.size() > 0 && t.size() <= 60; }
+    function stamped(d) { return d.by == request.auth.uid && d.byName == myName() && d.at == request.time; }
+    function liveHead(d, field) { return d.keys().hasOnly([field, 'by', 'byName', 'at']) && goodTitle(d[field]) && stamped(d); }
+    function nextRev() { return request.resource.data.rev == resource.data.rev + 1; }
+    function inRange(v, lo, hi) { return (v is int || v is float) && v >= lo && v <= hi; }
+    function boardItem(d) {
+      return d.keys().hasOnly(['kind', 'x', 'y', 'w', 'h', 'text', 'color', 'rev', 'by', 'byName', 'at'])
+        && d.kind in ['sticky', 'text', 'box'] && inRange(d.x, -100000, 100000) && inRange(d.y, -100000, 100000)
+        && inRange(d.w, 20, 2000) && inRange(d.h, 20, 2000) && d.text is string && d.text.size() <= 2000
+        && d.color is string && d.color.matches('^#[0-9a-fA-F]{6}$') && d.rev is int && stamped(d);
+    }
+    function noteBlock(d) {
+      return d.keys().hasOnly(['order', 'text', 'rev', 'by', 'byName', 'at']) && inRange(d.order, -1000000000, 1000000000)
+        && d.text is string && d.text.size() <= 5000 && d.rev is int && stamped(d);
+    }
+    function liveTask(sid, d) {
+      return d.keys().hasOnly(['text', 'done', 'assignee', 'rev', 'by', 'byName', 'at']) && d.text is string && d.text.size() > 0 && d.text.size() <= 300
+        && d.done is bool && d.assignee is string && (d.assignee == '' || get(spacePath(sid)).data.members.get(d.assignee, '') != '')
+        && d.rev is int && stamped(d);
     }
 
     // spaceInvites/{sid_uid}: { sid, uid, username, role, spaceName, by, byName, at }. Made by the space's owner or an admin

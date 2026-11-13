@@ -700,7 +700,7 @@
       const ids = PatOS.appOrder.filter((id) => !PatOS.apps[id].hidden && id !== 'launchpad' && !(PatOS.settings.hiddenApps || []).includes(id));
       let n = 0;
       CATS.forEach((cat) => {
-        const list = ids.filter((id) => (PatOS.apps[id].category || 'Apps') === cat && (!q || PatOS.apps[id].name.toLowerCase().includes(q) || PatOS.t(PatOS.apps[id].name).toLowerCase().includes(q) || (PatOS.apps[id].keywords || '').includes(q)));
+        const list = ids.filter((id) => (CATS.includes(PatOS.apps[id].category) ? PatOS.apps[id].category : 'Apps') === cat && (!q || PatOS.apps[id].name.toLowerCase().includes(q) || PatOS.t(PatOS.apps[id].name).toLowerCase().includes(q) || (PatOS.apps[id].keywords || '').includes(q)));
         if (!list.length) return;
         grid.appendChild(h('div', { class: 'lp-cat' }, cat));
         const sec = h('div', { class: 'lp-sec' });
