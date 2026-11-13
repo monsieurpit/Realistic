@@ -364,7 +364,7 @@
 
   /* ---------- public ---------- */
   PatOS.widgets = {
-    register, types: () => [...types.values()].map((d) => ({ id: d.id, name: d.name, source: d.source, sizes: d.sizes, permissions: d.permissions, version: d.version || '' })),
+    register, types: () => [...types.values()].map((d) => ({ id: d.id, name: d.name, source: d.source, sizes: d.sizes, permissions: d.permissions, version: d.version || '', config: (d.config || []).map((c) => Object.assign({}, c)), hidden: !!d.hidden })),
     layout: () => (layout || load()).map((i) => Object.assign({}, i)), setLayout(l) { layout = (Array.isArray(l) ? l : []).filter((i) => i && i.iid && i.type).map((i) => Object.assign({}, i)); save(); renderDesk(); },
     add, remove, resize, configure, edit, editing: () => editing, renderDesk, gallery,
     install: installManifest, uninstall, installed: () => Object.values(PatOS.store.get(INST, {}) || {}).map((m) => ({ id: m.id, name: m.name, version: m.version, permissions: m.permissions, granted: granted(m) })),

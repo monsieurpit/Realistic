@@ -942,3 +942,39 @@ html[data-theme="dark"] .ytx { --yb: #0f0f0f; --yb2: #272727; --yb3: #3f3f3f; --
 .am2-kv { display: flex; justify-content: space-between; gap: 10px; padding: 5px 0; border-bottom: 1px solid var(--border); font-size: 12.5px; } .am2-kv span { color: var(--text2); } .am2-kv b { font-variant-numeric: tabular-nums; }
 .am2-errs { grid-column: 1 / -1; margin-top: 8px; font-size: 12px; } .am2-errs small { color: var(--text2); font-weight: 600; } .am2-errs div { padding: 4px 0; color: #ff453a; font-family: ui-monospace, monospace; font-size: 11.5px; }
 .mobile .am2-insp { grid-template-columns: 1fr; min-width: 0; } .mobile .am2-gbox { display: none; }
+
+/* PatOS Studio 4.0 (js/apps/deskstudio.js) */
+.sd-win .win-body { background: var(--win-solid); }
+.sd-name { width: 200px; font-weight: 600; }
+.sd-wrap { display: flex; flex: 1; min-height: 0; }
+.sd-side { width: 210px; flex: 0 0 210px; border-right: 1px solid var(--border); padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+.sd-cfg { flex-direction: column; align-items: flex-start !important; height: auto !important; padding: 7px 10px !important; } .sd-cfg small { font-size: 11px; opacity: .7; }
+.sd-sidebtns { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 10px; } .sd-sidebtns .btn { flex: 1; }
+.sd-stagew { flex: 1; min-width: 0; position: relative; display: grid; place-items: center; background: repeating-conic-gradient(rgba(127,127,127,.06) 0 25%, transparent 0 50%) 0 0 / 22px 22px; overflow: hidden; }
+.sd-stage { position: relative; border-radius: 12px; background: #222 center / cover; box-shadow: 0 20px 50px -14px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08); overflow: hidden; }
+.sd-mb { position: absolute; left: 0; right: 0; top: 0; background: rgba(0,0,0,.25); display: flex; align-items: center; gap: 10px; padding: 0 8px; font-size: 10px; color: #fff; } .sd-stage.light .sd-mb { background: rgba(255,255,255,.35); color: #000; }
+.sd-dock { position: absolute; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 2px; padding: 0 6px; border-radius: 10px; background: rgba(255,255,255,.18); backdrop-filter: blur(8px); cursor: pointer; }
+.sd-di { display: block; } .sd-di .icon-tile, .sd-di svg, .sd-di img { width: 100% !important; height: 100% !important; border-radius: 22%; }
+.sd-box { position: absolute; box-sizing: border-box; border-radius: 10px; background: rgba(30,30,36,.62); backdrop-filter: blur(10px); border: 1px solid rgba(255,255,255,.18); color: #fff; cursor: grab; overflow: hidden; touch-action: none; transition: box-shadow .15s; }
+.sd-box.on { outline: 2px solid var(--accent); outline-offset: 2px; box-shadow: 0 10px 24px -6px rgba(0,0,0,.6); } .sd-box:focus-visible { outline: 2px solid var(--accent); }
+.sd-box.sd-panel { background: rgba(255,255,255,.16); }
+.sd-wl, .sd-pl { padding: 6px 8px; font-size: 11px; display: flex; flex-direction: column; gap: 2px; } .sd-wl small { opacity: .7; font-size: 10px; }
+.sd-pi { display: flex; flex-wrap: wrap; gap: 4px; } .sd-pi span, .sd-pi .icon-tile, .sd-pi svg { width: 18px; height: 18px; border-radius: 5px; }
+.sd-rz { position: absolute; right: 2px; bottom: 2px; width: 12px; height: 12px; border-right: 2px solid rgba(255,255,255,.8); border-bottom: 2px solid rgba(255,255,255,.8); border-radius: 0 0 4px 0; cursor: nwse-resize; }
+.sd-banner { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 10px; padding: 8px 10px 8px 16px; border-radius: 14px; background: var(--accent); color: #fff; font-weight: 600; font-size: 13px; box-shadow: 0 10px 30px -8px rgba(0,0,0,.5); } .sd-banner.hidden { display: none; }
+.sd-insp { width: 290px; flex: 0 0 290px; border-left: 1px solid var(--border); padding: 12px 14px; overflow-y: auto; display: flex; flex-direction: column; gap: 8px; }
+.sd-insp .ui-section { margin: 10px 0 2px; } .sd-insp .ui-section:first-child { margin-top: 0; }
+.sd-f { display: flex; flex-direction: column; gap: 4px; font-size: 12.5px; } .sd-f > span { color: var(--text2); font-size: 12px; } .sd-f .field, .sd-insp select.field { width: 100%; }
+.sd-chips { display: flex; flex-wrap: wrap; gap: 5px; } .sd-chip { display: inline-flex; align-items: center; gap: 4px; padding: 3px 4px 3px 6px; border-radius: 9px; background: rgba(127,127,127,.14); font-size: 12px; }
+.sd-chip button { border: 0; background: none; color: var(--text2); cursor: pointer; padding: 0 3px; font-size: 13px; } .sd-chi, .sd-chi .icon-tile, .sd-chi svg { width: 16px; height: 16px; border-radius: 4px; }
+.sd-wps { display: grid; grid-template-columns: repeat(4, 1fr); gap: 5px; } .sd-wp { padding: 0; border: 2px solid transparent; border-radius: 8px; overflow: hidden; cursor: pointer; aspect-ratio: 16 / 10; background: none; } .sd-wp.on { border-color: var(--accent); } .sd-wp img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.sd-menu { display: flex; flex-direction: column; gap: 6px; padding: 8px; border-radius: 12px; background: rgba(127,127,127,.07); }
+.sd-key { display: flex; align-items: center; gap: 8px; font-size: 12.5px; } .sd-keya { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .sd-key.new { flex-wrap: wrap; } .sd-key.new select { flex: 1; }
+.sd-del { margin-top: 12px; } .sd-fine { font-size: 12px; color: var(--text3); margin: 0; }
+.sd-maker { display: flex; flex-direction: column; gap: 10px; min-width: 460px; max-height: 60vh; overflow-y: auto; }
+.sd-blk { display: flex; flex-wrap: wrap; align-items: center; gap: 6px; padding: 8px; border-radius: 10px; background: rgba(127,127,127,.08); } .sd-blk b { width: 100%; font-size: 12px; } .sd-blk .field { flex: 1; min-width: 120px; }
+.sd-addblk { display: flex; flex-wrap: wrap; gap: 6px; }
+.sd-mpv { width: 316px; height: 150px; box-sizing: border-box; padding: 14px; border-radius: 22px; color: #fff; display: flex; flex-direction: column; gap: 6px; background: rgba(40,40,46,.8); }
+.sd-win .win-body { display: flex; flex-direction: column; }
+.sd-wrap { flex: 1 1 auto; height: 100%; align-items: stretch; }
+.sd-side, .sd-insp { align-self: stretch; }
