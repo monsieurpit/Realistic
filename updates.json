@@ -1,5 +1,26 @@
 [
   {
+    "version": "4.1.0",
+    "beta": 1,
+    "date": "2026-11-13",
+    "title": {
+      "en": "PatOS 4.1 beta: Orb Runner",
+      "fr": "PatOS 4.1 bêta : Orb Runner"
+    },
+    "notes": {
+      "en": [
+        "Orb Runner: 8 worlds, a new one every 1,500 points, each with its own sky, weather and obstacles",
+        "The Ball Shop: spend your gems on 11 balls, from Ruby and Sapphire to Galaxy, Royal Gold, Diamond and Prism",
+        "Power-ups: Magnet, Shield and Double"
+      ],
+      "fr": [
+        "Orb Runner : 8 mondes, un nouveau tous les 1 500 points, chacun avec son ciel, sa météo et ses obstacles",
+        "La boutique de boules : dépense tes gemmes pour 11 boules, du Rubis et du Saphir à la Galaxie, l’Or royal, le Diamant et le Prisme",
+        "Bonus : Aimant, Bouclier et Double"
+      ]
+    }
+  },
+  {
     "version": "4.0.2",
     "date": "2026-11-13",
     "title": {

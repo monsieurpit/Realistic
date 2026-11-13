@@ -124,7 +124,6 @@
 .br-fav.img { background: none; object-fit: contain; }
 .nt-item.pinned b::before { content: ""; display: inline-block; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); margin-right: 6px; vertical-align: 2px; }
 .sym.big { width: 44px; height: 44px; opacity: .6; }
-.or-hud .sym { width: 16px; height: 16px; vertical-align: -2px; }
 .br-lock .sym { width: 13px; height: 13px; }
 
 /* Patoogle: Google results page and setup */
