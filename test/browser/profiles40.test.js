@@ -42,6 +42,8 @@ test('applying a configuration: panel, menu and shortcut work; preview puts it b
   assert.deepEqual(rev, ['light', 'fold', 'notes,calendar']);
   await ev(() => window._revert()); assert.deepEqual(await ev(() => [PatOS.settings.theme, PatOS.settings.wallpaper]), before, 'the preview is put back');
   await ev((c) => PatOS.desk.apply(c), cfg); await page.waitForTimeout(300);
+  // (regression: panels had no styles, so their icons were drawn full size over the widgets)
+  assert.deepEqual(await ev(() => { const p = document.querySelector('#desk-panels .dk-panel'); const ic = p.querySelector('.dk-ic'); return [getComputedStyle(p).position, Math.round(ic.getBoundingClientRect().width), p.getBoundingClientRect().width <= 340]; }), ['absolute', 44, true], 'a panel is a small glass card with normal icons');
   await ev(() => document.querySelector('#desk-panels .dk-item').click()); await page.waitForTimeout(500);
   assert.ok(await ev(() => PatOS.wm.isRunning('calculator')), 'a panel button opens its app');
   await ev(() => document.querySelector('#menubar [data-menu="desk:0"]').click()); await page.waitForTimeout(200);

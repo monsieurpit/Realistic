@@ -131,6 +131,15 @@
       const el = h('div', { class: 'dk-panel lg ' + p.kind, role: 'group', 'aria-label': p.title || T('Panel') }, p.title ? h('b', { class: 'dk-pt' }, p.title) : null,
         h('div', { class: 'dk-pi' }, ...p.items.map((a) => h('button', { class: 'dk-item', title: actionLabel(a), onclick: () => runAction(a) }, h('span', { class: 'dk-ic', html: actionIcon(a) }), h('small', {}, actionLabel(a))))));
       Object.assign(el.style, { left: p.x + 'px', top: p.y + 'px', width: p.w + 'px', minHeight: p.h + 'px' });
+      // hold and drag to move it (like widgets); right-click to remove it or edit it in Studio
+      el.addEventListener('pointerdown', (e) => {
+        if (e.button !== 0 || e.target.closest('.dk-item')) return;
+        const sx = e.clientX, sy = e.clientY, ox = p.x, oy = p.y; let moved = false;
+        const mv = (ev) => { const dx = ev.clientX - sx, dy = ev.clientY - sy; if (!moved && Math.hypot(dx, dy) < 5) return; moved = true; el.classList.add('dk-lift'); p.x = Math.max(0, Math.round((ox + dx) / 8) * 8); p.y = Math.max(32, Math.round((oy + dy) / 8) * 8); el.style.left = p.x + 'px'; el.style.top = p.y + 'px'; };
+        const up = () => { removeEventListener('pointermove', mv); removeEventListener('pointerup', up); el.classList.remove('dk-lift'); if (moved) { const all = PatOS.store.get(PANELS, []) || []; const t = all.find((x) => x.id === p.id); if (t) { t.x = p.x; t.y = p.y; PatOS.store.set(PANELS, all); } } };
+        addEventListener('pointermove', mv); addEventListener('pointerup', up);
+      });
+      el.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); PatOS.menu([{ header: p.title || T('Panel') }, { label: T('Edit in Studio'), action: () => PatOS.launch('deskstudio') }, { divider: true }, { label: T('Remove Panel'), action: () => { PatOS.store.set(PANELS, (PatOS.store.get(PANELS, []) || []).filter((x) => x.id !== p.id)); renderPanels(); } }], e.clientX, e.clientY); });
       layer.appendChild(el); if (PatOS.glassLens) PatOS.glassLens.watch(el);
     });
   }

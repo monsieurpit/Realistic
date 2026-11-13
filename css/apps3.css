@@ -978,3 +978,40 @@ html[data-theme="dark"] .ytx { --yb: #0f0f0f; --yb2: #272727; --yb3: #3f3f3f; --
 .sd-win .win-body { display: flex; flex-direction: column; }
 .sd-wrap { flex: 1 1 auto; height: 100%; align-items: stretch; }
 .sd-side, .sd-insp { align-self: stretch; }
+
+/* PatOS World 4.0 (js/apps/world.js) */
+.wd-win .win-body { display: flex; flex-direction: column; background: var(--win-solid); }
+.wd-wrap { flex: 1; display: flex; min-height: 0; }
+.wd-side { width: 190px; flex: 0 0 190px; border-right: 1px solid var(--border); padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 2px; }
+.wd-new { margin-top: 10px; }
+.wd-tb { display: inline-flex; align-items: center; gap: 5px; height: 28px; padding: 0 9px; border: 0; border-radius: 8px; background: transparent; color: var(--text); font: 500 12.5px/1 inherit; cursor: pointer; }
+.wd-tb:hover { background: rgba(127,127,127,.15); } .wd-tb .sym { width: 15px; height: 15px; } .wd-zoom { font-size: 12px; color: var(--text2); min-width: 42px; text-align: right; font-variant-numeric: tabular-nums; }
+.wd-vp { flex: 1; position: relative; overflow: hidden; outline: none; cursor: default; background-color: color-mix(in srgb, var(--win-solid) 92%, #000);
+  background-image: radial-gradient(circle, rgba(127,127,127,.32) 1px, transparent 1.4px); background-size: 28px 28px; touch-action: none; }
+.wd-vp.panning { cursor: grabbing; } .wd-vp.drop { box-shadow: inset 0 0 0 3px var(--accent); }
+.wd-plane { position: absolute; left: 0; top: 0; width: 0; height: 0; transform-origin: 0 0; will-change: transform; }
+.wd-item, .wd-zone { position: absolute; left: 0; top: 0; box-sizing: border-box; }
+.wd-item { border-radius: 14px; background: color-mix(in srgb, var(--win-solid) 70%, transparent); backdrop-filter: blur(14px); border: 1px solid var(--border); box-shadow: 0 6px 18px -8px rgba(0,0,0,.35); cursor: grab; overflow: hidden; }
+.wd-item.sel, .wd-zone.sel { outline: 2px solid var(--accent); outline-offset: 2px; }
+.wd-item.grouped::after { content: ''; position: absolute; top: 6px; right: 6px; width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+.wd-ib { width: 100%; height: 100%; box-sizing: border-box; padding: 10px 12px; display: flex; flex-direction: column; gap: 3px; overflow: hidden; }
+.wd-ib b { font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .wd-ib small { font-size: 11px; color: var(--text3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.wd-rz { position: absolute; right: 3px; bottom: 3px; width: 12px; height: 12px; border-right: 2px solid var(--text3); border-bottom: 2px solid var(--text3); border-radius: 0 0 4px 0; cursor: nwse-resize; opacity: 0; }
+.wd-item.sel .wd-rz, .wd-zone.sel .wd-rz, .wd-item:hover .wd-rz { opacity: .9; }
+.wd-sticky { background: var(--sc, #ffd60a); color: #1c1c1e; border: 0; } .wd-sticky .wd-ib { padding: 0; }
+.wd-st { width: 100%; height: 100%; box-sizing: border-box; border: 0; resize: none; background: transparent; color: inherit; font: 14px/1.4 inherit; padding: 12px; outline: none; cursor: inherit; } .wd-item.sel .wd-st { cursor: text; }
+.wd-fi, .wd-fi .icon-tile, .wd-fi svg, .wd-fi img { width: 30px; height: 30px; flex: 0 0 30px; }
+.wd-image .wd-ib, .wd-file:has(.wd-img) .wd-ib { padding: 0; } .wd-img { width: 100%; height: 100%; object-fit: cover; display: block; pointer-events: none; }
+.wd-np { margin: 0; font-size: 12px; color: var(--text2); line-height: 1.4; overflow: hidden; }
+.wd-app { background: transparent; border: 0; box-shadow: none; backdrop-filter: none; } .wd-app .wd-ib { align-items: center; justify-content: center; text-align: center; }
+.wd-ai, .wd-ai .icon-tile, .wd-ai svg, .wd-ai img { width: 64px; height: 64px; } .wd-app small { color: var(--text); text-shadow: 0 1px 2px rgba(0,0,0,.4); }
+.wd-wg { background: transparent; border: 0; box-shadow: none; backdrop-filter: none; overflow: visible; } .wd-wg .wd-ib { padding: 0; overflow: visible; }
+.wd-wg .wg-inline { position: relative !important; left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; box-sizing: border-box; padding: 14px; border-radius: 24px; display: flex; flex-direction: column; overflow: hidden; }
+.wd-ci { border: 0; background: none; color: inherit; text-align: left; font: inherit; font-size: 12.5px; padding: 3px 0; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .wd-ci:hover { color: var(--accent); }
+.wd-zone { border-radius: 24px; background: color-mix(in srgb, var(--zc) 12%, transparent); border: 2px dashed color-mix(in srgb, var(--zc) 60%, transparent); }
+.wd-zt { position: absolute; left: 14px; top: 10px; display: flex; gap: 8px; align-items: baseline; color: color-mix(in srgb, var(--zc) 80%, var(--text)); cursor: grab; } .wd-zt b { font-size: 15px; } .wd-zt small { font-size: 11px; opacity: .8; }
+.wd-pin { overflow: visible; background: transparent; border: 0; box-shadow: none; backdrop-filter: none; } .wd-pin .wd-ib { padding: 0; overflow: visible; }
+.window.in-world { position: relative !important; left: 0 !important; top: 0 !important; width: 100% !important; height: 100% !important; transform: none !important; }
+.wd-marq { position: absolute; border: 1px solid var(--accent); background: color-mix(in srgb, var(--accent) 15%, transparent); border-radius: 4px; pointer-events: none; } .wd-marq.hidden { display: none; }
+.wd-plane.far .wd-ib small, .wd-plane.far .wd-np { visibility: hidden; }
+.wd-item img, .wd-item svg { -webkit-user-drag: none; user-select: none; pointer-events: none; } .wd-item { user-select: none; }

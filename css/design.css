@@ -501,3 +501,21 @@ body.patos-fs #pill-wrap.idle { opacity: 0; pointer-events: none; }
 .st-prof.on { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent) inset; }
 .st-prof-ic { width: 36px; height: 36px; flex: 0 0 36px; border-radius: 10px; display: grid; place-items: center; color: #fff; } .st-prof-ic .sym { width: 20px; height: 20px; }
 .st-prof-t { flex: 1; min-width: 0; display: flex; flex-direction: column; } .st-prof-t small { color: var(--text3); font-size: 12px; }
+
+/* desktop panels (js/desk.js): launchers and dashboards made in PatOS Studio */
+#desk-panels { position: absolute; inset: 0; z-index: 2; pointer-events: none; }
+#desk-panels .dk-panel { position: absolute; box-sizing: border-box; padding: 12px 14px; border-radius: 22px; pointer-events: auto; display: flex; flex-direction: column; gap: 8px; color: var(--text); touch-action: none; }
+#desk-panels .dk-panel.dk-lift { z-index: 5; box-shadow: 0 24px 50px -12px rgba(0,0,0,.5); cursor: grabbing; }
+.dk-pt { font-size: 13px; font-weight: 650; padding-left: 2px; }
+.dk-pi { display: grid; grid-template-columns: repeat(auto-fill, minmax(64px, 1fr)); gap: 8px; }
+.dk-item { display: flex; flex-direction: column; align-items: center; gap: 4px; padding: 6px 2px; border: 0; border-radius: 12px; background: transparent; color: inherit; cursor: pointer; font: inherit; min-width: 0; }
+.dk-item:hover { background: rgba(127,127,127,.16); }
+.dk-ic { width: 44px; height: 44px; flex: 0 0 44px; display: grid; place-items: center; }
+.dk-ic .icon-tile, .dk-ic svg, .dk-ic img { width: 44px !important; height: 44px !important; max-width: 44px; max-height: 44px; }
+.dk-ic .sym { width: 24px; height: 24px; }
+.dk-item small { font-size: 11px; max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dk-panel.dashboard .dk-pi { grid-template-columns: 1fr; gap: 2px; }
+.dk-panel.dashboard .dk-item { flex-direction: row; justify-content: flex-start; gap: 10px; padding: 6px 8px; }
+.dk-panel.dashboard .dk-ic, .dk-panel.dashboard .dk-ic .icon-tile, .dk-panel.dashboard .dk-ic svg, .dk-panel.dashboard .dk-ic img { width: 28px !important; height: 28px !important; flex-basis: 28px; }
+.dk-panel.dashboard .dk-item small { font-size: 13px; }
+.mobile #desk-panels { display: none; }

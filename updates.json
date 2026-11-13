@@ -1,7 +1,7 @@
 [
   {
     "version": "4.0.0",
-    "beta": 3,
+    "beta": 4,
     "date": "2026-11-13",
     "title": {
       "en": "PatOS 4.0: Beyond the desktop",
@@ -9,12 +9,16 @@
     },
     "notes": {
       "en": [
+        "Fixed: panels made in PatOS Studio showed giant icons over the widgets on the desktop (they had no style). They’re small glass cards now; hold and drag to move one, right-click to remove it or edit it in Studio",
+        "PatOS World: infinite boards. Put sticky notes, files, pictures, links, notes, live widgets, app tiles and collections anywhere, pan and zoom freely, select several with Shift, group them, and undo with Ctrl+Z. Zones name areas of a board; link one to a folder and dropping a file in it moves the file there through Piles (after asking). Pin a real app window on a board, with everything it has open. An app group opens all its apps at once. Only what’s near the screen is drawn, so big boards stay fast",
         "PatOS Studio: make your own desktop, visually. The stage is your screen, scaled: drag widgets and panels, pull a corner to resize, arrow keys to nudge. On the right: each widget’s settings, panel buttons, the look (appearance, accent, glass, wallpaper), the Dock, your own menus and keyboard shortcuts. A widget maker builds widgets from blocks (text, a live value, a button, a picture). Preview it on your real desktop (Keep or Revert), save it with its earlier versions, duplicate it, apply it to any profile, and share it as a .patdesk file",
         "Fixed: in widget edit mode, the Add Widget / Done bar stayed on screen after pressing Done",
         "PatOS Profiles: separate environments like School, Personal or Gaming. Each has its own look, Dock, widgets, panels, menus, keyboard shortcuts, notification rules and open windows; switching keeps the other profile’s windows exactly as they were. Your files, notes, apps and account are shared by all of them. Settings › Desktop & Multitasking › Profiles, or the Profile tile in Control Center. Desktop configurations: your whole desktop (look, Dock, widgets, panels, menus, shortcuts) as one file you can save with its versions, duplicate, export and import; an imported one is checked and can never run code",
         "The desktop becomes a dashboard: widgets you can place anywhere, resize, stack and configure (clock, calendar, up next, reminders you can check off, music controls, system, weather, notes, countdown, apps, photo, collections), widgets you make in PatOS Studio, and widgets from others that run sandboxed with only the permissions you give them"
       ],
       "fr": [
+        "Corrigé : les panneaux faits dans PatOS Studio montraient des icônes géantes par-dessus les widgets du bureau (ils n’avaient pas de style). Ce sont maintenant de petites cartes de verre; maintenez et glissez pour en déplacer un, clic droit pour le retirer ou le modifier dans Studio",
+        "PatOS World : des tableaux infinis. Placez notes autocollantes, fichiers, images, liens, notes, widgets en direct, tuiles d’apps et collections n’importe où, déplacez-vous et zoomez librement, sélectionnez-en plusieurs avec Maj, groupez-les, et annulez avec Ctrl+Z. Les zones nomment des parties d’un tableau; liez-en une à un dossier et y déposer un fichier le déplace là par Piles (après avoir demandé). Épinglez une vraie fenêtre d’app sur un tableau, avec tout ce qu’elle a d’ouvert. Un groupe d’apps les ouvre toutes d’un coup. Seul ce qui est près de l’écran est dessiné, pour que les grands tableaux restent rapides",
         "PatOS Studio : créez votre propre bureau, visuellement. La scène est votre écran, à l’échelle : glissez les widgets et panneaux, tirez un coin pour redimensionner, les flèches pour ajuster. À droite : les réglages de chaque widget, les boutons des panneaux, l’apparence (thème, accent, verre, fond d’écran), le Dock, vos propres menus et raccourcis clavier. Un créateur de widgets en fait à partir de blocs (texte, valeur en direct, bouton, image). Essayez-le sur votre vrai bureau (Garder ou Revenir), enregistrez-le avec ses versions précédentes, dupliquez-le, appliquez-le à n’importe quel profil, et partagez-le en fichier .patdesk",
         "Corrigé : en mode modification des widgets, la barre Ajouter un widget / Terminé restait à l’écran après avoir appuyé sur Terminé",
         "Profils PatOS : des environnements séparés comme École, Personnel ou Jeux. Chacun a sa propre apparence, son Dock, ses widgets, panneaux, menus, raccourcis clavier, règles de notifications et fenêtres ouvertes; changer garde les fenêtres de l’autre profil exactement comme elles étaient. Vos fichiers, notes, apps et compte sont partagés par tous. Réglages › Bureau et multitâche › Profils, ou la tuile Profil dans le Centre de contrôle. Configurations de bureau : tout votre bureau (apparence, Dock, widgets, panneaux, menus, raccourcis) dans un seul fichier à enregistrer avec ses versions, dupliquer, exporter et importer; une configuration importée est vérifiée et ne peut jamais exécuter de code",

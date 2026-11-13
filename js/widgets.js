@@ -121,7 +121,7 @@
   }
   function renderDesk() {
     layout = layout || load();
-    [...mounted.keys()].forEach(unmount);
+    [...mounted.keys()].filter((k) => !k.startsWith('m')).forEach(unmount); // (only the desktop's own: widgets inside World boards stay)
     const w = host(); w.classList.toggle('editing', editing);
     w.querySelectorAll('.wg-editbar').forEach((x) => x.remove()); // (the Add Widget / Done bar goes with edit mode)
     if (!PatOS.settings.showWidgets && !editing) return;
@@ -362,11 +362,22 @@
   } });
   bi({ id: 'stack', name: 'Smart Stack', icon: 'grid', sizes: ['s', 'm', 'l'], hidden: false, render() { return h('div', { class: 'w-muted' }, T('Empty stack')); } });
 
+  /* a live widget inside any element (PatOS World's boards): the same process, permissions and clean-up as on the desktop.
+     Gives back a function that removes it (World calls it when the item scrolls far out of view). */
+  function mountInto(el, spec) {
+    const def = types.get(spec && spec.type); if (!def) { el.textContent = T('Widget not installed'); return () => {}; }
+    const inst = { iid: 'm' + uid(), type: def.id, size: SIZES[spec.size] ? spec.size : def.sizes[0], config: spec.config || {} };
+    const box = h('div', { class: 'widget wg wg-' + inst.size + ' wg-t-' + def.id.replace(/[^a-z0-9-]/g, '-') + ' wg-inline' }); el.appendChild(box);
+    const proc = procFor(def); const rec = { el: box, proc, ctx: null }; mounted.set(inst.iid, rec); rec.ctx = makeCtx(inst, def, box, proc);
+    draw(inst, box);
+    return () => unmount(inst.iid);
+  }
+
   /* ---------- public ---------- */
   PatOS.widgets = {
     register, types: () => [...types.values()].map((d) => ({ id: d.id, name: d.name, source: d.source, sizes: d.sizes, permissions: d.permissions, version: d.version || '', config: (d.config || []).map((c) => Object.assign({}, c)), hidden: !!d.hidden })),
     layout: () => (layout || load()).map((i) => Object.assign({}, i)), setLayout(l) { layout = (Array.isArray(l) ? l : []).filter((i) => i && i.iid && i.type).map((i) => Object.assign({}, i)); save(); renderDesk(); },
-    add, remove, resize, configure, edit, editing: () => editing, renderDesk, gallery,
+    add, remove, resize, configure, edit, editing: () => editing, renderDesk, gallery, mountInto,
     install: installManifest, uninstall, installed: () => Object.values(PatOS.store.get(INST, {}) || {}).map((m) => ({ id: m.id, name: m.name, version: m.version, permissions: m.permissions, granted: granted(m) })),
     setGrant(id, perms) { const gr = PatOS.store.get(GRANT, {}) || {}; gr[id] = perms; PatOS.store.set(GRANT, gr); renderDesk(); },
     setEnabled(id, on) { let off = disabledTypes(); off = on ? off.filter((x) => x !== id) : [...new Set(off.concat(id))]; PatOS.store.set(OFF, off); renderDesk(); },
