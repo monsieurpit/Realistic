@@ -319,3 +319,88 @@ html:not(.reduce-motion) .dlg { animation: dlgIn var(--spring-dur-short) var(--s
 .wt-new { flex: 0 0 28px; border: 0; border-radius: 9px; background: none; color: var(--text2); font-size: 17px; cursor: pointer; } .wt-new:hover { background: rgba(127,127,127,.14); }
 .window.tab-drop { box-shadow: 0 0 0 3px var(--accent), var(--shadow) !important; }
 .window.tab-drop .titlebar { background: color-mix(in srgb, var(--accent) 18%, var(--toolbar)); }
+
+/* ===================== the PatOS Pill (js/pill.js) ===================== */
+#pill-wrap { position: fixed; top: 2px; left: 50%; transform: translateX(-50%); z-index: 10040; display: flex; align-items: flex-start; gap: 6px; pointer-events: none; }
+#pill { position: relative; pointer-events: auto; height: 24px; width: 24px; border-radius: 13px; color: #fff; cursor: pointer; overflow: hidden; isolation: isolate;
+  background: linear-gradient(180deg, rgba(34,34,40,.86), rgba(10,10,14,.9)); -webkit-backdrop-filter: blur(22px) saturate(1.8); backdrop-filter: blur(22px) saturate(1.8);
+  box-shadow: 0 10px 30px -6px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.25), inset 0 0 0 .5px rgba(255,255,255,.16), inset 0 1px 0 rgba(255,255,255,.14);
+  opacity: 0; transform: translateY(-14px) scale(.6); transform-origin: 50% 0;
+  transition: width .55s var(--spring, cubic-bezier(.2,.9,.3,1.1)), height .55s var(--spring, cubic-bezier(.2,.9,.3,1.1)), border-radius .55s var(--spring, ease), opacity .3s, transform .5s var(--spring, ease), box-shadow .4s; }
+#pill-wrap.show #pill { opacity: 1; transform: none; }
+#pill.expanded { border-radius: 26px; cursor: default; box-shadow: 0 24px 60px -10px rgba(0,0,0,.6), 0 4px 14px rgba(0,0,0,.3), inset 0 0 0 .5px rgba(255,255,255,.18), inset 0 1px 0 rgba(255,255,255,.16); }
+/* the color of what it shows: a soft glow around it, and the rim catches it */
+#pill.toned { box-shadow: 0 0 22px -4px color-mix(in srgb, var(--pl-tone) 55%, transparent), 0 10px 30px -6px rgba(0,0,0,.5), inset 0 0 0 .5px color-mix(in srgb, var(--pl-tone) 45%, rgba(255,255,255,.16)), inset 0 1px 0 rgba(255,255,255,.14); }
+/* a job's progress, as light along its bottom edge */
+#pill::after { content: ''; position: absolute; left: 10px; bottom: 0; height: 1.5px; width: calc((100% - 20px) * var(--pl-p, 0)); border-radius: 2px; background: var(--pl-tone, var(--accent)); box-shadow: 0 0 6px var(--pl-tone, var(--accent)); opacity: 0; transition: width .6s ease, opacity .3s; }
+#pill.has-p::after { opacity: .9; }
+#pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#pill { --pl-accent: var(--accent); }
+.pl-c { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; transition: opacity .2s ease, filter .2s ease, transform .3s var(--spring, ease); }
+#pill.expanded .pl-c { align-items: stretch; justify-content: flex-start; }
+.pl-c.in { opacity: 0; filter: blur(5px); transform: scale(.94); } .pl-c.out { opacity: 0; filter: blur(5px); transform: scale(1.04); pointer-events: none; }
+#pill-measure { position: absolute; left: -9999px; top: 0; visibility: hidden; width: max-content; pointer-events: none; color: #fff; }
+#pill-measure.big { width: 372px; }
+.pl-row { display: flex; align-items: center; gap: 8px; height: 24px; padding: 0 9px 0 4px; white-space: nowrap; font-size: 12.5px; }
+.pl-lead { flex: 0 0 auto; display: grid; place-items: center; width: 18px; height: 18px; }
+.pl-lead .pl-app, .pl-lead .pl-app .icon-tile, .pl-lead .pl-app svg, .pl-lead .pl-app img { width: 18px; height: 18px; border-radius: 5px; display: block; }
+.pl-art { width: 18px; height: 18px; border-radius: 5px; object-fit: cover; display: grid; place-items: center; color: rgba(255,255,255,.85); }
+.pl-art .sym { width: 11px; height: 11px; }
+.pl-glyph { display: grid; place-items: center; } .pl-glyph .sym { width: 15px; height: 15px; stroke-width: 2.2; }
+.pl-t { min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
+.pl-row .pl-t b { font-weight: 600; max-width: 200px; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.1px; }
+.pl-t small { color: rgba(255,255,255,.6); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-trail { display: flex; align-items: center; gap: 6px; margin-left: 2px; }
+.pl-num { font-weight: 600; font-variant-numeric: tabular-nums; font-size: 12.5px; letter-spacing: .2px; } .pl-orange { color: #ff9f0a; }
+.pl-ring { width: 16px; height: 16px; color: var(--pl-tone, #fff); } .pl-spin { animation: plSpin 1s linear infinite; } @keyframes plSpin { to { transform: rotate(360deg); } }
+.pl-level { width: 84px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.2); overflow: hidden; margin-left: 4px; }
+.pl-level i { display: block; height: 100%; border-radius: 3px; background: #fff; transition: width .18s ease-out; }
+/* rolling digits */
+.pl-digits { display: inline-flex; } .pl-digits i { font-style: normal; display: inline-block; }
+.pl-digits i.roll { animation: plRoll .38s var(--spring, ease-out); } @keyframes plRoll { from { transform: translateY(-70%); opacity: 0; filter: blur(2px); } }
+/* the music's bars: they move with the sound itself (js reads the player); without it, a gentle loop */
+.pl-eq { display: inline-flex; align-items: center; gap: 2px; height: 14px; width: 18px; }
+.pl-eq i { flex: 1; height: 100%; border-radius: 2px; background: var(--pl-tone, #ff375f); transform-origin: 50% 50%; transform: scaleY(.2); transition: transform .08s linear; }
+.pl-eq.on:not(.real) i { animation: plEq .9s ease-in-out infinite alternate; } .pl-eq i:nth-child(2) { animation-delay: -.3s; } .pl-eq i:nth-child(3) { animation-delay: -.6s; } .pl-eq i:nth-child(4) { animation-delay: -.15s; }
+@keyframes plEq { from { transform: scaleY(.25); } to { transform: scaleY(1); } }
+.pl-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); animation: plPulse 1.6s ease-in-out infinite; } @keyframes plPulse { 50% { opacity: .45; } }
+/* the card */
+.pl-list { display: flex; flex-direction: column; gap: 6px; padding: 12px; width: 100%; box-sizing: border-box; }
+.pl-card { display: flex; flex-direction: column; gap: 10px; }
+.pl-head { display: flex; align-items: center; gap: 11px; }
+.pl-lead.big, .pl-lead.big .pl-app, .pl-lead.big .pl-app .icon-tile, .pl-lead.big .pl-app svg, .pl-lead.big .pl-art, .pl-lead.big img { width: 44px; height: 44px; border-radius: 12px; }
+.pl-lead.big .pl-glyph .sym { width: 26px; height: 26px; } .pl-lead.big .pl-art .sym { width: 20px; height: 20px; }
+.pl-head .pl-t { flex: 1; } .pl-head .pl-t b { font-size: 15px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .pl-head .pl-t small { font-size: 12.5px; margin-top: 2px; }
+.pl-open { width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(255,255,255,.12); color: #fff; display: grid; place-items: center; cursor: pointer; transform: rotate(45deg); }
+.pl-open .sym { width: 15px; height: 15px; } .pl-open:hover { background: rgba(255,255,255,.22); }
+.pl-big { display: flex; flex-direction: column; gap: 6px; }
+.pl-bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,.16); overflow: hidden; }
+.pl-bar i { display: block; height: 100%; border-radius: 3px; background: var(--pl-tone, var(--accent)); transition: width .5s ease; }
+.pl-bar.orange i { background: #ff9f0a; } .pl-bar.busy i { width: 35% !important; animation: plBusy 1.2s ease-in-out infinite; } @keyframes plBusy { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+.pl-meta { display: flex; justify-content: space-between; font-size: 11.5px; color: rgba(255,255,255,.6); font-variant-numeric: tabular-nums; }
+.pl-count { align-items: center; } .pl-huge { font-size: 40px; font-weight: 300; letter-spacing: -1px; font-variant-numeric: tabular-nums; color: #ff9f0a; line-height: 1.05; } .pl-count .pl-bar { width: 100%; }
+.pl-acts { display: flex; justify-content: center; gap: 12px; }
+.pl-act { min-width: 40px; height: 40px; padding: 0 12px; border-radius: 20px; border: 0; background: rgba(255,255,255,.13); color: #fff; display: grid; place-items: center; cursor: pointer; font: 600 13px/1 inherit; transition: background .15s, transform .15s; }
+.pl-act .sym { width: 18px; height: 18px; stroke-width: 2.2; } .pl-act:hover { background: rgba(255,255,255,.22); } .pl-act:active { transform: scale(.92); }
+.pl-act.main { background: #fff; color: #000; min-width: 48px; height: 48px; border-radius: 24px; } .pl-act.main .sym { width: 22px; height: 22px; } .pl-act.main:hover { background: rgba(255,255,255,.88); }
+.pl-mini { display: flex; align-items: center; gap: 9px; padding: 7px 8px; border: 0; border-radius: 14px; background: rgba(255,255,255,.07); color: #fff; text-align: left; cursor: pointer; font: inherit; font-size: 12.5px; }
+.pl-mini:hover { background: rgba(255,255,255,.13); } .pl-mini .pl-t { flex: 1; } .pl-mini .pl-t b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* the second thing, as a bubble beside it */
+#pill-side { pointer-events: auto; width: 24px; height: 24px; padding: 3px; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: #fff;
+  background: linear-gradient(180deg, rgba(34,34,40,.86), rgba(10,10,14,.9)); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px); box-shadow: 0 6px 16px -4px rgba(0,0,0,.5), inset 0 0 0 .5px rgba(255,255,255,.16);
+  opacity: 0; transform: translateX(-30px) scale(.4); transition: opacity .3s, transform .55s var(--spring, ease); margin-left: -30px; }
+#pill-wrap.two #pill-side { opacity: 1; transform: none; margin-left: 0; }
+#pill-wrap:not(.two) #pill-side { pointer-events: none; }
+#pill-side .pl-app, #pill-side .pl-app .icon-tile, #pill-side .pl-app svg, #pill-side img, #pill-side .pl-art { width: 18px; height: 18px; border-radius: 5px; } #pill-side .pl-glyph .sym { width: 14px; height: 14px; }
+.pl-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+/* full screen apps: only flashes and an open card show */
+body.patos-fs #pill-wrap:not(.flashing) #pill:not(.expanded), body.patos-fs #pill-wrap:not(.flashing) #pill-side { opacity: 0; pointer-events: none; }
+html.pill-on #mb-live { display: none !important; }
+.mobile #pill-wrap { top: calc(var(--mtop, 0px) - 8px + 2px); }
+@media (prefers-reduced-motion: reduce) { #pill, .pl-c, #pill-side { transition-duration: .01s !important; } .pl-digits i.roll { animation: none; } }
+html.reduce-motion #pill, html.reduce-motion .pl-c { transition-duration: .01s !important; }
+
+.pl-row .pl-t.inline { flex-direction: row; align-items: baseline; gap: 7px; } .pl-row .pl-t.inline small { font-size: 12px; max-width: 180px; }
+.pl-act .sym { filter: none !important; } .pl-act:is([data-i=play], [data-i=pause], [data-i=prev], [data-i=next], [data-i=stop]) .sym { fill: currentColor; stroke-width: 1.4; }
+.pl-act .sym * { fill-opacity: 1 !important; }
+.pl-digits { overflow: hidden; line-height: 1.2em; height: 1.2em; vertical-align: bottom; }

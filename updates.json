@@ -1,7 +1,7 @@
 [
   {
     "version": "3.3.0",
-    "beta": 7,
+    "beta": 8,
     "date": "2026-11-13",
     "title": {
       "en": "PatOS 3.3: Crystal",
@@ -9,6 +9,7 @@
     },
     "notes": {
       "en": [
+        "The PatOS Pill: a capsule of dark glass at the top of the screen that shows what’s happening right now and changes shape with it. A timer counting down (with rolling digits), the song playing with bars that move with the music and a glow in the color of its cover, a copy or a backup with its progress, and any app using the microphone or the camera (so you always know, with a button to turn it off). Point at it or click it to open a card with controls: pause, +1 min, cancel, play, next. Two things at once: the second one waits in a bubble beside it. It also flashes the volume, the brightness, Do Not Disturb, charging, going offline and jobs that finished or failed. Settings › Desktop & Dock › PatOS Pill",
         "Fixed: installing an update could loop (download, restart, still the old version, asked again). PatOS’s start-up safety counted panic screens, Recovery and a deleted /System as failed starts, and then threw away the version that was just installed. Now it only goes back when the new version itself fails to start, and those screens no longer count",
         "Updates are sturdier: the server now remembers which version this device installed, so PatOS starts on it even when the page doesn’t come from the downloaded copy, and an update that was just installed is never offered (and downloaded) again in a loop",
         "A real Liquid Glass renderer: the edges of the glass now bend what is behind them the way real glass does (a rounded rim, light refracted at index 1.5, worked out for every pixel), catch the light at the top left with a softer glint at the bottom right, and split colors a little right at the very edge (Settings › Appearance › Rainbow edges). Just as clear as before, and no slower",
@@ -18,6 +19,7 @@
         "A crystal Dock: thicker, brighter glass with a light rim, a soft rainbow at its ends, a reflection inside, a glow under it, and a glass bubble for app names"
       ],
       "fr": [
+        "La pilule PatOS : une capsule de verre sombre en haut de l’écran qui montre ce qui se passe en ce moment et change de forme avec. Un minuteur qui défile (avec des chiffres qui roulent), la chanson en cours avec des barres qui bougent avec la musique et une lueur de la couleur de sa pochette, une copie ou une sauvegarde avec sa progression, et toute app qui utilise le micro ou la caméra (pour toujours le savoir, avec un bouton pour l’éteindre). Pointez-la ou cliquez dessus pour ouvrir une carte avec les commandes : pause, +1 min, annuler, lecture, suivant. Deux choses à la fois : la deuxième attend dans une bulle à côté. Elle montre aussi un instant le volume, la luminosité, Ne pas déranger, la recharge, la perte d’Internet et les tâches terminées ou ratées. Réglages › Bureau et Dock › Pilule PatOS",
         "Corrigé : installer une mise à jour pouvait tourner en boucle (téléchargement, redémarrage, toujours l’ancienne version, et on redemande). La sécurité de démarrage de PatOS comptait les écrans de panique, la Récupération et un /System supprimé comme des démarrages ratés, puis abandonnait la version qui venait d’être installée. Maintenant, elle ne revient en arrière que si la nouvelle version elle-même ne démarre pas, et ces écrans ne comptent plus",
         "Des mises à jour plus solides : le serveur se souvient maintenant de la version installée sur cet appareil, donc PatOS démarre dessus même quand la page ne vient pas de la copie téléchargée, et une mise à jour qui vient d’être installée n’est plus jamais proposée (et téléchargée) en boucle",
         "Un vrai moteur Liquid Glass : les bords du verre plient maintenant ce qui est derrière comme du vrai verre (un bord arrondi, la lumière réfractée à l’indice 1,5, calculée pour chaque pixel), captent la lumière en haut à gauche avec un reflet plus doux en bas à droite, et séparent un peu les couleurs tout au bord (Réglages › Apparence › Bords irisés). Aussi transparent qu’avant, et pas plus lent",

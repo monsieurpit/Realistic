@@ -4869,6 +4869,91 @@ html:not(.reduce-motion) .dlg { animation: dlgIn var(--spring-dur-short) var(--s
 .window.tab-drop { box-shadow: 0 0 0 3px var(--accent), var(--shadow) !important; }
 .window.tab-drop .titlebar { background: color-mix(in srgb, var(--accent) 18%, var(--toolbar)); }
 
+/* ===================== the PatOS Pill (js/pill.js) ===================== */
+#pill-wrap { position: fixed; top: 2px; left: 50%; transform: translateX(-50%); z-index: 10040; display: flex; align-items: flex-start; gap: 6px; pointer-events: none; }
+#pill { position: relative; pointer-events: auto; height: 24px; width: 24px; border-radius: 13px; color: #fff; cursor: pointer; overflow: hidden; isolation: isolate;
+  background: linear-gradient(180deg, rgba(34,34,40,.86), rgba(10,10,14,.9)); -webkit-backdrop-filter: blur(22px) saturate(1.8); backdrop-filter: blur(22px) saturate(1.8);
+  box-shadow: 0 10px 30px -6px rgba(0,0,0,.5), 0 2px 6px rgba(0,0,0,.25), inset 0 0 0 .5px rgba(255,255,255,.16), inset 0 1px 0 rgba(255,255,255,.14);
+  opacity: 0; transform: translateY(-14px) scale(.6); transform-origin: 50% 0;
+  transition: width .55s var(--spring, cubic-bezier(.2,.9,.3,1.1)), height .55s var(--spring, cubic-bezier(.2,.9,.3,1.1)), border-radius .55s var(--spring, ease), opacity .3s, transform .5s var(--spring, ease), box-shadow .4s; }
+#pill-wrap.show #pill { opacity: 1; transform: none; }
+#pill.expanded { border-radius: 26px; cursor: default; box-shadow: 0 24px 60px -10px rgba(0,0,0,.6), 0 4px 14px rgba(0,0,0,.3), inset 0 0 0 .5px rgba(255,255,255,.18), inset 0 1px 0 rgba(255,255,255,.16); }
+/* the color of what it shows: a soft glow around it, and the rim catches it */
+#pill.toned { box-shadow: 0 0 22px -4px color-mix(in srgb, var(--pl-tone) 55%, transparent), 0 10px 30px -6px rgba(0,0,0,.5), inset 0 0 0 .5px color-mix(in srgb, var(--pl-tone) 45%, rgba(255,255,255,.16)), inset 0 1px 0 rgba(255,255,255,.14); }
+/* a job's progress, as light along its bottom edge */
+#pill::after { content: ''; position: absolute; left: 10px; bottom: 0; height: 1.5px; width: calc((100% - 20px) * var(--pl-p, 0)); border-radius: 2px; background: var(--pl-tone, var(--accent)); box-shadow: 0 0 6px var(--pl-tone, var(--accent)); opacity: 0; transition: width .6s ease, opacity .3s; }
+#pill.has-p::after { opacity: .9; }
+#pill:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+#pill { --pl-accent: var(--accent); }
+.pl-c { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; transition: opacity .2s ease, filter .2s ease, transform .3s var(--spring, ease); }
+#pill.expanded .pl-c { align-items: stretch; justify-content: flex-start; }
+.pl-c.in { opacity: 0; filter: blur(5px); transform: scale(.94); } .pl-c.out { opacity: 0; filter: blur(5px); transform: scale(1.04); pointer-events: none; }
+#pill-measure { position: absolute; left: -9999px; top: 0; visibility: hidden; width: max-content; pointer-events: none; color: #fff; }
+#pill-measure.big { width: 372px; }
+.pl-row { display: flex; align-items: center; gap: 8px; height: 24px; padding: 0 9px 0 4px; white-space: nowrap; font-size: 12.5px; }
+.pl-lead { flex: 0 0 auto; display: grid; place-items: center; width: 18px; height: 18px; }
+.pl-lead .pl-app, .pl-lead .pl-app .icon-tile, .pl-lead .pl-app svg, .pl-lead .pl-app img { width: 18px; height: 18px; border-radius: 5px; display: block; }
+.pl-art { width: 18px; height: 18px; border-radius: 5px; object-fit: cover; display: grid; place-items: center; color: rgba(255,255,255,.85); }
+.pl-art .sym { width: 11px; height: 11px; }
+.pl-glyph { display: grid; place-items: center; } .pl-glyph .sym { width: 15px; height: 15px; stroke-width: 2.2; }
+.pl-t { min-width: 0; display: flex; flex-direction: column; line-height: 1.15; }
+.pl-row .pl-t b { font-weight: 600; max-width: 200px; overflow: hidden; text-overflow: ellipsis; letter-spacing: -.1px; }
+.pl-t small { color: rgba(255,255,255,.6); font-size: 11.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.pl-trail { display: flex; align-items: center; gap: 6px; margin-left: 2px; }
+.pl-num { font-weight: 600; font-variant-numeric: tabular-nums; font-size: 12.5px; letter-spacing: .2px; } .pl-orange { color: #ff9f0a; }
+.pl-ring { width: 16px; height: 16px; color: var(--pl-tone, #fff); } .pl-spin { animation: plSpin 1s linear infinite; } @keyframes plSpin { to { transform: rotate(360deg); } }
+.pl-level { width: 84px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.2); overflow: hidden; margin-left: 4px; }
+.pl-level i { display: block; height: 100%; border-radius: 3px; background: #fff; transition: width .18s ease-out; }
+/* rolling digits */
+.pl-digits { display: inline-flex; } .pl-digits i { font-style: normal; display: inline-block; }
+.pl-digits i.roll { animation: plRoll .38s var(--spring, ease-out); } @keyframes plRoll { from { transform: translateY(-70%); opacity: 0; filter: blur(2px); } }
+/* the music's bars: they move with the sound itself (js reads the player); without it, a gentle loop */
+.pl-eq { display: inline-flex; align-items: center; gap: 2px; height: 14px; width: 18px; }
+.pl-eq i { flex: 1; height: 100%; border-radius: 2px; background: var(--pl-tone, #ff375f); transform-origin: 50% 50%; transform: scaleY(.2); transition: transform .08s linear; }
+.pl-eq.on:not(.real) i { animation: plEq .9s ease-in-out infinite alternate; } .pl-eq i:nth-child(2) { animation-delay: -.3s; } .pl-eq i:nth-child(3) { animation-delay: -.6s; } .pl-eq i:nth-child(4) { animation-delay: -.15s; }
+@keyframes plEq { from { transform: scaleY(.25); } to { transform: scaleY(1); } }
+.pl-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--c); box-shadow: 0 0 8px var(--c); animation: plPulse 1.6s ease-in-out infinite; } @keyframes plPulse { 50% { opacity: .45; } }
+/* the card */
+.pl-list { display: flex; flex-direction: column; gap: 6px; padding: 12px; width: 100%; box-sizing: border-box; }
+.pl-card { display: flex; flex-direction: column; gap: 10px; }
+.pl-head { display: flex; align-items: center; gap: 11px; }
+.pl-lead.big, .pl-lead.big .pl-app, .pl-lead.big .pl-app .icon-tile, .pl-lead.big .pl-app svg, .pl-lead.big .pl-art, .pl-lead.big img { width: 44px; height: 44px; border-radius: 12px; }
+.pl-lead.big .pl-glyph .sym { width: 26px; height: 26px; } .pl-lead.big .pl-art .sym { width: 20px; height: 20px; }
+.pl-head .pl-t { flex: 1; } .pl-head .pl-t b { font-size: 15px; font-weight: 650; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; } .pl-head .pl-t small { font-size: 12.5px; margin-top: 2px; }
+.pl-open { width: 28px; height: 28px; border-radius: 50%; border: 0; background: rgba(255,255,255,.12); color: #fff; display: grid; place-items: center; cursor: pointer; transform: rotate(45deg); }
+.pl-open .sym { width: 15px; height: 15px; } .pl-open:hover { background: rgba(255,255,255,.22); }
+.pl-big { display: flex; flex-direction: column; gap: 6px; }
+.pl-bar { height: 5px; border-radius: 3px; background: rgba(255,255,255,.16); overflow: hidden; }
+.pl-bar i { display: block; height: 100%; border-radius: 3px; background: var(--pl-tone, var(--accent)); transition: width .5s ease; }
+.pl-bar.orange i { background: #ff9f0a; } .pl-bar.busy i { width: 35% !important; animation: plBusy 1.2s ease-in-out infinite; } @keyframes plBusy { from { transform: translateX(-100%); } to { transform: translateX(300%); } }
+.pl-meta { display: flex; justify-content: space-between; font-size: 11.5px; color: rgba(255,255,255,.6); font-variant-numeric: tabular-nums; }
+.pl-count { align-items: center; } .pl-huge { font-size: 40px; font-weight: 300; letter-spacing: -1px; font-variant-numeric: tabular-nums; color: #ff9f0a; line-height: 1.05; } .pl-count .pl-bar { width: 100%; }
+.pl-acts { display: flex; justify-content: center; gap: 12px; }
+.pl-act { min-width: 40px; height: 40px; padding: 0 12px; border-radius: 20px; border: 0; background: rgba(255,255,255,.13); color: #fff; display: grid; place-items: center; cursor: pointer; font: 600 13px/1 inherit; transition: background .15s, transform .15s; }
+.pl-act .sym { width: 18px; height: 18px; stroke-width: 2.2; } .pl-act:hover { background: rgba(255,255,255,.22); } .pl-act:active { transform: scale(.92); }
+.pl-act.main { background: #fff; color: #000; min-width: 48px; height: 48px; border-radius: 24px; } .pl-act.main .sym { width: 22px; height: 22px; } .pl-act.main:hover { background: rgba(255,255,255,.88); }
+.pl-mini { display: flex; align-items: center; gap: 9px; padding: 7px 8px; border: 0; border-radius: 14px; background: rgba(255,255,255,.07); color: #fff; text-align: left; cursor: pointer; font: inherit; font-size: 12.5px; }
+.pl-mini:hover { background: rgba(255,255,255,.13); } .pl-mini .pl-t { flex: 1; } .pl-mini .pl-t b { font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* the second thing, as a bubble beside it */
+#pill-side { pointer-events: auto; width: 24px; height: 24px; padding: 3px; border: 0; border-radius: 50%; display: grid; place-items: center; cursor: pointer; color: #fff;
+  background: linear-gradient(180deg, rgba(34,34,40,.86), rgba(10,10,14,.9)); -webkit-backdrop-filter: blur(22px); backdrop-filter: blur(22px); box-shadow: 0 6px 16px -4px rgba(0,0,0,.5), inset 0 0 0 .5px rgba(255,255,255,.16);
+  opacity: 0; transform: translateX(-30px) scale(.4); transition: opacity .3s, transform .55s var(--spring, ease); margin-left: -30px; }
+#pill-wrap.two #pill-side { opacity: 1; transform: none; margin-left: 0; }
+#pill-wrap:not(.two) #pill-side { pointer-events: none; }
+#pill-side .pl-app, #pill-side .pl-app .icon-tile, #pill-side .pl-app svg, #pill-side img, #pill-side .pl-art { width: 18px; height: 18px; border-radius: 5px; } #pill-side .pl-glyph .sym { width: 14px; height: 14px; }
+.pl-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+/* full screen apps: only flashes and an open card show */
+body.patos-fs #pill-wrap:not(.flashing) #pill:not(.expanded), body.patos-fs #pill-wrap:not(.flashing) #pill-side { opacity: 0; pointer-events: none; }
+html.pill-on #mb-live { display: none !important; }
+.mobile #pill-wrap { top: calc(var(--mtop, 0px) - 8px + 2px); }
+@media (prefers-reduced-motion: reduce) { #pill, .pl-c, #pill-side { transition-duration: .01s !important; } .pl-digits i.roll { animation: none; } }
+html.reduce-motion #pill, html.reduce-motion .pl-c { transition-duration: .01s !important; }
+
+.pl-row .pl-t.inline { flex-direction: row; align-items: baseline; gap: 7px; } .pl-row .pl-t.inline small { font-size: 12px; max-width: 180px; }
+.pl-act .sym { filter: none !important; } .pl-act:is([data-i=play], [data-i=pause], [data-i=prev], [data-i=next], [data-i=stop]) .sym { fill: currentColor; stroke-width: 1.4; }
+.pl-act .sym * { fill-opacity: 1 !important; }
+.pl-digits { overflow: hidden; line-height: 1.2em; height: 1.2em; vertical-align: bottom; }
+
 </style>
   <style>
 /* ================= PatOS signature =================
@@ -6063,7 +6148,8 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
     showWidgets: true,
     notifSound: true, mutedApps: [],   // Settings › Notifications and › Applications
     quietOn: false, quietFrom: '22:00', quietTo: '07:00', notifKeepDays: 7, notifRules: {}, // (3.3) quiet hours, history, a rule per app
-    windowMagnets: true,     // windows click to edges and to each other (js/wm-pro.js)
+    windowMagnets: true,
+    pillOn: true,            // the PatOS Pill at the top of the screen (js/pill.js)     // windows click to edges and to each other (js/wm-pro.js)
     cmdHidden: [],           // Command Center sections you hid
     soundTheme: 'glass', uiVolume: 0.8, // (3.3) the interface sounds: js/sounds.js
     intelPerms: {},          // Settings › Pat & Intelligence: kinds of action turned off (js/intelligence.js)
@@ -6854,8 +6940,8 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
 /* generated by build.js from updates.json: do not edit */
 PatOS.version = "3.2.1";
 PatOS.releases = [{"version":"3.2.1","date":"2026-11-13","title":{"en":"PatOS 3.2.1","fr":"PatOS 3.2.1"},"notes":{"en":["Fixed: on some devices PatOS asked to be set up again (with its sign-in) after a restart: a sync bug deleted the note that setup was done. Devices with an account go straight back in, and sync never deletes device-only settings again"],"fr":["Corrigé : sur certains appareils, PatOS demandait d’être configuré à nouveau (avec sa connexion) après un redémarrage : un bug de synchro effaçait la note disant que la configuration était faite. Les appareils avec un compte reviennent directement, et la synchro n’efface plus jamais les réglages propres à l’appareil"]}},{"version":"3.2.0","date":"2026-11-12","title":{"en":"PatOS 3.2: Messages","fr":"PatOS 3.2 : Messages"},"more":true},{"version":"3.1.0","date":"2026-11-12","title":{"en":"PatOS 3.1: Handoff","fr":"PatOS 3.1 : Continuité"},"more":true},{"version":"3.0.0","date":"2026-11-10","title":{"en":"PatOS 3: Prism","fr":"PatOS 3 : Prisme"},"more":true},{"version":"2.3.1","date":"2026-11-09","title":{"en":"Drawn glass icons","fr":"Des icônes dessinées en verre"},"more":true},{"version":"2.3.0","date":"2026-11-09","title":{"en":"Liquid Glass, everywhere","fr":"Liquid Glass, partout"},"more":true},{"version":"2.2.2","date":"2026-11-09","title":{"en":"Liquid Glass without the light bar","fr":"Liquid Glass sans la barre de lumière"},"more":true},{"version":"2.2.1","date":"2026-11-09","title":{"en":"Thick, clear Liquid Glass","fr":"Liquid Glass épais et clair"},"more":true},{"version":"2.2.0","date":"2026-11-09","title":{"en":"Liquid Glass, rebuilt","fr":"Liquid Glass, refait"},"more":true},{"version":"2.1.3","date":"2026-11-06","title":{"en":"PitCode Studio on iPhone","fr":"PitCode Studio sur iPhone"},"more":true},{"version":"2.1.2","date":"2026-11-06","title":{"en":"Importing projects, made sturdier","fr":"Importer des projets, en plus solide"},"more":true},{"version":"2.1.1","date":"2026-11-06","title":{"en":"Importing files on phones","fr":"Importer des fichiers sur téléphone"},"more":true},{"version":"2.1.0","date":"2026-11-05","title":{"en":"PatOS 2.1: Slither and a better Studio","fr":"PatOS 2.1 : Slither et un meilleur Studio"},"more":true},{"version":"2.0.0","date":"2026-11-05","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"more":true},{"version":"1.7.0","date":"2026-11-04","title":{"en":"Better apps","fr":"De meilleures apps"},"more":true},{"version":"1.6.0","date":"2026-11-03","title":{"en":"Software Update","fr":"Mise à jour de logiciels"},"more":true},{"version":"1.5.0","date":"2026-11-03","title":{"en":"iPhone swipe up, Reminders in plain words","fr":"Balayage sur iPhone, Rappels en mots simples"},"more":true},{"version":"1.4.0","date":"2026-11-03","title":{"en":"Clock and Calculator","fr":"Horloge et Calculatrice"},"more":true},{"version":"1.3.0","date":"2026-11-03","title":{"en":"Finder and TextEdit","fr":"Finder et TextEdit"},"more":true},{"version":"1.2.0","date":"2026-11-03","title":{"en":"Faster start, smoother 3D","fr":"Démarrage plus rapide, 3D plus fluide"},"more":true},{"version":"1.1.0","date":"2026-11-03","title":{"en":"Security","fr":"Sécurité"},"more":true}];
-PatOS.beta = {"version":"3.3.0","beta":7,"date":"2026-11-13","title":{"en":"PatOS 3.3: Crystal","fr":"PatOS 3.3 : Cristal"},"notes":{"en":["Fixed: installing an update could loop (download, restart, still the old version, asked again). PatOS’s start-up safety counted panic screens, Recovery and a deleted /System as failed starts, and then threw away the version that was just installed. Now it only goes back when the new version itself fails to start, and those screens no longer count","Updates are sturdier: the server now remembers which version this device installed, so PatOS starts on it even when the page doesn’t come from the downloaded copy, and an update that was just installed is never offered (and downloaded) again in a loop","A real Liquid Glass renderer: the edges of the glass now bend what is behind them the way real glass does (a rounded rim, light refracted at index 1.5, worked out for every pixel), catch the light at the top left with a softer glint at the bottom right, and split colors a little right at the very edge (Settings › Appearance › Rainbow edges). Just as clear as before, and no slower","Windows 2.0: windows click magnetically to the screen’s edges and to each other, with thin guides (hold Shift to place one freely). Throw a window toward the left or right edge to fill that half. Drop a window on another window of the same app to make tabs; drag a tab down to make it a window again, Ctrl+Tab to switch. Keyboard tiling: Ctrl+Alt+arrows for halves (press again for thirds), Ctrl+Alt+U I J K for quarters, Ctrl+Alt+Enter to fill, Ctrl+Alt+C to center, Ctrl+Alt+T to tile every window","Sound design: every sound is now made live by PatOS (no recordings): soft glass bells, taps and air, in tune with each other. Windows opening, closing and minimizing, switches, notifications (calmer for the usual ones, clearer for important ones), messages sent and received, captures, finished tasks, locking, emptying the Trash. Settings › Sound: choose Glass or Soft, the volume of interface sounds, and try each one","Fixed: on some devices PatOS asked to be set up again (with its sign-in) after a restart: a sync bug deleted the note that setup was done. Devices with an account go straight back in, and sync never deletes device-only settings again. If signing in still says “No internet”, the message now shows the reason, and setup lets you continue without an account for now","A crystal Dock: thicker, brighter glass with a light rim, a soft rainbow at its ends, a reflection inside, a glow under it, and a glass bubble for app names"],"fr":["Corrigé : installer une mise à jour pouvait tourner en boucle (téléchargement, redémarrage, toujours l’ancienne version, et on redemande). La sécurité de démarrage de PatOS comptait les écrans de panique, la Récupération et un /System supprimé comme des démarrages ratés, puis abandonnait la version qui venait d’être installée. Maintenant, elle ne revient en arrière que si la nouvelle version elle-même ne démarre pas, et ces écrans ne comptent plus","Des mises à jour plus solides : le serveur se souvient maintenant de la version installée sur cet appareil, donc PatOS démarre dessus même quand la page ne vient pas de la copie téléchargée, et une mise à jour qui vient d’être installée n’est plus jamais proposée (et téléchargée) en boucle","Un vrai moteur Liquid Glass : les bords du verre plient maintenant ce qui est derrière comme du vrai verre (un bord arrondi, la lumière réfractée à l’indice 1,5, calculée pour chaque pixel), captent la lumière en haut à gauche avec un reflet plus doux en bas à droite, et séparent un peu les couleurs tout au bord (Réglages › Apparence › Bords irisés). Aussi transparent qu’avant, et pas plus lent","Fenêtres 2.0 : les fenêtres s’accrochent aux bords de l’écran et entre elles, avec de fins guides (maintenez Maj pour en placer une librement). Lancez une fenêtre vers le bord gauche ou droit pour remplir cette moitié. Déposez une fenêtre sur une autre fenêtre de la même app pour créer des onglets; tirez un onglet vers le bas pour en refaire une fenêtre, Ctrl+Tab pour changer. Disposition au clavier : Ctrl+Alt+flèches pour les moitiés (encore pour les tiers), Ctrl+Alt+U I J K pour les quarts, Ctrl+Alt+Entrée pour remplir, Ctrl+Alt+C pour centrer, Ctrl+Alt+T pour disposer toutes les fenêtres","Design sonore : chaque son est maintenant créé en direct par PatOS (aucun enregistrement) : de douces cloches de verre, des tapotements et des souffles, accordés entre eux. Ouverture, fermeture et réduction des fenêtres, interrupteurs, notifications (plus calmes pour les habituelles, plus claires pour les importantes), messages envoyés et reçus, captures, tâches terminées, verrouillage, vidage de la Corbeille. Réglages › Son : choisissez Verre ou Doux, le volume des sons de l’interface, et essayez chacun","Corrigé : sur certains appareils, PatOS demandait d’être configuré à nouveau (avec sa connexion) après un redémarrage : un bug de synchro effaçait la note disant que la configuration était faite. Les appareils avec un compte reviennent directement, et la synchro n’efface plus jamais les réglages propres à l’appareil. Si la connexion dit encore « Pas d’Internet », le message montre maintenant la raison, et la configuration permet de continuer sans compte pour l’instant","Un Dock en cristal : un verre plus épais et plus brillant avec un bord lumineux, un léger arc-en-ciel aux bouts, un reflet à l’intérieur, une lueur en dessous, et une bulle de verre pour le nom des apps"]}};
-PatOS.build = {"channel":"beta","version":"3.3.0","beta":7};
+PatOS.beta = {"version":"3.3.0","beta":8,"date":"2026-11-13","title":{"en":"PatOS 3.3: Crystal","fr":"PatOS 3.3 : Cristal"},"notes":{"en":["The PatOS Pill: a capsule of dark glass at the top of the screen that shows what’s happening right now and changes shape with it. A timer counting down (with rolling digits), the song playing with bars that move with the music and a glow in the color of its cover, a copy or a backup with its progress, and any app using the microphone or the camera (so you always know, with a button to turn it off). Point at it or click it to open a card with controls: pause, +1 min, cancel, play, next. Two things at once: the second one waits in a bubble beside it. It also flashes the volume, the brightness, Do Not Disturb, charging, going offline and jobs that finished or failed. Settings › Desktop & Dock › PatOS Pill","Fixed: installing an update could loop (download, restart, still the old version, asked again). PatOS’s start-up safety counted panic screens, Recovery and a deleted /System as failed starts, and then threw away the version that was just installed. Now it only goes back when the new version itself fails to start, and those screens no longer count","Updates are sturdier: the server now remembers which version this device installed, so PatOS starts on it even when the page doesn’t come from the downloaded copy, and an update that was just installed is never offered (and downloaded) again in a loop","A real Liquid Glass renderer: the edges of the glass now bend what is behind them the way real glass does (a rounded rim, light refracted at index 1.5, worked out for every pixel), catch the light at the top left with a softer glint at the bottom right, and split colors a little right at the very edge (Settings › Appearance › Rainbow edges). Just as clear as before, and no slower","Windows 2.0: windows click magnetically to the screen’s edges and to each other, with thin guides (hold Shift to place one freely). Throw a window toward the left or right edge to fill that half. Drop a window on another window of the same app to make tabs; drag a tab down to make it a window again, Ctrl+Tab to switch. Keyboard tiling: Ctrl+Alt+arrows for halves (press again for thirds), Ctrl+Alt+U I J K for quarters, Ctrl+Alt+Enter to fill, Ctrl+Alt+C to center, Ctrl+Alt+T to tile every window","Sound design: every sound is now made live by PatOS (no recordings): soft glass bells, taps and air, in tune with each other. Windows opening, closing and minimizing, switches, notifications (calmer for the usual ones, clearer for important ones), messages sent and received, captures, finished tasks, locking, emptying the Trash. Settings › Sound: choose Glass or Soft, the volume of interface sounds, and try each one","Fixed: on some devices PatOS asked to be set up again (with its sign-in) after a restart: a sync bug deleted the note that setup was done. Devices with an account go straight back in, and sync never deletes device-only settings again. If signing in still says “No internet”, the message now shows the reason, and setup lets you continue without an account for now","A crystal Dock: thicker, brighter glass with a light rim, a soft rainbow at its ends, a reflection inside, a glow under it, and a glass bubble for app names"],"fr":["La pilule PatOS : une capsule de verre sombre en haut de l’écran qui montre ce qui se passe en ce moment et change de forme avec. Un minuteur qui défile (avec des chiffres qui roulent), la chanson en cours avec des barres qui bougent avec la musique et une lueur de la couleur de sa pochette, une copie ou une sauvegarde avec sa progression, et toute app qui utilise le micro ou la caméra (pour toujours le savoir, avec un bouton pour l’éteindre). Pointez-la ou cliquez dessus pour ouvrir une carte avec les commandes : pause, +1 min, annuler, lecture, suivant. Deux choses à la fois : la deuxième attend dans une bulle à côté. Elle montre aussi un instant le volume, la luminosité, Ne pas déranger, la recharge, la perte d’Internet et les tâches terminées ou ratées. Réglages › Bureau et Dock › Pilule PatOS","Corrigé : installer une mise à jour pouvait tourner en boucle (téléchargement, redémarrage, toujours l’ancienne version, et on redemande). La sécurité de démarrage de PatOS comptait les écrans de panique, la Récupération et un /System supprimé comme des démarrages ratés, puis abandonnait la version qui venait d’être installée. Maintenant, elle ne revient en arrière que si la nouvelle version elle-même ne démarre pas, et ces écrans ne comptent plus","Des mises à jour plus solides : le serveur se souvient maintenant de la version installée sur cet appareil, donc PatOS démarre dessus même quand la page ne vient pas de la copie téléchargée, et une mise à jour qui vient d’être installée n’est plus jamais proposée (et téléchargée) en boucle","Un vrai moteur Liquid Glass : les bords du verre plient maintenant ce qui est derrière comme du vrai verre (un bord arrondi, la lumière réfractée à l’indice 1,5, calculée pour chaque pixel), captent la lumière en haut à gauche avec un reflet plus doux en bas à droite, et séparent un peu les couleurs tout au bord (Réglages › Apparence › Bords irisés). Aussi transparent qu’avant, et pas plus lent","Fenêtres 2.0 : les fenêtres s’accrochent aux bords de l’écran et entre elles, avec de fins guides (maintenez Maj pour en placer une librement). Lancez une fenêtre vers le bord gauche ou droit pour remplir cette moitié. Déposez une fenêtre sur une autre fenêtre de la même app pour créer des onglets; tirez un onglet vers le bas pour en refaire une fenêtre, Ctrl+Tab pour changer. Disposition au clavier : Ctrl+Alt+flèches pour les moitiés (encore pour les tiers), Ctrl+Alt+U I J K pour les quarts, Ctrl+Alt+Entrée pour remplir, Ctrl+Alt+C pour centrer, Ctrl+Alt+T pour disposer toutes les fenêtres","Design sonore : chaque son est maintenant créé en direct par PatOS (aucun enregistrement) : de douces cloches de verre, des tapotements et des souffles, accordés entre eux. Ouverture, fermeture et réduction des fenêtres, interrupteurs, notifications (plus calmes pour les habituelles, plus claires pour les importantes), messages envoyés et reçus, captures, tâches terminées, verrouillage, vidage de la Corbeille. Réglages › Son : choisissez Verre ou Doux, le volume des sons de l’interface, et essayez chacun","Corrigé : sur certains appareils, PatOS demandait d’être configuré à nouveau (avec sa connexion) après un redémarrage : un bug de synchro effaçait la note disant que la configuration était faite. Les appareils avec un compte reviennent directement, et la synchro n’efface plus jamais les réglages propres à l’appareil. Si la connexion dit encore « Pas d’Internet », le message montre maintenant la raison, et la configuration permet de continuer sans compte pour l’instant","Un Dock en cristal : un verre plus épais et plus brillant avec un bord lumineux, un léger arc-en-ciel aux bouts, un reflet à l’intérieur, une lueur en dessous, et une bulle de verre pour le nom des apps"]}};
+PatOS.build = {"channel":"beta","version":"3.3.0","beta":8};
 
 </script>
   <script type="patos/js">
@@ -8235,6 +8321,8 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":7};
     'Auto': 'Auto', 'Take the scan by itself when the page holds still': 'Prendre la numérisation toute seule quand la page ne bouge plus',
     'Rainbow edges': 'Bords irisés', 'Colors split a little at the very edge, like real glass': 'Les couleurs se séparent un peu tout au bord, comme du vrai verre',
     'The update is installed': 'La mise à jour est installée', 'Close PatOS’s tab and open it again to start the new version.': 'Fermez l’onglet de PatOS et rouvrez-le pour lancer la nouvelle version.',
+    'Hide the PatOS Pill': 'Masquer la pilule PatOS', 'Next activity': 'Activité suivante', 'No news for a while': 'Aucune nouvelle depuis un moment', 'Working…': 'En cours…', 'about': 'environ', 'laps': 'tours', 'left': 'restant',
+    'Camera and microphone on': 'Caméra et micro activés', 'Camera on': 'Caméra activée', 'Microphone on': 'Micro activé', 'Do Not Disturb off': 'Ne pas déranger désactivé', 'PatOS Pill': 'Pilule PatOS', 'Timers, music, copies and the microphone, at the top of the screen.': 'Minuteurs, musique, copies et micro, en haut de l’écran.',
     'Tile All Windows': 'Disposer toutes les fenêtres', 'Merge All Windows': 'Fusionner toutes les fenêtres', 'Move Tab to New Window': 'Placer l’onglet dans une nouvelle fenêtre', 'Magnetic edges': 'Bords magnétiques', 'Windows click to the screen’s edges and to each other. Hold Shift to place one freely.': 'Les fenêtres s’accrochent aux bords de l’écran et entre elles. Maintenez Maj pour en placer une librement.',
     'Stage Focus': 'Focus sur la scène', 'Save Window Group…': 'Enregistrer un groupe de fenêtres…', 'Save Window Group': 'Enregistrer un groupe de fenêtres', 'Delete a Window Group…': 'Supprimer un groupe de fenêtres…', 'window': 'fenêtre', 'windows': 'fenêtres', 'Window group saved': 'Groupe de fenêtres enregistré', 'Reopen them all from the Window menu.': 'Rouvrez-les toutes depuis le menu Fenêtre.',
     'Motion': 'Mouvement', 'Calm': 'Calme', 'Natural': 'Naturel', 'Playful': 'Enjoué', 'How windows, menus and panels move': 'La façon dont bougent les fenêtres, les menus et les panneaux',
@@ -13172,7 +13260,7 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":7};
       tog('Keep Screen On', wakeLock ? 'On' : 'Off', !!wakeLock, 'sun', toggleWake),
       tog('Mute', muted ? 'Sound off' : 'Sound on', muted, 'mute', () => { if (muted) { PatOS.setSetting('volume', preMute || 0.7); muted = false; } else { preMute = s.volume; PatOS.setSetting('volume', 0); muted = true; } }));
     const side = h('div', { class: 'cc-side' },
-      h('div', { class: 'cc-tile' }, tog('Focus', PatOS.focusMode ? 'Do Not Disturb' : 'Off', PatOS.focusMode, 'moon', () => { PatOS.focusMode = !PatOS.focusMode; })),
+      h('div', { class: 'cc-tile' }, tog('Focus', PatOS.focusMode ? 'Do Not Disturb' : 'Off', PatOS.focusMode, 'moon', () => { PatOS.focusMode = !PatOS.focusMode; PatOS.emit('focus', PatOS.focusMode); })),
       h('div', { class: 'cc-tile cc-row2' },
         tog(s.theme === 'dark' ? 'Dark' : 'Light', 'Appearance', s.theme === 'dark', 'contrast', () => PatOS.setSetting('theme', s.theme === 'dark' ? 'light' : 'dark')),
         tog('Full Screen', document.fullscreenElement ? 'On' : 'Off', !!document.fullscreenElement, 'fullscreen', toggleFullscreen)));
@@ -14634,6 +14722,295 @@ PatOS.build = {"channel":"beta","version":"3.3.0","beta":7};
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', wire); else wire();
   PatOS.command = { open, close, toggle, isOpen: () => !!el, attention, runBackup };
+})();
+
+</script>
+  <script type="patos/js">
+/* The PatOS Pill (3.3): a capsule of dark glass at the top centre of the screen that shows what is happening right now, and
+   changes shape with it.
+     - compact: the most important thing (a timer counting down, a copy's progress, the song playing with its live bars, an app
+       using the microphone). A second thing shows as a small bubble beside it.
+     - expanded (point at it, or click it): a card with what each thing is doing and its controls (pause, cancel, +1 min,
+       play/next, turn the microphone off...). Click outside or press Esc to close it.
+     - flashes: the volume, the brightness, Do Not Disturb, charging, going offline, a job that finished or failed: shown for a
+       moment, then it goes back to what it was showing.
+   What feeds it:
+     PatOS.live (copies, backups, downloads...), Music, the Clock's timer and stopwatch, the microphone and camera (any app that
+     uses them, so you always know), and anything else through PatOS.pill.set(id, item) / clear(id) / flash(item).
+     item = { pri, lead (html), title, sub, trail (html), tone (a color), progress (0..1), actions: [{ icon, label, run }],
+              big: () => element (the expanded view), open: () => {} }
+   Only what is real is shown: no item is invented, and a job's progress is only what that job reports. Settings › Desktop &
+   Dock › PatOS Pill turns it off (the small activity button in the menu bar comes back). */
+(function () {
+  'use strict';
+  const { h } = PatOS; const T = (s) => PatOS.t(s);
+  const sym = (n) => (PatOS.sym ? PatOS.sym(n) : '');
+  const esc = (s) => PatOS.esc(String(s == null ? '' : s));
+  const on = () => PatOS.settings.pillOn !== false;
+  const custom = new Map();
+  let wrap = null, pill = null, side = null, live = null, measure = null;
+  let mode = 'hidden', pinned = false, focusId = null, shown = null, flashNow = null, flashT = 0, hoverT = 0, leaveT = 0, tickT = 0, barsRaf = 0;
+  const flashQ = [];
+
+  /* ---------- small helpers ---------- */
+  const two = (n) => String(n).padStart(2, '0');
+  const clock = (ms) => { const s = Math.max(0, Math.ceil(ms / 1000)); const hh = Math.floor(s / 3600), m = Math.floor(s / 60) % 60; return (hh ? hh + ':' + two(m) : m) + ':' + two(s % 60); };
+  const ring = (p, color) => { const c = 2 * Math.PI * 7.5, d = (c * Math.max(0, Math.min(1, p))).toFixed(1); return '<svg class="pl-ring" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="2.6"/><circle cx="10" cy="10" r="7.5" fill="none" stroke="' + (color || 'currentColor') + '" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="' + d + ' ' + c.toFixed(1) + '" transform="rotate(-90 10 10)"/></svg>'; };
+  const spin = '<svg class="pl-ring pl-spin" viewBox="0 0 20 20" aria-hidden="true"><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-opacity=".22" stroke-width="2.6"/><circle cx="10" cy="10" r="7.5" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-dasharray="12 36"/></svg>';
+  const appIcon = (id) => '<span class="pl-app">' + (PatOS.iconHTML ? PatOS.iconHTML((PatOS.apps[id] && PatOS.apps[id].icon) || id) : '') + '</span>';
+  const glyph = (n, color) => '<span class="pl-glyph" style="color:' + (color || '#fff') + '">' + sym(n) + '</span>';
+  // digits that roll when they change (the timer, the stopwatch)
+  const digits = (txt) => '<span class="pl-digits">' + String(txt).split('').map((c) => '<i>' + esc(c) + '</i>').join('') + '</span>';
+
+  /* ======================= what it shows ======================= */
+  /* 1. live activities */
+  const ended = new Set();
+  function liveItems() {
+    if (!PatOS.live) return [];
+    return PatOS.live.list().map((a) => ({
+      id: 'live:' + a.id, pri: a.status === 'stalled' ? 45 : 60, lead: appIcon(a.app), title: a.title, sub: a.detail || (a.status === 'paused' ? T('Paused') : a.status === 'stalled' ? T('No news for a while') : ''),
+      trail: a.progress != null ? ring(a.progress, 'var(--pl-accent)') + '<b class="pl-num">' + Math.round(a.progress * 100) + '%</b>' : spin, progress: a.progress,
+      actions: [a.can.pause && { icon: 'pause', label: T('Pause'), run: () => PatOS.live.act(a.id, 'pause') }, a.can.resume && { icon: 'play', label: T('Resume'), run: () => PatOS.live.act(a.id, 'resume') },
+        a.can.cancel && { icon: 'close', label: T('Cancel'), run: () => PatOS.live.act(a.id, 'cancel') }, a.can.open && { icon: 'window', label: T('Open'), run: () => PatOS.live.act(a.id, 'open') }].filter(Boolean),
+      big: () => h('div', { class: 'pl-big' }, h('div', { class: 'pl-bar' + (a.progress == null ? ' busy' : '') }, h('i', { style: { width: a.progress == null ? '' : Math.round(a.progress * 100) + '%' } })),
+        h('div', { class: 'pl-meta' }, h('span', {}, a.progress != null ? Math.round(a.progress * 100) + '%' : T('Working…')), a.eta ? h('span', {}, T('about') + ' ' + clock(a.eta) + ' ' + T('left')) : null))
+    }));
+  }
+  function liveEnded() {
+    if (!PatOS.live) return;
+    PatOS.live.recent().forEach((a) => {
+      if (ended.has(a.id) || Date.now() - a.ended > 4000) return; ended.add(a.id);
+      if (a.status === 'done') flash({ lead: glyph('check', '#34c759'), title: a.title, sub: a.message || T('Done'), tone: '#34c759' });
+      else if (a.status === 'failed') flash({ lead: glyph('warn', '#ff453a'), title: a.title, sub: T('didn’t finish'), tone: '#ff453a', ms: 3200 });
+    });
+  }
+
+  /* 2. music */
+  let lastPlaying = 0, artColor = { key: '', c: '' };
+  function tintOf(np) {
+    const key = np.path || ('g' + np.gen); if (artColor.key === key) return artColor.c;
+    artColor = { key, c: '' };
+    const m = String(np.color || '').match(/#[0-9a-f]{6}|rgba?\([^)]+\)/i); if (m) artColor.c = m[0];
+    if (np.art) { const img = new Image(); img.onload = () => { try { const c = document.createElement('canvas'); c.width = c.height = 8; const x = c.getContext('2d'); x.drawImage(img, 0, 0, 8, 8); const d = x.getImageData(0, 0, 8, 8).data; let r = 0, g = 0, b = 0; for (let i = 0; i < d.length; i += 4) { r += d[i]; g += d[i + 1]; b += d[i + 2]; } artColor.c = 'rgb(' + [r, g, b].map((v) => Math.round(v / 16)).join(',') + ')'; schedule(); } catch (e) {} }; img.src = np.art; }
+    return artColor.c;
+  }
+  function musicItems() {
+    const M = PatOS.music; if (!M || !M.nowPlaying) return [];
+    const np = M.nowPlaying(); if (!np) return [];
+    if (np.playing) lastPlaying = Date.now(); else if (Date.now() - lastPlaying > 20000) return [];
+    const art = np.art ? '<img class="pl-art" src="' + esc(np.art) + '" alt="">' : '<span class="pl-art" style="background:' + esc(np.color || '#444') + '">' + sym('music') + '</span>';
+    const tone = tintOf(np) || '#ff375f';
+    return [{
+      id: 'music', pri: 50, lead: art, title: np.title, sub: np.artist, tone,
+      trail: '<span class="pl-eq' + (np.playing ? ' on' : '') + '"><i></i><i></i><i></i><i></i></span>',
+      actions: [{ icon: 'prev', label: T('Previous'), run: () => M.prev() }, { icon: np.playing ? 'pause' : 'play', label: T(np.playing ? 'Pause' : 'Play'), run: () => M.toggle(), main: true }, { icon: 'next', label: T('Next'), run: () => M.next() }],
+      open: () => PatOS.launch('music'),
+      big: () => { const p = M.position ? M.position() : { t: 0, d: 0 }; return h('div', { class: 'pl-big' }, h('div', { class: 'pl-bar' }, h('i', { style: { width: p.d ? Math.min(100, p.t / p.d * 100) + '%' : '0' } })), h('div', { class: 'pl-meta' }, h('span', {}, clock(p.t * 1000)), h('span', {}, '−' + clock(Math.max(0, p.d - p.t) * 1000)))); }
+    }];
+  }
+  // the bars move with the music itself (read from the player a few times a second, only while they're on screen)
+  function bars() {
+    cancelAnimationFrame(barsRaf); barsRaf = 0;
+    const eq = pill && pill.querySelector('.pl-eq.on'); if (!eq || document.hidden || !PatOS.music || !PatOS.music.levels) return;
+    let last = 0;
+    const step = (t) => {
+      if (!eq.isConnected) { barsRaf = 0; return; }
+      if (t - last > 50) { last = t; const l = PatOS.music.levels(4); [...eq.children].forEach((b, i) => { b.style.transform = 'scaleY(' + (0.18 + Math.min(1, l[i] * 1.15) * 0.82).toFixed(3) + ')'; }); }
+      barsRaf = requestAnimationFrame(step);
+    };
+    eq.classList.add('real'); barsRaf = requestAnimationFrame(step);
+  }
+
+  /* 3. the Clock's timer and stopwatch (saved, so they run with the Clock closed) */
+  const tm = () => Object.assign({ running: false, end: 0, left: 0, total: 0, label: '' }, PatOS.store.get('clockTimer', null) || {});
+  function saveTm(x) { PatOS.store.set('clockTimer', x); PatOS.emit('clock:timer'); schedule(); }
+  function timerItems() {
+    const x = tm(); const left = x.running ? Math.max(0, x.end - Date.now()) : x.left;
+    if (!x.running && !(left > 0 && left < x.total)) return []; // (only one that runs, or is paused partway)
+    const p = x.total ? left / x.total : 0;
+    return [{
+      id: 'timer', pri: 70, lead: glyph('timer', '#ff9f0a'), title: x.label || T('Timer'), sub: x.running ? T('Ends at') + ' ' + new Date(x.end).toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' }) : T('Paused'), tone: '#ff9f0a',
+      trail: '<b class="pl-num pl-orange">' + digits(clock(left)) + '</b>', progress: 1 - p, open: () => PatOS.launch('clock', { tab: 3 }),
+      actions: [{ icon: x.running ? 'pause' : 'play', label: T(x.running ? 'Pause' : 'Resume'), main: true, run: () => {
+        const y = tm();
+        if (y.running) { y.left = Math.max(0, y.end - Date.now()); y.running = false; PatOS.alarms.cancel('clock-timer'); }
+        else { y.end = Date.now() + y.left; y.running = true; PatOS.alarms.schedule({ id: 'clock-timer', kind: 'timer', at: y.end, title: y.label || T('Timer done'), body: T('Timer'), icon: 'clock', app: 'clock' }); }
+        saveTm(y);
+      } }, { icon: 'timer', label: '+1 min', run: () => {
+        const y = tm(); y.total += 60000; if (y.running) { y.end += 60000; PatOS.alarms.schedule({ id: 'clock-timer', kind: 'timer', at: y.end, title: y.label || T('Timer done'), body: T('Timer'), icon: 'clock', app: 'clock' }); } else y.left += 60000; saveTm(y);
+      } }, { icon: 'close', label: T('Cancel'), run: () => { const y = tm(); y.running = false; y.left = y.total; PatOS.alarms.cancel('clock-timer'); saveTm(y); } }],
+      big: () => h('div', { class: 'pl-big pl-count' }, h('div', { class: 'pl-huge', html: digits(clock(left)) }), h('div', { class: 'pl-bar orange' }, h('i', { style: { width: (p * 100).toFixed(1) + '%' } })))
+    }];
+  }
+  const sw = () => Object.assign({ running: false, start: 0, acc: 0, laps: [] }, PatOS.store.get('clockStopwatch', null) || {});
+  function stopwatchItems() {
+    const s = sw(); if (!s.running) return [];
+    const t = s.acc + (Date.now() - s.start);
+    const fmt = (ms) => { const m = Math.floor(ms / 60000), sec = Math.floor(ms / 1000) % 60; return (m >= 60 ? Math.floor(m / 60) + ':' + two(m % 60) : m) + ':' + two(sec); };
+    return [{ id: 'stopwatch', pri: 40, lead: glyph('clock', '#ff9f0a'), title: T('Stopwatch'), sub: s.laps.length ? s.laps.length + ' ' + T('laps') : '', tone: '#ff9f0a', trail: '<b class="pl-num pl-orange">' + digits(fmt(t)) + '</b>', open: () => PatOS.launch('clock', { tab: 2 }),
+      actions: [{ icon: 'pause', label: T('Stop'), main: true, run: () => { const y = sw(); y.acc = y.acc + (Date.now() - y.start); y.running = false; PatOS.store.set('clockStopwatch', y); schedule(); } }],
+      big: () => h('div', { class: 'pl-big pl-count' }, h('div', { class: 'pl-huge', html: digits(fmt(t)) })) }];
+  }
+
+  /* 4. the microphone and the camera: whichever app uses them, it is shown (and they can be turned off from here) */
+  const media = new Map(); let mediaN = 0;
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia && !navigator.mediaDevices.__pill) {
+    const gum = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+    navigator.mediaDevices.getUserMedia = async (c) => {
+      const stream = await gum(c);
+      try {
+        const id = 'media:' + (++mediaN), w = PatOS.wm && PatOS.wm.active;
+        media.set(id, { stream, app: w ? w.app.id : '', name: w ? w.app.name : 'PatOS', since: Date.now() });
+        stream.getTracks().forEach((t) => t.addEventListener('ended', schedule)); schedule();
+      } catch (e) {}
+      return stream;
+    };
+    navigator.mediaDevices.__pill = true;
+  }
+  function mediaItems() {
+    const out = [];
+    media.forEach((m, id) => {
+      const tracks = m.stream.getTracks().filter((t) => t.readyState === 'live'); if (!tracks.length) { media.delete(id); return; }
+      const cam = tracks.some((t) => t.kind === 'video'), mic = tracks.some((t) => t.kind === 'audio'), color = cam ? '#30d158' : '#ff9f0a';
+      out.push({ id, pri: 90, lead: m.app ? appIcon(m.app) : glyph(cam ? 'camera' : 'mic', color), title: m.name, sub: T(cam && mic ? 'Camera and microphone on' : cam ? 'Camera on' : 'Microphone on'), tone: color,
+        trail: '<span class="pl-dot" style="--c:' + color + '"></span><b class="pl-num">' + digits(clock(Date.now() - m.since)) + '</b>',
+        actions: [{ icon: 'stop', label: T('Turn off'), run: () => { tracks.forEach((t) => t.stop()); media.delete(id); schedule(); } }, m.app && { icon: 'window', label: T('Show'), run: () => PatOS.launch(m.app) }].filter(Boolean) });
+    });
+    return out;
+  }
+
+  /* everything, most important first */
+  function items() {
+    let l = [];
+    for (const f of [mediaItems, timerItems, liveItems, musicItems, stopwatchItems]) { try { l = l.concat(f()); } catch (e) {} }
+    custom.forEach((it, id) => l.push(Object.assign({ pri: 55 }, it, { id: 'x:' + id })));
+    l.sort((a, b) => b.pri - a.pri);
+    if (focusId) { const i = l.findIndex((x) => x.id === focusId); if (i > 0) l.unshift(l.splice(i, 1)[0]); }
+    return l;
+  }
+
+  /* ======================= drawing ======================= */
+  function compactEl(it) {
+    return h('div', { class: 'pl-row' }, h('span', { class: 'pl-lead', html: it.lead || '' }),
+      h('span', { class: 'pl-t' + (it.flash ? ' inline' : '') }, h('b', {}, it.title || ''), it.bar == null && it.sub && it.flash ? h('small', {}, it.sub) : null),
+      it.bar != null ? h('span', { class: 'pl-level' }, h('i', { style: { width: Math.round(it.bar * 100) + '%' } })) : null,
+      it.trail ? h('span', { class: 'pl-trail', html: it.trail }) : null);
+  }
+  function card(it, first) {
+    const acts = (it.actions || []).map((a) => h('button', { class: 'pl-act' + (a.main ? ' main' : ''), 'data-i': a.icon, 'aria-label': a.label, title: a.label, onclick: (e) => { e.stopPropagation(); a.run(); setTimeout(render, 60); }, html: a.icon && !/^\+/.test(a.label) ? sym(a.icon) : esc(a.label) }));
+    if (!first) return h('button', { class: 'pl-mini', onclick: (e) => { e.stopPropagation(); focusId = it.id; render(); } }, h('span', { class: 'pl-lead', html: it.lead || '' }), h('span', { class: 'pl-t' }, h('b', {}, it.title || ''), it.sub ? h('small', {}, it.sub) : null), it.trail ? h('span', { class: 'pl-trail', html: it.trail }) : null);
+    return h('div', { class: 'pl-card' },
+      h('div', { class: 'pl-head' }, h('span', { class: 'pl-lead big', html: it.lead || '' }), h('span', { class: 'pl-t' }, h('b', {}, it.title || ''), it.sub ? h('small', {}, it.sub) : null),
+        it.open ? h('button', { class: 'pl-open', 'aria-label': T('Open'), title: T('Open'), onclick: (e) => { e.stopPropagation(); collapse(); it.open(); }, html: sym('up') }) : null),
+      it.big ? it.big() : null, acts.length ? h('div', { class: 'pl-acts' }, ...acts) : null);
+  }
+  function build() {
+    wrap = h('div', { id: 'pill-wrap', 'aria-hidden': 'true' });
+    pill = h('div', { id: 'pill', role: 'button', tabindex: '0', 'aria-label': T('Activities') });
+    side = h('button', { id: 'pill-side', 'aria-label': T('Next activity') });
+    live = h('div', { class: 'pl-sr', 'aria-live': 'polite' });
+    measure = h('div', { id: 'pill-measure', 'aria-hidden': 'true' });
+    wrap.append(pill, side, live, measure); document.body.appendChild(wrap);
+    pill.addEventListener('pointerenter', () => { clearTimeout(leaveT); if (mode === 'compact' && !PatOS.isMobile) hoverT = setTimeout(() => expand(false), 420); });
+    pill.addEventListener('pointerleave', () => { clearTimeout(hoverT); if (mode === 'expanded' && !pinned) leaveT = setTimeout(collapse, 380); });
+    pill.addEventListener('click', () => { if (mode === 'expanded') { if (!pinned) { pinned = true; return; } const it = shown && shown[0]; if (it && it.open && !flashNow) { collapse(); it.open(); } return; } expand(true); });
+    pill.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); mode === 'expanded' ? collapse() : expand(true); } });
+    pill.addEventListener('contextmenu', (e) => { e.preventDefault(); e.stopPropagation(); const it = shown && shown[0]; PatOS.menu([it && it.open ? { label: T('Open'), action: it.open } : null, { label: T('Hide the PatOS Pill'), action: () => PatOS.setSetting('pillOn', false) }].filter(Boolean), e.clientX, e.clientY + 8); });
+    side.addEventListener('click', (e) => { e.stopPropagation(); const l = items(); if (l[1]) { focusId = l[1].id; expand(true); } });
+    document.addEventListener('pointerdown', (e) => { if (mode === 'expanded' && wrap && !wrap.contains(e.target) && !e.target.closest('.menu')) collapse(); }, true);
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && mode === 'expanded') collapse(); });
+  }
+  function expand(pin) { if (!shown || !shown.length || flashNow) return; pinned = !!pin; mode = 'expanded'; render(); }
+  function collapse() { pinned = false; focusId = null; if (mode === 'expanded') { mode = 'compact'; render(); } }
+
+  /* sizes the capsule to its new content (measured first), then swaps the content with a short crossfade */
+  let lastKey = '';
+  function morph(content, key, cls) {
+    const big = cls === 'expanded';
+    measure.className = big ? 'big' : ''; measure.innerHTML = ''; measure.appendChild(content.cloneNode(true));
+    const w = Math.ceil(big ? measure.offsetWidth : Math.min(measure.scrollWidth, innerWidth - 40)), hh = Math.ceil(measure.offsetHeight);
+    pill.style.width = w + 'px'; pill.style.height = hh + 'px';
+    pill.classList.toggle('expanded', big);
+    const old = pill.querySelector('.pl-c:not(.out)');
+    const box = h('div', { class: 'pl-c' }); box.appendChild(content);
+    if (old && key === lastKey) { old.replaceWith(box); } // (the same thing, new numbers: no crossfade)
+    else {
+      if (old) { old.classList.add('out'); setTimeout(() => old.remove(), 220); }
+      box.classList.add('in'); pill.appendChild(box); requestAnimationFrame(() => box.classList.remove('in'));
+      if (old && !PatOS.settings.reduceMotion && pill.animate) pill.animate([{ transform: big ? 'scale(.97,1.03)' : 'scale(1.05,.9)' }, { transform: 'none' }], { duration: 520, easing: PatOS.motion ? PatOS.motion.get().easing : 'ease-out' });
+    }
+    lastKey = key;
+    // rolling digits: the ones that changed slide in
+    box.querySelectorAll('.pl-digits').forEach((d, di) => { const prev = (pill._digits || [])[di] || ''; [...d.children].forEach((c, i) => { if (prev[i] !== undefined && prev[i] !== c.textContent) c.classList.add('roll'); }); });
+    pill._digits = [...box.querySelectorAll('.pl-digits')].map((d) => d.textContent);
+  }
+
+  function render() {
+    if (!pill) return;
+    const vis = on() && PatOS.loggedIn && !document.getElementById('setup');
+    if (!flashNow && flashQ.length && vis) { flashNow = flashQ.shift(); clearTimeout(flashT); flashT = setTimeout(() => { flashNow = null; render(); }, flashNow.ms || 1700); live.textContent = (flashNow.title || '') + ' ' + (flashNow.sub || ''); }
+    const l = vis ? items() : []; shown = l;
+    document.documentElement.classList.toggle('pill-on', on());
+    if (!vis || (!l.length && !flashNow)) { if (mode !== 'hidden') { mode = 'hidden'; wrap.classList.remove('show', 'flashing', 'two'); pill.classList.remove('expanded'); } cancelAnimationFrame(barsRaf); barsRaf = 0; tick(); return; }
+    if (mode === 'hidden') mode = 'compact';
+    wrap.classList.add('show'); wrap.classList.toggle('flashing', !!flashNow);
+    const it = flashNow || l[0];
+    pill.style.setProperty('--pl-tone', it.tone || 'rgba(255,255,255,.0)');
+    pill.classList.toggle('toned', !!it.tone);
+    pill.style.setProperty('--pl-p', it.progress != null && mode !== 'expanded' ? String(it.progress) : '0');
+    pill.classList.toggle('has-p', it.progress != null && mode !== 'expanded' && !flashNow);
+    if (mode === 'expanded' && !flashNow) morph(h('div', { class: 'pl-list' }, ...l.slice(0, 4).map((x, i) => card(x, i === 0))), 'x:' + l.map((x) => x.id).join(','), 'expanded');
+    else morph(compactEl(it), (flashNow ? 'f:' + (flashNow.kind || flashNow.title) : 'c:' + it.id), 'compact');
+    pill.setAttribute('aria-label', T('Activities') + ': ' + l.map((x) => x.title + (x.sub ? ', ' + x.sub : '')).join('; '));
+    // the second thing, as a bubble beside it
+    const two = mode === 'compact' && !flashNow && l.length > 1;
+    wrap.classList.toggle('two', two);
+    if (two) { side.innerHTML = l[1].lead || ''; side.title = l[1].title + (l.length > 2 ? ' (+' + (l.length - 2) + ')' : ''); side.style.setProperty('--pl-tone', l[1].tone || 'transparent'); }
+    bars(); tick();
+  }
+  const schedule = PatOS.debounce ? PatOS.debounce(render, 40) : render;
+
+  /* a timer, a stopwatch, a recording or an expanded card change every second; nothing else needs a clock */
+  function tick() {
+    clearTimeout(tickT);
+    const need = shown && shown.some((x) => x.id === 'timer' || x.id === 'stopwatch' || x.id.startsWith('media:') || (x.id === 'music' && mode === 'expanded'));
+    if (need && !document.hidden) tickT = setTimeout(render, 1000 - (Date.now() % 1000) + 20);
+  }
+
+  /* ======================= flashes ======================= */
+  function flash(o) {
+    if (!on()) return;
+    o = Object.assign({ flash: true }, o);
+    // the same kind (volume, brightness) replaces the one on screen instead of waiting in line
+    if (o.kind && flashNow && flashNow.kind === o.kind) { flashNow = o; clearTimeout(flashT); flashT = setTimeout(() => { flashNow = null; render(); }, o.ms || 1700); render(); return; }
+    if (o.kind) { const i = flashQ.findIndex((x) => x.kind === o.kind); if (i >= 0) flashQ.splice(i, 1); }
+    flashQ.push(o); if (flashQ.length > 4) flashQ.shift();
+    if (!flashNow) render();
+  }
+  PatOS.on('setting:volume', (v) => flash({ kind: 'volume', lead: glyph(v > 0 ? 'speaker' : 'mute'), title: T('Volume'), bar: v }));
+  PatOS.on('setting:brightness', (v) => flash({ kind: 'brightness', lead: glyph('sun', '#ffd60a'), title: T('Display'), bar: v }));
+  PatOS.on('focus', (v) => flash({ kind: 'focus', lead: glyph('moon', v ? '#bf5af2' : '#fff'), title: T(v ? 'Do Not Disturb' : 'Do Not Disturb off'), sub: v ? T('On') : '', tone: v ? '#bf5af2' : '' }));
+  addEventListener('offline', () => flash({ kind: 'net', lead: glyph('wifi', '#ff453a'), title: T('Offline'), tone: '#ff453a', ms: 2600 }));
+  addEventListener('online', () => flash({ kind: 'net', lead: glyph('wifi', '#34c759'), title: T('Back online'), tone: '#34c759' }));
+  if (navigator.getBattery) navigator.getBattery().then((b) => b.addEventListener('chargingchange', () => flash({ kind: 'battery', lead: glyph('bolt', b.charging ? '#34c759' : '#fff'), title: T(b.charging ? 'Charging' : 'On battery'), trail: '<b class="pl-num">' + Math.round(b.level * 100) + '%</b>', tone: b.charging ? '#34c759' : '' }))).catch(() => {});
+  PatOS.on('alarm:fire', (x) => { if (x && x.id === 'clock-timer') flash({ lead: glyph('timer', '#ff9f0a'), title: T('Timer done'), tone: '#ff9f0a', ms: 3000 }); });
+
+  PatOS.on('live', () => { liveEnded(); schedule(); });
+  ['music', 'clock:timer', 'wm:ready', 'setting:pillOn', 'setting:language'].forEach((ev) => PatOS.on(ev, schedule));
+  PatOS.on('setting', (s) => { if (s && (s.key === 'clockTimer' || s.key === 'clockStopwatch')) schedule(); });
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) render(); else { cancelAnimationFrame(barsRaf); barsRaf = 0; } });
+  // the Clock saves its timer and stopwatch in the store: look again when it changes them
+  const st0 = PatOS.store.set; PatOS.store.set = function (k) { const r = st0.apply(this, arguments); if (k === 'clockTimer' || k === 'clockStopwatch') schedule(); return r; };
+  // logging in and out
+  setInterval(() => { const vis = on() && PatOS.loggedIn; if (vis !== !!(wrap && wrap.classList.contains('show')) && (vis ? items().length : true)) render(); }, 1500);
+
+  PatOS.pill = {
+    set(id, item) { custom.set(String(id), item); schedule(); },
+    clear(id) { custom.delete(String(id)); schedule(); },
+    flash, expand: () => expand(true), collapse, render,
+    get state() { return { mode, items: (shown || []).map((x) => x.id), flash: flashNow ? flashNow.title : null }; }
+  };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', () => { build(); render(); }); else { build(); render(); }
 })();
 
 </script>
@@ -26853,7 +27230,7 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
             return [...sec('Dock (up to 4 apps)', 'mobileDock', 4), ...sec('Apps on the Home Screen', 'hiddenApps')];
           }
           return [h('h3', {}, 'Dock'), group(row('Size', range('dockSize', 36, 84, 1, (v) => v + 'px')), row('Grow icons under the pointer', toggle('magnify')), row('How much icons grow', range('magnifyScale', 1.2, 2.2, 0.1, (v) => Math.round(v * 100) + '%')), row('Automatically hide the Dock', toggle('dockAutohide')), row('Show desktop widgets', toggle('showWidgets'))),
-            h('h3', {}, 'Windows'), group(row('Magnetic edges', toggle('windowMagnets'), 'Windows click to the screen’s edges and to each other. Hold Shift to place one freely.')),
+            h('h3', {}, 'Windows'), group(row('Magnetic edges', toggle('windowMagnets'), 'Windows click to the screen’s edges and to each other. Hold Shift to place one freely.'), row('PatOS Pill', toggle('pillOn'), 'Timers, music, copies and the microphone, at the top of the screen.')),
             h('h3', {}, 'Apps in the Dock'), h('div', { class: 'st-dockapps' }, ...PatOS.appOrder.filter((id) => !PatOS.apps[id].hidden || id === 'launchpad').map((id) => {
               const on = S().dockPinned.includes(id);
               const b = h('button', { class: 'st-da' + (on ? ' on' : '') }, h('div', { class: 'st-da-ic', html: PatOS.iconHTML(PatOS.apps[id].icon || id) }), h('span', {}, PatOS.apps[id].name));
