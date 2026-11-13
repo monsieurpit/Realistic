@@ -1,6 +1,6 @@
 # PatOS 4.0 "Beyond the desktop": final report
 
-Status: **PatOS 4.0.1, released** (frozen in `releases/4.0.1`; 4.0.0 stays in `releases/4.0.0`). The architecture is in
+Status: **PatOS 4.0.2, released** (frozen in `releases/4.0.2`; 4.0.1 and 4.0.0 stay in `releases/`). The architecture is in
 [PATOS-4.0.md](PATOS-4.0.md).
 
 ## A. What was built
@@ -94,5 +94,8 @@ in English and French, with tests), and 4.0.0 was released on your instruction.
 **4.0.1** fixes the first launch: choosing a language and creating an account no longer restart PatOS, and the old
 account window no longer covers the setup (tested against the Firebase emulator, in English and French).
 
-People with Beta updates off are offered 4.0.1 under Settings › Software Update. 3.3.0 stays frozen for anyone who
+**4.0.2** sends new messages to the device as a notification when PatOS isn't in front or is closed (Web Push; see
+[PUSH.md](PUSH.md)).
+
+People with Beta updates off are offered 4.0.2 under Settings › Software Update. 3.3.0 stays frozen for anyone who
 doesn't update.
