@@ -115,7 +115,7 @@ test('the Shortcuts window, the Pat Voice settings, and the microphone button in
   await page.click('.sc-acts .btn.danger'); await page.waitForFunction(() => PatOS.shortcuts.list().length === 0);
   // Settings › Pat Voice
   const v = await page.evaluate(async () => { const w = PatOS.launch('settings', { pane: 'voice' }); await new Promise((r) => setTimeout(r, 700)); const sw = w.body.querySelector('.vo .switch'); const o = { text: w.body.querySelector('.vo').innerText, before: sw.classList.contains('on') }; sw.click(); await new Promise((r) => setTimeout(r, 400)); o.after = PatOS.voice.on(); o.pill = !!document.querySelector('.voice-pill'); return o; });
-  assert.match(v.text, /Hey Pat[\s\S]*Off\. Nothing is listening[\s\S]*Chrome uses Google for this/); assert.equal(v.before, false); assert.equal(v.after, true); assert.equal(v.pill, true);
+  assert.match(v.text, /Hey Pat[\s\S]*Off\. Nothing is listening[\s\S]*Chrome turns your voice into text using Google/); assert.equal(v.before, false); assert.equal(v.after, true); assert.equal(v.pill, true);
   // the microphone button in Pat's panel (Messages): hears one question, no wake word
   await page.evaluate(() => { PatOS.voice.disable(); }); await page.click('#mb-pat'); await page.waitForSelector('#pat-panel:not(.hidden) .pat3-mic');
   await page.click('#pat-panel .pat3-mic'); await page.waitForFunction(() => window.__sr && window.__sr.running); await page.evaluate(() => window.__say('what time is it'));

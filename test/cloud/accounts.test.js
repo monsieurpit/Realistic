@@ -87,7 +87,7 @@ test('the sign-up screens: the big invitation, the form, saving, and Later', { s
   const A = await device(); const { page } = A;
   await A.ev(() => { PatOS.fs.write('/Documents/before-account.txt', 'I was here first'); });
   await A.ev(() => { PatOS.accountUI.invite(); });
-  await page.waitForSelector('.acc-card.big'); assert.match(await page.innerText('.acc-card.big'), /Create your PatOS account[\s\S]*username and a password: no email[\s\S]*Still works offline[\s\S]*Later/);
+  await page.waitForSelector('.acc-card.big'); assert.match(await page.innerText('.acc-card.big'), /Create your PatOS account[\s\S]*username and a password\. No email[\s\S]*Still works offline[\s\S]*Later/);
   await page.click('.acc-later'); assert.equal(await page.locator('.acc-layer').count(), 0); assert.ok((await A.ev(() => PatOS.store.get('accountPrompt'))).snoozedUntil > Date.now() + 80000000, 'asks again tomorrow');
   await A.ev(() => { PatOS.accountUI.invite(); }); await page.click('.acc-card.big .btn.primary'); await page.waitForSelector('.acc-card input[autocomplete=username]');
   await page.fill('input[autocomplete=username]', user); await page.fill('input[placeholder="Password"]', 'a long enough pass'); await page.fill('input[placeholder="Password again"]', 'a different pass'); await page.click('.acc-go');
