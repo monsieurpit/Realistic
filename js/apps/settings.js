@@ -140,7 +140,8 @@
           // what it did
           out.appendChild(h('h3', {}, T('Recent actions')));
           const hist = I.history().slice(-12).reverse();
-          out.appendChild(group(...(hist.length ? hist.map((x) => row((x.ok ? '✓ ' : x.status === 'denied' ? '⊘ ' : '✗ ') + T(x.title), h('small', { class: 'st-val' }, when(x.t)), x.message)) : [h('div', { class: 'bk-empty' }, T('Nothing yet. Ask Pat something.'))]),
+          out.appendChild(group(...(hist.length ? hist.map((x) => row((x.ok ? '✓ ' : x.status === 'denied' ? '⊘ ' : x.status === 'asked' ? '? ' : x.status === 'declined' ? '– ' : '✗ ') + T(x.title), h('small', { class: 'st-val' }, when(x.t)),
+              [x.message, x.params ? T('Understood') + ': ' + Object.entries(x.params).map(([k, v]) => k + ' = ' + (Array.isArray(v) ? v.join(', ') : v)).join(' · ') : '', ...(x.steps || []).map((st) => (st.ok ? '✓ ' : '✗ ') + st.text + (st.message ? ' — ' + st.message : ''))].filter(Boolean).join('\n'))) : [h('div', { class: 'bk-empty' }, T('Nothing yet. Ask Pat something.'))]),
             row(T('Clear this list'), h('button', { class: 'btn', onclick: () => { I.clearHistory(); renderMain(); } }, T('Clear')), T('Kept on this device only.'))));
           out.appendChild(group(row(T('Shortcuts'), h('button', { class: 'btn', onclick: () => PatOS.launch('shortcuts') }, T('Open Shortcuts')), T('A shortcut step can be any command (“Do a command”).'))));
           return [out];

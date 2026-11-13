@@ -13,7 +13,7 @@
     launch(win, args) {
       win.el.classList.add('has-toolbar', 'dt-win');
       const D = PatOS.data;
-      let view = args && args.id ? { kind: 'col', id: args.id, tab: 'items' } : { kind: 'home' }, sel = null;
+      let view = args && args.id ? { kind: 'col', id: args.id, tab: 'items' } : args && args.q ? { kind: 'explore', q: String(args.q).slice(0, 80) } : { kind: 'home' }, sel = null;
       const side = h('div', { class: 'dt-side' }), main = h('div', { class: 'dt-main' }), insp = h('div', { class: 'dt-insp hidden' });
       win.body.append(h('div', { class: 'dt-wrap' }, side, main, insp));
       const search = PatOS.ui.search({ placeholder: 'Search everything', onInput: PatOS.debounce((v) => { view = v.trim() ? { kind: 'explore', q: v } : { kind: 'home' }; draw(); }, 200) });
@@ -143,6 +143,6 @@
       win._data = { open: (v) => { view = v; draw(); }, select, get view() { return view; } };
       draw();
     },
-    onArgs(win, args) { if (args && args.id && win._data) win._data.open({ kind: 'col', id: args.id, tab: 'items' }); }
+    onArgs(win, args) { if (!win._data || !args) return; if (args.id) win._data.open({ kind: 'col', id: args.id, tab: 'items' }); else if (args.q) win._data.open({ kind: 'explore', q: String(args.q).slice(0, 80) }); }
   });
 })();

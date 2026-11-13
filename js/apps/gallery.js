@@ -213,10 +213,10 @@
       win.on('closed', () => { io.disconnect(); freeUrls(); });
       PatOS.on('gallery', () => { if (!win.closed) drawSide(); });
       win._gallery = { open: (id) => { gid = id; draw(); }, present, importText: (t) => { gid = fromText(t); draw(); return gid; }, packed, get gid() { return gid; } };
-      const first = load()[0]; gid = (args && args.collection && PatOS.data) ? (load().find((g) => g.source && g.source.collection === args.collection) || { id: G.create((PatOS.data.collection(args.collection) || {}).name || T('Collection'), { source: { collection: args.collection } }) }).id : first ? first.id : null;
+      const first = load()[0]; gid = (args && args.collection && PatOS.data) ? (load().find((g) => g.source && g.source.collection === args.collection) || { id: G.create((PatOS.data.collection(args.collection) || {}).name || T('Collection'), { source: { collection: args.collection } }) }).id : args && args.id && load().some((g) => g.id === args.id) ? args.id : first ? first.id : null;
       if (args && args.importPath) { try { gid = fromText(PatOS.fs.read(args.importPath)); } catch (e) { PatOS.alertBox(T('That didn’t work'), e.message, { icon: 'gallery' }); } }
       draw();
     },
-    onArgs(win, args) { if (!win._gallery) return; if (args.importPath) { try { win._gallery.importText(PatOS.fs.read(args.importPath)); } catch (e) {} } }
+    onArgs(win, args) { if (!win._gallery) return; if (args.id) win._gallery.open(args.id); if (args.importPath) { try { win._gallery.importText(PatOS.fs.read(args.importPath)); } catch (e) {} } }
   });
 })();

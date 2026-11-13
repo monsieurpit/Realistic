@@ -181,8 +181,11 @@
   /* ---------- doing it ---------- */
   const history = []; const undos = []; const HISTORY_KEY = 'intelHistory';
   try { (PatOS.store.get(HISTORY_KEY, []) || []).forEach((x) => history.push(x)); } catch (e) {}
-  const remember = (a, r, source) => {
-    history.push({ t: Date.now(), id: a.id, title: a.title, owner: a.owner, ok: r.ok, status: r.status, source: String(source || 'user').slice(0, 40), message: String(r.message || '').slice(0, 140) });
+  /* what was understood, kept short and without anything that isn't plain data (shown in Settings › Pat & Intelligence) */
+  const shortParams = (p) => { const o = {}; Object.entries(p || {}).forEach(([k, v]) => { if (v == null || typeof v === 'function') return; o[k] = typeof v === 'string' ? v.slice(0, 60) : Array.isArray(v) ? v.slice(0, 6).map((x) => (typeof x === 'string' ? x.slice(0, 40) : typeof x === 'object' ? '…' : x)) : typeof v === 'object' ? '…' : v; }); return Object.keys(o).length ? o : undefined; };
+  const shortSteps = (r) => { const st = r && r.data && Array.isArray(r.data.steps) ? r.data.steps : null; return st ? st.slice(0, 12).map((x) => ({ text: String(x.text || x.label || '').slice(0, 60), ok: x.ok !== false, message: x.ok === false ? String(x.message || '').slice(0, 80) : undefined })) : undefined; };
+  const remember = (a, r, source, params) => {
+    history.push({ t: Date.now(), id: a.id, title: a.title, owner: a.owner, ok: r.ok, status: r.status, source: String(source || 'user').slice(0, 40), message: String(r.message || '').slice(0, 140), params: shortParams(params), steps: shortSteps(r) });
     if (history.length > 50) history.splice(0, history.length - 50);
     PatOS.store.set(HISTORY_KEY, history.slice()); PatOS.emit('intel', { id: a.id, ok: r.ok, title: a.title, message: String(r.message || '').slice(0, 140), source: String(source || 'user') });
   };
@@ -190,15 +193,16 @@
   // what a run() gave back → a result
   function finish(a, r, source, params) {
     if (r && typeof r === 'object' && typeof r.confirm === 'function' && r.text != null) { // (a Pat skill that asks first)
-      const c = r.confirm; return { ok: null, status: 'confirm', message: String(r.text), confirm: () => { const x = finish(a, c(), source); return x && x.then ? x : x; } };
+      const c = r.confirm; remember(a, { ok: null, status: 'asked', message: String(r.text) }, source, params);
+      return { ok: null, status: 'confirm', message: String(r.text), confirm: () => { const v = c(); return v && typeof v.then === 'function' ? v.then((y) => finish(a, y, source, params)) : finish(a, v, source, params); }, decline: () => remember(a, { ok: null, status: 'declined', message: L('You said no: nothing was changed.', 'Tu as dit non : rien n’a changé.') }, source, params) };
     }
     const res = r == null ? result(true, L('Done.', 'C’est fait.')) : typeof r === 'string' ? result(true, r) : result(r.ok !== false, r.message, { data: r.data, card: r.card, buttons: r.buttons });
     if (r && typeof r === 'object' && typeof r.undo === 'function' && res.ok) { undos.push({ t: Date.now(), id: a.id, title: a.title, undo: r.undo }); if (undos.length > 10) undos.shift(); res.canUndo = true; }
-    remember(a, res, source);
+    remember(a, res, source, params);
     hooks.after.forEach((f) => { try { f(a, params || {}, res, source); } catch (e) {} });
     return res;
   }
-  const fail = (a, msg, source, status) => { const r = result(false, msg, { status: status || 'failed' }); if (a) remember(a, r, source); return r; };
+  const fail = (a, msg, source, status, params) => { const r = result(false, msg, { status: status || 'failed' }); if (a) remember(a, r, source, params); return r; };
   /* runs an action. Synchronous when the action is (Pat answers at once); a Promise otherwise. */
   function execute(id, params, opts) {
     opts = opts || {}; const source = opts.source || 'user'; const a = actions.get(id);
@@ -207,9 +211,10 @@
     if (!allowedKind(a.permission)) return fail(a, L('I couldn’t do that: ', 'Je n’ai pas pu : ') + L(PERMS[a.permission][0], PERMS[a.permission][1]).toLowerCase() + L(' is turned off in Settings › Pat & Intelligence.', ' est désactivé dans Réglages › Pat et Intelligence.'), source, 'denied');
     if (a.online && navigator.onLine === false) return fail(a, L('That needs the internet, and you’re offline.', 'Il faut Internet, et vous êtes hors ligne.'), source, 'unavailable');
     if (a.mobile === false && PatOS.isMobile) return fail(a, L('That isn’t available on a phone.', 'Ce n’est pas disponible sur un téléphone.'), source, 'unavailable');
-    const bad = validate(a, params); if (bad) return fail(a, bad, source, 'invalid');
+    const bad = validate(a, params); if (bad) return fail(a, bad, source, 'invalid', params);
     const ask = typeof a.confirm === 'function' ? a.confirm(params || {}) : a.confirm;
-    if (ask && !opts.confirmed) return { ok: null, status: 'confirm', message: typeof ask === 'string' ? ask : L('Are you sure? ', 'Êtes-vous sûr? ') + a.title + '?', confirm: () => execute(id, params, Object.assign({}, opts, { confirmed: true })) };
+    if (ask && !opts.confirmed) { const msg = typeof ask === 'string' ? ask : L('Are you sure? ', 'Êtes-vous sûr? ') + a.title + '?'; remember(a, { ok: null, status: 'asked', message: msg }, source, params);
+      return { ok: null, status: 'confirm', message: msg, confirm: () => execute(id, params, Object.assign({}, opts, { confirmed: true })), decline: () => remember(a, { ok: null, status: 'declined', message: L('You said no: nothing was changed.', 'Tu as dit non : rien n’a changé.') }, source, params) }; }
     let r; try { r = a.run(Object.assign({}, params), { source, context }); }
     catch (e) { PatOS.errors && PatOS.errors.report(e, 'intelligence ' + a.id, { category: 'intelligence', severity: 'warning' }); return fail(a, L('That didn’t work: ', 'Ça n’a pas marché : ') + (e.message || e), source); }
     if (r && typeof r.then === 'function') { PatOS.emit('intel:start', { id: a.id, title: a.title, source }); } // (the Pill shows it while it works)

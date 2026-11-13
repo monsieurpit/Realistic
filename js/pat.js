@@ -303,7 +303,7 @@
     if (!p) return /^(?:yes|yeah|yep|no|nope|cancel)\s*[.!]*$/i.test(t) ? L('There’s nothing waiting for a yes or a no right now.', 'Il n’y a rien qui attend un oui ou un non pour l’instant.') : null;
     if (Date.now() - p.t > 2 * 60 * 1000) { ctx.pending = null; return null; }
     if (/^(?:yes|yeah|yep|yup|sure|ok|okay|do it|go ahead|go|confirm|please do)\s*[.!]*$/i.test(t)) { ctx.pending = null; try { return p.confirm(); } catch (e) { return L('That didn’t work: ', 'Ça n’a pas marché : ') + e.message; } }
-    if (/^(?:no|nope|cancel|stop|don['’]t|never mind|not now)\s*[.!]*$/i.test(t)) { ctx.pending = null; return L('Okay, I left everything as it was.', 'D’accord, je n’ai rien changé.'); }
+    if (/^(?:no|nope|cancel|stop|don['’]t|never mind|not now)\s*[.!]*$/i.test(t)) { ctx.pending = null; if (p.decline) { try { p.decline(); } catch (e) {} } return L('Okay, I left everything as it was.', 'D’accord, je n’ai rien changé.'); }
     ctx.pending = null; return null;
   }
   function runSkills(t) {
@@ -342,7 +342,7 @@
   function show(r) {
     if (r && typeof r.then === 'function') { r.then((x) => { const t = show(x); const rr = takeRich(); say(t, rr); }, (e) => say(L('That didn’t work: ', 'Ça n’a pas marché : ') + (e && e.message))); return WAIT(); }
     if (r && (r.card || r.buttons)) rich = { card: r.card, buttons: r.buttons };
-    if (r.status === 'confirm') { ctx.pending = { confirm: () => show(r.confirm()), t: Date.now() }; return r.message; }
+    if (r.status === 'confirm') { ctx.pending = { confirm: () => show(r.confirm()), decline: r.decline, t: Date.now() }; return r.message; }
     return r.message;
   }
   // does this look like a command (without doing it)? Used to cut "open notes and set a timer" in two
@@ -486,7 +486,7 @@
       }
       function acts(b) {
         if (!b || !b.length) return null;
-        return h('div', { class: 'pat3-acts' }, ...b.map((x) => h('button', { class: 'pat3-act', html: (x.url ? SVG.search : '') + '<span></span>', onclick: () => { if (x.url) PatOS.openExternal ? PatOS.openExternal(x.url) : window.open(x.url, '_blank', 'noopener'); else if (x.launch) PatOS.launch(x.launch, x.args || {}); else if (x.say) submit(x.say); } })).map((el, i) => { el.querySelector('span:last-child').textContent = b[i].label; return el; }));
+        return h('div', { class: 'pat3-acts' }, ...b.map((x) => h('button', { class: 'pat3-act', html: (x.url ? SVG.search : '') + '<span></span>', onclick: () => { if (x.url) PatOS.openExternal ? PatOS.openExternal(x.url) : window.open(x.url, '_blank', 'noopener'); else if (x.launch) PatOS.launch(x.launch, x.args || {}); else if (x.open && PatOS.fs.exists(x.open)) PatOS.openFile(x.open); else if (x.say) submit(x.say); } })).map((el, i) => { el.querySelector('span:last-child').textContent = b[i].label; return el; }));
       }
       function bubble(m, anim) {
         const wel = list.querySelector('.pat3-welcome'); if (wel) wel.remove();

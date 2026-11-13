@@ -519,3 +519,6 @@ body.patos-fs #pill-wrap.idle { opacity: 0; pointer-events: none; }
 .dk-panel.dashboard .dk-ic, .dk-panel.dashboard .dk-ic .icon-tile, .dk-panel.dashboard .dk-ic svg, .dk-panel.dashboard .dk-ic img { width: 28px !important; height: 28px !important; flex-basis: 28px; }
 .dk-panel.dashboard .dk-item small { font-size: 13px; }
 .mobile #desk-panels { display: none; }
+
+/* Pat history lines in Settings keep their line breaks */
+.st-rl small { white-space: pre-line; }
