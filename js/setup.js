@@ -48,7 +48,7 @@
 
     } else if (step === 'lang') {
       const after = accountsWork() ? 'account' : 'name';
-      const pick = (code, label, flag) => { const b = h('button', { class: 'su-opt' + (PatOS.lang === code ? ' on' : '') }, h('span', { class: 'su-flag' }, flag), label); b.onclick = () => { if (PatOS.lang === code) return go(after); PatOS.setSetting('language', code); reloadAt(after); }; return b; };
+      const pick = (code, label, flag) => { const b = h('button', { class: 'su-opt' + (PatOS.lang === code ? ' on' : ''), translate: 'no' }, h('span', { class: 'su-flag' }, flag), label); /* (a language is named in itself: "English" stays English on a French device) */ b.onclick = () => { if (PatOS.lang === code) return go(after); PatOS.setSetting('language', code); if (PatOS.setLanguage) { PatOS.setLanguage(code); go(after); } else reloadAt(after); /* (4.0: the language changes at once, PatOS doesn't restart) */ }; return b; };
       c.append(h('h1', {}, T('Choose your language')), h('div', { class: 'su-opts' }, pick('en', 'English', 'EN'), pick('fr', 'Français', 'FR')), next(null, () => go(after)), dots);
 
     } else if (step === 'account') {
@@ -138,7 +138,7 @@
     const lang0 = PatOS.settings.language;
     try { await Promise.race([PatOS.sync.now(), new Promise((r) => setTimeout(r, 25000))]); } catch (e) { /* offline or slow: it goes on later */ }
     PatOS.store.set('setupBack', true);
-    if (PatOS.settings.language !== lang0) return reloadAt('done'); // (the account's language: shown from the next screen on)
+    if (PatOS.settings.language !== lang0) { if (PatOS.setLanguage) PatOS.setLanguage(PatOS.settings.language); else return reloadAt('done'); } // (the account's language: at once, without restarting)
     go('done');
   }
 

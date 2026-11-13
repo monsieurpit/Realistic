@@ -55,7 +55,7 @@
         PatOS.menu([{ header: c.name },
           { label: T('Duplicate'), action: () => { const id = D.duplicate(c.id); load(id); } },
           ...c.versions.map((v, i) => ({ label: T('Restore') + ' · ' + new Date(v.t).toLocaleString(PatOS.locale), action: () => { D.restoreVersion(c.id, i); load(c.id); } })),
-          { divider: true }, { label: T('Delete…'), action: async () => { if (await PatOS.confirmBox(T('Delete') + ' “' + c.name + '”?', T('Only this saved configuration goes. Your desktop stays as it is.'), { ok: T('Delete'), icon: 'deskstudio' })) { D.remove(c.id); if (savedId === c.id) load(null); else drawSide(); } } }], x, y);
+          { divider: true }, { label: T('Delete…'), action: async () => { if (await PatOS.confirmBox(T('Delete') + ' “' + c.name + '”?', T('Your desktop won’t change.'), { ok: T('Delete'), icon: 'deskstudio' })) { D.remove(c.id); if (savedId === c.id) load(null); else drawSide(); } } }], x, y);
       }
       async function load(id) {
         if (dirty && !(await PatOS.confirmBox(T('Leave without saving?'), T('Your changes to this configuration are lost.'), { ok: T('Leave'), icon: 'deskstudio' }))) return;

@@ -65,7 +65,7 @@
         if (!S.ready()) { side.appendChild(h('p', { class: 'lv-muted' }, T('Sign in to your PatOS account to work with others.'))); return; }
         side.appendChild(h('div', { class: 'lv-sh' }, T('Spaces')));
         S.list().forEach((s) => side.appendChild(h('button', { class: 'lv-si' + (s.id === sid ? ' on' : ''), onclick: () => enter(s.id) }, h('span', { class: 'lv-dot' }, (s.name || '?').charAt(0).toUpperCase()), h('span', {}, s.name))));
-        if (!S.list().length) side.appendChild(h('p', { class: 'lv-muted' }, T('Make a space in Shared Spaces and invite people: then work on it together here.')), h('button', { class: 'btn', onclick: () => PatOS.launch('spaces') }, T('Open Shared Spaces')));
+        if (!S.list().length) side.appendChild(h('p', { class: 'lv-muted' }, T('Make a space in Shared Spaces, then work on it together here.')), h('button', { class: 'btn', onclick: () => PatOS.launch('spaces') }, T('Open Shared Spaces')));
         if (!sp()) return;
         const people = herePeople();
         side.appendChild(h('div', { class: 'lv-sh' }, T('Here now') + ' · ' + people.length));
@@ -92,7 +92,7 @@
         if (view.kind === 'board' || view.kind === 'note') { const key = view.kind + ':' + view.id; if (main.dataset.view !== key) { main.innerHTML = ''; main.dataset.view = key; view.kind === 'board' ? boardView() : noteView(); } return; }
         main.dataset.view = '';
         main.innerHTML = '';
-        if (!S.ready() || !sp()) return main.appendChild(h('div', { class: 'lv-empty' }, h('span', { class: 'lv-ic', html: PatOS.iconHTML('livespace') }), h('h2', {}, T('PatOS Live')), h('p', {}, S.ready() ? T('Pick a space to work in it with the others, at the same time.') : T('Sign in to your PatOS account to work with others.'))));
+        if (!S.ready() || !sp()) return main.appendChild(h('div', { class: 'lv-empty' }, h('span', { class: 'lv-ic', html: PatOS.iconHTML('livespace') }), h('h2', {}, T('PatOS Live')), h('p', {}, S.ready() ? T('Pick a space to work in.') : T('Sign in to your PatOS account to work with others.'))));
         if (view.kind === 'tasks') return tasksView();
         if (view.kind === 'call') return callView();
         // overview
@@ -104,7 +104,7 @@
             card(T('Live Notes'), notes.length + ' · ' + notes.map((n) => n.title).slice(0, 4).join(', ')),
             card(T('Tasks'), tasks.filter((t) => !t.done).length + ' ' + T('to do') + ' · ' + tasks.filter((t) => t.done).length + ' ' + T('done')),
             card(T('Voice'), calls.length ? T('A call is on.') : T('No call right now.'))),
-          h('p', { class: 'lv-fine' }, T('Everything here is stored in PatOS’s cloud so the members can see it, like the rest of a Shared Space. Voice goes straight between browsers.')));
+          h('p', { class: 'lv-fine' }, T('Stored in PatOS’s cloud, like the rest of the space.')));
       }
       const card = (title, text) => h('div', { class: 'lv-card' }, h('b', {}, title), h('p', {}, text));
 
@@ -169,7 +169,7 @@
         const nid = view.id; const n = notes.find((x) => x.id === nid);
         let blocks = []; const els = new Map(); const editing = new Set(); const timers = new Map(); const bases = new Map(); // (block → the revision your typing started from)
         const list = h('div', { class: 'lv-blocks' });
-        const root = h('div', { class: 'lv-note' }, h('div', { class: 'lv-bar' }, h('b', {}, n ? n.title : T('Note')), h('span', { class: 'lv-muted' }, canEdit() ? T('Two people can write different paragraphs at the same time.') : T('You can read, not change.')),
+        const root = h('div', { class: 'lv-note' }, h('div', { class: 'lv-bar' }, h('b', {}, n ? n.title : T('Note')), h('span', { class: 'lv-muted' }, canEdit() ? T('Everyone can write at once.') : T('You can read, not change.')),
           canEdit() ? h('button', { class: 'btn', onclick: async () => { if (await PatOS.confirmBox(T('Delete this note?'), T('It is deleted for everyone in the space.'), { danger: true })) { await guard(() => F.liveHeadDelete(sid, 'notes', nid)); open({ kind: 'home' }); } } }, T('Delete')) : null), list,
           canEdit() ? h('button', { class: 'btn lv-addb', onclick: () => addBlock(blocks.length ? blocks[blocks.length - 1].order + 1 : 1, '') }, '+ ' + T('Paragraph')) : null);
         main.appendChild(root);
@@ -240,7 +240,7 @@
               h('div', { class: 'lv-cbtn' }, h('button', { class: 'btn', onclick: () => { call.muted = !call.muted; call.stream.getAudioTracks().forEach((t) => { t.enabled = !call.muted; }); drawMain(); } }, call.muted ? T('Unmute') : T('Mute')), h('button', { class: 'btn danger', onclick: () => hangUp() }, T('Leave'))))
               : !canTalk() ? h('p', { class: 'lv-muted' }, T('Viewers can’t join calls in this space.'))
                 : h('div', {}, h('p', {}, c ? T('A call is on, started by') + ' @' + c.byName + '.' : T('No call right now.')), h('button', { class: 'btn primary', onclick: () => joinCall(c ? c.id : null) }, c ? T('Join the call') : T('Start a call')),
-                  h('p', { class: 'lv-fine' }, T('PatOS asks for your microphone only when you join, and stops using it when you leave. The sound goes between browsers; PatOS’s cloud only passes the messages that connect them.')))));
+                  h('p', { class: 'lv-fine' }, T('Your microphone is used only while you’re in the call.')))));
       }
       async function joinCall(cid) {
         if (call) return; if (!navigator.mediaDevices || !window.RTCPeerConnection) return PatOS.alertBox(T('Voice isn’t available'), T('This browser can’t make calls.'), { icon: 'livespace' });

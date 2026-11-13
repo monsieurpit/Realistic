@@ -18,7 +18,9 @@ test('Studio: add, drag, resize, save with versions, preview and revert, apply, 
   await ev(() => { const s = PatOS.wm.windowsOf('deskstudio')[0]._studio; s.addWidget('weather'); s.addPanel('launcher'); });
   assert.equal(await ev(() => document.querySelectorAll('.sd-stage .sd-box').length), 6);
   // drag the panel with the pointer: it moves in screen pixels, snapped to 8
-  const box = await ev(() => { const r = [...document.querySelectorAll('.sd-stage .sd-panel')].pop().getBoundingClientRect(); return { x: r.x + 20, y: r.y + 10 }; });
+  // (wait for the window to finish opening and the stage to stop moving, or the press can miss the panel)
+  const box = await ev(async () => { const at = () => { const r = [...document.querySelectorAll('.sd-stage .sd-panel')].pop().getBoundingClientRect(); return { x: r.x + 20, y: r.y + 10 }; };
+    let a = at(); for (let i = 0; i < 40; i++) { await new Promise((r) => setTimeout(r, 100)); const b = at(); if (b.x === a.x && b.y === a.y && document.elementFromPoint(b.x, b.y) && document.elementFromPoint(b.x, b.y).closest('.sd-panel')) return b; a = b; } return a; });
   const before = await ev(() => { const c = PatOS.wm.windowsOf('deskstudio')[0]._studio.cfg; return [c.panels[0].x, c.panels[0].y]; });
   await page.mouse.move(box.x, box.y); await page.mouse.down(); await page.mouse.move(box.x + 30, box.y + 20, { steps: 5 }); await page.mouse.up();
   const after = await ev(() => { const c = PatOS.wm.windowsOf('deskstudio')[0]._studio.cfg; return [c.panels[0].x, c.panels[0].y]; });

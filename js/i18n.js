@@ -13,7 +13,7 @@
   document.documentElement.lang = PatOS.lang;
 
   // dates and numbers follow the PatOS language
-  if (PatOS.locale) {
+  {
     ['toLocaleDateString', 'toLocaleTimeString', 'toLocaleString'].forEach((fn) => {
       const orig = Date.prototype[fn];
       Date.prototype[fn] = function (loc, opts) { return orig.call(this, loc === undefined ? PatOS.locale : loc, opts); };
@@ -109,7 +109,7 @@
     'Camera and microphone on': 'Caméra et micro activés', 'Camera on': 'Caméra activée', 'Microphone on': 'Micro activé', 'Do Not Disturb off': 'Ne pas déranger désactivé', 'PatOS Pill': 'Pilule PatOS', 'Timers, music, copies and the microphone, at the top of the screen.': 'Minuteurs, musique, copies et micro, en haut de l’écran.',
     'Activity Overview': 'Aperçu des activités', 'Nothing is happening right now.': 'Rien ne se passe en ce moment.', 'Output': 'Sortie', 'PatOS Pill Settings…': 'Réglages de la pilule PatOS…', 'PatOS keeps working; it catches up when you’re back': 'PatOS continue de fonctionner; il rattrape tout à votre retour', 'Play sound on': 'Jouer le son sur', 'Plug in your computer': 'Branchez votre ordinateur', 'Recently finished': 'Terminé récemment', 'Ringing': 'Sonne', 'Shortcut': 'Raccourci', 'Sound plays here': 'Le son joue ici', 'Speaker': 'Haut-parleur', 'Stopped when PatOS restarted': 'Arrêté au redémarrage de PatOS', 'Syncing': 'Synchronisation', 'This browser can’t choose where the sound goes.': 'Ce navigateur ne peut pas choisir où va le son.', 'This is how activities look': 'Voici à quoi ressemblent les activités', 'activities': 'activités', 'for': 'depuis',
     'Battery very low': 'Batterie très faible', 'Battery low': 'Batterie faible', 'The sync code isn’t accepted': 'Le code de synchro n’est pas accepté', 'The sync server is full': 'Le serveur de synchro est plein', 'The sync server is busy': 'Le serveur de synchro est occupé', 'The sync server had a problem': 'Le serveur de synchro a eu un problème', 'It will try again': 'Il va réessayer', 'Playing': 'Lecture',
-    'Messages and important notifications': 'Messages et notifications importantes', 'They show in the Pill instead of a banner, and still go to Notification Center.': 'Ils s’affichent dans la pilule au lieu d’une bannière, et vont quand même au centre de notifications.', 'Open when the pointer rests on it': 'Ouvrir quand le pointeur reste dessus', 'Show what finished recently': 'Montrer ce qui s’est terminé récemment', 'Second activity bubble': 'Bulle de la deuxième activité', 'Music bars': 'Barres de musique', 'How long quick messages stay': 'Durée des messages rapides', 'In full-screen apps': 'Dans les apps en plein écran', 'Only important things': 'Seulement l’important', 'Short': 'Courte', 'Long': 'Longue', 'Always': 'Toujours', 'Timers, music, copies and the microphone, at the top of the screen. Alt+A opens the Activity Overview.': 'Minuteurs, musique, copies et micro, en haut de l’écran. Alt+A ouvre l’aperçu des activités.', 'Break': 'Pause',
+    'Messages and important notifications': 'Messages et notifications importantes', 'Shown in the Pill instead of a banner.': 'Affichées dans la Pill au lieu d’une bannière.', 'Open when the pointer rests on it': 'Ouvrir quand le pointeur reste dessus', 'Show what finished recently': 'Montrer ce qui s’est terminé récemment', 'Second activity bubble': 'Bulle de la deuxième activité', 'Music bars': 'Barres de musique', 'How long quick messages stay': 'Durée des messages rapides', 'In full-screen apps': 'Dans les apps en plein écran', 'Only important things': 'Seulement l’important', 'Short': 'Courte', 'Long': 'Longue', 'Always': 'Toujours', 'Timers, music and activity at the top of the screen.': 'Minuteries, musique et activités en haut de l’écran.', 'Break': 'Pause',
     'finished recently': 'terminés récemment',
     'Inspect': 'Inspecter', 'System processes': 'Processus système', 'Processes': 'Processus', 'CPU load': 'Charge du processeur', 'not shared by this browser': 'non partagée par ce navigateur', 'CPU is measured: the time each app’s own code runs. Memory is an estimate from what its windows hold.': 'Le processeur est mesuré : le temps que le code de chaque app tourne. La mémoire est une estimation d’après ce que ses fenêtres contiennent.', 'Force quit': 'Forcer à quitter', 'Everything it started stops now: its windows, timers, animations, workers, network requests, microphone, camera and sound. What it hasn’t saved is lost. Copies and backups keep going.': 'Tout ce qu’elle a lancé s’arrête maintenant : ses fenêtres, minuteurs, animations, tâches de fond, requêtes réseau, micro, caméra et son. Ce qu’elle n’a pas enregistré est perdu. Les copies et sauvegardes continuent.', 'Problems': 'Problèmes', 'was force quit': 'a été forcée à quitter', 'is slowing PatOS down': 'ralentit PatOS', 'It kept PatOS busy for': 'Elle a occupé PatOS pendant', 'keeps running into problems': 'a des problèmes à répétition', 'is using a lot of energy': 'utilise beaucoup d’énergie', 'In the background': 'En arrière-plan',
     'widget': 'widget',
@@ -130,7 +130,7 @@
     'The widget’s page is missing or too big.': 'La page du widget manque ou est trop grosse.',
     'It asks to read:': 'Il demande à lire :',
     'It asks for nothing: it can only show its own content.': 'Il ne demande rien : il peut seulement montrer son propre contenu.',
-    'It runs apart from PatOS: it can’t see your files, your account or other apps.': 'Il tourne à part de PatOS : il ne voit pas vos fichiers, votre compte ni les autres apps.',
+    'It can’t see your files or account.': 'Il ne peut pas voir tes fichiers ni ton compte.',
     'Widget': 'Widget',
     'No events': 'Aucun événement',
     'Not playing': 'Rien ne joue',
@@ -158,13 +158,13 @@
     'Switch': 'Changer',
     'Delete…': 'Supprimer…',
     'Delete the profile': 'Supprimer le profil',
-    'Its look, Dock, widgets and windows go. Your files and apps stay: they belong to every profile.': 'Son apparence, son Dock, ses widgets et ses fenêtres partent. Vos fichiers et apps restent : ils appartiennent à tous les profils.',
-    'Each profile has its own look, Dock, widgets, panels, shortcuts, notification rules and open windows. Your files, notes, apps and account are the same in all of them.': 'Chaque profil a sa propre apparence, son Dock, ses widgets, panneaux, raccourcis, règles de notifications et fenêtres ouvertes. Vos fichiers, notes, apps et compte sont les mêmes dans tous.',
+    'Your files and apps stay.': 'Tes fichiers et apps restent.',
+    'Each profile has its own look, Dock, widgets and windows. Files are shared.': 'Chaque profil a son apparence, son Dock, ses widgets et ses fenêtres. Les fichiers sont partagés.',
     'New profile': 'Nouveau profil',
     'It starts as a copy of the profile you’re in.': 'Il commence comme une copie du profil où vous êtes.',
     'Create…': 'Créer…',
     'Import a profile': 'Importer un profil',
-    'Profiles are about what you see, not a lock: anyone using this PatOS can switch.': 'Les profils changent ce que vous voyez, ce n’est pas un verrou : toute personne qui utilise ce PatOS peut changer.',
+    'Anyone using this PatOS can switch profiles.': 'Toute personne qui utilise ce PatOS peut changer de profil.',
     'App not installed': 'App non installée',
     'That file isn’t there anymore': 'Ce fichier n’est plus là',
     'This isn’t a desktop configuration.': 'Ce n’est pas une configuration de bureau.',
@@ -179,7 +179,7 @@
     'Configurations': 'Configurations',
     'versions': 'versions',
     'New desktop': 'Nouveau bureau',
-    'Only this saved configuration goes. Your desktop stays as it is.': 'Seule cette configuration enregistrée part. Votre bureau reste comme il est.',
+    'Your desktop won’t change.': 'Ton bureau ne changera pas.',
     'Leave without saving?': 'Quitter sans enregistrer?',
     'Your changes to this configuration are lost.': 'Vos changements à cette configuration seront perdus.',
     'Your desktop, scaled': 'Votre bureau, à l’échelle',
@@ -257,13 +257,13 @@
     'The file moves in Piles too. You can undo it there.': 'Le fichier se déplace aussi dans Piles. Vous pouvez l’annuler là.',
     'Worlds': 'Mondes',
     'New world': 'Nouveau monde',
-    'The board goes. The files, notes and apps on it stay where they are.': 'Le tableau part. Les fichiers, notes et apps qui s’y trouvent restent où ils sont.',
+    'Files and notes on it are kept.': 'Les fichiers et notes qu’il contient sont gardés.',
     'My world': 'Mon monde',
     'Edit in Studio': 'Modifier dans Studio',
     'Take out of the collection': 'Retirer de la collection',
     'None yet.': 'Aucune pour l’instant.',
     'What connects': 'Ce qui est lié',
-    'things read: files, notes, events, reminders, captures and boards. Every link says why.': 'éléments lus : fichiers, notes, événements, rappels, captures et tableaux. Chaque lien dit pourquoi.',
+    'things read': 'éléments lus',
     'Make a collection': 'Créer une collection',
     'The words that gather this collection, separated by commas': 'Les mots qui forment cette collection, séparés par des virgules',
     'Add something…': 'Ajouter quelque chose…',
@@ -272,17 +272,17 @@
     'Delete Collection…': 'Supprimer la collection…',
     'Only the collection goes. Nothing in it is deleted.': 'Seule la collection part. Rien de ce qu’elle contient n’est supprimé.',
     'Privacy & indexing': 'Confidentialité et indexation',
-    'Data only reads when you use it, keeps its index in memory, and never reads what you leave out.': 'Data ne lit que quand vous l’utilisez, garde son index en mémoire, et ne lit jamais ce que vous excluez.',
+    'Data never reads what you leave out.': 'Data ne lit jamais ce que tu exclus.',
     'Leave out': 'Exclure',
     'Read it again': 'Le relire',
-    'Mark a thing private from its details: Data stops reading it.': 'Marquez un élément comme privé depuis ses détails : Data arrête de le lire.',
+    'Mark something private from its details.': 'Marque un élément privé depuis ses détails.',
     'Reads everything again from the start.': 'Relit tout depuis le début.',
     'Rebuilt': 'Reconstruit',
     'Rebuild': 'Reconstruire',
     'Keep in collection': 'Garder dans la collection',
     'Data stops reading it': 'Data arrête de le lire',
     'Make it private?': 'Le rendre privé?',
-    'Data stops reading it and it leaves every collection. The thing itself doesn’t change.': 'Data arrête de le lire et il quitte toutes les collections. L’élément lui-même ne change pas.',
+    'Data stops reading it.': 'Data arrête de le lire.',
     'Make Private': 'Rendre privé',
     'Not related': 'Pas lié',
     'Nothing yet. Link something by hand:': 'Rien pour l’instant. Liez quelque chose à la main :',
@@ -291,7 +291,7 @@
     'Add something': 'Ajouter quelque chose',
     'New collection': 'Nouvelle collection',
     'Biology project': 'Projet de biologie',
-    'Data gathers what matches its name; you can add more words after.': 'Data rassemble ce qui correspond à son nom; vous pourrez ajouter d’autres mots ensuite.',
+    'You can add more words later.': 'Tu pourras ajouter d’autres mots plus tard.',
     'Graph of what connects': 'Graphe de ce qui est lié',
     'linked by you': 'lié par vous',
     'one names the other': 'l’un nomme l’autre',
@@ -357,7 +357,7 @@
     'This isn’t a PatOS gallery.': 'Ce n’est pas une galerie PatOS.',
     'Shared gallery': 'Galerie partagée',
     'No Space to share to': 'Aucun espace où partager',
-    'Make a Shared Space first (or ask to be an editor in one).': 'Créez d’abord un espace partagé (ou demandez à en être éditeur).',
+    'Make a Shared Space first.': 'Crée d’abord un espace partagé.',
     'Share to a Space': 'Partager dans un espace',
     'This gallery is too big to share: make a smaller one.': 'Cette galerie est trop grande pour être partagée : faites-en une plus petite.',
     'Shared to': 'Partagé dans',
@@ -374,7 +374,7 @@
     'Make a new World': 'Faire un nouveau Monde',
     'Make a gallery of a folder': 'Faire une galerie d’un dossier',
     'Sign in to your PatOS account to work with others.': 'Connecte-toi à ton compte PatOS pour travailler avec d’autres.',
-    'Make a space in Shared Spaces and invite people: then work on it together here.': 'Crée un espace dans Espaces partagés et invite des gens : ensuite, travaillez-y ensemble ici.',
+    'Make a space in Shared Spaces, then work on it together here.': 'Crée un espace dans Espaces partagés, puis travaillez-y ici.',
     'Open Shared Spaces': 'Ouvrir Espaces partagés',
     'Here now': 'Ici maintenant',
     'away': 'absent',
@@ -388,12 +388,12 @@
     'a note': 'une note',
     'Meeting notes': 'Notes de réunion',
     'PatOS Live': 'PatOS Live',
-    'Pick a space to work in it with the others, at the same time.': 'Choisis un espace pour y travailler avec les autres, en même temps.',
+    'Pick a space to work in.': 'Choisis un espace.',
     'Only you right now.': 'Seulement toi pour l’instant.',
     'to do': 'à faire',
     'A call is on.': 'Un appel est en cours.',
     'No call right now.': 'Aucun appel pour l’instant.',
-    'Everything here is stored in PatOS’s cloud so the members can see it, like the rest of a Shared Space. Voice goes straight between browsers.': 'Tout ici est gardé dans le nuage de PatOS pour que les membres le voient, comme le reste d’un espace partagé. La voix passe directement entre les navigateurs.',
+    'Stored in PatOS’s cloud, like the rest of the space.': 'Gardé dans le nuage de PatOS, comme le reste de l’espace.',
     'You can look, not change.': 'Tu peux regarder, pas modifier.',
     'Delete this board?': 'Supprimer ce tableau?',
     'It is deleted for everyone in the space.': 'Il est supprimé pour tout le monde dans l’espace.',
@@ -402,7 +402,7 @@
     'Your version was kept next to theirs.': 'Ta version a été gardée à côté de la sienne.',
     'Someone moved it first': 'Quelqu’un l’a déplacé avant toi',
     'Write…': 'Écris…',
-    'Two people can write different paragraphs at the same time.': 'Deux personnes peuvent écrire des paragraphes différents en même temps.',
+    'Everyone can write at once.': 'Tout le monde peut écrire en même temps.',
     'You can read, not change.': 'Tu peux lire, pas modifier.',
     'Delete this note?': 'Supprimer cette note?',
     'Someone changed this paragraph first': 'Quelqu’un a modifié ce paragraphe avant toi',
@@ -422,7 +422,7 @@
     'A call is on, started by': 'Un appel est en cours, lancé par',
     'Join the call': 'Rejoindre l’appel',
     'Start a call': 'Lancer un appel',
-    'PatOS asks for your microphone only when you join, and stops using it when you leave. The sound goes between browsers; PatOS’s cloud only passes the messages that connect them.': 'PatOS demande ton micro seulement quand tu rejoins, et arrête de l’utiliser quand tu pars. Le son passe entre les navigateurs; le nuage de PatOS ne transmet que les messages qui les connectent.',
+    'Your microphone is used only while you’re in the call.': 'Ton micro n’est utilisé que pendant l’appel.',
     'Voice isn’t available': 'La voix n’est pas disponible',
     'This browser can’t make calls.': 'Ce navigateur ne peut pas faire d’appels.',
     'No microphone': 'Pas de micro',
@@ -505,7 +505,7 @@
     'following': 'abonnements',
     'A few words about you': 'Quelques mots sur toi',
     'Profile saved': 'Profil enregistré',
-    'Your profile, posts and the communities you join are seen by other PatOS people. Your files, notes and everything else stay private.': 'Ton profil, tes publications et les communautés que tu rejoins sont vus par les autres gens de PatOS. Tes fichiers, notes et tout le reste restent privés.',
+    'Your profile and posts are public. Your files stay private.': 'Ton profil et tes publications sont publics. Tes fichiers restent privés.',
     'No bio yet.': 'Pas encore de bio.',
     'Unblock': 'Débloquer',
     'Unfollow': 'Ne plus suivre',
@@ -578,7 +578,7 @@
     'Partly cloudy': 'Partiellement nuageux',
     'Storm': 'Orage',
     'Weather in the Pill': 'La météo dans la Pill',
-    'The temperature, rain or snow coming within the hour, and storms or strong wind from the forecast.': 'La température, la pluie ou la neige qui arrive dans l’heure, et les orages ou vents forts selon les prévisions.',
+    'Temperature, rain coming and storm warnings.': 'Température, pluie à venir et alertes d’orage.',
     'Switch profile': 'Changer de profil',
     'Click to switch': 'Clique pour changer',
     'Manage Profiles…': 'Gérer les profils…',
@@ -587,7 +587,7 @@
     'See what’s new in PatOS 4.0': 'Découvre les nouveautés de PatOS 4.0',
     'Widgets, Studio, profiles, World, search inside everything and more, in Tips.': 'Widgets, Studio, profils, Monde, la recherche dans tout et plus, dans Astuces.',
     'How to use PatOS: the essentials, the rest, and every shortcut.': 'Comment utiliser PatOS : l’essentiel, le reste, et chaque raccourci.',
-    'Tile All Windows': 'Disposer toutes les fenêtres', 'Merge All Windows': 'Fusionner toutes les fenêtres', 'Move Tab to New Window': 'Placer l’onglet dans une nouvelle fenêtre', 'Magnetic edges': 'Bords magnétiques', 'Windows click to the screen’s edges and to each other. Hold Shift to place one freely.': 'Les fenêtres s’accrochent aux bords de l’écran et entre elles. Maintenez Maj pour en placer une librement.',
+    'Tile All Windows': 'Disposer toutes les fenêtres', 'Merge All Windows': 'Fusionner toutes les fenêtres', 'Move Tab to New Window': 'Placer l’onglet dans une nouvelle fenêtre', 'Magnetic edges': 'Bords magnétiques', 'Windows snap to edges and each other. Hold Shift to move freely.': 'Les fenêtres s’aimantent aux bords. Maintiens Maj pour les placer librement.',
     'Stage Focus': 'Focus sur la scène', 'Save Window Group…': 'Enregistrer un groupe de fenêtres…', 'Save Window Group': 'Enregistrer un groupe de fenêtres', 'Delete a Window Group…': 'Supprimer un groupe de fenêtres…', 'window': 'fenêtre', 'windows': 'fenêtres', 'Window group saved': 'Groupe de fenêtres enregistré', 'Reopen them all from the Window menu.': 'Rouvrez-les toutes depuis le menu Fenêtre.',
     'Motion': 'Mouvement', 'Calm': 'Calme', 'Natural': 'Naturel', 'Playful': 'Enjoué', 'How windows, menus and panels move': 'La façon dont bougent les fenêtres, les menus et les panneaux',
     'Glass style': 'Style du verre', 'Transparent': 'Transparent', 'Tinted (more contrast)': 'Teinté (plus de contraste)', 'Lens edges': 'Bords en lentille', 'The edges of the Dock bend what is behind them': 'Les bords du Dock courbent ce qui est derrière', 'Needs Chrome, Edge or a Chromebook': 'Demande Chrome, Edge ou un Chromebook', 'Your device asks for less transparency, so PatOS uses less': 'Votre appareil demande moins de transparence, donc PatOS en met moins',
@@ -1819,7 +1819,7 @@
     'Available when PatOS is opened from its website.': 'Disponible quand PatOS est ouvert depuis son site web.',
     'Use the newest version': 'Utiliser la version la plus récente',
     'Go back to the previous version?': 'Revenir à la version précédente ?',
-    'PatOS goes back to the version you had before. Your files and settings stay.': 'PatOS revient à la version d’avant. Tes fichiers et réglages restent.',
+    'Goes back to your previous version.': 'Revient à ta version précédente.',
     'Go Back': 'Revenir',
     'No previous version': 'Aucune version précédente',
     'There is no earlier version saved on this device yet.': 'Aucune version antérieure n’est encore enregistrée sur cet appareil.',
@@ -2272,7 +2272,7 @@
     'Try it': 'Essayer',
     'Hi, I am Pat. Say Hey Pat, and then what you need.': 'Salut, moi c’est Pat. Dites Hey Pat, puis ce dont vous avez besoin.',
     'Hear Pat': 'Écouter Pat',
-    'Your browser turns your voice into text (Chrome uses Google for this). PatOS only listens while this is on, and shows a mic.': 'Ton navigateur transforme ta voix en texte (Chrome utilise Google pour ça). PatOS écoute seulement quand c’est activé, et affiche un micro.',
+    'Chrome turns your voice into text using Google.': 'Chrome transforme ta voix en texte avec Google.',
     'Runs when you press it': 'Se lance quand vous appuyez',
     'When you unlock PatOS': 'Quand vous déverrouillez PatOS',
     'Every day at': 'Chaque jour à',
@@ -2342,21 +2342,20 @@
     'Signing in…': 'Connexion…',
     'Create your PatOS account': 'Créez votre compte PatOS',
     'Welcome back': 'Content de vous revoir',
-    'Just a username and a password. No email. Your things follow you to any device.': 'Juste un nom d’utilisateur et un mot de passe. Pas de courriel. Tes affaires te suivent sur tous tes appareils.',
+    'A username and a password. No email.': 'Un nom d’utilisateur et un mot de passe. Pas de courriel.',
     'Your files, notes and settings come back to this device.': 'Tes fichiers, notes et réglages reviennent sur cet appareil.',
     'There’s no password reset. Pick one you’ll remember.': 'On ne peut pas réinitialiser le mot de passe. Choisis-en un dont tu te souviendras.',
     'Saving everything to your account…': 'Enregistrement de tout dans votre compte…',
-    'You’re offline. Your account is ready and will be saved when you’re back online.': 'Tu es hors ligne. Ton compte est prêt et sera enregistré à ton retour en ligne.',
-    'Your account is ready, but saving had a problem. PatOS will keep trying.': 'Votre compte est prêt, mais l’enregistrement a eu un problème. PatOS va réessayer.',
+    'Your account is ready. It will sync when you’re online.': 'Ton compte est prêt. Il se synchronisera en ligne.',
+    'Your account is ready. Saving will try again.': 'Ton compte est prêt. L’enregistrement va réessayer.',
     'All saved.': 'Tout est enregistré.',
     'items are in your account.': 'éléments sont dans votre compte.',
-    'PatOS now has accounts. Just a username and a password: no email.': 'PatOS a maintenant des comptes. Juste un nom d’utilisateur et un mot de passe : pas de courriel.',
-    'Everything is saved': 'Tout est enregistré',
-    'Your files, notes, calendar, settings and apps follow you to every device.': 'Tes fichiers, notes, calendrier, réglages et apps te suivent sur tous tes appareils.',
+        'Everything is saved': 'Tout est enregistré',
+    'Your files and settings on every device.': 'Tes fichiers et réglages sur tous tes appareils.',
     'Still works offline': 'Marche toujours hors ligne',
-    'A copy stays on this device, so PatOS opens and works with no internet.': 'Une copie reste sur cet appareil, donc PatOS s’ouvre et marche sans internet.',
+    'PatOS still works offline.': 'PatOS fonctionne aussi hors ligne.',
     'Message your friends': 'Écrivez à vos amis',
-    'Find people by username in Messages. They accept your request first.': 'Trouvez des gens par nom d’utilisateur dans Messages. Ils acceptent d’abord votre demande.',
+    'Find people by username in Messages.': 'Trouve des gens par nom d’utilisateur dans Messages.',
     'Private': 'Privé',
     'What is saved is locked with your password.': 'Ce qui est enregistré est verrouillé par votre mot de passe.',
     'Create My Account': 'Créer mon compte',
@@ -2413,14 +2412,14 @@
     'Sign in again': 'Se reconnecter',
     'Sign out': 'Se déconnecter',
     'Sign out?': 'Se déconnecter ?',
-    'Everything stays on this device. Nothing is saved to your account until you sign in again.': 'Tout reste sur cet appareil. Rien n’est enregistré dans ton compte jusqu’à ta prochaine connexion.',
+    'Your things stay on this device.': 'Tes affaires restent sur cet appareil.',
     'Sign Out': 'Se déconnecter',
     'Sign Out…': 'Se déconnecter…',
     'Delete your account?': 'Supprimer votre compte ?',
     'Delete Account': 'Supprimer le compte',
-    'This deletes your username and your account’s data (not this device’s). Type your password to confirm.': 'Ça supprime ton nom d’utilisateur et les données du compte (pas celles de cet appareil). Tape ton mot de passe pour confirmer.',
+    'Type your password to delete your account.': 'Tape ton mot de passe pour supprimer ton compte.',
     'Account deleted': 'Compte supprimé',
-    'Your account and its saved copy are gone. Everything is still on this device.': 'Votre compte et sa copie enregistrée ont disparu. Tout est toujours sur cet appareil.',
+    'Your account is deleted. This device keeps its copy.': 'Ton compte est supprimé. Cet appareil garde sa copie.',
     'Delete Account…': 'Supprimer le compte…',
     'Stop using this account on this device': 'Ne plus utiliser ce compte sur cet appareil',
     'Delete this account': 'Supprimer ce compte',
@@ -2580,7 +2579,7 @@
     'Not accepted': 'Refusée',
     'Waiting for review': 'En attente d’examen',
     'Privacy': 'Confidentialité',
-    'Community apps must ask before using your camera, mic, location, files, clipboard, notifications or the internet. See what each app may do and did.': 'Les apps de la Communauté doivent demander avant d’utiliser ta caméra, ton micro, ta position, tes fichiers, le presse-papiers, les notifications ou Internet. Vois ce que chaque app peut faire et a fait.',
+    'What each community app may use.': 'Ce que chaque app de la communauté peut utiliser.',
     'No community apps are installed. PatOS’s own apps are not listed here.': 'Aucune app de la communauté n’est installée. Les apps propres à PatOS ne sont pas listées ici.',
     'Asks for': 'Demande',
     'Not allowed': 'Refusé',
@@ -2649,8 +2648,7 @@
     'Sync is off': 'La synchronisation est désactivée',
     'Sync is off on this device, but the copy on the server could not be deleted now.': 'La synchronisation est désactivée sur cet appareil, mais la copie sur le serveur n’a pas pu être supprimée pour le moment.',
     'Turn off Sync?': 'Désactiver la synchronisation ?',
-    'Everything stays on this device. Your other devices keep their own copies too.': 'Tout reste sur cet appareil. Vos autres appareils gardent aussi leurs copies.',
-    'Also delete my encrypted copy from the server': 'Supprimer aussi ma copie chiffrée du serveur',
+        'Also delete my encrypted copy from the server': 'Supprimer aussi ma copie chiffrée du serveur',
     'Sync': 'Synchronisation',
     'This browser can’t encrypt, which Sync needs. Open PatOS from its https address, or use a newer browser.': 'Ce navigateur ne peut pas chiffrer, et la synchro en a besoin. Ouvre PatOS depuis son adresse https, ou utilise un navigateur plus récent.',
     'Turn On Sync': 'Activer la synchronisation',
@@ -2748,7 +2746,7 @@
     'Swipe up from the bottom to go home': 'Balayez vers le haut depuis le bas pour revenir à l’accueil', 'Swipe up and pause to switch apps': 'Balayez vers le haut et attendez pour changer d’app',
     'Pull down from the top right for Control Center': 'Tirez vers le bas en haut à droite pour le centre de contrôle', 'Ctrl+Space searches everything': 'Ctrl+Espace cherche partout',
     'Alt+L shows all your apps': 'Alt+L affiche toutes vos apps', 'Drag a window to the edge to snap it': 'Glissez une fenêtre vers le bord pour la placer', 'Waves': 'Vagues', 'Dot Waves': 'Vagues de points', 'Crystals': 'Cristaux', 'Warp': 'Hyperespace',
-    'Timeline': 'Timeline', 'Keep for': 'Garder pendant', '1 year': '1 an', 'Remembers the apps, files, sites and windows you open so you can find them again. Stays on this device.': 'Se souvient des apps, fichiers, sites et fenêtres que tu ouvres pour les retrouver. Reste sur cet appareil.', 'Clipboard History': 'Historique du presse-papiers', 'Keeps what you copy. Alt+V opens it anywhere and pastes.': 'Garde ce que vous copiez. Alt+V l’ouvre partout et colle.', 'Open Timeline': 'Ouvrir Timeline', 'Pause it, forget the last hour, a day or everything from the Timeline app.': 'Mettez-la en pause, oubliez la dernière heure, une journée ou tout depuis l’app Timeline.', 'Community apps': 'Apps de la communauté', 'Search your Timeline': 'Chercher dans votre Timeline', 'Recording': 'Enregistre', 'Turn On Timeline': 'Activer Timeline', 'Pause for 1 Hour': 'Pause pendant 1 heure', 'Pause Until Tomorrow': 'Pause jusqu’à demain', 'Resume Recording': 'Reprendre l’enregistrement', 'Forget the Last Hour': 'Oublier la dernière heure', 'Forget the last hour?': 'Oublier la dernière heure?', 'Forget Today': 'Oublier aujourd’hui', 'Forget today?': 'Oublier aujourd’hui?', 'Forget Everything…': 'Tout oublier…', 'Forget everything in your Timeline?': 'Tout oublier dans votre Timeline?', 'Turn Off Timeline': 'Désactiver Timeline', 'Activity and copied text from that time are deleted. Pinned clips stay.': 'L’activité et le texte copié de ce moment sont supprimés. Les éléments épinglés restent.', 'Forget': 'Oublier', 'This file is gone': 'Ce fichier n’existe plus', 'Forget this': 'Oublier ceci', 'Moment': 'Moment', 'Moments': 'Moments', 'Copy again': 'Copier de nouveau', 'Pin': 'Épingler', 'Pick up where you left off': 'Reprendre là où vous en étiez', 'Pick Up Where You Left Off': 'Reprendre là où vous en étiez', 'Restore These Windows': 'Restaurer ces fenêtres', 'Previous month': 'Mois précédent', 'Next month': 'Mois suivant', 'thing': 'élément', 'things': 'éléments', 'Only on this device. Never synced, no screenshots, nothing from Passwords.': 'Seulement sur cet appareil. Jamais synchronisé, aucune capture d’écran, rien de Mots de passe.', 'Activity by hour': 'Activité par heure', 'Timeline is off': 'Timeline est désactivée', 'Nothing new is recorded. What is already here stays until you forget it.': 'Rien de nouveau n’est enregistré. Ce qui est déjà ici reste jusqu’à ce que vous l’oubliiez.', 'Turn On': 'Activer', 'Paused until': 'En pause jusqu’à', 'Nothing is recorded while Timeline is paused.': 'Rien n’est enregistré pendant que Timeline est en pause.', 'Nothing found': 'Rien trouvé', 'Try other words, or a day: “yesterday”, “monday”, “this week”.': 'Essayez d’autres mots, ou un jour : « hier », « lundi », « cette semaine ».', 'Nothing recorded this day': 'Rien d’enregistré ce jour-là', 'Your Timeline starts now': 'Votre Timeline commence maintenant', 'Use PatOS as usual. What you open and copy shows up here.': 'Utilise PatOS normalement. Ce que tu ouvres et copies apparaît ici.', 'Nothing of this kind this day': 'Rien de ce genre ce jour-là', 'Web search': 'Recherche web', 'Moment restored': 'Moment restauré', 'Those windows are already open.': 'Ces fenêtres sont déjà ouvertes.', 'Search what you copied': 'Chercher dans ce que vous avez copié', 'Nothing matches.': 'Aucun résultat.', 'Clipboard history is off. Turn it on in the Timeline app.': 'L’historique du presse-papiers est désactivé. Activez-le dans l’app Timeline.', 'What you copy shows up here. Copy something, then press Alt+V.': 'Ce que vous copiez apparaît ici. Copiez quelque chose, puis appuyez sur Alt+V.', 'Enter pastes · 1–9 · Esc': 'Entrée colle · 1–9 · Échap', 'Everything': 'Tout', 'Visited': 'Visité', 'Searched for': 'Recherché', 'Wrote in': 'Écrit dans', 'Everything you did, day by day. Find files, sites and copied text, and reopen your windows. Stays on this device.': 'Tout ce que tu as fait, jour par jour. Retrouve fichiers, sites et texte copié, et rouvre tes fenêtres. Reste sur cet appareil.',
+    'Timeline': 'Timeline', 'Keep for': 'Garder pendant', '1 year': '1 an', 'Remembers what you open. Stays on this device.': 'Se souvient de ce que tu ouvres. Reste sur cet appareil.', 'Clipboard History': 'Historique du presse-papiers', 'Keeps what you copy. Alt+V opens it anywhere and pastes.': 'Garde ce que vous copiez. Alt+V l’ouvre partout et colle.', 'Open Timeline': 'Ouvrir Timeline', 'Pause it, forget the last hour, a day or everything from the Timeline app.': 'Mettez-la en pause, oubliez la dernière heure, une journée ou tout depuis l’app Timeline.', 'Community apps': 'Apps de la communauté', 'Search your Timeline': 'Chercher dans votre Timeline', 'Recording': 'Enregistre', 'Turn On Timeline': 'Activer Timeline', 'Pause for 1 Hour': 'Pause pendant 1 heure', 'Pause Until Tomorrow': 'Pause jusqu’à demain', 'Resume Recording': 'Reprendre l’enregistrement', 'Forget the Last Hour': 'Oublier la dernière heure', 'Forget the last hour?': 'Oublier la dernière heure?', 'Forget Today': 'Oublier aujourd’hui', 'Forget today?': 'Oublier aujourd’hui?', 'Forget Everything…': 'Tout oublier…', 'Forget everything in your Timeline?': 'Tout oublier dans votre Timeline?', 'Turn Off Timeline': 'Désactiver Timeline', 'Activity and copied text from that time are deleted. Pinned clips stay.': 'L’activité et le texte copié de ce moment sont supprimés. Les éléments épinglés restent.', 'Forget': 'Oublier', 'This file is gone': 'Ce fichier n’existe plus', 'Forget this': 'Oublier ceci', 'Moment': 'Moment', 'Moments': 'Moments', 'Copy again': 'Copier de nouveau', 'Pin': 'Épingler', 'Pick up where you left off': 'Reprendre là où vous en étiez', 'Pick Up Where You Left Off': 'Reprendre là où vous en étiez', 'Restore These Windows': 'Restaurer ces fenêtres', 'Previous month': 'Mois précédent', 'Next month': 'Mois suivant', 'thing': 'élément', 'things': 'éléments', 'Only on this device. Never synced, no screenshots, nothing from Passwords.': 'Seulement sur cet appareil. Jamais synchronisé, aucune capture d’écran, rien de Mots de passe.', 'Activity by hour': 'Activité par heure', 'Timeline is off': 'Timeline est désactivée', 'Nothing new is recorded. What is already here stays until you forget it.': 'Rien de nouveau n’est enregistré. Ce qui est déjà ici reste jusqu’à ce que vous l’oubliiez.', 'Turn On': 'Activer', 'Paused until': 'En pause jusqu’à', 'Nothing is recorded while Timeline is paused.': 'Rien n’est enregistré pendant que Timeline est en pause.', 'Nothing found': 'Rien trouvé', 'Try other words, or a day: “yesterday”, “monday”, “this week”.': 'Essayez d’autres mots, ou un jour : « hier », « lundi », « cette semaine ».', 'Nothing recorded this day': 'Rien d’enregistré ce jour-là', 'Your Timeline starts now': 'Votre Timeline commence maintenant', 'Use PatOS as usual. What you open and copy shows up here.': 'Utilise PatOS normalement. Ce que tu ouvres et copies apparaît ici.', 'Nothing of this kind this day': 'Rien de ce genre ce jour-là', 'Web search': 'Recherche web', 'Moment restored': 'Moment restauré', 'Those windows are already open.': 'Ces fenêtres sont déjà ouvertes.', 'Search what you copied': 'Chercher dans ce que vous avez copié', 'Nothing matches.': 'Aucun résultat.', 'Clipboard history is off. Turn it on in the Timeline app.': 'L’historique du presse-papiers est désactivé. Activez-le dans l’app Timeline.', 'What you copy shows up here. Copy something, then press Alt+V.': 'Ce que vous copiez apparaît ici. Copiez quelque chose, puis appuyez sur Alt+V.', 'Enter pastes · 1–9 · Esc': 'Entrée colle · 1–9 · Échap', 'Everything': 'Tout', 'Visited': 'Visité', 'Searched for': 'Recherché', 'Wrote in': 'Écrit dans', 'Everything you did, day by day. Find files, sites and copied text, and reopen your windows. Stays on this device.': 'Tout ce que tu as fait, jour par jour. Retrouve fichiers, sites et texte copié, et rouvre tes fenêtres. Reste sur cet appareil.',
     'Search names and contents': 'Chercher dans les noms et le contenu', 'Search filters': 'Filtres de recherche', 'Overview': 'Vue d’ensemble', 'Recents': 'Récents', 'Places': 'Emplacements', 'Smart Piles': 'Piles intelligentes', 'Delete Smart Pile': 'Supprimer la pile intelligente', 'Any kind': 'Tous les types', 'Any time': 'N’importe quand', 'Past 7 days': '7 derniers jours', 'Past 30 days': '30 derniers jours', 'This folder': 'Ce dossier', 'Everywhere': 'Partout', 'Save as Smart Pile': 'Enregistrer comme pile intelligente', 'Name this Smart Pile': 'Nommer cette pile intelligente', 'Smart Pile': 'Pile intelligente', 'See all': 'Tout voir', 'Files you open or save show up here.': 'Les fichiers que vous ouvrez ou enregistrez apparaissent ici.', 'Your piles': 'Vos piles', 'Storage used by kind': 'Espace utilisé par type', 'Gather by': 'Regrouper par', 'Items…': 'éléments…', 'after the name': 'après le nom', 'before the name': 'avant le nom', 'Start at': 'Commencer à', 'Text to add': 'Texte à ajouter', 'A name can’t be empty.': 'Un nom ne peut pas être vide.', 'Two files would get the same name.': 'Deux fichiers auraient le même nom.', 'Replace Text': 'Remplacer du texte', 'Add Text': 'Ajouter du texte', 'Name and Number': 'Nom et numéro', 'Some items weren’t renamed': 'Certains éléments n’ont pas été renommés', 'as Piles': 'en piles', 'Music & Audio': 'Musique et audio', 'Archives': 'Archives', 'Earlier This Week': 'Plus tôt cette semaine', 'Earlier This Month': 'Plus tôt ce mois-ci', 'Older': 'Plus ancien', 'Nothing recent yet': 'Rien de récent pour l’instant',
     'file': 'fichier',
     'A file with that name is already there.': 'Un fichier porte déjà ce nom ici.',
@@ -2766,7 +2764,7 @@
     'PatOS doesn’t understand this step.': 'PatOS ne comprend pas cette étape.', 'This step needs a yes, so it can’t run inside a shortcut.': 'Cette étape demande un oui, elle ne peut donc pas tourner dans un raccourci.', 'Do a command': 'Faire une commande', 'Command (like: open notes, turn on dark mode)': 'Commande (par exemple : ouvre notes, active le mode sombre)', 'Always show focus': 'Toujours afficher le focus', 'Sound effects': 'Effets sonores', 'Desktop widgets': 'Widgets du bureau', 'Hide the Dock automatically': 'Masquer le Dock automatiquement', 'Dock magnification': 'Agrandissement du Dock', 'Show seconds': 'Afficher les secondes', 'Reopen windows': 'Rouvrir les fenêtres', 'Notifications in other tabs': 'Notifications dans les autres onglets', 'Relax': 'Détente',
     'The app didn’t open.': 'L’app ne s’est pas ouverte.', 'The app didn’t answer.': 'L’app n’a pas répondu.', 'Run shortcut': 'Lancer le raccourci',
     'Desktop & Multitasking': 'Bureau et multitâche', 'Internet & Connectivity': 'Internet et connectivité', 'Account & Continuity': 'Compte et continuité', 'Pat & Intelligence': 'Pat et Intelligence', 'PatOS Intelligence': 'PatOS Intelligence', 'Diagnostics': 'Diagnostics',
-    'Community app': 'App de la communauté', 'Built into PatOS': 'Intégrée à PatOS', 'problems': 'problèmes', 'No app has that name.': 'Aucune app n’a ce nom.', 'Show in Launchpad': 'Afficher dans Launchpad', 'Comes with PatOS': 'Fournie avec PatOS', 'From the App Store (reviewed)': 'De l’App Store (vérifiée)', 'Opened from a file (not reviewed)': 'Ouverte depuis un fichier (non vérifiée)', 'Storage it uses': 'Stockage utilisé', 'When off, its notifications stay in Notification Center, with no banner or sound.': 'Désactivé, ses notifications restent dans le centre de notifications, sans bannière ni son.', 'Denied': 'Refusé', 'Asks first': 'Demande d’abord', 'This app asked for no permissions.': 'Cette app n’a demandé aucune permission.', 'Recent problems': 'Problèmes récents', 'Uninstall': 'Désinstaller', 'The app and the data it saved are removed from this device. Files it saved in Documents › Apps stay.': 'L’app et les données qu’elle a enregistrées sont retirées de cet appareil. Les fichiers enregistrés dans Documents › Apps restent.', 'Uninstall…': 'Désinstaller…', 'Every app on this device: version, permissions, data and notifications.': 'Toutes les apps de cet appareil : version, permissions, données et notifications.', 'Get more apps': 'Obtenir d’autres apps', 'Make your own': 'Créer la vôtre', 'Developer Center': 'Centre des développeurs', 'No notifications yet.': 'Aucune notification pour l’instant.', 'Banners and sounds stay quiet; notifications still go to Notification Center.': 'Bannières et sons restent silencieux; les notifications vont quand même au centre de notifications.', 'Notification sounds': 'Sons des notifications', 'A short sound with each banner.': 'Un court son avec chaque bannière.', 'When PatOS is in a background tab, the browser shows the notification (if allowed).': 'Quand PatOS est dans un onglet en arrière-plan, le navigateur montre la notification (si autorisé).', 'Apps you silenced': 'Apps rendues silencieuses', 'None. Silence an app in Settings › Applications.': 'Aucune. Rendez une app silencieuse dans Réglages › Applications.', 'Clear the history': 'Effacer l’historique', 'PatOS Intelligence does what you ask in Pat, Spotlight and Shortcuts. No AI: a fixed list of actions, on this device, offline.': 'PatOS Intelligence fait ce que tu demandes dans Pat, Spotlight et Raccourcis. Pas d’IA : une liste fixe d’actions, sur cet appareil, hors ligne.', 'What it may do': 'Ce qu’elle peut faire', 'Workspaces': 'Espaces de travail', 'Steps, one per line': 'Étapes, une par ligne', 'Not understood:': 'Pas compris :', 'Every step is understood.': 'Chaque étape est comprise.', 'Steps, one per line (anything you could ask Pat)': 'Étapes, une par ligne (tout ce que vous pourriez demander à Pat)', 'Say': 'Dites', 'start my': 'lance mon', 'workspace': 'espace', 'New workspace': 'Nouvel espace', 'My workspace': 'Mon espace', 'What you can ask': 'Ce que vous pouvez demander', 'asks first': 'demande d’abord', 'Recent actions': 'Actions récentes', 'Nothing yet. Ask Pat something.': 'Rien pour l’instant. Demandez quelque chose à Pat.', 'Clear this list': 'Effacer cette liste', 'Kept on this device only.': 'Gardé sur cet appareil seulement.', 'Open Shortcuts': 'Ouvrir Raccourcis', 'A shortcut step can be any command (“Do a command”).': 'Une étape de raccourci peut être n’importe quelle commande (« Faire une commande »).', 'Your files': 'Vos fichiers', 'Healthy at start-up': 'En bon état au démarrage', 'Mended at start-up': 'Réparés au démarrage', 'Problem at start-up': 'Problème au démarrage', 'problems were found and written down': 'problèmes trouvés et notés', 'None yet': 'Aucun pour l’instant', 'on this device': 'sur cet appareil', 'Settings › Backup & Restore makes one': 'Réglages › Sauvegarde et restauration en crée un', 'Problem': 'Problème', 'Working': 'Fonctionne', 'Account (Firebase)': 'Compte (Firebase)', 'Online': 'En ligne', 'As the browser reports it': 'Selon le navigateur', 'Problems written down': 'Problèmes notés', 'critical': 'critiques', 'errors': 'erreurs', 'warnings': 'avertissements', 'What the browser lets PatOS measure. Estimates are marked.': 'Ce que le navigateur laisse PatOS mesurer. Les estimations sont indiquées.', 'System health': 'État du système', '(measured: this page’s JavaScript)': '(mesuré : le JavaScript de cette page)', '(estimated by the browser)': '(estimé par le navigateur)', 'Not available': 'Non disponible', 'Resources': 'Ressources', 'Memory used by PatOS': 'Mémoire utilisée par PatOS', 'Storage used': 'Stockage utilisé', 'Start-up': 'Démarrage', '(measured)': '(mesuré)', 'Processor cores': 'Cœurs du processeur', '(reported by the browser)': '(selon le navigateur)', 'Checks': 'Vérifications', 'Check your files': 'Vérifier vos fichiers', 'No problems found': 'Aucun problème trouvé', 'problems found': 'problèmes trouvés', 'big files': 'gros fichiers', 'Reads everything and changes nothing.': 'Lit tout et ne change rien.', 'Verify snapshots': 'Vérifier les instantanés', 'No snapshots yet.': 'Aucun instantané pour l’instant.', 'Check Sync': 'Vérifier Sync', 'Sync is off.': 'Sync est désactivé.', 'Sync is working': 'Sync fonctionne', 'recovered': 'rétabli', 'No problems written down.': 'Aucun problème noté.', 'Diagnostic report': 'Rapport de diagnostic', 'Make a report': 'Faire un rapport', 'Make Report…': 'Faire un rapport…', 'You see everything before sharing. No passwords, keys, messages or files.': 'Tu vois tout avant de partager. Pas de mots de passe, de clés, de messages ou de fichiers.', 'The report': 'Le rapport', 'This is the whole report. No passwords, keys, messages or files.': 'C’est tout le rapport. Pas de mots de passe, de clés, de messages ou de fichiers.', 'Save…': 'Enregistrer…',
+    'Community app': 'App de la communauté', 'Built into PatOS': 'Intégrée à PatOS', 'problems': 'problèmes', 'No app has that name.': 'Aucune app n’a ce nom.', 'Show in Launchpad': 'Afficher dans Launchpad', 'Comes with PatOS': 'Fournie avec PatOS', 'From the App Store (reviewed)': 'De l’App Store (vérifiée)', 'Opened from a file (not reviewed)': 'Ouverte depuis un fichier (non vérifiée)', 'Storage it uses': 'Stockage utilisé', 'Off: no banner or sound.': 'Désactivé : pas de bannière ni de son.', 'Denied': 'Refusé', 'Asks first': 'Demande d’abord', 'This app asked for no permissions.': 'Cette app n’a demandé aucune permission.', 'Recent problems': 'Problèmes récents', 'Uninstall': 'Désinstaller', 'The app and the data it saved are removed from this device. Files it saved in Documents › Apps stay.': 'L’app et les données qu’elle a enregistrées sont retirées de cet appareil. Les fichiers enregistrés dans Documents › Apps restent.', 'Uninstall…': 'Désinstaller…', 'Every app on this device: version, permissions, data and notifications.': 'Toutes les apps de cet appareil : version, permissions, données et notifications.', 'Get more apps': 'Obtenir d’autres apps', 'Make your own': 'Créer la vôtre', 'Developer Center': 'Centre des développeurs', 'No notifications yet.': 'Aucune notification pour l’instant.', 'No banners or sounds.': 'Pas de bannières ni de sons.', 'Notification sounds': 'Sons des notifications', 'A short sound with each banner.': 'Un court son avec chaque bannière.', 'When PatOS is in a background tab, the browser shows the notification (if allowed).': 'Quand PatOS est dans un onglet en arrière-plan, le navigateur montre la notification (si autorisé).', 'Apps you silenced': 'Apps rendues silencieuses', 'None. Silence an app in Settings › Applications.': 'Aucune. Rendez une app silencieuse dans Réglages › Applications.', 'Clear the history': 'Effacer l’historique', 'Does what you ask in Pat, Spotlight and Shortcuts, on this device.': 'Fait ce que tu demandes dans Pat, Spotlight et Raccourcis, sur cet appareil.', 'What it may do': 'Ce qu’elle peut faire', 'Workspaces': 'Espaces de travail', 'Steps, one per line': 'Étapes, une par ligne', 'Not understood:': 'Pas compris :', 'Every step is understood.': 'Chaque étape est comprise.', 'Steps, one per line (anything you could ask Pat)': 'Étapes, une par ligne (tout ce que vous pourriez demander à Pat)', 'Say': 'Dites', 'start my': 'lance mon', 'workspace': 'espace', 'New workspace': 'Nouvel espace', 'My workspace': 'Mon espace', 'What you can ask': 'Ce que vous pouvez demander', 'asks first': 'demande d’abord', 'Recent actions': 'Actions récentes', 'Nothing yet. Ask Pat something.': 'Rien pour l’instant. Demandez quelque chose à Pat.', 'Clear this list': 'Effacer cette liste', 'Kept on this device only.': 'Gardé sur cet appareil seulement.', 'Open Shortcuts': 'Ouvrir Raccourcis', 'A shortcut step can be any command (“Do a command”).': 'Une étape de raccourci peut être n’importe quelle commande (« Faire une commande »).', 'Your files': 'Vos fichiers', 'Healthy at start-up': 'En bon état au démarrage', 'Mended at start-up': 'Réparés au démarrage', 'Problem at start-up': 'Problème au démarrage', 'problems were found and written down': 'problèmes trouvés et notés', 'None yet': 'Aucun pour l’instant', 'on this device': 'sur cet appareil', 'Settings › Backup & Restore makes one': 'Réglages › Sauvegarde et restauration en crée un', 'Problem': 'Problème', 'Working': 'Fonctionne', 'Account (Firebase)': 'Compte (Firebase)', 'Online': 'En ligne', 'As the browser reports it': 'Selon le navigateur', 'Problems written down': 'Problèmes notés', 'critical': 'critiques', 'errors': 'erreurs', 'warnings': 'avertissements', 'What the browser lets PatOS measure. Estimates are marked.': 'Ce que le navigateur laisse PatOS mesurer. Les estimations sont indiquées.', 'System health': 'État du système', '(measured: this page’s JavaScript)': '(mesuré : le JavaScript de cette page)', '(estimated by the browser)': '(estimé par le navigateur)', 'Not available': 'Non disponible', 'Resources': 'Ressources', 'Memory used by PatOS': 'Mémoire utilisée par PatOS', 'Storage used': 'Stockage utilisé', 'Start-up': 'Démarrage', '(measured)': '(mesuré)', 'Processor cores': 'Cœurs du processeur', '(reported by the browser)': '(selon le navigateur)', 'Checks': 'Vérifications', 'Check your files': 'Vérifier vos fichiers', 'No problems found': 'Aucun problème trouvé', 'problems found': 'problèmes trouvés', 'big files': 'gros fichiers', 'Reads everything and changes nothing.': 'Lit tout et ne change rien.', 'Verify snapshots': 'Vérifier les instantanés', 'No snapshots yet.': 'Aucun instantané pour l’instant.', 'Check Sync': 'Vérifier Sync', 'Sync is off.': 'Sync est désactivé.', 'Sync is working': 'Sync fonctionne', 'recovered': 'rétabli', 'No problems written down.': 'Aucun problème noté.', 'Diagnostic report': 'Rapport de diagnostic', 'Make a report': 'Faire un rapport', 'Make Report…': 'Faire un rapport…', 'You see everything before sharing. No passwords, keys, messages or files.': 'Tu vois tout avant de partager. Pas de mots de passe, de clés, de messages ou de fichiers.', 'The report': 'Le rapport', 'This is the whole report. No passwords, keys, messages or files.': 'C’est tout le rapport. Pas de mots de passe, de clés, de messages ou de fichiers.', 'Save…': 'Enregistrer…',
     'Sections': 'Sections', 'A PatOS app is one .patapp file: a web page with a name, an icon and permissions. It runs in a locked box.': 'Une app PatOS est un fichier .patapp : une page web avec un nom, une icône et des permissions. Elle tourne dans une boîte verrouillée.', 'Write an app': 'Écrire une app', 'Open Code Studio': 'Ouvrir Code Studio', 'Templates, a live preview, and export as .patapp.': 'Modèles, aperçu en direct et export en .patapp.', 'Try the example': 'Essayer l’exemple', 'Install Example': 'Installer l’exemple', 'A small app that remembers how often it was opened.': 'Une petite app qui se souvient du nombre de fois qu’elle a été ouverte.', 'Check a .patapp file': 'Vérifier un fichier .patapp', 'Check…': 'Vérifier…', 'Publish to the App Store': 'Publier dans l’App Store', 'This is not JSON': 'Ce n’est pas du JSON', 'Not valid': 'Non valide', 'Valid': 'Valide', 'Runs on this PatOS': 'Fonctionne sur ce PatOS', 'Needs PatOS': 'Demande PatOS', 'Id': 'Id', 'Engine': 'Moteur', 'none': 'aucune', 'Actions it offers': 'Actions offertes', 'Install it here to test it': 'L’installer ici pour la tester', '…or paste the file’s text here': '…ou collez le texte du fichier ici', 'The .patapp text': 'Le texte du .patapp', 'Pasted': 'Collé', 'Check a .patapp': 'Vérifier un .patapp', 'The same checks as the App Store, plus whether it runs here.': 'Les mêmes vérifications que l’App Store, plus si elle marche ici.', 'Choose a file': 'Choisir un fichier', 'Installed apps': 'Apps installées', 'What each community app asked for and was given.': 'Ce que chaque app de la communauté a demandé et reçu.', 'No community apps installed yet.': 'Aucune app de la communauté installée pour l’instant.', 'Source': 'Source', 'App Store (reviewed)': 'App Store (vérifiée)', 'File (not reviewed)': 'Fichier (non vérifié)', 'Permission': 'Permission', 'Reference': 'Référence', 'Permissions are shown before installing and asked the first time they’re used.': 'Les permissions sont montrées avant l’installation et demandées la première fois.', 'System actions apps may run': 'Actions système que les apps peuvent faire', 'Apps can’t do other system actions. Each one is logged in Settings › Privacy (20 a minute at most).': 'Les apps ne peuvent pas faire d’autres actions système. Chacune est notée dans Réglages › Confidentialité (20 par minute au plus).', 'Optional manifest fields': 'Champs facultatifs du manifeste', 'The full guide': 'Le guide complet', 'Export your app as a .patapp file': 'Exporter votre app en fichier .patapp', 'Check it here': 'La vérifier ici', 'Send it to the App Store': 'L’envoyer à l’App Store', 'In the App Store, choose Submit an App. The server’s owner checks it first.': 'Dans l’App Store, choisis Soumettre une app. Le propriétaire du serveur la vérifie d’abord.', 'Update it': 'La mettre à jour', 'Raise the version (1.0.1, 1.1.0…) and submit again. Users keep their data.': 'Augmente la version (1.0.1, 1.1.0…) et soumets à nouveau. Les utilisateurs gardent leurs données.', 'The App Store shows only real data: no fake ratings or downloads.': 'L’App Store montre seulement de vraies données : pas de fausses notes ni de faux téléchargements.', 'This app needs a newer PatOS': 'Cette app demande un PatOS plus récent', 'needs PatOS': 'demande PatOS', 'or newer. This PatOS is': 'ou plus récent. Ce PatOS est', 'Update PatOS in Settings › General › Software Update.': 'Mettez PatOS à jour dans Réglages › Général › Mise à jour logicielle.',
     'Larger': 'Plus grand', 'Large': 'Grand', 'Largest': 'Très grand', 'Default': 'Par défaut', 'Makes everything inside app windows bigger: text, buttons and pictures.': 'Agrandit tout dans les fenêtres des apps : texte, boutons et images.',
     'screenshot': 'capture', 'Recently updated': 'Mis à jour récemment', 'Creativity': 'Créativité',
@@ -2777,7 +2775,7 @@
     'Dawn': 'Aube', 'Night': 'Nuit', 'Changes with the time of day. Right now: ': 'Change selon l’heure. En ce moment : ', 'Liquid light, folded like satin': 'De la lumière liquide, plissée comme du satin', 'Moves gently in 3D': 'Bouge doucement en 3D', 'Follows light and dark mode': 'Suit le mode clair et sombre', 'A still picture': 'Une image fixe', 'Your picture': 'Ton image', 'Current wallpaper': 'Fond d’écran actuel', 'PatOS Signature': 'Signature PatOS', 'Painted on your device. The first one changes with the time of day.': 'Peint sur ton appareil. Le premier change selon l’heure.', 'WebGL is not available on this device': 'WebGL n’est pas disponible sur cet appareil', 'Lumen Dawn': 'Lumen Aube', 'Lumen Day': 'Lumen Jour', 'Lumen Dusk': 'Lumen Crépuscule', 'Lumen Night': 'Lumen Nuit',
     'Light or dark': 'Clair ou sombre',
     'Code suggestions': 'Suggestions de code', 'Pat completes your code in PitCode Studio. Tab accepts, Ctrl+Space asks.': 'Pat complète ton code dans PitCode Studio. Tab accepte, Ctrl+Espace demande.', 'Pat suggests': 'Pat suggère', 'a new variable': 'une nouvelle variable', 'state the page redraws from': 'l’état d’où la page se redessine', 'runs when the app opens': 's’exécute à l’ouverture de l’app', 'shows a page': 'affiche une page', 'prints to the console': 'écrit dans la console', 'waits for an answer': 'attend une réponse', 'a function': 'une fonction', 'a rule': 'une règle', 'close': 'fermer', 'expand': 'développer', 'save a value': 'enregistrer une valeur', 'read a saved value': 'lire une valeur enregistrée', 'on click': 'au clic', 'fetch JSON': 'charger du JSON', 'arrow function': 'fonction fléchée', 'for loop': 'boucle for',
-    'Dark: most apps on a dark tile. Light: colored or white tiles. Automatic follows the theme.': 'Sombre : la plupart des apps sur une tuile sombre. Clair : tuiles de couleur ou blanches. Automatique suit le thème.',
+    'Automatic follows light and dark mode.': 'Automatique suit le mode clair ou sombre.',
     'Swipe up and hold to switch apps': 'Glisse vers le haut et attends pour changer d’app', 'Ctrl+Space to search': 'Ctrl+Espace pour chercher', 'Alt+L to see all apps': 'Alt+L pour voir toutes les apps', 'Drag a window to an edge to snap it': 'Glisse une fenêtre sur un bord pour l’aligner', 'Welcome back, ': 'Bon retour, ', 'The passwords don’t match.': 'Les mots de passe ne sont pas pareils.', 'You’re offline. Connect to the internet to continue.': 'Tu es hors ligne. Connecte-toi à Internet pour continuer.', 'That didn’t work. Try again.': 'Ça n’a pas marché. Réessaie.', 'Create your account': 'Crée ton compte', 'A username and a password. No email needed.': 'Un nom d’utilisateur et un mot de passe. Pas besoin de courriel.', 'Your settings and files come back to this device.': 'Tes réglages et tes fichiers reviennent sur cet appareil.', 'Remember your password: it can’t be reset.': 'Retiens ton mot de passe : il ne peut pas être réinitialisé.', 'Getting your things…': 'On récupère tes affaires…',
     'Your account': 'Ton compte',
     'That isn’t available.': 'Ce n’est pas disponible.', 'That didn’t work.': 'Ça n’a pas marché.', 'Call': 'Appeler', 'Meet': 'Voir', 'That picture can’t be read.': 'Cette image ne peut pas être lue.', 'New wallpaper.': 'Nouveau fond d’écran.', 'Saved to Capture': 'Gardé dans Capture', 'Quiet hours': 'Heures calmes', 'No banners or sounds, except urgent ones.': 'Pas de bannières ni de sons, sauf les urgents.', 'To': 'À', 'Keep history': 'Garder l’historique', '1 day': '1 jour', '7 days': '7 jours', '30 days': '30 jours', 'Each app': 'Chaque app', 'Banners': 'Bannières', 'Sounds': 'Sons', 'never': 'jamais', 'didn’t finish': 'pas terminé', 'Retry': 'Réessayer', 'no progress for 10 minutes': 'aucun progrès depuis 10 minutes', 'Sync stopped': 'La synchro s’est arrêtée', 'The sync key is wrong.': 'La clé de synchro est mauvaise.', 'The server is full.': 'Le serveur est plein.', 'The server is busy.': 'Le serveur est occupé.', 'The server had a problem.': 'Le serveur a eu un problème.', 'items couldn’t be synced': 'éléments n’ont pas pu être synchronisés', 'No backup in over a week': 'Aucune sauvegarde depuis plus d’une semaine', 'No backup yet': 'Pas encore de sauvegarde', 'Back up now': 'Sauvegarder maintenant', 'Storage almost full': 'Stockage presque plein', 'Backup': 'Sauvegarde', 'Saving a snapshot…': 'Enregistrement d’un instantané…', 'Manual': 'Manuel', 'Setting': 'Réglage', 'Command': 'Commande', 'Search commands, settings and apps': 'Chercher des commandes, réglages et apps', 'Command Center': 'Centre de commande', 'Everything is fine.': 'Tout va bien.', 'No progress': 'Aucun progrès', 'Nothing running.': 'Rien en cours.', 'Waiting for internet': 'En attente d’Internet', 'Finished': 'Terminé', 'Didn’t finish': 'Pas terminé', 'Cancelled': 'Annulé', 'Activities': 'Activités', 'That action doesn’t exist.': 'Cette action n’existe pas.', 'This action can’t take that.': 'Cette action ne peut pas prendre ça.', 'Nothing can take this': 'Rien ne peut prendre ça', 'Search notifications': 'Chercher dans les notifications', 'Dismiss': 'Fermer', 'Clear all': 'Tout effacer',
@@ -2836,8 +2834,7 @@
   PatOS.t = t;
   PatOS.tr = t;
 
-  /* translate interface text as it appears */
-  if (PatOS.lang !== 'fr') return;
+  /* translate interface text as it appears (in French; switched on or off live by PatOS.setLanguage) */
   // what people wrote, copied or named is never translated (only PatOS's own words are): mark new views with translate="no" or .no-tr
   const SKIP = '[translate="no"], .tl-ctext, .tl-et b, .tl-snip, .cp-txt, .m2-rt small, .m2-name, .m2-who, .m2-msgs .msg-b, .nt-txt, .nf-name, .fd-title, .ql-text, .ql-body, .sp-pv-text, .pr-title, .pr-snip, .rd-body, .asw-name, .ban-why div, .notes-ed, .te-area, textarea, .term, .cs-wrap, .msg-b, .sticky-ta, [contenteditable="true"], .no-tr, .doc-page, .sh-grid, .sl-el, .fd-nm, .di-name, .fd-rn, .ph-bar b, script, style, .mu-item b, .mu-tt, .mu-ar, .tr-out, .tr-hi, .dc-main, .yt-title, .yt-info, .yt-winfo, .yt-dtext, .yt-cm, .nt-item, .rm-txt, .fc-face, .fc-erow, .fm-ans, .dv-txt b, .as-txt b, .cal-ev, .cal-item b, .w-ev, .mw-ev, .vm-it b, .sp-res small';
   const ATTRS = ['placeholder', 'title', 'aria-label'];
@@ -2860,6 +2857,16 @@
     const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT);
     let n; while ((n = tw.nextNode())) { if (n.nodeType === 3) doText(n); else doEl(n); }
   }
+  // back to English (a language chosen during setup, without restarting): PatOS's own words go back to what they were
+  let REV = null;
+  function unText(node) { const v = node.nodeValue; const p = node.parentElement; if (!v || !p || skip(p)) return; const k = v.trim(); const en = REV.get(k); if (en !== undefined) node.nodeValue = v.replace(k, en); }
+  function unEl(el) { if (skip(el)) return; for (const a of ATTRS) { const v = el.getAttribute(a); if (v && REV.has(v)) el.setAttribute(a, REV.get(v)); } }
+  function unwalk(root) {
+    if (!REV) { REV = new Map(); Object.keys(FR).forEach((k) => { if (typeof FR[k] === 'string' && !REV.has(FR[k])) REV.set(FR[k], k); }); }
+    const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT | NodeFilter.SHOW_ELEMENT); let n;
+    if (root.nodeType === 1) unEl(root);
+    while ((n = tw.nextNode())) { if (n.nodeType === 3) unText(n); else unEl(n); }
+  }
   const mo = new MutationObserver((list) => {
     for (const m of list) {
       if (m.type === 'characterData') doText(m.target);
@@ -2867,8 +2874,18 @@
       else m.addedNodes.forEach(walk);
     }
   });
-  (document.readyState === 'loading' ? (fn) => document.addEventListener('DOMContentLoaded', fn) : (fn) => fn())(() => {
-    walk(document.body);
-    mo.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS });
-  });
+  let watching = false;
+  const startFr = () => { walk(document.body); if (!watching) { mo.observe(document.body, { childList: true, subtree: true, characterData: true, attributes: true, attributeFilter: ATTRS }); watching = true; } };
+  if (PatOS.lang === 'fr') (document.readyState === 'loading' ? (fn) => document.addEventListener('DOMContentLoaded', fn) : (fn) => fn())(startFr);
+  /* (4.0) change the language now, without restarting PatOS (setup's language step, an account's language after signing in).
+     What is on screen is translated in place; windows, menus and panels made after this are made in the new language. */
+  PatOS.setLanguage = function (code) {
+    code = code === 'fr' ? 'fr' : 'en'; if (PatOS.lang === code) return false;
+    PatOS.lang = code; document.documentElement.lang = code;
+    const dl = PatOS.deviceLang === 'fr' ? devLang : null;
+    PatOS.locale = code === 'fr' ? (dl || 'fr-CA') : (devLang.startsWith('fr') ? 'en-CA' : undefined);
+    if (code === 'fr') startFr(); else { if (watching) { mo.disconnect(); watching = false; } unwalk(document.body); }
+    PatOS.emit && PatOS.emit('lang', code);
+    return true;
+  };
 })();

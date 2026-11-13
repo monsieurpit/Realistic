@@ -35,7 +35,7 @@
       function home() {
         if (!D.prefs().on) { main.appendChild(PatOS.ui.empty({ icon: 'shield', title: 'PatOS Data is off', text: 'Nothing is read or connected.', action: ['Turn On', () => { D.setPrefs({ on: true }); draw(); }] })); return; }
         const n = D.size(), sug = D.suggestions();
-        main.append(h('h2', { class: 'dt-h' }, T('What connects')), h('p', { class: 'dt-sub' }, n + ' ' + T('things read: files, notes, events, reminders, captures and boards. Every link says why.')));
+        main.append(h('h2', { class: 'dt-h' }, T('What connects')), h('p', { class: 'dt-sub' }, n + ' ' + T('things read')));
         if (sug.length) main.append(PatOS.ui.section('Suggested collections'), h('div', { class: 'dt-sugs' }, ...sug.map((s) => h('button', { class: 'dt-sug', onclick: () => { const id = D.createCollection(s.word.charAt(0).toUpperCase() + s.word.slice(1), [s.word]); view = { kind: 'col', id, tab: 'items' }; draw(); } },
           h('b', {}, '“' + s.word + '”'), h('small', {}, s.count + ' ' + T('things') + ' · ' + s.kinds.map((k) => T((KIND[k] || KIND.file)[2])).join(', ')), h('span', { class: 'dt-sugp' }, '+ ' + T('Make a collection'))))));
         const cs = D.collections();
@@ -74,12 +74,12 @@
       function prefsView() {
         const p = D.prefs();
         const sw = (on, fn, label) => { const b = h('button', { class: 'switch' + (on ? ' on' : ''), role: 'switch', 'aria-checked': String(on), 'aria-label': T(label) }); b.onclick = () => { fn(!on); draw(); }; return b; };
-        main.append(h('h2', { class: 'dt-h' }, T('Privacy & indexing')), h('p', { class: 'dt-sub' }, T('Data only reads when you use it, keeps its index in memory, and never reads what you leave out.')),
+        main.append(h('h2', { class: 'dt-h' }, T('Privacy & indexing')), h('p', { class: 'dt-sub' }, T('Data never reads what you leave out.')),
           PatOS.ui.group([PatOS.ui.row({ label: 'PatOS Data', sub: 'Turned off, nothing is read or connected.', control: sw(p.on, (v) => D.setPrefs({ on: v }), 'PatOS Data') })]),
           PatOS.ui.section('What it may read'), PatOS.ui.group(D.KINDS.map((k) => PatOS.ui.row({ label: KIND[k][2], control: sw(p.kinds.includes(k), (v) => D.setPrefs({ kinds: v ? p.kinds.concat(k) : p.kinds.filter((x) => x !== k) }), KIND[k][2]) }))),
           PatOS.ui.section('Folders it never reads'), PatOS.ui.group([...p.paths.map((f) => PatOS.ui.row({ label: f, control: h('button', { class: 'btn', onclick: () => { D.setPrefs({ paths: p.paths.filter((x) => x !== f) }); draw(); } }, T('Remove')) })),
             PatOS.ui.row({ label: 'Leave out a folder', control: h('button', { class: 'btn', onclick: async () => { const f = await PatOS.ask(T('A folder'), '/Documents/Private', { icon: 'data', ok: T('Leave out') }); if (f && PatOS.fs.isDir(f)) { D.setPrefs({ paths: [...new Set(p.paths.concat(f))] }); draw(); } else if (f) PatOS.alertBox(T('That didn’t work'), T('There’s no folder there.'), { icon: 'data' }); } }, T('Add…')) })]),
-          PatOS.ui.section('Private things'), p.private.length ? PatOS.ui.group(p.private.map((k) => PatOS.ui.row({ label: k.replace(/^[a-z]+:/, ''), sub: k.split(':')[0], control: h('button', { class: 'btn', onclick: () => { D.setPrivate(k, false); draw(); } }, T('Read it again')) }))) : h('p', { class: 'dt-fine' }, T('Mark a thing private from its details: Data stops reading it.')),
+          PatOS.ui.section('Private things'), p.private.length ? PatOS.ui.group(p.private.map((k) => PatOS.ui.row({ label: k.replace(/^[a-z]+:/, ''), sub: k.split(':')[0], control: h('button', { class: 'btn', onclick: () => { D.setPrivate(k, false); draw(); } }, T('Read it again')) }))) : h('p', { class: 'dt-fine' }, T('Mark something private from its details.')),
           PatOS.ui.section('Index'), PatOS.ui.group([PatOS.ui.row({ label: 'Rebuild now', sub: T('Reads everything again from the start.'), control: h('button', { class: 'btn', onclick: () => { const n = D.build(); PatOS.notify({ title: T('Rebuilt'), body: n + ' ' + T('things'), icon: 'data', priority: 'low' }); draw(); } }, T('Rebuild')) })]));
       }
       // the details of one thing: what goes with it, and why
@@ -89,7 +89,7 @@
         const rel = D.related(sel, 12);
         insp.append(h('div', { class: 'dt-ih' }, h('span', { class: 'dt-ci big', style: { '--kc': (KIND[it.kind] || KIND.file)[1] }, html: PatOS.sym((KIND[it.kind] || KIND.file)[0]) }), h('div', {}, h('b', {}, it.title), h('small', {}, it.sub + (it.tags.length ? ' · ' + it.tags.map((t) => '#' + t).join(' ') : ''))), h('button', { class: 'dt-ix', 'aria-label': T('Close'), onclick: () => { sel = null; insp.classList.add('hidden'); } }, '×')),
           h('div', { class: 'dt-ib' }, h('button', { class: 'btn primary', onclick: () => D.openItem(it) }, T('Open')), view.kind === 'col' ? h('button', { class: 'btn', onclick: () => { D.addTo(view.id, it.key); draw(); } }, T('Keep in collection')) : null,
-            h('button', { class: 'btn', title: T('Data stops reading it'), onclick: async () => { if (await PatOS.confirmBox(T('Make it private?'), T('Data stops reading it and it leaves every collection. The thing itself doesn’t change.'), { ok: T('Make Private'), icon: 'data' })) { D.setPrivate(it.key, true); sel = null; insp.classList.add('hidden'); draw(); } } }, T('Private'))),
+            h('button', { class: 'btn', title: T('Data stops reading it'), onclick: async () => { if (await PatOS.confirmBox(T('Make it private?'), T('Data stops reading it.'), { ok: T('Make Private'), icon: 'data' })) { D.setPrivate(it.key, true); sel = null; insp.classList.add('hidden'); draw(); } } }, T('Private'))),
           PatOS.ui.section('Goes with'), rel.length ? h('div', { class: 'dt-rel' }, ...rel.map((r) => h('div', { class: 'dt-ri' }, card(r), h('small', { class: 'dt-why' }, r.why.join(' · ')), h('button', { class: 'dt-unl', title: T('Not related'), onclick: () => { D.unlink(sel, r.key); drawInsp(); } }, T('Not related'))))) : h('p', { class: 'dt-fine' }, T('Nothing yet. Link something by hand:')),
           h('button', { class: 'btn', onclick: () => linkPicker(sel) }, '+ ' + T('Link to…')));
       }
@@ -102,7 +102,7 @@
       }
       const addPicker = (id) => picker(T('Add something'), (key) => { D.addTo(id, key); draw(); });
       const linkPicker = (a) => picker(T('Link to…'), (b) => { if (b !== a) { D.link(a, b); drawInsp(); } });
-      async function newCollection() { const n = await PatOS.ask(T('New collection'), T('Biology project'), { icon: 'data', ok: T('Create'), text: T('Data gathers what matches its name; you can add more words after.') }); if (!n) return; try { const id = D.createCollection(n); view = { kind: 'col', id, tab: 'items' }; draw(); } catch (e) { PatOS.alertBox(T('That didn’t work'), e.message, { icon: 'data' }); } }
+      async function newCollection() { const n = await PatOS.ask(T('New collection'), T('Biology project'), { icon: 'data', ok: T('Create'), text: T('You can add more words later.') }); if (!n) return; try { const id = D.createCollection(n); view = { kind: 'col', id, tab: 'items' }; draw(); } catch (e) { PatOS.alertBox(T('That didn’t work'), e.message, { icon: 'data' }); } }
 
       // ---------- the graph: drawn on a canvas, settles, then stops ----------
       function graph(items) {

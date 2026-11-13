@@ -246,7 +246,7 @@
       }
       function worldMenu(w, x, y) {
         PatOS.menu([{ header: w.name }, { label: T('Rename…'), action: async () => { const n = await PatOS.ask(T('Rename'), w.name, { icon: 'world', ok: T('Save') }); if (!n) return; const d = load(); const t = d.list.find((x2) => x2.id === w.id); if (t) { t.name = n.slice(0, 40); PatOS.store.set(KEY, d); } if (w.id === world.id) world.name = n.slice(0, 40); drawSide(); render(); } },
-          { label: T('Delete…'), disabled: load().list.length < 2, action: async () => { if (!(await PatOS.confirmBox(T('Delete') + ' “' + w.name + '”?', T('The board goes. The files, notes and apps on it stay where they are.'), { ok: T('Delete'), icon: 'world' }))) return; const d = load(); d.list = d.list.filter((x2) => x2.id !== w.id); if (d.active === w.id) d.active = d.list[0].id; PatOS.store.set(KEY, d); if (w.id === world.id) openWorld(d.active); else drawSide(); } }], x, y);
+          { label: T('Delete…'), disabled: load().list.length < 2, action: async () => { if (!(await PatOS.confirmBox(T('Delete') + ' “' + w.name + '”?', T('Files and notes on it are kept.'), { ok: T('Delete'), icon: 'world' }))) return; const d = load(); d.list = d.list.filter((x2) => x2.id !== w.id); if (d.active === w.id) d.active = d.list[0].id; PatOS.store.set(KEY, d); if (w.id === world.id) openWorld(d.active); else drawSide(); } }], x, y);
       }
       function openWorld(id) {
         save(); [...pinned.keys()].forEach(unpin); mountedW.forEach((um) => um()); mountedW.clear(); els.forEach((el) => el.remove()); els.clear();

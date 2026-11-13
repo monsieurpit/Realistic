@@ -225,7 +225,7 @@
     const ask = () => new Promise((res) => {
       const body = h('div', {}, h('p', {}, old ? T('Update') + ' ' + m.name + ' (' + old.version + ' → ' + m.version + ')' : T('Install') + ' “' + m.name + '”?'),
         m.permissions.length ? h('div', { class: 'wg-perms' }, h('small', {}, T('It asks to read:')), ...m.permissions.map((p) => h('label', {}, h('input', { type: 'checkbox', checked: true, 'data-p': p }), ' ', T(PERMS[p][0]), h('small', {}, ' · ' + T(PERMS[p][1]))))) : h('p', { class: 'wg-fine' }, T('It asks for nothing: it can only show its own content.')),
-        h('p', { class: 'wg-fine' }, T('It runs apart from PatOS: it can’t see your files, your account or other apps.')));
+        h('p', { class: 'wg-fine' }, T('It can’t see your files or account.')));
       const s = PatOS.ui.sheet(null, { title: T('Widget'), body, onClose: () => res(null), actions: (close) => [h('button', { class: 'btn', onclick: () => { close(); res(null); } }, T('Cancel')), h('button', { class: 'btn primary', onclick: () => { const g = [...body.querySelectorAll('input[data-p]')].filter((i) => i.checked).map((i) => i.dataset.p); close(); res(g); } }, T(old ? 'Update' : 'Install'))] });
       return s;
     });

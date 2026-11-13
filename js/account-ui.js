@@ -30,7 +30,7 @@
         [user, pass, again].forEach((i) => i && i.addEventListener('keydown', (e) => { if (e.key === 'Enter') submit(); }));
         go.onclick = submit;
         card.append(h('div', { class: 'acc-logo', html: PatOS.iconHTML('settings') }), h('h2', {}, mode === 'signup' ? T('Create your PatOS account') : T('Welcome back')), tabs,
-          h('p', { class: 'acc-sub' }, mode === 'signup' ? T('Just a username and a password. No email. Your things follow you to any device.') : T('Your files, notes and settings come back to this device.')),
+          h('p', { class: 'acc-sub' }, mode === 'signup' ? T('A username and a password. No email.') : T('Your files, notes and settings come back to this device.')),
           user, pass, again, mode === 'signup' ? h('p', { class: 'acc-fine' }, T('There’s no password reset. Pick one you’ll remember.')) : null,
           note, h('div', { class: 'acc-btns' }, h('button', { class: 'btn', disabled: busy, onclick: () => close(false) }, T('Cancel')), go));
         setTimeout(() => user.focus(), 40);
@@ -46,7 +46,7 @@
           const s = PatOS.sync.status();
           if (s.state === 'syncing') seenSyncing = true;
           if (finished) return;
-          if (s.state === 'error' || s.state === 'offline') { finished = true; msg.textContent = s.state === 'offline' ? T('You’re offline. Your account is ready and will be saved when you’re back online.') : T('Your account is ready, but saving had a problem. PatOS will keep trying.'); bar.classList.add('stop'); done.disabled = false; off(); return; }
+          if (s.state === 'error' || s.state === 'offline') { finished = true; msg.textContent = s.state === 'offline' ? T('Your account is ready. It will sync when you’re online.') : T('Your account is ready. Saving will try again.'); bar.classList.add('stop'); done.disabled = false; off(); return; }
           if (s.state === 'idle' && s.last && (seenSyncing || Date.now() - t0 > 4000) && s.mode === 'account') { finished = true; msg.textContent = T('All saved.') + ' ' + s.items + ' ' + T('items are in your account.'); bar.classList.add('full'); done.disabled = false; done.focus(); off(); }
         };
         const off = PatOS.on('sync', check); const iv = setInterval(() => { check(); if (finished) clearInterval(iv); }, 700); check();
@@ -65,8 +65,8 @@
     const item = (t, d) => h('li', {}, h('b', {}, t), h('span', {}, d));
     layer.appendChild(h('div', { class: 'acc-card big', role: 'dialog', 'aria-modal': 'true', 'aria-label': T('Create your PatOS account') },
       h('div', { class: 'acc-logo big', html: PatOS.iconHTML('settings') }), h('h2', {}, T('Create your PatOS account')),
-      h('p', { class: 'acc-sub' }, T('PatOS now has accounts. Just a username and a password: no email.')),
-      h('ul', { class: 'acc-list' }, item(T('Everything is saved'), T('Your files, notes, calendar, settings and apps follow you to every device.')), item(T('Still works offline'), T('A copy stays on this device, so PatOS opens and works with no internet.')), item(T('Message your friends'), T('Find people by username in Messages. They accept your request first.')), item(T('Private'), T('What is saved is locked with your password.'))),
+      h('p', { class: 'acc-sub' }, T('A username and a password. No email.')),
+      h('ul', { class: 'acc-list' }, item(T('Everything is saved'), T('Your files and settings on every device.')), item(T('Still works offline'), T('PatOS still works offline.')), item(T('Message your friends'), T('Find people by username in Messages.')), item(T('Private'), T('What is saved is locked with your password.'))),
       h('div', { class: 'acc-btns col' }, h('button', { class: 'btn primary acc-go', onclick: () => { layer.remove(); box('signup'); } }, T('Create My Account')), h('button', { class: 'btn', onclick: () => { layer.remove(); box('signin'); } }, T('I Already Have an Account')), h('button', { class: 'tbtn acc-later', onclick: later }, T('Later')))));
     document.body.appendChild(layer);
     PatOS.notify && PatOS.notify({ title: T('Create your PatOS account'), body: T('Save everything to the cloud and message your friends.'), icon: 'settings', duration: 6000, onClick: () => {} });
@@ -74,7 +74,9 @@
   function maybeInvite() {
     if (navigator.webdriver) return; // (automated test browsers are not invited)
     if (!PatOS.loggedIn || !A() || !A().available() || A().signedIn() || navigator.onLine === false) return;
-    if (!PatOS.store.get('setupDone', true)) return;
+    // (4.0) never during or before setup, which asks for the account itself: a new device used to get this old invitation on
+    //  top of the setup ("setup done" was read as true when it was not set yet)
+    if (!PatOS.store.get('setupDone', false) || document.getElementById('setup')) return;
     const p = PatOS.store.get('accountPrompt', {}); if (p.snoozedUntil && Date.now() < p.snoozedUntil) return;
     invite();
   }

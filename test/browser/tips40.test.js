@@ -30,7 +30,7 @@ test('Tips: collections, every Try it works, search, seen is remembered', { skip
   // what the main ones open is really open
   for (const app of ['deskstudio', 'world', 'data', 'gallery', 'notes', 'calendar', 'shortcuts', 'appstore', 'messages', 'spaces', 'passwords']) assert.ok(await ev((a) => PatOS.wm.windowsOf(a).length > 0, app), app + ' opened from its tip');
   // search
-  await ev(() => PatOS.wm.windowsOf('tips')[0]._tips.search('clipboard')); await page.waitForTimeout(150);
+  await ev(() => PatOS.wm.windowsOf('tips')[0]._tips.search('copied')); await page.waitForTimeout(150);
   assert.match(await ev(() => document.querySelector('.tips-app .tp-main').textContent), /Everything you copied/);
   // seen is remembered after a restart of the app
   const seen = await ev(() => PatOS.wm.windowsOf('tips')[0]._tips.seen().length); assert.ok(seen >= 10, 'seen: ' + seen);

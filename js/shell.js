@@ -715,6 +715,8 @@
     PatOS.store.set('tipsNudged40', true);
     PatOS.notify({ title: PatOS.t('See what’s new in PatOS 4.0'), body: PatOS.t('Widgets, Studio, profiles, World, search inside everything and more, in Tips.'), icon: 'tips', priority: 'low', open: { app: 'tips', args: { col: 'new' } } });
   }, 6000));
+  // (4.0) the language changed without a restart (setup): what is drawn from PatOS's words is drawn again
+  PatOS.on('lang', () => { try { renderDock(); renderDesktop(); if (PatOS.widgets && PatOS.widgets.render) PatOS.widgets.render(); } catch (e) {} });
   let lpDirty = 0; ['settings', 'apps', 'lang', 'theme'].forEach((ev) => PatOS.on(ev, () => { lpDirty++; }));
   PatOS.launchpad = {
     show() {

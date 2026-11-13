@@ -1,5 +1,21 @@
 [
   {
+    "version": "4.0.1",
+    "date": "2026-11-13",
+    "title": {
+      "en": "PatOS 4.0.1",
+      "fr": "PatOS 4.0.1"
+    },
+    "notes": {
+      "en": [
+        "First launch: choosing your language and creating your account no longer restart PatOS, and the old account window no longer appears over the setup"
+      ],
+      "fr": [
+        "Premier démarrage : choisir ta langue et créer ton compte ne redémarrent plus PatOS, et l’ancienne fenêtre de compte n’apparaît plus par-dessus la configuration"
+      ]
+    }
+  },
+  {
     "version": "4.0.0",
     "date": "2026-11-13",
     "title": {
