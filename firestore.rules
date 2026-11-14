@@ -134,15 +134,37 @@ service cloud.firestore {
       match /messages/{mid} {
         function conv() { return getAfter(convPath(cid)).data; }
         allow read: if signedIn() && request.auth.uid in get(convPath(cid)).data.members;
+        // (4.1) what a message may carry besides words: a photo, a voice message, a reply to another message, a game challenge
+        function m() { return request.resource.data; }
+        function goodExtras() {
+          return (!('img' in m()) || (m().img is string && m().img.size() > 30 && m().img.size() <= 400000))
+            && (!('voice' in m()) || (m().voice is string && m().voice.matches('^data:audio/[a-z0-9.+-]+(;[a-z0-9=.+-]+)*;base64,.*') && m().voice.size() <= 400000
+                && m().dur is number && m().dur > 0 && m().dur <= 120))
+            && (!('dur' in m()) || 'voice' in m())
+            && (!('reply' in m()) || (m().reply is map && m().reply.keys().hasOnly(['id', 'text', 'from']) && m().reply.id is string && m().reply.id.size() <= 64
+                && m().reply.text is string && m().reply.text.size() <= 140 && m().reply.from is string && m().reply.from.size() <= 128))
+            && (!('game' in m()) || (m().game is map && m().game.keys().hasOnly(['id', 'score', 'label', 'day']) && m().game.id is string && m().game.id.matches('^[a-z0-9-]{1,40}$')
+                && m().game.score is int && m().game.score >= 0 && m().game.score <= 100000000 && m().game.label is string && m().game.label.size() <= 60
+                && (!('day' in m().game) || (m().game.day is string && m().game.day.matches('^[0-9]{8}$')))));
+        }
         allow create: if signedIn() && !banned() && request.auth.uid in conv().members
-          && request.resource.data.keys().hasOnly(['from', 'text', 't', 'at', 'img'])
+          && request.resource.data.keys().hasOnly(['from', 'text', 't', 'at', 'img', 'voice', 'dur', 'reply', 'game'])
           && request.resource.data.from == request.auth.uid
           && request.resource.data.text is string && request.resource.data.text.size() <= 2000
-          // a photo: a small picture saved in the message (under 400 KB); a message has words, a photo, or both
-          && (!('img' in request.resource.data) || (request.resource.data.img is string && request.resource.data.img.size() > 30 && request.resource.data.img.size() <= 400000))
-          && (request.resource.data.text.size() > 0 || 'img' in request.resource.data)
+          // a photo or a voice message is saved in the message itself (under 400 KB); a message is never empty
+          && goodExtras()
+          && (request.resource.data.text.size() > 0 || 'img' in request.resource.data || 'voice' in request.resource.data || 'game' in request.resource.data)
           && request.resource.data.t is number && request.resource.data.at == request.time
           && (conv().status == 'accepted' || (conv().status == 'pending' && conv().requester == request.auth.uid && mid == 'request'));
+        // (4.1) your own message, in its first 15 minutes: fix its words (it says "Edited"), or unsend it for both of you
+        allow update: if signedIn() && !banned() && resource.data.from == request.auth.uid && !resource.data.get('unsent', false)
+          && request.time < resource.data.at + duration.value(15, 'm')
+          && ((request.resource.data.diff(resource.data).affectedKeys().hasOnly(['text', 'edited'])
+               && request.resource.data.text is string && request.resource.data.text.size() > 0 && request.resource.data.text.size() <= 2000
+               && request.resource.data.edited == request.time)
+            || (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['unsent', 'text', 'img', 'voice', 'dur', 'game', 'reply'])
+               && request.resource.data.unsent == true && request.resource.data.text == ''
+               && !('img' in request.resource.data) && !('voice' in request.resource.data) && !('game' in request.resource.data) && !('reply' in request.resource.data)));
         // reactions: each person sets or removes only their own, once the chat is accepted; nothing else changes
         allow update: if signedIn() && !banned() && request.auth.uid in get(convPath(cid)).data.members && get(convPath(cid)).data.status == 'accepted'
           && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['reactions'])

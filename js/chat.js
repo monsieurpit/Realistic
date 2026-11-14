@@ -46,6 +46,7 @@
     offMsg = F.listenMessages(cid, (l) => { msgs = l; emit('chat:messages'); api.markRead(cid); }, (e) => { if (offMsg) { offMsg(); offMsg = null; } lastError = String(e.message || e); emit(); });
   }
   function notify(c, body) {
+    if (api && api.muted && api.muted().includes(c.id)) return; // (a quiet chat)
     try { PatOS.notify({ title: PatOS.account.isSystem(c.other.uid) ? 'PatOS' : c.other.username, body: String(body).slice(0, 120), icon: 'messages', tag: 'msg-' + c.id, chat: c.id, onClick: () => PatOS.launch('messages', { chat: c.id }) }); if (PatOS.sound && PatOS.sound.pop) PatOS.sound.pop(); } catch (e) {}
   }
 
@@ -67,7 +68,7 @@
       for (const it of outbox()) {
         try {
           if (it.kind === 'request') { await withTimeout(F.requestChat(me, it.other, it.text, it.id, PatOS.account.isSystem())); }
-          else { await withTimeout(F.sendMessage(it.cid, me, it.text, it.id, it.img)); if (PatOS.sound && PatOS.sound.play) PatOS.sound.play('sent'); push.message(it.cid); }
+          else { await withTimeout(F.sendMessage(it.cid, me, it.text, it.id, it.img, it.extra)); if (PatOS.sound && PatOS.sound.play) PatOS.sound.play('sent'); push.message(it.cid); }
         } catch (e) {
           if (e && e.code === 'offline') break; // try again later
           let there = false; if (it.kind !== 'request') { try { there = await F.messageExists(it.cid, it.id); } catch (x) {} } // it may have gone through already
@@ -96,7 +97,7 @@
         const key = (await (await fetch('/api/push/key')).json()).key; const raw = Uint8Array.from(atob(key.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((key.length + 3) % 4)), (c) => c.charCodeAt(0));
         const cur = sub && sub.options && sub.options.applicationServerKey; if (sub && cur && new Uint8Array(cur).join() !== raw.join()) { await sub.unsubscribe(); sub = null; } // the server's key changed
         if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: raw });
-        await push.post('subscribe', sub.toJSON()); push.on = true;
+        await push.post('subscribe', Object.assign(sub.toJSON(), { muted: api.muted() })); push.on = true;
       } catch (e) { push.error = String(e.message || e); }
     },
     /* signed out: this device stops getting this account's messages */
@@ -124,8 +125,8 @@
     declined: () => convs.filter((c) => c.status === 'declined' && !c.mine),
     unread: () => convs.filter(isUnread).length + convs.filter((c) => c.status === 'pending' && !c.mine).length,
     find: (id) => convs.find((c) => c.id === id) || null,
-    messages: () => msgs.map((m) => ({ id: m.id, mine: m.from === (me && me.uid), text: m.text, img: typeof m.img === 'string' && m.img.startsWith('data:image/') ? m.img : '', reactions: m.reactions || {}, t: m.t || ms(m.at), sending: false }))
-      .concat(outbox().filter((o) => o.cid === current || (o.kind === 'request' && current === F.convId(me.uid, o.other.uid))).filter((o) => !msgs.some((m) => m.id === o.id)).map((o) => ({ id: o.id, mine: true, text: o.text, img: o.img || '', reactions: {}, t: o.t, sending: true }))).sort((a, b) => a.t - b.t),
+    messages: () => msgs.map((m) => ({ id: m.id, mine: m.from === (me && me.uid), from: m.from, text: m.text, img: typeof m.img === 'string' && m.img.startsWith('data:image/') ? m.img : '', voice: typeof m.voice === 'string' && m.voice.startsWith('data:audio/') ? m.voice : '', dur: +m.dur || 0, reply: m.reply && typeof m.reply === 'object' ? m.reply : null, game: m.game && typeof m.game === 'object' ? m.game : null, edited: !!m.edited, unsent: !!m.unsent, reactions: m.reactions || {}, t: m.t || ms(m.at), at: ms(m.at) || m.t, sending: false }))
+      .concat(outbox().filter((o) => o.cid === current || (o.kind === 'request' && current === F.convId(me.uid, o.other.uid))).filter((o) => !msgs.some((m) => m.id === o.id)).map((o) => ({ id: o.id, mine: true, from: me && me.uid, text: o.text, img: o.img || '', voice: (o.extra && o.extra.voice) || '', dur: (o.extra && o.extra.dur) || 0, reply: (o.extra && o.extra.reply) || null, game: (o.extra && o.extra.game) || null, edited: false, unsent: false, reactions: {}, t: o.t, sending: true }))).sort((a, b) => a.t - b.t),
     outbox: () => outbox().length,
     status: () => ({ signedIn: !!(PatOS.account && PatOS.account.signedIn()), ready: !!me, unread: convs.filter(isUnread).length + convs.filter((c) => c.status === 'pending' && !c.mine).length, outbox: outbox().length }),
     error: () => lastError,
@@ -148,11 +149,20 @@
       if (c) throw new Error(T('Your message request is waiting for an answer.'));
       setOutbox(outbox().concat([{ kind: 'request', id: 'request', key: newId(), cid, other: { uid: other.uid, username: other.username }, text: text.slice(0, 2000), t: Date.now() }])); emit('chat:messages'); flush(); return cid;
     },
-    send(cid, text, img) {
-      text = String(text || '').trim(); if (!text && !img) return; const c = convs.find((x) => x.id === cid);
+    send(cid, text, img, extra) {
+      text = String(text || '').trim(); extra = extra && Object.keys(extra).length ? extra : undefined; if (!text && !img && !(extra && (extra.voice || extra.game))) return; const c = convs.find((x) => x.id === cid);
       if (!c || c.status !== 'accepted') throw new Error(c && c.status === 'pending' ? T('Your message request is waiting for an answer.') : T('You can’t message this person right now.'));
-      setOutbox(outbox().concat([{ kind: 'msg', id: newId(), cid, text: text.slice(0, 2000), img: img || undefined, t: Date.now() }])); emit('chat:messages'); flush();
+      setOutbox(outbox().concat([{ kind: 'msg', id: newId(), cid, text: text.slice(0, 2000), img: img || undefined, extra, t: Date.now() }])); emit('chat:messages'); flush();
     },
+    /* (4.1) your own message, in its first 15 minutes */
+    canChange: (m) => !!(m && m.mine && !m.sending && !m.unsent && Date.now() - (m.at || m.t) < 15 * 60000),
+    async edit(cid, mid, text) { text = String(text || '').trim(); if (!F || !text) return; const m = msgs.find((x) => x.id === mid); if (m) { m.text = text; m.edited = Date.now(); emit('chat:messages'); } await F.editMessage(cid, mid, text); },
+    async unsend(cid, mid) { if (!F) return; const m = msgs.find((x) => x.id === mid); if (m) { Object.assign(m, { unsent: true, text: '' }); delete m.img; delete m.voice; delete m.game; delete m.reply; emit('chat:messages'); } await F.unsendMessage(cid, mid); },
+    /* (4.1) on this device: chats kept at the top, and chats that stay quiet (no banner, no sound, no push) */
+    pinned: () => PatOS.store.get('msgPinned', []) || [],
+    muted: () => PatOS.store.get('msgMuted', []) || [],
+    pin(cid, on) { const l = api.pinned().filter((x) => x !== cid); if (on) l.unshift(cid); PatOS.store.set('msgPinned', l.slice(0, 20)); emit(); },
+    mute(cid, on) { const l = api.muted().filter((x) => x !== cid); if (on) l.push(cid); PatOS.store.set('msgMuted', l.slice(-200)); emit(); push.sync(); },
     /* a reaction to a message: the same emoji again removes it */
     async react(cid, mid, emoji) {
       if (!F || !me) return; const m = msgs.find((x) => x.id === mid); const cur = m && m.reactions && m.reactions[me.uid];

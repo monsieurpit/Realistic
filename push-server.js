@@ -99,7 +99,8 @@ function save() { clearTimeout(saveT); saveT = setTimeout(() => { try { writeJSO
 function addSub(uid, s) {
   const all = load();
   Object.keys(all).forEach((u) => { all[u] = all[u].filter((x) => x.endpoint !== s.endpoint); if (!all[u].length) delete all[u]; }); // a device belongs to one account
-  const l = (all[uid] = all[uid] || []); l.push({ endpoint: s.endpoint, keys: { p256dh: s.keys.p256dh, auth: s.keys.auth }, at: Date.now() });
+  const muted = Array.isArray(s.muted) ? s.muted.filter((c) => typeof c === 'string' && /^[\w-]{1,200}$/.test(c)).slice(0, 200) : []; // (chats that stay quiet on this device)
+  const l = (all[uid] = all[uid] || []); l.push({ endpoint: s.endpoint, keys: { p256dh: s.keys.p256dh, auth: s.keys.auth }, muted, at: Date.now() });
   all[uid] = l.slice(-10); save();
 }
 function removeSub(endpoint) { const all = load(); Object.keys(all).forEach((u) => { all[u] = all[u].filter((x) => x.endpoint !== endpoint); if (!all[u].length) delete all[u]; }); save(); }
@@ -166,7 +167,7 @@ async function handle(req, res, url) {
       if (!c.members.includes(me.uid) || c.status !== 'accepted' || c.lastFrom !== me.uid) return send(res, 200, { sent: 0 });
       if (!(Date.now() - c.lastAt < 120000) || recent.get(cid) === c.lastAt) return send(res, 200, { sent: 0 }); // only a message just sent, once
       recent.set(cid, c.lastAt); if (recent.size > 10000) recent.clear();
-      const to = c.members.find((u) => u !== me.uid); const list = (load()[to] || []).slice();
+      const to = c.members.find((u) => u !== me.uid); const list = (load()[to] || []).filter((s) => !(s.muted || []).includes(cid));
       const payload = { title: c.usernames[me.uid] || 'PatOS', body: c.lastMessage.slice(0, 140), tag: 'msg-' + cid, cid, at: c.lastAt };
       const subject = subjectOf(req);
       const out = await Promise.all(list.map((s) => pushTo(s, payload, subject).catch(() => 0)));

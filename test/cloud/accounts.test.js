@@ -152,7 +152,7 @@ test('the Messages window: Messages has no Pat, search, a request and its answer
   const an = uniq('uma'), bn = uniq('vic'), pw = 'window passwords are long';
   const A = await device(), B = await device();
   await A.ev(() => { PatOS.launch('messages'); }); await A.page.waitForSelector('.m2');
-  assert.match(await A.page.innerText('.m2-main'), /Message your friends[\s\S]*Create Account[\s\S]*Pat works without an account/);
+  assert.match(await A.page.innerText('.m2-main'), /Message your friends[\s\S]*Create Account/);
   assert.equal(await A.page.locator('.pat-btn, .m2-pat').count(), 0, 'Pat is not in Messages any more');
   await A.page.click('#mb-pat'); await A.page.waitForSelector('#pat-panel:not(.hidden) .pat3-in'); await A.page.fill('#pat-panel .pat3-in', 'hello'); await A.page.press('#pat-panel .pat3-in', 'Enter'); await A.page.waitForFunction(() => document.querySelectorAll('#pat-panel .pat3-pat:not(.pat3-thinking)').length >= 1, null, { timeout: 5000 });
   assert.match(await A.page.innerText('#pat-panel'), /Pat/); await A.page.click('#mb-pat'); assert.equal(await A.page.locator('#pat-panel:not(.hidden)').count(), 0);

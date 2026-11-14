@@ -1,14 +1,18 @@
 [
   {
     "version": "4.1.0",
-    "beta": 3,
+    "beta": 4,
     "date": "2026-11-13",
     "title": {
-      "en": "PatOS 4.1 beta: Games and a smoother desktop",
-      "fr": "PatOS 4.1 bêta : Jeux et un bureau plus fluide"
+      "en": "PatOS 4.1 beta: Messages, Games and a smoother desktop",
+      "fr": "PatOS 4.1 bêta : Messages, Jeux et un bureau plus fluide"
     },
     "notes": {
       "en": [
+        "Messages, redesigned: messages grouped by person, actions when you point at a message, and a cleaner way to write",
+        "Reply to a message, send a voice message, or challenge a friend with your best game score",
+        "Fix a message or unsend it, in its first 15 minutes",
+        "Pin and mute chats, and search inside a chat",
         "Notifications: the same app shows one banner with a count, never more than three at a time, and they glide into place",
         "The Dock: unread messages on the Messages icon, and an app that needs you hops once",
         "Windows grow out of their Dock icon however you open them, and minimizing pours them into the Dock",
@@ -21,6 +25,10 @@
         "Power-ups: Magnet, Shield and Double"
       ],
       "fr": [
+        "Messages, refait : les messages groupés par personne, des actions quand tu pointes un message, et une façon plus claire d’écrire",
+        "Réponds à un message, envoie un message vocal, ou défie un ami avec ton meilleur score",
+        "Corrige un message ou annule son envoi, dans ses 15 premières minutes",
+        "Épingle et mets en sourdine des discussions, et cherche dans une discussion",
         "Notifications : une seule bannière par app avec un compteur, jamais plus de trois à la fois, et elles glissent en place",
         "Le Dock : les messages non lus sur l’icône de Messages, et une app qui a besoin de toi sautille une fois",
         "Les fenêtres sortent de leur icône du Dock, peu importe comment tu les ouvres, et la réduction les verse dans le Dock",

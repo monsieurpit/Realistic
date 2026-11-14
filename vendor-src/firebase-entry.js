@@ -246,13 +246,21 @@ const api = {
     await b.commit(); return { cid, existed: false, status: 'pending' };
   }),
   /* a message: text, and maybe a photo (a small JPEG as a data address, under 400 KB) */
-  sendMessage: wrap(async (cid, me, text, id, img) => {
-    init(); const b = writeBatch(db); const now = serverTimestamp(); text = String(text || '').slice(0, 2000);
+  sendMessage: wrap(async (cid, me, text, id, img, extra) => {
+    init(); const b = writeBatch(db); const now = serverTimestamp(); text = String(text || '').slice(0, 2000); extra = extra || {};
     const m = { from: me.uid, text, t: Date.now(), at: now }; if (img) m.img = String(img);
+    // (4.1) a voice message, a reply to another message, a game challenge
+    if (extra.voice) { m.voice = String(extra.voice); m.dur = Math.max(0.1, Math.min(120, +extra.dur || 1)); }
+    if (extra.reply) m.reply = { id: String(extra.reply.id).slice(0, 64), text: String(extra.reply.text || '').slice(0, 140), from: String(extra.reply.from || '').slice(0, 128) };
+    if (extra.game) { m.game = { id: String(extra.game.id), score: Math.max(0, Math.floor(+extra.game.score || 0)), label: String(extra.game.label || '').slice(0, 60) }; if (extra.game.day) m.game.day = String(extra.game.day); }
     b.set(doc(db, 'conversations', cid, 'messages', id), m);
-    b.update(doc(db, 'conversations', cid), { lastMessage: (img ? '📷 ' : '') + (text || (img ? 'Photo' : '')).slice(0, 130), lastMessageAt: now, lastFrom: me.uid });
+    const preview = m.voice ? '🎤 Voice message' : m.game ? '🎮 ' + m.game.label : (img ? '📷 ' : '') + (text || (img ? 'Photo' : ''));
+    b.update(doc(db, 'conversations', cid), { lastMessage: preview.slice(0, 130), lastMessageAt: now, lastFrom: me.uid });
     await b.commit();
   }),
+  /* (4.1) your own message, in its first 15 minutes: new words, or unsent for both people */
+  editMessage: wrap(async (cid, mid, text) => { init(); await updateDoc(doc(db, 'conversations', cid, 'messages', mid), { text: String(text).slice(0, 2000), edited: serverTimestamp() }); }),
+  unsendMessage: wrap(async (cid, mid) => { init(); await updateDoc(doc(db, 'conversations', cid, 'messages', mid), { unsent: true, text: '', img: deleteField(), voice: deleteField(), dur: deleteField(), game: deleteField(), reply: deleteField() }); }),
   /* your reaction to a message (one per person; null removes it) */
   react: wrap(async (cid, mid, uid, emoji) => { init(); await updateDoc(doc(db, 'conversations', cid, 'messages', mid), { ['reactions.' + uid]: emoji ? String(emoji).slice(0, 16) : deleteField() }); }),
   /* "seen" and "typing…": a time per person in the conversation */

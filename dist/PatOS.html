@@ -1381,32 +1381,110 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .pd-app { display: flex; gap: 10px; align-items: center; } .pd-app .as-ic { width: 44px; height: 44px; flex: none; }
 .pd-bar { display: flex; gap: 8px; padding: 8px 12px 12px; border-top: 1px solid var(--line, #8883); align-items: center; } .pd-in { flex: 1; }
 .pd-app small, .pd-card2 > small { display: block; }
-/* Messages with people */
+/* Messages (4.1) */
 .m2 { height: 100%; display: flex; position: relative; overflow: hidden; container-type: inline-size; }
-.m2-side { width: 260px; flex: none; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
-.m2-sh { padding: 10px; } .m2-search { width: 100%; box-sizing: border-box; }
-.m2-nb { display: flex; align-items: center; gap: 8px; margin: 0 10px 8px; padding: 8px 8px 8px 12px; border-radius: 12px; background: color-mix(in srgb, var(--accent, #0a84ff) 14%, transparent); font-size: 12px; line-height: 1.3; }
+.m2-side { width: 300px; flex: none; background: var(--sidebar); border-right: 1px solid var(--border); display: flex; flex-direction: column; min-height: 0; }
+.m2-top { display: flex; align-items: center; justify-content: space-between; padding: 12px 12px 2px 16px; } .m2-top h2 { margin: 0; font-size: 20px; font-weight: 750; letter-spacing: -.2px; }
+.m2-ibtn { flex: none; width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; color: var(--text2); background: transparent; font-size: 18px; line-height: 1; cursor: pointer; transition: background var(--dur-fast), color var(--dur-fast); }
+.m2-ibtn:hover, .m2-ibtn.on { background: var(--hover); color: var(--text); } .m2-ibtn .sym { width: 18px; height: 18px; }
+.m2-sh { padding: 8px 12px 10px; } .m2-search { width: 100%; box-sizing: border-box; }
+.m2-nb { display: flex; align-items: center; gap: 8px; margin: 0 12px 8px; padding: 8px 8px 8px 12px; border-radius: 12px; background: color-mix(in srgb, var(--accent, #0a84ff) 14%, transparent); font-size: 12px; line-height: 1.3; }
 .m2-nb-t { flex: 1; min-width: 0; } .m2-nb .btn { flex: none; }
 .m2-nb-x { flex: none; border: 0; background: none; color: inherit; opacity: .55; font-size: 16px; line-height: 1; padding: 2px 4px; cursor: pointer; } .m2-nb-x:hover { opacity: 1; }
-.m2-list { flex: 1; overflow: auto; padding: 0 8px 10px; display: flex; flex-direction: column; gap: 2px; }
-.m2-h { font-size: 11.5px; font-weight: 700; opacity: .55; text-transform: uppercase; letter-spacing: .05em; padding: 10px 6px 4px; }
-.m2-empty { opacity: .6; font-size: 13px; line-height: 1.45; padding: 8px 8px; }
-.m2-row { display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 10px; cursor: pointer; } .m2-row:hover { background: var(--hover, #8882); } .m2-row.on { background: var(--accent, #0a84ff); color: #fff; }
-.m2-row .msg-av { width: 36px; height: 36px; } .m2-rt { flex: 1; min-width: 0; } .m2-rt b { display: block; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .m2-rt small { display: block; opacity: .7; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 12px; }
-.m2-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--accent, #0a84ff); flex: none; } .m2-row.on .m2-dot { background: #fff; } .m2-time { opacity: .5; font-size: 11px; flex: none; }
-.m2-main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--win-solid); }
-.m2-head { display: flex; align-items: center; gap: 10px; padding: 8px 14px; border-bottom: 1px solid var(--border); } .m2-head .msg-av { width: 34px; height: 34px; } .m2-head small { display: block; opacity: .6; font-size: 12px; } .m2-back { display: none; font-size: 22px; }
-.m2-msgs { flex: 1; overflow-y: auto; padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; }
-.m2-day { align-self: center; font-size: 11.5px; opacity: .5; margin: 8px 0 2px; } .m2-sys { align-self: center; max-width: 80%; text-align: center; font-size: 12.5px; opacity: .6; line-height: 1.45; padding: 6px 10px; }
-.msg-b.sending { opacity: .55; }
-.m2-ask { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px 14px 14px; border-top: 1px solid var(--border); flex-wrap: wrap; } .m2-ask div { display: flex; gap: 8px; }
-.m2-card { margin: auto; max-width: 380px; text-align: center; display: flex; flex-direction: column; gap: 10px; padding: 24px; } .m2-card h2 { margin: 0; } .m2-card p { margin: 0; opacity: .75; line-height: 1.45; font-size: 14px; } .m2-card .m2-fine { opacity: .55; font-size: 12.5px; } .m2-cbtns { display: flex; gap: 8px; justify-content: center; }
-.m2-who { opacity: .7; font-size: 13px; padding-right: 8px; }
-
+.m2-list { flex: 1; overflow: auto; padding: 0 8px 12px; display: flex; flex-direction: column; }
+.m2-h { font-size: 11.5px; font-weight: 650; color: var(--text3); padding: 12px 10px 4px; }
+.m2-empty { color: var(--text2); font-size: 13px; line-height: 1.45; padding: 8px 10px; }
+.m2-row { display: flex; align-items: center; gap: 11px; padding: 9px 10px; border-radius: 12px; cursor: pointer; transition: background var(--dur-fast); }
+.m2-row:hover { background: var(--hover); } .m2-row.on { background: color-mix(in srgb, var(--accent, #0a84ff) 18%, transparent); }
+.m2-row:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+.m2-rt { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 2px; }
+.m2-r1, .m2-r2 { display: flex; align-items: center; gap: 6px; min-width: 0; }
+.m2-r1 .m2-name { flex: 1; min-width: 0; font-weight: 600; font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.m2-r2 small { flex: 1; min-width: 0; color: var(--text2); font-size: 12.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.m2-row.unread .m2-r1 .m2-name, .m2-row.unread .m2-r2 small { color: var(--text); font-weight: 650; }
+.m2-time { flex: none; color: var(--text3); font-size: 11.5px; font-variant-numeric: tabular-nums; } .m2-row.unread .m2-time { color: var(--accent); }
+.m2-dot { width: 9px; height: 9px; border-radius: 50%; background: var(--accent, #0a84ff); flex: none; }
+.m2-ic { flex: none; display: inline-flex; color: var(--text3); } .m2-ic .sym { width: 13px; height: 13px; }
+.m2 .msg-av { width: 42px; height: 42px; flex: none; border-radius: 50%; display: grid; place-items: center; font-weight: 700; font-size: 16px; color: #fff; background: linear-gradient(150deg, hsl(var(--h, 210) 80% 62%), hsl(calc(var(--h, 210) + 40) 75% 48%)); text-shadow: 0 1px 2px rgba(0,0,0,.2); }
+.m2 .msg-av.md { width: 34px; height: 34px; font-size: 14px; } .m2 .msg-av.lg { width: 72px; height: 72px; font-size: 28px; }
+.m2-main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: var(--win-solid); position: relative; }
+.m2-head { display: flex; align-items: center; gap: 11px; padding: 9px 12px 9px 16px; border-bottom: 1px solid var(--border); }
+.m2-hn { flex: 1; min-width: 0; display: flex; flex-direction: column; } .m2-hn .m2-name { font-size: 14.5px; font-weight: 650; }
+.m2-hn small { color: var(--text2); font-size: 12px; } .m2-hn small.typing { color: var(--accent); }
+.m2-htools { display: flex; gap: 2px; align-items: center; } .m2-back { display: none; font-size: 24px; }
+.m2-find { display: flex; align-items: center; gap: 4px; padding: 8px 12px; border-bottom: 1px solid var(--border); } .m2-find input { flex: 1; min-width: 0; }
+.m2-fcount { color: var(--text2); font-size: 12px; min-width: 52px; text-align: right; font-variant-numeric: tabular-nums; }
+.m2-msgs { flex: 1; overflow-y: auto; padding: 14px 18px 10px; display: flex; flex-direction: column; }
+.m2-day { align-self: center; color: var(--text3); font-size: 11.5px; margin: 14px 0 8px; } .m2-day b { font-weight: 650; color: var(--text2); }
+.m2-sys { align-self: center; max-width: 80%; text-align: center; font-size: 12.5px; color: var(--text2); line-height: 1.45; padding: 8px 10px; }
+.m2-hello { margin: auto; display: flex; flex-direction: column; align-items: center; gap: 8px; text-align: center; max-width: 340px; } .m2-hello .m2-name { font-size: 17px; font-weight: 700; } .m2-hello p { margin: 0; color: var(--text2); font-size: 13px; line-height: 1.45; }
+/* a message, grouped with the ones around it from the same person */
+.m2-mw { display: flex; flex-direction: column; max-width: min(72%, 560px); position: relative; margin-top: 2px; } .m2-mw.first, .m2-mw.solo { margin-top: 8px; }
+.m2-mw.me { align-self: flex-end; align-items: flex-end; } .m2-mw.them { align-self: flex-start; align-items: flex-start; }
+.m2 .msg-b { max-width: 100%; padding: 8px 13px; border-radius: 18px; font-size: 14px; line-height: 1.4; white-space: pre-wrap; word-wrap: break-word; overflow-wrap: anywhere; user-select: text; cursor: default; display: flex; flex-direction: column; gap: 4px; }
+.m2 .msg-b.me { background: linear-gradient(180deg, #2f9bff, #0a7cff); color: #fff; } .m2 .msg-b.them { background: var(--hover2); color: var(--text); }
+.m2-mw.me.first .msg-b, .m2-mw.me.mid .msg-b { border-bottom-right-radius: 6px; } .m2-mw.me.mid .msg-b, .m2-mw.me.last .msg-b { border-top-right-radius: 6px; }
+.m2-mw.them.first .msg-b, .m2-mw.them.mid .msg-b { border-bottom-left-radius: 6px; } .m2-mw.them.mid .msg-b, .m2-mw.them.last .msg-b { border-top-left-radius: 6px; }
+.m2 .msg-b.sending { opacity: .55; }
+.m2 .msg-b.unsent { background: transparent !important; color: var(--text3) !important; box-shadow: inset 0 0 0 1px var(--border2); font-style: italic; font-size: 13px; }
+.m2-mw.flash .msg-b { animation: m2flash 1.2s ease; } @keyframes m2flash { 0%, 60% { filter: brightness(1.35); box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 45%, transparent); } }
+.m2-mw.dim { opacity: .35; } .m2 .msg-b mark { background: #ffd60a; color: #000; border-radius: 3px; padding: 0 1px; }
+.m2-link { color: inherit; text-decoration: underline; text-underline-offset: 2px; word-break: break-all; } .m2 .msg-b.them .m2-link { color: var(--accent); }
+.m2-edited { font-size: 11px; opacity: .7; align-self: flex-end; margin-top: -2px; }
+.m2-quote { display: flex; flex-direction: column; align-items: flex-start; gap: 1px; max-width: 100%; padding: 5px 10px; margin: 0 -4px; border-radius: 10px; text-align: left; font-size: 12.5px; line-height: 1.3; color: inherit; background: rgba(0,0,0,.14); box-shadow: inset 3px 0 0 rgba(255,255,255,.6); cursor: pointer; }
+.m2 .msg-b.them .m2-quote { background: rgba(127,127,127,.16); box-shadow: inset 3px 0 0 var(--accent); }
+.m2-quote b { font-size: 11.5px; } .m2-quote span { opacity: .85; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 260px; }
+.m2 .msg-b.has-img { padding: 4px; } .m2 .msg-b.has-img > .m2-txt, .m2 .msg-b.has-img > .m2-quote, .m2 .msg-b.has-img > .m2-edited { margin: 0 9px; } .m2 .msg-b.has-img > .m2-txt { padding-bottom: 4px; }
+.m2 .msg-b.only-media { background: transparent !important; padding: 0; }
+.m2-img { display: block; max-width: min(300px, 100%); max-height: 340px; border-radius: 14px; object-fit: cover; cursor: zoom-in; }
+.m2-photo { position: fixed; inset: 0; z-index: 2147482500; background: rgba(0,0,0,.86); display: grid; place-items: center; cursor: zoom-out; } .m2-photo img { max-width: 94vw; max-height: 92vh; border-radius: 10px; }
+.m2-voice { display: flex; align-items: center; gap: 10px; min-width: 210px; padding: 2px 0; }
+.m2-vplay { width: 32px; height: 32px; flex: none; border-radius: 50%; display: grid; place-items: center; color: inherit; background: rgba(255,255,255,.22); cursor: pointer; } .m2 .msg-b.them .m2-vplay { background: var(--accent); color: #fff; } .m2-vplay .sym { width: 15px; height: 15px; }
+.m2-wave { flex: 1; height: 26px; display: flex; align-items: center; gap: 2px; cursor: pointer; } .m2-wave i { flex: 1; min-width: 2px; border-radius: 2px; background: currentColor; opacity: .38; } .m2-wave i.on { opacity: 1; }
+.m2-voice small { font-size: 11.5px; font-variant-numeric: tabular-nums; opacity: .85; min-width: 30px; }
+.m2-game { display: flex; align-items: center; gap: 12px; min-width: 250px; padding: 10px 12px; border-radius: 16px; background: linear-gradient(135deg, #2a1a5e, #6d2a8a 60%, #c2357a); color: #fff; box-shadow: 0 6px 18px rgba(80,20,110,.3); }
+.m2-gart { width: 44px; height: 44px; flex: none; } .m2-gt { flex: 1; min-width: 0; display: flex; flex-direction: column; } .m2-gt small { font-size: 11.5px; opacity: .8; } .m2-gt b { font-size: 20px; font-variant-numeric: tabular-nums; } .m2-gt span { font-size: 12px; opacity: .85; }
+.m2-game .btn.primary, html.lg-on .m2-game .btn.primary { --gc-fill: #fff; background: #fff; color: #5a1f7a; }
+.m2-reacts { display: flex; gap: 3px; margin-top: -7px; padding: 0 8px; z-index: 1; }
+.m2-reacts button { font-size: 12.5px; padding: 1px 7px; border-radius: 999px; color: var(--text); background: var(--win-solid); box-shadow: 0 0 0 1.5px var(--win-solid), 0 1px 4px rgba(0,0,0,.25), inset 0 0 0 1px var(--border2); cursor: pointer; } .m2-reacts button.mine { box-shadow: 0 0 0 1.5px var(--win-solid), inset 0 0 0 1.5px var(--accent); }
+/* actions next to a message, on hover */
+.m2-acts { position: absolute; top: 50%; transform: translateY(-50%); display: flex; gap: 1px; padding: 2px; border-radius: 999px; background: var(--win-solid); box-shadow: 0 2px 10px rgba(0,0,0,.18), inset 0 0 0 1px var(--border2); opacity: 0; pointer-events: none; transition: opacity var(--dur-fast); }
+.m2-mw.me .m2-acts { right: calc(100% + 6px); } .m2-mw.them .m2-acts { left: calc(100% + 6px); }
+.m2-mw:hover .m2-acts, .m2-mw:focus-within .m2-acts { opacity: 1; pointer-events: auto; }
+.m2-acts button { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; color: var(--text2); background: none; cursor: pointer; } .m2-acts button:hover { background: var(--hover); color: var(--text); } .m2-acts .sym { width: 15px; height: 15px; }
+.m2-rbar { display: flex; gap: 2px; padding: 4px; margin-bottom: 5px; border-radius: 999px; background: var(--win-solid); box-shadow: 0 6px 22px rgba(0,0,0,.25), inset 0 0 0 1px var(--border2); animation: msgPop .25s var(--spring); }
+.m2-rbar button { border: 0; background: transparent; font-size: 20px; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; transition: transform .15s; } .m2-rbar button:hover { transform: scale(1.22); } .m2-rbar button.on { background: color-mix(in srgb, var(--accent) 25%, transparent); }
+.m2-seen { align-self: flex-end; color: var(--text3); font-size: 11px; margin-top: 3px; }
+.m2-typing { display: none; align-self: flex-start; gap: 4px; margin-top: 8px; padding: 11px 13px; border-radius: 18px; border-bottom-left-radius: 6px; background: var(--hover2); }
+.m2-typing.on { display: flex; } .m2-typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); animation: tdot 1s infinite; } .m2-typing i:nth-child(2) { animation-delay: .15s; } .m2-typing i:nth-child(3) { animation-delay: .3s; }
+/* the composer */
+.m2 .msg-dock { border-top: 1px solid var(--border); }
+.m2-ctx { display: flex; align-items: center; gap: 10px; padding: 8px 12px 0 16px; } .m2-ctx > div { flex: 1; min-width: 0; display: flex; flex-direction: column; font-size: 12.5px; }
+.m2-ctx b { font-size: 12px; color: var(--accent); } .m2-ctx > div span { color: var(--text2); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; } .m2-ctx-ic { display: inline-flex; color: var(--accent); } .m2-ctx-ic .sym { width: 16px; height: 16px; }
+.m2 .msg-bar { display: flex; align-items: flex-end; gap: 6px; padding: 9px 12px 11px; }
+.m2 .msg-field { flex: 1; min-width: 0; display: flex; align-items: flex-end; gap: 2px; padding: 3px 3px 3px 14px; border-radius: 19px; background: var(--hover); box-shadow: inset 0 0 0 1px var(--border2); }
+.m2 .msg-field:focus-within { box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--accent) 70%, transparent); }
+.m2 .msg-in { flex: 1; min-width: 0; min-height: 32px; max-height: 140px; resize: none; border: 0; outline: 0; padding: 7px 0; background: transparent; color: var(--text); font: 14px/1.35 var(--font); }
+.m2 .msg-send { flex: none; width: 38px; height: 38px; border-radius: 50%; display: grid; place-items: center; color: var(--text3); background: var(--hover); cursor: pointer; transition: background var(--dur-fast), color var(--dur-fast), transform var(--dur-fast); }
+.m2 .msg-send .sym { width: 19px; height: 19px; } .m2 .msg-send.ready { color: #fff; background: var(--accent, #0a84ff); } .m2 .msg-send:active { transform: scale(.92); }
+.m2 .msg-send.mic { color: var(--text2); } .m2 .msg-send.mic:hover { color: var(--text); background: var(--hover2); }
+.m2-plusbtn { width: 38px; height: 38px; background: var(--hover); } .m2-emobtn { width: 32px; height: 32px; }
+.m2 .msg-bar.rec { align-items: center; } .m2-recdot { width: 10px; height: 10px; border-radius: 50%; background: #ff3b30; animation: vp-pulse 1.2s infinite; } .m2 .msg-bar.rec b { font-variant-numeric: tabular-nums; font-size: 14px; } .m2-rechint { flex: 1; color: var(--text2); font-size: 13px; }
+.m2-plus, .m2-emo { position: absolute; left: 12px; bottom: 62px; z-index: 5; border-radius: 16px; background: var(--win-solid); box-shadow: 0 10px 30px rgba(0,0,0,.3), inset 0 0 0 1px var(--border2); animation: msgPop .2s var(--spring); }
+.m2-plus { display: flex; flex-direction: column; padding: 6px; min-width: 200px; }
+.m2-plus button { display: flex; align-items: center; gap: 10px; padding: 8px 10px; border-radius: 10px; color: var(--text); background: none; font: 13.5px var(--font); text-align: left; cursor: pointer; } .m2-plus button:hover { background: var(--hover); } .m2-plus .sym { width: 18px; height: 18px; color: var(--accent); }
+.m2-emo { left: auto; right: 58px; display: grid; grid-template-columns: repeat(8, 36px); gap: 2px; padding: 8px; }
+.m2-emo button { border: 0; background: transparent; font-size: 21px; height: 36px; border-radius: 10px; cursor: pointer; } .m2-emo button:hover { background: var(--hover2); }
+.m2-ask { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 16px 14px; border-top: 1px solid var(--border); flex-wrap: wrap; font-size: 13.5px; } .m2-ask div { display: flex; gap: 8px; }
+.m2-card { margin: auto; max-width: 380px; text-align: center; display: flex; flex-direction: column; align-items: center; gap: 10px; padding: 24px; } .m2-cart { width: 64px; height: 64px; }
+.m2-card h2 { margin: 0; font-size: 20px; } .m2-card p { margin: 0; color: var(--text2); line-height: 1.45; font-size: 14px; } .m2-card .m2-fine { font-size: 12.5px; } .m2-cbtns { display: flex; gap: 8px; justify-content: center; margin-top: 4px; }
+.m2-who { color: var(--text2); font-size: 13px; padding-right: 8px; }
 @container (max-width: 640px) {
-  .m2-side { width: 100%; border-right: 0; } .m2-main { display: none; position: absolute; inset: 0; z-index: 3; }
-  .m2-back { display: inline-flex; }
+.m2-side { width: 100%; border-right: 0; } .m2-main { display: none; position: absolute; inset: 0; z-index: 3; }
+.m2-back { display: inline-grid; } .m2-mw { max-width: 84%; } .m2-acts { display: none; }
 }
+.m2 [hidden] { display: none !important; }
+.m2 .msg-in, .m2 .msg-in:focus, .m2 .msg-in:focus-visible { outline: none !important; box-shadow: none !important; border: 0 !important; background: transparent !important; }
 .m2-chat .m2-main, .m2.m2-out .m2-main { display: flex; }
 .m2.m2-out .m2-side { display: none; }
 @container (max-width: 640px) { .m2-chat .m2-side { visibility: hidden; } }
@@ -1455,23 +1533,7 @@ a.btn { display: inline-flex; align-items: center; text-decoration: none; }
 .ban-why { width: 100%; text-align: left; padding: 10px 14px; border-radius: 14px; background: rgba(255,69,58,.12); } .ban-why small { display: block; opacity: .6; font-size: 11.5px; text-transform: uppercase; letter-spacing: .04em; } .ban-why div { white-space: pre-wrap; word-break: break-word; }
 .ban-fine { font-size: 12.5px; } .ban-card .btn { margin-top: 6px; min-width: 140px; }
 .m2-powers { display: flex; gap: 8px; flex-wrap: wrap; padding: 4px 10px 8px; } .m2-powers .btn { flex: 1; min-width: 0; }
-/* Messages 3.2: photos, reactions, Seen, typing, emoji */
-.m2-mw { display: flex; flex-direction: column; max-width: 72%; position: relative; } .m2-mw.me { align-self: flex-end; align-items: flex-end; } .m2-mw.them { align-self: flex-start; align-items: flex-start; }
-.m2-mw .msg-b { max-width: 100%; cursor: default; user-select: text; }
-.msg-b.has-img { padding: 4px; display: flex; flex-direction: column; gap: 4px; } .msg-b.has-img span { padding: 2px 9px 4px; }
-.msg-b.only-img { background: transparent !important; padding: 0; }
-.m2-img { display: block; max-width: min(280px, 100%); max-height: 320px; border-radius: 14px; object-fit: cover; cursor: zoom-in; }
-.m2-photo { position: fixed; inset: 0; z-index: 2147482500; background: rgba(0,0,0,.86); display: grid; place-items: center; cursor: zoom-out; } .m2-photo img { max-width: 94vw; max-height: 92vh; border-radius: 10px; }
-.m2-reacts { display: flex; gap: 3px; margin-top: -6px; padding: 0 6px; z-index: 1; } .m2-reacts span { font-size: 12.5px; padding: 1px 6px; border-radius: 999px; background: var(--panel, #2a2a30); box-shadow: 0 0 0 2px var(--bg, #1c1c22), 0 2px 6px rgba(0,0,0,.25); }
-.m2-rbar { display: flex; gap: 2px; padding: 4px; margin-bottom: 4px; border-radius: 999px; background: var(--panel, #2a2a30); box-shadow: 0 6px 22px rgba(0,0,0,.3); animation: msgPop .25s var(--spring); }
-.m2-rbar button { border: 0; background: transparent; font-size: 20px; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; transition: transform .15s; } .m2-rbar button:hover { transform: scale(1.25); } .m2-rbar button.on { background: rgba(10,132,255,.3); }
-.m2-seen { align-self: flex-end; font-size: 11.5px; opacity: .55; margin-top: -2px; }
-.m2-typing { display: none; align-self: flex-start; gap: 4px; padding: 11px 13px; border-radius: 18px; border-bottom-left-radius: 5px; background: var(--hover2); }
-.m2-typing.on { display: flex; } .m2-typing i { width: 7px; height: 7px; border-radius: 50%; background: var(--text3); animation: tdot 1s infinite; } .m2-typing i:nth-child(2) { animation-delay: .15s; } .m2-typing i:nth-child(3) { animation-delay: .3s; }
-.msg-tool { flex: none; width: 34px; height: 34px; border: 0; border-radius: 50%; background: var(--hover2); font-size: 17px; cursor: pointer; display: grid; place-items: center; }
-.m2-main { position: relative; }
-.m2-emo { position: absolute; left: 12px; bottom: 58px; z-index: 5; display: grid; grid-template-columns: repeat(8, 36px); gap: 2px; padding: 8px; border-radius: 16px; background: var(--panel, #2a2a30); box-shadow: 0 10px 30px rgba(0,0,0,.35); }
-.m2-emo button { border: 0; background: transparent; font-size: 21px; height: 36px; border-radius: 10px; cursor: pointer; } .m2-emo button:hover { background: var(--hover2); }
+
 
 /* ================= 3.2 beta 7: Pat's code suggestions ================= */
 .ps-ed { position: relative; }
@@ -7733,8 +7795,8 @@ ${n.packages?`<script>${rr(n.packages)}<\/script>
 /* generated by build.js from updates.json: do not edit */
 PatOS.version = "4.0.2";
 PatOS.releases = [{"version":"4.0.2","date":"2026-11-13","title":{"en":"PatOS 4.0.2","fr":"PatOS 4.0.2"},"notes":{"en":["New messages show as a notification on your device when PatOS isn’t in front, or is closed: Chromebook, Windows, Mac, Android, and iPhone or iPad with PatOS on the Home Screen","Clicking the notification opens the conversation"],"fr":["Les nouveaux messages s’affichent en notification sur ton appareil quand PatOS n’est pas au premier plan, ou est fermé : Chromebook, Windows, Mac, Android, et iPhone ou iPad avec PatOS sur l’écran d’accueil","Cliquer la notification ouvre la conversation"]}},{"version":"4.0.1","date":"2026-11-13","title":{"en":"PatOS 4.0.1","fr":"PatOS 4.0.1"},"more":true},{"version":"4.0.0","date":"2026-11-13","title":{"en":"PatOS 4.0: Beyond the desktop","fr":"PatOS 4.0 : Au-delà du bureau"},"more":true},{"version":"3.3.0","date":"2026-11-13","title":{"en":"PatOS 3.3: Crystal","fr":"PatOS 3.3 : Cristal"},"more":true},{"version":"3.2.1","date":"2026-11-13","title":{"en":"PatOS 3.2.1","fr":"PatOS 3.2.1"},"more":true},{"version":"3.2.0","date":"2026-11-12","title":{"en":"PatOS 3.2: Messages","fr":"PatOS 3.2 : Messages"},"more":true},{"version":"3.1.0","date":"2026-11-12","title":{"en":"PatOS 3.1: Handoff","fr":"PatOS 3.1 : Continuité"},"more":true},{"version":"3.0.0","date":"2026-11-10","title":{"en":"PatOS 3: Prism","fr":"PatOS 3 : Prisme"},"more":true},{"version":"2.3.1","date":"2026-11-09","title":{"en":"Drawn glass icons","fr":"Des icônes dessinées en verre"},"more":true},{"version":"2.3.0","date":"2026-11-09","title":{"en":"Liquid Glass, everywhere","fr":"Liquid Glass, partout"},"more":true},{"version":"2.2.2","date":"2026-11-09","title":{"en":"Liquid Glass without the light bar","fr":"Liquid Glass sans la barre de lumière"},"more":true},{"version":"2.2.1","date":"2026-11-09","title":{"en":"Thick, clear Liquid Glass","fr":"Liquid Glass épais et clair"},"more":true},{"version":"2.2.0","date":"2026-11-09","title":{"en":"Liquid Glass, rebuilt","fr":"Liquid Glass, refait"},"more":true},{"version":"2.1.3","date":"2026-11-06","title":{"en":"PitCode Studio on iPhone","fr":"PitCode Studio sur iPhone"},"more":true},{"version":"2.1.2","date":"2026-11-06","title":{"en":"Importing projects, made sturdier","fr":"Importer des projets, en plus solide"},"more":true},{"version":"2.1.1","date":"2026-11-06","title":{"en":"Importing files on phones","fr":"Importer des fichiers sur téléphone"},"more":true},{"version":"2.1.0","date":"2026-11-05","title":{"en":"PatOS 2.1: Slither and a better Studio","fr":"PatOS 2.1 : Slither et un meilleur Studio"},"more":true},{"version":"2.0.0","date":"2026-11-05","title":{"en":"PatOS 2.0: Everywhere","fr":"PatOS 2.0 : partout"},"more":true},{"version":"1.7.0","date":"2026-11-04","title":{"en":"Better apps","fr":"De meilleures apps"},"more":true},{"version":"1.6.0","date":"2026-11-03","title":{"en":"Software Update","fr":"Mise à jour de logiciels"},"more":true},{"version":"1.5.0","date":"2026-11-03","title":{"en":"iPhone swipe up, Reminders in plain words","fr":"Balayage sur iPhone, Rappels en mots simples"},"more":true},{"version":"1.4.0","date":"2026-11-03","title":{"en":"Clock and Calculator","fr":"Horloge et Calculatrice"},"more":true},{"version":"1.3.0","date":"2026-11-03","title":{"en":"Finder and TextEdit","fr":"Finder et TextEdit"},"more":true},{"version":"1.2.0","date":"2026-11-03","title":{"en":"Faster start, smoother 3D","fr":"Démarrage plus rapide, 3D plus fluide"},"more":true},{"version":"1.1.0","date":"2026-11-03","title":{"en":"Security","fr":"Sécurité"},"more":true}];
-PatOS.beta = {"version":"4.1.0","beta":3,"date":"2026-11-13","title":{"en":"PatOS 4.1 beta: Games and a smoother desktop","fr":"PatOS 4.1 bêta : Jeux et un bureau plus fluide"},"notes":{"en":["Notifications: the same app shows one banner with a count, never more than three at a time, and they glide into place","The Dock: unread messages on the Messages icon, and an app that needs you hops once","Windows grow out of their Dock icon however you open them, and minimizing pours them into the Dock","The Games app, redesigned: every PatOS game in one place, with your best scores","Daily Challenge: the same 2048 for everyone each day, with its own leaderboard","25 achievements across every game","Leaderboards: your friends from Messages, or everyone","Orb Runner: 8 worlds, a new one every 1,500 points, each with its own sky, weather and scenery","The Ball Shop: spend your gems on 11 balls, from Ruby and Sapphire to Galaxy, Royal Gold, Diamond and Prism","Power-ups: Magnet, Shield and Double"],"fr":["Notifications : une seule bannière par app avec un compteur, jamais plus de trois à la fois, et elles glissent en place","Le Dock : les messages non lus sur l’icône de Messages, et une app qui a besoin de toi sautille une fois","Les fenêtres sortent de leur icône du Dock, peu importe comment tu les ouvres, et la réduction les verse dans le Dock","L’app Jeux, refaite : tous les jeux de PatOS au même endroit, avec tes meilleurs scores","Défi du jour : le même 2048 pour tout le monde chaque jour, avec son propre classement","25 succès dans tous les jeux","Classements : tes amis de Messages, ou tout le monde","Orb Runner : 8 mondes, un nouveau tous les 1 500 points, chacun avec son ciel, sa météo et son décor","La boutique de boules : dépense tes gemmes pour 11 boules, du Rubis et du Saphir à la Galaxie, l’Or royal, le Diamant et le Prisme","Bonus : Aimant, Bouclier et Double"]}};
-PatOS.build = {"channel":"beta","version":"4.1.0","beta":3};
+PatOS.beta = {"version":"4.1.0","beta":4,"date":"2026-11-13","title":{"en":"PatOS 4.1 beta: Messages, Games and a smoother desktop","fr":"PatOS 4.1 bêta : Messages, Jeux et un bureau plus fluide"},"notes":{"en":["Messages, redesigned: messages grouped by person, actions when you point at a message, and a cleaner way to write","Reply to a message, send a voice message, or challenge a friend with your best game score","Fix a message or unsend it, in its first 15 minutes","Pin and mute chats, and search inside a chat","Notifications: the same app shows one banner with a count, never more than three at a time, and they glide into place","The Dock: unread messages on the Messages icon, and an app that needs you hops once","Windows grow out of their Dock icon however you open them, and minimizing pours them into the Dock","The Games app, redesigned: every PatOS game in one place, with your best scores","Daily Challenge: the same 2048 for everyone each day, with its own leaderboard","25 achievements across every game","Leaderboards: your friends from Messages, or everyone","Orb Runner: 8 worlds, a new one every 1,500 points, each with its own sky, weather and scenery","The Ball Shop: spend your gems on 11 balls, from Ruby and Sapphire to Galaxy, Royal Gold, Diamond and Prism","Power-ups: Magnet, Shield and Double"],"fr":["Messages, refait : les messages groupés par personne, des actions quand tu pointes un message, et une façon plus claire d’écrire","Réponds à un message, envoie un message vocal, ou défie un ami avec ton meilleur score","Corrige un message ou annule son envoi, dans ses 15 premières minutes","Épingle et mets en sourdine des discussions, et cherche dans une discussion","Notifications : une seule bannière par app avec un compteur, jamais plus de trois à la fois, et elles glissent en place","Le Dock : les messages non lus sur l’icône de Messages, et une app qui a besoin de toi sautille une fois","Les fenêtres sortent de leur icône du Dock, peu importe comment tu les ouvres, et la réduction les verse dans le Dock","L’app Jeux, refaite : tous les jeux de PatOS au même endroit, avec tes meilleurs scores","Défi du jour : le même 2048 pour tout le monde chaque jour, avec son propre classement","25 succès dans tous les jeux","Classements : tes amis de Messages, ou tout le monde","Orb Runner : 8 mondes, un nouveau tous les 1 500 points, chacun avec son ciel, sa météo et son décor","La boutique de boules : dépense tes gemmes pour 11 boules, du Rubis et du Saphir à la Galaxie, l’Or royal, le Diamant et le Prisme","Bonus : Aimant, Bouclier et Double"]}};
+PatOS.build = {"channel":"beta","version":"4.1.0","beta":4};
 
 </script>
   <script type="patos/js">
@@ -9703,6 +9765,41 @@ PatOS.build = {"channel":"beta","version":"4.1.0","beta":3};
     'game': 'partie',
     'games': 'parties',
     'Achievements unlocked': 'Succès débloqués',
+    'Can you beat it?': 'Peux-tu le battre ?',
+    'Challenge with your best': 'Défier avec ton record',
+    'Delivered': 'Distribué',
+    'Edit message': 'Modifier le message',
+    'Editing': 'Modification',
+    'Game Challenge': 'Défi de jeu',
+    'It goes away for both of you.': 'Il disparaît pour vous deux.',
+    'Message actions': 'Actions du message',
+    'Muted': 'En sourdine',
+    'New Message': 'Nouveau message',
+    'No one else with that username.': 'Personne d’autre avec ce nom d’utilisateur.',
+    'PatOS can’t use the microphone. Allow it in your browser, then try again.': 'PatOS ne peut pas utiliser le micro. Autorise-le dans ton navigateur, puis réessaie.',
+    'Play a game first, then challenge your friend to beat your score.': 'Joue d’abord à un jeu, puis défie ton ami de battre ton score.',
+    'Recording…': 'Enregistrement…',
+    'Reply': 'Répondre',
+    'Replying to': 'Réponse à',
+    'Search in this chat': 'Rechercher dans cette discussion',
+    'Search or find a person': 'Rechercher ou trouver une personne',
+    'That voice message is too long.': 'Ce message vocal est trop long.',
+    'This browser can’t record sound.': 'Ce navigateur ne peut pas enregistrer de son.',
+    'Unread': 'Non lu',
+    'Unsend': 'Annuler l’envoi',
+    'Unsend this message?': 'Annuler l’envoi de ce message ?',
+    'Voice Message': 'Message vocal',
+    'Voice message': 'Message vocal',
+    'You unsent a message': 'Tu as annulé l’envoi d’un message',
+    'Your challenge': 'Ton défi',
+    'unsent a message': 'a annulé l’envoi d’un message',
+    'Chats': 'Discussions',
+    'People': 'Personnes',
+    'Mute Conversation': 'Mettre la discussion en sourdine',
+    'Unmute Conversation': 'Réactiver la discussion',
+    'Pin Conversation': 'Épingler la discussion',
+    'Unpin Conversation': 'Désépingler la discussion',
+    'Edit Message': 'Modifier le message',
     'Tile All Windows': 'Disposer toutes les fenêtres', 'Merge All Windows': 'Fusionner toutes les fenêtres', 'Move Tab to New Window': 'Placer l’onglet dans une nouvelle fenêtre', 'Magnetic edges': 'Bords magnétiques', 'Windows snap to edges and each other. Hold Shift to move freely.': 'Les fenêtres s’aimantent aux bords. Maintiens Maj pour les placer librement.',
     'Stage Focus': 'Focus sur la scène', 'Save Window Group…': 'Enregistrer un groupe de fenêtres…', 'Save Window Group': 'Enregistrer un groupe de fenêtres', 'Delete a Window Group…': 'Supprimer un groupe de fenêtres…', 'window': 'fenêtre', 'windows': 'fenêtres', 'Window group saved': 'Groupe de fenêtres enregistré', 'Reopen them all from the Window menu.': 'Rouvrez-les toutes depuis le menu Fenêtre.',
     'Motion': 'Mouvement', 'Calm': 'Calme', 'Natural': 'Naturel', 'Playful': 'Enjoué', 'How windows, menus and panels move': 'La façon dont bougent les fenêtres, les menus et les panneaux',
@@ -12636,6 +12733,13 @@ PatOS.build = {"channel":"beta","version":"4.1.0","beta":3};
     warn: '<path d="M12 3l10 18H2z"/><path d="M12 10v5M12 18h.01"/>',
     check: '<path d="M4 12l5 5L20 6"/>',
     star: '<path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1L3.2 9.5l6.1-.9z"/>',
+    reply: '<path d="M10 8 5 12.5l5 4.5"/><path d="M5.5 12.5H14a5 5 0 0 1 5 5V19"/>',
+    smile: '<circle cx="12" cy="12" r="8.5"/><path d="M8.5 14a4.5 4.5 0 0 0 7 0"/><circle cx="9.3" cy="10" r=".6" fill="currentColor"/><circle cx="14.7" cy="10" r=".6" fill="currentColor"/>',
+    more: '<circle cx="6" cy="12" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/><circle cx="18" cy="12" r="1.2" fill="currentColor"/>',
+    plus: '<path d="M12 5v14M5 12h14"/>',
+    send: '<path d="M12 19V6M6.5 11.5 12 6l5.5 5.5"/>',
+    game: '<path d="M7 9h10a4 4 0 0 1 4 4v1.5a2.5 2.5 0 0 1-4.3 1.7L15 14.5H9l-1.7 1.7A2.5 2.5 0 0 1 3 14.5V13a4 4 0 0 1 4-4z"/><path d="M8 11.3v2.4M6.8 12.5h2.4"/><circle cx="15.5" cy="12" r=".6" fill="currentColor"/><circle cx="17" cy="13.4" r=".6" fill="currentColor"/>',
+    bellOff: '<path d="M6 16h11.5M9.5 19a2.5 2.5 0 0 0 5 0M7 16V11a5 5 0 0 1 8.4-3.7M17 10.5V16M4 4l16 16"/>',
     trophy: '<path d="M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M7 6H4v1a3 3 0 0 0 3 3M17 6h3v1a3 3 0 0 1-3 3M12 14v3M8.5 20h7M10 17h4"/>',
     flash: '<path d="M13.5 2.5 5.5 13h6l-1 8.5 8-10.5h-6z"/>',
     timer: '<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2M9.5 2.5h5M19 6l1.5-1.5"/>',
@@ -22934,6 +23038,7 @@ PatOS.build = {"channel":"beta","version":"4.1.0","beta":3};
     offMsg = F.listenMessages(cid, (l) => { msgs = l; emit('chat:messages'); api.markRead(cid); }, (e) => { if (offMsg) { offMsg(); offMsg = null; } lastError = String(e.message || e); emit(); });
   }
   function notify(c, body) {
+    if (api && api.muted && api.muted().includes(c.id)) return; // (a quiet chat)
     try { PatOS.notify({ title: PatOS.account.isSystem(c.other.uid) ? 'PatOS' : c.other.username, body: String(body).slice(0, 120), icon: 'messages', tag: 'msg-' + c.id, chat: c.id, onClick: () => PatOS.launch('messages', { chat: c.id }) }); if (PatOS.sound && PatOS.sound.pop) PatOS.sound.pop(); } catch (e) {}
   }
 
@@ -22955,7 +23060,7 @@ PatOS.build = {"channel":"beta","version":"4.1.0","beta":3};
       for (const it of outbox()) {
         try {
           if (it.kind === 'request') { await withTimeout(F.requestChat(me, it.other, it.text, it.id, PatOS.account.isSystem())); }
-          else { await withTimeout(F.sendMessage(it.cid, me, it.text, it.id, it.img)); if (PatOS.sound && PatOS.sound.play) PatOS.sound.play('sent'); push.message(it.cid); }
+          else { await withTimeout(F.sendMessage(it.cid, me, it.text, it.id, it.img, it.extra)); if (PatOS.sound && PatOS.sound.play) PatOS.sound.play('sent'); push.message(it.cid); }
         } catch (e) {
           if (e && e.code === 'offline') break; // try again later
           let there = false; if (it.kind !== 'request') { try { there = await F.messageExists(it.cid, it.id); } catch (x) {} } // it may have gone through already
@@ -22984,7 +23089,7 @@ PatOS.build = {"channel":"beta","version":"4.1.0","beta":3};
         const key = (await (await fetch('/api/push/key')).json()).key; const raw = Uint8Array.from(atob(key.replace(/-/g, '+').replace(/_/g, '/') + '==='.slice((key.length + 3) % 4)), (c) => c.charCodeAt(0));
         const cur = sub && sub.options && sub.options.applicationServerKey; if (sub && cur && new Uint8Array(cur).join() !== raw.join()) { await sub.unsubscribe(); sub = null; } // the server's key changed
         if (!sub) sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: raw });
-        await push.post('subscribe', sub.toJSON()); push.on = true;
+        await push.post('subscribe', Object.assign(sub.toJSON(), { muted: api.muted() })); push.on = true;
       } catch (e) { push.error = String(e.message || e); }
     },
     /* signed out: this device stops getting this account's messages */
@@ -23012,8 +23117,8 @@ PatOS.build = {"channel":"beta","version":"4.1.0","beta":3};
     declined: () => convs.filter((c) => c.status === 'declined' && !c.mine),
     unread: () => convs.filter(isUnread).length + convs.filter((c) => c.status === 'pending' && !c.mine).length,
     find: (id) => convs.find((c) => c.id === id) || null,
-    messages: () => msgs.map((m) => ({ id: m.id, mine: m.from === (me && me.uid), text: m.text, img: typeof m.img === 'string' && m.img.startsWith('data:image/') ? m.img : '', reactions: m.reactions || {}, t: m.t || ms(m.at), sending: false }))
-      .concat(outbox().filter((o) => o.cid === current || (o.kind === 'request' && current === F.convId(me.uid, o.other.uid))).filter((o) => !msgs.some((m) => m.id === o.id)).map((o) => ({ id: o.id, mine: true, text: o.text, img: o.img || '', reactions: {}, t: o.t, sending: true }))).sort((a, b) => a.t - b.t),
+    messages: () => msgs.map((m) => ({ id: m.id, mine: m.from === (me && me.uid), from: m.from, text: m.text, img: typeof m.img === 'string' && m.img.startsWith('data:image/') ? m.img : '', voice: typeof m.voice === 'string' && m.voice.startsWith('data:audio/') ? m.voice : '', dur: +m.dur || 0, reply: m.reply && typeof m.reply === 'object' ? m.reply : null, game: m.game && typeof m.game === 'object' ? m.game : null, edited: !!m.edited, unsent: !!m.unsent, reactions: m.reactions || {}, t: m.t || ms(m.at), at: ms(m.at) || m.t, sending: false }))
+      .concat(outbox().filter((o) => o.cid === current || (o.kind === 'request' && current === F.convId(me.uid, o.other.uid))).filter((o) => !msgs.some((m) => m.id === o.id)).map((o) => ({ id: o.id, mine: true, from: me && me.uid, text: o.text, img: o.img || '', voice: (o.extra && o.extra.voice) || '', dur: (o.extra && o.extra.dur) || 0, reply: (o.extra && o.extra.reply) || null, game: (o.extra && o.extra.game) || null, edited: false, unsent: false, reactions: {}, t: o.t, sending: true }))).sort((a, b) => a.t - b.t),
     outbox: () => outbox().length,
     status: () => ({ signedIn: !!(PatOS.account && PatOS.account.signedIn()), ready: !!me, unread: convs.filter(isUnread).length + convs.filter((c) => c.status === 'pending' && !c.mine).length, outbox: outbox().length }),
     error: () => lastError,
@@ -23036,11 +23141,20 @@ PatOS.build = {"channel":"beta","version":"4.1.0","beta":3};
       if (c) throw new Error(T('Your message request is waiting for an answer.'));
       setOutbox(outbox().concat([{ kind: 'request', id: 'request', key: newId(), cid, other: { uid: other.uid, username: other.username }, text: text.slice(0, 2000), t: Date.now() }])); emit('chat:messages'); flush(); return cid;
     },
-    send(cid, text, img) {
-      text = String(text || '').trim(); if (!text && !img) return; const c = convs.find((x) => x.id === cid);
+    send(cid, text, img, extra) {
+      text = String(text || '').trim(); extra = extra && Object.keys(extra).length ? extra : undefined; if (!text && !img && !(extra && (extra.voice || extra.game))) return; const c = convs.find((x) => x.id === cid);
       if (!c || c.status !== 'accepted') throw new Error(c && c.status === 'pending' ? T('Your message request is waiting for an answer.') : T('You can’t message this person right now.'));
-      setOutbox(outbox().concat([{ kind: 'msg', id: newId(), cid, text: text.slice(0, 2000), img: img || undefined, t: Date.now() }])); emit('chat:messages'); flush();
+      setOutbox(outbox().concat([{ kind: 'msg', id: newId(), cid, text: text.slice(0, 2000), img: img || undefined, extra, t: Date.now() }])); emit('chat:messages'); flush();
     },
+    /* (4.1) your own message, in its first 15 minutes */
+    canChange: (m) => !!(m && m.mine && !m.sending && !m.unsent && Date.now() - (m.at || m.t) < 15 * 60000),
+    async edit(cid, mid, text) { text = String(text || '').trim(); if (!F || !text) return; const m = msgs.find((x) => x.id === mid); if (m) { m.text = text; m.edited = Date.now(); emit('chat:messages'); } await F.editMessage(cid, mid, text); },
+    async unsend(cid, mid) { if (!F) return; const m = msgs.find((x) => x.id === mid); if (m) { Object.assign(m, { unsent: true, text: '' }); delete m.img; delete m.voice; delete m.game; delete m.reply; emit('chat:messages'); } await F.unsendMessage(cid, mid); },
+    /* (4.1) on this device: chats kept at the top, and chats that stay quiet (no banner, no sound, no push) */
+    pinned: () => PatOS.store.get('msgPinned', []) || [],
+    muted: () => PatOS.store.get('msgMuted', []) || [],
+    pin(cid, on) { const l = api.pinned().filter((x) => x !== cid); if (on) l.unshift(cid); PatOS.store.set('msgPinned', l.slice(0, 20)); emit(); },
+    mute(cid, on) { const l = api.muted().filter((x) => x !== cid); if (on) l.push(cid); PatOS.store.set('msgMuted', l.slice(-200)); emit(); push.sync(); },
     /* a reaction to a message: the same emoji again removes it */
     async react(cid, mid, emoji) {
       if (!F || !me) return; const m = msgs.find((x) => x.id === mid); const cur = m && m.reactions && m.reactions[me.uid];
@@ -31577,16 +31691,31 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
 
 </script>
   <script type="patos/js">
-/* Messages: chat with people who have a PatOS account (see js/chat.js). Find a username, send a request, they accept, then talk.
+/* Messages (4.1): chat with people who have a PatOS account (see js/chat.js). Find a username, send a request, they accept,
+   then talk. Messages are grouped by sender, with replies, reactions, photos, voice messages, game challenges, links, and
+   (your own, in their first 15 minutes) edits and unsending. Chats can be pinned, muted and searched.
    Pat, the command helper, is not here: it lives in the top bar (js/pat.js). */
 (function () {
   'use strict';
   const { h } = PatOS;
-
-  /* ---------- Messages: people with PatOS accounts. (Pat, the command helper, is in the top bar: js/pat.js) ---------- */
+  const T = (s) => PatOS.t(s);
+  const sym = (n) => PatOS.sym(n);
+  const sameDay = (a, b) => new Date(a).toDateString() === new Date(b).toDateString();
   const clock = (t) => { const d = new Date(t), now = new Date(); const hm = d.toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' }); return d.toDateString() === now.toDateString() ? hm : d.toLocaleDateString(PatOS.locale, { month: 'short', day: 'numeric' }) + ' ' + hm; };
+  /* when, in the list of chats: the time today, the day this week, the date before */
+  const when = (t) => { if (!t) return ''; const d = new Date(t), now = new Date(); if (sameDay(t, now)) return d.toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' }); if (now - d < 6 * 864e5) return d.toLocaleDateString(PatOS.locale, { weekday: 'short' }); return d.toLocaleDateString(PatOS.locale, { month: 'short', day: 'numeric' }); };
+  const dur = (s) => { s = Math.max(0, Math.round(s)); return Math.floor(s / 60) + ':' + String(s % 60).padStart(2, '0'); };
+  /* words, with web addresses that open in PatOS's browser */
+  const URL_RE = /\bhttps?:\/\/[^\s<>"']+[^\s<>"'.,;:!?)\]]/g;
+  function linkify(text) {
+    const out = document.createDocumentFragment(); let last = 0; String(text).replace(URL_RE, (u, i) => { if (i > last) out.append(text.slice(last, i)); const a = h('a', { class: 'm2-link', href: u, target: '_blank', rel: 'noopener noreferrer' }, u); a.addEventListener('click', (e) => { e.preventDefault(); e.stopPropagation(); if (PatOS.apps.browser) PatOS.launch('browser', { url: u }); else window.open(u, '_blank', 'noopener'); }); out.append(a); last = i + u.length; return u; });
+    if (last < text.length) out.append(text.slice(last)); return out;
+  }
+  const REACT = ['❤️', '👍', '😂', '😮', '😢', '🔥'];
+  const EMO = ['😀', '😂', '🥹', '😍', '😎', '🤔', '😭', '😡', '👍', '👎', '👏', '🙏', '❤️', '🔥', '🎉', '✨', '💀', '😴', '🤯', '🥳', '👀', '💯', '✅', '❌'];
+
   PatOS.registerApp({
-    id: 'messages', name: 'Messages', icon: 'messages', width: 860, height: 600, minWidth: 340, minHeight: 360, keywords: 'chat messages friends people users username request pat helper commands text timer calendar',
+    id: 'messages', name: 'Messages', icon: 'messages', width: 920, height: 640, minWidth: 340, minHeight: 380, keywords: 'chat messages friends people users username request text voice reply',
     about: 'Message people with a PatOS account: find them by username, and they accept your request first. Pat, the command helper, is the button in the top bar.',
     launch(win, args) {
       win.el.classList.add('has-toolbar');
@@ -31596,25 +31725,36 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
       const side = h('div', { class: 'm2-side' }), main = h('div', { class: 'm2-main' });
       const root = h('div', { class: 'm2' }, side, main); win.body.appendChild(root);
       let query = '', results = null, cur = null /* a conversation id */, target = null /* someone new */, searchTimer = null, listEl = null;
-      const T = (x) => PatOS.t(x);
+      let replyTo = null, editing = null, find = null; // (the composer: answering a message, fixing one; searching this chat)
       const msg = (title, body) => PatOS.alertBox(title, body, { icon: 'messages' });
       const fail = (e) => msg(T('That didn’t work'), String((e && e.message) || e));
       const isSys = (uid) => A && A.isSystem(uid);
-      const av = (name, uid) => isSys(uid) ? h('div', { class: 'msg-av sys' }, 'P') : h('div', { class: 'msg-av' }, (name || '?').charAt(0).toUpperCase());
+      const av = (name, uid, cls) => isSys(uid) ? h('div', { class: 'msg-av sys' + (cls ? ' ' + cls : '') }, 'P') : (() => { const el = h('div', { class: 'msg-av' + (cls ? ' ' + cls : '') }, (name || '?').charAt(0).toUpperCase()); let x = 0; for (const ch of String(name)) x = (x * 31 + ch.charCodeAt(0)) % 360; el.style.setProperty('--h', x); return el; })();
       // a person's name: "PatOS" with the system badge for the system account, @name for everyone else
-      const nameEl = (uid, username, tag) => h(tag || 'b', { class: 'm2-name' }, A.display(uid, username), isSys(uid) ? PatOS.systemBadge(14) : A.isVerified(uid) ? PatOS.systemBadge(14, 'verified') : null);
+      const nameEl = (uid, username, tag) => h(tag || 'b', { class: 'm2-name', translate: 'no' }, A.display(uid, username), isSys(uid) ? PatOS.systemBadge(14) : A.isVerified(uid) ? PatOS.systemBadge(14, 'verified') : null);
       let everyone = null, everyoneAt = 0; // the system account: every account
       const loadEveryone = async (force) => { if (!C.isSystem() || (!force && everyone && Date.now() - everyoneAt < 30000)) return; everyoneAt = Date.now(); try { everyone = await C.everyone(); } catch (e) { everyone = everyone || []; } drawList(); };
       const signedIn = () => A && A.signedIn();
 
-      /* the left side: search, requests, conversations */
-      function row(u, sub, extra, on, onClick) { const b = h('div', { class: 'm2-row' + (on ? ' on' : ''), role: 'button', tabindex: '0', onclick: onClick }, av(u.username, u.uid), h('div', { class: 'm2-rt' }, nameEl(u.uid, u.username), h('small', {}, sub || '')), extra || null); b.addEventListener('keydown', (e) => { if (e.key === 'Enter') onClick(); }); return b; }
+      /* ================= the left side: search, requests, chats ================= */
+      function row(u, sub, opts) {
+        opts = opts || {};
+        const b = h('div', { class: 'm2-row' + (opts.on ? ' on' : '') + (opts.unread ? ' unread' : ''), role: 'button', tabindex: '0', 'aria-current': opts.on ? 'true' : null, onclick: opts.onClick },
+          av(u.username, u.uid),
+          h('div', { class: 'm2-rt' },
+            h('div', { class: 'm2-r1' }, nameEl(u.uid, u.username), opts.time ? h('small', { class: 'm2-time' }, opts.time) : null),
+            h('div', { class: 'm2-r2' }, h('small', { translate: 'no' }, sub || ''), opts.muted ? h('span', { class: 'm2-ic', html: sym('bellOff'), title: T('Muted') }) : null, opts.unread ? h('span', { class: 'm2-dot', 'aria-label': T('Unread') }) : null, opts.badge || null)));
+        b.addEventListener('keydown', (e) => { if (e.key === 'Enter') opts.onClick(); });
+        if (opts.menu) b.addEventListener('contextmenu', (e) => { e.preventDefault(); PatOS.menu(opts.menu(), e.clientX, e.clientY); });
+        return b;
+      }
       function drawSide() {
         const keep = side.querySelector('.m2-search'); const had = document.activeElement === keep; const val = keep ? keep.value : query;
         side.innerHTML = '';
         if (!signedIn()) return;
-        const search = h('input', { class: 'field m2-search', placeholder: T('Find a person'), spellcheck: 'false', autocapitalize: 'none', autocomplete: 'off', 'aria-label': T('Find a person by username') }); search.value = val;
-        search.addEventListener('input', () => { query = search.value.trim(); clearTimeout(searchTimer); if (!query) { results = null; drawSide(); return; } searchTimer = setTimeout(async () => { const q = query; try { const r = await C.search(q); if (q === query) { results = r; drawList(); } } catch (e) { results = []; drawList(); } }, 250); });
+        side.appendChild(h('div', { class: 'm2-top' }, h('h2', {}, T('Messages')), h('button', { class: 'm2-ibtn', title: T('New Message'), 'aria-label': T('New Message'), html: sym('pencil'), onclick: () => { const s = side.querySelector('.m2-search'); s && s.focus(); } })));
+        const search = h('input', { class: 'field m2-search', type: 'search', placeholder: T('Search or find a person'), spellcheck: 'false', autocapitalize: 'none', autocomplete: 'off', 'aria-label': T('Search or find a person') }); search.value = val;
+        search.addEventListener('input', () => { query = search.value.trim(); clearTimeout(searchTimer); if (!query) { results = null; drawList(); return; } drawList(); searchTimer = setTimeout(async () => { const q = query; try { const r = await C.search(q.replace(/^@/, '')); if (q === query) { results = r; drawList(); } } catch (e) { results = []; drawList(); } }, 250); });
         side.appendChild(h('div', { class: 'm2-sh' }, search)); const nb = notifBar(); if (nb) side.appendChild(nb); listEl = h('div', { class: 'm2-list' }); side.appendChild(listEl); drawList();
         if (had) { search.focus(); search.setSelectionRange(val.length, val.length); }
       }
@@ -31629,30 +31769,45 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           await C.enableNotifications(); drawSide(); } }, T('Turn On')) : null;
         return h('div', { class: 'm2-nb', role: 'status' }, h('span', { class: 'm2-nb-t' }, text), btn, close);
       }
+      const chatMenu = (c) => () => [
+        { label: T(C.pinned().includes(c.id) ? 'Unpin Conversation' : 'Pin Conversation'), action: () => C.pin(c.id, !C.pinned().includes(c.id)) },
+        { label: T(C.muted().includes(c.id) ? 'Unmute Conversation' : 'Mute Conversation'), action: () => C.mute(c.id, !C.muted().includes(c.id)) }
+      ];
+      const preview = (c) => c.status === 'pending' ? (c.mine ? T('Waiting for them to accept') : T('Wants to message you')) : (c.lastFromMe ? T('You') + ': ' : '') + c.last;
+      function convRow(c) { return row(c.other, preview(c), { on: cur === c.id, unread: c.unread, time: when(c.lastAt), muted: C.muted().includes(c.id), onClick: () => openConv(c.id), menu: c.status === 'accepted' ? chatMenu(c) : null }); }
       function drawList() {
         if (!listEl) return; listEl.innerHTML = '';
+        const head = (t) => listEl.appendChild(h('div', { class: 'm2-h' }, T(t)));
         if (query) {
+          const q = query.replace(/^@/, '').toLowerCase();
+          const mine = C.conversations().filter((c) => c.other.username.toLowerCase().includes(q) || (c.last || '').toLowerCase().includes(q));
+          if (mine.length) { head('Chats'); mine.forEach((c) => listEl.appendChild(convRow(c))); }
+          const people = (results || []).filter((u) => !(u.conv && mine.some((c) => c.id === u.conv.id)));
+          head('People');
           if (!results) { listEl.appendChild(h('div', { class: 'm2-empty' }, T('Searching…'))); return; }
-          if (!results.length) listEl.appendChild(h('div', { class: 'm2-empty' }, T('Nobody with that username. Check the spelling.')));
-          results.forEach((u) => listEl.appendChild(row(u, u.conv ? (u.conv.status === 'accepted' ? T('Open the chat') : u.conv.status === 'pending' ? (u.conv.mine ? T('Request sent') : T('Wants to message you')) : T('Declined')) : T('Send a message request'), null, false, () => { query = ''; results = null; if (u.conv) { cur = u.conv.id; target = null; C.open(cur); } else { target = u; cur = null; C.close(); } drawSide(); drawMain(); win.el.classList.add('m2-chat'); })));
+          if (!people.length) listEl.appendChild(h('div', { class: 'm2-empty' }, mine.length ? T('No one else with that username.') : T('Nobody with that username. Check the spelling.')));
+          people.forEach((u) => listEl.appendChild(row(u, u.conv ? (u.conv.status === 'accepted' ? T('Open the chat') : u.conv.status === 'pending' ? (u.conv.mine ? T('Request sent') : T('Wants to message you')) : T('Declined')) : T('Send a message request'), { onClick: () => { query = ''; results = null; if (u.conv) { openConv(u.conv.id); return; } target = u; cur = null; C.close(); drawSide(); drawMain(); win.el.classList.add('m2-chat'); } })));
           return;
         }
-        const reqs = C.requests(), convs = C.conversations(), declined = C.declined();
-        if (reqs.length) { listEl.appendChild(h('div', { class: 'm2-h' }, T('Requests') + ' (' + reqs.length + ')')); reqs.forEach((c) => listEl.appendChild(row(c.other, c.last, h('span', { class: 'm2-dot' }), cur === c.id, () => openConv(c.id)))); }
-        listEl.appendChild(h('div', { class: 'm2-h' }, T('Messages')));
+        const reqs = C.requests(), convs = C.conversations(), declined = C.declined(); const pins = C.pinned();
+        if (reqs.length) { head('Requests'); reqs.forEach((c) => listEl.appendChild(row(c.other, c.last, { on: cur === c.id, unread: true, time: when(c.lastAt), onClick: () => openConv(c.id) }))); }
+        const pinned = pins.map((id) => convs.find((c) => c.id === id)).filter(Boolean);
+        if (pinned.length) { head('Pinned'); pinned.forEach((c) => listEl.appendChild(convRow(c))); }
+        const rest = convs.filter((c) => !pins.includes(c.id));
+        if (pinned.length || reqs.length) head('Messages');
         if (!convs.length) listEl.appendChild(h('div', { class: 'm2-empty' }, T('No conversations yet. Search for a username above to start one.')));
-        convs.forEach((c) => listEl.appendChild(row(c.other, c.status === 'pending' ? T('Waiting for them to accept') : (c.lastFromMe ? T('You') + ': ' : '') + c.last, c.unread ? h('span', { class: 'm2-dot' }) : h('small', { class: 'm2-time' }, c.lastAt ? clock(c.lastAt) : ''), cur === c.id, () => openConv(c.id))));
-        if (declined.length) { listEl.appendChild(h('div', { class: 'm2-h' }, T('Declined'))); declined.forEach((c) => listEl.appendChild(row(c.other, T('You declined this request'), null, cur === c.id, () => openConv(c.id)))); }
+        rest.forEach((c) => listEl.appendChild(convRow(c)));
+        if (declined.length) { head('Declined'); declined.forEach((c) => listEl.appendChild(row(c.other, T('You declined this request'), { on: cur === c.id, onClick: () => openConv(c.id) }))); }
         // the system account has every account here, and sees who is banned
         if (C.isSystem()) {
           loadEveryone(false);
-          listEl.appendChild(h('div', { class: 'm2-h' }, T('PatOS Powers')));
+          head('PatOS Powers');
           listEl.appendChild(h('div', { class: 'm2-powers' },
             h('button', { class: 'btn', onclick: async () => { const t = await PatOS.ask(T('Announcement'), '', { icon: 'about', ok: T('Send to Everyone'), text: T('Everyone sees it once, next time they open PatOS. Leave it empty to remove it.') }); if (t == null) return; try { await C.announce(t); PatOS.notify({ title: T(t.trim() ? 'Announcement sent' : 'Announcement removed'), body: t.slice(0, 120), icon: 'about' }); } catch (e) { fail(e); } } }, T('Announce…')),
             h('button', { class: 'btn', onclick: async () => { const t = await PatOS.ask(T('Message Everyone'), '', { icon: 'messages', ok: T('Send'), text: T('The same message to every account (not banned ones). No request needed.') }); if (!t || !t.trim()) return; try { const n = await C.messageEveryone(t); PatOS.notify({ title: T('Sent'), body: n + ' ' + T('accounts'), icon: 'messages' }); } catch (e) { fail(e); } } }, T('Message Everyone…'))));
           listEl.appendChild(h('div', { class: 'm2-h' }, T('All Accounts') + (everyone ? ' (' + everyone.length + ')' : '')));
           if (!everyone) listEl.appendChild(h('div', { class: 'm2-empty' }, T('Loading…')));
-          else everyone.forEach((u) => listEl.appendChild(row(u, u.ban ? T('Banned') + (u.ban.reason ? ': ' + u.ban.reason : '') : u.conv ? T('Open the chat') : T('Message (no request needed)'), u.ban ? h('span', { class: 'm2-ban' }, T('Banned')) : null, cur === u.cid, () => { if (u.conv) openConv(u.conv.id); else { target = u; cur = null; C.close(); drawSide(); drawMain(); win.el.classList.add('m2-chat'); } })));
+          else everyone.forEach((u) => listEl.appendChild(row(u, u.ban ? T('Banned') + (u.ban.reason ? ': ' + u.ban.reason : '') : u.conv ? T('Open the chat') : T('Message (no request needed)'), { on: cur === u.cid, badge: u.ban ? h('span', { class: 'm2-ban' }, T('Banned')) : null, onClick: () => { if (u.conv) openConv(u.conv.id); else { target = u; cur = null; C.close(); drawSide(); drawMain(); win.el.classList.add('m2-chat'); } } })));
         }
       }
       async function banIt(u) {
@@ -31664,22 +31819,71 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         if (!(await PatOS.confirmBox(T('Unban') + ' @' + u.username + '?', T('They can use their account again.'), { ok: T('Unban'), icon: 'messages' }))) return;
         try { await C.unban(u); await loadEveryone(true); drawMain(); } catch (e) { fail(e); }
       }
-      /* one message: words and/or a photo, its reactions, and the reaction bar (click a message; double-click for ❤️) */
-      const REACT = ['❤️', '👍', '😂', '😮', '😢', '🔥'];
-      function bubble(c, m) {
-        const b = h('div', { class: 'msg-b ' + (m.mine ? 'me' : 'them') + (m.sending ? ' sending' : '') + (m.img ? ' has-img' : '') + (m.img && !m.text ? ' only-img' : ''), title: new Date(m.t).toLocaleString(PatOS.locale) },
-          m.img ? h('img', { class: 'm2-img', src: m.img, alt: T('Photo'), loading: 'lazy', onclick: (e) => { e.stopPropagation(); viewPhoto(m.img); } }) : null,
-          m.text ? h('span', {}, m.text) : null);
-        const rs = Object.values(m.reactions || {}); const wrap = h('div', { class: 'm2-mw ' + (m.mine ? 'me' : 'them') }, b);
-        if (rs.length) { const count = {}; rs.forEach((e) => { count[e] = (count[e] || 0) + 1; }); wrap.appendChild(h('div', { class: 'm2-reacts' }, ...Object.entries(count).map(([e, n]) => h('span', {}, e + (n > 1 ? ' ' + n : ''))))); }
+
+      /* ================= one message ================= */
+      const nameOf = (c, uid) => (uid && uid === (A.info() || {}).uid ? T('You') : '@' + (c ? c.other.username : '?'));
+      function voicePlayer(m) {
+        const audio = new Audio(); audio.preload = 'none'; audio.src = m.voice;
+        const bars = h('div', { class: 'm2-wave', 'aria-hidden': 'true' }); let s = 0; for (const ch of m.id) s = (s * 31 + ch.charCodeAt(0)) >>> 0;
+        for (let i = 0; i < 28; i++) { s = (s * 1103515245 + 12345) >>> 0; bars.appendChild(h('i', { style: { height: (20 + (s % 80)) + '%' } })); }
+        const time = h('small', {}, dur(m.dur)); const play = h('button', { class: 'm2-vplay', 'aria-label': T('Play'), html: sym('play') });
+        const paint = () => { const p = audio.duration && isFinite(audio.duration) ? audio.currentTime / audio.duration : audio.currentTime / (m.dur || 1); [...bars.children].forEach((b, i) => b.classList.toggle('on', i / bars.children.length < p)); time.textContent = dur(audio.paused && !audio.currentTime ? m.dur : audio.currentTime); };
+        audio.ontimeupdate = paint; audio.onended = () => { play.innerHTML = sym('play'); audio.currentTime = 0; paint(); };
+        play.onclick = (e) => { e.stopPropagation(); document.querySelectorAll('.m2 audio').forEach(() => {}); if (audio.paused) { audio.play().catch(() => {}); play.innerHTML = sym('pause'); } else { audio.pause(); play.innerHTML = sym('play'); } };
+        bars.addEventListener('click', (e) => { e.stopPropagation(); const r = bars.getBoundingClientRect(); const d = audio.duration && isFinite(audio.duration) ? audio.duration : m.dur; audio.currentTime = Math.max(0, Math.min(d, ((e.clientX - r.left) / r.width) * d)); paint(); });
+        return h('div', { class: 'm2-voice' }, play, bars, time);
+      }
+      function gameCard(m) {
+        const g = m.game; const app = g.id.startsWith('2048') ? 'games' : g.id;
+        const art = PatOS.iconHTML(PatOS.apps[app] ? PatOS.apps[app].icon || app : 'games');
+        const play = () => { if (g.id === '2048-daily') PatOS.launch('games', { game: '2048', daily: true }); else if (PatOS.apps[g.id]) PatOS.launch(g.id); else PatOS.launch('games'); };
+        const today = g.day && PatOS.gc && g.day === PatOS.gc.dayId();
+        return h('div', { class: 'm2-game' }, h('div', { class: 'm2-gart', html: art }),
+          h('div', { class: 'm2-gt' }, h('small', {}, T(g.label)), h('b', {}, Number(g.score).toLocaleString(PatOS.locale)), h('span', {}, m.mine ? T('Your challenge') : T('Can you beat it?'))),
+          h('button', { class: 'btn small primary', onclick: (e) => { e.stopPropagation(); play(); }, disabled: g.day && !today ? true : null }, g.day && !today ? T('Ended') : h('span', { translate: 'no' }, PatOS.lang === 'fr' ? 'Jouer' : 'Play')));
+      }
+      function bubble(c, m, pos) {
+        const mine = m.mine;
+        if (m.unsent) return h('div', { class: 'm2-mw ' + (mine ? 'me' : 'them') + ' ' + pos, 'data-mid': m.id }, h('div', { class: 'msg-b unsent' }, mine ? T('You unsent a message') : '@' + c.other.username + ' ' + T('unsent a message')));
+        const parts = [];
+        if (m.reply) parts.push(h('button', { class: 'm2-quote', onclick: (e) => { e.stopPropagation(); jumpTo(m.reply.id); } }, h('b', {}, nameOf(c, m.reply.from)), h('span', {}, m.reply.text || T('Photo'))));
+        if (m.img) parts.push(h('img', { class: 'm2-img', src: m.img, alt: T('Photo'), loading: 'lazy', onclick: (e) => { e.stopPropagation(); viewPhoto(m.img); } }));
+        if (m.voice) parts.push(voicePlayer(m));
+        if (m.game) parts.push(gameCard(m));
+        if (m.text) parts.push(h('span', { class: 'm2-txt', translate: 'no' }, find && find.q ? highlight(m.text, find.q) : linkify(m.text)));
+        if (m.edited) parts.push(h('small', { class: 'm2-edited' }, T('Edited')));
+        const only = (m.img || m.game) && !m.text && !m.reply;
+        const b = h('div', { class: 'msg-b ' + (mine ? 'me' : 'them') + (m.sending ? ' sending' : '') + (m.img ? ' has-img' : '') + (m.voice ? ' has-voice' : '') + (m.game ? ' has-game' : '') + (only ? ' only-media' : ''), title: new Date(m.t).toLocaleString(PatOS.locale) }, ...parts);
+        const wrap = h('div', { class: 'm2-mw ' + (mine ? 'me' : 'them') + ' ' + pos, 'data-mid': m.id }, b);
+        const rs = Object.values(m.reactions || {});
+        if (rs.length) { const count = {}; rs.forEach((e) => { count[e] = (count[e] || 0) + 1; }); const myR = (m.reactions || {})[(A.info() || {}).uid]; wrap.appendChild(h('div', { class: 'm2-reacts' }, ...Object.entries(count).map(([e, n]) => h('button', { class: e === myR ? 'mine' : '', onclick: (ev) => { ev.stopPropagation(); C.react(c.id, m.id, e).catch(fail); } }, e + (n > 1 ? ' ' + n : ''))))); }
         if (c.status === 'accepted' && !m.sending) {
           b.addEventListener('dblclick', (e) => { e.preventDefault(); C.react(c.id, m.id, '❤️').catch(fail); });
-          b.addEventListener('click', () => { const open = wrap.querySelector('.m2-rbar'); main.querySelectorAll('.m2-rbar').forEach((x) => x.remove()); if (open) return;
-            const mineR = (m.reactions || {})[A.info().uid];
-            wrap.insertBefore(h('div', { class: 'm2-rbar', role: 'toolbar', 'aria-label': T('React') }, ...REACT.map((e) => h('button', { class: e === mineR ? 'on' : '', 'aria-label': e, onclick: (ev) => { ev.stopPropagation(); C.react(c.id, m.id, e).catch(fail); } }, e))), b); });
+          const acts = h('div', { class: 'm2-acts', role: 'toolbar', 'aria-label': T('Message actions') },
+            h('button', { title: T('React'), 'aria-label': T('React'), html: sym('smile'), onclick: (e) => { e.stopPropagation(); reactBar(c, m, wrap); } }),
+            h('button', { title: T('Reply'), 'aria-label': T('Reply'), html: sym('reply'), onclick: (e) => { e.stopPropagation(); startReply(c, m); } }),
+            h('button', { title: T('More'), 'aria-label': T('More'), html: sym('more'), onclick: (e) => { e.stopPropagation(); const r = e.currentTarget.getBoundingClientRect(); PatOS.menu(msgMenu(c, m), r.left, r.bottom + 4); } }));
+          wrap.appendChild(acts);
+          b.addEventListener('contextmenu', (e) => { e.preventDefault(); PatOS.menu(msgMenu(c, m), e.clientX, e.clientY); });
         }
         return wrap;
       }
+      function msgMenu(c, m) {
+        const items = [{ label: T('Reply'), action: () => startReply(c, m) }];
+        if (m.text) items.push({ label: T('Copy'), action: () => { try { navigator.clipboard.writeText(m.text); } catch (e) {} } });
+        if (C.canChange(m)) {
+          if (m.text && !m.voice && !m.game) items.push({ label: T('Edit Message'), action: () => startEdit(c, m) });
+          items.push({ divider: true }, { label: T('Unsend'), action: async () => { if (await PatOS.confirmBox(T('Unsend this message?'), T('It goes away for both of you.'), { ok: T('Unsend'), icon: 'messages', danger: true })) C.unsend(c.id, m.id).catch(fail); } });
+        }
+        return items;
+      }
+      function reactBar(c, m, wrap) {
+        const open = wrap.querySelector('.m2-rbar'); main.querySelectorAll('.m2-rbar').forEach((x) => x.remove()); if (open) return;
+        const mineR = (m.reactions || {})[(A.info() || {}).uid];
+        wrap.insertBefore(h('div', { class: 'm2-rbar', role: 'toolbar', 'aria-label': T('React') }, ...REACT.map((e) => h('button', { class: e === mineR ? 'on' : '', 'aria-label': e, onclick: (ev) => { ev.stopPropagation(); wrap.querySelector('.m2-rbar').remove(); C.react(c.id, m.id, e).catch(fail); } }, e))), wrap.firstChild);
+      }
+      function jumpTo(mid) { const el = main.querySelector('.m2-mw[data-mid="' + mid + '"]'); if (!el) return; el.scrollIntoView({ block: 'center', behavior: 'smooth' }); el.classList.remove('flash'); void el.offsetWidth; el.classList.add('flash'); }
+      function highlight(text, q) { const out = document.createDocumentFragment(); const lo = text.toLowerCase(), ql = q.toLowerCase(); let i = 0, j; while ((j = lo.indexOf(ql, i)) >= 0) { out.append(text.slice(i, j), h('mark', {}, text.slice(j, j + q.length))); i = j + q.length; } out.append(text.slice(i)); return out; }
       function viewPhoto(src) { const l = h('div', { class: 'm2-photo', onclick: () => l.remove(), role: 'dialog', 'aria-label': T('Photo') }, h('img', { src })); document.body.appendChild(l); }
       /* a photo to send: made smaller (at most 1280 px, JPEG) so it fits in a message */
       async function shrink(file) {
@@ -31692,40 +31896,73 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
           throw new Error(T('That picture is too big.'));
         } finally { URL.revokeObjectURL(url); }
       }
-      function openConv(id) { cur = id; target = null; C.open(id); drawSide(); drawMain(); win.el.classList.add('m2-chat'); }
+      function openConv(id) { if (cur !== id) { replyTo = null; editing = null; find = null; nearBottom = true; } cur = id; target = null; C.open(id); drawSide(); drawMain(); win.el.classList.add('m2-chat'); }
+      function startReply(c, m) { editing = null; replyTo = { id: m.id, text: (m.text || (m.img ? T('Photo') : m.voice ? T('Voice message') : m.game ? m.game.label : '')).slice(0, 140), from: m.from || (m.mine ? (A.info() || {}).uid : c.other.uid) }; redraw(); focusInput(); }
+      function startEdit(c, m) { replyTo = null; editing = { id: m.id, text: m.text }; redraw(); const i = main.querySelector('.msg-in'); if (i) { i.value = m.text; autosize(i); i.focus(); } }
+      const focusInput = () => { const f = () => { const i = main.querySelector('.msg-in'); if (i && document.activeElement !== i) i.focus(); }; f(); setTimeout(f, 0); };
+      const autosize = (i) => { i.style.height = 'auto'; i.style.height = Math.min(140, i.scrollHeight) + 'px'; };
 
-      /* the right side: one conversation */
+      /* ================= the right side: one conversation ================= */
       function drawMain() {
         main.innerHTML = '';
         if (!signedIn()) {
-          main.appendChild(h('div', { class: 'm2-card' }, h('h2', {}, T('Message your friends')), h('p', {}, T('Messages works between PatOS accounts. Create one, then find friends by username.')),
-            h('div', { class: 'm2-cbtns' }, h('button', { class: 'btn primary', onclick: () => PatOS.accountUI.open('signup') }, T('Create Account')), h('button', { class: 'btn', onclick: () => PatOS.accountUI.open('signin') }, T('Sign In'))),
-            h('p', { class: 'm2-fine' }, T('Pat works without an account: click the speech bubble in the top bar.')))); return;
+          main.appendChild(h('div', { class: 'm2-card' }, h('div', { class: 'm2-cart', html: PatOS.iconHTML('messages') }), h('h2', {}, T('Message your friends')), h('p', {}, T('Messages works between PatOS accounts. Create one, then find friends by username.')),
+            h('div', { class: 'm2-cbtns' }, h('button', { class: 'btn primary', onclick: () => PatOS.accountUI.open('signup') }, T('Create Account')), h('button', { class: 'btn', onclick: () => PatOS.accountUI.open('signin') }, T('Sign In'))))); return;
         }
-        const c = cur ? C.find(cur) : null;
-        if (!c && !target) { main.appendChild(h('div', { class: 'm2-card' }, h('h2', {}, T('Messages')), h('p', {}, T('Pick a conversation, or find someone by username in the search box.')), C.outbox() ? h('p', { class: 'm2-fine' }, C.outbox() + ' ' + T('waiting to be sent (you are offline or the connection is slow)')) : null)); return; }
+        const c = cur ? C.find(cur) : null; main.dataset.status = c ? c.status : '';
+        if (!c && !target) { main.appendChild(h('div', { class: 'm2-card' }, h('div', { class: 'm2-cart', html: PatOS.iconHTML('messages') }), h('h2', {}, T('Messages')), h('p', {}, T('Pick a conversation, or find someone by username in the search box.')), C.outbox() ? h('p', { class: 'm2-fine' }, C.outbox() + ' ' + T('waiting to be sent (you are offline or the connection is slow)')) : null)); return; }
         const name = c ? c.other.username : target.username, ouid = c ? c.other.uid : target.uid;
         const other = { uid: ouid, username: name }; const god = C.isSystem() && !isSys(ouid);
         const known = everyone && everyone.find((u) => u.uid === ouid); const isBanned = !!(known && known.ban);
         const ver = A.isVerified(ouid);
-        const verBtn = god ? h('button', { class: 'btn m2-banbtn', onclick: () => C.verify(other, !ver).then(() => { drawSide(); drawMain(); }).catch(fail) }, ver ? T('Remove Badge') : T('Verify')) : null;
-        const banBtn = god ? h('button', { class: 'btn m2-banbtn' + (isBanned ? '' : ' danger'), onclick: () => (isBanned ? unbanIt(other) : banIt(other)) }, isBanned ? T('Unban') : T('Ban')) : null;
-        const back = h('button', { class: 'tbtn m2-back', 'aria-label': T('Back'), onclick: () => { win.el.classList.remove('m2-chat'); } }, '‹');
-        main.appendChild(h('div', { class: 'm2-head' }, back, av(name, ouid), h('div', { style: { flex: 1, minWidth: 0 } }, nameEl(ouid, name), h('small', {}, isBanned ? T('Banned') : isSys(ouid) ? T('PatOS system account') : c ? (c.status === 'accepted' ? T('Chat') : c.status === 'pending' ? (c.mine ? T('Waiting for them to accept') : T('Message request')) : T('Declined')) : T('New message'))), verBtn, banBtn));
+        // the header: who, what they are doing, and what you can do
+        const typing = c && Date.now() - (c.otherTyping || 0) < 6000;
+        const status = isBanned ? T('Banned') : isSys(ouid) ? T('PatOS system account') : !c ? T('New message') : c.status === 'accepted' ? (typing ? T('typing…') : C.muted().includes(c.id) ? T('Muted') : '') : c.status === 'pending' ? (c.mine ? T('Request sent') : T('Wants to message you')) : T('Declined');
+        const back = h('button', { class: 'm2-ibtn m2-back', 'aria-label': T('Back'), onclick: () => { win.el.classList.remove('m2-chat'); } }, '‹');
+        const tools = h('div', { class: 'm2-htools' });
+        if (c && c.status === 'accepted') {
+          tools.append(h('button', { class: 'm2-ibtn' + (find ? ' on' : ''), title: T('Search in this chat'), 'aria-label': T('Search in this chat'), html: sym('search'), onclick: () => { find = find ? null : { q: '', i: 0 }; redraw(); if (find) setTimeout(() => { const f = main.querySelector('.m2-find input'); f && f.focus(); }, 0); } }),
+            h('button', { class: 'm2-ibtn', title: T('More'), 'aria-label': T('More'), html: sym('more'), onclick: (e) => { const r = e.currentTarget.getBoundingClientRect(); PatOS.menu(chatMenu(c)().concat(god ? [{ divider: true }, { label: ver ? T('Remove Badge') : T('Verify'), action: () => C.verify(other, !ver).then(() => { drawSide(); drawMain(); }).catch(fail) }, { label: isBanned ? T('Unban') : T('Ban'), action: () => (isBanned ? unbanIt(other) : banIt(other)) }] : []), r.right - 180, r.bottom + 4); } }));
+        } else if (god) tools.append(h('button', { class: 'btn small' + (isBanned ? '' : ' danger'), onclick: () => (isBanned ? unbanIt(other) : banIt(other)) }, isBanned ? T('Unban') : T('Ban')));
+        main.appendChild(h('div', { class: 'm2-head' }, back, av(name, ouid, 'md'), h('div', { class: 'm2-hn' }, nameEl(ouid, name), status ? h('small', { class: typing ? 'typing' : '' }, status) : null), tools));
+        // search in this chat
+        let hits = [];
+        if (find && c) {
+          const fi = h('input', { type: 'search', class: 'field', placeholder: T('Search in this chat'), value: find.q, 'aria-label': T('Search in this chat') });
+          const count = h('small', { class: 'm2-fcount' });
+          const step = (d) => { if (!hits.length) return; find.i = (find.i + d + hits.length) % hits.length; count.textContent = (find.i + 1) + ' / ' + hits.length; jumpTo(hits[find.i]); };
+          fi.addEventListener('input', () => { find.q = fi.value; find.i = 0; redraw(); });
+          fi.addEventListener('keydown', (e) => { if (e.key === 'Enter') { e.preventDefault(); step(e.shiftKey ? -1 : 1); } if (e.key === 'Escape') { find = null; redraw(); } });
+          main.appendChild(h('div', { class: 'm2-find' }, fi, count, h('button', { class: 'm2-ibtn', 'aria-label': T('Previous'), onclick: () => step(-1) }, '↑'), h('button', { class: 'm2-ibtn', 'aria-label': T('Next'), onclick: () => step(1) }, '↓'), h('button', { class: 'm2-ibtn', 'aria-label': T('Close'), onclick: () => { find = null; redraw(); } }, '×')));
+          main._findCount = count;
+        }
         const list = h('div', { class: 'm2-msgs', role: 'log', 'aria-live': 'polite' });
         if (c) {
-          const ms = C.messages(); let day = '';
-          ms.forEach((m) => { const dk = new Date(m.t).toDateString(); if (dk !== day) { day = dk; list.appendChild(h('div', { class: 'm2-day' }, new Date(m.t).toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' }))); } list.appendChild(bubble(c, m)); });
+          const ms = C.messages(); let prev = null;
+          if (find && find.q) hits = ms.filter((m) => m.text && m.text.toLowerCase().includes(find.q.toLowerCase())).map((m) => m.id);
+          ms.forEach((m, i) => {
+            const gap = !prev || m.t - prev.t > 45 * 60000 || !sameDay(prev.t, m.t);
+            if (gap) list.appendChild(h('div', { class: 'm2-day' }, h('b', {}, sameDay(m.t, Date.now()) ? T('Today') : new Date(m.t).toLocaleDateString(PatOS.locale, { weekday: 'long', month: 'long', day: 'numeric' })), ' ' + new Date(m.t).toLocaleTimeString(PatOS.locale, { hour: 'numeric', minute: '2-digit' })));
+            const next = ms[i + 1];
+            const joinPrev = prev && !gap && prev.mine === m.mine && m.t - prev.t < 5 * 60000 && !prev.unsent && !m.unsent;
+            const joinNext = next && next.mine === m.mine && next.t - m.t < 5 * 60000 && sameDay(m.t, next.t) && !next.unsent && !m.unsent;
+            const pos = joinPrev && joinNext ? 'mid' : joinPrev ? 'last' : joinNext ? 'first' : 'solo';
+            const el = bubble(c, m, pos); if (find && find.q && !hits.includes(m.id)) el.classList.add('dim');
+            list.appendChild(el); prev = m;
+          });
+          if (find && main._findCount) main._findCount.textContent = hits.length ? (Math.min(find.i, hits.length - 1) + 1) + ' / ' + hits.length : (find.q ? T('No results') : '');
           // "Seen" under your last message once they read it, and "typing…" while they write
           const lastMine = [...ms].reverse().find((m) => m.mine && !m.sending);
-          if (lastMine && c.otherSeen && c.otherSeen >= lastMine.t - 2000 && ms[ms.length - 1] === lastMine) list.appendChild(h('div', { class: 'm2-seen' }, T('Seen') + ' ' + clock(c.otherSeen)));
-          list.appendChild(h('div', { class: 'm2-typing' + (Date.now() - (c.otherTyping || 0) < 6000 ? ' on' : ''), 'aria-label': T('typing…') }, h('i'), h('i'), h('i')));
+          if (lastMine && ms[ms.length - 1] === lastMine) list.appendChild(h('div', { class: 'm2-seen' }, c.otherSeen && c.otherSeen >= lastMine.t - 2000 ? T('Seen') + ' ' + clock(c.otherSeen) : T('Delivered')));
+          list.appendChild(h('div', { class: 'm2-typing' + (typing ? ' on' : ''), 'aria-label': T('typing…') }, h('i'), h('i'), h('i')));
           if (c.status === 'pending' && c.mine && !C.isSystem()) list.appendChild(h('div', { class: 'm2-sys' }, '@' + name + ' ' + T('has to accept your request before you can keep chatting.')));
         } else {
-          list.appendChild(h('div', { class: 'm2-sys' }, C.isSystem() ? T('You are the PatOS account: your message opens the chat at once, no request needed.') : T('Your first message is sent as a request. @') + name + ' ' + T('decides whether to accept it, and gets no notifications from you until they do.')));
-          C.outbox() && list.appendChild(h('div', { class: 'm2-sys' }, T('Sending…')));
+          list.appendChild(h('div', { class: 'm2-hello' }, av(name, ouid, 'lg'), nameEl(ouid, name), h('p', {}, C.isSystem() ? T('You are the PatOS account: your message opens the chat at once, no request needed.') : T('Your first message is sent as a request. @') + name + ' ' + T('decides whether to accept it, and gets no notifications from you until they do.'))));
         }
-        main.appendChild(list); setTimeout(() => { list.scrollTop = list.scrollHeight; }, 0);
+        main.appendChild(list);
+        list.addEventListener('scroll', () => { nearBottom = list.scrollHeight - list.scrollTop - list.clientHeight < 80; keepTop = list.scrollTop; }, { passive: true });
+        if (!(find && find.q && hits.length)) { list.scrollTop = list.scrollHeight; setTimeout(() => { list.scrollTop = list.scrollHeight; }, 0); } else setTimeout(() => jumpTo(hits[Math.min(find.i, hits.length - 1)]), 0);
+        list.addEventListener('click', () => main.querySelectorAll('.m2-rbar, .m2-emo, .m2-plus').forEach((x) => x.remove()));
         // the bottom: write, or answer a request
         if (c && c.status === 'pending' && !c.mine) {
           main.appendChild(h('div', { class: 'm2-ask' }, h('span', {}, '@' + name + ' ' + T('wants to message you.')), h('div', {}, h('button', { class: 'btn primary', onclick: () => C.respond(c.id, true).catch(fail) }, T('Accept')), h('button', { class: 'btn', onclick: () => C.respond(c.id, false).then(() => { cur = null; C.close(); drawSide(); drawMain(); }).catch(fail) }, T('Decline')))));
@@ -31736,34 +31973,103 @@ window.addEventListener('message',function(e){if(e.source!==P)return;var d=e.dat
         } else if (c && c.status === 'pending' && c.mine) {
           main.appendChild(h('div', { class: 'm2-ask' }, h('span', {}, T('Waiting for them to accept…'))));
         } else drawInput(c);
-        function drawInput(c) {
-          const input = h('input', { class: 'msg-in', placeholder: T('Message'), maxlength: '2000', autocomplete: 'off', enterkeyhint: 'send', 'aria-label': T('Message') });
-          const send = h('button', { class: 'msg-send', 'aria-label': T('Send') }, '↑');
-          input.addEventListener('input', () => { if (c && c.status === 'accepted') C.typing(c.id); });
-          // photos (only in a chat that is open) and emoji
-          const pick = h('input', { type: 'file', accept: 'image/*', style: { display: 'none' } });
-          pick.onchange = async () => { const f = pick.files && pick.files[0]; pick.value = ''; if (!f) return; try { const d = await shrink(f); C.send(c.id, input.value.trim(), d); input.value = ''; } catch (e) { fail(e); } };
-          const photo = c && c.status === 'accepted' ? h('button', { class: 'msg-tool', 'aria-label': T('Send a photo'), title: T('Send a photo'), onclick: () => pick.click() }, '📷') : null;
-          const EMO = ['😀', '😂', '🥹', '😍', '😎', '🤔', '😭', '😡', '👍', '👎', '👏', '🙏', '❤️', '🔥', '🎉', '✨', '💀', '😴', '🤯', '🥳', '👀', '💯', '✅', '❌'];
-          const emoBtn = h('button', { class: 'msg-tool', 'aria-label': T('Emoji'), title: T('Emoji'), onclick: (e) => { e.stopPropagation(); const open = main.querySelector('.m2-emo'); if (open) { open.remove(); return; }
-            main.appendChild(h('div', { class: 'm2-emo', role: 'listbox' }, ...EMO.map((x) => h('button', { onclick: () => { const p = input.selectionStart == null ? input.value.length : input.selectionStart; input.value = input.value.slice(0, p) + x + input.value.slice(p); input.focus(); input.setSelectionRange(p + x.length, p + x.length); } }, x)))); } }, '😊');
-          const go = async () => { const v = input.value.trim(); if (!v) return; input.value = ''; const e2 = main.querySelector('.m2-emo'); if (e2) e2.remove(); try { if (c && c.status === 'accepted') C.send(c.id, v); else if (c) await C.request(c.other, v); else { const id = await C.request(target, v); if (id) { cur = id; target = null; C.open(id); drawSide(); } } } catch (e) { input.value = v; fail(e); } };
-          input.addEventListener('keydown', (e) => { if (e.key === 'Enter') go(); }); send.onclick = go;
-          main.appendChild(h('div', { class: 'msg-bar' }, pick, photo, emoBtn, input, send)); if (!win._noFocus) setTimeout(() => input.focus(), 60);
-        }
+      }
+
+      /* ================= the composer ================= */
+      let rec = null; // a voice message being recorded
+      let stick = false; // the next drawing scrolls to the newest message
+      let nearBottom = true, keepTop = 0; // where you are reading (updated as you scroll)
+      function drawInput(c) {
+        const open = c && c.status === 'accepted';
+        const input = h('textarea', { class: 'msg-in', rows: '1', placeholder: editing ? T('Edit message') : T('Message'), maxlength: '2000', autocomplete: 'off', enterkeyhint: 'send', 'aria-label': T('Message') });
+        input.addEventListener('input', () => { autosize(input); if (open) C.typing(c.id); sendBtn.classList.toggle('ready', !!input.value.trim()); micBtn.hidden = !!input.value.trim() || !open || !!editing; sendBtn.hidden = !micBtn.hidden ? true : false; });
+        // above the field: what you are answering or fixing
+        const ctx = replyTo ? h('div', { class: 'm2-ctx' }, h('span', { class: 'm2-ctx-ic', html: sym('reply') }), h('div', {}, h('b', {}, T('Replying to') + ' ' + nameOf(c, replyTo.from)), h('span', {}, replyTo.text)), h('button', { class: 'm2-ibtn', 'aria-label': T('Cancel'), onclick: () => { replyTo = null; redraw(); } }, '×'))
+          : editing ? h('div', { class: 'm2-ctx' }, h('span', { class: 'm2-ctx-ic', html: sym('pencil') }), h('div', {}, h('b', {}, T('Editing')), h('span', {}, editing.text)), h('button', { class: 'm2-ibtn', 'aria-label': T('Cancel'), onclick: () => { editing = null; redraw(); } }, '×')) : null;
+        // + : a photo, a voice message, a game challenge
+        const pick = h('input', { type: 'file', accept: 'image/*', style: { display: 'none' } });
+        pick.onchange = async () => { const f = pick.files && pick.files[0]; pick.value = ''; if (!f) return; try { const d = await shrink(f); C.send(c.id, input.value.trim(), d, replyTo ? { reply: replyTo } : undefined); input.value = ''; replyTo = null; redraw(); } catch (e) { fail(e); } };
+        const plus = open && !editing ? h('button', { class: 'm2-ibtn m2-plusbtn', 'aria-label': T('Add'), title: T('Add'), html: sym('plus'), onclick: (e) => { e.stopPropagation(); const o = main.querySelector('.m2-plus'); main.querySelectorAll('.m2-emo, .m2-plus').forEach((x) => x.remove()); if (o) return;
+          main.appendChild(h('div', { class: 'm2-plus', role: 'menu' },
+            h('button', { role: 'menuitem', onclick: () => { main.querySelector('.m2-plus').remove(); pick.click(); } }, h('span', { html: sym('image') }), T('Photo')),
+            h('button', { role: 'menuitem', onclick: () => { main.querySelector('.m2-plus').remove(); startVoice(c); } }, h('span', { html: sym('mic') }), T('Voice Message')),
+            h('button', { role: 'menuitem', onclick: () => { main.querySelector('.m2-plus').remove(); challenge(c); } }, h('span', { html: sym('game') }), T('Game Challenge')))); } }) : null;
+        const emoBtn = h('button', { class: 'm2-ibtn m2-emobtn', 'aria-label': T('Emoji'), title: T('Emoji'), html: sym('smile'), onclick: (e) => { e.stopPropagation(); const o = main.querySelector('.m2-emo'); main.querySelectorAll('.m2-emo, .m2-plus').forEach((x) => x.remove()); if (o) return;
+          main.appendChild(h('div', { class: 'm2-emo', role: 'listbox' }, ...EMO.map((x) => h('button', { onclick: () => { const p = input.selectionStart == null ? input.value.length : input.selectionStart; input.value = input.value.slice(0, p) + x + input.value.slice(p); input.focus(); input.setSelectionRange(p + x.length, p + x.length); input.dispatchEvent(new Event('input')); } }, x)))); } });
+        const sendBtn = h('button', { class: 'msg-send', 'aria-label': editing ? T('Save') : T('Send'), html: editing ? sym('check') : sym('send') });
+        const micBtn = h('button', { class: 'msg-send mic', 'aria-label': T('Voice Message'), title: T('Voice Message'), html: sym('mic'), onclick: () => startVoice(c) });
+        micBtn.hidden = !open || !!editing; sendBtn.hidden = !micBtn.hidden;
+        const go = async () => {
+          const v = input.value.trim(); if (!v) return; main.querySelectorAll('.m2-emo, .m2-plus').forEach((x) => x.remove());
+          if (editing) { const id = editing.id; editing = null; input.value = ''; try { await C.edit(c.id, id, v); } catch (e) { fail(e); } redraw(); return; }
+          input.value = ''; autosize(input); const r = replyTo; replyTo = null; stick = true; // (your own message: show it)
+          try { if (open) C.send(c.id, v, null, r ? { reply: r } : undefined); else if (c) await C.request(c.other, v); else { const id = await C.request(target, v); if (id) { cur = id; target = null; C.open(id); drawSide(); } } } catch (e) { input.value = v; fail(e); }
+          if (r) redraw();
+        };
+        input.addEventListener('keydown', (e) => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); go(); } if (e.key === 'Escape' && (replyTo || editing)) { replyTo = null; editing = null; redraw(); } if (e.key === 'ArrowUp' && !input.value && open) { const last = [...C.messages()].reverse().find((m) => C.canChange(m) && m.text && !m.voice && !m.game); if (last) { e.preventDefault(); startEdit(c, last); } } });
+        sendBtn.onclick = go;
+        main.appendChild(h('div', { class: 'msg-dock' }, ctx, h('div', { class: 'msg-bar' }, pick, plus, h('div', { class: 'msg-field' }, input, emoBtn), sendBtn, micBtn)));
+        if (!win._noFocus) setTimeout(() => input.focus(), 60);
+      }
+      /* a voice message: record (at most a minute), then send or throw away */
+      async function startVoice(c) {
+        if (rec) return;
+        if (!navigator.mediaDevices || !window.MediaRecorder) { fail(T('This browser can’t record sound.')); return; }
+        let stream; try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }); } catch (e) { fail(T('PatOS can’t use the microphone. Allow it in your browser, then try again.')); return; }
+        const type = ['audio/webm;codecs=opus', 'audio/mp4', 'audio/ogg;codecs=opus', 'audio/webm'].find((t) => MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || '';
+        const mr = new MediaRecorder(stream, Object.assign({ audioBitsPerSecond: 24000 }, type ? { mimeType: type } : {})); const chunks = []; const t0 = Date.now();
+        rec = { mr, stream, t0, cancel: false };
+        mr.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+        const bar = main.querySelector('.msg-bar'); const time = h('b', {}, '0:00');
+        const ui = h('div', { class: 'msg-bar rec' }, h('button', { class: 'm2-ibtn', 'aria-label': T('Delete'), title: T('Delete'), html: sym('trash'), onclick: () => { rec.cancel = true; mr.stop(); } }), h('span', { class: 'm2-recdot' }), time, h('span', { class: 'm2-rechint' }, T('Recording…')), h('button', { class: 'msg-send ready', 'aria-label': T('Send'), html: sym('send'), onclick: () => mr.stop() }));
+        if (bar) bar.replaceWith(ui);
+        const tick = setInterval(() => { const s = (Date.now() - t0) / 1000; time.textContent = dur(s); if (s >= 60) mr.stop(); }, 250);
+        mr.onstop = async () => {
+          clearInterval(tick); stream.getTracks().forEach((x) => x.stop()); const cancel = rec.cancel; const secs = Math.min(60, (Date.now() - t0) / 1000); rec = null;
+          if (cancel || secs < 0.6 || !chunks.length) { redraw(); return; }
+          const blob = new Blob(chunks, { type: mr.mimeType || type || 'audio/webm' });
+          const url = await new Promise((ok) => { const fr = new FileReader(); fr.onload = () => ok(fr.result); fr.readAsDataURL(blob); });
+          if (url.length > 395000) { fail(T('That voice message is too long.')); redraw(); return; }
+          const r = replyTo; replyTo = null; stick = true; C.send(c.id, '', null, Object.assign({ voice: url, dur: Math.round(secs * 10) / 10 }, r ? { reply: r } : {})); redraw();
+        };
+        mr.start(250);
+      }
+      /* a game challenge: your best in a game, as a card they can answer by playing */
+      function challenge(c) {
+        const gc = PatOS.gc; if (!gc) return;
+        const d = gc.daily(); const opts = [];
+        if (d.best) opts.push({ id: '2048-daily', label: T('Daily Challenge') + ' · 2048', score: d.best, day: d.id });
+        [['orbrunner', 'Orb Runner'], ['2048', '2048'], ['snake', 'Snake'], ['breakout', 'Breakout'], ['slither', 'Slither']].forEach(([id, n]) => { const s = gc.stats(id); if (s.best) opts.push({ id, label: n, score: s.best }); });
+        if (!opts.length) { msg(T('No scores yet'), T('Play a game first, then challenge your friend to beat your score.')); return; }
+        const r = main.querySelector('.m2-plusbtn') ? main.querySelector('.m2-plusbtn').getBoundingClientRect() : { left: 40, top: 400 };
+        PatOS.menu([{ header: T('Challenge with your best') }].concat(opts.map((o) => ({ label: o.label + ' · ' + Number(o.score).toLocaleString(PatOS.locale), action: () => { stick = true; C.send(c.id, '', null, { game: o }); } }))), r.left, r.top - 8 - (opts.length + 1) * 30);
       }
       const fullPaint = () => { root.classList.toggle('m2-out', !signedIn()); who.innerHTML = ''; if (signedIn()) who.append(nameEl(A.info().uid, A.info().username, 'span')); if (!signedIn()) { cur = null; target = null; } drawSide(); drawMain(); };
-      // draws the conversation again, keeping what is being typed (and where)
-      function redraw() { if (!(cur || target)) return; const i0 = main.querySelector('.msg-in'); const v = i0 ? i0.value : ''; const focus = document.activeElement === i0; const pos = i0 ? i0.selectionStart : 0; drawMain(); const i = main.querySelector('.msg-in'); if (i && v) { i.value = v; } if (i && focus) { i.focus(); try { i.setSelectionRange(pos, pos); } catch (e) {} } }
+      // draws the conversation again, keeping what is being typed (and where), unless a voice message is being recorded
+      function redraw() {
+        if (!(cur || target) || rec) return;
+        const i0 = main.querySelector('.msg-in'); const v = i0 ? i0.value : ''; const focus = document.activeElement === i0; const pos = i0 ? i0.selectionStart : 0;
+        const fi0 = main.querySelector('.m2-find input'); const ff = document.activeElement === fi0; const fpos = fi0 ? fi0.selectionStart : 0;
+        const atBottom = stick || nearBottom; const top0 = keepTop; stick = false;
+        drawMain();
+        const i = main.querySelector('.msg-in'); if (i && v && !(editing && i.value)) { i.value = v; autosize(i); i.dispatchEvent(new Event('input')); } if (i && focus) { i.focus(); try { i.setSelectionRange(pos, pos); } catch (e) {} }
+        const fi = main.querySelector('.m2-find input'); if (fi && ff) { fi.focus(); try { fi.setSelectionRange(fpos, fpos); } catch (e) {} }
+        const l = main.querySelector('.m2-msgs'); if (l && !atBottom && !(find && find.q)) { l.scrollTop = top0; setTimeout(() => { l.scrollTop = top0; }, 0); } else if (l && atBottom) nearBottom = true;
+      }
       // "typing…" and "Seen" change without new messages: update them in place
-      const live = () => { const c = cur ? C.find(cur) : null; const t = main.querySelector('.m2-typing'); if (!c || !t) return; const on = Date.now() - (c.otherTyping || 0) < 6000; if (t.classList.contains('on') !== on) { t.classList.toggle('on', on); if (on) { const l = main.querySelector('.m2-msgs'); if (l) l.scrollTop = l.scrollHeight; } }
-        if (main.dataset.seen !== String(c.otherSeen || 0)) { main.dataset.seen = String(c.otherSeen || 0); if (main.querySelector('.m2-msgs') && !main.querySelector('.m2-rbar, .m2-emo')) redraw(); } };
+      const live = () => {
+        const c = cur ? C.find(cur) : null; const t = main.querySelector('.m2-typing'); if (!c || !t) return;
+        const on = Date.now() - (c.otherTyping || 0) < 6000;
+        if (t.classList.contains('on') !== on) { t.classList.toggle('on', on); const s = main.querySelector('.m2-hn small'); if (s) { s.textContent = on ? T('typing…') : C.muted().includes(c.id) ? T('Muted') : ''; s.classList.toggle('typing', on); } if (on) { const l = main.querySelector('.m2-msgs'); if (l && l.scrollHeight - l.scrollTop - l.clientHeight < 80) l.scrollTop = l.scrollHeight; } }
+        if (main.dataset.seen !== String(c.otherSeen || 0)) { main.dataset.seen = String(c.otherSeen || 0); if (main.querySelector('.m2-msgs') && !main.querySelector('.m2-rbar, .m2-emo, .m2-plus')) redraw(); }
+      };
       const liveTimer = setInterval(() => { if (root.isConnected) live(); }, 1500); win.on('closed', () => clearInterval(liveTimer));
-      const offs = [PatOS.on('chat', () => { if (!root.isConnected) return; drawSide(); const c = cur ? C.find(cur) : null; if (cur && !c) { /* gone */ } else if (c && main.dataset.status !== c.status) { drawMain(); } main.dataset.status = c ? c.status : ''; live(); }),
+      const offs = [PatOS.on('chat', () => { if (!root.isConnected) return; drawSide(); const c = cur ? C.find(cur) : null; if (c && main.dataset.status !== c.status) redraw(); live(); }), // (a request accepted, declined...: what is being typed stays)
         PatOS.on('chat:messages', () => { if (root.isConnected) redraw(); }),
         PatOS.on('account', () => { if (root.isConnected) fullPaint(); })];
-      win.on('closed', () => { offs.forEach((f) => f()); C.close(); });
+      win.on('closed', () => { offs.forEach((f) => f()); C.close(); if (rec) { rec.cancel = true; try { rec.mr.stop(); } catch (e) {} } });
       win._open = (id) => { if (signedIn()) openConv(id); };
+      win._m = { reply: (mid) => { const c = C.find(cur); const m = C.messages().find((x) => x.id === mid); if (c && m) startReply(c, m); }, edit: (mid) => { const c = C.find(cur); const m = C.messages().find((x) => x.id === mid); if (c && m) startEdit(c, m); }, find: (q) => { find = { q, i: 0 }; redraw(); } };
       fullPaint();
       if (signedIn() && C.available() && !C.ready()) { try { PatOS.chat.search(''); } catch (e) {} }
       if (args && args.chat) win._open(args.chat);
